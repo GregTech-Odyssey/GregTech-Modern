@@ -45,12 +45,7 @@ import com.gregtechceu.gtceu.data.pack.GTDynamicResourcePack;
 import com.gregtechceu.gtceu.data.pack.GTPackSource;
 import com.gregtechceu.gtceu.data.recipe.GTCraftingComponents;
 import com.gregtechceu.gtceu.forge.AlloyBlastPropertyAddition;
-import com.gregtechceu.gtceu.integration.cctweaked.CCTweakedPlugin;
-import com.gregtechceu.gtceu.integration.kjs.GTCEuStartupEvents;
-import com.gregtechceu.gtceu.integration.kjs.GTRegistryInfo;
-import com.gregtechceu.gtceu.integration.kjs.events.MaterialModificationEventJS;
 import com.gregtechceu.gtceu.integration.map.WaypointManager;
-import com.gregtechceu.gtceu.integration.top.forge.TheOneProbePluginImpl;
 import com.gregtechceu.gtceu.utils.input.KeyBind;
 
 import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
@@ -73,7 +68,6 @@ import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoader;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLConstructModEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.javafmlmod.FMLModContainer;
 import net.minecraftforge.registries.RegisterEvent;
@@ -209,17 +203,11 @@ public class CommonProxy {
         GTCEu.LOGGER.info("Registering addon Materials");
         MaterialEvent materialEvent = new MaterialEvent();
         ModLoader.get().postEvent(materialEvent);
-        if (GTCEu.Mods.isKubeJSLoaded()) {
-            KJSEventWrapper.materialRegistry();
-        }
 
         // Fire Post-Material event, intended for when Materials need to be iterated over in-full before freezing
         // Block entirely new Materials from being added in the Post event
         managerInternal.closeRegistries();
         ModLoader.get().postEvent(new PostMaterialEvent());
-        if (GTCEu.Mods.isKubeJSLoaded()) {
-            KJSEventWrapper.materialModification();
-        }
 
         // Freeze Material Registry before processing Items, Blocks, and Fluids
         managerInternal.freezeRegistries();
@@ -272,21 +260,6 @@ public class CommonProxy {
             MapIngredientTypeManager.registerMapIngredient(ItemStack.class, IntersectionMapIngredient::from);
             MapIngredientTypeManager.registerMapIngredient(ItemStack.class, CustomMapIngredient::from);
             // spotless:on
-
-            if (GTCEu.Mods.isCCTweakedLoaded()) {
-                GTCEu.LOGGER.info("CC: Tweaked found. Enabling integration...");
-                CCTweakedPlugin.init();
-            }
-        });
-    }
-
-    @SubscribeEvent
-    public void loadComplete(FMLLoadCompleteEvent e) {
-        e.enqueueWork(() -> {
-            if (GTCEu.isModLoaded(GTValues.MODID_TOP)) {
-                GTCEu.LOGGER.info("TheOneProbe found. Enabling integration...");
-                TheOneProbePluginImpl.init();
-            }
         });
     }
 
@@ -321,17 +294,6 @@ public class CommonProxy {
                     event.getPackType(),
                     Pack.Position.BOTTOM,
                     GTDynamicDataPack::new));
-        }
-    }
-
-    public static final class KJSEventWrapper {
-
-        public static void materialRegistry() {
-            GTRegistryInfo.registerFor(GTCEuAPI.materialManager.getRegistry(GTCEu.MOD_ID).getRegistryName());
-        }
-
-        public static void materialModification() {
-            GTCEuStartupEvents.MATERIAL_MODIFICATION.post(new MaterialModificationEventJS());
         }
     }
 }

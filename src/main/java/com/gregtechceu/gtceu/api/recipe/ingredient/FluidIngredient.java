@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.api.recipe.ingredient;
 
+import com.gregtechceu.gtceu.utils.GTMath;
+
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -37,13 +39,12 @@ public class FluidIngredient implements Predicate<FluidStack> {
     public FluidIngredient.Value[] values;
     @Nullable
     public FluidStack[] stacks;
+    public long amount;
     @Getter
-    private int amount;
-    @Getter
-    private CompoundTag nbt;
-    private boolean changed = true;
+    public CompoundTag nbt;
+    public boolean changed = true;
 
-    protected FluidIngredient(Value[] values, int amount, @Nullable CompoundTag nbt) {
+    protected FluidIngredient(Value[] values, long amount, @Nullable CompoundTag nbt) {
         this.values = values;
         this.amount = amount;
         this.nbt = nbt;
@@ -55,9 +56,13 @@ public class FluidIngredient implements Predicate<FluidStack> {
         return ingredient.isEmpty() ? EMPTY : ingredient;
     }
 
+    public int getAmount() {
+        return (int) amount;
+    }
+
     public void toNetwork(FriendlyByteBuf buffer) {
         buffer.writeCollection(Arrays.asList(this.getStacks()), (buf, stack) -> stack.writeToPacket(buf));
-        buffer.writeVarInt(amount);
+        buffer.writeLong(amount);
         buffer.writeNbt(nbt);
     }
 
@@ -141,7 +146,7 @@ public class FluidIngredient implements Predicate<FluidStack> {
     @Override
     public int hashCode() {
         int result = Arrays.hashCode(values);
-        result = 31 * result + Integer.hashCode(amount);
+        result = 31 * result + Long.hashCode(amount);
         result = 31 * result + Objects.hashCode(nbt);
         return result;
     }
@@ -159,7 +164,7 @@ public class FluidIngredient implements Predicate<FluidStack> {
                     if (found.contains(fluid)) continue;
                     found.add(fluid);
 
-                    fluidStacks.add(new FluidStack(fluid, this.amount, this.nbt));
+                    fluidStacks.add(new FluidStack(fluid, GTMath.saturatedCast(amount), this.nbt));
                 }
             }
             this.stacks = fluidStacks.toArray(FluidStack[]::new);
@@ -168,7 +173,7 @@ public class FluidIngredient implements Predicate<FluidStack> {
         return this.stacks;
     }
 
-    public void setAmount(int amount) {
+    public void setAmount(long amount) {
         this.amount = amount;
         this.changed = true;
     }

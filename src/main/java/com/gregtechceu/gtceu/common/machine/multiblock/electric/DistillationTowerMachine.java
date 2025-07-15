@@ -162,10 +162,7 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine
 
     private static GTRecipe modifyOutputs(GTRecipe recipe, ContentModifier cm) {
         return new GTRecipe(recipe.recipeType, recipe.id, recipe.inputs, cm.applyContents(recipe.outputs),
-                recipe.tickInputs, cm.applyContents(recipe.tickOutputs), recipe.inputChanceLogics,
-                recipe.outputChanceLogics,
-                recipe.tickInputChanceLogics, recipe.tickOutputChanceLogics, recipe.conditions,
-                recipe.ingredientActions,
+                recipe.tickInputs, cm.applyContents(recipe.tickOutputs), recipe.conditions,
                 recipe.data, recipe.duration, recipe.recipeCategory);
     }
 

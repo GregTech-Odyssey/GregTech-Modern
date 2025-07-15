@@ -18,11 +18,10 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.saveddata.SavedData;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.HashMap;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -32,7 +31,7 @@ public class BedrockFluidVeinSavedData extends SavedData {
 
     public static final int VEIN_CHUNK_SIZE = 8; // veins are 8x8 chunk squares
     public static final int MAXIMUM_VEIN_OPERATIONS = 100_000;
-    public final HashMap<ChunkPos, FluidVeinWorldEntry> veinFluids = new HashMap<>();
+    public final Long2ObjectOpenHashMap<FluidVeinWorldEntry> veinFluids = new Long2ObjectOpenHashMap<>();
 
     // runtime
     private final Object2IntMap<Holder<Biome>> biomeWeights = new Object2IntOpenHashMap<>();
@@ -53,17 +52,16 @@ public class BedrockFluidVeinSavedData extends SavedData {
         var list = nbt.getList("veinInfo", Tag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); ++i) {
             CompoundTag compoundTag = list.getCompound(i);
-            var chunkPos = new ChunkPos(compoundTag.getLong("p"));
-            veinFluids.put(chunkPos, FluidVeinWorldEntry.readFromNBT(compoundTag.getCompound("d")));
+            veinFluids.put(compoundTag.getLong("p"), FluidVeinWorldEntry.readFromNBT(compoundTag.getCompound("d")));
         }
     }
 
     @Override
     public CompoundTag save(CompoundTag nbt) {
         var oilList = new ListTag();
-        for (var entry : veinFluids.entrySet()) {
+        for (var entry : veinFluids.long2ObjectEntrySet()) {
             var tag = new CompoundTag();
-            tag.putLong("p", entry.getKey().toLong());
+            tag.putLong("p", entry.getLongKey());
             tag.put("d", entry.getValue().writeToNBT());
             oilList.add(tag);
         }
@@ -83,7 +81,7 @@ public class BedrockFluidVeinSavedData extends SavedData {
      * @return The FluidVeinWorldInfo corresponding with the given chunk
      */
     public FluidVeinWorldEntry getFluidVeinWorldEntry(int chunkX, int chunkZ) {
-        ChunkPos pos = new ChunkPos(chunkX, chunkZ);
+        long pos = ChunkPos.asLong(chunkX, chunkZ);
         if (!veinFluids.containsKey(pos)) {
             BedrockFluidDefinition definition = null;
             int query = RandomSource

@@ -171,7 +171,7 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
 
     public GTFluidBuilder<P> source(NonNullSupplier<? extends GTFluid> factory) {
         this.defaultSource = false;
-        this.source = NonNullSupplier.lazy(factory::get);
+        this.source = NonNullSupplier.lazy(factory);
         return this;
     }
 
@@ -342,7 +342,7 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
 
         NonNullSupplier<? extends GTFluid> source = this.source;
         if (source != null) {
-            getCallback().accept(sourceName, ForgeRegistries.Keys.FLUIDS, (GTFluidBuilder) this, source::get);
+            getCallback().accept(sourceName, ForgeRegistries.Keys.FLUIDS, (GTFluidBuilder) this, source);
         } else {
             throw new IllegalStateException("Fluid must have a source version: " + getName());
         }

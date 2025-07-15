@@ -1,6 +1,5 @@
 mixin {
-    var refmap = add sourceSets.main, "gtceu.refmap.json"
-    slimJar.from refmap
+    add sourceSets.main, "gtceu.refmap.json"
     config 'gtceu.mixins.json'
 }
 
@@ -23,34 +22,12 @@ legacyForge {
         // define mod <-> source bindings
         "${mod_id}" {
             sourceSet(sourceSets.main)
-            sourceSet(sourceSets.test)
-            sourceSet(sourceSets.extra)
         }
     }
 
     runs {
         client {
             client()
-            sourceSet = sourceSets.extra
-            ideName = "Client 1"
-
-            systemProperty('forge.enabledGameTestNamespaces', project.mod_id)
-        }
-
-        client2 {
-            client()
-            sourceSet = sourceSets.extra
-            ideName = "Client 2"
-
-            programArguments.addAll('--username', 'YoungOnion')
-            systemProperty('forge.enabledGameTestNamespaces', project.mod_id)
-        }
-
-        // Client with GTM + Jade, EMI, AE2
-        cleanClient {
-            client()
-            sourceSet = sourceSets.main
-            ideName = "Clean Client"
 
             systemProperty('forge.enabledGameTestNamespaces', project.mod_id)
         }
@@ -62,18 +39,6 @@ legacyForge {
 
             gameDirectory.set(file('run/server'))
             programArgument '--nogui'
-            systemProperty('forge.enabledGameTestNamespaces', project.mod_id)
-        }
-
-        // This run config launches GameTestServer and runs all registered gametests, then exits.
-        // By default, the server will crash when no gametests are provided.
-        // The gametest system is also enabled by default for other run configs under the /test command.
-        gameTestServer {
-            type = "gameTestServer"
-            sourceSet = sourceSets.test
-            ideName = "Game Tests"
-
-            gameDirectory.set(file('run/gametest'))
             systemProperty('forge.enabledGameTestNamespaces', project.mod_id)
         }
 

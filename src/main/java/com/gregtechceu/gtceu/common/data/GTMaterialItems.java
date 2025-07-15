@@ -10,10 +10,7 @@ import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.TagPrefixItem;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
-import com.gregtechceu.gtceu.common.item.armor.GTArmorItem;
-import com.gregtechceu.gtceu.common.item.armor.GTDyeableArmorItem;
 
-import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
@@ -26,7 +23,6 @@ import com.tterrag.registrate.util.entry.ItemEntry;
 import com.tterrag.registrate.util.entry.ItemProviderEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -59,11 +55,6 @@ public class GTMaterialItems {
                     .filter(mat -> mat.hasProperty(PropertyKey.TOOL))
                     .toList(),
             GTToolType.getTypes().values().stream().toList());
-    public static final Table<Material, ArmorItem.Type, ItemEntry<? extends ArmorItem>> ARMOR_ITEMS = ArrayTable.create(
-            GTCEuAPI.materialManager.getRegisteredMaterials().stream()
-                    .filter(mat -> mat.hasProperty(PropertyKey.ARMOR))
-                    .toList(),
-            Arrays.asList(ArmorItem.Type.values()));
 
     // Material Items
     public static void generateMaterialItems() {
@@ -126,43 +117,5 @@ public class GTMaterialItems {
                 .model(NonNullBiConsumer.noop())
                 .color(() -> IGTTool::tintColor)
                 .register());
-    }
-
-    // Material Armors
-    public static void generateArmors() {
-        REGISTRATE.creativeModeTab(() -> TOOL);
-        for (ArmorItem.Type type : ArmorItem.Type.values()) {
-            for (MaterialRegistry registry : GTCEuAPI.materialManager.getRegistries()) {
-                GTRegistrate registrate = registry.getRegistrate();
-                for (Material material : registry.getAllMaterials()) {
-                    if (material.hasProperty(PropertyKey.ARMOR)) {
-                        generateArmor(material, type, registrate);
-                    }
-                }
-            }
-        }
-    }
-
-    private static void generateArmor(final Material material, final ArmorItem.Type type, GTRegistrate registrate) {
-        var property = material.getProperty(PropertyKey.ARMOR);
-        if (property.isDyeable()) {
-            ARMOR_ITEMS.put(material, type, registrate
-                    .item("%s_%s".formatted(material.getName(), type.getName()),
-                            p -> new GTDyeableArmorItem(property.getArmorMaterial(), type, p,
-                                    material, property))
-                    .setData(ProviderType.LANG, NonNullBiConsumer.noop())
-                    .model(NonNullBiConsumer.noop())
-                    .color(() -> GTArmorItem::tintColor)
-                    .register());
-        } else {
-            ARMOR_ITEMS.put(material, type, registrate
-                    .item("%s_%s".formatted(material.getName(), type.getName()),
-                            p -> new GTArmorItem(property.getArmorMaterial(), type, p,
-                                    material, property))
-                    .setData(ProviderType.LANG, NonNullBiConsumer.noop())
-                    .model(NonNullBiConsumer.noop())
-                    .color(() -> GTArmorItem::tintColor)
-                    .register());
-        }
     }
 }

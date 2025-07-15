@@ -132,7 +132,7 @@ public class ProspectingTexture extends AbstractTexture {
      * The resulting color of this operation is stored as least to most significant bits.
      */
     public static int combine(int alpha, int blue, int green, int red) {
-        return (alpha & 0xFF) << 24 | (blue & 0xFF) << 16 | (green & 0xFF) << 8 | (red & 0xFF) << 0;
+        return (alpha & 0xFF) << 24 | (blue & 0xFF) << 16 | (green & 0xFF) << 8 | (red & 0xFF);
     }
 
     public void load() {

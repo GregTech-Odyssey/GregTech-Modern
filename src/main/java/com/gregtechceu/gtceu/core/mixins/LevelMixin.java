@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.core.mixins;
 
+import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldSavedData;
 
 import com.lowdragmc.lowdraglib.async.AsyncThreadData;
@@ -13,15 +14,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Level.class)
 public abstract class LevelMixin implements LevelAccessor {
@@ -34,46 +32,63 @@ public abstract class LevelMixin implements LevelAccessor {
     @Final
     private Thread thread;
 
+    @Shadow
+    public abstract LevelChunk getChunk(int chunkX, int chunkZ);
+
     @Unique
     private @Nullable ChunkAccess gtceu$maybeGetChunkAsync(int chunkX, int chunkZ) {
         if (this.isClientSide) return null;
         if (Thread.currentThread() == this.thread) return null;
         if (!MultiblockWorldSavedData.isThreadService() && !AsyncThreadData.isThreadService()) return null;
         if (!this.getChunkSource().hasChunk(chunkX, chunkZ)) return null;
-
         return this.getChunkSource().getChunkNow(chunkX, chunkZ);
     }
 
-    @Inject(method = "getBlockEntity", at = @At(value = "HEAD"), cancellable = true)
-    private void gtceu$getBlockEntityOffThread(BlockPos pos, CallbackInfoReturnable<BlockEntity> cir) {
-        ChunkAccess chunk = gtceu$maybeGetChunkAsync(pos.getX() >> 4, pos.getZ() >> 4);
+    /**
+     * @author .
+     * @reason .
+     */
+    @javax.annotation.Nullable
+    @Overwrite
+    public BlockEntity getBlockEntity(BlockPos pos) {
+        int chunkX = pos.getX() >> 4;
+        int chunkZ = pos.getZ() >> 4;
+        ChunkAccess chunk = gtceu$maybeGetChunkAsync(chunkX, chunkZ);
         if (chunk instanceof LevelChunk levelChunk) {
-            cir.setReturnValue(levelChunk.getBlockEntities().get(pos));
+            return levelChunk.getBlockEntities().get(pos);
         }
+        return !this.isClientSide && Thread.currentThread() != this.thread ? null : this.getChunk(chunkX, chunkZ).getBlockEntity(pos, LevelChunk.EntityCreationType.IMMEDIATE);
     }
 
-    @Inject(method = "getBlockState", at = @At(value = "HEAD"), cancellable = true)
-    private void gtceu$getBlockStateOffThread(BlockPos pos, CallbackInfoReturnable<BlockState> cir) {
-        ChunkAccess chunk = gtceu$maybeGetChunkAsync(pos.getX() >> 4, pos.getZ() >> 4);
+    /**
+     * @author .
+     * @reason .
+     */
+    @Overwrite
+    public @NotNull BlockState getBlockState(BlockPos pos) {
+        int chunkX = pos.getX() >> 4;
+        int chunkZ = pos.getZ() >> 4;
+        ChunkAccess chunk = gtceu$maybeGetChunkAsync(chunkX, chunkZ);
         if (chunk != null) {
-            cir.setReturnValue(chunk.getBlockState(pos));
+            return chunk.getBlockState(pos);
         }
+
+        return this.getChunk(chunkX, chunkZ).getBlockState(pos);
     }
 
-    @SuppressWarnings("ConstantValue")
-    @Inject(method = "markAndNotifyBlock",
-            at = @At(value = "INVOKE",
-                     target = "Lnet/minecraft/world/level/Level;blockUpdated(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;)V"),
-            remap = false)
-    private void gtceu$updateChunkMultiblocks(BlockPos pos, LevelChunk chunk,
-                                              BlockState oldState, BlockState newState, int flags, int recursionLeft,
-                                              CallbackInfo ci) {
-        if (!(((Object) this) instanceof ServerLevel serverLevel)) return;
-
-        MultiblockWorldSavedData mwsd = MultiblockWorldSavedData.getOrCreate(serverLevel);
-        for (var structure : mwsd.getControllersInChunk(chunk.getPos())) {
-            if (structure.isPosInCache(pos)) {
-                serverLevel.getServer().executeBlocking(() -> structure.onBlockStateChanged(pos, newState));
+    @Inject(method = "markAndNotifyBlock", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;blockUpdated(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;)V"))
+    private void gtceu$updateChunkMultiblocks(BlockPos pos, LevelChunk chunk, BlockState oldState, BlockState newState, int flags, int recursionLeft, CallbackInfo ci) {
+        if (((Object) this) instanceof ServerLevel serverLevel) {
+            var cache = serverLevel.getDataStorage().cache.get(MultiblockWorldSavedData.DATA_NAME);
+            if (cache != null) {
+                var states = ((MultiblockWorldSavedData) cache).chunkPosMapping.get(chunk.getPos().toLong());
+                if (states != null) {
+                    for (var structure : states.toArray(MultiblockState[]::new)) {
+                        if (structure.isPosInCache(pos)) {
+                            serverLevel.getServer().executeBlocking(() -> structure.onBlockStateChanged(pos, newState));
+                        }
+                    }
+                }
             }
         }
     }

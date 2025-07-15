@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.common.commands;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.cosmetics.CapeRegistry;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.BedrockFluidDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockore.BedrockOreDefinition;
@@ -19,7 +18,6 @@ import com.gregtechceu.gtceu.data.pack.GTDynamicDataPack;
 
 import net.minecraft.commands.*;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -32,14 +30,12 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.BulkSectionAccess;
 import net.minecraft.world.level.levelgen.structure.templatesystem.AlwaysTrueTest;
 
-import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.Dynamic2CommandExceptionType;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
-import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 
@@ -50,12 +46,6 @@ import static net.minecraft.commands.Commands.*;
 
 public class GTCommands {
 
-    public static final SuggestionProvider<CommandSourceStack> OWNED_CAPES = (ctx, builder) -> {
-        return SharedSuggestionProvider.suggestResource(findOwnedCapesFor(ctx), builder);
-    };
-    public static final SuggestionProvider<CommandSourceStack> NOT_OWNED_CAPES = (ctx, builder) -> {
-        return SharedSuggestionProvider.suggestResource(findNotOwnedCapesFor(ctx), builder);
-    };
     private static final SimpleCommandExceptionType ERROR_GIVE_FAILED = new SimpleCommandExceptionType(
             Component.translatable("command.gtceu.cape.give.failed"));
     private static final SimpleCommandExceptionType ERROR_TAKE_FAILED = new SimpleCommandExceptionType(
@@ -99,64 +89,6 @@ public class GTCommands {
                                         .then(argument("position", BlockPosArgument.blockPos())
                                                 .executes(context -> {
                                                     return GTCommands.placeVein(context, BlockPosArgument.getBlockPos(context, "position"));
-                                                }))))
-                        .then(literal("cape")
-                                .then(literal("give")
-                                        .requires(ctx -> ctx.hasPermission(LEVEL_GAMEMASTERS))
-                                        .then(argument("targets", EntityArgument.players())
-                                                .then(argument("cape", ResourceLocationArgument.id())
-                                                        .suggests(NOT_OWNED_CAPES)
-                                                        .executes(ctx -> {
-                                                            Collection<ServerPlayer> players = EntityArgument.getPlayers(ctx, "targets");
-                                                            Collection<ResourceLocation> cape = Collections.singleton(ResourceLocationArgument.getId(ctx, "cape"));
-                                                            return giveCapes(ctx.getSource(), players, cape);
-                                                        }))
-                                                .then(literal("*")
-                                                        .executes(ctx -> {
-                                                            Collection<ServerPlayer> players = EntityArgument.getPlayers(ctx, "targets");
-                                                            return giveCapes(ctx.getSource(), players, CapeRegistry.ALL_CAPES.keySet());
-                                                        }))))
-                                .then(literal("take")
-                                        .requires(ctx -> ctx.hasPermission(LEVEL_GAMEMASTERS))
-                                        .then(argument("targets", EntityArgument.players())
-                                                .then(argument("cape", ResourceLocationArgument.id())
-                                                        .suggests(OWNED_CAPES)
-                                                        .executes(ctx -> {
-                                                            Collection<ServerPlayer> players = EntityArgument.getPlayers(ctx, "targets");
-                                                            Collection<ResourceLocation> cape = Collections.singleton(ResourceLocationArgument.getId(ctx, "cape"));
-                                                            return takeCapes(ctx.getSource(), players, cape);
-                                                        }))
-                                                .then(literal("*")
-                                                        .executes(ctx -> {
-                                                            Collection<ServerPlayer> players = EntityArgument.getPlayers(ctx, "targets");
-                                                            return takeCapes(ctx.getSource(), players, CapeRegistry.ALL_CAPES.keySet());
-                                                        }))))
-                                .then(literal("use")
-                                        .then(argument("target", EntityArgument.player())
-                                                .requires(ctx -> ctx.hasPermission(LEVEL_ADMINS))
-                                                .then(argument("cape", ResourceLocationArgument.id())
-                                                        .suggests(OWNED_CAPES)
-                                                        .executes(ctx -> {
-                                                            ServerPlayer player = EntityArgument.getPlayer(ctx, "target");
-                                                            ResourceLocation cape = ResourceLocationArgument.getId(ctx, "cape");
-                                                            return setActiveCape(ctx.getSource(), player, cape);
-                                                        }))
-                                                .then(literal("none")
-                                                        .executes(ctx -> {
-                                                            ServerPlayer player = ctx.getSource().getPlayerOrException();
-                                                            return setActiveCape(ctx.getSource(), player, null);
-                                                        })))
-                                        .then(argument("cape", ResourceLocationArgument.id())
-                                                .suggests(OWNED_CAPES)
-                                                .executes(ctx -> {
-                                                    ServerPlayer player = ctx.getSource().getPlayerOrException();
-                                                    ResourceLocation cape = ResourceLocationArgument.getId(ctx, "cape");
-                                                    return setActiveCape(ctx.getSource(), player, cape);
-                                                }))
-                                        .then(literal("none")
-                                                .executes(ctx -> {
-                                                    ServerPlayer player = ctx.getSource().getPlayerOrException();
-                                                    return setActiveCape(ctx.getSource(), player, null);
                                                 })))));
     }
     // spotless:on
@@ -171,118 +103,6 @@ public class GTCommands {
             } catch (CommandSyntaxException e) {
                 return EntityArgument.getPlayers(ctx, "target");
             }
-        }
-    }
-
-    public static Collection<ResourceLocation> findOwnedCapesFor(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        Collection<ServerPlayer> players = findPlayersFrom(ctx);
-        if (players.isEmpty()) {
-            return CapeRegistry.ALL_CAPES.keySet();
-        }
-
-        Set<ResourceLocation> validCapes = new HashSet<>();
-        for (ServerPlayer player : players) {
-            validCapes.addAll(CapeRegistry.getUnlockedCapes(player.getUUID()));
-        }
-        return validCapes;
-    }
-
-    public static Collection<ResourceLocation> findNotOwnedCapesFor(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        Collection<ServerPlayer> players = findPlayersFrom(ctx);
-        if (players.isEmpty()) {
-            return CapeRegistry.ALL_CAPES.keySet();
-        }
-
-        Set<ResourceLocation> allCapes = CapeRegistry.ALL_CAPES.keySet();
-        Set<ResourceLocation> validCapes = new HashSet<>();
-        for (ServerPlayer player : players) {
-            Set<ResourceLocation> unlockedCapes = new HashSet<>(CapeRegistry.getUnlockedCapes(player.getUUID()));
-            // find all capes this player *doesn't* have
-            validCapes.addAll(Sets.difference(allCapes, unlockedCapes));
-        }
-        return validCapes;
-    }
-
-    public static int giveCapes(CommandSourceStack source,
-                                Collection<ServerPlayer> targets, Collection<ResourceLocation> capes)
-                                                                                                      throws CommandSyntaxException {
-        int successes = 0;
-
-        for (var player : targets) {
-            int playerSuccesses = 0;
-            for (var cape : capes) {
-                if (CapeRegistry.unlockCape(player.getUUID(), cape)) {
-                    successes++;
-                    playerSuccesses++;
-                }
-            }
-            if (playerSuccesses > 0) {
-                player.sendSystemMessage(Component.translatable("gtceu.chat.cape"));
-            }
-        }
-
-        if (successes == 0) {
-            throw ERROR_GIVE_FAILED.create();
-        }
-        if (targets.size() == 1) {
-            source.sendSuccess(() -> Component.translatable(
-                    "command.gtceu.cape.give.success.single", capes.size(),
-                    targets.iterator().next().getDisplayName()),
-                    true);
-        } else {
-            source.sendSuccess(() -> Component.translatable(
-                    "command.gtceu.cape.give.success.multiple", capes.size(), targets.size()),
-                    true);
-        }
-        CapeRegistry.save();
-        return successes;
-    }
-
-    private static int takeCapes(CommandSourceStack source,
-                                 Collection<ServerPlayer> targets, Collection<ResourceLocation> capes)
-                                                                                                       throws CommandSyntaxException {
-        int successes = 0;
-
-        for (var player : targets) {
-            for (var cape : capes) {
-                if (CapeRegistry.removeCape(player.getUUID(), cape)) {
-                    successes++;
-                }
-            }
-        }
-
-        if (successes == 0) {
-            throw ERROR_TAKE_FAILED.create();
-        }
-        if (targets.size() == 1) {
-            source.sendSuccess(() -> Component.translatable(
-                    "command.gtceu.cape.take.success.single", capes.size(),
-                    targets.iterator().next().getDisplayName()),
-                    true);
-        } else {
-            source.sendSuccess(() -> Component.translatable(
-                    "command.gtceu.cape.take.success.multiple", capes.size(), targets.size()),
-                    true);
-        }
-        CapeRegistry.save();
-        return successes;
-    }
-
-    private static int setActiveCape(CommandSourceStack source, ServerPlayer player, ResourceLocation cape)
-                                                                                                            throws CommandSyntaxException {
-        if (CapeRegistry.setActiveCape(player.getUUID(), cape)) {
-            if (cape != null) {
-                source.sendSuccess(() -> Component.translatable(
-                        "command.gtceu.cape.use.success", player.getDisplayName(), cape),
-                        true);
-            } else {
-                source.sendSuccess(() -> Component.translatable(
-                        "command.gtceu.cape.use.success.none", player.getDisplayName()),
-                        true);
-            }
-            return 1;
-        } else {
-            throw ERROR_USE_FAILED.create(player.getDisplayName(), cape);
         }
     }
 

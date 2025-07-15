@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.item.component;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
@@ -29,13 +28,9 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.wrapper.EmptyHandler;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import top.theillusivec4.curios.api.CuriosApi;
-import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -101,20 +96,6 @@ public class ElectricStats implements IInteractionItem, ISubItemHandler, IAddInf
                 electricItem.canProvideChargeExternally() &&
                 isInDischargeMode(stack) && electricItem.getCharge() > 0L) {
             long transferLimit = electricItem.getTransferLimit();
-
-            if (GTCEu.Mods.isCuriosLoaded()) {
-                IItemHandler curios = CuriosApi.getCuriosInventory(player)
-                        .<IItemHandler>map(ICuriosItemHandler::getEquippedCurios)
-                        .orElse(EmptyHandler.INSTANCE);
-                for (int i = 0; i < curios.getSlots(); i++) {
-                    var itemInSlot = curios.getStackInSlot(i);
-                    long chargedAmount = chargeItemStack(transferLimit, electricItem, itemInSlot);
-                    if (chargedAmount > 0L) {
-                        transferLimit -= chargedAmount;
-                    }
-                    if (transferLimit == 0L) break;
-                }
-            }
 
             var inventoryPlayer = player.getInventory();
             for (int i = 0; i < inventoryPlayer.getContainerSize(); i++) {

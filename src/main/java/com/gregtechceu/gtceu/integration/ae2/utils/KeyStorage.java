@@ -27,7 +27,8 @@ import java.util.Iterator;
 public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAware,
                         Iterable<Object2LongMap.Entry<AEKey>> {
 
-    public final Object2LongMap<AEKey> storage = new Object2LongOpenHashMap<>(); // TODO trim periodically or not
+    public final Object2LongOpenHashMap<AEKey> storage = new Object2LongOpenHashMap<>(); // TODO trim periodically or
+                                                                                         // not
 
     @Nullable
     @Getter

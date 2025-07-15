@@ -39,7 +39,7 @@ public class FusionReactorRenderer extends WorkableCasingMachineRenderer {
                        int combinedLight, int combinedOverlay) {
         if (blockEntity instanceof IMachineBlockEntity machineBlockEntity &&
                 machineBlockEntity.getMetaMachine() instanceof FusionReactorMachine machine) {
-            if (!machine.recipeLogic.isWorking() && delta <= 0) {
+            if (!machine.recipeLogic.isWorking() || delta <= 0) {
                 return;
             }
             if (GTCEu.Mods.isShimmerLoaded()) {

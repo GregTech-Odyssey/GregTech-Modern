@@ -79,11 +79,6 @@ public class GTRecipeBuilder {
     public final Map<RecipeCapability<?>, List<Content>> output = new IdentityHashMap<>();
     public final Map<RecipeCapability<?>, List<Content>> tickOutput = new IdentityHashMap<>();
 
-    public final Map<RecipeCapability<?>, ChanceLogic> inputChanceLogic = new IdentityHashMap<>();
-    public final Map<RecipeCapability<?>, ChanceLogic> outputChanceLogic = new IdentityHashMap<>();
-    public final Map<RecipeCapability<?>, ChanceLogic> tickInputChanceLogic = new IdentityHashMap<>();
-    public final Map<RecipeCapability<?>, ChanceLogic> tickOutputChanceLogic = new IdentityHashMap<>();
-
     public final List<RecipeCondition> conditions = new ArrayList<>();
 
     @NotNull
@@ -130,10 +125,6 @@ public class GTRecipeBuilder {
         toCopy.outputs.forEach((k, v) -> this.output.put(k, new ArrayList<>(v)));
         toCopy.tickInputs.forEach((k, v) -> this.tickInput.put(k, new ArrayList<>(v)));
         toCopy.tickOutputs.forEach((k, v) -> this.tickOutput.put(k, new ArrayList<>(v)));
-        this.inputChanceLogic.putAll(toCopy.inputChanceLogics);
-        this.outputChanceLogic.putAll(toCopy.outputChanceLogics);
-        this.tickInputChanceLogic.putAll(toCopy.tickInputChanceLogics);
-        this.tickOutputChanceLogic.putAll(toCopy.tickOutputChanceLogics);
         this.conditions.addAll(toCopy.conditions);
         this.data = toCopy.data.copy();
         this.duration = toCopy.duration;
@@ -158,10 +149,6 @@ public class GTRecipeBuilder {
         this.output.forEach((k, v) -> copy.output.put(k, new ArrayList<>(v)));
         this.tickInput.forEach((k, v) -> copy.tickInput.put(k, new ArrayList<>(v)));
         this.tickOutput.forEach((k, v) -> copy.tickOutput.put(k, new ArrayList<>(v)));
-        copy.inputChanceLogic.putAll(this.inputChanceLogic);
-        copy.outputChanceLogic.putAll(this.outputChanceLogic);
-        copy.tickInputChanceLogic.putAll(this.tickInputChanceLogic);
-        copy.tickOutputChanceLogic.putAll(this.tickOutputChanceLogic);
         copy.conditions.addAll(this.conditions);
         copy.data = this.data.copy();
         copy.duration = this.duration;
@@ -857,50 +844,6 @@ public class GTRecipeBuilder {
         return this;
     }
 
-    /**
-     * Set a chanced output logic for a specific capability.
-     * all capabilities default to OR logic if not set.
-     *
-     * @param cap   the {@link RecipeCapability} to set the logic for
-     * @param logic the {@link ChanceLogic} to use
-     * @return this builder
-     */
-    public GTRecipeBuilder chancedOutputLogic(RecipeCapability<?> cap, ChanceLogic logic) {
-        this.outputChanceLogic.put(cap, logic);
-        return this;
-    }
-
-    public GTRecipeBuilder chancedItemOutputLogic(ChanceLogic logic) {
-        return chancedOutputLogic(ItemRecipeCapability.CAP, logic);
-    }
-
-    public GTRecipeBuilder chancedFluidOutputLogic(ChanceLogic logic) {
-        return chancedOutputLogic(FluidRecipeCapability.CAP, logic);
-    }
-
-    public GTRecipeBuilder chancedInputLogic(RecipeCapability<?> cap, ChanceLogic logic) {
-        this.inputChanceLogic.put(cap, logic);
-        return this;
-    }
-
-    public GTRecipeBuilder chancedItemInputLogic(ChanceLogic logic) {
-        return chancedInputLogic(ItemRecipeCapability.CAP, logic);
-    }
-
-    public GTRecipeBuilder chancedFluidInputLogic(ChanceLogic logic) {
-        return chancedInputLogic(FluidRecipeCapability.CAP, logic);
-    }
-
-    public GTRecipeBuilder chancedTickOutputLogic(RecipeCapability<?> cap, ChanceLogic logic) {
-        this.tickOutputChanceLogic.put(cap, logic);
-        return this;
-    }
-
-    public GTRecipeBuilder chancedTickInputLogic(RecipeCapability<?> cap, ChanceLogic logic) {
-        this.tickInputChanceLogic.put(cap, logic);
-        return this;
-    }
-
     public GTRecipeBuilder inputFluids(@NotNull Material material, int amount) {
         return inputFluids(material.getFluid(amount));
     }
@@ -1097,34 +1040,6 @@ public class GTRecipeBuilder {
         return daytime(false);
     }
 
-    public GTRecipeBuilder heraclesQuest(String questId, boolean isReverse) {
-        if (!GTCEu.Mods.isHeraclesLoaded()) {
-            GTCEu.LOGGER.error("Heracles not loaded!");
-            return this;
-        }
-        if (questId.isEmpty()) {
-            GTCEu.LOGGER.error("Quest ID cannot be empty for recipe {}", this.id);
-            return this;
-        }
-        return addCondition(new HeraclesQuestCondition(isReverse, questId));
-    }
-
-    public GTRecipeBuilder heraclesQuest(String questId) {
-        return heraclesQuest(questId, false);
-    }
-
-    public GTRecipeBuilder gameStage(String stageName) {
-        return gameStage(stageName, false);
-    }
-
-    public GTRecipeBuilder gameStage(String stageName, boolean isReverse) {
-        if (!GTCEu.Mods.isGameStagesLoaded()) {
-            GTCEu.LOGGER.warn("GameStages is not loaded, ignoring recipe condition");
-            return this;
-        }
-        return addCondition(new GameStageCondition(isReverse, stageName));
-    }
-
     public GTRecipeBuilder ftbQuest(String questId, boolean isReverse) {
         if (!GTCEu.Mods.isFTBQuestsLoaded()) {
             GTCEu.LOGGER.error("FTBQuests is not loaded!");
@@ -1267,11 +1182,6 @@ public class GTRecipeBuilder {
         json.add("outputs", capabilitiesToJson(output));
         json.add("tickInputs", capabilitiesToJson(tickInput));
         json.add("tickOutputs", capabilitiesToJson(tickOutput));
-
-        json.add("inputChanceLogics", chanceLogicsToJson(inputChanceLogic));
-        json.add("outputChanceLogics", chanceLogicsToJson(outputChanceLogic));
-        json.add("tickInputChanceLogics", chanceLogicsToJson(tickInputChanceLogic));
-        json.add("tickOutputChanceLogics", chanceLogicsToJson(tickOutputChanceLogic));
 
         json.addProperty("category", recipeCategory.registryKey.toString());
 
@@ -1466,10 +1376,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipe buildRawRecipe() {
-        return new GTRecipe(recipeType, id.withPrefix(recipeType.registryName.getPath() + "/"),
-                input, output, tickInput, tickOutput,
-                inputChanceLogic, outputChanceLogic, tickInputChanceLogic, tickOutputChanceLogic,
-                conditions, List.of(), data, duration, recipeCategory);
+        return new GTRecipe(recipeType, id.withPrefix(recipeType.registryName.getPath() + "/"), input, output, tickInput, tickOutput, conditions, data, duration, recipeCategory);
     }
 
     protected void warnTooManyIngredients(RecipeCapability<?> capability,

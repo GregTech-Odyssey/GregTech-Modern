@@ -1,11 +1,9 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.recipe.DummyCraftingContainer;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntProviderIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.SizedIngredient;
@@ -21,7 +19,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import dev.latvian.mods.kubejs.recipe.ingredientaction.IngredientAction;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -162,8 +159,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
                 if (io == IO.IN) {
                     if (current.isEmpty()) continue;
                     if (ingredient.test(current)) {
-                        var extracted = getActioned(storage, slot, recipe.ingredientActions);
-                        if (extracted == null) extracted = storage.extractItem(slot, Math.min(count, amount), simulate);
+                        var extracted = storage.extractItem(slot, Math.min(count, amount), simulate);
                         if (!extracted.isEmpty()) {
                             changed = true;
                             visited[slot] = extracted.copyWithCount(count - extracted.getCount());
@@ -175,8 +171,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
                     // Only try this slot if not visited or if visited with the same type of item
                     if (visited[slot] == null || ItemStack.isSameItemSameTags(visited[slot], output)) {
                         if (count < output.getMaxStackSize() && count < storage.getSlotLimit(slot)) {
-                            var remainder = getActioned(storage, slot, recipe.ingredientActions);
-                            if (remainder == null) remainder = storage.insertItem(slot, output, simulate);
+                            var remainder = storage.insertItem(slot, output, simulate);
                             if (remainder.getCount() < amount) {
                                 changed = true;
                                 visited[slot] = output.copyWithCount(count + amount - remainder.getCount());
@@ -208,10 +203,6 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     }
 
     private static @Nullable ItemStack getActioned(CustomItemStackHandler storage, int index, List<?> actions) {
-        if (!GTCEu.Mods.isKubeJSLoaded()) return null;
-        // noinspection unchecked
-        var actioned = KJSCallWrapper.applyIngredientAction(storage, index, (List<IngredientAction>) actions);
-        if (!actioned.isEmpty()) return actioned;
         return null;
     }
 
@@ -335,25 +326,5 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     @Override
     public boolean isItemValid(int slot, @NotNull ItemStack stack) {
         return storage.isItemValid(slot, stack);
-    }
-
-    public static class KJSCallWrapper {
-
-        public static ItemStack applyIngredientAction(CustomItemStackHandler storage, int index,
-                                                      List<IngredientAction> ingredientActions) {
-            var stack = storage.getStackInSlot(index);
-            if (stack.isEmpty()) {
-                return ItemStack.EMPTY;
-            }
-
-            DummyCraftingContainer container = new DummyCraftingContainer(storage);
-            for (var action : ingredientActions) {
-                if (action.checkFilter(index, stack)) {
-                    return action.transform(stack.copy(), index, container);
-                }
-            }
-
-            return ItemStack.EMPTY;
-        }
     }
 }

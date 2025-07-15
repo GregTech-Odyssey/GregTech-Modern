@@ -2506,7 +2506,6 @@ public class GTItems {
     public static void init() {
         GTMaterialItems.generateMaterialItems();
         GTMaterialItems.generateTools();
-        GTMaterialItems.generateArmors();
     }
 
     public static <T extends ItemLike> NonNullConsumer<T> materialInfo(ItemMaterialInfo materialInfo) {

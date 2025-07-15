@@ -92,7 +92,7 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
         int batchParallels;
         boolean exact = false;
         if (recipeLogic.isActive() && recipeLogic.getLastRecipe() != null) {
-            numParallels = recipeLogic.getLastRecipe().parallels;
+            numParallels = (int) recipeLogic.getLastRecipe().parallels;
             batchParallels = recipeLogic.getLastRecipe().batchParallels;
             exact = true;
         } else {

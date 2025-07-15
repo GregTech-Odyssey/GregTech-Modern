@@ -17,22 +17,11 @@ repositories {
         url = "https://maven.firstdarkdev.xyz/snapshots"
     }
 
-    exclusiveContent { // KubeJS and Rhino
-        forRepository { maven { url = "https://maven.latvian.dev/releases" } }
-        filter { includeGroup("dev.latvian.mods")}
-    }
     exclusiveContent { // FTB mods
         forRepository { maven { url = "https://maven.ftb.dev/releases" } }
         filter { includeGroup("dev.ftb.mods") }
     }
-    exclusiveContent { // TOP
-        forRepository { maven { url = "https://maven.k-4u.nl" } }
-        filter { includeGroup('mcjty.theoneprobe') }
-    }
-    exclusiveContent { // JourneyMap API
-        forRepository { maven { url = "https://jm.gserv.me/repository/maven-public/" } }
-        filter { includeGroup("info.journeymap") }
-    }
+
     exclusiveContent { // Modrinth Maven
         forRepository { maven { url = "https://api.modrinth.com/maven" } }
         filter { includeGroup("maven.modrinth") }
@@ -59,13 +48,5 @@ repositories {
     exclusiveContent { // Curios
         forRepository { maven { url = "https://maven.theillusivec4.top/" } }
         filter { includeGroup('top.theillusivec4.curios')}
-    }
-    exclusiveContent { // KotlinForForge
-        forRepository { maven { url = "https://thedarkcolour.github.io/KotlinForForge/" } }
-        filter { includeGroup("thedarkcolour") }
-    }
-    exclusiveContent { // CC: Tweaked
-        forRepository { maven { url = "https://maven.squiddev.cc" } }
-        filter { includeGroup("cc.tweaked") }
     }
 }

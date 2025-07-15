@@ -43,7 +43,7 @@ public class ParallelProvider implements IBlockComponentProvider, IServerDataPro
                 if (controller instanceof IRecipeLogicMachine rlm &&
                         rlm.getRecipeLogic().isActive() &&
                         rlm.getRecipeLogic().getLastRecipe() != null) {
-                    compoundTag.putInt("parallel", rlm.getRecipeLogic().getLastRecipe().parallels);
+                    compoundTag.putInt("parallel", (int) rlm.getRecipeLogic().getLastRecipe().parallels);
                     compoundTag.putBoolean("exact", true);
                 } else {
                     controller.getParallelHatch()

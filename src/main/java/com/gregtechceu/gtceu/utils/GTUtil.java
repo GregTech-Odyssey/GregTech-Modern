@@ -17,7 +17,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
@@ -445,11 +444,7 @@ public class GTUtil {
             return false;
         }
 
-        ResourceLocation javdVoidBiome = new ResourceLocation("javd", "void");
-        if (GTCEu.Mods.isJAVDLoaded() &&
-                world.registryAccess().registryOrThrow(Registries.BIOME).getKey(biome).equals(javdVoidBiome)) {
-            return !world.isDay();
-        } else return world.isDay();
+        return world.isDay();
     }
 
     public static void appendHazardTooltips(Material material, List<Component> tooltipComponents) {

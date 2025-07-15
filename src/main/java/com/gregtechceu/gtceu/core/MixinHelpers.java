@@ -48,7 +48,6 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.common.Tags;
 import net.minecraftforge.versions.forge.ForgeVersion;
 
 import com.tterrag.registrate.util.entry.BlockEntry;
@@ -95,23 +94,6 @@ public class MixinHelpers {
                     var entry = makeItemEntry(item);
                     for (TagKey<Item> tag : item.get().getToolType().itemTags) {
                         tagMap.computeIfAbsent(tag.location(), path -> new ArrayList<>()).add(entry);
-                    }
-                });
-            });
-
-            GTMaterialItems.ARMOR_ITEMS.rowMap().forEach((material, map) -> {
-                map.forEach((type, item) -> {
-                    if (item != null) {
-                        var entry = new TagLoader.EntryWithSource(TagEntry.element(item.getId()),
-                                GTValues.CUSTOM_TAG_SOURCE);
-                        tagMap.computeIfAbsent(ItemTags.TRIMMABLE_ARMOR.location(), $ -> new ArrayList<>())
-                                .add(entry);
-                        tagMap.computeIfAbsent(switch (type) {
-                            case HELMET -> Tags.Items.ARMORS_HELMETS.location();
-                            case CHESTPLATE -> Tags.Items.ARMORS_CHESTPLATES.location();
-                            case LEGGINGS -> Tags.Items.ARMORS_LEGGINGS.location();
-                            case BOOTS -> Tags.Items.ARMORS_BOOTS.location();
-                        }, $ -> new ArrayList<>()).add(entry);
                     }
                 });
             });

@@ -38,7 +38,7 @@ public class Content {
         this.content = content;
         this.chance = chance;
         this.maxChance = maxChance;
-        this.tierChanceBoost = fixBoost(tierChanceBoost);
+        this.tierChanceBoost = tierChanceBoost;
     }
 
     public static <T> Codec<Content> codec(RecipeCapability<T> capability) {

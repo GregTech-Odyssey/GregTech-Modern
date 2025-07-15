@@ -14,7 +14,6 @@ import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.misc.EnergyInfoProviderList;
 import com.gregtechceu.gtceu.api.misc.LaserContainerList;
 import com.gregtechceu.gtceu.client.renderer.GTRendererProvider;
-import com.gregtechceu.gtceu.common.datafixers.TagFixer;
 
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -22,7 +21,6 @@ import com.lowdragmc.lowdraglib.syncdata.managed.MultiManagedStorage;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -278,11 +276,5 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
             }
         }
         return new AABB(worldPosition.offset(-1, 0, -1), worldPosition.offset(2, 2, 2));
-    }
-
-    @Override
-    public void load(CompoundTag tag) {
-        TagFixer.fixFluidTags(tag);
-        super.load(tag);
     }
 }

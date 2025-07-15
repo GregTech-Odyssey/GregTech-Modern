@@ -18,7 +18,6 @@ import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
 import dev.emi.emi.config.EmiConfig;
-import me.shedaniel.rei.api.client.REIRuntime;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,69 +153,27 @@ public class GTCEu {
     public static class Mods {
 
         public static boolean isJEILoaded() {
-            return !(isModLoaded(GTValues.MODID_EMI) || isModLoaded(GTValues.MODID_REI)) &&
-                    isModLoaded(GTValues.MODID_JEI);
-        }
-
-        public static boolean isREILoaded() {
-            return isModLoaded(GTValues.MODID_REI) && (!isClientSide() || REIRuntime.getInstance().isOverlayVisible());
+            return !(isModLoaded(GTValues.MODID_EMI)) && isModLoaded(GTValues.MODID_JEI);
         }
 
         public static boolean isEMILoaded() {
             return isModLoaded(GTValues.MODID_EMI) && (!isClientSide() || EmiConfig.enabled);
         }
 
-        public static boolean isKubeJSLoaded() {
-            return isModLoaded(GTValues.MODID_KUBEJS);
-        }
-
-        public static boolean isIrisOculusLoaded() {
-            return isModLoaded(GTValues.MODID_IRIS) || isModLoaded(GTValues.MODID_OCULUS);
-        }
-
-        public static boolean isSodiumRubidiumEmbeddiumLoaded() {
-            return isModLoaded(GTValues.MODID_SODIUM) || isModLoaded(GTValues.MODID_RUBIDIUM) ||
-                    isModLoaded(GTValues.MODID_EMBEDDIUM);
-        }
-
         public static boolean isAE2Loaded() {
             return isModLoaded(GTValues.MODID_APPENG);
-        }
-
-        public static boolean isCuriosLoaded() {
-            return isModLoaded(GTValues.MODID_CURIOS);
         }
 
         public static boolean isShimmerLoaded() {
             return isModLoaded(GTValues.MODID_SHIMMER);
         }
 
-        public static boolean isJAVDLoaded() {
-            return isModLoaded(GTValues.MODID_JAVD);
-        }
-
         public static boolean isFTBTeamsLoaded() {
             return isModLoaded(GTValues.MODID_FTB_TEAMS);
         }
 
-        public static boolean isHeraclesLoaded() {
-            return isModLoaded(GTValues.MODID_HERACLES);
-        }
-
         public static boolean isFTBQuestsLoaded() {
             return isModLoaded(GTValues.MODID_FTB_QUEST);
-        }
-
-        public static boolean isArgonautsLoaded() {
-            return isModLoaded(GTValues.MODID_ARGONAUTS);
-        }
-
-        public static boolean isGameStagesLoaded() {
-            return isModLoaded(GTValues.MODID_GAMESTAGES);
-        }
-
-        public static boolean isCCTweakedLoaded() {
-            return isModLoaded(GTValues.MODID_CCTWEAKED);
         }
     }
 }

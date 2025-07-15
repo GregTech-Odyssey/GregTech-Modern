@@ -2,10 +2,10 @@ dependencies {
     compileOnly(libs.jetbrains.annotations)
 
     // LDLib
-    jarJar(modApi(forge.ldlib.get()))
+    modApi(forge.ldlib.get())
 
     // Registrate
-    jarJar(modApi(forge.registrate.get()))
+    modApi(forge.registrate.get())
 
     // Configuration
     jarJar(modApi(forge.configuration.get()))
@@ -13,60 +13,33 @@ dependencies {
     // Mixin (& Extras)
     annotationProcessor(variantOf(libs.mixin) { classifier("processor") })
     compileOnly(annotationProcessor(forge.mixinExtras.common.get()))
-    jarJar(api(forge.mixinExtras.forge.get())).version {
+    api(forge.mixinExtras.forge.get()).version {
         require("[${forge.versions.mixinExtras.get()},)")
     }
 
     // Recipe Viewers
     modCompileOnly(forge.bundles.jei)
-    modCompileOnly(forge.bundles.rei)
     modCompileOnly(forge.emi)
 
     // WAILA-likes
-    modCompileOnly(forge.theoneprobe)
     modCompileOnly(forge.jade)
-
-    // Curios
-    modCompileOnly(variantOf(forge.curios) { classifier("api") })
 
     // AE2
     modCompileOnly(forge.ae2)
     modCompileOnly(forge.ae2wtlib)
 
-    // KJS
-    modCompileOnly(forge.kubejs)
-    modCompileOnly(forge.architectury)
-    modCompileOnly(forge.rhino)
-
     // Shimmer
     modCompileOnly(forge.shimmer)
     modCompileOnly(forge.embeddium)
-    modCompileOnly(forge.oculus)
-
-    // JAVD
-    modCompileOnly(forge.javd)
 
     // Teams
     modCompileOnly(forge.ftblibrary)
     modCompileOnly(forge.ftbteams)
     modCompileOnly(forge.ftbquests)
-    modCompileOnly(forge.resourcefullib)
-    modCompileOnly(forge.argonauts)
-    modCompileOnly(forge.heracles)
 
     // Maps
-    modCompileOnly(forge.ftbchunks)
     modCompileOnly(forge.xaerosminimap)
     modCompileOnly(forge.xaerosworldmap)
-    modCompileOnly(forge.journeymap.api)
-    modCompileOnly(forge.journeymap.forge)
-
-    // GameStages
-    modCompileOnly(forge.gamestages)
-
-    // CC: Tweaked
-    modCompileOnly(forge.cc.tweaked.core.api)
-    modCompileOnly(forge.cc.tweaked.forge.api)
 
     // Standard runtime mods //
     modRuntimeOnly(forge.jade)
@@ -76,37 +49,5 @@ dependencies {
     // Runtime Recipe Viewers - uncomment whichever one you want to use //
     modRuntimeOnly(forge.emi)
 //    modRuntimeOnly(forge.jei.forge.impl)
-//    modRuntimeOnly(forge.bundles.rei.runtime)
 
-    //////////////////////////////////////////////////////
-    // Runtime mods for dev testing with unclean client //
-    //////////////////////////////////////////////////////
-    modExtraRuntimeOnly(forge.javd)
-    modExtraRuntimeOnly(forge.trenzalore)
-    modExtraRuntimeOnly(forge.curios)
-//    modExtraRuntimeOnly(forge.worldstripper)
-    modExtraRuntimeOnly(forge.cc.tweaked.forge.impl)
-
-    modExtraRuntimeOnly(forge.bundles.kjs)
-
-    modExtraRuntimeOnly(forge.ftblibrary)
-    modExtraRuntimeOnly(forge.ftbteams)
-    modExtraRuntimeOnly(forge.ftbquests)
-
-    modExtraRuntimeOnly(forge.heracles)
-    modExtraRuntimeOnly(forge.resourcefullib)
-
-//    modExtraRuntimeOnly(forge.xaerosminimap)
-//    modExtraRuntimeOnly(forge.xaerosworldmap)
-//    modExtraRuntimeOnly(forge.journeymap.forge)
-//    modExtraRuntimeOnly(forge.ftbchunks)
-
-    modExtraRuntimeOnly(forge.gamestages)
-    modExtraRuntimeOnly(forge.bookshelf)
-
-    modExtraRuntimeOnly(forge.kotlinforforge)
-    modExtraRuntimeOnly(forge.observable)
-    //////////////////////////
-
-    testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 }

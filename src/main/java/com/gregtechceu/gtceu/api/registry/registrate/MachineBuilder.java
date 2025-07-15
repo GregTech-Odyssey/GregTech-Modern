@@ -49,8 +49,6 @@ import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
 import com.tterrag.registrate.util.nullness.NonNullConsumer;
 import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
-import dev.latvian.mods.kubejs.client.LangEventJS;
-import dev.latvian.mods.rhino.util.HideFromJS;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
@@ -327,15 +325,6 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
         return definition.apply(new ResourceLocation(registrate.getModid(), name));
     }
 
-    @Override
-    public void generateLang(LangEventJS lang) {
-        super.generateLang(lang);
-        if (langValue() != null) {
-            lang.add(GTCEu.MOD_ID, value.getDescriptionId(), value.getLangValue());
-        }
-    }
-
-    @HideFromJS
     public DEFINITION register() {
         var definition = createDefinition();
 

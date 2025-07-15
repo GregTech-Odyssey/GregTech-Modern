@@ -38,43 +38,26 @@ public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Contai
     public final Map<RecipeCapability<?>, List<Content>> tickInputs;
     public final Map<RecipeCapability<?>, List<Content>> tickOutputs;
 
-    public final Map<RecipeCapability<?>, ChanceLogic> inputChanceLogics;
-    public final Map<RecipeCapability<?>, ChanceLogic> outputChanceLogics;
-    public final Map<RecipeCapability<?>, ChanceLogic> tickInputChanceLogics;
-    public final Map<RecipeCapability<?>, ChanceLogic> tickOutputChanceLogics;
-
     public final List<RecipeCondition> conditions;
-    // for KubeJS. actual type is List<IngredientAction>.
-    // Must be List<?> to not cause crashes without KubeJS.
-    public final List<?> ingredientActions;
+
     @NotNull
     public CompoundTag data;
     public int duration;
-    public int parallels = 1;
+    public long parallels = 1;
     public int batchParallels = 1;
     public int ocLevel = 0;
     public final GTRecipeCategory recipeCategory;
-    // Lazy fields, since we need the recipe EUt very often
-    private long inputEUt = -1;
-    private long outputEUt = -1;
 
     public GTRecipe(GTRecipeType recipeType,
                     Map<RecipeCapability<?>, List<Content>> inputs,
                     Map<RecipeCapability<?>, List<Content>> outputs,
                     Map<RecipeCapability<?>, List<Content>> tickInputs,
                     Map<RecipeCapability<?>, List<Content>> tickOutputs,
-                    Map<RecipeCapability<?>, ChanceLogic> inputChanceLogics,
-                    Map<RecipeCapability<?>, ChanceLogic> outputChanceLogics,
-                    Map<RecipeCapability<?>, ChanceLogic> tickInputChanceLogics,
-                    Map<RecipeCapability<?>, ChanceLogic> tickOutputChanceLogics,
                     List<RecipeCondition> conditions,
-                    List<?> ingredientActions,
                     @NotNull CompoundTag data,
                     int duration,
                     @NotNull GTRecipeCategory recipeCategory) {
-        this(recipeType, null, inputs, outputs, tickInputs, tickOutputs,
-                inputChanceLogics, outputChanceLogics, tickInputChanceLogics, tickOutputChanceLogics,
-                conditions, ingredientActions, data, duration, recipeCategory);
+        this(recipeType, null, inputs, outputs, tickInputs, tickOutputs, conditions, data, duration, recipeCategory);
     }
 
     public GTRecipe(GTRecipeType recipeType,
@@ -83,12 +66,7 @@ public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Contai
                     Map<RecipeCapability<?>, List<Content>> outputs,
                     Map<RecipeCapability<?>, List<Content>> tickInputs,
                     Map<RecipeCapability<?>, List<Content>> tickOutputs,
-                    Map<RecipeCapability<?>, ChanceLogic> inputChanceLogics,
-                    Map<RecipeCapability<?>, ChanceLogic> outputChanceLogics,
-                    Map<RecipeCapability<?>, ChanceLogic> tickInputChanceLogics,
-                    Map<RecipeCapability<?>, ChanceLogic> tickOutputChanceLogics,
                     List<RecipeCondition> conditions,
-                    List<?> ingredientActions,
                     @NotNull CompoundTag data,
                     int duration,
                     @NotNull GTRecipeCategory recipeCategory) {
@@ -100,13 +78,7 @@ public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Contai
         this.tickInputs = tickInputs;
         this.tickOutputs = tickOutputs;
 
-        this.inputChanceLogics = inputChanceLogics;
-        this.outputChanceLogics = outputChanceLogics;
-        this.tickInputChanceLogics = tickInputChanceLogics;
-        this.tickOutputChanceLogics = tickOutputChanceLogics;
-
         this.conditions = conditions;
-        this.ingredientActions = ingredientActions;
         this.data = data;
         this.duration = duration;
         this.recipeCategory = (recipeCategory != GTRecipeCategory.DEFAULT) ? recipeCategory : recipeType.getCategory();
@@ -124,10 +96,7 @@ public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Contai
         var copied = new GTRecipe(recipeType, id,
                 modifier.applyContents(inputs), modifier.applyContents(outputs),
                 modifier.applyContents(tickInputs), modifier.applyContents(tickOutputs),
-                new HashMap<>(inputChanceLogics), new HashMap<>(outputChanceLogics),
-                new HashMap<>(tickInputChanceLogics), new HashMap<>(tickOutputChanceLogics),
-                new ArrayList<>(conditions),
-                new ArrayList<>(ingredientActions), data, duration, recipeCategory);
+                new ArrayList<>(conditions), data, duration, recipeCategory);
         if (modifyDuration) {
             copied.duration = modifier.apply(this.duration);
         }
@@ -194,47 +163,28 @@ public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Contai
      * @return the chance logic for the aforementioned combination. Defaults to {@link ChanceLogic#OR}.
      */
     public ChanceLogic getChanceLogicForCapability(RecipeCapability<?> cap, IO io, boolean isTick) {
-        if (io == IO.OUT) {
-            if (isTick) {
-                return tickOutputChanceLogics.getOrDefault(cap, ChanceLogic.OR);
-            } else {
-                return outputChanceLogics.getOrDefault(cap, ChanceLogic.OR);
-            }
-        } else if (io == IO.IN) {
-            if (isTick) {
-                return tickInputChanceLogics.getOrDefault(cap, ChanceLogic.OR);
-            } else {
-                return inputChanceLogics.getOrDefault(cap, ChanceLogic.OR);
-            }
-        }
         return ChanceLogic.OR;
     }
 
     // Technically should account for overflow but realistically not an issue.
     public @Range(from = 0, to = Long.MAX_VALUE) long getInputEUt() {
-        if (inputEUt == -1) {
-            var inputs = tickInputs.get(EURecipeCapability.CAP);
-            if (inputs == null) return inputEUt = 0;
-            long eut = 0;
-            for (var content : inputs) {
-                eut += EURecipeCapability.CAP.of(content.content);
-            }
-            inputEUt = eut;
+        var inputs = tickInputs.get(EURecipeCapability.CAP);
+        if (inputs == null) return 0;
+        long eut = 0;
+        for (var content : inputs) {
+            eut += EURecipeCapability.CAP.of(content.content);
         }
-        return inputEUt;
+        return eut;
     }
 
     public @Range(from = 0, to = Long.MAX_VALUE) long getOutputEUt() {
-        if (outputEUt == -1) {
-            var outputs = tickOutputs.get(EURecipeCapability.CAP);
-            if (outputs == null) return outputEUt = 0;
-            long eut = 0;
-            for (var content : outputs) {
-                eut += EURecipeCapability.CAP.of(content.content);
-            }
-            outputEUt = eut;
+        var outputs = tickOutputs.get(EURecipeCapability.CAP);
+        if (outputs == null) return 0;
+        long eut = 0;
+        for (var content : outputs) {
+            eut += EURecipeCapability.CAP.of(content.content);
         }
-        return outputEUt;
+        return eut;
     }
 
     // Just check id as there *should* only ever be 1 instance of a recipe with this id.

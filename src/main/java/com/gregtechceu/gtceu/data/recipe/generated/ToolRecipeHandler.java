@@ -20,7 +20,6 @@ import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
 
 import net.minecraft.data.recipes.FinishedRecipe;
-import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -139,19 +138,6 @@ public final class ToolRecipeHandler {
 
             addToolRecipe(provider, material, GTToolType.WRENCH, false,
                     "PhP", " P ", " P ",
-                    'P', plate);
-
-            addArmorRecipe(provider, material, ArmorItem.Type.HELMET,
-                    "PPP", "PhP",
-                    'P', plate);
-            addArmorRecipe(provider, material, ArmorItem.Type.CHESTPLATE,
-                    "PhP", "PPP", "PPP",
-                    'P', plate);
-            addArmorRecipe(provider, material, ArmorItem.Type.LEGGINGS,
-                    "PPP", "PhP", "P P",
-                    'P', plate);
-            addArmorRecipe(provider, material, ArmorItem.Type.BOOTS,
-                    "P P", "PhP",
                     'P', plate);
         } else {
             GTCEu.LOGGER.info(
@@ -345,14 +331,6 @@ public final class ToolRecipeHandler {
             VanillaRecipeHelper.addShapedRecipe(provider, String.format("%s_%s", tool.name, material.getName()),
                     toolStack, recipe);
         }
-    }
-
-    public static void addArmorRecipe(Consumer<FinishedRecipe> provider, @NotNull Material material,
-                                      @NotNull ArmorItem.Type armor, Object... recipe) {
-        ItemStack armorStack = ToolHelper.getArmor(armor, material);
-        if (armorStack.isEmpty()) return;
-        VanillaRecipeHelper.addShapedRecipe(provider, String.format("%s_%s", armor.getName(), material.getName()),
-                armorStack, recipe);
     }
 
     /**

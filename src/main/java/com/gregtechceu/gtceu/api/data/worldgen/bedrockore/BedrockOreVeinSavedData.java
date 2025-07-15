@@ -18,11 +18,11 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.saveddata.SavedData;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -33,7 +33,7 @@ public class BedrockOreVeinSavedData extends SavedData {
 
     public static final int VEIN_CHUNK_SIZE = 3; // veins are 3x3 chunk squares
     public static final int MAXIMUM_VEIN_OPERATIONS = 100_000;
-    public final HashMap<ChunkPos, OreVeinWorldEntry> veinOres = new HashMap<>();
+    public final Long2ObjectOpenHashMap<OreVeinWorldEntry> veinOres = new Long2ObjectOpenHashMap<>();
 
     // runtime
     private final Object2IntMap<Holder<Biome>> biomeWeights = new Object2IntOpenHashMap<>();
@@ -54,8 +54,7 @@ public class BedrockOreVeinSavedData extends SavedData {
         var list = nbt.getList("veinInfo", Tag.TAG_COMPOUND);
         for (Tag tag : list) {
             if (tag instanceof CompoundTag compoundTag) {
-                var chunkPos = new ChunkPos(compoundTag.getLong("pos"));
-                veinOres.put(chunkPos, OreVeinWorldEntry.readFromNBT(compoundTag.getCompound("data")));
+                veinOres.put(compoundTag.getLong("pos"), OreVeinWorldEntry.readFromNBT(compoundTag.getCompound("data")));
             }
         }
     }
@@ -63,9 +62,9 @@ public class BedrockOreVeinSavedData extends SavedData {
     @Override
     public CompoundTag save(CompoundTag nbt) {
         var oreList = new ListTag();
-        for (var entry : veinOres.entrySet()) {
+        for (var entry : veinOres.long2ObjectEntrySet()) {
             var tag = new CompoundTag();
-            tag.putLong("pos", entry.getKey().toLong());
+            tag.putLong("pos", entry.getLongKey());
             tag.put("data", entry.getValue().writeToNBT());
             oreList.add(tag);
         }
@@ -85,7 +84,7 @@ public class BedrockOreVeinSavedData extends SavedData {
      * @return The OreVeinWorldEntry corresponding with the given chunk
      */
     public OreVeinWorldEntry getOreVeinWorldEntry(int chunkX, int chunkZ) {
-        ChunkPos pos = new ChunkPos(chunkX, chunkZ);
+        long pos = ChunkPos.asLong(chunkX, chunkZ);
         if (!veinOres.containsKey(pos)) {
             int minDistance = ConfigHolder.INSTANCE.worldgen.oreVeins.bedrockOreDistance;
             if (chunkX % minDistance != 0 || chunkZ % minDistance != 0) {
@@ -117,7 +116,7 @@ public class BedrockOreVeinSavedData extends SavedData {
                 }
             }
 
-            createVein(pos, definition);
+            createVein(new ChunkPos(chunkX, chunkZ), definition);
             setDirty();
         }
         if (!veinOres.containsKey(pos)) {
@@ -133,13 +132,12 @@ public class BedrockOreVeinSavedData extends SavedData {
             int radius = definition.size() / 2;
             for (int x = pos.x - radius; x <= pos.x + radius; ++x) {
                 for (int z = pos.z - radius; z <= pos.z + radius; ++z) {
-                    ChunkPos pos2 = new ChunkPos(x, z);
                     float distanceFromOriginal = Math.abs(pos.x - x) + Math.abs(pos.z - z);
                     distanceFromOriginal = distanceFromOriginal == 0 ? 1 : distanceFromOriginal;
                     distanceFromOriginal = (float) Math.pow(distanceFromOriginal, 2);
 
                     var random = RandomSource
-                            .create(31L * 31 * pos2.x + pos2.z * 31L + Long.hashCode(serverLevel.getSeed()));
+                            .create(31L * 31 * x + z * 31L + Long.hashCode(serverLevel.getSeed()));
 
                     int maximumYield;
                     if ((definition.yield().getMaxValue() - definition.yield().getMinValue()) / distanceFromOriginal <=
@@ -152,7 +150,7 @@ public class BedrockOreVeinSavedData extends SavedData {
                     }
                     maximumYield = Math.min(maximumYield, definition.yield().getMaxValue());
 
-                    veinOres.put(pos2, new OreVeinWorldEntry(definition, maximumYield, MAXIMUM_VEIN_OPERATIONS));
+                    veinOres.put(ChunkPos.asLong(x, z), new OreVeinWorldEntry(definition, maximumYield, MAXIMUM_VEIN_OPERATIONS));
                 }
             }
         }

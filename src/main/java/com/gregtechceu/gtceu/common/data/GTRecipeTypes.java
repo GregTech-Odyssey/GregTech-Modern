@@ -22,7 +22,6 @@ import com.gregtechceu.gtceu.common.machine.trait.customlogic.*;
 import com.gregtechceu.gtceu.common.recipe.condition.RockBreakerCondition;
 import com.gregtechceu.gtceu.data.recipe.RecipeUtil;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
-import com.gregtechceu.gtceu.integration.kjs.GTRegistryInfo;
 import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemStackHandler;
 import com.gregtechceu.gtceu.utils.ResearchManager;
 
@@ -669,9 +668,6 @@ public class GTRecipeTypes {
 
     public static void init() {
         GCYMRecipeTypes.init();
-        if (GTCEu.Mods.isKubeJSLoaded()) {
-            GTRegistryInfo.registerFor(GTRegistries.RECIPE_TYPES.getRegistryName());
-        }
         ModLoader.get().postEvent(new GTCEuAPI.RegisterEvent<>(GTRegistries.RECIPE_TYPES, GTRecipeType.class));
         GTRegistries.RECIPE_TYPES.freeze();
 

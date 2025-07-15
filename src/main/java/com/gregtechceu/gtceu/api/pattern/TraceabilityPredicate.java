@@ -192,12 +192,23 @@ public class TraceabilityPredicate {
     public boolean test(MultiblockState blockWorldState) {
         blockWorldState.io = IO.BOTH;
         boolean flag = false;
+
         for (SimplePredicate predicate : limited) {
             if (predicate.testLimited(blockWorldState)) {
                 flag = true;
+                break;
             }
         }
-        flag = flag || common.stream().anyMatch(predicate -> predicate.test(blockWorldState));
+
+        if (!flag) {
+            for (SimplePredicate predicate : common) {
+                if (predicate.test(blockWorldState)) {
+                    flag = true;
+                    break;
+                }
+            }
+        }
+
         if (flag) {
             blockWorldState.setError(null);
         }

@@ -10,7 +10,8 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.saveddata.SavedData;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -18,23 +19,25 @@ import java.util.concurrent.*;
 
 public class MultiblockWorldSavedData extends SavedData {
 
+    public static final String DATA_NAME = "gtceu_multiblock";
+
     public static MultiblockWorldSavedData getOrCreate(ServerLevel serverLevel) {
         return serverLevel.getDataStorage()
-                .computeIfAbsent(MultiblockWorldSavedData::new, MultiblockWorldSavedData::new, "gtceu_multiblock");
+                .computeIfAbsent(MultiblockWorldSavedData::new, MultiblockWorldSavedData::new, DATA_NAME);
     }
 
     /**
      * Store all formed multiblocks' structure info
      */
-    public final Map<BlockPos, MultiblockState> mapping;
+    public final Long2ObjectOpenHashMap<MultiblockState> mapping;
     /**
      * Chunk pos mapping.
      */
-    public final Map<ChunkPos, Set<MultiblockState>> chunkPosMapping;
+    public final Long2ObjectOpenHashMap<Set<MultiblockState>> chunkPosMapping;
 
     private MultiblockWorldSavedData() {
-        this.mapping = new Object2ObjectOpenHashMap<>();
-        this.chunkPosMapping = new HashMap<>();
+        this.mapping = new Long2ObjectOpenHashMap<>();
+        this.chunkPosMapping = new Long2ObjectOpenHashMap<>();
     }
 
     private MultiblockWorldSavedData(CompoundTag tag) {
@@ -42,18 +45,18 @@ public class MultiblockWorldSavedData extends SavedData {
     }
 
     public Set<MultiblockState> getControllersInChunk(ChunkPos chunkPos) {
-        return chunkPosMapping.getOrDefault(chunkPos, Collections.emptySet());
+        return chunkPosMapping.getOrDefault(chunkPos.toLong(), Collections.emptySet());
     }
 
     public void addMapping(MultiblockState state) {
-        this.mapping.put(state.controllerPos, state);
+        this.mapping.put(state.controllerPos.asLong(), state);
         for (BlockPos blockPos : state.getCache()) {
-            chunkPosMapping.computeIfAbsent(new ChunkPos(blockPos), c -> new HashSet<>()).add(state);
+            chunkPosMapping.computeIfAbsent(ChunkPos.asLong(blockPos.getX() >> 4, blockPos.getZ() >> 4), c -> new ObjectOpenHashSet<>()).add(state);
         }
     }
 
     public void removeMapping(MultiblockState state) {
-        this.mapping.remove(state.controllerPos);
+        this.mapping.remove(state.controllerPos.asLong());
         for (Set<MultiblockState> set : chunkPosMapping.values()) {
             set.remove(state);
         }

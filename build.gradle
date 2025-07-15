@@ -1,21 +1,15 @@
 plugins {
     id 'java-library'
-    id 'org.jetbrains.kotlin.jvm'
-    id 'eclipse'
     id 'idea'
     id 'maven-publish'
     alias libs.plugins.modDevGradle
-    alias libs.plugins.machete // automatic jar compressing on build
-    //alias libs.plugins.shadow
     alias libs.plugins.spotless
     alias libs.plugins.lombok
 }
 
 group = maven_group
-// Formats the mod version to include the loader, Minecraft version, and '-SNAPSHOT-<timestamp>' if enabled.
-boolean isSnapshot = System.getenv("SNAPSHOT")
-version = "${mod_version}" + (isSnapshot ? "-SNAPSHOT" : "")
-boolean isCI = System.getenv("CI") != null
+
+version = "${mod_version}"
 
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(17)
@@ -26,23 +20,6 @@ sourceSets {
     main.resources {
         srcDir 'src/generated/resources'
     }
-
-    test {
-        kotlin {
-            srcDirs += 'src/test/java'
-        }
-        compileClasspath += main.output
-        runtimeClasspath += main.output + main.runtimeClasspath
-    }
-
-    extra {
-        compileClasspath += main.output
-        runtimeClasspath += main.output + main.runtimeClasspath
-    }
-}
-
-obfuscation {
-    createRemappingConfiguration(configurations.extraRuntimeOnly)
 }
 
 apply from: "$rootDir/gradle/scripts/jars.gradle"
@@ -50,7 +27,6 @@ apply from: "$rootDir/gradle/scripts/moddevgradle.gradle"
 apply from: "$rootDir/gradle/scripts/repositories.gradle"
 apply from: "$rootDir/dependencies.gradle"
 apply from: "$rootDir/gradle/scripts/resources.gradle"
-apply from: "$rootDir/gradle/scripts/publishing.gradle"
 apply from: "$rootDir/gradle/scripts/spotless.gradle"
 
 
@@ -58,14 +34,6 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
     options.compilerArgs << "-Xlint:-removal"
     options.compilerArgs << "-Aquiet=true" // Suppress mixin notes
-}
-
-machete {
-    // disable machete locally for faster builds
-    enabled = isCI
-    // Only optimize reobf jars
-    ignoredTasks.addAll("jar", "slimJar")
-    additionalTasks.addAll("reobfJar", "reobfSlimJar")
 }
 
 lombok {

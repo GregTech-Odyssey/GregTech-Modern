@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 public class LangHandler {
 
     public static void init(RegistrateLangProvider provider) {
-        AdvancementLang.init(provider);
         BlockLang.init(provider);
         IntegrationLang.init(provider);
         ItemLang.init(provider);
@@ -133,16 +132,6 @@ public class LangHandler {
         provider.add("command.gtceu.place_vein.failure", "Failed to place vein %s at position %s");
         provider.add("command.gtceu.place_vein.success", "Placed vein %s at position %s");
         provider.add("command.gtceu.share_prospection_data.notification", "%s is sharing prospecting data with you!");
-        provider.add("command.gtceu.cape.give.failed", "No new capes were unlocked");
-        provider.add("command.gtceu.cape.give.success.multiple", "Unlocked %s capes for %s players");
-        provider.add("command.gtceu.cape.give.success.single", "Unlocked %s capes for %s");
-        provider.add("command.gtceu.cape.take.failed", "No capes could be removed");
-        provider.add("command.gtceu.cape.take.success.multiple", "Took %s capes from %s players");
-        provider.add("command.gtceu.cape.take.success.single", "Took %s capes from %s");
-        provider.add("command.gtceu.cape.use.failed",
-                "%s can't use cape %s because they don't have it (or it doesn't exist)!");
-        provider.add("command.gtceu.cape.use.success", "%s is now using cape %s");
-        provider.add("command.gtceu.cape.use.success.none", "%s is no longer using a cape");
 
         provider.add("gtceu.medical_condition.description", "§l§cHAZARDOUS §7Hold Shift to show details");
         provider.add("gtceu.medical_condition.description_shift", "§l§cHAZARDOUS:");
@@ -264,11 +253,6 @@ public class LangHandler {
         provider.add("item.gtceu.tool.aoe.rows", "Rows");
         provider.add("item.gtceu.tool.aoe.columns", "Columns");
         provider.add("item.gtceu.tool.aoe.layers", "Layers");
-
-        provider.add("item.gtceu.armor.helmet", "%s Helmet");
-        provider.add("item.gtceu.armor.chestplate", "%s Chestplate");
-        provider.add("item.gtceu.armor.leggings", "%s Leggings");
-        provider.add("item.gtceu.armor.boots", "%s Boots");
 
         provider.add("item.gtceu.turbine_rotor.tooltip", "Turbine Rotors for your power station");
         provider.add("metaitem.clipboard.tooltip",

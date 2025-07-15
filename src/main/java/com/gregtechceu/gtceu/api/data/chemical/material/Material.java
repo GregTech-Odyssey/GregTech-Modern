@@ -19,7 +19,6 @@ import com.gregtechceu.gtceu.api.item.tool.MaterialToolTier;
 import com.gregtechceu.gtceu.api.registry.registrate.BuilderBase;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTMedicalConditions;
-import com.gregtechceu.gtceu.integration.kjs.helpers.MaterialStackWrapper;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTMath;
 
@@ -34,8 +33,6 @@ import net.minecraftforge.fluids.FluidStack;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import dev.latvian.mods.rhino.util.HideFromJS;
-import dev.latvian.mods.rhino.util.RemapPrefixForJS;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.Getter;
@@ -543,7 +540,6 @@ public class Material implements Comparable<Material> {
         return this == GTMaterials.NULL;
     }
 
-    @RemapPrefixForJS("kjs$")
     public static class Builder extends BuilderBase<Material> {
 
         private final MaterialInfo materialInfo;
@@ -557,7 +553,6 @@ public class Material implements Comparable<Material> {
          * The temporary list of components for this Material.
          */
         private List<MaterialStack> composition = new ArrayList<>();
-        private List<MaterialStackWrapper> compositionSupplier;
 
         /*
          * Temporary value to use to determine how to calculate default RGB
@@ -994,16 +989,6 @@ public class Material implements Comparable<Material> {
             return this;
         }
 
-        public Builder kjs$components(MaterialStackWrapper... components) {
-            compositionSupplier = Arrays.asList(components);
-            return this;
-        }
-
-        public Builder kjs$components(ImmutableList<MaterialStackWrapper> components) {
-            compositionSupplier = components;
-            return this;
-        }
-
         /**
          * Add {@link MaterialFlags} to this Material.<br>
          * Dependent Flags (for example, {@link MaterialFlags#GENERATE_LONG_ROD} requiring
@@ -1058,14 +1043,6 @@ public class Material implements Comparable<Material> {
          */
         public Builder toolStats(ToolProperty toolProperty) {
             properties.setProperty(PropertyKey.TOOL, toolProperty);
-            return this;
-        }
-
-        /**
-         * Use {@link ArmorProperty.Builder} to create an Armor Property.
-         */
-        public Builder armorStats(ArmorProperty armorProperty) {
-            properties.setProperty(PropertyKey.ARMOR, armorProperty);
             return this;
         }
 
@@ -1261,12 +1238,8 @@ public class Material implements Comparable<Material> {
             return this;
         }
 
-        @HideFromJS
         public Material buildAndRegister() {
-            materialInfo.componentList = composition.isEmpty() && this.compositionSupplier != null ?
-                    ImmutableList.copyOf(compositionSupplier.stream().map(MaterialStackWrapper::toMatStack)
-                            .toArray(MaterialStack[]::new)) :
-                    ImmutableList.copyOf(composition);
+            materialInfo.componentList = ImmutableList.copyOf(composition);
             if (!properties.hasProperty(HAZARD)) {
                 for (MaterialStack materialStack : materialInfo.componentList) {
                     Material material = materialStack.material();
@@ -1294,7 +1267,7 @@ public class Material implements Comparable<Material> {
         }
 
         @Override
-        @HideFromJS
+
         public Material register() {
             return value = buildAndRegister();
         }
