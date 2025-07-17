@@ -30,8 +30,8 @@ import java.util.stream.StreamSupport;
 
 public class FluidIngredient implements Predicate<FluidStack> {
 
-    public static final Codec<FluidIngredient> CODEC = Codec.PASSTHROUGH.xmap(dynamic -> FluidIngredient.fromJson(dynamic.convert(JsonOps.INSTANCE).getValue()), ingredient -> new Dynamic<>(JsonOps.INSTANCE, ingredient.toJson()));
-    public static final FluidIngredient EMPTY = new FluidIngredient(new Value[0], 0, null);
+    public static Codec<FluidIngredient> CODEC = Codec.PASSTHROUGH.xmap(dynamic -> FluidIngredient.fromJson(dynamic.convert(JsonOps.INSTANCE).getValue()), ingredient -> new Dynamic<>(JsonOps.INSTANCE, ingredient.toJson()));
+    public static FluidIngredient EMPTY = new FluidIngredient(new Value[0], 0, null);
     public FluidIngredient.Value[] values;
     @Nullable
     public FluidStack[] stacks;

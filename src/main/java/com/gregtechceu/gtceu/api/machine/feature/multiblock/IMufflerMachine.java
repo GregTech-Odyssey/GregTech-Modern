@@ -20,7 +20,7 @@ import java.util.List;
 
 public interface IMufflerMachine extends IMultiPart, IEnvironmentalHazardEmitter {
 
-    void recoverItemsTable(ItemStack... recoveryItems);
+    void recoverItemsTable(ItemStack recoveryItems);
 
     /**
      * @return true if front face is free and contains only air blocks in 1x1 area OR has a duct block on it.

@@ -25,8 +25,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.ItemHandlerHelper;
 
-import java.util.stream.IntStream;
-
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
@@ -56,13 +54,10 @@ public class MufflerPartMachine extends TieredPartMachine implements IMufflerMac
     // ******** Muffler *********//
     //////////////////////////////////////
     @Override
-    public void recoverItemsTable(ItemStack... recoveryItems) {
-        int numRolls = Math.min(recoveryItems.length, inventory.getSlots());
-        IntStream.range(0, numRolls).forEach(slot -> {
-            if (calculateChance()) {
-                ItemHandlerHelper.insertItemStacked(inventory, recoveryItems[slot].copy(), false);
-            }
-        });
+    public void recoverItemsTable(ItemStack recoveryItems) {
+        if (calculateChance()) {
+            ItemHandlerHelper.insertItemStacked(inventory, recoveryItems.copy(), false);
+        }
     }
 
     private boolean calculateChance() {

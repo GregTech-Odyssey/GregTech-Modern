@@ -31,31 +31,15 @@ side = "BOTH"
 modId = "ldlib"
 mandatory = true
 embedded = true
-versionRange = "[${ldlib_version},)"
+versionRange = "[1,)"
 ordering = "AFTER"
 side = "BOTH"
-[dependencies.${mod_id}.mc-publish]
-    ignore = false
-    modrinth = "ldlib"
-    curseforge = "ldlib"
 
 [[dependencies.${mod_id}]]
 modId = "configuration"
 mandatory = true
 embedded = true
-versionRange = "[${configuration_version},)"
-ordering = "AFTER"
-side = "BOTH"
-[dependencies.${mod_id}.mc-publish]
-    ignore = false
-    modrinth = "configuration"
-    curseforge = "configuration"
-
-
-[[dependencies.${mod_id}]]
-modId = "kubejs"
-mandatory = false
-versionRange = "[${kjs_version},)"
+versionRange = "[2,)"
 ordering = "AFTER"
 side = "BOTH"
 
@@ -71,13 +55,6 @@ modId = "emi"
 mandatory = false
 versionRange = "[${emi_version},)"
 ordering = "AFTER"
-side = "BOTH"
-
-[[dependencies.${mod_id}]]
-modId = "theoneprobe"
-mandatory = false
-versionRange = "[${top_version},)"
-ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]

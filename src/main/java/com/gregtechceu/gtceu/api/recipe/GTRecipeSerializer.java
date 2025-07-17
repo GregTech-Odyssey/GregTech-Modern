@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.api.recipe;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
-import com.gregtechceu.gtceu.api.recipe.chance.logic.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.recipe.condition.ResearchCondition;
@@ -16,8 +15,6 @@ import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
@@ -31,31 +28,6 @@ public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
     public static final Codec<GTRecipe> CODEC = makeCodec();
 
     public static final GTRecipeSerializer SERIALIZER = new GTRecipeSerializer();
-
-    public Map<RecipeCapability<?>, List<Content>> capabilitiesFromJson(JsonObject json) {
-        Map<RecipeCapability<?>, List<Content>> capabilities = new IdentityHashMap<>();
-        for (String key : json.keySet()) {
-            JsonArray contentsJson = json.getAsJsonArray(key);
-            RecipeCapability<?> capability = GTRegistries.RECIPE_CAPABILITIES.get(key);
-            if (capability != null) {
-                List<Content> contents = new ArrayList<>();
-                for (JsonElement contentJson : contentsJson) {
-                    contents.add(capability.serializer.fromJsonContent(contentJson));
-                }
-                capabilities.put(capability, contents);
-            }
-        }
-        return capabilities;
-    }
-
-    public Map<RecipeCapability<?>, ChanceLogic> chanceLogicsFromJson(JsonObject json) {
-        Map<RecipeCapability<?>, ChanceLogic> chanceLogics = new IdentityHashMap<>();
-        for (String key : json.keySet()) {
-            String value = json.get(key).getAsString();
-            chanceLogics.put(GTRegistries.RECIPE_CAPABILITIES.get(key), GTRegistries.CHANCE_LOGICS.get(value));
-        }
-        return chanceLogics;
-    }
 
     @Override
     public @NotNull GTRecipe fromJson(@NotNull ResourceLocation id, @NotNull JsonObject json) {

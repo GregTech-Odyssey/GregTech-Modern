@@ -62,8 +62,7 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
      * Set this to false only if your multiblock is set up such that it could have a wall-shared controller.
      */
     private boolean allowFlip = true;
-    private final List<Supplier<ItemStack[]>> recoveryItems = new ArrayList<>();
-    private Function<MultiblockControllerMachine, Comparator<IMultiPart>> partSorter = c -> (a, b) -> 0;
+    private Supplier<ItemStack> recoveryItems;
     private TriFunction<IMultiController, IMultiPart, Direction, BlockState> partAppearance;
     private BiConsumer<IMultiController, List<Component>> additionalDisplay = (m, l) -> {};
 
@@ -87,13 +86,13 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
         return this;
     }
 
-    public MultiblockMachineBuilder recoveryItems(Supplier<ItemLike[]> items) {
-        this.recoveryItems.add(() -> Arrays.stream(items.get()).map(ItemLike::asItem).map(Item::getDefaultInstance).toArray(ItemStack[]::new));
+    public MultiblockMachineBuilder recoveryItems(Supplier<ItemLike> item) {
+        this.recoveryItems = () -> new ItemStack(item.get());
         return this;
     }
 
-    public MultiblockMachineBuilder recoveryStacks(Supplier<ItemStack[]> stacks) {
-        this.recoveryItems.add(stacks);
+    public MultiblockMachineBuilder recoveryStacks(Supplier<ItemStack> stack) {
+        this.recoveryItems = stack;
         return this;
     }
 
@@ -271,11 +270,6 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
         return (MultiblockMachineBuilder) super.conditionalTooltip(component, condition);
     }
 
-    public MultiblockMachineBuilder partSorter(Comparator<IMultiPart> sorter) {
-        this.partSorter = $ -> sorter;
-        return this;
-    }
-
     @Override
     public MultiblockMachineBuilder abilities(PartAbility... abilities) {
         return (MultiblockMachineBuilder) super.abilities(abilities);
@@ -370,10 +364,9 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
         definition.setPatternFactory(GTMemoizer.memoize(() -> pattern.apply(definition)));
         definition.setShapes(() -> shapeInfos.stream().map(factory -> factory.apply(definition)).flatMap(Collection::stream).toList());
         definition.setAllowFlip(allowFlip);
-        if (!recoveryItems.isEmpty()) {
-            definition.setRecoveryItems(() -> recoveryItems.stream().map(Supplier::get).flatMap(Arrays::stream).toArray(ItemStack[]::new));
+        if (recoveryItems != null) {
+            definition.setRecoveryItems(GTMemoizer.memoize(() -> recoveryItems.get()));
         }
-        definition.setPartSorter(GTMemoizer.memoizeFunctionWeakIdent(partSorter));
         if (partAppearance == null) {
             partAppearance = (controller, part, side) -> definition.getAppearance().get();
         }
@@ -411,21 +404,9 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
     /**
      * @return {@code this}.
      */
-    public MultiblockMachineBuilder partSorter(final Function<MultiblockControllerMachine, Comparator<IMultiPart>> partSorter) {
-        this.partSorter = partSorter;
-        return this;
-    }
-
-    /**
-     * @return {@code this}.
-     */
     public MultiblockMachineBuilder partAppearance(final TriFunction<IMultiController, IMultiPart, Direction, BlockState> partAppearance) {
         this.partAppearance = partAppearance;
         return this;
-    }
-
-    public BiConsumer<IMultiController, List<Component>> additionalDisplay() {
-        return this.additionalDisplay;
     }
 
     /**

@@ -12,10 +12,10 @@ import java.util.function.Predicate;
 
 public class TagType {
 
-    private final String tagPath;
-    private boolean isParentTag = false;
-    private BiFunction<TagPrefix, Material, TagKey<Item>> formatter;
-    private Predicate<Material> filter;
+    public final String tagPath;
+    public boolean isParentTag = false;
+    public BiFunction<TagPrefix, Material, TagKey<Item>> formatter;
+    public Predicate<Material> filter;
 
     private TagType(String tagPath) {
         this.tagPath = tagPath;

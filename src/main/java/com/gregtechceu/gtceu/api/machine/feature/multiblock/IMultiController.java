@@ -186,8 +186,8 @@ public interface IMultiController extends IMachineFeature, IInteractedMachine {
         return null;
     }
 
-    default Comparator<IMultiPart> getPartSorter() {
-        return self().getDefinition().getPartSorter().apply(self());
+    default @Nullable Comparator<IMultiPart> getPartSorter() {
+        return null;
     }
 
     /**

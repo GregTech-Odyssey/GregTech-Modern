@@ -2,9 +2,9 @@ package com.gregtechceu.gtceu.api.machine;
 
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
-import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo;
+import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
 
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -18,7 +18,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class MultiblockMachineDefinition extends MachineDefinition {
@@ -33,8 +32,7 @@ public class MultiblockMachineDefinition extends MachineDefinition {
     private boolean allowFlip;
     private boolean renderXEIPreview;
     @Nullable
-    private Supplier<ItemStack[]> recoveryItems;
-    private Function<MultiblockControllerMachine, Comparator<IMultiPart>> partSorter;
+    private Supplier<ItemStack> recoveryItems;
     private TriFunction<IMultiController, IMultiPart, Direction, BlockState> partAppearance;
     private BiConsumer<IMultiController, List<Component>> additionalDisplay;
 
@@ -120,21 +118,13 @@ public class MultiblockMachineDefinition extends MachineDefinition {
         this.renderXEIPreview = renderXEIPreview;
     }
 
-    public void setRecoveryItems(@Nullable final Supplier<ItemStack[]> recoveryItems) {
-        this.recoveryItems = recoveryItems;
+    public void setRecoveryItems(@Nullable final Supplier<ItemStack> recoveryItems) {
+        this.recoveryItems = GTMemoizer.memoize(recoveryItems);
     }
 
     @Nullable
-    public Supplier<ItemStack[]> getRecoveryItems() {
+    public Supplier<ItemStack> getRecoveryItems() {
         return this.recoveryItems;
-    }
-
-    public void setPartSorter(final Function<MultiblockControllerMachine, Comparator<IMultiPart>> partSorter) {
-        this.partSorter = partSorter;
-    }
-
-    public Function<MultiblockControllerMachine, Comparator<IMultiPart>> getPartSorter() {
-        return this.partSorter;
     }
 
     public TriFunction<IMultiController, IMultiPart, Direction, BlockState> getPartAppearance() {

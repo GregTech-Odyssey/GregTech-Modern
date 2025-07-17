@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
-import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -24,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Optional;
 
 public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
 
@@ -51,8 +49,9 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
         return checkFluidInputs(recipe);
     }
 
-    public static Comparator<IMultiPart> partSorter(MultiblockControllerMachine mc) {
-        return Comparator.comparing(p -> p.self().getPos(), RelativeDirection.RIGHT.getSorter(mc.getFrontFacing(), mc.getUpwardsFacing(), mc.isFlipped()));
+    @Override
+    public Comparator<IMultiPart> getPartSorter() {
+        return Comparator.comparing(p -> p.self().getPos(), RelativeDirection.RIGHT.getSorter(getFrontFacing(), getUpwardsFacing(), isFlipped()));
     }
 
     private boolean checkItemInputs(@NotNull GTRecipe recipe) {
@@ -61,7 +60,7 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
         int inputsSize = itemInputs.size();
         var itemHandlers = getCapabilitiesFlat(IO.IN, ItemRecipeCapability.CAP);
         if (itemHandlers.size() < inputsSize) return false;
-        var itemInventory = itemHandlers.stream().filter(IRecipeHandler::shouldSearchContent).map(container -> container.getContents().stream().filter(ItemStack.class::isInstance).map(ItemStack.class::cast).filter(s -> !s.isEmpty()).findFirst()).dropWhile(Optional::isEmpty).limit(inputsSize).map(o -> o.orElse(ItemStack.EMPTY)).toList();
+        var itemInventory = itemHandlers.stream().filter(IRecipeHandler::shouldSearchContent).map(container -> container.getContents().stream().filter(ItemStack.class::isInstance).map(ItemStack.class::cast).filter(s -> !s.isEmpty()).findFirst()).filter(o -> !(o.isEmpty() || o.get().isEmpty())).limit(inputsSize).map(o -> o.orElse(ItemStack.EMPTY)).toList();
         if (itemInventory.size() < inputsSize) return false;
         for (int i = 0; i < inputsSize; i++) {
             var itemStack = itemInventory.get(i);
@@ -79,7 +78,7 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
         int inputsSize = fluidInputs.size();
         var fluidHandlers = getCapabilitiesFlat(IO.IN, FluidRecipeCapability.CAP);
         if (fluidHandlers.size() < inputsSize) return false;
-        var fluidInventory = fluidHandlers.stream().filter(IRecipeHandler::shouldSearchContent).map(container -> container.getContents().stream().filter(FluidStack.class::isInstance).map(FluidStack.class::cast).filter(f -> !f.isEmpty()).findFirst()).dropWhile(Optional::isEmpty).limit(inputsSize).map(o -> o.orElse(FluidStack.EMPTY)).toList();
+        var fluidInventory = fluidHandlers.stream().filter(IRecipeHandler::shouldSearchContent).map(container -> container.getContents().stream().filter(FluidStack.class::isInstance).map(FluidStack.class::cast).filter(f -> !f.isEmpty()).findFirst()).filter(o -> !(o.isEmpty() || o.get().isEmpty())).limit(inputsSize).map(o -> o.orElse(FluidStack.EMPTY)).toList();
         if (fluidInventory.size() < inputsSize) return false;
         for (int i = 0; i < inputsSize; i++) {
             var fluidStack = fluidInventory.get(i);

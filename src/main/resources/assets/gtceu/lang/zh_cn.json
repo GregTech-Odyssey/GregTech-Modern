@@ -5540,5 +5540,13 @@
     "tile.gtceu.petrified_foam.name": "石化建筑泡沫",
     "tile.gtceu.reinforced_foam.name": "强化建筑泡沫",
     "tile.gtceu.reinforced_stone.name": "防爆石",
-    "tile.gtceu.seal.name": "密封方块"
+    "tile.gtceu.seal.name": "密封方块",
+    "config.gtceu.option.batchDuration": "批处理持续时间",
+    "config.gtceu.option.coloredTieredMachineOutline": "彩色电力机器轮廓",
+    "config.gtceu.option.coloredWireOutline": "彩色线缆轮廓",
+    "gtceu.machine.batch_disabled": "批处理已禁用",
+    "gtceu.machine.batch_enabled": "批处理已启用",
+    "gtceu.multiblock.batch_enabled": "批处理模式：已启用（%sx）",
+    "gtceu.multiblock.dimensions.0": "尺寸：",
+    "gtceu.multiblock.dimensions.1": "  §c§l长§r：%s，§a§l高§r：%s，§9§l宽§r：%s "
 }

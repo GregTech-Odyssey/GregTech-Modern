@@ -70,6 +70,11 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
     }
 
     @Override
+    public Comparator<IMultiPart> getPartSorter() {
+        return Comparator.comparingInt(p -> p.self().getPos().getY());
+    }
+
+    @Override
     public void onStructureFormed() {
         super.onStructureFormed();
         final int startY = getPos().getY() + yOffset;

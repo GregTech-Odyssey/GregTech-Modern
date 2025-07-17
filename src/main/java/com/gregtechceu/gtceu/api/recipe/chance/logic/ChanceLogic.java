@@ -1,13 +1,10 @@
 package com.gregtechceu.gtceu.api.recipe.chance.logic;
 
-import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.recipe.chance.boost.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.api.registry.GTRegistries;
 
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.fml.ModLoader;
 
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -26,10 +23,6 @@ import java.util.List;
  * Logic for determining which chanced outputs should be produced from a list
  */
 public abstract class ChanceLogic {
-
-    static {
-        GTRegistries.CHANCE_LOGICS.unfreeze();
-    }
 
     /**
      * Chanced Output Logic where any ingredients succeeding their roll will be produced
@@ -261,9 +254,7 @@ public abstract class ChanceLogic {
         }
     };
 
-    public ChanceLogic(String id) {
-        GTRegistries.CHANCE_LOGICS.register(id, this);
-    }
+    public ChanceLogic(String id) {}
 
     /**
      * @param entry         the entry to get the complete chance for
@@ -354,8 +345,5 @@ public abstract class ChanceLogic {
     public abstract Component getTranslation();
 
     @ApiStatus.Internal
-    public static void init() {
-        ModLoader.get().postEvent(new GTCEuAPI.RegisterEvent<>(GTRegistries.CHANCE_LOGICS, ChanceLogic.class));
-        GTRegistries.CHANCE_LOGICS.freeze();
-    }
+    public static void init() {}
 }

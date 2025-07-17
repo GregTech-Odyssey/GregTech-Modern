@@ -1,18 +1,10 @@
 package com.gregtechceu.gtceu.common.data;
 
-import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.api.data.chemical.Element;
-import com.gregtechceu.gtceu.api.registry.GTRegistries;
-
-import net.minecraftforge.fml.ModLoader;
 
 public class GTElements {
-
-    static {
-        GTRegistries.ELEMENTS.unfreeze();
-    }
 
     public static final Element H = createAndRegister(1, 0, -1, null, "Hydrogen", "H", false);
     public static final Element D = createAndRegister(1, 1, -1, "H", "Deuterium", "D", true);
@@ -151,18 +143,10 @@ public class GTElements {
 
     public static Element createAndRegister(long protons, long neutrons, long halfLifeSeconds, String decayTo,
                                             String name, String symbol, boolean isIsotope) {
-        Element element = new Element(protons, neutrons, halfLifeSeconds, decayTo, name, symbol, isIsotope);
-        GTRegistries.ELEMENTS.register(name, element);
-        return element;
+        return new Element(protons, neutrons, halfLifeSeconds, decayTo, name, symbol, isIsotope);
     }
 
     public static void init() {
         AddonFinder.getAddons().forEach(IGTAddon::registerElements);
-        ModLoader.get().postEvent(new GTCEuAPI.RegisterEvent<>(GTRegistries.ELEMENTS, Element.class));
-        GTRegistries.ELEMENTS.freeze();
-    }
-
-    public static Element get(String name) {
-        return GTRegistries.ELEMENTS.get(name);
     }
 }

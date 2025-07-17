@@ -48,7 +48,7 @@ public class IntInputWidget extends NumberInputWidget<Integer> {
 
     @Override
     protected String toText(Integer value) {
-        return String.valueOf(value);
+        return String.valueOf(value.intValue());
     }
 
     @Override

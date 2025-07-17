@@ -48,7 +48,7 @@ public class LongInputWidget extends NumberInputWidget<Long> {
 
     @Override
     protected String toText(Long value) {
-        return String.valueOf(value);
+        return String.valueOf(value.longValue());
     }
 
     @Override

@@ -59,7 +59,7 @@ public abstract class NumberInputWidget<T extends Number> extends WidgetGroup {
     private final ChangeValues<T> CHANGE_VALUES = getChangeValues();
     private final T ONE_POSITIVE = getOne(true);
     private final T ONE_NEGATIVE = getOne(false);
-    private Supplier<T> valueSupplier;
+    private final Supplier<T> valueSupplier;
     private T min = defaultMin();
     private T max = defaultMax();
     private final Consumer<T> onChanged;

@@ -70,11 +70,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class GTRecipeBuilder {
 
-    public final Map<RecipeCapability<?>, List<Content>> input = new IdentityHashMap<>();
-    public final Map<RecipeCapability<?>, List<Content>> tickInput = new IdentityHashMap<>();
-    public final Map<RecipeCapability<?>, List<Content>> output = new IdentityHashMap<>();
-    public final Map<RecipeCapability<?>, List<Content>> tickOutput = new IdentityHashMap<>();
-    public final List<RecipeCondition> conditions = new ArrayList<>();
+    public Map<RecipeCapability<?>, List<Content>> input = new IdentityHashMap<>();
+    public Map<RecipeCapability<?>, List<Content>> tickInput = new IdentityHashMap<>();
+    public Map<RecipeCapability<?>, List<Content>> output = new IdentityHashMap<>();
+    public Map<RecipeCapability<?>, List<Content>> tickOutput = new IdentityHashMap<>();
+    public List<RecipeCondition> conditions = new ArrayList<>();
     @NotNull
     public CompoundTag data = new CompoundTag();
     public ResourceLocation id;
@@ -1144,16 +1144,6 @@ public class GTRecipeBuilder {
                 contentsJson.add(cap.serializer.toJsonContent(content));
             }
             jsonObject.add(GTRegistries.RECIPE_CAPABILITIES.getKey(cap), contentsJson);
-        });
-        return jsonObject;
-    }
-
-    public JsonObject chanceLogicsToJson(Map<RecipeCapability<?>, ChanceLogic> chanceLogics) {
-        JsonObject jsonObject = new JsonObject();
-        chanceLogics.forEach((cap, logic) -> {
-            String capId = GTRegistries.RECIPE_CAPABILITIES.getKey(cap);
-            String logicId = GTRegistries.CHANCE_LOGICS.getKey(logic);
-            jsonObject.addProperty(capId, logicId);
         });
         return jsonObject;
     }

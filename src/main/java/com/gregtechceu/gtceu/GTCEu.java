@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.client.ClientProxy;
 import com.gregtechceu.gtceu.common.CommonProxy;
-import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
@@ -18,7 +17,6 @@ import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
 import dev.emi.emi.config.EmiConfig;
-import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +26,6 @@ import java.nio.file.Path;
 public class GTCEu {
 
     public static final String MOD_ID = "gtceu";
-    private static final ResourceLocation TEMPLATE_LOCATION = new ResourceLocation(MOD_ID, "");
     public static final String NAME = "GregTechCEu";
     public static final Logger LOGGER = LoggerFactory.getLogger(NAME);
 
@@ -43,32 +40,7 @@ public class GTCEu {
     }
 
     public static ResourceLocation id(String path) {
-        if (Strings.isBlank(path)) {
-            return TEMPLATE_LOCATION;
-        }
-
-        int i = path.indexOf(':');
-        if (i > 0) {
-            return new ResourceLocation(path);
-        } else if (i == 0) {
-            path = path.substring(i + 1);
-        }
-        // only convert it to camel_case if it has any uppercase to begin with
-        if (FormattingUtil.hasUpperCase(path)) {
-            path = FormattingUtil.toLowerCaseUnderscore(path);
-        }
-        return TEMPLATE_LOCATION.withPath(path);
-    }
-
-    public static String appendIdString(String id) {
-        int i = id.indexOf(':');
-        if (i > 0) {
-            return id;
-        } else if (i == 0) {
-            return MOD_ID + id;
-        } else {
-            return MOD_ID + ":" + id;
-        }
+        return new ResourceLocation(MOD_ID, path);
     }
 
     /**
