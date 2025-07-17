@@ -11,18 +11,13 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 
-import lombok.Getter;
-
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public abstract class SteamMachine extends MetaMachine implements ITieredMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(SteamMachine.class,
-            MetaMachine.MANAGED_FIELD_HOLDER);
-
-    @Getter
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(SteamMachine.class, MetaMachine.MANAGED_FIELD_HOLDER);
     public final boolean isHighPressure;
     @Persisted
     public final NotifiableFluidTank steamTank;
@@ -48,4 +43,8 @@ public abstract class SteamMachine extends MetaMachine implements ITieredMachine
     }
 
     protected abstract NotifiableFluidTank createSteamTank(Object... args);
+
+    public boolean isHighPressure() {
+        return this.isHighPressure;
+    }
 }

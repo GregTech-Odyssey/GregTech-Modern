@@ -18,17 +18,13 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public abstract class DetectorCover extends CoverBehavior implements IControllable {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(DetectorCover.class,
-            CoverBehavior.MANAGED_FIELD_HOLDER);
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(DetectorCover.class, CoverBehavior.MANAGED_FIELD_HOLDER);
 
     @Override
     public ManagedFieldHolder getFieldHolder() {
@@ -36,15 +32,10 @@ public abstract class DetectorCover extends CoverBehavior implements IControllab
     }
 
     @Persisted
-    @Getter
-    @Setter
     protected boolean isWorkingEnabled = true;
     protected TickableSubscription subscription;
-
     @Persisted
     @DescSynced
-    @Getter
-    @Setter
     private boolean isInverted;
 
     public DetectorCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {
@@ -69,7 +60,6 @@ public abstract class DetectorCover extends CoverBehavior implements IControllab
 
     private void toggleInvertedWithNotification() {
         setInverted(!isInverted());
-
         if (!this.coverHolder.isRemote()) {
             this.coverHolder.notifyBlockUpdate();
             this.coverHolder.markDirty();
@@ -82,15 +72,11 @@ public abstract class DetectorCover extends CoverBehavior implements IControllab
         if (superResult != InteractionResult.PASS) {
             return superResult;
         }
-
         if (!this.coverHolder.isRemote()) {
             toggleInvertedWithNotification();
-
-            String translationKey = isInverted() ? "cover.detector_base.message_inverted_state" :
-                    "cover.detector_base.message_normal_state";
+            String translationKey = isInverted() ? "cover.detector_base.message_inverted_state" : "cover.detector_base.message_normal_state";
             playerIn.sendSystemMessage(Component.translatable(translationKey));
         }
-
         return InteractionResult.SUCCESS;
     }
 
@@ -102,5 +88,21 @@ public abstract class DetectorCover extends CoverBehavior implements IControllab
     @Override
     public boolean canPipePassThrough() {
         return false;
+    }
+
+    public boolean isWorkingEnabled() {
+        return this.isWorkingEnabled;
+    }
+
+    public void setWorkingEnabled(final boolean isWorkingEnabled) {
+        this.isWorkingEnabled = isWorkingEnabled;
+    }
+
+    public boolean isInverted() {
+        return this.isInverted;
+    }
+
+    public void setInverted(final boolean isInverted) {
+        this.isInverted = isInverted;
     }
 }

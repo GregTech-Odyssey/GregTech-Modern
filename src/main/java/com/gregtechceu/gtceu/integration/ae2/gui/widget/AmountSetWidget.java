@@ -13,7 +13,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import appeng.api.stacks.GenericStack;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import static com.lowdragmc.lowdraglib.gui.util.DrawerHelper.drawStringSized;
@@ -21,16 +20,13 @@ import static com.lowdragmc.lowdraglib.gui.util.DrawerHelper.drawStringSized;
 public class AmountSetWidget extends Widget {
 
     private int index = -1;
-    @Getter
     private final TextFieldWidget amountText;
     private final ConfigWidget parentWidget;
 
     public AmountSetWidget(int x, int y, ConfigWidget widget) {
         super(x, y, 80, 30);
         this.parentWidget = widget;
-        this.amountText = new TextFieldWidget(x + 3, y + 12, 65, 13, this::getAmountStr, this::setNewAmount)
-                .setNumbersOnly(0, Integer.MAX_VALUE)
-                .setMaxStringLength(10);
+        this.amountText = new TextFieldWidget(x + 3, y + 12, 65, 13, this::getAmountStr, this::setNewAmount).setNumbersOnly(0, Integer.MAX_VALUE).setMaxStringLength(10);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -81,7 +77,11 @@ public class AmountSetWidget extends Widget {
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
         Position position = getPosition();
         GuiTextures.BACKGROUND.draw(graphics, mouseX, mouseY, position.x, position.y, 80, 30);
-        drawStringSized(graphics, "Amount", position.x + 3, position.y + 3, 0x404040, false, 1f, false);
+        drawStringSized(graphics, "Amount", position.x + 3, position.y + 3, 4210752, false, 1.0F, false);
         GuiTextures.DISPLAY.draw(graphics, mouseX, mouseY, position.x + 3, position.y + 11, 65, 14);
+    }
+
+    public TextFieldWidget getAmountText() {
+        return this.amountText;
     }
 }

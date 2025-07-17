@@ -47,8 +47,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -57,13 +55,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachineLife, IHasCircuitSlot, IPaintable {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(FluidHatchPartMachine.class,
-            TieredIOPartMachine.MANAGED_FIELD_HOLDER);
-
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(FluidHatchPartMachine.class, TieredIOPartMachine.MANAGED_FIELD_HOLDER);
     public static final int INITIAL_TANK_CAPACITY_1X = 8 * FluidType.BUCKET_VOLUME;
     public static final int INITIAL_TANK_CAPACITY_4X = 2 * FluidType.BUCKET_VOLUME;
     public static final int INITIAL_TANK_CAPACITY_9X = FluidType.BUCKET_VOLUME;
-
     @Persisted
     public final NotifiableFluidTank tank;
     private final int slots;
@@ -71,19 +66,15 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
     protected TickableSubscription autoIOSubs;
     @Nullable
     protected ISubscription tankSubs;
-    @Getter
-    @Setter
     @Persisted
     @DescSynced
     protected boolean circuitSlotEnabled;
-    @Getter
     @Persisted
     protected final NotifiableItemStackHandler circuitInventory;
 
     // The `Object... args` parameter is necessary in case a superclass needs to pass any args along to createTank().
     // We can't use fields here because those won't be available while createTank() is called.
-    public FluidHatchPartMachine(IMachineBlockEntity holder, int tier, IO io, int initialCapacity, int slots,
-                                 Object... args) {
+    public FluidHatchPartMachine(IMachineBlockEntity holder, int tier, IO io, int initialCapacity, int slots, Object... args) {
         super(holder, tier, io);
         this.slots = slots;
         this.tank = createTank(initialCapacity, slots, args);
@@ -109,8 +100,7 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
 
     protected NotifiableItemStackHandler createCircuitItemHandler(Object... args) {
         if (args.length > 0 && args[0] instanceof IO io && io == IO.IN) {
-            return new NotifiableItemStackHandler(this, 1, IO.IN, IO.NONE)
-                    .setFilter(IntCircuitBehaviour::isIntegratedCircuit);
+            return new NotifiableItemStackHandler(this, 1, IO.IN, IO.NONE).setFilter(IntCircuitBehaviour::isIntegratedCircuit);
         } else {
             return new NotifiableItemStackHandler(this, 0, IO.NONE);
         }
@@ -180,7 +170,6 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
     //////////////////////////////////////
     // ******** Auto IO *********//
     //////////////////////////////////////
-
     @Override
     public void onNeighborChanged(Block block, BlockPos fromPos, boolean isMoving) {
         super.onNeighborChanged(block, fromPos, isMoving);
@@ -198,8 +187,7 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
     }
 
     protected void updateTankSubscription(Direction newFacing) {
-        if (isWorkingEnabled() && ((io == IO.OUT && !tank.isEmpty()) || io == IO.IN) &&
-                GTTransferUtils.hasAdjacentFluidHandler(getLevel(), getPos(), newFacing)) {
+        if (isWorkingEnabled() && ((io == IO.OUT && !tank.isEmpty()) || io == IO.IN) && GTTransferUtils.hasAdjacentFluidHandler(getLevel(), getPos(), newFacing)) {
             autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO);
         } else if (autoIOSubs != null) {
             autoIOSubs.unsubscribe();
@@ -227,8 +215,7 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
     }
 
     @Override
-    protected InteractionResult onScrewdriverClick(Player playerIn, InteractionHand hand, Direction gridSide,
-                                                   BlockHitResult hitResult) {
+    protected InteractionResult onScrewdriverClick(Player playerIn, InteractionHand hand, Direction gridSide, BlockHitResult hitResult) {
         InteractionResult superResult = super.onScrewdriverClick(playerIn, hand, gridSide, hitResult);
         if (superResult != InteractionResult.PASS) return superResult;
         if (io == IO.BOTH) return InteractionResult.PASS;
@@ -243,7 +230,6 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
     public boolean swapIO() {
         BlockPos blockPos = getHolder().pos();
         MachineDefinition newDefinition = null;
-
         if (io == IO.IN) {
             if (this.slots == 1) newDefinition = GTMachines.FLUID_EXPORT_HATCH[this.getTier()];
             else if (this.slots == 4) newDefinition = GTMachines.FLUID_EXPORT_HATCH_4X[this.getTier()];
@@ -254,11 +240,8 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
             else if (this.slots == 9) newDefinition = GTMachines.FLUID_IMPORT_HATCH_9X[this.getTier()];
         }
         if (newDefinition == null) return false;
-
         BlockState newBlockState = newDefinition.getBlock().defaultBlockState();
-
         getLevel().setBlockAndUpdate(blockPos, newBlockState);
-
         if (getLevel().getBlockEntity(blockPos) instanceof IMachineBlockEntity newHolder) {
             if (newHolder.getMetaMachine() instanceof FluidHatchPartMachine newMachine) {
                 newMachine.setFrontFacing(this.getFrontFacing());
@@ -275,7 +258,6 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
     //////////////////////////////////////
     // ********** GUI ***********//
     //////////////////////////////////////
-
     @Override
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
         super.attachConfigurators(configuratorPanel);
@@ -297,40 +279,28 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
         var group = new WidgetGroup(0, 0, 89, 63);
         group.addWidget(new ImageWidget(4, 4, 81, 55, GuiTextures.DISPLAY));
         TankWidget tankWidget;
-
         // Add input/output-specific widgets
         if (this.io == IO.OUT) {
             // if this is an output hatch, assign tankWidget to the phantom widget displaying the locked fluid...
-            group.addWidget(tankWidget = new PhantomFluidWidget(this.tank.getLockedFluid(), 0, 67, 40, 18, 18,
-                    () -> this.tank.getLockedFluid().getFluid(), f -> {
-                        if (!this.tank.getFluidInTank(0).isEmpty()) {
-                            return;
-                        }
-                        if (f == null || f.isEmpty()) {
-                            this.tank.setLocked(false);
-                        } else {
-                            FluidStack newFluid = f.copy();
-                            newFluid.setAmount(1);
-                            this.tank.setLocked(true, newFluid);
-                        }
-                    }).setShowAmount(false).setDrawHoverTips(true).setBackground(GuiTextures.FLUID_SLOT));
+            group.addWidget(tankWidget = new PhantomFluidWidget(this.tank.getLockedFluid(), 0, 67, 40, 18, 18, () -> this.tank.getLockedFluid().getFluid(), f -> {
+                if (!this.tank.getFluidInTank(0).isEmpty()) {
+                    return;
+                }
+                if (f == null || f.isEmpty()) {
+                    this.tank.setLocked(false);
+                } else {
+                    FluidStack newFluid = f.copy();
+                    newFluid.setAmount(1);
+                    this.tank.setLocked(true, newFluid);
+                }
+            }).setShowAmount(false).setDrawHoverTips(true).setBackground(GuiTextures.FLUID_SLOT));
 
-            group.addWidget(new ToggleButtonWidget(7, 40, 18, 18,
-                    GuiTextures.BUTTON_LOCK, this.tank::isLocked, this.tank::setLocked)
-                    .setTooltipText("gtceu.gui.fluid_lock.tooltip")
-                    .setShouldUseBaseBackground())
-                    // ...and add the actual tank widget separately.
-                    .addWidget(new TankWidget(tank.getStorages()[0], 67, 22, 18, 18, true, io.support(IO.IN))
-                            .setShowAmount(true).setDrawHoverTips(true).setBackground(GuiTextures.FLUID_SLOT));
+            // ...and add the actual tank widget separately.
+            group.addWidget(new ToggleButtonWidget(7, 40, 18, 18, GuiTextures.BUTTON_LOCK, this.tank::isLocked, this.tank::setLocked).setTooltipText("gtceu.gui.fluid_lock.tooltip").setShouldUseBaseBackground()).addWidget(new TankWidget(tank.getStorages()[0], 67, 22, 18, 18, true, io.support(IO.IN)).setShowAmount(true).setDrawHoverTips(true).setBackground(GuiTextures.FLUID_SLOT));
         } else {
-            group.addWidget(tankWidget = new TankWidget(tank.getStorages()[0], 67, 22, 18, 18, true, io.support(IO.IN))
-                    .setShowAmount(true).setDrawHoverTips(true).setBackground(GuiTextures.FLUID_SLOT));
+            group.addWidget(tankWidget = new TankWidget(tank.getStorages()[0], 67, 22, 18, 18, true, io.support(IO.IN)).setShowAmount(true).setDrawHoverTips(true).setBackground(GuiTextures.FLUID_SLOT));
         }
-
-        group.addWidget(new LabelWidget(8, 8, "gtceu.gui.fluid_amount"))
-                .addWidget(new LabelWidget(8, 18, () -> getFluidAmountText(tankWidget)))
-                .addWidget(new LabelWidget(8, 28, () -> getFluidNameText(tankWidget).getString()));
-
+        group.addWidget(new LabelWidget(8, 8, "gtceu.gui.fluid_amount")).addWidget(new LabelWidget(8, 18, () -> getFluidAmountText(tankWidget))).addWidget(new LabelWidget(8, 28, () -> getFluidNameText(tankWidget).getString()));
         group.setBackground(GuiTextures.BACKGROUND_INVERSE);
         return group;
     }
@@ -369,22 +339,28 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
             rowSize = 4;
             colSize = 2;
         }
-
         var group = new WidgetGroup(0, 0, 18 * rowSize + 16, 18 * colSize + 16);
         var container = new WidgetGroup(4, 4, 18 * rowSize + 8, 18 * colSize + 8);
-
         int index = 0;
         for (int y = 0; y < colSize; y++) {
             for (int x = 0; x < rowSize; x++) {
-                container.addWidget(
-                        new TankWidget(tank.getStorages()[index++], 4 + x * 18, 4 + y * 18, true, io.support(IO.IN))
-                                .setBackground(GuiTextures.FLUID_SLOT));
+                container.addWidget(new TankWidget(tank.getStorages()[index++], 4 + x * 18, 4 + y * 18, true, io.support(IO.IN)).setBackground(GuiTextures.FLUID_SLOT));
             }
         }
-
         container.setBackground(GuiTextures.BACKGROUND_INVERSE);
         group.addWidget(container);
-
         return group;
+    }
+
+    public boolean isCircuitSlotEnabled() {
+        return this.circuitSlotEnabled;
+    }
+
+    public void setCircuitSlotEnabled(final boolean circuitSlotEnabled) {
+        this.circuitSlotEnabled = circuitSlotEnabled;
+    }
+
+    public NotifiableItemStackHandler getCircuitInventory() {
+        return this.circuitInventory;
     }
 }

@@ -15,13 +15,10 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 
-import lombok.RequiredArgsConstructor;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
-@RequiredArgsConstructor
 public class SPacketSyncFluidVeins implements IPacket {
 
     private final Map<ResourceLocation, BedrockFluidDefinition> veins;
@@ -37,8 +34,7 @@ public class SPacketSyncFluidVeins implements IPacket {
         buf.writeVarInt(size);
         for (var entry : veins.entrySet()) {
             buf.writeResourceLocation(entry.getKey());
-            CompoundTag tag = (CompoundTag) BedrockFluidDefinition.FULL_CODEC.encodeStart(ops, entry.getValue())
-                    .getOrThrow(false, GTCEu.LOGGER::error);
+            CompoundTag tag = (CompoundTag) BedrockFluidDefinition.FULL_CODEC.encodeStart(ops, entry.getValue()).getOrThrow(false, GTCEu.LOGGER::error);
             buf.writeNbt(tag);
         }
     }
@@ -49,8 +45,7 @@ public class SPacketSyncFluidVeins implements IPacket {
         Stream.generate(() -> {
             ResourceLocation id = buf.readResourceLocation();
             CompoundTag tag = buf.readAnySizeNbt();
-            BedrockFluidDefinition def = BedrockFluidDefinition.FULL_CODEC.parse(ops, tag).getOrThrow(false,
-                    GTCEu.LOGGER::error);
+            BedrockFluidDefinition def = BedrockFluidDefinition.FULL_CODEC.parse(ops, tag).getOrThrow(false, GTCEu.LOGGER::error);
             return Map.entry(id, def);
         }).limit(buf.readVarInt()).forEach(entry -> veins.put(entry.getKey(), entry.getValue()));
     }
@@ -59,5 +54,9 @@ public class SPacketSyncFluidVeins implements IPacket {
     public void execute(IHandlerContext handler) {
         ClientProxy.CLIENT_FLUID_VEINS.clear();
         ClientProxy.CLIENT_FLUID_VEINS.putAll(veins);
+    }
+
+    public SPacketSyncFluidVeins(final Map<ResourceLocation, BedrockFluidDefinition> veins) {
+        this.veins = veins;
     }
 }

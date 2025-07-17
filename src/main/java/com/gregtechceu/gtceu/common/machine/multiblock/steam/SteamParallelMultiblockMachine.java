@@ -34,8 +34,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.player.Player;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,13 +45,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine implements IDisplayUIMachine {
 
-    @Getter
-    @Setter
     private int maxParallels = ConfigHolder.INSTANCE.machines.steamMultiParallelAmount;
-
     @Nullable
     private SteamEnergyRecipeHandler steamEnergy = null;
-
     // if in millibuckets, this is 2.0, Meaning 2mb of steam -> 1 EU
     public static final double CONVERSION_RATE = 2.0;
 
@@ -82,7 +76,8 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
                 }
             }
         }
-        if (steamEnergy == null) { // No steam hatch found
+        if (steamEnergy == null) {
+            // No steam hatch found
             onStructureInvalid();
         }
     }
@@ -111,19 +106,12 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
             return RecipeModifier.nullWrongType(SteamParallelMultiblockMachine.class, machine);
         }
         if (RecipeHelper.getRecipeEUtTier(recipe) > GTValues.LV) return ModifierFunction.NULL;
-
         // Duration = 1.5x base duration
         // EUt (not steam) = (4/3) * (2/3) * parallels * base EUt, up to a max of 32 EUt
         long eut = recipe.getInputEUt();
         int parallelAmount = ParallelLogic.getParallelAmount(machine, recipe, steamMachine.maxParallels);
         double eutMultiplier = (eut * 0.8888 * parallelAmount <= 32) ? (0.8888 * parallelAmount) : (32.0 / eut);
-        return ModifierFunction.builder()
-                .inputModifier(ContentModifier.multiplier(parallelAmount))
-                .outputModifier(ContentModifier.multiplier(parallelAmount))
-                .durationMultiplier(1.5)
-                .eutMultiplier(eutMultiplier)
-                .parallels(parallelAmount)
-                .build();
+        return ModifierFunction.builder().inputModifier(ContentModifier.multiplier(parallelAmount)).outputModifier(ContentModifier.multiplier(parallelAmount)).durationMultiplier(1.5).eutMultiplier(eutMultiplier).parallels(parallelAmount).build();
     }
 
     @Override
@@ -132,29 +120,22 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
         if (isFormed()) {
             if (steamEnergy != null && steamEnergy.getCapacity() > 0) {
                 long steamStored = steamEnergy.getStored();
-                textList.add(Component.translatable("gtceu.multiblock.steam.steam_stored", steamStored,
-                        steamEnergy.getCapacity()));
+                textList.add(Component.translatable("gtceu.multiblock.steam.steam_stored", steamStored, steamEnergy.getCapacity()));
             }
-
             if (!isWorkingEnabled()) {
                 textList.add(Component.translatable("gtceu.multiblock.work_paused"));
-
             } else if (isActive()) {
                 textList.add(Component.translatable("gtceu.multiblock.running"));
                 if (maxParallels > 1) textList.add(Component.translatable("gtceu.multiblock.parallel", maxParallels));
                 int currentProgress = (int) (recipeLogic.getProgressPercent() * 100);
-                double maxInSec = (float) recipeLogic.getDuration() / 20.0f;
-                double currentInSec = (float) recipeLogic.getProgress() / 20.0f;
-                textList.add(
-                        Component.translatable("gtceu.multiblock.progress", String.format("%.2f", (float) currentInSec),
-                                String.format("%.2f", (float) maxInSec), currentProgress));
+                double maxInSec = (float) recipeLogic.getDuration() / 20.0F;
+                double currentInSec = (float) recipeLogic.getProgress() / 20.0F;
+                textList.add(Component.translatable("gtceu.multiblock.progress", String.format("%.2f", (float) currentInSec), String.format("%.2f", (float) maxInSec), currentProgress));
             } else {
                 textList.add(Component.translatable("gtceu.multiblock.idling"));
             }
-
             if (recipeLogic.isWaiting()) {
-                textList.add(Component.translatable("gtceu.multiblock.steam.low_steam")
-                        .setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+                textList.add(Component.translatable("gtceu.multiblock.steam.low_steam").setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
             }
         }
     }
@@ -168,14 +149,15 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
     public ModularUI createUI(Player entityPlayer) {
         var screen = new DraggableScrollableWidgetGroup(7, 4, 162, 121).setBackground(getScreenTexture());
         screen.addWidget(new LabelWidget(4, 5, self().getBlockState().getBlock().getDescriptionId()));
-        screen.addWidget(new ComponentPanelWidget(4, 17, this::addDisplayText)
-                .setMaxWidthLimit(150)
-                .clickHandler(this::handleDisplayClick));
-        return new ModularUI(176, 216, this, entityPlayer)
-                .background(GuiTextures.BACKGROUND_STEAM.get(ConfigHolder.INSTANCE.machines.steelSteamMultiblocks))
-                .widget(screen)
-                .widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(),
-                        GuiTextures.SLOT_STEAM.get(ConfigHolder.INSTANCE.machines.steelSteamMultiblocks), 7, 134,
-                        true));
+        screen.addWidget(new ComponentPanelWidget(4, 17, this::addDisplayText).setMaxWidthLimit(150).clickHandler(this::handleDisplayClick));
+        return new ModularUI(176, 216, this, entityPlayer).background(GuiTextures.BACKGROUND_STEAM.get(ConfigHolder.INSTANCE.machines.steelSteamMultiblocks)).widget(screen).widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT_STEAM.get(ConfigHolder.INSTANCE.machines.steelSteamMultiblocks), 7, 134, true));
+    }
+
+    public int getMaxParallels() {
+        return this.maxParallels;
+    }
+
+    public void setMaxParallels(final int maxParallels) {
+        this.maxParallels = maxParallels;
     }
 }

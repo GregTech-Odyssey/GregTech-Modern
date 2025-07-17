@@ -30,7 +30,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import lombok.Getter;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,17 +48,13 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighlight {
 
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(CoverBehavior.class);
-
-    @Getter
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
     public final CoverDefinition coverDefinition;
     public final ICoverable coverHolder;
     public final Direction attachedSide;
-    @Getter
     @Persisted
     @DescSynced
     protected ItemStack attachItem = ItemStack.EMPTY;
-    @Getter
     @Persisted
     protected int redstoneSignalOutput = 0;
 
@@ -99,9 +94,7 @@ public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighli
     @MustBeInvokedByOverriders
     public boolean canAttach() {
         var machine = MetaMachine.getMachine(coverHolder.getLevel(), coverHolder.getPos());
-        return machine == null ||
-                (machine.getDefinition().isAllowCoverOnFront() || !machine.hasFrontFacing() ||
-                        coverHolder.getFrontFacing() != attachedSide);
+        return machine == null || (machine.getDefinition().isAllowCoverOnFront() || !machine.hasFrontFacing() || coverHolder.getFrontFacing() != attachedSide);
     }
 
     /**
@@ -187,20 +180,18 @@ public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighli
         return coverDefinition.getCoverRenderer();
     }
 
-    public @Nullable IFancyConfigurator getConfigurator() {
+    @Nullable
+    public IFancyConfigurator getConfigurator() {
         return null;
     }
 
     @Override
-    public boolean shouldRenderGrid(Player player, BlockPos pos, BlockState state, ItemStack held,
-                                    Set<GTToolType> toolTypes) {
-        return toolTypes.contains(GTToolType.CROWBAR) ||
-                ((toolTypes.isEmpty() || toolTypes.contains(GTToolType.SCREWDRIVER)) && this instanceof IUICover);
+    public boolean shouldRenderGrid(Player player, BlockPos pos, BlockState state, ItemStack held, Set<GTToolType> toolTypes) {
+        return toolTypes.contains(GTToolType.CROWBAR) || ((toolTypes.isEmpty() || toolTypes.contains(GTToolType.SCREWDRIVER)) && this instanceof IUICover);
     }
 
     @Override
-    public ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes,
-                                    Direction side) {
+    public ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes, Direction side) {
         if (toolTypes.contains(GTToolType.CROWBAR)) {
             return GuiTextures.TOOL_REMOVE_COVER;
         }
@@ -221,7 +212,6 @@ public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighli
     //////////////////////////////////////
     // ******* Capabilities *******//
     //////////////////////////////////////
-
     @Nullable
     public IItemHandlerModifiable getItemHandlerCap(IItemHandlerModifiable defaultValue) {
         return defaultValue;
@@ -230,5 +220,17 @@ public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighli
     @Nullable
     public IFluidHandlerModifiable getFluidHandlerCap(IFluidHandlerModifiable defaultValue) {
         return defaultValue;
+    }
+
+    public FieldManagedStorage getSyncStorage() {
+        return this.syncStorage;
+    }
+
+    public ItemStack getAttachItem() {
+        return this.attachItem;
+    }
+
+    public int getRedstoneSignalOutput() {
+        return this.redstoneSignalOutput;
     }
 }

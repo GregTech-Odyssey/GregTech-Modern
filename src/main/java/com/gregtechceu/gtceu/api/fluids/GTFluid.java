@@ -22,7 +22,6 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -34,20 +33,15 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public abstract class GTFluid extends FlowingFluid implements IAttributedFluid {
 
-    @Getter
     private final Collection<FluidAttribute> attributes = new ObjectLinkedOpenHashSet<>();
-    @Getter
     private final FluidState state;
     private final Supplier<? extends Item> bucketItem;
     private final Supplier<? extends Fluid> stillFluid;
     private final Supplier<? extends Fluid> flowingFluid;
     private final Supplier<? extends LiquidBlock> block;
-    @Getter
     private final int burnTime;
 
-    public GTFluid(@NotNull FluidState state, Supplier<? extends Fluid> stillFluid,
-                   Supplier<? extends Fluid> flowingFluid, Supplier<? extends LiquidBlock> block,
-                   Supplier<? extends Item> bucket, int burnTime) {
+    public GTFluid(@NotNull FluidState state, Supplier<? extends Fluid> stillFluid, Supplier<? extends Fluid> flowingFluid, Supplier<? extends LiquidBlock> block, Supplier<? extends Item> bucket, int burnTime) {
         super();
         this.state = state;
         this.stillFluid = stillFluid;
@@ -63,8 +57,7 @@ public abstract class GTFluid extends FlowingFluid implements IAttributedFluid {
     }
 
     @Override
-    protected boolean canBeReplacedWith(net.minecraft.world.level.material.FluidState state, BlockGetter level,
-                                        BlockPos pos, Fluid fluid, Direction direction) {
+    protected boolean canBeReplacedWith(net.minecraft.world.level.material.FluidState state, BlockGetter level, BlockPos pos, Fluid fluid, Direction direction) {
         return direction == Direction.DOWN && !isSame(fluid);
     }
 
@@ -90,8 +83,7 @@ public abstract class GTFluid extends FlowingFluid implements IAttributedFluid {
 
     @Override
     protected BlockState createLegacyBlock(net.minecraft.world.level.material.FluidState state) {
-        if (block != null && block.get() != null)
-            return block.get().defaultBlockState().setValue(LiquidBlock.LEVEL, getLegacyLevel(state));
+        if (block != null && block.get() != null) return block.get().defaultBlockState().setValue(LiquidBlock.LEVEL, getLegacyLevel(state));
         return Blocks.AIR.defaultBlockState();
     }
 
@@ -126,5 +118,17 @@ public abstract class GTFluid extends FlowingFluid implements IAttributedFluid {
         boolean still = this.getSource() == fluid;
         boolean flowing = this.getFlowing() == fluid;
         return still || flowing;
+    }
+
+    public Collection<FluidAttribute> getAttributes() {
+        return this.attributes;
+    }
+
+    public FluidState getState() {
+        return this.state;
+    }
+
+    public int getBurnTime() {
+        return this.burnTime;
     }
 }

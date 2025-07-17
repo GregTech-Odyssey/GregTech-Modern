@@ -13,7 +13,6 @@ import net.minecraft.world.level.LevelAccessor;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import lombok.Getter;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -21,8 +20,6 @@ import java.util.Set;
 public class WaypointManager {
 
     public static ResourceKey<Level> currentDimension;
-
-    @Getter
     private static boolean active = false;
 
     public static void init() {
@@ -57,8 +54,7 @@ public class WaypointManager {
         waypoints.remove(key);
     }
 
-    public static boolean toggleWaypoint(String key, String name, int color, ResourceKey<Level> dim, int x, int y,
-                                         int z) {
+    public static boolean toggleWaypoint(String key, String name, int color, ResourceKey<Level> dim, int x, int y, int z) {
         if (dim == null) dim = currentDimension;
         if ((new WaypointKey(dim, x, y, z)).equals(waypoints.get(key))) {
             removeWaypoint(key);
@@ -75,7 +71,9 @@ public class WaypointManager {
     private static class WaypointKey {
 
         ResourceKey<Level> dim;
-        int x, y, z;
+        int x;
+        int y;
+        int z;
 
         public WaypointKey(ResourceKey<Level> dim, int x, int y, int z) {
             this.dim = dim;
@@ -96,5 +94,9 @@ public class WaypointManager {
         public int hashCode() {
             return GTMath.hashInts(dim.hashCode(), x, y, z);
         }
+    }
+
+    public static boolean isActive() {
+        return WaypointManager.active;
     }
 }

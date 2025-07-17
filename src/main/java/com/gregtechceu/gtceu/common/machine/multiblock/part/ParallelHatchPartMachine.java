@@ -17,19 +17,14 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.util.Mth;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 public class ParallelHatchPartMachine extends TieredPartMachine implements IFancyUIMachine, IParallelHatch {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            ParallelHatchPartMachine.class, MultiblockPartMachine.MANAGED_FIELD_HOLDER);
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ParallelHatchPartMachine.class, MultiblockPartMachine.MANAGED_FIELD_HOLDER);
     private static final int MIN_PARALLEL = 1;
-
     private final int maxParallel;
-
     @Persisted
-    @Getter
     private int currentParallel = 1;
 
     public ParallelHatchPartMachine(IMachineBlockEntity holder, int tier) {
@@ -49,10 +44,7 @@ public class ParallelHatchPartMachine extends TieredPartMachine implements IFanc
     @Override
     public Widget createUIWidget() {
         WidgetGroup parallelAmountGroup = new WidgetGroup(0, 0, 100, 20);
-        parallelAmountGroup.addWidget(new IntInputWidget(this::getCurrentParallel, this::setCurrentParallel)
-                .setMin(MIN_PARALLEL)
-                .setMax(maxParallel));
-
+        parallelAmountGroup.addWidget(new IntInputWidget(this::getCurrentParallel, this::setCurrentParallel).setMin(MIN_PARALLEL).setMax(maxParallel));
         return parallelAmountGroup;
     }
 
@@ -65,5 +57,9 @@ public class ParallelHatchPartMachine extends TieredPartMachine implements IFanc
     @Override
     public boolean canShared() {
         return false;
+    }
+
+    public int getCurrentParallel() {
+        return this.currentParallel;
     }
 }

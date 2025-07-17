@@ -34,8 +34,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,21 +41,15 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class RotorHolderPartMachine extends TieredPartMachine
-                                    implements IMachineLife, IRotorHolderMachine, IInteractedMachine {
+public class RotorHolderPartMachine extends TieredPartMachine implements IMachineLife, IRotorHolderMachine, IInteractedMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            RotorHolderPartMachine.class, TieredPartMachine.MANAGED_FIELD_HOLDER);
-
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(RotorHolderPartMachine.class, TieredPartMachine.MANAGED_FIELD_HOLDER);
     @Persisted
     public final NotifiableItemStackHandler inventory;
-    @Getter
     public final int maxRotorHolderSpeed;
-    @Getter
     @Persisted
     @DescSynced
     public int rotorSpeed;
-    @Setter
     @Persisted
     @DescSynced
     @RequireRerender
@@ -120,9 +112,9 @@ public class RotorHolderPartMachine extends TieredPartMachine
     //////////////////////////////////////
     // ****** Rotor Holder ******//
     //////////////////////////////////////
-
     @Override
-    public @NotNull Material getRotorMaterial() {
+    @NotNull
+    public Material getRotorMaterial() {
         // handles clients trying to get the material before server data sync
         // noinspection ConstantValue
         if (rotorMaterial == null) {
@@ -208,11 +200,9 @@ public class RotorHolderPartMachine extends TieredPartMachine
         inventory.onContentsChanged();
     }
 
-    public InteractionResult onUse(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
-                                   BlockHitResult hit) {
+    public InteractionResult onUse(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (!isRemote() && getRotorSpeed() > 0 && !player.isCreative()) {
-            player.hurt(GTDamageTypes.TURBINE.source(level),
-                    TurbineRotorBehaviour.getBehaviour(getRotorStack()).getDamage(getRotorStack()));
+            player.hurt(GTDamageTypes.TURBINE.source(level), TurbineRotorBehaviour.getBehaviour(getRotorStack()).getDamage(getRotorStack()));
             return InteractionResult.FAIL;
         }
         return InteractionResult.PASS;
@@ -225,11 +215,24 @@ public class RotorHolderPartMachine extends TieredPartMachine
     public Widget createUIWidget() {
         var group = new WidgetGroup(0, 0, 18 + 16, 18 + 16);
         var container = new WidgetGroup(4, 4, 18 + 8, 18 + 8);
-        container.addWidget(new BlockableSlotWidget(inventory.storage, 0, 4, 4)
-                .setIsBlocked(() -> rotorSpeed != 0)
-                .setBackground(GuiTextures.SLOT, GuiTextures.TURBINE_OVERLAY));
+        container.addWidget(new BlockableSlotWidget(inventory.storage, 0, 4, 4).setIsBlocked(() -> rotorSpeed != 0).setBackground(GuiTextures.SLOT, GuiTextures.TURBINE_OVERLAY));
         container.setBackground(GuiTextures.BACKGROUND_INVERSE);
         group.addWidget(container);
         return group;
+    }
+
+    public int getMaxRotorHolderSpeed() {
+        return this.maxRotorHolderSpeed;
+    }
+
+    public int getRotorSpeed() {
+        return this.rotorSpeed;
+    }
+
+    public void setRotorMaterial(@NotNull final Material rotorMaterial) {
+        if (rotorMaterial == null) {
+            throw new NullPointerException("rotorMaterial is marked non-null but is null");
+        }
+        this.rotorMaterial = rotorMaterial;
     }
 }

@@ -25,8 +25,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.ItemHandlerHelper;
 
-import lombok.Getter;
-
 import java.util.stream.IntStream;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -35,11 +33,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class MufflerPartMachine extends TieredPartMachine implements IMufflerMachine, IUIMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MufflerPartMachine.class,
-            MultiblockPartMachine.MANAGED_FIELD_HOLDER);
-    @Getter
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MufflerPartMachine.class, MultiblockPartMachine.MANAGED_FIELD_HOLDER);
     private final int recoveryChance;
-    @Getter
     @Persisted
     private final CustomItemStackHandler inventory;
 
@@ -60,7 +55,6 @@ public class MufflerPartMachine extends TieredPartMachine implements IMufflerMac
     //////////////////////////////////////
     // ******** Muffler *********//
     //////////////////////////////////////
-
     @Override
     public void recoverItemsTable(ItemStack... recoveryItems) {
         int numRolls = Math.min(recoveryItems.length, inventory.getSlots());
@@ -80,8 +74,7 @@ public class MufflerPartMachine extends TieredPartMachine implements IMufflerMac
     public void clientTick() {
         super.clientTick();
         for (IMultiController controller : getControllers()) {
-            if (controller instanceof IRecipeLogicMachine recipeLogicMachine &&
-                    recipeLogicMachine.getRecipeLogic().isWorking()) {
+            if (controller instanceof IRecipeLogicMachine recipeLogicMachine && recipeLogicMachine.getRecipeLogic().isWorking()) {
                 emitPollutionParticles();
                 break;
             }
@@ -95,21 +88,21 @@ public class MufflerPartMachine extends TieredPartMachine implements IMufflerMac
     public ModularUI createUI(Player entityPlayer) {
         int rowSize = (int) Math.sqrt(inventory.getSlots());
         int xOffset = rowSize == 10 ? 9 : 0;
-        var modular = new ModularUI(176 + xOffset * 2,
-                18 + 18 * rowSize + 94, this, entityPlayer)
-                .background(GuiTextures.BACKGROUND)
-                .widget(new LabelWidget(10, 5, getBlockState().getBlock().getDescriptionId()))
-                .widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT, 7 + xOffset,
-                        18 + 18 * rowSize + 12, true));
-
+        var modular = new ModularUI(176 + xOffset * 2, 18 + 18 * rowSize + 94, this, entityPlayer).background(GuiTextures.BACKGROUND).widget(new LabelWidget(10, 5, getBlockState().getBlock().getDescriptionId())).widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT, 7 + xOffset, 18 + 18 * rowSize + 12, true));
         for (int y = 0; y < rowSize; y++) {
             for (int x = 0; x < rowSize; x++) {
                 int index = y * rowSize + x;
-                modular.widget(new SlotWidget(inventory, index,
-                        (88 - rowSize * 9 + x * 18) + xOffset, 18 + y * 18, true, false)
-                        .setBackgroundTexture(GuiTextures.SLOT));
+                modular.widget(new SlotWidget(inventory, index, (88 - rowSize * 9 + x * 18) + xOffset, 18 + y * 18, true, false).setBackgroundTexture(GuiTextures.SLOT));
             }
         }
         return modular;
+    }
+
+    public int getRecoveryChance() {
+        return this.recoveryChance;
+    }
+
+    public CustomItemStackHandler getInventory() {
+        return this.inventory;
     }
 }

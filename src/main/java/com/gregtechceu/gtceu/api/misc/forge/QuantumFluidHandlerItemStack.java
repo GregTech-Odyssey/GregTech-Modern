@@ -13,15 +13,14 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class QuantumFluidHandlerItemStack implements IFluidHandlerItem, ICapabilityProvider {
 
     private final LazyOptional<IFluidHandlerItem> holder = LazyOptional.of(() -> this);
-    @Getter
-    protected @NotNull ItemStack container;
+    @NotNull
+    protected ItemStack container;
     protected long capacity;
 
     public QuantumFluidHandlerItemStack(@NotNull ItemStack container, long capacity) {
@@ -36,7 +35,8 @@ public class QuantumFluidHandlerItemStack implements IFluidHandlerItem, ICapabil
 
     // For Fluid IO, clamping to int is fine.
     // For internal structures, make sure to use getFluidAmount() alongside this.
-    public @NotNull FluidStack getFluid() {
+    @NotNull
+    public FluidStack getFluid() {
         CompoundTag tagCompound = this.container.getTag();
         if (tagCompound == null || !tagCompound.contains("stored") || !tagCompound.contains("storedAmount")) {
             return FluidStack.EMPTY;
@@ -54,10 +54,8 @@ public class QuantumFluidHandlerItemStack implements IFluidHandlerItem, ICapabil
 
     private void setFluid(FluidStack fluid, long amount) {
         fluid.setAmount(GTMath.saturatedCast(amount));
-
         CompoundTag fluidTag = new CompoundTag();
         fluid.writeToNBT(fluidTag);
-
         CompoundTag containerTag = this.container.getOrCreateTag();
         containerTag.put("stored", fluidTag);
         containerTag.putLong("storedAmount", amount);
@@ -69,7 +67,8 @@ public class QuantumFluidHandlerItemStack implements IFluidHandlerItem, ICapabil
     }
 
     @Override
-    public @NotNull FluidStack getFluidInTank(int tank) {
+    @NotNull
+    public FluidStack getFluidInTank(int tank) {
         return this.getFluid();
     }
 
@@ -96,16 +95,13 @@ public class QuantumFluidHandlerItemStack implements IFluidHandlerItem, ICapabil
                 FluidStack filled = resource.copy();
                 this.setFluid(filled, fillAmount);
             }
-
             return fillAmount;
         } else if (contained.isFluidEqual(resource)) {
-
             int fillAmount = Math.min(GTMath.saturatedCast(this.capacity - amount), resource.getAmount());
             if (doFill.execute() && fillAmount > 0) {
                 long fluidAmountAfterFill = amount + (long) fillAmount;
                 this.setFluid(contained, fluidAmountAfterFill);
             }
-
             return fillAmount;
         } else {
             return 0;
@@ -113,13 +109,14 @@ public class QuantumFluidHandlerItemStack implements IFluidHandlerItem, ICapabil
     }
 
     @Override
-    public @NotNull FluidStack drain(FluidStack resource, IFluidHandler.FluidAction action) {
-        return this.container.getCount() == 1 && !resource.isEmpty() && resource.isFluidEqual(this.getFluid()) ?
-                this.drain(resource.getAmount(), action) : FluidStack.EMPTY;
+    @NotNull
+    public FluidStack drain(FluidStack resource, IFluidHandler.FluidAction action) {
+        return this.container.getCount() == 1 && !resource.isEmpty() && resource.isFluidEqual(this.getFluid()) ? this.drain(resource.getAmount(), action) : FluidStack.EMPTY;
     }
 
     @Override
-    public @NotNull FluidStack drain(int maxDrain, IFluidHandler.FluidAction action) {
+    @NotNull
+    public FluidStack drain(int maxDrain, IFluidHandler.FluidAction action) {
         if (this.container.getCount() != 1 || maxDrain <= 0) {
             return FluidStack.EMPTY;
         }
@@ -128,7 +125,6 @@ public class QuantumFluidHandlerItemStack implements IFluidHandlerItem, ICapabil
         if (fluidAmount <= 0 || !this.canDrainFluidType(contained)) {
             return FluidStack.EMPTY;
         }
-
         // Can drain at most Integer.MAX_VALUE
         int drainAmount = GTMath.saturatedCast(Math.min(fluidAmount, maxDrain));
         FluidStack drained = contained.copy();
@@ -142,7 +138,6 @@ public class QuantumFluidHandlerItemStack implements IFluidHandlerItem, ICapabil
                 this.setFluid(contained, fluidAfterDrain);
             }
         }
-
         return drained;
     }
 
@@ -160,7 +155,13 @@ public class QuantumFluidHandlerItemStack implements IFluidHandlerItem, ICapabil
     }
 
     @Override
-    public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> capability, @Nullable Direction facing) {
+    @NotNull
+    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> capability, @Nullable Direction facing) {
         return ForgeCapabilities.FLUID_HANDLER_ITEM.orEmpty(capability, this.holder);
+    }
+
+    @NotNull
+    public ItemStack getContainer() {
+        return this.container;
     }
 }

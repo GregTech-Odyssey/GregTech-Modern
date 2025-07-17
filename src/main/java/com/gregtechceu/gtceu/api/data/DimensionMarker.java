@@ -12,7 +12,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
@@ -20,23 +19,15 @@ import java.util.function.Supplier;
 public class DimensionMarker {
 
     public static final int MAX_TIER = 99;
-
-    @Getter
     public final int tier; // not only used to represent dimension tier, but also for sorting
-
-    @Getter
     @Nullable
     private final String overrideName; // there may be other uses, so we store it
-
     private final MemoizedSupplier<ItemStack> iconSupplier;
 
     public DimensionMarker(int tier, ResourceLocation itemKey, @Nullable String overrideName) {
         this.tier = tier;
         this.overrideName = overrideName;
-        this.iconSupplier = GTMemoizer.memoize(() -> ForgeRegistries.ITEMS.getDelegate(itemKey)
-                .map(Holder::get)
-                .map(this::getStack)
-                .orElse(ItemStack.EMPTY));
+        this.iconSupplier = GTMemoizer.memoize(() -> ForgeRegistries.ITEMS.getDelegate(itemKey).map(Holder::get).map(this::getStack).orElse(ItemStack.EMPTY));
     }
 
     public DimensionMarker(int tier, Supplier<? extends ItemLike> supplier, @Nullable String overrideName) {
@@ -62,5 +53,14 @@ public class DimensionMarker {
             stack.setHoverName(Component.translatable(overrideName));
         }
         return stack;
+    }
+
+    public int getTier() {
+        return this.tier;
+    }
+
+    @Nullable
+    public String getOverrideName() {
+        return this.overrideName;
     }
 }

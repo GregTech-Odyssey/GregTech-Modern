@@ -9,11 +9,6 @@ import com.lowdragmc.lowdraglib.networking.IPacket;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.ChunkPos;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-
-@NoArgsConstructor
-@AllArgsConstructor
 public class SPacketAddHazardZone implements IPacket {
 
     private ChunkPos pos;
@@ -36,5 +31,12 @@ public class SPacketAddHazardZone implements IPacket {
         if (handler.isClient()) {
             EnvironmentalHazardClientHandler.INSTANCE.addHazardZone(pos, zone);
         }
+    }
+
+    public SPacketAddHazardZone() {}
+
+    public SPacketAddHazardZone(final ChunkPos pos, final EnvironmentalHazardSavedData.HazardZone zone) {
+        this.pos = pos;
+        this.zone = zone;
     }
 }

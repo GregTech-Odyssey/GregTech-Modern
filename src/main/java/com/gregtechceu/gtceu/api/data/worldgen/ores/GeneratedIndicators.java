@@ -3,8 +3,6 @@ package com.gregtechceu.gtceu.api.data.worldgen.ores;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.level.ChunkPos;
 
-import lombok.Getter;
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -18,9 +16,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class GeneratedIndicators {
 
-    @Getter
     private final ChunkPos origin;
-
     private final Map<ChunkPos, List<OreIndicatorPlacer>> generatedIndicators;
 
     /**
@@ -30,7 +26,6 @@ public class GeneratedIndicators {
      */
     public GeneratedIndicators(ChunkPos origin, Map<ChunkPos, List<OreIndicatorPlacer>> indicators) {
         this.origin = origin;
-
         this.generatedIndicators = indicators;
     }
 
@@ -43,7 +38,10 @@ public class GeneratedIndicators {
 
     @Override
     public String toString() {
-        return "GeneratedIndicators[origin=" + origin + ", chunks={" +
-                generatedIndicators.keySet().stream().map(ChunkPos::toString).collect(Collectors.joining(", ")) + "}]";
+        return "GeneratedIndicators[origin=" + origin + ", chunks={" + generatedIndicators.keySet().stream().map(ChunkPos::toString).collect(Collectors.joining(", ")) + "}]";
+    }
+
+    public ChunkPos getOrigin() {
+        return this.origin;
     }
 }

@@ -26,8 +26,6 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -36,14 +34,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class ObjectHolderMachine extends MultiblockPartMachine implements IObjectHolder, IMachineLife {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ObjectHolderMachine.class,
-            MultiblockPartMachine.MANAGED_FIELD_HOLDER);
-
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ObjectHolderMachine.class, MultiblockPartMachine.MANAGED_FIELD_HOLDER);
     // purposefully not exposed to automation or capabilities
     @Persisted
     private final ObjectHolderHandler heldItems;
-    @Getter
-    @Setter
     @Persisted
     @DescSynced
     private boolean isLocked;
@@ -54,7 +48,8 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
     }
 
     @Override
-    public @NotNull ItemStack getHeldItem(boolean remove) {
+    @NotNull
+    public ItemStack getHeldItem(boolean remove) {
         return getHeldItem(0, remove);
     }
 
@@ -64,7 +59,8 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
     }
 
     @Override
-    public @NotNull ItemStack getDataItem(boolean remove) {
+    @NotNull
+    public ItemStack getDataItem(boolean remove) {
         return getHeldItem(1, remove);
     }
 
@@ -74,7 +70,8 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
     }
 
     @Override
-    public @NotNull NotifiableItemStackHandler getAsHandler() {
+    @NotNull
+    public NotifiableItemStackHandler getAsHandler() {
         return heldItems;
     }
 
@@ -94,14 +91,7 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
 
     @Override
     public Widget createUIWidget() {
-        return new WidgetGroup(new Position(0, 0))
-                .addWidget(new ImageWidget(46, 15, 84, 60, GuiTextures.PROGRESS_BAR_RESEARCH_STATION_BASE))
-                .addWidget(new BlockableSlotWidget(heldItems, 0, 79, 36)
-                        .setIsBlocked(this::isLocked)
-                        .setBackground(GuiTextures.SLOT, GuiTextures.RESEARCH_STATION_OVERLAY))
-                .addWidget(new BlockableSlotWidget(heldItems, 1, 15, 36)
-                        .setIsBlocked(this::isLocked)
-                        .setBackground(GuiTextures.SLOT, GuiTextures.DATA_ORB_OVERLAY));
+        return new WidgetGroup(new Position(0, 0)).addWidget(new ImageWidget(46, 15, 84, 60, GuiTextures.PROGRESS_BAR_RESEARCH_STATION_BASE)).addWidget(new BlockableSlotWidget(heldItems, 0, 79, 36).setIsBlocked(this::isLocked).setBackground(GuiTextures.SLOT, GuiTextures.RESEARCH_STATION_OVERLAY)).addWidget(new BlockableSlotWidget(heldItems, 1, 15, 36).setIsBlocked(this::isLocked).setBackground(GuiTextures.SLOT, GuiTextures.DATA_ORB_OVERLAY));
     }
 
     @Override
@@ -154,7 +144,6 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
             if (stack.isEmpty()) {
                 return true;
             }
-
             boolean isDataItem = false;
             if (stack.getItem() instanceof IComponentItem metaItem) {
                 for (IItemComponent behaviour : metaItem.getComponents()) {
@@ -164,10 +153,17 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
                     }
                 }
             }
-
             if (slot == 0 && !isDataItem) {
                 return true;
             } else return slot == 1 && isDataItem;
         }
+    }
+
+    public boolean isLocked() {
+        return this.isLocked;
+    }
+
+    public void setLocked(final boolean isLocked) {
+        this.isLocked = isLocked;
     }
 }

@@ -18,8 +18,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
 
-import lombok.Getter;
-
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -58,20 +56,13 @@ public abstract class NumberInputWidget<T extends Number> extends WidgetGroup {
     /////////////////////////////////////////////////
     // *********** IMPLEMENTATION ***********//
     /////////////////////////////////////////////////
-
     private final ChangeValues<T> CHANGE_VALUES = getChangeValues();
     private final T ONE_POSITIVE = getOne(true);
     private final T ONE_NEGATIVE = getOne(false);
-
-    @Getter
     private Supplier<T> valueSupplier;
-    @Getter
     private T min = defaultMin();
-    @Getter
     private T max = defaultMax();
-
     private final Consumer<T> onChanged;
-
     private TextFieldWidget textField;
 
     public NumberInputWidget(Supplier<T> valueSupplier, Consumer<T> onChanged) {
@@ -114,45 +105,26 @@ public abstract class NumberInputWidget<T extends Number> extends WidgetGroup {
     private void buildUI() {
         int buttonWidth = Mth.clamp(this.getSize().width / 5, 15, 40);
         int textFieldWidth = this.getSize().width - (2 * buttonWidth) - 4;
-
-        this.addWidget(new ButtonWidget(0, 0, buttonWidth, 20,
-                new GuiTextureGroup(GuiTextures.VANILLA_BUTTON, getButtonTexture("-", buttonWidth)),
-                this::decrease).setHoverTooltips("gui.widget.incrementButton.default_tooltip"));
-
-        this.textField = new TextFieldWidget(buttonWidth + 2, 0, textFieldWidth, 20,
-                () -> toText(valueSupplier.get()),
-                stringValue -> this.setValue(clamp(fromText(stringValue), min, max)));
+        this.addWidget(new ButtonWidget(0, 0, buttonWidth, 20, new GuiTextureGroup(GuiTextures.VANILLA_BUTTON, getButtonTexture("-", buttonWidth)), this::decrease).setHoverTooltips("gui.widget.incrementButton.default_tooltip"));
+        this.textField = new TextFieldWidget(buttonWidth + 2, 0, textFieldWidth, 20, () -> toText(valueSupplier.get()), stringValue -> this.setValue(clamp(fromText(stringValue), min, max)));
         this.updateTextFieldRange();
         this.addWidget(this.textField);
-
-        this.addWidget(new ButtonWidget(buttonWidth + textFieldWidth + 4, 0, buttonWidth, 20,
-                new GuiTextureGroup(GuiTextures.VANILLA_BUTTON, getButtonTexture("+", buttonWidth)),
-                this::increase).setHoverTooltips("gui.widget.incrementButton.default_tooltip"));
+        this.addWidget(new ButtonWidget(buttonWidth + textFieldWidth + 4, 0, buttonWidth, 20, new GuiTextureGroup(GuiTextures.VANILLA_BUTTON, getButtonTexture("+", buttonWidth)), this::increase).setHoverTooltips("gui.widget.incrementButton.default_tooltip"));
     }
 
     private IGuiTexture getButtonTexture(String prefix, int buttonWidth) {
         var texture = new TextTexture(prefix + "1");
-
         if (!GTCEu.isClientThread()) {
             return texture;
         }
-
         // Dynamic text is only necessary on the remote side:
-
         int maxTextWidth = buttonWidth - 4;
-
         texture.setSupplier(() -> {
-            T amount = GTUtil.isCtrlDown() ?
-                    GTUtil.isShiftDown() ? CHANGE_VALUES.ctrlShift : CHANGE_VALUES.ctrl :
-                    GTUtil.isShiftDown() ? CHANGE_VALUES.shift : CHANGE_VALUES.regular;
-
+            T amount = GTUtil.isCtrlDown() ? GTUtil.isShiftDown() ? CHANGE_VALUES.ctrlShift : CHANGE_VALUES.ctrl : GTUtil.isShiftDown() ? CHANGE_VALUES.shift : CHANGE_VALUES.regular;
             String text = prefix + toText(amount);
-
             texture.scale(maxTextWidth / (float) Math.max(Minecraft.getInstance().font.width(text), maxTextWidth));
-
             return text;
         });
-
         return texture;
     }
 
@@ -166,10 +138,7 @@ public abstract class NumberInputWidget<T extends Number> extends WidgetGroup {
 
     private void changeValue(ClickData cd, T multiplier) {
         if (!cd.isRemote) {
-            T amount = cd.isCtrlClick ?
-                    cd.isShiftClick ? CHANGE_VALUES.ctrlShift : CHANGE_VALUES.ctrl :
-                    cd.isShiftClick ? CHANGE_VALUES.shift : CHANGE_VALUES.regular;
-
+            T amount = cd.isCtrlClick ? cd.isShiftClick ? CHANGE_VALUES.ctrlShift : CHANGE_VALUES.ctrl : cd.isShiftClick ? CHANGE_VALUES.shift : CHANGE_VALUES.regular;
             this.setValue(clamp(add(valueSupplier.get(), multiply(amount, multiplier)), min, max));
         }
     }
@@ -177,14 +146,12 @@ public abstract class NumberInputWidget<T extends Number> extends WidgetGroup {
     public NumberInputWidget<T> setMin(T min) {
         this.min = min;
         updateTextFieldRange();
-
         return this;
     }
 
     public NumberInputWidget<T> setMax(T max) {
         this.max = max;
         updateTextFieldRange();
-
         return this;
     }
 
@@ -195,7 +162,18 @@ public abstract class NumberInputWidget<T extends Number> extends WidgetGroup {
 
     protected void updateTextFieldRange() {
         setTextFieldRange(textField, min, max);
-
         this.setValue(clamp(valueSupplier.get(), min, max));
+    }
+
+    public Supplier<T> getValueSupplier() {
+        return this.valueSupplier;
+    }
+
+    public T getMin() {
+        return this.min;
+    }
+
+    public T getMax() {
+        return this.max;
     }
 }

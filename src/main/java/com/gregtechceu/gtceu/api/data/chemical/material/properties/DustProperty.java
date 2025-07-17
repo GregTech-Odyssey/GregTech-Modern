@@ -1,7 +1,5 @@
 package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 
-import lombok.Getter;
-
 public class DustProperty implements IMaterialProperty {
 
     /**
@@ -9,16 +7,13 @@ public class DustProperty implements IMaterialProperty {
      * <p>
      * Default: 2 (Iron).
      */
-    @Getter
     private int harvestLevel;
-
     /**
      * Burn time of this Material when used as fuel in Furnace smelting.
      * Zero or negative value indicates that this Material cannot be used as fuel.
      * <p>
      * Default: 0.
      */
-    @Getter
     private int burnTime;
 
     public DustProperty(int harvestLevel, int burnTime) {
@@ -45,4 +40,23 @@ public class DustProperty implements IMaterialProperty {
 
     @Override
     public void verifyProperty(MaterialProperties properties) {}
+
+    /**
+     * Tool level needed to harvest block of this Material.
+     * <p>
+     * Default: 2 (Iron).
+     */
+    public int getHarvestLevel() {
+        return this.harvestLevel;
+    }
+
+    /**
+     * Burn time of this Material when used as fuel in Furnace smelting.
+     * Zero or negative value indicates that this Material cannot be used as fuel.
+     * <p>
+     * Default: 0.
+     */
+    public int getBurnTime() {
+        return this.burnTime;
+    }
 }

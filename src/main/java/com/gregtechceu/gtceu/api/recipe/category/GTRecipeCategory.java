@@ -12,29 +12,19 @@ import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@Accessors(chain = true)
 public class GTRecipeCategory {
 
     // Placeholder category used if category isn't defined for a recipe for registration
     public static final GTRecipeCategory DEFAULT = new GTRecipeCategory("default", GTRecipeTypes.DUMMY_RECIPES);
-
     public final ResourceLocation registryKey;
     public final String name;
-    @Getter
     private final GTRecipeType recipeType;
-    @Getter
     private final String languageKey;
     @Nullable
-    @Setter
     private IGuiTexture icon = null;
-    @Getter
-    @Setter
     private boolean isXEIVisible = true;
 
     public GTRecipeCategory(@NotNull GTRecipeType recipeType) {
@@ -70,8 +60,7 @@ public class GTRecipeCategory {
     }
 
     public boolean shouldRegisterDisplays() {
-        return (isXEIVisible || GTCEu.isDev()) &&
-                this != GTRecipeTypes.FURNACE_RECIPES.getCategory();
+        return (isXEIVisible || GTCEu.isDev()) && this != GTRecipeTypes.FURNACE_RECIPES.getCategory();
     }
 
     @Override
@@ -89,5 +78,33 @@ public class GTRecipeCategory {
     @Override
     public String toString() {
         return "GTRecipeCategory{%s}".formatted(name);
+    }
+
+    public GTRecipeType getRecipeType() {
+        return this.recipeType;
+    }
+
+    public String getLanguageKey() {
+        return this.languageKey;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public GTRecipeCategory setIcon(@Nullable final IGuiTexture icon) {
+        this.icon = icon;
+        return this;
+    }
+
+    public boolean isXEIVisible() {
+        return this.isXEIVisible;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public GTRecipeCategory setXEIVisible(final boolean isXEIVisible) {
+        this.isXEIVisible = isXEIVisible;
+        return this;
     }
 }

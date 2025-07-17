@@ -6,29 +6,18 @@ import com.lowdragmc.lowdraglib.syncdata.ITagSerializable;
 import net.minecraft.nbt.CompoundTag;
 
 import appeng.api.stacks.GenericStack;
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * An export only slot to hold {@link appeng.api.stacks.GenericStack}
  */
-public abstract class ExportOnlyAESlot implements IConfigurableSlot, ITagSerializable<CompoundTag>,
-                                       IContentChangeAware {
+public abstract class ExportOnlyAESlot implements IConfigurableSlot, ITagSerializable<CompoundTag>, IContentChangeAware {
 
-    protected final static String CONFIG_TAG = "config";
-    protected final static String STOCK_TAG = "stock";
-
-    @Getter
-    @Setter
+    protected static final String CONFIG_TAG = "config";
+    protected static final String STOCK_TAG = "stock";
     protected Runnable onContentsChanged = () -> {};
-
-    @Getter
-    @Setter
     @Nullable
     protected GenericStack config;
-    @Getter
-    @Setter
     @Nullable
     protected GenericStack stock;
 
@@ -109,5 +98,31 @@ public abstract class ExportOnlyAESlot implements IConfigurableSlot, ITagSeriali
 
     public static GenericStack copy(GenericStack stack, long amount) {
         return new GenericStack(stack.what(), amount);
+    }
+
+    public Runnable getOnContentsChanged() {
+        return this.onContentsChanged;
+    }
+
+    public void setOnContentsChanged(final Runnable onContentsChanged) {
+        this.onContentsChanged = onContentsChanged;
+    }
+
+    @Nullable
+    public GenericStack getConfig() {
+        return this.config;
+    }
+
+    public void setConfig(@Nullable final GenericStack config) {
+        this.config = config;
+    }
+
+    @Nullable
+    public GenericStack getStock() {
+        return this.stock;
+    }
+
+    public void setStock(@Nullable final GenericStack stock) {
+        this.stock = stock;
     }
 }

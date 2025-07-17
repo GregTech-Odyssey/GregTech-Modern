@@ -29,24 +29,18 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 
 import com.google.common.collect.Multimap;
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class GTSwordItem extends SwordItem implements IGTTool {
 
-    @Getter
     private final GTToolType toolType;
-    @Getter
     private final Material material;
-    @Getter
     private final int electricTier;
-    @Getter
     private final IGTToolDefinition toolStats;
 
-    protected GTSwordItem(GTToolType toolType, MaterialToolTier tier, Material material, IGTToolDefinition toolStats,
-                          Properties properties) {
+    protected GTSwordItem(GTToolType toolType, MaterialToolTier tier, Material material, IGTToolDefinition toolStats, Properties properties) {
         super(tier, 0, 0, properties);
         this.toolType = toolType;
         this.material = material;
@@ -58,13 +52,13 @@ public class GTSwordItem extends SwordItem implements IGTTool {
         definition$init();
     }
 
-    public static GTSwordItem create(GTToolType toolType, MaterialToolTier tier, Material material,
-                                     IGTToolDefinition toolStats, Item.Properties properties) {
+    public static GTSwordItem create(GTToolType toolType, MaterialToolTier tier, Material material, IGTToolDefinition toolStats, Item.Properties properties) {
         return new GTSwordItem(toolType, tier, material, toolStats, properties);
     }
 
     @Override
-    public @Nullable ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
+    @Nullable
+    public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
         return definition$initCapabilities(stack, nbt);
     }
 
@@ -149,8 +143,7 @@ public class GTSwordItem extends SwordItem implements IGTTool {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
-                                TooltipFlag isAdvanced) {
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
         definition$appendHoverText(stack, level, tooltipComponents, isAdvanced);
     }
 
@@ -210,5 +203,21 @@ public class GTSwordItem extends SwordItem implements IGTTool {
 
     public void setDamage(ItemStack stack, int damage) {
         definition$setDamage(stack, damage);
+    }
+
+    public GTToolType getToolType() {
+        return this.toolType;
+    }
+
+    public Material getMaterial() {
+        return this.material;
+    }
+
+    public int getElectricTier() {
+        return this.electricTier;
+    }
+
+    public IGTToolDefinition getToolStats() {
+        return this.toolStats;
     }
 }

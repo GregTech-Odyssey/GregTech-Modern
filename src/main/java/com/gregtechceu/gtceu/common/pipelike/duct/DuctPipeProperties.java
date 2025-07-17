@@ -1,15 +1,10 @@
 package com.gregtechceu.gtceu.common.pipelike.duct;
 
-import lombok.Getter;
-import lombok.Setter;
-
 public class DuctPipeProperties {
 
     /**
      * rate in stacks per sec
      */
-    @Getter
-    @Setter
     private float transferRate;
 
     public DuctPipeProperties(float transferRate) {
@@ -20,7 +15,7 @@ public class DuctPipeProperties {
      * Default property constructor.
      */
     public DuctPipeProperties() {
-        this(0.25f);
+        this(0.25F);
     }
 
     @Override
@@ -38,8 +33,20 @@ public class DuctPipeProperties {
 
     @Override
     public String toString() {
-        return "DuctPipeProperties{" +
-                "transferRate=" + transferRate +
-                '}';
+        return "DuctPipeProperties{" + "transferRate=" + transferRate + '}';
+    }
+
+    /**
+     * rate in stacks per sec
+     */
+    public float getTransferRate() {
+        return this.transferRate;
+    }
+
+    /**
+     * rate in stacks per sec
+     */
+    public void setTransferRate(final float transferRate) {
+        this.transferRate = transferRate;
     }
 }

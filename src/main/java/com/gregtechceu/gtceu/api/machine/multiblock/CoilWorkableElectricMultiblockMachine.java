@@ -6,15 +6,12 @@ import com.gregtechceu.gtceu.common.block.CoilBlock;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 
-import lombok.Getter;
-
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class CoilWorkableElectricMultiblockMachine extends WorkableElectricMultiblockMachine {
 
-    @Getter
     private ICoilType coilType = CoilBlock.CoilType.CUPRONICKEL;
 
     public CoilWorkableElectricMultiblockMachine(IMachineBlockEntity holder) {
@@ -35,5 +32,9 @@ public class CoilWorkableElectricMultiblockMachine extends WorkableElectricMulti
 
     public int getCoilTier() {
         return coilType.getTier();
+    }
+
+    public ICoilType getCoilType() {
+        return this.coilType;
     }
 }

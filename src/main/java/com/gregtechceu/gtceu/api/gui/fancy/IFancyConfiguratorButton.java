@@ -7,8 +7,6 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.Collections;
@@ -32,7 +30,6 @@ public interface IFancyConfiguratorButton extends IFancyConfigurator {
         throw new NotImplementedException();
     }
 
-    @Accessors(chain = true)
     class Toggle implements IFancyConfiguratorButton {
 
         IGuiTexture base;
@@ -40,11 +37,9 @@ public interface IFancyConfiguratorButton extends IFancyConfigurator {
         BiConsumer<ClickData, Boolean> onClick;
         BooleanSupplier booleanSupplier;
         boolean isPressed;
-        @Setter
         Function<Boolean, List<Component>> tooltipsSupplier = isPressed -> Collections.emptyList();
 
-        public Toggle(IGuiTexture base, IGuiTexture pressed, BooleanSupplier booleanSupplier,
-                      BiConsumer<ClickData, Boolean> onClick) {
+        public Toggle(IGuiTexture base, IGuiTexture pressed, BooleanSupplier booleanSupplier, BiConsumer<ClickData, Boolean> onClick) {
             this.base = base;
             this.pressed = pressed;
             this.booleanSupplier = booleanSupplier;
@@ -91,6 +86,14 @@ public interface IFancyConfiguratorButton extends IFancyConfigurator {
         @Override
         public void onClick(ClickData clickData) {
             onClick.accept(clickData, !isPressed);
+        }
+
+        /**
+         * @return {@code this}.
+         */
+        public IFancyConfiguratorButton.Toggle setTooltipsSupplier(final Function<Boolean, List<Component>> tooltipsSupplier) {
+            this.tooltipsSupplier = tooltipsSupplier;
+            return this;
         }
     }
 }

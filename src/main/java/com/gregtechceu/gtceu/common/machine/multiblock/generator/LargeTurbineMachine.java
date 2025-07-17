@@ -22,7 +22,6 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,9 +34,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class LargeTurbineMachine extends WorkableElectricMultiblockMachine implements ITieredMachine {
 
     public static final int MIN_DURABILITY_TO_WARN = 10;
-
     private final long BASE_EU_OUTPUT;
-    @Getter
     private final int tier;
 
     public LargeTurbineMachine(IMachineBlockEntity holder, int tier) {
@@ -59,8 +56,7 @@ public class LargeTurbineMachine extends WorkableElectricMultiblockMachine imple
     @Override
     public long getOverclockVoltage() {
         var rotorHolder = getRotorHolder();
-        if (rotorHolder != null && rotorHolder.hasRotor())
-            return BASE_EU_OUTPUT * rotorHolder.getTotalPower() / 100;
+        if (rotorHolder != null && rotorHolder.hasRotor()) return BASE_EU_OUTPUT * rotorHolder.getTotalPower() / 100;
         return 0;
     }
 
@@ -96,28 +92,17 @@ public class LargeTurbineMachine extends WorkableElectricMultiblockMachine imple
         if (!(machine instanceof LargeTurbineMachine turbineMachine)) {
             return RecipeModifier.nullWrongType(LargeTurbineMachine.class, machine);
         }
-
         var rotorHolder = turbineMachine.getRotorHolder();
         if (rotorHolder == null) return ModifierFunction.NULL;
-
         long EUt = recipe.getOutputEUt();
         long turbineMaxVoltage = turbineMachine.getOverclockVoltage();
         double holderEfficiency = rotorHolder.getTotalEfficiency() / 100.0;
-
         if (EUt <= 0 || turbineMaxVoltage <= EUt || holderEfficiency <= 0) return ModifierFunction.NULL;
-
         // get the amount of parallel required to match the desired output voltage
         int maxParallel = (int) (turbineMaxVoltage / EUt);
         int actualParallel = ParallelLogic.getParallelAmountFast(turbineMachine, recipe, maxParallel);
         double eutMultiplier = turbineMachine.productionBoost() * actualParallel;
-
-        return ModifierFunction.builder()
-                .inputModifier(ContentModifier.multiplier(actualParallel))
-                .outputModifier(ContentModifier.multiplier(actualParallel))
-                .eutMultiplier(eutMultiplier)
-                .parallels(actualParallel)
-                .durationMultiplier(holderEfficiency)
-                .build();
+        return ModifierFunction.builder().inputModifier(ContentModifier.multiplier(actualParallel)).outputModifier(ContentModifier.multiplier(actualParallel)).eutMultiplier(eutMultiplier).parallels(actualParallel).durationMultiplier(holderEfficiency).build();
     }
 
     @Override
@@ -133,39 +118,31 @@ public class LargeTurbineMachine extends WorkableElectricMultiblockMachine imple
     //////////////////////////////////////
     // ******* GUI ********//
     //////////////////////////////////////
-
     @Override
     public void addDisplayText(List<Component> textList) {
         super.addDisplayText(textList);
         if (isFormed()) {
             var rotorHolder = getRotorHolder();
-
             if (rotorHolder != null && rotorHolder.getRotorEfficiency() > 0) {
-                textList.add(Component.translatable("gtceu.multiblock.turbine.rotor_speed",
-                        FormattingUtil.formatNumbers(rotorHolder.getRotorSpeed()),
-                        FormattingUtil.formatNumbers(rotorHolder.getMaxRotorHolderSpeed())));
-                textList.add(Component.translatable("gtceu.multiblock.turbine.efficiency",
-                        rotorHolder.getTotalEfficiency()));
-
+                textList.add(Component.translatable("gtceu.multiblock.turbine.rotor_speed", FormattingUtil.formatNumbers(rotorHolder.getRotorSpeed()), FormattingUtil.formatNumbers(rotorHolder.getMaxRotorHolderSpeed())));
+                textList.add(Component.translatable("gtceu.multiblock.turbine.efficiency", rotorHolder.getTotalEfficiency()));
                 long maxProduction = getOverclockVoltage();
-                long currentProduction = isActive() && recipeLogic.getLastRecipe() != null ?
-                        recipeLogic.getLastRecipe().getOutputEUt() : 0;
+                long currentProduction = isActive() && recipeLogic.getLastRecipe() != null ? recipeLogic.getLastRecipe().getOutputEUt() : 0;
                 String voltageName = GTValues.VNF[GTUtil.getTierByVoltage(currentProduction)];
-
                 if (isActive()) {
-                    textList.add(3, Component.translatable("gtceu.multiblock.turbine.energy_per_tick",
-                            FormattingUtil.formatNumbers(currentProduction),
-                            FormattingUtil.formatNumbers(maxProduction)));
+                    textList.add(3, Component.translatable("gtceu.multiblock.turbine.energy_per_tick", FormattingUtil.formatNumbers(currentProduction), FormattingUtil.formatNumbers(maxProduction)));
                 }
-
                 int rotorDurability = rotorHolder.getRotorDurabilityPercent();
                 if (rotorDurability > MIN_DURABILITY_TO_WARN) {
                     textList.add(Component.translatable("gtceu.multiblock.turbine.rotor_durability", rotorDurability));
                 } else {
-                    textList.add(Component.translatable("gtceu.multiblock.turbine.rotor_durability", rotorDurability)
-                            .setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+                    textList.add(Component.translatable("gtceu.multiblock.turbine.rotor_durability", rotorDurability).setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
                 }
             }
         }
+    }
+
+    public int getTier() {
+        return this.tier;
     }
 }

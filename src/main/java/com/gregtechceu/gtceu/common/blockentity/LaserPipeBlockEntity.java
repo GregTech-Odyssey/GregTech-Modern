@@ -23,7 +23,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,20 +31,14 @@ import java.util.EnumMap;
 
 public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPipeProperties> {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(LaserPipeBlockEntity.class,
-            PipeBlockEntity.MANAGED_FIELD_HOLDER);
-
-    @Getter
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(LaserPipeBlockEntity.class, PipeBlockEntity.MANAGED_FIELD_HOLDER);
     protected final EnumMap<Direction, LaserNetHandler> handlers = new EnumMap<>(Direction.class);
     // the LaserNetHandler can only be created on the server, so we have an empty placeholder for the client
     public final ILaserContainer clientCapability = new DefaultLaserContainer();
     private WeakReference<LaserPipeNet> currentPipeNet = new WeakReference<>(null);
-    @Getter
     protected LaserNetHandler defaultHandler;
-
     private int ticksActive = 0;
     private int activeDuration = 0;
-    @Getter
     @Persisted
     @DescSynced
     private boolean active = false;
@@ -61,17 +54,15 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
     public static void onBlockEntityRegister(BlockEntityType<LaserPipeBlockEntity> cableBlockEntityBlockEntityType) {}
 
     @Override
-    public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+    @NotNull
+    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         if (cap == GTCapability.CAPABILITY_LASER) {
-            if (getLevel().isClientSide())
-                return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> clientCapability));
-
+            if (getLevel().isClientSide()) return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> clientCapability));
             if (handlers.isEmpty()) {
                 initHandlers();
             }
             checkNetwork();
-            return GTCapability.CAPABILITY_LASER.orEmpty(cap,
-                    LazyOptional.of(() -> handlers.getOrDefault(side, defaultHandler)));
+            return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> handlers.getOrDefault(side, defaultHandler)));
         } else if (cap == GTCapability.CAPABILITY_COVERABLE) {
             return GTCapability.CAPABILITY_COVERABLE.orEmpty(cap, LazyOptional.of(this::getCoverContainer));
         } else if (cap == GTCapability.CAPABILITY_TOOLABLE) {
@@ -135,7 +126,6 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
                 TaskHandler.enqueueServerTask((ServerLevel) getLevel(), this::queueDisconnect, 0);
             }
         }
-
         this.activeDuration = duration;
         if (duration > 0 && active) {
             this.ticksActive = 0;
@@ -170,11 +160,9 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
             connections &= ~(1 << side.ordinal());
             connections &= ~(1 << side.getOpposite().ordinal());
             if (connections != 0) return;
-
             // check the same for the targeted pipe
             BlockEntity tile = getLevel().getBlockEntity(getBlockPos().relative(side));
-            if (tile instanceof IPipeNode<?, ?> pipeTile &&
-                    pipeTile.getPipeType().getClass() == this.getPipeType().getClass()) {
+            if (tile instanceof IPipeNode<?, ?> pipeTile && pipeTile.getPipeType().getClass() == this.getPipeType().getClass()) {
                 connections = pipeTile.getConnections();
                 connections &= ~(1 << side.ordinal());
                 connections &= ~(1 << side.getOpposite().ordinal());
@@ -230,5 +218,17 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
         public long getInputVoltage() {
             return 0;
         }
+    }
+
+    public EnumMap<Direction, LaserNetHandler> getHandlers() {
+        return this.handlers;
+    }
+
+    public LaserNetHandler getDefaultHandler() {
+        return this.defaultHandler;
+    }
+
+    public boolean isActive() {
+        return this.active;
     }
 }

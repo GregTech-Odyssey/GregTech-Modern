@@ -17,7 +17,6 @@ import net.minecraft.server.level.ServerLevel;
 import appeng.api.networking.GridFlags;
 import appeng.me.helpers.BlockEntityNodeListener;
 import appeng.me.helpers.IGridConnectedBlockEntity;
-import lombok.Getter;
 
 import java.util.EnumSet;
 
@@ -28,12 +27,8 @@ import java.util.EnumSet;
 public class GridNodeHolder extends MachineTrait {
 
     protected final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(GridNodeHolder.class);
-
-    @Getter
     @Persisted
-    @ReadOnlyManaged(onDirtyMethod = "onGridNodeDirty",
-                     serializeMethod = "serializeGridNode",
-                     deserializeMethod = "deserializeGridNode")
+    @ReadOnlyManaged(onDirtyMethod = "onGridNodeDirty", serializeMethod = "serializeGridNode", deserializeMethod = "deserializeGridNode")
     protected final SerializableManagedGridNode mainNode;
 
     public GridNodeHolder(IGridConnectedMachine machine) {
@@ -42,16 +37,7 @@ public class GridNodeHolder extends MachineTrait {
     }
 
     protected SerializableManagedGridNode createManagedNode() {
-        var node = (SerializableManagedGridNode) new SerializableManagedGridNode((IGridConnectedBlockEntity) machine,
-                BlockEntityNodeListener.INSTANCE)
-                .setFlags(GridFlags.REQUIRE_CHANNEL)
-                .setVisualRepresentation(machine.getDefinition().getItem())
-                .setIdlePowerUsage(ConfigHolder.INSTANCE.compat.ae2.meHatchEnergyUsage)
-                .setInWorldNode(true)
-                .setExposedOnSides(
-                        machine.hasFrontFacing() ? EnumSet.of(machine.getFrontFacing()) :
-                                EnumSet.allOf(Direction.class))
-                .setTagName("proxy");
+        var node = (SerializableManagedGridNode) new SerializableManagedGridNode((IGridConnectedBlockEntity) machine, BlockEntityNodeListener.INSTANCE).setFlags(GridFlags.REQUIRE_CHANNEL).setVisualRepresentation(machine.getDefinition().getItem()).setIdlePowerUsage(ConfigHolder.INSTANCE.compat.ae2.meHatchEnergyUsage).setInWorldNode(true).setExposedOnSides(machine.hasFrontFacing() ? EnumSet.of(machine.getFrontFacing()) : EnumSet.allOf(Direction.class)).setTagName("proxy");
         return node;
     }
 
@@ -91,6 +77,10 @@ public class GridNodeHolder extends MachineTrait {
     @SuppressWarnings("unused")
     public SerializableManagedGridNode deserializeGridNode(CompoundTag tag) {
         this.mainNode.deserializeNBT(tag);
+        return this.mainNode;
+    }
+
+    public SerializableManagedGridNode getMainNode() {
         return this.mainNode;
     }
 }

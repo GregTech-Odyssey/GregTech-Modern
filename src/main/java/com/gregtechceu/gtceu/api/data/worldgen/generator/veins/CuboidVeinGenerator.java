@@ -25,8 +25,6 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -35,25 +33,15 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 @SuppressWarnings({ "UnusedReturnValue", "BooleanMethodIsAlwaysInverted" })
-@Accessors(fluent = true, chain = true)
 public class CuboidVeinGenerator extends VeinGenerator {
 
-    public static final Codec<CuboidVeinGenerator> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ClassicVeinGenerator.Layer.CODEC.fieldOf("top").forGetter(val -> val.top),
-            ClassicVeinGenerator.Layer.CODEC.fieldOf("middle").forGetter(val -> val.middle),
-            ClassicVeinGenerator.Layer.CODEC.fieldOf("bottom").forGetter(val -> val.bottom),
-            ClassicVeinGenerator.Layer.CODEC.fieldOf("spread").forGetter(val -> val.spread),
-            Codec.INT.fieldOf("min_y").forGetter(val -> val.minY),
-            Codec.INT.fieldOf("max_y").forGetter(val -> val.maxY)).apply(instance, CuboidVeinGenerator::new));
-
+    public static final Codec<CuboidVeinGenerator> CODEC = RecordCodecBuilder.create(instance -> instance.group(ClassicVeinGenerator.Layer.CODEC.fieldOf("top").forGetter(val -> val.top), ClassicVeinGenerator.Layer.CODEC.fieldOf("middle").forGetter(val -> val.middle), ClassicVeinGenerator.Layer.CODEC.fieldOf("bottom").forGetter(val -> val.bottom), ClassicVeinGenerator.Layer.CODEC.fieldOf("spread").forGetter(val -> val.spread), Codec.INT.fieldOf("min_y").forGetter(val -> val.minY), Codec.INT.fieldOf("max_y").forGetter(val -> val.maxY)).apply(instance, CuboidVeinGenerator::new));
     private ClassicVeinGenerator.Layer top;
     private ClassicVeinGenerator.Layer middle;
     private ClassicVeinGenerator.Layer bottom;
     private ClassicVeinGenerator.Layer spread;
-
-    @Setter
-    private int minY, maxY;
-
+    private int minY;
+    private int maxY;
     private int spreadDivisor;
     private int totalLayers;
     private int bottomLayer;
@@ -65,9 +53,7 @@ public class CuboidVeinGenerator extends VeinGenerator {
         super(entry);
     }
 
-    public CuboidVeinGenerator(ClassicVeinGenerator.Layer top, ClassicVeinGenerator.Layer middle,
-                               ClassicVeinGenerator.Layer bottom, ClassicVeinGenerator.Layer spread,
-                               int minY, int maxY) {
+    public CuboidVeinGenerator(ClassicVeinGenerator.Layer top, ClassicVeinGenerator.Layer middle, ClassicVeinGenerator.Layer bottom, ClassicVeinGenerator.Layer spread, int minY, int maxY) {
         this.top = top;
         this.middle = middle;
         this.bottom = bottom;
@@ -87,38 +73,28 @@ public class CuboidVeinGenerator extends VeinGenerator {
     }
 
     @Override
-    public Map<BlockPos, OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
-                                                  BlockPos origin) {
+    public Map<BlockPos, OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
         Map<BlockPos, OreBlockPlacer> generatedBlocks = new Object2ObjectOpenHashMap<>();
-
         int size = entry.clusterSize().sample(random) / 2;
-
         int westBound = origin.getX() - random.nextInt(size);
         int eastBound = origin.getX() + 16 + random.nextInt(size);
         int northBound = origin.getZ() - random.nextInt(size);
         int southBound = origin.getZ() + 16 + random.nextInt(size);
-
         int startY = minY + random.nextInt(this.maxY - minY - 5) - 1;
-
         for (int layerOffset = 0; layerOffset <= totalLayers; layerOffset++) {
             int layer = startY + layerOffset;
-            if (level.isOutsideBuildHeight(layer))
-                continue;
+            if (level.isOutsideBuildHeight(layer)) continue;
             for (int x = westBound; x < eastBound; x++) {
                 for (int z = northBound; z < southBound; z++) {
                     final var randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
-
                     // determine density based on distance from the origin chunk
                     // this makes the vein more concentrated towards the center
                     int xLength = x - origin.getX();
                     int zLength = z - origin.getZ();
                     double volume = Math.sqrt(2 + (xLength * xLength) + (zLength * zLength));
-
                     int localDensity = (int) Math.max(1, 8 * entry.density() / volume);
                     int weightX = Math.max(1, Math.max(Mth.abs(westBound - x), Mth.abs(eastBound - x)) / localDensity);
-                    int weightZ = Math.max(1,
-                            Math.max(Mth.abs(southBound - z), Mth.abs(northBound - z)) / localDensity);
-
+                    int weightZ = Math.max(1, Math.max(Mth.abs(southBound - z), Mth.abs(northBound - z)) / localDensity);
                     BlockPos pos = new BlockPos(x, layer, z);
                     if (layerOffset <= bottomLayer) {
                         // layers 0, 1, and 2 are bottom and spread
@@ -153,7 +129,6 @@ public class CuboidVeinGenerator extends VeinGenerator {
                 }
             }
         }
-
         return generatedBlocks;
     }
 
@@ -174,9 +149,7 @@ public class CuboidVeinGenerator extends VeinGenerator {
      *
      * @return if the ore was placed
      */
-    private boolean placeTop(Map<BlockPos, OreBlockPlacer> generatedBlocks, GTOreDefinition entry,
-                             long randomSeed, BlockPos pos,
-                             RandomSource random, int weightX, int weightZ) {
+    private boolean placeTop(Map<BlockPos, OreBlockPlacer> generatedBlocks, GTOreDefinition entry, long randomSeed, BlockPos pos, RandomSource random, int weightX, int weightZ) {
         var top = this.top.target;
         if (shouldPlaceOre(random, weightX, weightZ)) {
             generatedBlocks.put(pos, (access, section) -> placeOre(access, section, pos, randomSeed, top, entry));
@@ -190,9 +163,7 @@ public class CuboidVeinGenerator extends VeinGenerator {
      *
      * @return if the ore was placed
      */
-    private boolean placeMiddle(Map<BlockPos, OreBlockPlacer> generatedBlocks, GTOreDefinition entry,
-                                long randomSeed, BlockPos pos,
-                                RandomSource random, int weightX, int weightZ) {
+    private boolean placeMiddle(Map<BlockPos, OreBlockPlacer> generatedBlocks, GTOreDefinition entry, long randomSeed, BlockPos pos, RandomSource random, int weightX, int weightZ) {
         var middle = this.middle.target;
         if (random.nextInt(2) == 0 && shouldPlaceOre(random, weightX, weightZ)) {
             generatedBlocks.put(pos, (access, section) -> placeOre(access, section, pos, randomSeed, middle, entry));
@@ -206,9 +177,7 @@ public class CuboidVeinGenerator extends VeinGenerator {
      *
      * @return if the ore was placed
      */
-    private boolean placeBottom(Map<BlockPos, OreBlockPlacer> generatedBlocks, GTOreDefinition entry,
-                                long randomSeed, BlockPos pos,
-                                RandomSource random, int weightX, int weightZ) {
+    private boolean placeBottom(Map<BlockPos, OreBlockPlacer> generatedBlocks, GTOreDefinition entry, long randomSeed, BlockPos pos, RandomSource random, int weightX, int weightZ) {
         var bottom = this.bottom.target;
         if (shouldPlaceOre(random, weightX, weightZ)) {
             generatedBlocks.put(pos, (access, section) -> placeOre(access, section, pos, randomSeed, bottom, entry));
@@ -222,9 +191,7 @@ public class CuboidVeinGenerator extends VeinGenerator {
      *
      * @return if the ore was placed
      */
-    private boolean placeSpread(Map<BlockPos, OreBlockPlacer> generatedBlocks, GTOreDefinition entry,
-                                long randomSeed, BlockPos pos,
-                                RandomSource random, int weightX, int weightZ) {
+    private boolean placeSpread(Map<BlockPos, OreBlockPlacer> generatedBlocks, GTOreDefinition entry, long randomSeed, BlockPos pos, RandomSource random, int weightX, int weightZ) {
         var spread = this.spread.target;
         if (random.nextFloat() <= entry.density() * spreadDivisor && shouldPlaceOre(random, weightX, weightZ)) {
             generatedBlocks.put(pos, (access, section) -> placeOre(access, section, pos, randomSeed, spread, entry));
@@ -233,33 +200,26 @@ public class CuboidVeinGenerator extends VeinGenerator {
         return false;
     }
 
-    public void placeOre(BulkSectionAccess access, LevelChunkSection section, BlockPos pos, long randomSeed,
-                         Either<List<OreConfiguration.TargetBlockState>, Material> ore, GTOreDefinition entry) {
+    public void placeOre(BulkSectionAccess access, LevelChunkSection section, BlockPos pos, long randomSeed, Either<List<OreConfiguration.TargetBlockState>, Material> ore, GTOreDefinition entry) {
         RandomSource random = new XoroshiroRandomSource(randomSeed);
         int x = SectionPos.sectionRelative(pos.getX());
         int y = SectionPos.sectionRelative(pos.getY());
         int z = SectionPos.sectionRelative(pos.getZ());
-
         BlockState existing = section.getBlockState(x, y, z);
-
         ore.ifLeft(blockStates -> {
             for (OreConfiguration.TargetBlockState targetState : blockStates) {
-                if (!OreVeinUtil.canPlaceOre(existing, access::getBlockState, random, entry, targetState, pos))
-                    continue;
-                if (targetState.state.isAir())
-                    continue;
+                if (!OreVeinUtil.canPlaceOre(existing, access::getBlockState, random, entry, targetState, pos)) continue;
+                if (targetState.state.isAir()) continue;
                 section.setBlockState(x, y, z, targetState.state, false);
                 break;
             }
         }).ifRight(material -> {
-            if (!OreVeinUtil.canPlaceOre(existing, access::getBlockState, random, entry, pos))
-                return;
+            if (!OreVeinUtil.canPlaceOre(existing, access::getBlockState, random, entry, pos)) return;
             BlockState currentState = access.getBlockState(pos);
             var prefix = ChemicalHelper.getOrePrefix(currentState);
             if (prefix.isEmpty()) return;
             Block toPlace = ChemicalHelper.getBlock(prefix.get(), material);
-            if (toPlace == null || toPlace.defaultBlockState().isAir())
-                return;
+            if (toPlace == null || toPlace.defaultBlockState().isAir()) return;
             section.setBlockState(x, y, z, toPlace.defaultBlockState(), false);
         });
     }
@@ -269,16 +229,13 @@ public class CuboidVeinGenerator extends VeinGenerator {
         top.layers = top.layers == -1 ? 2 : top.layers;
         middle.layers = middle.layers == -1 ? 3 : middle.layers;
         bottom.layers = bottom.layers == -1 ? 2 : bottom.layers;
-
         // Ensure "middle" is not more than the total top and bottom layers
-        Preconditions.checkArgument(top.layers + bottom.layers >= middle.layers,
-                "Error: cannot have more \"middle\" layers than top and bottom layers combined!");
-
+        Preconditions.checkArgument(top.layers + bottom.layers >= middle.layers, "Error: cannot have more \"middle\" layers than top and bottom layers combined!");
         totalLayers = top.layers + middle.layers + bottom.layers;
-        bottomLayer = (int) (totalLayers / 7.0f * 2.0f);
-        middleLayer1 = (int) (totalLayers / 7.0f * 3.0f);
-        middleLayer2 = (int) (totalLayers / 7.0f * 4.0f);
-        topLayer = (int) (totalLayers / 7.0f * 6.0f);
+        bottomLayer = (int) (totalLayers / 7.0F * 2.0F);
+        middleLayer1 = (int) (totalLayers / 7.0F * 3.0F);
+        middleLayer2 = (int) (totalLayers / 7.0F * 4.0F);
+        topLayer = (int) (totalLayers / 7.0F * 6.0F);
         spreadDivisor = (top.layers + middle.layers - 1) / 2;
         return this;
     }
@@ -294,34 +251,46 @@ public class CuboidVeinGenerator extends VeinGenerator {
     }
 
     public CuboidVeinGenerator top(Consumer<ClassicVeinGenerator.Layer.Builder> builder) {
-        ClassicVeinGenerator.Layer.Builder layerBuilder = new ClassicVeinGenerator.Layer.Builder(
-                AlwaysTrueTest.INSTANCE);
+        ClassicVeinGenerator.Layer.Builder layerBuilder = new ClassicVeinGenerator.Layer.Builder(AlwaysTrueTest.INSTANCE);
         builder.accept(layerBuilder);
         top = layerBuilder.build();
         return this;
     }
 
     public CuboidVeinGenerator middle(Consumer<ClassicVeinGenerator.Layer.Builder> builder) {
-        ClassicVeinGenerator.Layer.Builder layerBuilder = new ClassicVeinGenerator.Layer.Builder(
-                AlwaysTrueTest.INSTANCE);
+        ClassicVeinGenerator.Layer.Builder layerBuilder = new ClassicVeinGenerator.Layer.Builder(AlwaysTrueTest.INSTANCE);
         builder.accept(layerBuilder);
         middle = layerBuilder.build();
         return this;
     }
 
     public CuboidVeinGenerator bottom(Consumer<ClassicVeinGenerator.Layer.Builder> builder) {
-        ClassicVeinGenerator.Layer.Builder layerBuilder = new ClassicVeinGenerator.Layer.Builder(
-                AlwaysTrueTest.INSTANCE);
+        ClassicVeinGenerator.Layer.Builder layerBuilder = new ClassicVeinGenerator.Layer.Builder(AlwaysTrueTest.INSTANCE);
         builder.accept(layerBuilder);
         bottom = layerBuilder.build();
         return this;
     }
 
     public CuboidVeinGenerator spread(Consumer<ClassicVeinGenerator.Layer.Builder> builder) {
-        ClassicVeinGenerator.Layer.Builder layerBuilder = new ClassicVeinGenerator.Layer.Builder(
-                AlwaysTrueTest.INSTANCE);
+        ClassicVeinGenerator.Layer.Builder layerBuilder = new ClassicVeinGenerator.Layer.Builder(AlwaysTrueTest.INSTANCE);
         builder.accept(layerBuilder);
         spread = layerBuilder.build();
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public CuboidVeinGenerator minY(final int minY) {
+        this.minY = minY;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public CuboidVeinGenerator maxY(final int maxY) {
+        this.maxY = maxY;
         return this;
     }
 }

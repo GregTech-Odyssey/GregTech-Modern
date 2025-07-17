@@ -13,7 +13,6 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.common.crafting.IntersectionIngredient;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -23,7 +22,6 @@ import java.util.List;
 
 public class IntersectionMapIngredient extends AbstractMapIngredient {
 
-    @Getter
     protected List<AbstractMapIngredient> children;
 
     public IntersectionMapIngredient(List<AbstractMapIngredient> children) {
@@ -38,19 +36,16 @@ public class IntersectionMapIngredient extends AbstractMapIngredient {
         for (var ing : originalChildren) {
             mapChildren.addAll(MapIngredientTypeManager.getFrom(ing, ItemRecipeCapability.CAP));
         }
-
         return Collections.singletonList(new IntersectionMapIngredient(mapChildren));
     }
 
     @NotNull
     public static List<AbstractMapIngredient> from(ItemStack stack) {
         MaterialEntry entry = ChemicalHelper.getMaterialEntry(stack.getItem());
-
         if (!entry.isEmpty() && TagPrefix.ORES.containsKey(entry.tagPrefix())) {
             List<AbstractMapIngredient> children = new ArrayList<>();
             children.add(new ItemTagMapIngredient(entry.tagPrefix().getItemTags(entry.material())[0]));
             children.add(new ItemTagMapIngredient(entry.tagPrefix().getItemParentTags()[0]));
-
             return Collections.singletonList(new IntersectionMapIngredient(children));
         }
         return Collections.emptyList();
@@ -106,5 +101,9 @@ public class IntersectionMapIngredient extends AbstractMapIngredient {
     @Override
     public String toString() {
         return "IntersectionMapIngredient{" + "children=" + children + "}";
+    }
+
+    public List<AbstractMapIngredient> getChildren() {
+        return this.children;
     }
 }

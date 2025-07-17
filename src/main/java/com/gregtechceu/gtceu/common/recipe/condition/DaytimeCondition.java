@@ -11,17 +11,11 @@ import net.minecraft.world.level.Level;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-@Getter
-@NoArgsConstructor
 public class DaytimeCondition extends RecipeCondition {
 
-    public static final Codec<DaytimeCondition> CODEC = RecordCodecBuilder
-            .create(instance -> RecipeCondition.isReverse(instance)
-                    .apply(instance, DaytimeCondition::new));
+    public static final Codec<DaytimeCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).apply(instance, DaytimeCondition::new));
 
     public DaytimeCondition(boolean isReverse) {
         super(isReverse);
@@ -51,4 +45,6 @@ public class DaytimeCondition extends RecipeCondition {
     public RecipeCondition createTemplate() {
         return new DaytimeCondition();
     }
+
+    public DaytimeCondition() {}
 }

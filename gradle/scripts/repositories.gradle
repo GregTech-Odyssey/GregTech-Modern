@@ -12,11 +12,6 @@ repositories {
         url = "https://modmaven.dev"
     }
 
-    maven { // LDLib, Shimmer
-        name = "FirstDarkDev Maven"
-        url = "https://maven.firstdarkdev.xyz/snapshots"
-    }
-
     exclusiveContent { // FTB mods
         forRepository { maven { url = "https://maven.ftb.dev/releases" } }
         filter { includeGroup("dev.ftb.mods") }

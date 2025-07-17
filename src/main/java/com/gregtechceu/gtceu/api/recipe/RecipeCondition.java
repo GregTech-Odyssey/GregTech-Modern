@@ -15,24 +15,16 @@ import com.google.gson.JsonObject;
 import com.mojang.datafixers.Products;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
-@Accessors(chain = true)
 public abstract class RecipeCondition {
 
-    public static final Codec<RecipeCondition> CODEC = GTRegistries.RECIPE_CONDITIONS.codec()
-            .dispatch(RecipeCondition::getType, RecipeConditionType::getCodec);
+    public static final Codec<RecipeCondition> CODEC = GTRegistries.RECIPE_CONDITIONS.codec().dispatch(RecipeCondition::getType, RecipeConditionType::getCodec);
 
-    public static <
-            RC extends RecipeCondition> Products.P1<RecordCodecBuilder.Mu<RC>, Boolean> isReverse(RecordCodecBuilder.Instance<RC> instance) {
+    public static <RC extends RecipeCondition> Products.P1<RecordCodecBuilder.Mu<RC>, Boolean> isReverse(RecordCodecBuilder.Instance<RC> instance) {
         return instance.group(Codec.BOOL.optionalFieldOf("reverse", false).forGetter(val -> val.isReverse));
     }
 
-    @Getter
-    @Setter
     protected boolean isReverse;
 
     public RecipeCondition() {
@@ -50,12 +42,11 @@ public abstract class RecipeCondition {
     }
 
     public IGuiTexture getInValidTexture() {
-        return new ResourceTexture("gtceu:textures/gui/condition/" + getType() + ".png").getSubTexture(0, 0, 1, 0.5f);
+        return new ResourceTexture("gtceu:textures/gui/condition/" + getType() + ".png").getSubTexture(0, 0, 1, 0.5F);
     }
 
     public IGuiTexture getValidTexture() {
-        return new ResourceTexture("gtceu:textures/gui/condition/" + getType() + ".png").getSubTexture(0, 0.5f, 1,
-                0.5f);
+        return new ResourceTexture("gtceu:textures/gui/condition/" + getType() + ".png").getSubTexture(0, 0.5F, 1, 0.5F);
     }
 
     public boolean isOr() {
@@ -93,6 +84,18 @@ public abstract class RecipeCondition {
 
     public RecipeCondition fromNetwork(FriendlyByteBuf buf) {
         isReverse = buf.readBoolean();
+        return this;
+    }
+
+    public boolean isReverse() {
+        return this.isReverse;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public RecipeCondition setReverse(final boolean isReverse) {
+        this.isReverse = isReverse;
         return this;
     }
 }

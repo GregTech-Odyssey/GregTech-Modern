@@ -19,7 +19,6 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,14 +32,14 @@ public class LongDistanceNetwork {
 
     // all pipes and endpoints in this net
     private final ObjectOpenHashSet<BlockPos> longDistancePipeBlocks = new ObjectOpenHashSet<>();
-    @Getter
     private final LongDistancePipeType pipeType;
     private final WorldData world;
     // stores all connected endpoints, but only the first two are being used
     private final List<ILDEndpoint> endpoints = new ArrayList<>();
     // all endpoint positions, for nbt
     private final List<BlockPos> endpointPoss = new ArrayList<>();
-    private int activeInputIndex = -1, activeOutputIndex = -1;
+    private int activeInputIndex = -1;
+    private int activeOutputIndex = -1;
 
     protected LongDistanceNetwork(LongDistancePipeType pipeType, WorldData world) {
         this.pipeType = pipeType;
@@ -153,8 +152,7 @@ public class LongDistanceNetwork {
      */
     protected void mergePipeNet(LongDistanceNetwork network) {
         if (getPipeType() != network.getPipeType()) {
-            throw new IllegalStateException("Can't merge unequal pipe types, " + getPipeType().getName() + " and " +
-                    network.getPipeType().getName() + " !");
+            throw new IllegalStateException("Can\'t merge unequal pipe types, " + getPipeType().getName() + " and " + network.getPipeType().getName() + " !");
         }
         for (BlockPos pos : network.longDistancePipeBlocks) {
             this.world.putNetwork(pos, this);
@@ -200,7 +198,6 @@ public class LongDistanceNetwork {
     public ILDEndpoint getOtherEndpoint(ILDEndpoint endpoint) {
         // return null for invalid network configurations
         if (!isValid() || (!endpoint.isInput() && !endpoint.isOutput())) return null;
-
         // check if endpoint really exists in this network
         int thisIndex = this.endpoints.indexOf(endpoint);
         if (thisIndex < 0) {
@@ -208,7 +205,6 @@ public class LongDistanceNetwork {
             recalculateNetwork(Collections.singleton(endpoint.getPos()));
             return null;
         }
-
         if (isIOIndexInvalid()) {
             // current endpoint indexes are invalid
             invalidateEndpoints();
@@ -232,7 +228,6 @@ public class LongDistanceNetwork {
             }
             return null;
         }
-
         // find a valid endpoint in this net
         int otherIndex = find(endpoint);
         if (otherIndex >= 0) {
@@ -254,10 +249,7 @@ public class LongDistanceNetwork {
                 this.endpoints.remove(i--);
                 continue;
             }
-            if (endpoint != other &&
-                    (other.isOutput() || other.isInput()) &&
-                    other.isInput() != endpoint.isInput() &&
-                    this.pipeType.satisfiesMinLength(endpoint, other)) {
+            if (endpoint != other && (other.isOutput() || other.isInput()) && other.isInput() != endpoint.isInput() && this.pipeType.satisfiesMinLength(endpoint, other)) {
                 // found valid endpoint with minimum distance
                 return i;
             }
@@ -266,9 +258,7 @@ public class LongDistanceNetwork {
     }
 
     public boolean isIOIndexInvalid() {
-        return (this.activeInputIndex >= 0 && this.activeInputIndex >= this.endpoints.size()) ||
-                (this.activeOutputIndex >= 0 && this.activeOutputIndex >= this.endpoints.size()) ||
-                this.activeInputIndex < 0 != this.activeOutputIndex < 0;
+        return (this.activeInputIndex >= 0 && this.activeInputIndex >= this.endpoints.size()) || (this.activeOutputIndex >= 0 && this.activeOutputIndex >= this.endpoints.size()) || this.activeInputIndex < 0 != this.activeOutputIndex < 0;
     }
 
     public ILDEndpoint getActiveInputIndex() {
@@ -330,8 +320,7 @@ public class LongDistanceNetwork {
 
         public static WorldData get(LevelAccessor level) {
             if (level instanceof ServerLevel serverLevel) {
-                return serverLevel.getDataStorage().computeIfAbsent((tag) -> WorldData.load(tag, serverLevel),
-                        () -> WorldData.create(serverLevel), "gtceu_long_dist_pipe");
+                return serverLevel.getDataStorage().computeIfAbsent(tag -> WorldData.load(tag, serverLevel), () -> WorldData.create(serverLevel), "gtceu_long_dist_pipe");
             }
             return null;
         }
@@ -426,18 +415,15 @@ public class LongDistanceNetwork {
             for (LongDistanceNetwork network : this.networkList) {
                 CompoundTag tag = new CompoundTag();
                 list.add(tag);
-
                 String name = network.getPipeType().getName();
                 tag.putString("class", name);
                 tag.putInt("in", network.activeInputIndex);
                 tag.putInt("out", network.activeOutputIndex);
-
                 ListTag posList = new ListTag();
                 tag.put("pipes", posList);
                 for (BlockPos pos : network.longDistancePipeBlocks) {
                     posList.add(LongTag.valueOf(pos.asLong()));
                 }
-
                 ListTag endpoints = new ListTag();
                 tag.put("endpoints", endpoints);
                 for (ILDEndpoint endpoint : network.endpoints) {
@@ -451,5 +437,9 @@ public class LongDistanceNetwork {
         public LevelAccessor getWorld() {
             return this.worldRef.get();
         }
+    }
+
+    public LongDistancePipeType getPipeType() {
+        return this.pipeType;
     }
 }

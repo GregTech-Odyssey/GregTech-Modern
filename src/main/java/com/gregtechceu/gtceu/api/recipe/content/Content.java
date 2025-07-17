@@ -22,13 +22,11 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class Content {
 
-    @Getter
     public final Object content;
     public final int chance;
     public final int maxChance;
@@ -42,15 +40,7 @@ public class Content {
     }
 
     public static <T> Codec<Content> codec(RecipeCapability<T> capability) {
-        return RecordCodecBuilder.create(instance -> instance.group(
-                capability.serializer.codec().fieldOf("content").forGetter(val -> capability.of(val.content)),
-                ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("chance", ChanceLogic.getMaxChancedValue())
-                        .forGetter(val -> val.chance),
-                ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("maxChance", ChanceLogic.getMaxChancedValue())
-                        .forGetter(val -> val.maxChance),
-                Codec.INT.optionalFieldOf("tierChanceBoost", 0)
-                        .forGetter(val -> val.tierChanceBoost))
-                .apply(instance, Content::new));
+        return RecordCodecBuilder.create(instance -> instance.group(capability.serializer.codec().fieldOf("content").forGetter(val -> capability.of(val.content)), ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("chance", ChanceLogic.getMaxChancedValue()).forGetter(val -> val.chance), ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("maxChance", ChanceLogic.getMaxChancedValue()).forGetter(val -> val.maxChance), Codec.INT.optionalFieldOf("tierChanceBoost", 0).forGetter(val -> val.tierChanceBoost)).apply(instance, Content::new));
     }
 
     public Content copy(RecipeCapability<?> capability) {
@@ -85,8 +75,7 @@ public class Content {
         return chanceBoost < 0 ? -fixed : fixed;
     }
 
-    public IGuiTexture createOverlay(boolean perTick, int recipeTier, int chanceTier,
-                                     @Nullable ChanceBoostFunction function) {
+    public IGuiTexture createOverlay(boolean perTick, int recipeTier, int chanceTier, @Nullable ChanceBoostFunction function) {
         return new IGuiTexture() {
 
             @Override
@@ -107,19 +96,18 @@ public class Content {
         if (content instanceof IntProviderIngredient ingredient) {
             graphics.pose().pushPose();
             graphics.pose().translate(0, 0, 400);
-            graphics.pose().scale(0.5f, 0.5f, 1);
+            graphics.pose().scale(0.5F, 0.5F, 1);
             int min = ingredient.getCountProvider().getMinValue();
             int max = ingredient.getCountProvider().getMaxValue();
             String s = String.format("%s-%s", min, max);
-            int color = 0xFFFFFF;
+            int color = 16777215;
             Font fontRenderer = Minecraft.getInstance().font;
             // 5 == max num of characters that fit in a slot at 0.5x render size
             if (s.length() > 5) {
                 s = "X-Y";
-                color = 0xEE0000;
+                color = 15597568;
             }
-            graphics.drawString(fontRenderer, s, (int) ((x + (width / 3f)) * 2 - fontRenderer.width(s) + 21),
-                    (int) ((y + (height / 3f) + 6) * 2), color, true);
+            graphics.drawString(fontRenderer, s, (int) ((x + (width / 3.0F)) * 2 - fontRenderer.width(s) + 21), (int) ((y + (height / 3.0F) + 6) * 2), color, true);
             graphics.pose().popPose();
         }
     }
@@ -129,39 +117,31 @@ public class Content {
         if (content instanceof FluidIngredient ingredient) {
             graphics.pose().pushPose();
             graphics.pose().translate(0, 0, 400);
-            graphics.pose().scale(0.5f, 0.5f, 1);
+            graphics.pose().scale(0.5F, 0.5F, 1);
             int amount = ingredient.getAmount();
             Font fontRenderer = Minecraft.getInstance().font;
             String s = FormattingUtil.formatBuckets(amount);
-            if (fontRenderer.width(s) > 32)
-                s = FormattingUtil.formatNumberReadable(amount, true, FormattingUtil.DECIMAL_FORMAT_1F, "B");
-            if (fontRenderer.width(s) > 32)
-                s = FormattingUtil.formatNumberReadable(amount, true, FormattingUtil.DECIMAL_FORMAT_0F, "B");
-            graphics.drawString(fontRenderer, s, (int) ((x + (width / 3f)) * 2 - fontRenderer.width(s) + 22),
-                    (int) ((y + (height / 3f) + 6) * 2), 0xFFFFFF, true);
+            if (fontRenderer.width(s) > 32) s = FormattingUtil.formatNumberReadable(amount, true, FormattingUtil.DECIMAL_FORMAT_1F, "B");
+            if (fontRenderer.width(s) > 32) s = FormattingUtil.formatNumberReadable(amount, true, FormattingUtil.DECIMAL_FORMAT_0F, "B");
+            graphics.drawString(fontRenderer, s, (int) ((x + (width / 3.0F)) * 2 - fontRenderer.width(s) + 22), (int) ((y + (height / 3.0F) + 6) * 2), 16777215, true);
             graphics.pose().popPose();
         }
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void drawChance(GuiGraphics graphics, float x, float y, int width, int height, int recipeTier,
-                           int chanceTier, @Nullable ChanceBoostFunction function) {
+    public void drawChance(GuiGraphics graphics, float x, float y, int width, int height, int recipeTier, int chanceTier, @Nullable ChanceBoostFunction function) {
         if (chance == ChanceLogic.getMaxChancedValue()) return;
         graphics.pose().pushPose();
         graphics.pose().translate(0, 0, 400);
-        graphics.pose().scale(0.5f, 0.5f, 1);
+        graphics.pose().scale(0.5F, 0.5F, 1);
         var func = function == null ? ChanceBoostFunction.OVERCLOCK : function;
         int chance = func.getBoostedChance(this, recipeTier, chanceTier);
-        float chanceFloat = 1f * chance / this.maxChance;
+        float chanceFloat = 1.0F * chance / this.maxChance;
         String percent = FormattingUtil.formatNumber2Places(100 * chanceFloat);
-
-        String s = chance == 0 ? LocalizationUtils.format("gtceu.gui.content.chance_nc_short") :
-                percent + "%";
-
-        int color = chance == 0 ? 0xFF0000 : GradientUtil.toRGB(Mth.lerp(chanceFloat, 29f, 167f), 100f, 50f);
+        String s = chance == 0 ? LocalizationUtils.format("gtceu.gui.content.chance_nc_short") : percent + "%";
+        int color = chance == 0 ? 16711680 : GradientUtil.toRGB(Mth.lerp(chanceFloat, 29.0F, 167.0F), 100.0F, 50.0F);
         Font fontRenderer = Minecraft.getInstance().font;
-        graphics.drawString(fontRenderer, s, (int) ((x + (width / 3f)) * 2 - fontRenderer.width(s) + 23),
-                (int) ((y + (height / 3f) + 6) * 2 - height), color, true);
+        graphics.drawString(fontRenderer, s, (int) ((x + (width / 3.0F)) * 2 - fontRenderer.width(s) + 23), (int) ((y + (height / 3.0F) + 6) * 2 - height), color, true);
         graphics.pose().popPose();
     }
 
@@ -170,23 +150,20 @@ public class Content {
         graphics.pose().pushPose();
         RenderSystem.disableDepthTest();
         graphics.pose().translate(0, 0, 400);
-        graphics.pose().scale(0.5f, 0.5f, 1);
+        graphics.pose().scale(0.5F, 0.5F, 1);
         String s = LocalizationUtils.format("gtceu.gui.content.tips.per_tick_short");
-        int color = 0xFFFF00;
+        int color = 16776960;
         Font fontRenderer = Minecraft.getInstance().font;
-        graphics.drawString(fontRenderer, s, (int) ((x + (width / 3f)) * 2 - fontRenderer.width(s) + 23),
-                (int) ((y + (height / 3f) + 6) * 2 - height + (chance == ChanceLogic.getMaxChancedValue() ? 0 : 10)),
-                color);
+        graphics.drawString(fontRenderer, s, (int) ((x + (width / 3.0F)) * 2 - fontRenderer.width(s) + 23), (int) ((y + (height / 3.0F) + 6) * 2 - height + (chance == ChanceLogic.getMaxChancedValue() ? 0 : 10)), color);
         graphics.pose().popPose();
     }
 
     @Override
     public String toString() {
-        return "Content{" +
-                "content=" + content +
-                ", chance=" + chance +
-                ", maxChance=" + maxChance +
-                ", tierChanceBoost=" + tierChanceBoost +
-                '}';
+        return "Content{" + "content=" + content + ", chance=" + chance + ", maxChance=" + maxChance + ", tierChanceBoost=" + tierChanceBoost + '}';
+    }
+
+    public Object getContent() {
+        return this.content;
     }
 }

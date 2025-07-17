@@ -32,27 +32,16 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import lombok.AllArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@Accessors(fluent = true, chain = true)
-@AllArgsConstructor
 public class DikeVeinGenerator extends VeinGenerator {
 
-    public static final Codec<DikeVeinGenerator> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.list(DikeBlockDefinition.CODEC).fieldOf("blocks").forGetter(it -> it.blocks),
-            Codec.INT.fieldOf("min_y").forGetter(it -> it.minYLevel),
-            Codec.INT.fieldOf("max_y").forGetter(it -> it.maxYLevel)).apply(instance, DikeVeinGenerator::new));
-
+    public static final Codec<DikeVeinGenerator> CODEC = RecordCodecBuilder.create(instance -> instance.group(Codec.list(DikeBlockDefinition.CODEC).fieldOf("blocks").forGetter(it -> it.blocks), Codec.INT.fieldOf("min_y").forGetter(it -> it.minYLevel), Codec.INT.fieldOf("max_y").forGetter(it -> it.maxYLevel)).apply(instance, DikeVeinGenerator::new));
     public List<DikeBlockDefinition> blocks;
-    @Setter
     public int minYLevel;
-    @Setter
     public int maxYLevel;
 
     public DikeVeinGenerator(GTOreDefinition entry) {
@@ -69,27 +58,19 @@ public class DikeVeinGenerator extends VeinGenerator {
     }
 
     @Override
-    public Map<BlockPos, OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
-                                                  BlockPos origin) {
+    public Map<BlockPos, OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
         Map<BlockPos, OreBlockPlacer> generatedBlocks = new Object2ObjectOpenHashMap<>();
-
         WorldgenRandom worldgenRandom = new WorldgenRandom(new LegacyRandomSource(level.getSeed()));
-        NormalNoise normalNoise = NormalNoise.create(worldgenRandom, -2, 4.0D);
+        NormalNoise normalNoise = NormalNoise.create(worldgenRandom, -2, 4.0);
         ChunkPos chunkPos = new ChunkPos(origin);
-
         float density = entry.density();
         int size = entry.clusterSize().sample(random);
-
-        int radius = Mth.ceil(size / 2f);
-
+        int radius = Mth.ceil(size / 2.0F);
         int xPos = chunkPos.getMinBlockX() + level.getRandom().nextInt(16);
         int zPos = chunkPos.getMinBlockZ() + level.getRandom().nextInt(16);
-
         int yTop = maxYLevel;
         int yBottom = minYLevel;
-
         BlockPos basePos = new BlockPos(xPos, yBottom, zPos);
-
         for (int dY = yBottom; dY <= yTop; dY++) {
             for (int dX = -radius; dX <= radius; dX++) {
                 for (int dZ = -radius; dZ <= radius; dZ++) {
@@ -100,47 +81,36 @@ public class DikeVeinGenerator extends VeinGenerator {
                     BlockPos pos = new BlockPos(basePos.getX() + dX, dY, basePos.getZ() + dZ);
                     if (normalNoise.getValue(dX, dY, dZ) >= 0.5 && random.nextFloat() <= density) {
                         final var randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
-
-                        generatedBlocks.put(pos,
-                                (access, section) -> placeBlock(access, section, randomSeed, pos, entry));
+                        generatedBlocks.put(pos, (access, section) -> placeBlock(access, section, randomSeed, pos, entry));
                     }
                 }
             }
         }
-
         return generatedBlocks;
     }
 
-    private void placeBlock(BulkSectionAccess level, LevelChunkSection section, long randomSeed, BlockPos pos,
-                            GTOreDefinition entry) {
+    private void placeBlock(BulkSectionAccess level, LevelChunkSection section, long randomSeed, BlockPos pos, GTOreDefinition entry) {
         var rand = new XoroshiroRandomSource(randomSeed);
         DikeBlockDefinition blockDefinition = GTUtil.getRandomItem(rand, blocks);
         BlockState current = level.getBlockState(pos);
-
         int x = SectionPos.sectionRelative(pos.getX());
         int y = SectionPos.sectionRelative(pos.getY());
         int z = SectionPos.sectionRelative(pos.getZ());
-
         if (pos.getY() >= blockDefinition.minY() && pos.getY() <= blockDefinition.maxY()) {
             blockDefinition.block.ifLeft(blockStates -> {
                 for (TargetBlockState targetState : blockStates) {
-                    if (!OreVeinUtil.canPlaceOre(current, level::getBlockState, rand, entry, targetState,
-                            pos.mutable()))
-                        continue;
-                    if (targetState.state.isAir())
-                        continue;
+                    if (!OreVeinUtil.canPlaceOre(current, level::getBlockState, rand, entry, targetState, pos.mutable())) continue;
+                    if (targetState.state.isAir()) continue;
                     section.setBlockState(x, y, z, targetState.state, false);
                     break;
                 }
             }).ifRight(material -> {
-                if (!OreVeinUtil.canPlaceOre(current, level::getBlockState, rand, entry, pos.mutable()))
-                    return;
+                if (!OreVeinUtil.canPlaceOre(current, level::getBlockState, rand, entry, pos.mutable())) return;
                 BlockState currentState = level.getBlockState(pos);
                 var prefix = ChemicalHelper.getOrePrefix(currentState);
                 if (prefix.isEmpty()) return;
                 Block toPlace = ChemicalHelper.getBlock(prefix.get(), material);
-                if (toPlace == null || toPlace.defaultBlockState().isAir())
-                    return;
+                if (toPlace == null || toPlace.defaultBlockState().isAir()) return;
                 section.setBlockState(x, y, z, toPlace.defaultBlockState(), false);
             });
         }
@@ -176,16 +146,9 @@ public class DikeVeinGenerator extends VeinGenerator {
         return this;
     }
 
-    public record DikeBlockDefinition(Either<List<TargetBlockState>, Material> block, int weight, int minY, int maxY)
-            implements WeightedEntry {
+    public record DikeBlockDefinition(Either<List<TargetBlockState>, Material> block, int weight, int minY, int maxY) implements WeightedEntry {
 
-        public static final Codec<DikeBlockDefinition> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                Codec.either(TargetBlockState.CODEC.listOf(), GTCEuAPI.materialManager.codec()).fieldOf("block")
-                        .forGetter(x -> x.block),
-                Codec.INT.fieldOf("weight").forGetter(x -> x.weight),
-                Codec.INT.fieldOf("min_y").orElse(320).forGetter(x -> x.minY),
-                Codec.INT.fieldOf("max_y").orElse(-64).forGetter(x -> x.maxY))
-                .apply(instance, DikeBlockDefinition::new));
+        public static final Codec<DikeBlockDefinition> CODEC = RecordCodecBuilder.create(instance -> instance.group(Codec.either(TargetBlockState.CODEC.listOf(), GTCEuAPI.materialManager.codec()).fieldOf("block").forGetter(x -> x.block), Codec.INT.fieldOf("weight").forGetter(x -> x.weight), Codec.INT.fieldOf("min_y").orElse(320).forGetter(x -> x.minY), Codec.INT.fieldOf("max_y").orElse(-64).forGetter(x -> x.maxY)).apply(instance, DikeBlockDefinition::new));
 
         public DikeBlockDefinition(Material block, int weight, int minY, int maxY) {
             this(Either.right(block), weight, minY, maxY);
@@ -194,5 +157,27 @@ public class DikeVeinGenerator extends VeinGenerator {
         public DikeBlockDefinition(List<TargetBlockState> block, int weight, int minY, int maxY) {
             this(Either.left(block), weight, minY, maxY);
         }
+    }
+
+    public DikeVeinGenerator(final List<DikeBlockDefinition> blocks, final int minYLevel, final int maxYLevel) {
+        this.blocks = blocks;
+        this.minYLevel = minYLevel;
+        this.maxYLevel = maxYLevel;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public DikeVeinGenerator minYLevel(final int minYLevel) {
+        this.minYLevel = minYLevel;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public DikeVeinGenerator maxYLevel(final int maxYLevel) {
+        this.maxYLevel = maxYLevel;
+        return this;
     }
 }

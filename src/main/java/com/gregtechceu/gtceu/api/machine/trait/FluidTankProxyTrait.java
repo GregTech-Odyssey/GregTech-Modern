@@ -10,19 +10,12 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
-@Accessors(chain = true)
 public class FluidTankProxyTrait extends MachineTrait implements IFluidHandlerModifiable, ICapabilityTrait {
 
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(FluidTankProxyTrait.class);
-    @Getter
     public final IO capabilityIO;
-    @Setter
-    @Getter
     public IFluidHandlerModifiable proxy;
 
     public FluidTankProxyTrait(MetaMachine machine, IO capabilityIO) {
@@ -38,7 +31,6 @@ public class FluidTankProxyTrait extends MachineTrait implements IFluidHandlerMo
     //////////////////////////////////////
     // ******* Capability ********//
     //////////////////////////////////////
-
     @Override
     public int getTanks() {
         return proxy == null ? 0 : proxy.getTanks();
@@ -131,8 +123,23 @@ public class FluidTankProxyTrait extends MachineTrait implements IFluidHandlerMo
         var pos = getMachine().getPos();
         for (Direction facing : facings) {
             var filter = getMachine().getFluidCapFilter(facing, IO.OUT);
-            GTTransferUtils.getAdjacentFluidHandler(level, pos, facing)
-                    .ifPresent(adj -> GTTransferUtils.transferFluidsFiltered(this, adj, filter));
+            GTTransferUtils.getAdjacentFluidHandler(level, pos, facing).ifPresent(adj -> GTTransferUtils.transferFluidsFiltered(this, adj, filter));
         }
+    }
+
+    public IO getCapabilityIO() {
+        return this.capabilityIO;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public FluidTankProxyTrait setProxy(final IFluidHandlerModifiable proxy) {
+        this.proxy = proxy;
+        return this;
+    }
+
+    public IFluidHandlerModifiable getProxy() {
+        return this.proxy;
     }
 }

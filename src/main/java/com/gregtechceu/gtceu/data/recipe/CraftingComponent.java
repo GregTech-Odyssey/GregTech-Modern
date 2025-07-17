@@ -10,7 +10,6 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -20,12 +19,10 @@ import static com.gregtechceu.gtceu.api.GTValues.V;
 public class CraftingComponent {
 
     public static final Map<String, CraftingComponent> ALL_COMPONENTS = new Object2ReferenceOpenHashMap<>();
-
     public static final CraftingComponent EMPTY = CraftingComponent.of("empty", ItemStack.EMPTY);
-
     private final Object[] values = new Object[V.length];
-    @Setter
-    private @NotNull Object fallback;
+    @NotNull
+    private Object fallback;
 
     protected CraftingComponent(@NotNull Object fallback) {
         checkType(fallback);
@@ -47,29 +44,30 @@ public class CraftingComponent {
         return of(id, new MaterialEntry(prefix, material));
     }
 
-    public @NotNull Object get(int tier) {
+    @NotNull
+    public Object get(int tier) {
         if (this == EMPTY) return ItemStack.EMPTY;
-        if (tier < 0 || tier >= values.length)
-            throw new IllegalArgumentException("Tier out of range of ULV-MAX, tier: " + tier);
+        if (tier < 0 || tier >= values.length) throw new IllegalArgumentException("Tier out of range of ULV-MAX, tier: " + tier);
         var val = values[tier];
         return val == null ? fallback : val;
     }
 
-    public @NotNull CraftingComponent add(int tier, @NotNull Object value) {
+    @NotNull
+    public CraftingComponent add(int tier, @NotNull Object value) {
         if (this == EMPTY) return this;
         checkType(value);
         values[tier] = value;
         return this;
     }
 
-    public @NotNull CraftingComponent add(int tier, @NotNull TagPrefix prefix, @NotNull Material material) {
+    @NotNull
+    public CraftingComponent add(int tier, @NotNull TagPrefix prefix, @NotNull Material material) {
         return add(tier, new MaterialEntry(prefix, material));
     }
 
     public void remove(int tier) {
         if (this == EMPTY) return;
-        if (tier < 0 || tier >= values.length)
-            throw new IllegalArgumentException("Tier out of range of ULV-MAX, tier: " + tier);
+        if (tier < 0 || tier >= values.length) throw new IllegalArgumentException("Tier out of range of ULV-MAX, tier: " + tier);
         values[tier] = null;
     }
 
@@ -89,5 +87,12 @@ public class CraftingComponent {
             return EMPTY;
         }
         return ALL_COMPONENTS.get(id);
+    }
+
+    public void setFallback(@NotNull final Object fallback) {
+        if (fallback == null) {
+            throw new NullPointerException("fallback is marked non-null but is null");
+        }
+        this.fallback = fallback;
     }
 }

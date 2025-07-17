@@ -9,15 +9,12 @@ import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 
-import lombok.Getter;
-
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class HPCAComputationPartMachine extends HPCAComponentPartMachine implements IHPCAComputationProvider {
 
-    @Getter
     private final boolean advanced;
 
     public HPCAComputationPartMachine(IMachineBlockEntity holder, boolean advanced) {
@@ -28,11 +25,9 @@ public class HPCAComputationPartMachine extends HPCAComponentPartMachine impleme
     @Override
     public ResourceTexture getComponentIcon() {
         if (isDamaged()) {
-            return advanced ? GuiTextures.HPCA_ICON_DAMAGED_ADVANCED_COMPUTATION_COMPONENT :
-                    GuiTextures.HPCA_ICON_DAMAGED_COMPUTATION_COMPONENT;
+            return advanced ? GuiTextures.HPCA_ICON_DAMAGED_ADVANCED_COMPUTATION_COMPONENT : GuiTextures.HPCA_ICON_DAMAGED_COMPUTATION_COMPONENT;
         }
-        return advanced ? GuiTextures.HPCA_ICON_ADVANCED_COMPUTATION_COMPONENT :
-                GuiTextures.HPCA_ICON_COMPUTATION_COMPONENT;
+        return advanced ? GuiTextures.HPCA_ICON_ADVANCED_COMPUTATION_COMPONENT : GuiTextures.HPCA_ICON_COMPUTATION_COMPONENT;
     }
 
     @Override
@@ -59,5 +54,9 @@ public class HPCAComputationPartMachine extends HPCAComponentPartMachine impleme
     @Override
     public boolean canBeDamaged() {
         return true;
+    }
+
+    public boolean isAdvanced() {
+        return this.advanced;
     }
 }

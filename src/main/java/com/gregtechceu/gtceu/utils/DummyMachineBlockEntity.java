@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.lowdragmc.lowdraglib.syncdata.managed.MultiManagedStorage;
 
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
-import lombok.Getter;
 
 import java.util.Collection;
 
@@ -18,19 +17,14 @@ import java.util.Collection;
  */
 public class DummyMachineBlockEntity implements IMachineBlockEntity {
 
-    @Getter
     public final DummyRecipeLogicMachine metaMachine;
-    @Getter
     private final MachineDefinition definition;
 
     // TODO: Fix the proxy parameter
-    public DummyMachineBlockEntity(int tier, GTRecipeType type, Int2IntFunction tankScalingFunction,
-                                   Collection<RecipeHandlerList> handlers,
-                                   Object... args) {
+    public DummyMachineBlockEntity(int tier, GTRecipeType type, Int2IntFunction tankScalingFunction, Collection<RecipeHandlerList> handlers, Object... args) {
         this.definition = MachineDefinition.createDefinition(GTCEu.id("dummy"));
         this.definition.setRecipeTypes(new GTRecipeType[] { type });
         this.definition.setTier(tier);
-
         this.metaMachine = new DummyRecipeLogicMachine(this, tier, tankScalingFunction, handlers, args);
     }
 
@@ -42,5 +36,13 @@ public class DummyMachineBlockEntity implements IMachineBlockEntity {
     @Override
     public MultiManagedStorage getRootStorage() {
         return null;
+    }
+
+    public DummyRecipeLogicMachine getMetaMachine() {
+        return this.metaMachine;
+    }
+
+    public MachineDefinition getDefinition() {
+        return this.definition;
     }
 }

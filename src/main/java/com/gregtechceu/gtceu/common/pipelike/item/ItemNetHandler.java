@@ -27,22 +27,18 @@ import net.minecraftforge.items.ItemStackHandler;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class ItemNetHandler implements IItemHandlerModifiable {
 
-    @Getter
     private ItemPipeNet net;
     private ItemPipeBlockEntity pipe;
     private final Level world;
-    @Getter
     private final Direction facing;
     private final Object2IntOpenHashMap<FacingPos> simulatedTransfersGlobalRoundRobin = new Object2IntOpenHashMap<>();
     private int simulatedTransfers = 0;
-
     private final ItemStackHandler testHandler = new ItemStackHandler(1);
 
     public ItemNetHandler(ItemPipeNet net, ItemPipeBlockEntity pipe, Direction facing) {
@@ -74,42 +70,30 @@ public class ItemNetHandler implements IItemHandlerModifiable {
     @Override
     public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
         if (stack.isEmpty()) return stack;
-
         if (net == null || pipe == null || pipe.isInValid() || pipe.isBlocked(facing)) {
             return stack;
         }
-
         copyTransferred();
         CoverBehavior pipeCover = pipe.getCoverContainer().getCoverAtSide(facing);
         CoverBehavior tileCover = getCoverOnNeighbour(pipe.getPipePos(), facing);
-
-        boolean pipeConveyor = pipeCover instanceof ConveyorCover, tileConveyor = tileCover instanceof ConveyorCover;
+        boolean pipeConveyor = pipeCover instanceof ConveyorCover;
+        boolean tileConveyor = tileCover instanceof ConveyorCover;
         // abort if there are two conveyors
         if (pipeConveyor && tileConveyor) return stack;
-
-        if (tileCover != null && !checkImportCover(tileCover, false, stack))
-            return stack;
-
-        if (!pipeConveyor && !tileConveyor)
-            return insertFirst(stack, simulate);
-
+        if (tileCover != null && !checkImportCover(tileCover, false, stack)) return stack;
+        if (!pipeConveyor && !tileConveyor) return insertFirst(stack, simulate);
         ConveyorCover conveyor = (ConveyorCover) (pipeConveyor ? pipeCover : tileCover);
         if (conveyor.getIo() == (pipeConveyor ? IO.IN : IO.OUT)) {
             boolean roundRobinGlobal = conveyor.getDistributionMode() == DistributionMode.ROUND_ROBIN_GLOBAL;
-            if (roundRobinGlobal || conveyor.getDistributionMode() == DistributionMode.ROUND_ROBIN_PRIO)
-                return insertRoundRobin(stack, simulate, roundRobinGlobal);
+            if (roundRobinGlobal || conveyor.getDistributionMode() == DistributionMode.ROUND_ROBIN_PRIO) return insertRoundRobin(stack, simulate, roundRobinGlobal);
         }
-
         return insertFirst(stack, simulate);
     }
 
     public static boolean checkImportCover(CoverBehavior cover, boolean onPipe, ItemStack stack) {
         if (cover == null) return true;
         if (cover instanceof ItemFilterCover filter) {
-            return (filter.getFilterMode() != FilterMode.FILTER_BOTH &&
-                    (filter.getFilterMode() != FilterMode.FILTER_INSERT || !onPipe) &&
-                    (filter.getFilterMode() != FilterMode.FILTER_EXTRACT || onPipe)) ||
-                    filter.getItemFilter().test(stack);
+            return (filter.getFilterMode() != FilterMode.FILTER_BOTH && (filter.getFilterMode() != FilterMode.FILTER_INSERT || !onPipe) && (filter.getFilterMode() != FilterMode.FILTER_EXTRACT || onPipe)) || filter.getItemFilter().test(stack);
         }
         return true;
     }
@@ -117,28 +101,22 @@ public class ItemNetHandler implements IItemHandlerModifiable {
     public ItemStack insertFirst(ItemStack stack, boolean simulate) {
         for (ItemRoutePath inv : net.getNetData(pipe.getPipePos(), facing)) {
             stack = insert(inv, stack, simulate);
-            if (stack.isEmpty())
-                return ItemStack.EMPTY;
+            if (stack.isEmpty()) return ItemStack.EMPTY;
         }
         return stack;
     }
 
     public ItemStack insertRoundRobin(ItemStack stack, boolean simulate, boolean global) {
         List<ItemRoutePath> routePaths = net.getNetData(pipe.getPipePos(), facing);
-        if (routePaths.isEmpty())
-            return stack;
-        if (routePaths.size() == 1)
-            return insert(routePaths.get(0), stack, simulate);
+        if (routePaths.isEmpty()) return stack;
+        if (routePaths.size() == 1) return insert(routePaths.get(0), stack, simulate);
         List<ItemRoutePath> routePathsCopy = new ArrayList<>(routePaths);
-
         if (global) {
             stack = insertToHandlersEnhanced(routePathsCopy, stack, routePaths.size(), simulate);
         } else {
             stack = insertToHandlers(routePathsCopy, stack, simulate);
-            if (!stack.isEmpty() && !routePathsCopy.isEmpty())
-                stack = insertToHandlers(routePathsCopy, stack, simulate);
+            if (!stack.isEmpty() && !routePathsCopy.isEmpty()) stack = insertToHandlers(routePathsCopy, stack, simulate);
         }
-
         return stack;
     }
 
@@ -159,7 +137,6 @@ public class ItemNetHandler implements IItemHandlerModifiable {
         int m = c == 0 ? count % copy.size() : 0;
         while (routePathIterator.hasNext()) {
             ItemRoutePath routePath = routePathIterator.next();
-
             int amount = c;
             if (m > 0) {
                 amount++;
@@ -176,11 +153,8 @@ public class ItemNetHandler implements IItemHandlerModifiable {
             if (r == 1 && c == 0 && amount == 1) {
                 m++;
             }
-
-            if (r > 0)
-                routePathIterator.remove();
+            if (r > 0) routePathIterator.remove();
         }
-
         ItemStack remainder = stack.copy();
         remainder.setCount(count - inserted);
         return remainder;
@@ -191,44 +165,33 @@ public class ItemNetHandler implements IItemHandlerModifiable {
         IntList steps = new IntArrayList();
         int min = Integer.MAX_VALUE;
         ItemStack simStack;
-
         // find inventories that are not full and get the amount that was inserted in total
         for (ItemRoutePath inv : copy) {
             simStack = stack.copy();
             int ins = stack.getCount() - insert(inv, simStack, true, true).getCount();
-            if (ins <= 0)
-                continue;
+            if (ins <= 0) continue;
             int didTransfer = didTransferTo(inv, simulate);
             EnhancedRoundRobinData data = new EnhancedRoundRobinData(inv, ins, didTransfer);
             transferred.add(data);
-
             min = Math.min(min, didTransfer);
-
             if (!steps.contains(didTransfer)) {
                 steps.add(didTransfer);
             }
         }
-
-        if (transferred.isEmpty() || steps.isEmpty())
-            return stack;
-
+        if (transferred.isEmpty() || steps.isEmpty()) return stack;
         if (!simulate && min < Integer.MAX_VALUE) {
             decrementBy(min);
         }
-
         transferred.sort(Comparator.comparingInt(data -> data.transferred));
         steps.sort(Integer::compare);
-
         if (transferred.get(0).transferred != steps.getInt(0)) {
             return stack;
         }
-
         int amount = stack.getCount();
         int c = amount / transferred.size();
         int m = amount % transferred.size();
         List<EnhancedRoundRobinData> transferredCopy = new ArrayList<>(transferred);
         int nextStep = steps.removeInt(0);
-
         // equally distribute items over all inventories
         // it takes into account how much was inserted in total
         // f.e. if inv1 has 2 inserted and inv2 has 6 inserted, it will first try to insert 4 into inv1 so that both
@@ -239,9 +202,7 @@ public class ItemNetHandler implements IItemHandlerModifiable {
             int i = 0;
             while (iterator.hasNext()) {
                 EnhancedRoundRobinData data = iterator.next();
-                if (nextStep >= 0 && data.transferred >= nextStep)
-                    break;
-
+                if (nextStep >= 0 && data.transferred >= nextStep) break;
                 int toInsert;
                 if (nextStep <= 0) {
                     if (amount <= m) {
@@ -259,18 +220,14 @@ public class ItemNetHandler implements IItemHandlerModifiable {
                 } else {
                     data.toTransfer += toInsert;
                 }
-
                 data.transferred += toInsert;
-
                 if ((amount -= toInsert) == 0) {
                     break outer;
                 }
                 i++;
             }
-
             for (EnhancedRoundRobinData data : transferredCopy) {
-                if (data.transferred < nextStep)
-                    continue outer;
+                if (data.transferred < nextStep) continue outer;
             }
             if (steps.isEmpty()) {
                 if (nextStep >= 0) {
@@ -282,9 +239,7 @@ public class ItemNetHandler implements IItemHandlerModifiable {
                 nextStep = steps.removeInt(0);
             }
         }
-
         int inserted = 0;
-
         // finally actually insert the item
         for (EnhancedRoundRobinData data : transferred) {
             ItemStack toInsert = stack.copy();
@@ -293,7 +248,6 @@ public class ItemNetHandler implements IItemHandlerModifiable {
             inserted += ins;
             transferTo(data.routePath, simulate, ins);
         }
-
         ItemStack remainder = stack.copy();
         remainder.shrink(inserted);
         return remainder;
@@ -304,21 +258,16 @@ public class ItemNetHandler implements IItemHandlerModifiable {
     }
 
     public ItemStack insert(ItemRoutePath routePath, ItemStack stack, boolean simulate, boolean ignoreLimit) {
-        int allowed = ignoreLimit ? stack.getCount() :
-                checkTransferable(routePath.getProperties().getTransferRate(), stack.getCount(), simulate);
+        int allowed = ignoreLimit ? stack.getCount() : checkTransferable(routePath.getProperties().getTransferRate(), stack.getCount(), simulate);
         if (allowed == 0 || !routePath.matchesFilters(stack)) {
             return stack;
         }
-        CoverBehavior pipeCover = routePath.getTargetPipe().getCoverContainer()
-                .getCoverAtSide(routePath.getTargetFacing());
-        CoverBehavior tileCover = getCoverOnNeighbour(routePath.getTargetPipe().getPipePos(),
-                routePath.getTargetFacing());
-
+        CoverBehavior pipeCover = routePath.getTargetPipe().getCoverContainer().getCoverAtSide(routePath.getTargetFacing());
+        CoverBehavior tileCover = getCoverOnNeighbour(routePath.getTargetPipe().getPipePos(), routePath.getTargetFacing());
         if (pipeCover != null) {
             testHandler.setStackInSlot(0, stack.copy());
             IItemHandlerModifiable itemHandler = pipeCover.getItemHandlerCap(testHandler);
-            if (itemHandler == null || (itemHandler != testHandler &&
-                    (allowed = itemHandler.extractItem(0, allowed, true).getCount()) <= 0)) {
+            if (itemHandler == null || (itemHandler != testHandler && (allowed = itemHandler.extractItem(0, allowed, true).getCount()) <= 0)) {
                 testHandler.setStackInSlot(0, ItemStack.EMPTY);
                 return stack;
             }
@@ -331,23 +280,19 @@ public class ItemNetHandler implements IItemHandlerModifiable {
         if (tileCover instanceof RobotArmCover robotArm && robotArm.getIo() == IO.IN) {
             return insertOverRobotArm(neighbourHandler, robotArm, stack, simulate, allowed, ignoreLimit);
         }
-
         return insert(neighbourHandler, stack, simulate, allowed, ignoreLimit);
     }
 
-    private ItemStack insert(IItemHandler handler, ItemStack stack, boolean simulate, int allowed,
-                             boolean ignoreLimit) {
+    private ItemStack insert(IItemHandler handler, ItemStack stack, boolean simulate, int allowed, boolean ignoreLimit) {
         if (stack.getCount() == allowed) {
             ItemStack re = ItemHandlerHelper.insertItemStacked(handler, stack, simulate);
-            if (!ignoreLimit)
-                transfer(simulate, stack.getCount() - re.getCount());
+            if (!ignoreLimit) transfer(simulate, stack.getCount() - re.getCount());
             return re;
         }
         ItemStack toInsert = stack.copy();
         toInsert.setCount(Math.min(allowed, stack.getCount()));
         int r = ItemHandlerHelper.insertItemStacked(handler, toInsert, simulate).getCount();
-        if (!ignoreLimit)
-            transfer(simulate, toInsert.getCount() - r);
+        if (!ignoreLimit) transfer(simulate, toInsert.getCount() - r);
         ItemStack remainder = stack.copy();
         remainder.setCount(r + (stack.getCount() - toInsert.getCount()));
         return remainder;
@@ -356,16 +301,14 @@ public class ItemNetHandler implements IItemHandlerModifiable {
     public CoverBehavior getCoverOnNeighbour(BlockPos pos, Direction handlerFacing) {
         BlockEntity tile = pipe.getLevel().getBlockEntity(pos.relative(handlerFacing));
         if (tile != null) {
-            ICoverable coverable = GTCapabilityHelper.getCoverable(pipe.getLevel(), pos.relative(handlerFacing),
-                    handlerFacing.getOpposite());
+            ICoverable coverable = GTCapabilityHelper.getCoverable(pipe.getLevel(), pos.relative(handlerFacing), handlerFacing.getOpposite());
             if (coverable == null) return null;
             return coverable.getCoverAtSide(handlerFacing.getOpposite());
         }
         return null;
     }
 
-    public ItemStack insertOverRobotArm(IItemHandler handler, RobotArmCover arm, ItemStack stack, boolean simulate,
-                                        int allowed, boolean ignoreLimit) {
+    public ItemStack insertOverRobotArm(IItemHandler handler, RobotArmCover arm, ItemStack stack, boolean simulate, int allowed, boolean ignoreLimit) {
         int rate = arm.getFilterHandler().getFilter().testItemCount(stack);
         int count;
         switch (arm.getTransferMode()) {
@@ -416,17 +359,13 @@ public class ItemNetHandler implements IItemHandlerModifiable {
 
     private int checkTransferable(float rate, int amount, boolean simulate) {
         int max = (int) ((rate * 64) + 0.5);
-        if (simulate)
-            return Math.max(0, Math.min(max - simulatedTransfers, amount));
-        else
-            return Math.max(0, Math.min(max - pipe.getTransferredItems(), amount));
+        if (simulate) return Math.max(0, Math.min(max - simulatedTransfers, amount));
+        else return Math.max(0, Math.min(max - pipe.getTransferredItems(), amount));
     }
 
     private void transfer(boolean simulate, int amount) {
-        if (simulate)
-            simulatedTransfers += amount;
-        else
-            pipe.addTransferredItems(amount);
+        if (simulate) simulatedTransfers += amount;
+        else pipe.addTransferredItems(amount);
     }
 
     @Override
@@ -509,5 +448,13 @@ public class ItemNetHandler implements IItemHandlerModifiable {
             this.transferred = transferred;
             this.routePath = routePath;
         }
+    }
+
+    public ItemPipeNet getNet() {
+        return this.net;
+    }
+
+    public Direction getFacing() {
+        return this.facing;
     }
 }

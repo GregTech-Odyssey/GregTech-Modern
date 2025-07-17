@@ -9,15 +9,10 @@ import com.lowdragmc.lowdraglib.networking.IPacket;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.ChunkPos;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@NoArgsConstructor
-@AllArgsConstructor
 public class SPacketSyncLevelHazards implements IPacket {
 
     private Map<ChunkPos, EnvironmentalHazardSavedData.HazardZone> map;
@@ -45,5 +40,11 @@ public class SPacketSyncLevelHazards implements IPacket {
         if (handler.isClient()) {
             EnvironmentalHazardClientHandler.INSTANCE.updateHazardMap(this.map);
         }
+    }
+
+    public SPacketSyncLevelHazards() {}
+
+    public SPacketSyncLevelHazards(final Map<ChunkPos, EnvironmentalHazardSavedData.HazardZone> map) {
+        this.map = map;
     }
 }

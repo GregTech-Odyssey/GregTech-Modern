@@ -10,24 +10,18 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DuctRoutePath implements IRoutePath<IHazardParticleContainer> {
 
-    @Getter
     private final DuctPipeBlockEntity targetPipe;
     @NotNull
-    @Getter
     private final Direction targetFacing;
-    @Getter
     private final int distance;
-    @Getter
     private final DuctPipeProperties properties;
 
-    public DuctRoutePath(DuctPipeBlockEntity targetPipe, @NotNull Direction facing, int distance,
-                         DuctPipeProperties properties) {
+    public DuctRoutePath(DuctPipeBlockEntity targetPipe, @NotNull Direction facing, int distance, DuctPipeProperties properties) {
         this.targetPipe = targetPipe;
         this.targetFacing = facing;
         this.distance = distance;
@@ -35,17 +29,35 @@ public class DuctRoutePath implements IRoutePath<IHazardParticleContainer> {
     }
 
     @Override
-    public @NotNull BlockPos getTargetPipePos() {
+    @NotNull
+    public BlockPos getTargetPipePos() {
         return targetPipe.getPipePos();
     }
 
     @Override
-    public @Nullable IHazardParticleContainer getHandler(Level world) {
-        return GTCapabilityHelper.getHazardContainer(world, getTargetPipePos().relative(targetFacing),
-                targetFacing.getOpposite());
+    @Nullable
+    public IHazardParticleContainer getHandler(Level world) {
+        return GTCapabilityHelper.getHazardContainer(world, getTargetPipePos().relative(targetFacing), targetFacing.getOpposite());
     }
 
     public FacingPos toFacingPos() {
         return new FacingPos(getTargetPipePos(), targetFacing);
+    }
+
+    public DuctPipeBlockEntity getTargetPipe() {
+        return this.targetPipe;
+    }
+
+    @NotNull
+    public Direction getTargetFacing() {
+        return this.targetFacing;
+    }
+
+    public int getDistance() {
+        return this.distance;
+    }
+
+    public DuctPipeProperties getProperties() {
+        return this.properties;
     }
 }

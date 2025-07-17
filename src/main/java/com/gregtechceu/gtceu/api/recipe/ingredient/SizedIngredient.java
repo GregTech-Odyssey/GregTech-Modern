@@ -17,7 +17,6 @@ import net.minecraftforge.common.crafting.StrictNBTIngredient;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.ints.IntList;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,14 +26,10 @@ import java.util.stream.Stream;
 public class SizedIngredient extends Ingredient {
 
     public static final ResourceLocation TYPE = GTCEu.id("sized");
-
-    @Getter
     protected int amount;
-    @Getter
     protected final Ingredient inner;
     protected ItemStack[] itemStacks = null;
     private boolean changed = true;
-    @Getter
     private final boolean isEmpty;
     private final Value value;
 
@@ -80,15 +75,13 @@ public class SizedIngredient extends Ingredient {
             if (sizedIngredient.inner instanceof IntProviderIngredient intProviderIngredient) {
                 return copy(intProviderIngredient);
             }
-
             return SizedIngredient.create(sizedIngredient.inner, sizedIngredient.amount);
         } else if (ingredient instanceof IntCircuitIngredient circuit) {
             return circuit;
         } else if (ingredient instanceof IntProviderIngredient intProviderIngredient) {
             var copied = IntProviderIngredient.of(intProviderIngredient.inner, intProviderIngredient.countProvider);
             if (intProviderIngredient.itemStacks != null) {
-                copied.itemStacks = Arrays.stream(intProviderIngredient.itemStacks).map(ItemStack::copy)
-                        .toArray(ItemStack[]::new);
+                copied.itemStacks = Arrays.stream(intProviderIngredient.itemStacks).map(ItemStack::copy).toArray(ItemStack[]::new);
             }
             if (intProviderIngredient.sampledCount != -1) {
                 copied.sampledCount = intProviderIngredient.sampledCount;
@@ -109,7 +102,8 @@ public class SizedIngredient extends Ingredient {
     }
 
     @Override
-    public @NotNull JsonElement toJson() {
+    @NotNull
+    public JsonElement toJson() {
         JsonObject json = new JsonObject();
         json.addProperty("type", TYPE.toString());
         json.addProperty("count", amount);
@@ -121,7 +115,6 @@ public class SizedIngredient extends Ingredient {
     public boolean test(@Nullable ItemStack stack) {
         if (stack == null) return false;
         if (this.isEmpty) return stack.isEmpty();
-
         if (this.value instanceof TagValueAccessor tagValue) {
             return stack.is(tagValue.getTag());
         } else if (this.value instanceof ItemValueAccessor itemValue) {
@@ -151,7 +144,8 @@ public class SizedIngredient extends Ingredient {
     }
 
     @Override
-    public @NotNull IntList getStackingIds() {
+    @NotNull
+    public IntList getStackingIds() {
         return inner.getStackingIds();
     }
 
@@ -174,13 +168,15 @@ public class SizedIngredient extends Ingredient {
     public static final IIngredientSerializer<SizedIngredient> SERIALIZER = new IIngredientSerializer<>() {
 
         @Override
-        public @NotNull SizedIngredient parse(FriendlyByteBuf buffer) {
+        @NotNull
+        public SizedIngredient parse(FriendlyByteBuf buffer) {
             int amount = buffer.readVarInt();
             return new SizedIngredient(Ingredient.fromNetwork(buffer), amount);
         }
 
         @Override
-        public @NotNull SizedIngredient parse(JsonObject json) {
+        @NotNull
+        public SizedIngredient parse(JsonObject json) {
             int amount = json.get("count").getAsInt();
             Ingredient inner = Ingredient.fromJson(json.get("ingredient"));
             return new SizedIngredient(inner, amount);
@@ -192,4 +188,16 @@ public class SizedIngredient extends Ingredient {
             ingredient.inner.toNetwork(buffer);
         }
     };
+
+    public int getAmount() {
+        return this.amount;
+    }
+
+    public Ingredient getInner() {
+        return this.inner;
+    }
+
+    public boolean isEmpty() {
+        return this.isEmpty;
+    }
 }

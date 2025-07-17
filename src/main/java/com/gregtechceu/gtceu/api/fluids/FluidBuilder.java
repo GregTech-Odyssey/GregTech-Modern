@@ -16,10 +16,6 @@ import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 
 import com.google.common.base.Preconditions;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import lombok.experimental.Tolerate;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,43 +27,28 @@ import java.util.function.Supplier;
 
 import static com.gregtechceu.gtceu.api.fluids.FluidConstants.*;
 
-@Accessors(fluent = true, chain = true)
 public class FluidBuilder {
 
     private static final int INFER_TEMPERATURE = -1;
-    private static final int INFER_COLOR = 0xFFFFFFFF;
+    private static final int INFER_COLOR = -1;
     private static final int INFER_DENSITY = -1;
     private static final int INFER_LUMINOSITY = -1;
     private static final int INFER_VISCOSITY = -1;
-
-    @Setter
     private String name = null;
-    @Setter
     private String translation = null;
-
     private final Collection<FluidAttribute> attributes = new ArrayList<>();
-
-    @Setter
     private FluidState state = FluidState.LIQUID;
     private int temperature = INFER_TEMPERATURE;
     private int color = INFER_COLOR;
     private boolean isColorEnabled = true;
-    @Setter
     private int density = INFER_DENSITY;
     private int luminosity = INFER_LUMINOSITY;
     private int viscosity = INFER_VISCOSITY;
-    @Setter
     private int burnTime = -1;
-
-    @Getter
-    @Setter(onMethod_ = @ApiStatus.Internal)
     private ResourceLocation still = null;
-    @Getter
-    @Setter(onMethod_ = @ApiStatus.Internal)
     private ResourceLocation flowing = null;
     private boolean hasCustomStill = false;
     private boolean hasCustomFlowing = false;
-
     private boolean hasFluidBlock = false;
     private boolean hasBucket = true;
 
@@ -77,7 +58,8 @@ public class FluidBuilder {
      * @param temperature the temperature of the fluid in Kelvin
      * @return this;
      */
-    public @NotNull FluidBuilder temperature(int temperature) {
+    @NotNull
+    public FluidBuilder temperature(int temperature) {
         Preconditions.checkArgument(temperature >= 0, "temperature must be >= 0");
         this.temperature = temperature;
         return this;
@@ -90,7 +72,8 @@ public class FluidBuilder {
      * @param color the color
      * @return this
      */
-    public @NotNull FluidBuilder color(int color) {
+    @NotNull
+    public FluidBuilder color(int color) {
         this.color = GTUtil.convertRGBtoARGB(color);
         if (this.color == INFER_COLOR) {
             return disableColor();
@@ -103,7 +86,8 @@ public class FluidBuilder {
      *
      * @return this
      */
-    public @NotNull FluidBuilder disableColor() {
+    @NotNull
+    public FluidBuilder disableColor() {
         this.isColorEnabled = false;
         return this;
     }
@@ -112,8 +96,8 @@ public class FluidBuilder {
      * @param density the density in g/cm^3
      * @return this
      */
-    @Tolerate
-    public @NotNull FluidBuilder density(double density) {
+    @NotNull
+    public FluidBuilder density(double density) {
         return density(convertToMCDensity(density));
     }
 
@@ -137,7 +121,8 @@ public class FluidBuilder {
      * @param luminosity of the fluid from [0, 16)
      * @return this
      */
-    public @NotNull FluidBuilder luminosity(int luminosity) {
+    @NotNull
+    public FluidBuilder luminosity(int luminosity) {
         Preconditions.checkArgument(luminosity >= 0 && luminosity < 16, "luminosity must be >= 0 and < 16");
         this.luminosity = luminosity;
         return this;
@@ -147,7 +132,8 @@ public class FluidBuilder {
      * @param mcViscosity the MC viscosity of the fluid
      * @return this
      */
-    public @NotNull FluidBuilder viscosity(int mcViscosity) {
+    @NotNull
+    public FluidBuilder viscosity(int mcViscosity) {
         Preconditions.checkArgument(mcViscosity >= 0, "viscosity must be >= 0");
         this.viscosity = mcViscosity;
         return this;
@@ -157,7 +143,8 @@ public class FluidBuilder {
      * @param viscosity the viscosity of the fluid in Poise
      * @return this
      */
-    public @NotNull FluidBuilder viscosity(double viscosity) {
+    @NotNull
+    public FluidBuilder viscosity(double viscosity) {
         return viscosity(convertViscosity(viscosity));
     }
 
@@ -175,7 +162,8 @@ public class FluidBuilder {
      * @param attribute the attribute to add
      * @return this
      */
-    public @NotNull FluidBuilder attribute(@NotNull FluidAttribute attribute) {
+    @NotNull
+    public FluidBuilder attribute(@NotNull FluidAttribute attribute) {
         this.attributes.add(attribute);
         return this;
     }
@@ -184,7 +172,8 @@ public class FluidBuilder {
      * @param attributes the attributes to add
      * @return this
      */
-    public @NotNull FluidBuilder attributes(@NotNull FluidAttribute @NotNull... attributes) {
+    @NotNull
+    public FluidBuilder attributes(@NotNull FluidAttribute @NotNull... attributes) {
         Collections.addAll(this.attributes, attributes);
         return this;
     }
@@ -194,7 +183,8 @@ public class FluidBuilder {
      * 
      * @return this
      */
-    public @NotNull FluidBuilder customStill() {
+    @NotNull
+    public FluidBuilder customStill() {
         return textures(true);
     }
 
@@ -202,7 +192,8 @@ public class FluidBuilder {
      * @param hasCustomStill if the fluid has a custom still texture
      * @return this
      */
-    public @NotNull FluidBuilder textures(boolean hasCustomStill) {
+    @NotNull
+    public FluidBuilder textures(boolean hasCustomStill) {
         this.hasCustomStill = hasCustomStill;
         this.isColorEnabled = false;
         return this;
@@ -213,7 +204,8 @@ public class FluidBuilder {
      * @param hasCustomFlowing if the fluid has a custom flowing texture
      * @return this
      */
-    public @NotNull FluidBuilder textures(boolean hasCustomStill, boolean hasCustomFlowing) {
+    @NotNull
+    public FluidBuilder textures(boolean hasCustomStill, boolean hasCustomFlowing) {
         this.hasCustomStill = hasCustomStill;
         this.hasCustomFlowing = hasCustomFlowing;
         this.isColorEnabled = false;
@@ -225,7 +217,8 @@ public class FluidBuilder {
      *
      * @return this
      */
-    public @NotNull FluidBuilder block() {
+    @NotNull
+    public FluidBuilder block() {
         this.hasFluidBlock = true;
         return this;
     }
@@ -235,20 +228,19 @@ public class FluidBuilder {
      *
      * @return this
      */
-    public @NotNull FluidBuilder disableBucket() {
+    @NotNull
+    public FluidBuilder disableBucket() {
         this.hasBucket = false;
         return this;
     }
 
-    public @NotNull Supplier<? extends Fluid> build(Material material, @NotNull FluidStorageKey key,
-                                                    GTRegistrate registrate) {
+    @NotNull
+    public Supplier<? extends Fluid> build(Material material, @NotNull FluidStorageKey key, GTRegistrate registrate) {
         determineName(material, key);
         determineTextures(material, key, material.getModid());
-
         if (name == null) {
             throw new IllegalStateException("Could not determine fluid name");
         }
-
         if (state == null) {
             if (key != null && key.getDefaultFluidState() != null) {
                 state = key.getDefaultFluidState();
@@ -256,35 +248,21 @@ public class FluidBuilder {
                 state = FluidState.LIQUID; // default fallback
             }
         }
-
         determineTemperature(material);
         determineColor(material);
         determineDensity();
         determineLuminosity(material);
         determineViscosity(material);
-        IGTFluidBuilder builder = registrate
-                .createFluid(name, this.translation != null ? this.translation : key.getTranslationKeyFor(material),
-                        material, this.still, this.flowing)
-                .temperature(this.temperature)
-                .density(this.density)
-                .luminance(this.luminosity)
-                .viscosity(this.viscosity)
-                .hasBlock(this.hasFluidBlock)
-                .hasBucket(this.hasBucket)
-                .burnTime(this.burnTime)
-                .state(this.state);
-
+        IGTFluidBuilder builder = registrate.createFluid(name, this.translation != null ? this.translation : key.getTranslationKeyFor(material), material, this.still, this.flowing).temperature(this.temperature).density(this.density).luminance(this.luminosity).viscosity(this.viscosity).hasBlock(this.hasFluidBlock).hasBucket(this.hasBucket).burnTime(this.burnTime).state(this.state);
         if (isColorEnabled) {
             builder.color(this.color);
         }
-
         builder.onFluidRegister(fluid -> {
             if (fluid instanceof FlowingFluid flowingFluid) {
                 if (flowingFluid.getSource() instanceof GTFluid gtSource) attributes.forEach(gtSource::addAttribute);
                 if (flowingFluid.getFlowing() instanceof GTFluid gtFlowing) attributes.forEach(gtFlowing::addAttribute);
             }
         });
-
         return builder.registerFluid();
     }
 
@@ -304,7 +282,6 @@ public class FluidBuilder {
         } else {
             still = new ResourceLocation(modid, "block/fluids/fluid." + name);
         }
-
         if (hasCustomFlowing) {
             flowing = new ResourceLocation(modid, "block/fluids/fluid." + name + "_flow");
         } else {
@@ -328,8 +305,7 @@ public class FluidBuilder {
                     }
                     case GAS -> ROOM_TEMPERATURE;
                     case PLASMA -> {
-                        if (material.hasFluid() && material.getFluidBuilder() != null &&
-                                material.getFluidBuilder() != material.getFluidBuilder(FluidStorageKeys.PLASMA)) {
+                        if (material.hasFluid() && material.getFluidBuilder() != null && material.getFluidBuilder() != material.getFluidBuilder(FluidStorageKeys.PLASMA)) {
                             yield BASE_PLASMA_TEMPERATURE + material.getFluidBuilder().temperature;
                         }
                         yield BASE_PLASMA_TEMPERATURE;
@@ -391,5 +367,71 @@ public class FluidBuilder {
             case GAS -> DEFAULT_GAS_VISCOSITY;
             case PLASMA -> DEFAULT_PLASMA_VISCOSITY;
         };
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public FluidBuilder name(final String name) {
+        this.name = name;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public FluidBuilder translation(final String translation) {
+        this.translation = translation;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public FluidBuilder state(final FluidState state) {
+        this.state = state;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public FluidBuilder density(final int density) {
+        this.density = density;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public FluidBuilder burnTime(final int burnTime) {
+        this.burnTime = burnTime;
+        return this;
+    }
+
+    public ResourceLocation still() {
+        return this.still;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    @ApiStatus.Internal
+    public FluidBuilder still(final ResourceLocation still) {
+        this.still = still;
+        return this;
+    }
+
+    public ResourceLocation flowing() {
+        return this.flowing;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    @ApiStatus.Internal
+    public FluidBuilder flowing(final ResourceLocation flowing) {
+        this.flowing = flowing;
+        return this;
     }
 }

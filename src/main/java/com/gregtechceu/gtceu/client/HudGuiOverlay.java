@@ -13,15 +13,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-@NoArgsConstructor
 public class HudGuiOverlay implements IGuiOverlay {
 
     @Override
-    public void render(ForgeGui forgeGui, GuiGraphics guiGraphics, float partialTick, int screenWidth,
-                       int screenHeight) {
+    public void render(ForgeGui forgeGui, GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.isWindowActive() && mc.level != null && !mc.options.renderDebug && !mc.options.hideGui) {
             renderHUDMetaArmor(mc.player.getItemBySlot(EquipmentSlot.HEAD), guiGraphics);
@@ -50,4 +47,6 @@ public class HudGuiOverlay implements IGuiOverlay {
             }
         }
     }
+
+    public HudGuiOverlay() {}
 }

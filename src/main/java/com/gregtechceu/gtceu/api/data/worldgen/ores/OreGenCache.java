@@ -11,7 +11,6 @@ import net.minecraft.world.level.chunk.ChunkGenerator;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import lombok.Getter;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.util.List;
@@ -32,40 +31,17 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class OreGenCache {
 
-    @Getter
     private final OreGenerator oreGenerator = new OreGenerator();
-
-    private final int oreGenerationCacheSize = ConfigHolder.INSTANCE != null ?
-            ConfigHolder.INSTANCE.worldgen.oreVeins.oreGenerationChunkCacheSize : 512;
-
-    private final int oreIndicatorCacheSize = ConfigHolder.INSTANCE != null ?
-            ConfigHolder.INSTANCE.worldgen.oreVeins.oreIndicatorChunkCacheSize : 512;
-
+    private final int oreGenerationCacheSize = ConfigHolder.INSTANCE != null ? ConfigHolder.INSTANCE.worldgen.oreVeins.oreGenerationChunkCacheSize : 512;
+    private final int oreIndicatorCacheSize = ConfigHolder.INSTANCE != null ? ConfigHolder.INSTANCE.worldgen.oreVeins.oreIndicatorChunkCacheSize : 512;
     private final int veinMetadataCacheSize = Math.max(oreGenerationCacheSize, oreIndicatorCacheSize);
+    private final Cache<ChunkPos, List<GeneratedVeinMetadata>> veinMetadataByOrigin = CacheBuilder.newBuilder().maximumSize(veinMetadataCacheSize).expireAfterAccess(30, TimeUnit.SECONDS).softValues().build();
+    private final Cache<ChunkPos, List<GeneratedVein>> generatedVeinsByOrigin = CacheBuilder.newBuilder().maximumSize(oreGenerationCacheSize).expireAfterAccess(30, TimeUnit.SECONDS).softValues().build();
+    private final Cache<ChunkPos, List<GeneratedIndicators>> indicatorsByOrigin = CacheBuilder.newBuilder().maximumSize(oreIndicatorCacheSize).expireAfterAccess(30, TimeUnit.SECONDS).softValues().build();
 
-    private final Cache<ChunkPos, List<GeneratedVeinMetadata>> veinMetadataByOrigin = CacheBuilder.newBuilder()
-            .maximumSize(veinMetadataCacheSize)
-            .expireAfterAccess(30, TimeUnit.SECONDS)
-            .softValues()
-            .build();
-
-    private final Cache<ChunkPos, List<GeneratedVein>> generatedVeinsByOrigin = CacheBuilder.newBuilder()
-            .maximumSize(oreGenerationCacheSize)
-            .expireAfterAccess(30, TimeUnit.SECONDS)
-            .softValues()
-            .build();
-
-    private final Cache<ChunkPos, List<GeneratedIndicators>> indicatorsByOrigin = CacheBuilder.newBuilder()
-            .maximumSize(oreIndicatorCacheSize)
-            .expireAfterAccess(30, TimeUnit.SECONDS)
-            .softValues()
-            .build();
-
-    private List<GeneratedVeinMetadata> getOrCreateVeinMetadata(WorldGenLevel level, ChunkGenerator generator,
-                                                                ChunkPos chunkPos) {
+    private List<GeneratedVeinMetadata> getOrCreateVeinMetadata(WorldGenLevel level, ChunkGenerator generator, ChunkPos chunkPos) {
         try {
-            return veinMetadataByOrigin
-                    .get(chunkPos, () -> oreGenerator.generateMetadata(level, generator, chunkPos));
+            return veinMetadataByOrigin.get(chunkPos, () -> oreGenerator.generateMetadata(level, generator, chunkPos));
         } catch (ExecutionException e) {
             GTCEu.LOGGER.error("Cannot create vein position in chunk {}", chunkPos, e);
             return List.of();
@@ -81,11 +57,7 @@ public class OreGenCache {
     public List<GeneratedVein> consumeChunkVeins(WorldGenLevel level, ChunkGenerator generator, ChunkAccess chunk) {
         return getSurroundingChunks(chunk.getPos(), OreVeinUtil.getMaxVeinSearchDistance()).flatMap(chunkPos -> {
             try {
-                return generatedVeinsByOrigin
-                        .get(chunkPos,
-                                () -> oreGenerator.generateOres(level,
-                                        getOrCreateVeinMetadata(level, generator, chunkPos), chunkPos))
-                        .stream();
+                return generatedVeinsByOrigin.get(chunkPos, () -> oreGenerator.generateOres(level, getOrCreateVeinMetadata(level, generator, chunkPos), chunkPos)).stream();
             } catch (ExecutionException e) {
                 GTCEu.LOGGER.error("Cannot create vein in chunk {}", chunkPos, e);
                 return Stream.empty();
@@ -99,15 +71,10 @@ public class OreGenCache {
      * <p>
      * The search radius depends on the largest registered indicator size, as well as the relevant config options.
      */
-    public List<GeneratedIndicators> consumeChunkIndicators(WorldGenLevel level, ChunkGenerator generator,
-                                                            ChunkAccess chunk) {
+    public List<GeneratedIndicators> consumeChunkIndicators(WorldGenLevel level, ChunkGenerator generator, ChunkAccess chunk) {
         return getSurroundingChunks(chunk.getPos(), OreVeinUtil.getMaxIndicatorSearchDistance()).flatMap(chunkPos -> {
             try {
-                return indicatorsByOrigin
-                        .get(chunkPos,
-                                () -> oreGenerator.generateIndicators(level,
-                                        getOrCreateVeinMetadata(level, generator, chunkPos), chunkPos))
-                        .stream();
+                return indicatorsByOrigin.get(chunkPos, () -> oreGenerator.generateIndicators(level, getOrCreateVeinMetadata(level, generator, chunkPos), chunkPos)).stream();
             } catch (ExecutionException e) {
                 GTCEu.LOGGER.error("Cannot create vein in chunk {}", chunkPos, e);
                 return Stream.empty();
@@ -118,24 +85,23 @@ public class OreGenCache {
     private Stream<ChunkPos> getSurroundingChunks(ChunkPos center, int searchDistance) {
         final int minX = center.x - searchDistance;
         final int minZ = center.z - searchDistance;
-
         final int maxX = center.x + searchDistance;
         final int maxZ = center.z + searchDistance;
-
         MutableInt x = new MutableInt(minX - 1);
         MutableInt z = new MutableInt(minZ);
-
         return Stream.generate(() -> {
             if (x.incrementAndGet() <= maxX) {
                 return new ChunkPos(x.intValue(), z.intValue());
             }
-
             if (z.incrementAndGet() <= maxZ) {
                 x.setValue(minX);
                 return new ChunkPos(x.intValue(), z.intValue());
             }
-
             return null;
         }).takeWhile(Objects::nonNull);
+    }
+
+    public OreGenerator getOreGenerator() {
+        return this.oreGenerator;
     }
 }

@@ -34,7 +34,6 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -43,14 +42,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class DataAccessHatchMachine extends TieredPartMachine
-                                    implements IMachineLife, IDataAccessHatch, IDataInfoProvider {
+public class DataAccessHatchMachine extends TieredPartMachine implements IMachineLife, IDataAccessHatch, IDataInfoProvider {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            DataAccessHatchMachine.class, MultiblockPartMachine.MANAGED_FIELD_HOLDER);
-
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(DataAccessHatchMachine.class, MultiblockPartMachine.MANAGED_FIELD_HOLDER);
     private final Set<GTRecipe> recipes;
-    @Getter
     private final boolean isCreative;
     @Persisted
     public final NotifiableItemStackHandler importItems;
@@ -76,8 +71,7 @@ public class DataAccessHatchMachine extends TieredPartMachine
             @Override
             public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
                 boolean isDataBank = isFormed() && getControllers().first() instanceof DataBankMachine;
-                if (ResearchManager.isStackDataItem(stack, isDataBank) &&
-                        ResearchManager.hasResearchTag(stack)) {
+                if (ResearchManager.isStackDataItem(stack, isDataBank) && ResearchManager.hasResearchTag(stack)) {
                     return super.insertItem(slot, stack, simulate);
                 }
                 return stack;
@@ -90,13 +84,10 @@ public class DataAccessHatchMachine extends TieredPartMachine
         int rowSize = (int) Math.sqrt(getInventorySize());
         int xOffset = 18 * rowSize / 2;
         WidgetGroup group = new WidgetGroup(0, 0, 18 * rowSize, 18 * rowSize);
-
         for (int y = 0; y < rowSize; y++) {
             for (int x = 0; x < rowSize; x++) {
                 int index = y * rowSize + x;
-                group.addWidget(new SlotWidget(importItems, index,
-                        rowSize * 9 + x * 18 - xOffset, y * 18, true, true)
-                        .setBackgroundTexture(GuiTextures.SLOT));
+                group.addWidget(new SlotWidget(importItems, index, rowSize * 9 + x * 18 - xOffset, y * 18, true, true).setBackgroundTexture(GuiTextures.SLOT));
             }
         }
         return group;
@@ -124,8 +115,7 @@ public class DataAccessHatchMachine extends TieredPartMachine
             ResearchManager.ResearchItem researchData = ResearchManager.readResearchId(stack);
             boolean isValid = ResearchManager.isStackDataItem(stack, isDataBank);
             if (researchData != null && isValid) {
-                Collection<GTRecipe> collection = researchData.recipeType()
-                        .getDataStickEntry(researchData.researchId());
+                Collection<GTRecipe> collection = researchData.recipeType().getDataStickEntry(researchData.researchId());
                 if (collection != null) {
                     recipes.addAll(collection);
                 }
@@ -142,18 +132,14 @@ public class DataAccessHatchMachine extends TieredPartMachine
     @NotNull
     @Override
     public List<Component> getDataInfo(PortableScannerBehavior.DisplayMode mode) {
-        if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL ||
-                mode == PortableScannerBehavior.DisplayMode.SHOW_RECIPE_INFO) {
-            if (recipes.isEmpty())
-                return Collections.emptyList();
+        if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_RECIPE_INFO) {
+            if (recipes.isEmpty()) return Collections.emptyList();
             List<Component> list = new ArrayList<>();
-
             list.add(Component.translatable("behavior.data_item.assemblyline.title"));
             list.add(Component.empty());
             Collection<ItemStack> itemsAdded = new ObjectOpenCustomHashSet<>(ItemStackHashStrategy.comparingAll());
             for (GTRecipe recipe : recipes) {
-                ItemStack stack = ItemRecipeCapability.CAP
-                        .of(recipe.getOutputContents(ItemRecipeCapability.CAP).get(0).content).getItems()[0];
+                ItemStack stack = ItemRecipeCapability.CAP.of(recipe.getOutputContents(ItemRecipeCapability.CAP).get(0).content).getItems()[0];
                 if (!itemsAdded.contains(stack)) {
                     itemsAdded.add(stack);
                     list.add(Component.translatable("behavior.data_item.assemblyline.data", stack.getDisplayName()));
@@ -183,5 +169,9 @@ public class DataAccessHatchMachine extends TieredPartMachine
     @Override
     public ManagedFieldHolder getFieldHolder() {
         return MANAGED_FIELD_HOLDER;
+    }
+
+    public boolean isCreative() {
+        return this.isCreative;
     }
 }

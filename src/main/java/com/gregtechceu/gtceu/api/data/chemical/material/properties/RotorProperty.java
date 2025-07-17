@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 public class RotorProperty implements IMaterialProperty {
@@ -10,30 +9,24 @@ public class RotorProperty implements IMaterialProperty {
      * <p>
      * Default:
      */
-    @Getter
     private int power;
-
     /**
      * Attack damage of rotors made from this Material
      * <p>
      * Default:
      */
-    @Getter
     private float damage;
-
     /**
      * Durability of rotors made from this Material.
      * <p>
      * Default:
      */
-    @Getter
     private int durability;
     /**
      * Efficiency of rotors made from this Material
      * <p>
      * Default:
      */
-    @Getter
     private int efficiency;
 
     public RotorProperty(int power, int efficiency, float damage, int durability) {
@@ -66,5 +59,41 @@ public class RotorProperty implements IMaterialProperty {
     @Override
     public void verifyProperty(@NotNull MaterialProperties properties) {
         properties.ensureSet(PropertyKey.INGOT, true);
+    }
+
+    /**
+     * Power of rotors made from this Material.
+     * <p>
+     * Default:
+     */
+    public int getPower() {
+        return this.power;
+    }
+
+    /**
+     * Attack damage of rotors made from this Material
+     * <p>
+     * Default:
+     */
+    public float getDamage() {
+        return this.damage;
+    }
+
+    /**
+     * Durability of rotors made from this Material.
+     * <p>
+     * Default:
+     */
+    public int getDurability() {
+        return this.durability;
+    }
+
+    /**
+     * Efficiency of rotors made from this Material
+     * <p>
+     * Default:
+     */
+    public int getEfficiency() {
+        return this.efficiency;
     }
 }

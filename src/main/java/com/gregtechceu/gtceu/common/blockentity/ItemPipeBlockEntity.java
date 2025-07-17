@@ -26,7 +26,6 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,16 +35,11 @@ import java.util.EnumMap;
 public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeProperties> {
 
     protected WeakReference<ItemPipeNet> currentItemPipeNet = new WeakReference<>(null);
-
-    @Getter
     private final EnumMap<Direction, ItemNetHandler> handlers = new EnumMap<>(Direction.class);
-    @Getter
     private final Object2IntMap<FacingPos> transferred = new Object2IntOpenHashMap<>();
-    @Getter
     private ItemNetHandler defaultHandler;
     // the ItemNetHandler can only be created on the server so we have a empty placeholder for the client
     private final IItemHandlerModifiable clientCapability = new ItemStackHandler(0);
-
     private int transferredItems = 0;
     private long timer = 0;
 
@@ -64,18 +58,16 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
     public static void onBlockEntityRegister(BlockEntityType<ItemPipeBlockEntity> itemPipeBlockEntityBlockEntityType) {}
 
     @Override
-    public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+    @NotNull
+    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         if (cap == ForgeCapabilities.ITEM_HANDLER) {
             Level world = getLevel();
-            if (world.isClientSide())
-                return LazyOptional.empty();
-
+            if (world.isClientSide()) return LazyOptional.empty();
             if (side != null && isConnected(side)) {
                 ensureHandlersInitialized();
                 checkNetwork();
                 if (this.currentItemPipeNet.get() == null) return LazyOptional.empty();
-                return ForgeCapabilities.ITEM_HANDLER.orEmpty(cap,
-                        LazyOptional.of(() -> getHandler(side, true)));
+                return ForgeCapabilities.ITEM_HANDLER.orEmpty(cap, LazyOptional.of(() -> getHandler(side, true)));
             }
         } else if (cap == GTCapability.CAPABILITY_COVERABLE) {
             return GTCapability.CAPABILITY_COVERABLE.orEmpty(cap, LazyOptional.of(this::getCoverContainer));
@@ -86,8 +78,7 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
     }
 
     private void ensureHandlersInitialized() {
-        if (getHandlers().isEmpty())
-            initHandlers();
+        if (getHandlers().isEmpty()) initHandlers();
     }
 
     public void initHandlers() {
@@ -124,12 +115,16 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
 
     @Nullable
     public ItemPipeNet getItemPipeNet() {
-        if (level instanceof ServerLevel serverLevel &&
-                getBlockState().getBlock() instanceof ItemPipeBlock itemPipeBlock) {
+        if (level instanceof ServerLevel serverLevel && getBlockState().getBlock() instanceof ItemPipeBlock itemPipeBlock) {
             ItemPipeNet currentItemPipeNet = this.currentItemPipeNet.get();
-            if (currentItemPipeNet != null && currentItemPipeNet.isValid() &&
-                    currentItemPipeNet.containsNode(getBlockPos()))
-                return currentItemPipeNet; // return current net if it is still valid
+            if (currentItemPipeNet != null && currentItemPipeNet.isValid() && currentItemPipeNet.containsNode(getBlockPos())) return currentItemPipeNet; // return
+                                                                                                                                                         // current
+                                                                                                                                                         // net
+                                                                                                                                                         // if
+                                                                                                                                                         // it
+                                                                                                                                                         // is
+                                                                                                                                                         // still
+                                                                                                                                                         // valid
             currentItemPipeNet = itemPipeBlock.getWorldPipeNet(serverLevel).getNetFromPos(getBlockPos());
             if (currentItemPipeNet != null) {
                 this.currentItemPipeNet = new WeakReference<>(currentItemPipeNet);
@@ -184,11 +179,21 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
         ensureHandlersInitialized();
         checkNetwork();
         if (this.currentItemPipeNet.get() == null) return null;
-
         ItemNetHandler handler = getHandlers().getOrDefault(side, getDefaultHandler());
         if (!useCoverCapability || side == null) return handler;
-
         CoverBehavior cover = getCoverContainer().getCoverAtSide(side);
         return cover != null ? cover.getItemHandlerCap(handler) : handler;
+    }
+
+    public EnumMap<Direction, ItemNetHandler> getHandlers() {
+        return this.handlers;
+    }
+
+    public Object2IntMap<FacingPos> getTransferred() {
+        return this.transferred;
+    }
+
+    public ItemNetHandler getDefaultHandler() {
+        return this.defaultHandler;
     }
 }

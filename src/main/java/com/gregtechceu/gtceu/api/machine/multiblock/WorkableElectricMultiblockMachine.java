@@ -26,8 +26,6 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -36,17 +34,13 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine implements IFancyUIMachine,
-                                               IDisplayUIMachine, ITieredMachine, IOverclockMachine {
+public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine implements IFancyUIMachine, IDisplayUIMachine, ITieredMachine, IOverclockMachine {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            WorkableElectricMultiblockMachine.class, WorkableMultiblockMachine.MANAGED_FIELD_HOLDER);
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(WorkableElectricMultiblockMachine.class, WorkableMultiblockMachine.MANAGED_FIELD_HOLDER);
     // runtime
     protected EnergyContainerList energyContainer;
-    @Getter
     protected int tier;
     @Persisted
-    @Getter
     protected boolean batchEnabled;
 
     public WorkableElectricMultiblockMachine(IMachineBlockEntity holder, Object... args) {
@@ -85,7 +79,6 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     //////////////////////////////////////
     // ********** GUI ***********//
     //////////////////////////////////////
-
     @Override
     public void addDisplayText(List<Component> textList) {
         int numParallels;
@@ -96,23 +89,10 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
             batchParallels = recipeLogic.getLastRecipe().batchParallels;
             exact = true;
         } else {
-            numParallels = getParallelHatch()
-                    .map(IParallelHatch::getCurrentParallel)
-                    .orElse(0);
+            numParallels = getParallelHatch().map(IParallelHatch::getCurrentParallel).orElse(0);
             batchParallels = 0;
         }
-
-        MultiblockDisplayText.builder(textList, isFormed())
-                .setWorkingStatus(recipeLogic.isWorkingEnabled(), recipeLogic.isActive())
-                .addEnergyUsageLine(energyContainer)
-                .addEnergyTierLine(tier)
-                .addMachineModeLine(getRecipeType(), getRecipeTypes().length > 1)
-                .addParallelsLine(numParallels, exact)
-                .addBatchModeLine(isBatchEnabled(), batchParallels)
-                .addWorkingStatusLine()
-                .addProgressLine(recipeLogic.getProgress(), recipeLogic.getMaxProgress(),
-                        recipeLogic.getProgressPercent())
-                .addOutputLines(recipeLogic.getLastRecipe());
+        MultiblockDisplayText.builder(textList, isFormed()).setWorkingStatus(recipeLogic.isWorkingEnabled(), recipeLogic.isActive()).addEnergyUsageLine(energyContainer).addEnergyTierLine(tier).addMachineModeLine(getRecipeType(), getRecipeTypes().length > 1).addParallelsLine(numParallels, exact).addBatchModeLine(isBatchEnabled(), batchParallels).addWorkingStatusLine().addProgressLine(recipeLogic.getProgress(), recipeLogic.getMaxProgress(), recipeLogic.getProgressPercent()).addOutputLines(recipeLogic.getLastRecipe());
         getDefinition().getAdditionalDisplay().accept(this, textList);
         IDisplayUIMachine.super.addDisplayText(textList);
     }
@@ -120,12 +100,7 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     @Override
     public Widget createUIWidget() {
         var group = new WidgetGroup(0, 0, 182 + 8, 117 + 8);
-        group.addWidget(new DraggableScrollableWidgetGroup(4, 4, 182, 117).setBackground(getScreenTexture())
-                .addWidget(new LabelWidget(4, 5, self().getBlockState().getBlock().getDescriptionId()))
-                .addWidget(new ComponentPanelWidget(4, 17, this::addDisplayText)
-                        .textSupplier(this.getLevel().isClientSide ? null : this::addDisplayText)
-                        .setMaxWidthLimit(200)
-                        .clickHandler(this::handleDisplayClick)));
+        group.addWidget(new DraggableScrollableWidgetGroup(4, 4, 182, 117).setBackground(getScreenTexture()).addWidget(new LabelWidget(4, 5, self().getBlockState().getBlock().getDescriptionId())).addWidget(new ComponentPanelWidget(4, 17, this::addDisplayText).textSupplier(this.getLevel().isClientSide ? null : this::addDisplayText).setMaxWidthLimit(200).clickHandler(this::handleDisplayClick)));
         group.setBackground(GuiTextures.BACKGROUND_INVERSE);
         return group;
     }
@@ -142,13 +117,7 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
 
     @Override
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
-        configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(
-                GuiTextures.BUTTON_BATCH.getSubTexture(0, 0, 1, 0.5),
-                GuiTextures.BUTTON_BATCH.getSubTexture(0, 0.5, 1, 0.5),
-                this::isBatchEnabled,
-                (cd, p) -> batchEnabled = p)
-                .setTooltipsSupplier(
-                        p -> List.of(Component.translatable("gtceu.machine.batch_" + (p ? "enabled" : "disabled")))));
+        configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(GuiTextures.BUTTON_BATCH.getSubTexture(0, 0, 1, 0.5), GuiTextures.BUTTON_BATCH.getSubTexture(0, 0.5, 1, 0.5), this::isBatchEnabled, (cd, p) -> batchEnabled = p).setTooltipsSupplier(p -> List.of(Component.translatable("gtceu.machine.batch_" + (p ? "enabled" : "disabled")))));
         IFancyUIMachine.super.attachConfigurators(configuratorPanel);
     }
 
@@ -194,7 +163,6 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
             voltage = energyContainer.getOutputVoltage();
             amperage = energyContainer.getOutputAmperage();
         }
-
         if (amperage == 1) {
             // amperage is 1 when the energy is not exactly on a tier
             // the voltage for recipe search is always on tier, so take the closest lower tier
@@ -210,7 +178,6 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     //////////////////////////////////////
     // ****** RECIPE LOGIC *******//
     //////////////////////////////////////
-
     public EnergyContainerList getEnergyContainer() {
         List<IEnergyContainer> containers = new ArrayList<>();
         var handlers = getCapabilitiesFlat(IO.IN, EURecipeCapability.CAP);
@@ -260,5 +227,13 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
      */
     public boolean isGenerator() {
         return getDefinition().isGenerator();
+    }
+
+    public int getTier() {
+        return this.tier;
+    }
+
+    public boolean isBatchEnabled() {
+        return this.batchEnabled;
     }
 }

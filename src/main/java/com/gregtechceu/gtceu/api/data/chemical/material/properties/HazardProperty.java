@@ -19,8 +19,6 @@ import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
 
-import lombok.Getter;
-
 import java.util.*;
 
 public class HazardProperty implements IMaterialProperty {
@@ -30,8 +28,7 @@ public class HazardProperty implements IMaterialProperty {
     public final boolean applyToDerivatives;
     public final float progressionMultiplier;
 
-    public HazardProperty(HazardTrigger hazardTrigger, MedicalCondition condition, float progressionMultiplier,
-                          boolean applyToDerivatives) {
+    public HazardProperty(HazardTrigger hazardTrigger, MedicalCondition condition, float progressionMultiplier, boolean applyToDerivatives) {
         this.hazardTrigger = hazardTrigger;
         this.condition = condition;
         this.applyToDerivatives = applyToDerivatives;
@@ -41,16 +38,12 @@ public class HazardProperty implements IMaterialProperty {
     @Override
     public void verifyProperty(MaterialProperties properties) {}
 
-    public record HazardTrigger(String name, ProtectionType protectionType, Set<TagPrefix> affectedTagPrefixes)
-            implements StringRepresentable {
+    public record HazardTrigger(String name, ProtectionType protectionType, Set<TagPrefix> affectedTagPrefixes) implements StringRepresentable {
 
         public static final Map<String, HazardTrigger> ALL_TRIGGERS = new HashMap<>();
-
-        public static final HazardTrigger INHALATION = new HazardTrigger("inhalation", ProtectionType.MASK,
-                TagPrefix.dust, TagPrefix.dustSmall, TagPrefix.dustTiny, TagPrefix.dustPure, TagPrefix.dustImpure);
+        public static final HazardTrigger INHALATION = new HazardTrigger("inhalation", ProtectionType.MASK, TagPrefix.dust, TagPrefix.dustSmall, TagPrefix.dustTiny, TagPrefix.dustPure, TagPrefix.dustImpure);
         public static final HazardTrigger ANY = new HazardTrigger("any", ProtectionType.FULL);
-        public static final HazardTrigger SKIN_CONTACT = new HazardTrigger("skin_contact", ProtectionType.HANDS,
-                TagPrefix.dust, TagPrefix.dustSmall, TagPrefix.dustTiny);
+        public static final HazardTrigger SKIN_CONTACT = new HazardTrigger("skin_contact", ProtectionType.HANDS, TagPrefix.dust, TagPrefix.dustSmall, TagPrefix.dustTiny);
         public static final HazardTrigger NONE = new HazardTrigger("none", ProtectionType.NONE);
 
         public HazardTrigger {
@@ -80,9 +73,7 @@ public class HazardProperty implements IMaterialProperty {
         FULL(Set.of(), ArmorItem.Type.BOOTS, ArmorItem.Type.HELMET, ArmorItem.Type.CHESTPLATE, ArmorItem.Type.LEGGINGS),
         NONE(Set.of());
 
-        @Getter
         private final Set<ArmorItem.Type> equipmentTypes;
-        @Getter
         private final Set<String> curioSlots;
 
         /**
@@ -104,9 +95,7 @@ public class HazardProperty implements IMaterialProperty {
             Set<ArmorItem.Type> correctArmorItems = new HashSet<>();
             for (ArmorItem.Type equipmentType : equipmentTypes) {
                 ItemStack armor = livingEntity.getItemBySlot(equipmentType.getSlot());
-                if (!armor.isEmpty() && ((armor.getItem() instanceof ArmorComponentItem armorItem &&
-                        armorItem.getArmorLogic().isPPE()) ||
-                        armor.getTags().anyMatch(tag -> tag.equals(CustomTags.PPE_ARMOR)))) {
+                if (!armor.isEmpty() && ((armor.getItem() instanceof ArmorComponentItem armorItem && armorItem.getArmorLogic().isPPE()) || armor.getTags().anyMatch(tag -> tag.equals(CustomTags.PPE_ARMOR)))) {
                     correctArmorItems.add(equipmentType);
                 }
             }
@@ -118,13 +107,19 @@ public class HazardProperty implements IMaterialProperty {
             if (player.level().getGameTime() % 100 == 0) {
                 for (ArmorItem.Type type : this.getEquipmentTypes()) {
                     ItemStack armor = player.getItemBySlot(type.getSlot());
-                    if (!armor.isEmpty() && ((armor.getItem() instanceof ArmorComponentItem armorItem &&
-                            armorItem.getArmorLogic().isPPE()) ||
-                            armor.getTags().anyMatch(tag -> tag.equals(CustomTags.PPE_ARMOR)))) {
+                    if (!armor.isEmpty() && ((armor.getItem() instanceof ArmorComponentItem armorItem && armorItem.getArmorLogic().isPPE()) || armor.getTags().anyMatch(tag -> tag.equals(CustomTags.PPE_ARMOR)))) {
                         armor.hurtAndBreak(amount, player, p -> p.broadcastBreakEvent(type.getSlot()));
                     }
                 }
             }
+        }
+
+        public Set<ArmorItem.Type> getEquipmentTypes() {
+            return this.equipmentTypes;
+        }
+
+        public Set<String> getCurioSlots() {
+            return this.curioSlots;
         }
     }
 

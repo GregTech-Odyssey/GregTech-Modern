@@ -17,25 +17,17 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
 import com.google.gson.JsonObject;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
-@Accessors(chain = true, fluent = true)
 public class CampfireRecipeBuilder {
 
     private Ingredient input;
-    @Setter
     protected String group;
-
     private ItemStack output = ItemStack.EMPTY;
-    @Setter
     private float experience;
-    @Setter
     private int cookingTime;
-    @Setter
     protected ResourceLocation id;
 
     public CampfireRecipeBuilder(@Nullable ResourceLocation id) {
@@ -86,11 +78,9 @@ public class CampfireRecipeBuilder {
         if (group != null) {
             json.addProperty("group", group);
         }
-
         if (!input.isEmpty()) {
             json.add("ingredient", input.toJson());
         }
-
         if (output.isEmpty()) {
             GTCEu.LOGGER.error("shapeless recipe {} output is empty", id);
             throw new IllegalArgumentException(id + ": output items is empty");
@@ -105,7 +95,6 @@ public class CampfireRecipeBuilder {
             }
             json.add("result", result);
         }
-
         json.addProperty("experience", experience);
         json.addProperty("cookingtime", cookingTime);
     }
@@ -141,5 +130,37 @@ public class CampfireRecipeBuilder {
                 return null;
             }
         });
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public CampfireRecipeBuilder group(final String group) {
+        this.group = group;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public CampfireRecipeBuilder experience(final float experience) {
+        this.experience = experience;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public CampfireRecipeBuilder cookingTime(final int cookingTime) {
+        this.cookingTime = cookingTime;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public CampfireRecipeBuilder id(final ResourceLocation id) {
+        this.id = id;
+        return this;
     }
 }

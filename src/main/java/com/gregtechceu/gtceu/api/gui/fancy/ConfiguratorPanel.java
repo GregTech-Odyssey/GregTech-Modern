@@ -23,8 +23,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,14 +32,10 @@ import java.util.List;
 
 public class ConfiguratorPanel extends WidgetGroup {
 
-    @Getter
     protected List<Tab> tabs = new ArrayList<>();
-    @Getter
     @Nullable
     protected Tab expanded;
-    @Setter
     protected int border = 4;
-    @Setter
     protected IGuiTexture texture = GuiTextures.BACKGROUND;
 
     public ConfiguratorPanel(int x, int y) {
@@ -63,10 +57,7 @@ public class ConfiguratorPanel extends WidgetGroup {
             var tab = new Tab(fancyConfigurator);
             tab.setBackground(texture);
             tabs.add(tab);
-            addWidgetAnima(tab, new Transform()
-                    .scale(0)
-                    .duration(getAnimationTime())
-                    .ease(Eases.EaseQuadOut));
+            addWidgetAnima(tab, new Transform().scale(0).duration(getAnimationTime()).ease(Eases.EaseQuadOut));
         }
         setSize(new Size(getSize().width, Math.max(0, tabs.size() * (getTabSize() + 2) - 2)));
     }
@@ -124,7 +115,6 @@ public class ConfiguratorPanel extends WidgetGroup {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-
     protected void drawWidgetsForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         // remove previous tooltip
         if (isMouseOverElement(mouseX, mouseY)) {
@@ -155,8 +145,7 @@ public class ConfiguratorPanel extends WidgetGroup {
     @Override
     @OnlyIn(Dist.CLIENT)
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (expanded != null && expanded.isVisible() && expanded.isActive() &&
-                expanded.mouseClicked(mouseX, mouseY, button)) {
+        if (expanded != null && expanded.isVisible() && expanded.isActive() && expanded.mouseClicked(mouseX, mouseY, button)) {
             return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
@@ -173,8 +162,10 @@ public class ConfiguratorPanel extends WidgetGroup {
         @Nullable
         protected final WidgetGroup view;
         // dragging
-        protected double lastDeltaX, lastDeltaY;
-        protected int dragOffsetX, dragOffsetY;
+        protected double lastDeltaX;
+        protected double lastDeltaY;
+        protected int dragOffsetX;
+        protected int dragOffsetY;
         protected boolean isDragging;
 
         public Tab(IFancyConfigurator configurator) {
@@ -185,17 +176,14 @@ public class ConfiguratorPanel extends WidgetGroup {
                 @Override
                 public boolean mouseWheelMove(double mouseX, double mouseY, double wheelDelta) {
                     if (!(configurator instanceof IFancyCustomMouseWheelAction hasActions)) return false;
-                    if (isMouseOverElement(mouseX, mouseY))
-                        return hasActions.mouseWheelMove(this::writeClientAction, mouseX, mouseY, wheelDelta);
+                    if (isMouseOverElement(mouseX, mouseY)) return hasActions.mouseWheelMove(this::writeClientAction, mouseX, mouseY, wheelDelta);
                     return false;
                 }
 
                 @Override
                 public void handleClientAction(int id, FriendlyByteBuf buffer) {
-                    if (configurator instanceof IFancyCustomClientActionHandler handler && id > 1)
-                        handler.handleClientAction(id, buffer);
-                    else
-                        super.handleClientAction(id, buffer);
+                    if (configurator instanceof IFancyCustomClientActionHandler handler && id > 1) handler.handleClientAction(id, buffer);
+                    else super.handleClientAction(id, buffer);
                 }
             };
             if (configurator instanceof IFancyConfiguratorButton) {
@@ -204,29 +192,21 @@ public class ConfiguratorPanel extends WidgetGroup {
             } else {
                 var widget = configurator.createConfigurator();
                 widget.setSelfPosition(new Position(border, getTabSize()));
-
                 this.view = new WidgetGroup(0, 0, 0, 0) {
 
                     @Override
                     protected void onChildSizeUpdate(Widget child) {
                         super.onChildSizeUpdate(child);
                         if (widget == child) {
-                            this.setSize(new Size(widget.getSize().width + border * 2,
-                                    widget.getSize().height + getTabSize() + border));
+                            this.setSize(new Size(widget.getSize().width + border * 2, widget.getSize().height + getTabSize() + border));
                         }
                     }
                 };
-
                 this.view.setVisible(false);
                 this.view.setActive(false);
-                this.view.setSize(new Size(widget.getSize().width + border * 2,
-                        widget.getSize().height + button.getSize().height + border));
+                this.view.setSize(new Size(widget.getSize().width + border * 2, widget.getSize().height + button.getSize().height + border));
                 this.view.addWidget(widget);
-                this.view.addWidget(new ImageWidget(border + 5, border, widget.getSize().width - getTabSize() - 5,
-                        getTabSize() - border,
-                        new TextTexture(configurator.getTitle().getString())
-                                .setType(TextTexture.TextType.LEFT_HIDE)
-                                .setWidth(widget.getSize().width - getTabSize())));
+                this.view.addWidget(new ImageWidget(border + 5, border, widget.getSize().width - getTabSize() - 5, getTabSize() - border, new TextTexture(configurator.getTitle().getString()).setType(TextTexture.TextType.LEFT_HIDE).setWidth(widget.getSize().width - getTabSize())));
                 this.addWidget(button);
                 this.addWidget(view);
             }
@@ -267,16 +247,10 @@ public class ConfiguratorPanel extends WidgetGroup {
             if (this.view != null && this.view == child) {
                 if (expanded == this) {
                     var size = view.getSize();
-                    animation(new Animation()
-                            .duration(getAnimationTime())
-                            .position(new Position(dragOffsetX + (-size.width + (tabs.size() > 1 ? -2 : getTabSize())),
-                                    dragOffsetY))
-                            .size(size)
-                            .ease(Eases.EaseQuadOut)
-                            .onFinish(() -> {
-                                view.setVisible(true);
-                                view.setActive(true);
-                            }));
+                    animation(new Animation().duration(getAnimationTime()).position(new Position(dragOffsetX + (-size.width + (tabs.size() > 1 ? -2 : getTabSize())), dragOffsetY)).size(size).ease(Eases.EaseQuadOut).onFinish(() -> {
+                        view.setVisible(true);
+                        view.setActive(true);
+                    }));
                 }
             }
         }
@@ -308,25 +282,17 @@ public class ConfiguratorPanel extends WidgetGroup {
             this.dragOffsetY = 0;
             if (isRemote()) {
                 if (getParentPosition().x - size.width + (tabs.size() > 1 ? -2 : getTabSize()) < 0) {
-                    this.dragOffsetX -= (view.getParentPosition().x - size.width +
-                            (tabs.size() > 1 ? -2 : getTabSize()));
+                    this.dragOffsetX -= (view.getParentPosition().x - size.width + (tabs.size() > 1 ? -2 : getTabSize()));
                 }
                 if (getParentPosition().y + size.height > gui.getScreenHeight()) {
                     this.dragOffsetY -= view.getParentPosition().y + size.height - gui.getScreenHeight();
                 }
             }
-            Position position = new Position(dragOffsetX - size.width + (tabs.size() > 1 ? -2 : getTabSize()),
-                    dragOffsetY);
-
-            animation(new Animation()
-                    .duration(getAnimationTime())
-                    .position(position)
-                    .size(size)
-                    .ease(Eases.EaseQuadOut)
-                    .onFinish(() -> {
-                        view.setVisible(true);
-                        view.setActive(true);
-                    }));
+            Position position = new Position(dragOffsetX - size.width + (tabs.size() > 1 ? -2 : getTabSize()), dragOffsetY);
+            animation(new Animation().duration(getAnimationTime()).position(position).size(size).ease(Eases.EaseQuadOut).onFinish(() -> {
+                view.setVisible(true);
+                view.setActive(true);
+            }));
         }
 
         protected void collapseTo(int x, int y) {
@@ -334,11 +300,7 @@ public class ConfiguratorPanel extends WidgetGroup {
                 view.setVisible(false);
                 view.setActive(false);
             }
-            animation(new Animation()
-                    .duration(getAnimationTime())
-                    .position(new Position(x, y))
-                    .size(new Size(getTabSize(), getTabSize()))
-                    .ease(Eases.EaseQuadOut));
+            animation(new Animation().duration(getAnimationTime()).position(new Position(x, y)).size(new Size(getTabSize(), getTabSize())).ease(Eases.EaseQuadOut));
         }
 
         @Override
@@ -348,9 +310,7 @@ public class ConfiguratorPanel extends WidgetGroup {
             var position = getPosition();
             var size = getSize();
             if (inAnimate()) {
-                graphics.enableScissor(position.x + border - 1, position.y + border - 1,
-                        position.x + border - 1 + size.width - (border - 1) * 2,
-                        position.y + border - 1 + size.height - (border - 1) * 2);
+                graphics.enableScissor(position.x + border - 1, position.y + border - 1, position.x + border - 1 + size.width - (border - 1) * 2, position.y + border - 1 + size.height - (border - 1) * 2);
                 drawWidgetsBackground(graphics, mouseX, mouseY, partialTicks);
                 graphics.disableScissor();
             } else {
@@ -363,8 +323,7 @@ public class ConfiguratorPanel extends WidgetGroup {
         @OnlyIn(Dist.CLIENT)
         public void drawInForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
             super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
-            if (isMouseOver(getPosition().x + getSize().width - 20, getPosition().y + 4, 16, 16, mouseX, mouseY) &&
-                    gui != null && gui.getModularUIGui() != null) {
+            if (isMouseOver(getPosition().x + getSize().width - 20, getPosition().y + 4, 16, 16, mouseX, mouseY) && gui != null && gui.getModularUIGui() != null) {
                 gui.getModularUIGui().setHoverTooltip(configurator.getTooltips(), ItemStack.EMPTY, null, null);
             }
         }
@@ -375,8 +334,7 @@ public class ConfiguratorPanel extends WidgetGroup {
             this.lastDeltaX = 0;
             this.lastDeltaY = 0;
             this.isDragging = false;
-            if (expanded == this && isMouseOver(getPosition().x, getPosition().y, getSize().width - getTabSize(),
-                    getTabSize(), mouseX, mouseY)) {
+            if (expanded == this && isMouseOver(getPosition().x, getPosition().y, getSize().width - getTabSize(), getTabSize(), mouseX, mouseY)) {
                 isDragging = true;
                 return true;
             }
@@ -445,5 +403,22 @@ public class ConfiguratorPanel extends WidgetGroup {
 
     private static int getAnimationTime() {
         return ConfigHolder.INSTANCE.client.animationTime;
+    }
+
+    public List<Tab> getTabs() {
+        return this.tabs;
+    }
+
+    @Nullable
+    public Tab getExpanded() {
+        return this.expanded;
+    }
+
+    public void setBorder(final int border) {
+        this.border = border;
+    }
+
+    public void setTexture(final IGuiTexture texture) {
+        this.texture = texture;
     }
 }

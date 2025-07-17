@@ -27,7 +27,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,34 +37,25 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class MultiblockTankMachine extends MultiblockControllerMachine implements IFancyUIMachine {
 
     @Persisted
-    @Getter
     @NotNull
     private final NotifiableFluidTank tank;
 
-    public MultiblockTankMachine(IMachineBlockEntity holder, int capacity, @Nullable PropertyFluidFilter filter,
-                                 Object... args) {
+    public MultiblockTankMachine(IMachineBlockEntity holder, int capacity, @Nullable PropertyFluidFilter filter, Object... args) {
         super(holder);
-
         this.tank = createTank(capacity, filter, args);
     }
 
     protected NotifiableFluidTank createTank(int capacity, @Nullable PropertyFluidFilter filter, Object... args) {
         var fluidTank = new NotifiableFluidTank(this, 1, capacity, IO.BOTH);
-
-        if (filter != null)
-            fluidTank.setFilter(filter);
-
+        if (filter != null) fluidTank.setFilter(filter);
         return fluidTank;
     }
 
     @Override
-    public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand,
-                                   BlockHitResult hit) {
+    public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         var superResult = super.onUse(state, world, pos, player, hand, hit);
-
         if (superResult != InteractionResult.PASS) return superResult;
         if (!isFormed()) return InteractionResult.FAIL;
-
         return InteractionResult.PASS; // Otherwise let MetaMachineBlock.use() open the UI
     }
 
@@ -81,18 +71,14 @@ public class MultiblockTankMachine extends MultiblockControllerMachine implement
     /////////////////////////////////////
     // *********** GUI ***********//
     /////////////////////////////////////
-
     @Override
     public Widget createUIWidget() {
         var group = new WidgetGroup(0, 0, 90, 63);
         group.setBackground(GuiTextures.BACKGROUND_INVERSE);
-
         group.addWidget(new ImageWidget(4, 4, 82, 55, GuiTextures.DISPLAY));
         group.addWidget(new LabelWidget(8, 8, "gtceu.gui.fluid_amount"));
         group.addWidget(new LabelWidget(8, 18, this::getFluidLabel).setTextColor(-1).setDropShadow(true));
-        group.addWidget(new TankWidget(tank.getStorages()[0], 68, 23, true, true)
-                .setBackground(GuiTextures.FLUID_SLOT));
-
+        group.addWidget(new TankWidget(tank.getStorages()[0], 68, 23, true, true).setBackground(GuiTextures.FLUID_SLOT));
         return group;
     }
 
@@ -103,12 +89,15 @@ public class MultiblockTankMachine extends MultiblockControllerMachine implement
     //////////////////////////////////////
     // ***** LDLib SyncData ******//
     //////////////////////////////////////
-
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MultiblockTankMachine.class,
-            MultiblockControllerMachine.MANAGED_FIELD_HOLDER);
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MultiblockTankMachine.class, MultiblockControllerMachine.MANAGED_FIELD_HOLDER);
 
     @Override
     public ManagedFieldHolder getFieldHolder() {
         return MANAGED_FIELD_HOLDER;
+    }
+
+    @NotNull
+    public NotifiableFluidTank getTank() {
+        return this.tank;
     }
 }

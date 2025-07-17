@@ -8,16 +8,12 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BooleanSupplier;
 
-@Accessors(chain = true)
 public class PredicatedImageWidget extends ImageWidget {
 
-    @Setter
     private BooleanSupplier predicate;
     private boolean isVisible = true;
 
@@ -65,5 +61,13 @@ public class PredicatedImageWidget extends ImageWidget {
         if (isVisible) {
             super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
         }
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public PredicatedImageWidget setPredicate(final BooleanSupplier predicate) {
+        this.predicate = predicate;
+        return this;
     }
 }

@@ -26,9 +26,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -37,8 +34,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class AdvancedItemDetectorCover extends ItemDetectorCover implements IUICover {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            AdvancedItemDetectorCover.class, DetectorCover.MANAGED_FIELD_HOLDER);
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(AdvancedItemDetectorCover.class, DetectorCover.MANAGED_FIELD_HOLDER);
 
     @Override
     public ManagedFieldHolder getFieldHolder() {
@@ -48,25 +44,20 @@ public class AdvancedItemDetectorCover extends ItemDetectorCover implements IUIC
     private static final int DEFAULT_MIN = 64;
     private static final int DEFAULT_MAX = 512;
     @Persisted
-    @Getter
-    private int minValue, maxValue;
-
+    private int minValue;
+    @Persisted
+    private int maxValue;
     @Persisted
     @DescSynced
-    @Getter
-    @Setter
     private boolean isLatched;
     @Persisted
     @DescSynced
-    @Getter
     protected final FilterHandler<ItemStack, ItemFilter> filterHandler;
 
     public AdvancedItemDetectorCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {
         super(definition, coverHolder, attachedSide);
-
         this.minValue = DEFAULT_MIN;
         this.maxValue = DEFAULT_MAX;
-
         filterHandler = FilterHandlers.item(this);
     }
 
@@ -81,27 +72,18 @@ public class AdvancedItemDetectorCover extends ItemDetectorCover implements IUIC
 
     @Override
     protected void update() {
-        if (this.coverHolder.getOffsetTimer() % 20 != 0)
-            return;
-
+        if (this.coverHolder.getOffsetTimer() % 20 != 0) return;
         ItemFilter filter = filterHandler.getFilter();
         IItemHandler handler = getItemHandler();
-        if (handler == null)
-            return;
-
+        if (handler == null) return;
         int storedItems = 0;
-
         for (int i = 0; i < handler.getSlots(); i++) {
-            if (filter.test(handler.getStackInSlot(i)))
-                storedItems += handler.getStackInSlot(i).getCount();
+            if (filter.test(handler.getStackInSlot(i))) storedItems += handler.getStackInSlot(i).getCount();
         }
-
         if (isLatched) {
-            setRedstoneSignalOutput(RedstoneUtil.computeLatchedRedstoneBetweenValues(storedItems, maxValue, minValue,
-                    isInverted(), redstoneSignalOutput));
+            setRedstoneSignalOutput(RedstoneUtil.computeLatchedRedstoneBetweenValues(storedItems, maxValue, minValue, isInverted(), redstoneSignalOutput));
         } else {
-            setRedstoneSignalOutput(
-                    RedstoneUtil.computeRedstoneBetweenValues(storedItems, maxValue, minValue, isInverted()));
+            setRedstoneSignalOutput(RedstoneUtil.computeRedstoneBetweenValues(storedItems, maxValue, minValue, isInverted()));
         }
     }
 
@@ -116,38 +98,40 @@ public class AdvancedItemDetectorCover extends ItemDetectorCover implements IUIC
     //////////////////////////////////////
     // *********** GUI ***********//
     //////////////////////////////////////
-
     @Override
     public Widget createUIWidget() {
         WidgetGroup group = new WidgetGroup(0, 0, 176, 170);
         group.addWidget(new LabelWidget(10, 5, "cover.advanced_item_detector.label"));
-
-        group.addWidget(new TextBoxWidget(10, 55, 65,
-                List.of(LocalizationUtils.format("cover.advanced_item_detector.min"))));
-
-        group.addWidget(new TextBoxWidget(10, 80, 65,
-                List.of(LocalizationUtils.format("cover.advanced_item_detector.max"))));
-
+        group.addWidget(new TextBoxWidget(10, 55, 65, List.of(LocalizationUtils.format("cover.advanced_item_detector.min"))));
+        group.addWidget(new TextBoxWidget(10, 80, 65, List.of(LocalizationUtils.format("cover.advanced_item_detector.max"))));
         group.addWidget(new IntInputWidget(80, 50, 176 - 80 - 10, 20, this::getMinValue, this::setMinValue));
         group.addWidget(new IntInputWidget(80, 75, 176 - 80 - 10, 20, this::getMaxValue, this::setMaxValue));
-
         // Invert Redstone Output Toggle:
-        group.addWidget(new ToggleButtonWidget(
-                9, 20, 20, 20,
-                GuiTextures.INVERT_REDSTONE_BUTTON, this::isInverted, this::setInverted)
-                .isMultiLang()
-                .setTooltipText("cover.advanced_item_detector.invert"));
-
-        group.addWidget(new ToggleButtonWidget(31, 21, 18, 18,
-                GuiTextures.BUTTON_LOCK, this::isLatched, this::setLatched)
-                .setShouldUseBaseBackground()
-                .isMultiLang()
-                .setTooltipText("cover.advanced_detector.latch"));
-
+        group.addWidget(new ToggleButtonWidget(9, 20, 20, 20, GuiTextures.INVERT_REDSTONE_BUTTON, this::isInverted, this::setInverted).isMultiLang().setTooltipText("cover.advanced_item_detector.invert"));
+        group.addWidget(new ToggleButtonWidget(31, 21, 18, 18, GuiTextures.BUTTON_LOCK, this::isLatched, this::setLatched).setShouldUseBaseBackground().isMultiLang().setTooltipText("cover.advanced_detector.latch"));
         // Item Filter UI:
         group.addWidget(filterHandler.createFilterSlotUI(148, 100));
         group.addWidget(filterHandler.createFilterConfigUI(10, 100, 156, 60));
-
         return group;
+    }
+
+    public int getMinValue() {
+        return this.minValue;
+    }
+
+    public int getMaxValue() {
+        return this.maxValue;
+    }
+
+    public boolean isLatched() {
+        return this.isLatched;
+    }
+
+    public void setLatched(final boolean isLatched) {
+        this.isLatched = isLatched;
+    }
+
+    public FilterHandler<ItemStack, ItemFilter> getFilterHandler() {
+        return this.filterHandler;
     }
 }

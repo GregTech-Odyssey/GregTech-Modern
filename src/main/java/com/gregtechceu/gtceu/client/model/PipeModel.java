@@ -28,7 +28,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import com.mojang.blaze3d.vertex.PoseStack;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,8 +54,7 @@ public class PipeModel {
     public static final ResourceLocation PIPE_BLOCKED_OVERLAY_DL = GTCEu.id("block/pipe/blocked/pipe_blocked_dl");
     public static final ResourceLocation PIPE_BLOCKED_OVERLAY_DR = GTCEu.id("block/pipe/blocked/pipe_blocked_dr");
     public static final ResourceLocation PIPE_BLOCKED_OVERLAY_LR = GTCEu.id("block/pipe/blocked/pipe_blocked_lr");
-    private static final EnumMap<Direction, EnumMap<Border, Direction>> FACE_BORDER_MAP = new EnumMap<>(
-            Direction.class);
+    private static final EnumMap<Direction, EnumMap<Border, Direction>> FACE_BORDER_MAP = new EnumMap<>(Direction.class);
     private static final Int2ObjectMap<TextureAtlasSprite> RESTRICTOR_MAP = new Int2ObjectOpenHashMap<>();
     private static boolean isRestrictorInitialized;
 
@@ -79,57 +77,52 @@ public class PipeModel {
     }
 
     static {
-        FACE_BORDER_MAP.put(Direction.DOWN,
-                borderMap(Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST));
-        FACE_BORDER_MAP.put(Direction.UP,
-                borderMap(Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST));
-        FACE_BORDER_MAP.put(Direction.NORTH,
-                borderMap(Direction.DOWN, Direction.UP, Direction.WEST, Direction.EAST));
-        FACE_BORDER_MAP.put(Direction.SOUTH,
-                borderMap(Direction.DOWN, Direction.UP, Direction.WEST, Direction.EAST));
-        FACE_BORDER_MAP.put(Direction.WEST,
-                borderMap(Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH));
-        FACE_BORDER_MAP.put(Direction.EAST,
-                borderMap(Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH));
+        FACE_BORDER_MAP.put(Direction.DOWN, borderMap(Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST));
+        FACE_BORDER_MAP.put(Direction.UP, borderMap(Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST));
+        FACE_BORDER_MAP.put(Direction.NORTH, borderMap(Direction.DOWN, Direction.UP, Direction.WEST, Direction.EAST));
+        FACE_BORDER_MAP.put(Direction.SOUTH, borderMap(Direction.DOWN, Direction.UP, Direction.WEST, Direction.EAST));
+        FACE_BORDER_MAP.put(Direction.WEST, borderMap(Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH));
+        FACE_BORDER_MAP.put(Direction.EAST, borderMap(Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH));
     }
 
-    public final static int ITEM_CONNECTIONS = 0b001100;
+    public static final int ITEM_CONNECTIONS = 12;
     public final float thickness;
     public final AABB coreCube;
     public final Map<Direction, AABB> sideCubes;
-
-    public MemoizedSupplier<ResourceLocation> sideTexture, endTexture;
+    public MemoizedSupplier<ResourceLocation> sideTexture;
+    public MemoizedSupplier<ResourceLocation> endTexture;
     @Nullable
-    public MemoizedSupplier<@Nullable ResourceLocation> secondarySideTexture, secondaryEndTexture;
-    @Setter
-    public ResourceLocation sideOverlayTexture, endOverlayTexture;
-
+    public MemoizedSupplier<@Nullable ResourceLocation> secondarySideTexture;
+    @Nullable
+    public MemoizedSupplier<@Nullable ResourceLocation> secondaryEndTexture;
+    public ResourceLocation sideOverlayTexture;
+    public ResourceLocation endOverlayTexture;
     @OnlyIn(Dist.CLIENT)
-    TextureAtlasSprite sideSprite, endSprite, secondarySideSprite, secondaryEndSprite, sideOverlaySprite,
-            endOverlaySprite;
+    TextureAtlasSprite sideSprite;
+    @OnlyIn(Dist.CLIENT)
+    TextureAtlasSprite endSprite;
+    @OnlyIn(Dist.CLIENT)
+    TextureAtlasSprite secondarySideSprite;
+    @OnlyIn(Dist.CLIENT)
+    TextureAtlasSprite secondaryEndSprite;
+    @OnlyIn(Dist.CLIENT)
+    TextureAtlasSprite sideOverlaySprite;
+    @OnlyIn(Dist.CLIENT)
+    TextureAtlasSprite endOverlaySprite;
 
-    public PipeModel(float thickness, Supplier<ResourceLocation> sideTexture, Supplier<ResourceLocation> endTexture,
-                     @Nullable Supplier<@Nullable ResourceLocation> secondarySideTexture,
-                     @Nullable Supplier<@Nullable ResourceLocation> secondaryEndTexture) {
+    public PipeModel(float thickness, Supplier<ResourceLocation> sideTexture, Supplier<ResourceLocation> endTexture, @Nullable Supplier<@Nullable ResourceLocation> secondarySideTexture, @Nullable Supplier<@Nullable ResourceLocation> secondaryEndTexture) {
         this.sideTexture = GTMemoizer.memoize(sideTexture);
         this.endTexture = GTMemoizer.memoize(endTexture);
-        this.secondarySideTexture = secondarySideTexture != null ? GTMemoizer.memoize(secondarySideTexture) :
-                null;
+        this.secondarySideTexture = secondarySideTexture != null ? GTMemoizer.memoize(secondarySideTexture) : null;
         this.secondaryEndTexture = secondaryEndTexture != null ? GTMemoizer.memoize(secondaryEndTexture) : null;
         this.thickness = thickness;
-        double min = (1d - thickness) / 2;
+        double min = (1.0 - thickness) / 2;
         double max = min + thickness;
         this.coreCube = new AABB(min, min, min, max, max, max);
         this.sideCubes = new EnumMap<>(Direction.class);
         for (Direction side : GTUtil.DIRECTIONS) {
             var normal = side.getNormal();
-            sideCubes.put(side, new AABB(
-                    normal.getX() == 0 ? min : normal.getX() > 0 ? max : 0,
-                    normal.getY() == 0 ? min : normal.getY() > 0 ? max : 0,
-                    normal.getZ() == 0 ? min : normal.getZ() > 0 ? max : 0,
-                    normal.getX() == 0 ? max : normal.getX() > 0 ? 1 : min,
-                    normal.getY() == 0 ? max : normal.getY() > 0 ? 1 : min,
-                    normal.getZ() == 0 ? max : normal.getZ() > 0 ? 1 : min));
+            sideCubes.put(side, new AABB(normal.getX() == 0 ? min : normal.getX() > 0 ? max : 0, normal.getY() == 0 ? min : normal.getY() > 0 ? max : 0, normal.getZ() == 0 ? min : normal.getZ() > 0 ? max : 0, normal.getX() == 0 ? max : normal.getX() > 0 ? 1 : min, normal.getY() == 0 ? max : normal.getY() > 0 ? 1 : min, normal.getZ() == 0 ? max : normal.getZ() > 0 ? 1 : min));
         }
     }
 
@@ -168,9 +161,9 @@ public class PipeModel {
         if (endOverlayTexture != null && endOverlaySprite == null) {
             endOverlaySprite = ModelFactory.getBlockSprite(endOverlayTexture);
         }
-
         if (side != null) {
-            if (thickness == 1) { // full block
+            if (thickness == 1) {
+                // full block
                 List<BakedQuad> quads = new ArrayList<>();
                 quads.add(FaceQuad.builder(side, sideSprite).cube(coreCube).cubeUV().tintIndex(0).bake());
                 if (secondarySideSprite != null) {
@@ -178,69 +171,57 @@ public class PipeModel {
                 }
                 return quads;
             }
-
-            if (PipeBlockEntity.isConnected(connections, side)) { // side connected
+            if (PipeBlockEntity.isConnected(connections, side)) {
+                // side connected
                 List<BakedQuad> quads = new ArrayList<>();
-                quads.add(FaceQuad.builder(side, endSprite).cube(sideCubes.get(side).inflate(-0.001)).cubeUV()
-                        .tintIndex(1).bake());
+                quads.add(FaceQuad.builder(side, endSprite).cube(sideCubes.get(side).inflate(-0.001)).cubeUV().tintIndex(1).bake());
                 if (secondaryEndSprite != null) {
-                    quads.add(FaceQuad.builder(side, secondaryEndSprite).cube(sideCubes.get(side)).cubeUV().tintIndex(1)
-                            .bake());
+                    quads.add(FaceQuad.builder(side, secondaryEndSprite).cube(sideCubes.get(side)).cubeUV().tintIndex(1).bake());
                 }
                 if (endOverlaySprite != null) {
-                    quads.add(FaceQuad.builder(side, endOverlaySprite).cube(sideCubes.get(side)).cubeUV().tintIndex(0)
-                            .bake());
+                    quads.add(FaceQuad.builder(side, endOverlaySprite).cube(sideCubes.get(side)).cubeUV().tintIndex(0).bake());
                 }
                 if (sideOverlaySprite != null) {
                     for (Direction face : GTUtil.DIRECTIONS) {
                         if (face.getAxis() != side.getAxis()) {
-                            quads.add(FaceQuad.builder(face, sideOverlaySprite).cube(sideCubes.get(side)).cubeUV()
-                                    .tintIndex(2).bake());
+                            quads.add(FaceQuad.builder(face, sideOverlaySprite).cube(sideCubes.get(side)).cubeUV().tintIndex(2).bake());
                         }
                     }
                 }
                 int borderMask = computeBorderMask(blockedConnections, connections, side);
                 if (borderMask != 0) {
-                    quads.add(FaceQuad.builder(side, RESTRICTOR_MAP.get(borderMask)).cube(sideCubes.get(side)).cubeUV()
-                            .bake());
+                    quads.add(FaceQuad.builder(side, RESTRICTOR_MAP.get(borderMask)).cube(sideCubes.get(side)).cubeUV().bake());
                 }
                 return quads;
             }
-
             return Collections.emptyList();
         }
-
         List<BakedQuad> quads = new LinkedList<>();
-        if (thickness < 1) { // non full block
+        if (thickness < 1) {
+            // non full block
             // render core cube
             for (Direction face : GTUtil.DIRECTIONS) {
                 if (!PipeBlockEntity.isConnected(connections, face)) {
                     quads.add(FaceQuad.builder(face, sideSprite).cube(coreCube).cubeUV().tintIndex(0).bake());
                     if (secondarySideSprite != null) {
-                        quads.add(FaceQuad.builder(face, secondarySideSprite).cube(coreCube).cubeUV().tintIndex(0)
-                                .bake());
+                        quads.add(FaceQuad.builder(face, secondarySideSprite).cube(coreCube).cubeUV().tintIndex(0).bake());
                     }
                 }
                 // render each connected side
                 for (Direction facing : GTUtil.DIRECTIONS) {
                     if (facing.getAxis() != face.getAxis()) {
                         if (PipeBlockEntity.isConnected(connections, facing)) {
-                            quads.add(FaceQuad.builder(face, sideSprite).cube(sideCubes.get(facing)).cubeUV()
-                                    .tintIndex(0).bake());
+                            quads.add(FaceQuad.builder(face, sideSprite).cube(sideCubes.get(facing)).cubeUV().tintIndex(0).bake());
                             if (secondarySideSprite != null) {
-                                quads.add(FaceQuad.builder(face, secondarySideSprite).cube(sideCubes.get(facing))
-                                        .cubeUV().tintIndex(0).bake());
+                                quads.add(FaceQuad.builder(face, secondarySideSprite).cube(sideCubes.get(facing)).cubeUV().tintIndex(0).bake());
                             }
                             if (sideOverlaySprite != null) {
-                                quads.add(FaceQuad.builder(face, sideOverlaySprite)
-                                        .cube(sideCubes.get(facing).inflate(0.001)).cubeUV().tintIndex(2).bake());
+                                quads.add(FaceQuad.builder(face, sideOverlaySprite).cube(sideCubes.get(facing).inflate(0.001)).cubeUV().tintIndex(2).bake());
                             }
                             int borderMask = computeBorderMask(blockedConnections, connections, face);
                             if (borderMask != 0) {
-                                quads.add(FaceQuad.builder(face, RESTRICTOR_MAP.get(borderMask))
-                                        .cube(coreCube).cubeUV().bake());
-                                quads.add(FaceQuad.builder(face, RESTRICTOR_MAP.get(borderMask))
-                                        .cube(sideCubes.get(facing)).cubeUV().bake());
+                                quads.add(FaceQuad.builder(face, RESTRICTOR_MAP.get(borderMask)).cube(coreCube).cubeUV().bake());
+                                quads.add(FaceQuad.builder(face, RESTRICTOR_MAP.get(borderMask)).cube(sideCubes.get(facing)).cubeUV().bake());
                             }
                         }
                     }
@@ -262,14 +243,9 @@ public class PipeModel {
     private final Map<Optional<Direction>, List<BakedQuad>> itemModelCache = new ConcurrentHashMap<>();
 
     @OnlyIn(Dist.CLIENT)
-    public void renderItem(ItemStack stack, ItemDisplayContext transformType, boolean leftHand, PoseStack matrixStack,
-                           MultiBufferSource buffer, int combinedLight, int combinedOverlay, BakedModel model) {
+    public void renderItem(ItemStack stack, ItemDisplayContext transformType, boolean leftHand, PoseStack matrixStack, MultiBufferSource buffer, int combinedLight, int combinedOverlay, BakedModel model) {
         IItemRendererProvider.disabled.set(true);
-        Minecraft.getInstance().getItemRenderer().render(stack, transformType, leftHand, matrixStack, buffer,
-                combinedLight, combinedOverlay,
-                (ItemBakedModel) (state, direction, random) -> itemModelCache.computeIfAbsent(
-                        Optional.ofNullable(direction),
-                        direction1 -> bakeQuads(direction1.orElse(null), ITEM_CONNECTIONS, 0)));
+        Minecraft.getInstance().getItemRenderer().render(stack, transformType, leftHand, matrixStack, buffer, combinedLight, combinedOverlay, (ItemBakedModel) (state, direction, random) -> itemModelCache.computeIfAbsent(Optional.ofNullable(direction), direction1 -> bakeQuads(direction1.orElse(null), ITEM_CONNECTIONS, 0)));
         IItemRendererProvider.disabled.set(false);
     }
 
@@ -299,8 +275,7 @@ public class PipeModel {
         endOverlaySprite = null;
     }
 
-    private static EnumMap<Border, Direction> borderMap(Direction topSide, Direction bottomSide, Direction leftSide,
-                                                        Direction rightSide) {
+    private static EnumMap<Border, Direction> borderMap(Direction topSide, Direction bottomSide, Direction leftSide, Direction rightSide) {
         EnumMap<Border, Direction> sideMap = new EnumMap<>(Border.class);
         sideMap.put(Border.TOP, topSide);
         sideMap.put(Border.BOTTOM, bottomSide);
@@ -326,8 +301,7 @@ public class PipeModel {
         if (blockedConnections != 0) {
             for (Border border : Border.VALUES) {
                 Direction borderSide = getSideAtBorder(side, border);
-                if (PipeBlockEntity.isFaceBlocked(blockedConnections, borderSide) &&
-                        PipeBlockEntity.isConnected(connections, borderSide)) {
+                if (PipeBlockEntity.isFaceBlocked(blockedConnections, borderSide) && PipeBlockEntity.isConnected(connections, borderSide)) {
                     // only render when the side is blocked *and* connected
                     borderMask |= border.mask;
                 }
@@ -344,11 +318,18 @@ public class PipeModel {
         RIGHT;
 
         public static final Border[] VALUES = values();
-
         public final int mask;
 
         Border() {
             mask = 1 << this.ordinal();
         }
+    }
+
+    public void setSideOverlayTexture(final ResourceLocation sideOverlayTexture) {
+        this.sideOverlayTexture = sideOverlayTexture;
+    }
+
+    public void setEndOverlayTexture(final ResourceLocation endOverlayTexture) {
+        this.endOverlayTexture = endOverlayTexture;
     }
 }

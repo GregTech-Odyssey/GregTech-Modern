@@ -23,31 +23,19 @@ import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 public class LargeMinerLogic extends MinerLogic {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(LargeMinerLogic.class,
-            MinerLogic.MANAGED_FIELD_HOLDER);
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(LargeMinerLogic.class, MinerLogic.MANAGED_FIELD_HOLDER);
     private static final int CHUNK_LENGTH = 16;
-    private static final LootItemFunction DROP_MULTIPLIER = ApplyBonusCount.addOreBonusCount(Enchantments.BLOCK_FORTUNE)
-            .build();
-
-    @Setter
-    @Getter
+    private static final LootItemFunction DROP_MULTIPLIER = ApplyBonusCount.addOreBonusCount(Enchantments.BLOCK_FORTUNE).build();
     private int voltageTier;
-    @Getter
-    @Setter
     private int overclockAmount = 0;
-
-    @Getter
     @Persisted
     private boolean isChunkMode;
-    @Getter
     @Persisted
     private boolean isSilkTouchMode;
 
@@ -76,8 +64,7 @@ public class LargeMinerLogic extends MinerLogic {
             Direction dir = super.getDir();
             ServerLevel world = (ServerLevel) this.getMachine().getLevel();
             ChunkAccess origin = world.getChunk(pos);
-            ChunkPos startPos = (world.getChunk(origin.getPos().x - currentRadius / CHUNK_LENGTH,
-                    origin.getPos().z - currentRadius / CHUNK_LENGTH)).getPos();
+            ChunkPos startPos = (world.getChunk(origin.getPos().x - currentRadius / CHUNK_LENGTH, origin.getPos().z - currentRadius / CHUNK_LENGTH)).getPos();
             x = startPos.getMinBlockX();
             if (dir == Direction.UP) {
                 y = pos.getY() + 1;
@@ -133,23 +120,44 @@ public class LargeMinerLogic extends MinerLogic {
     }
 
     @Override
-    protected void dropPostProcessing(NonNullList<ItemStack> blockDrops, List<ItemStack> outputs, BlockState blockState,
-                                      LootParams.Builder builder) {
+    protected void dropPostProcessing(NonNullList<ItemStack> blockDrops, List<ItemStack> outputs, BlockState blockState, LootParams.Builder builder) {
         if (getDropCountMultiplier() <= 0) {
             super.dropPostProcessing(blockDrops, outputs, blockState, builder);
             return;
         }
         ItemStack fortunePick = this.pickaxeTool.copy();
         fortunePick.enchant(Enchantments.BLOCK_FORTUNE, getDropCountMultiplier());
-        LootParams params = builder.withParameter(LootContextParams.TOOL, fortunePick)
-                .create(LootContextParamSets.BLOCK);
+        LootParams params = builder.withParameter(LootContextParams.TOOL, fortunePick).create(LootContextParamSets.BLOCK);
         LootContext context = new LootContext.Builder(params).create(null);
-
         for (ItemStack outputStack : outputs) {
             if (ChemicalHelper.getPrefix(outputStack.getItem()) == TagPrefix.crushed) {
                 outputStack = DROP_MULTIPLIER.apply(outputStack, context);
             }
             blockDrops.add(outputStack);
         }
+    }
+
+    public void setVoltageTier(final int voltageTier) {
+        this.voltageTier = voltageTier;
+    }
+
+    public int getVoltageTier() {
+        return this.voltageTier;
+    }
+
+    public int getOverclockAmount() {
+        return this.overclockAmount;
+    }
+
+    public void setOverclockAmount(final int overclockAmount) {
+        this.overclockAmount = overclockAmount;
+    }
+
+    public boolean isChunkMode() {
+        return this.isChunkMode;
+    }
+
+    public boolean isSilkTouchMode() {
+        return this.isSilkTouchMode;
     }
 }

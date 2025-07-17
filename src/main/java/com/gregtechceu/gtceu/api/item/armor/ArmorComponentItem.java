@@ -23,7 +23,6 @@ import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.NotNullByDefault;
 import org.jetbrains.annotations.Nullable;
@@ -36,9 +35,7 @@ import java.util.function.Consumer;
 @NotNullByDefault
 public class ArmorComponentItem extends ArmorItem implements IComponentItem {
 
-    @Getter
     private IArmorLogic armorLogic = new DummyArmorLogic();
-    @Getter
     protected List<IItemComponent> components;
 
     public ArmorComponentItem(ArmorMaterial material, ArmorItem.Type type, Properties properties) {
@@ -132,9 +129,8 @@ public class ArmorComponentItem extends ArmorItem implements IComponentItem {
         consumer.accept(new IClientItemExtensions() {
 
             @Override
-            public @NotNull HumanoidModel<?> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack itemStack,
-                                                                   EquipmentSlot equipmentSlot,
-                                                                   HumanoidModel<?> original) {
+            @NotNull
+            public HumanoidModel<?> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack itemStack, EquipmentSlot equipmentSlot, HumanoidModel<?> original) {
                 return armorLogic.getArmorModel(livingEntity, itemStack, equipmentSlot, original);
             }
         });
@@ -150,7 +146,6 @@ public class ArmorComponentItem extends ArmorItem implements IComponentItem {
     ///////////////////////////////////////////
     ///// ALL component item things ///////
     ///////////////////////////////////////////
-
     public void fillItemCategory(CreativeModeTab category, NonNullList<ItemStack> items) {
         boolean found = false;
         for (IItemComponent component : components) {
@@ -164,8 +159,7 @@ public class ArmorComponentItem extends ArmorItem implements IComponentItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
-                                TooltipFlag isAdvanced) {
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
         for (IItemComponent component : components) {
             if (component instanceof IAddInformation addInformation) {
                 addInformation.appendHoverText(stack, level, tooltipComponents, isAdvanced);
@@ -253,8 +247,7 @@ public class ArmorComponentItem extends ArmorItem implements IComponentItem {
     }
 
     @Override
-    public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity interactionTarget,
-                                                  InteractionHand usedHand) {
+    public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity interactionTarget, InteractionHand usedHand) {
         for (IItemComponent component : components) {
             if (component instanceof IInteractionItem interactionItem) {
                 var result = interactionItem.interactLivingEntity(stack, player, interactionTarget, usedHand);
@@ -324,5 +317,13 @@ public class ArmorComponentItem extends ArmorItem implements IComponentItem {
     @Override
     public boolean canWalkOnPowderedSnow(ItemStack stack, LivingEntity wearer) {
         return stack.is(GTItems.NANO_BOOTS.asItem()) || stack.is(GTItems.QUANTUM_BOOTS.asItem());
+    }
+
+    public IArmorLogic getArmorLogic() {
+        return this.armorLogic;
+    }
+
+    public List<IItemComponent> getComponents() {
+        return this.components;
     }
 }

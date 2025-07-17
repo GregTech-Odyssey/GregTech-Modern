@@ -7,18 +7,14 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Predicate;
 
-public class CustomFluidTank extends FluidTank
-                             implements IFluidHandlerModifiable, ITagSerializable<CompoundTag>, IContentChangeAware {
+public class CustomFluidTank extends FluidTank implements IFluidHandlerModifiable, ITagSerializable<CompoundTag>, IContentChangeAware {
 
-    @Getter
-    @Setter
-    protected @NotNull Runnable onContentsChanged = () -> {};
+    @NotNull
+    protected Runnable onContentsChanged = () -> {};
 
     public CustomFluidTank(int capacity) {
         super(capacity, e -> true);
@@ -57,5 +53,17 @@ public class CustomFluidTank extends FluidTank
     @Override
     public void deserializeNBT(CompoundTag nbt) {
         readFromNBT(nbt);
+    }
+
+    @NotNull
+    public Runnable getOnContentsChanged() {
+        return this.onContentsChanged;
+    }
+
+    public void setOnContentsChanged(@NotNull final Runnable onContentsChanged) {
+        if (onContentsChanged == null) {
+            throw new NullPointerException("onContentsChanged is marked non-null but is null");
+        }
+        this.onContentsChanged = onContentsChanged;
     }
 }

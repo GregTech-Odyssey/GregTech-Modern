@@ -13,20 +13,12 @@ import net.minecraft.util.GsonHelper;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-@NoArgsConstructor
 public class PositionYCondition extends RecipeCondition {
 
-    public static final Codec<PositionYCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition
-            .isReverse(instance)
-            .and(instance.group(
-                    Codec.INT.fieldOf("min").forGetter(val -> val.min),
-                    Codec.INT.fieldOf("max").forGetter(val -> val.max)))
-            .apply(instance, PositionYCondition::new));
-
-    public final static PositionYCondition INSTANCE = new PositionYCondition();
+    public static final Codec<PositionYCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(instance.group(Codec.INT.fieldOf("min").forGetter(val -> val.min), Codec.INT.fieldOf("max").forGetter(val -> val.max))).apply(instance, PositionYCondition::new));
+    public static final PositionYCondition INSTANCE = new PositionYCondition();
     private int min;
     private int max;
 
@@ -101,4 +93,6 @@ public class PositionYCondition extends RecipeCondition {
         buf.writeVarInt(min);
         buf.writeVarInt(max);
     }
+
+    public PositionYCondition() {}
 }

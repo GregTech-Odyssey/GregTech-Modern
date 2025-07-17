@@ -27,7 +27,6 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraftforge.energy.IEnergyStorage;
 
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -37,20 +36,13 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class BatteryBufferMachine extends TieredEnergyMachine
-                                  implements IControllable, IFancyUIMachine, IMachineLife {
+public class BatteryBufferMachine extends TieredEnergyMachine implements IControllable, IFancyUIMachine, IMachineLife {
 
     public static final long AMPS_PER_BATTERY = 2L;
-
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(BatteryBufferMachine.class,
-            TieredEnergyMachine.MANAGED_FIELD_HOLDER);
-
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(BatteryBufferMachine.class, TieredEnergyMachine.MANAGED_FIELD_HOLDER);
     @Persisted
-    @Getter
     private boolean isWorkingEnabled;
-    @Getter
     private final int inventorySize;
-    @Getter
     @Persisted
     protected final CustomItemStackHandler batteryInventory;
 
@@ -83,9 +75,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine
                 return 1;
             }
         };
-        handler.setFilter(item -> GTCapabilityHelper.getElectricItem(item) != null ||
-                (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE &&
-                        GTCapabilityHelper.getForgeEnergyItem(item) != null));
+        handler.setFilter(item -> GTCapabilityHelper.getElectricItem(item) != null || (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE && GTCapabilityHelper.getForgeEnergyItem(item) != null));
         return handler;
     }
 
@@ -100,7 +90,6 @@ public class BatteryBufferMachine extends TieredEnergyMachine
     //////////////////////////////////////
     // ********** GUI ***********//
     //////////////////////////////////////
-
     @Override
     public Widget createUIWidget() {
         int rowSize = (int) Math.sqrt(inventorySize);
@@ -114,23 +103,15 @@ public class BatteryBufferMachine extends TieredEnergyMachine
         int index = 0;
         for (int y = 0; y < colSize; y++) {
             for (int x = 0; x < rowSize; x++) {
-                template.addWidget(new SlotWidget(batteryInventory, index++, 4 + x * 18, 4 + y * 18, true, true)
-                        .setBackgroundTexture(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.BATTERY_OVERLAY)));
+                template.addWidget(new SlotWidget(batteryInventory, index++, 4 + x * 18, 4 + y * 18, true, true).setBackgroundTexture(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.BATTERY_OVERLAY)));
             }
         }
-
         var editableUI = createEnergyBar();
         var energyBar = editableUI.createDefault();
-
-        var group = new WidgetGroup(0, 0,
-                Math.max(energyBar.getSize().width + template.getSize().width + 4 + 8, 172),
-                Math.max(template.getSize().height + 8, energyBar.getSize().height + 8));
+        var group = new WidgetGroup(0, 0, Math.max(energyBar.getSize().width + template.getSize().width + 4 + 8, 172), Math.max(template.getSize().height + 8, energyBar.getSize().height + 8));
         var size = group.getSize();
         energyBar.setSelfPosition(new Position(3, (size.height - energyBar.getSize().height) / 2));
-        template.setSelfPosition(new Position(
-                (size.width - energyBar.getSize().width - 4 - template.getSize().width) / 2 + 2 +
-                        energyBar.getSize().width + 2,
-                (size.height - template.getSize().height) / 2));
+        template.setSelfPosition(new Position((size.width - energyBar.getSize().width - 4 - template.getSize().width) / 2 + 2 + energyBar.getSize().width + 2, (size.height - template.getSize().height) / 2));
         group.addWidget(energyBar);
         group.addWidget(template);
         editableUI.setupUI(group, this);
@@ -140,7 +121,6 @@ public class BatteryBufferMachine extends TieredEnergyMachine
     //////////////////////////////////////
     // ****** Battery Logic ******//
     //////////////////////////////////////
-
     @Override
     public void setWorkingEnabled(boolean workingEnabled) {
         isWorkingEnabled = workingEnabled;
@@ -207,8 +187,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine
     protected class EnergyBatteryTrait extends NotifiableEnergyContainer {
 
         protected EnergyBatteryTrait(int inventorySize) {
-            super(BatteryBufferMachine.this, GTValues.V[tier] * inventorySize * 32L, GTValues.V[tier],
-                    inventorySize * AMPS_PER_BATTERY, GTValues.V[tier], inventorySize);
+            super(BatteryBufferMachine.this, GTValues.V[tier] * inventorySize * 32L, GTValues.V[tier], inventorySize * AMPS_PER_BATTERY, GTValues.V[tier], inventorySize);
             this.setSideInputCondition(side -> side != getFrontFacing() && isWorkingEnabled());
             this.setSideOutputCondition(side -> side == getFrontFacing() && isWorkingEnabled());
         }
@@ -226,12 +205,10 @@ public class BatteryBufferMachine extends TieredEnergyMachine
         @Override
         public void serverTick() {
             var outFacing = getFrontFacing();
-            var energyContainer = GTCapabilityHelper.getEnergyContainer(getLevel(), getPos().relative(outFacing),
-                    outFacing.getOpposite());
+            var energyContainer = GTCapabilityHelper.getEnergyContainer(getLevel(), getPos().relative(outFacing), outFacing.getOpposite());
             if (energyContainer == null) {
                 return;
             }
-
             var voltage = getOutputVoltage();
             var batteries = getNonEmptyBatteries();
             if (!batteries.isEmpty()) {
@@ -239,16 +216,12 @@ public class BatteryBufferMachine extends TieredEnergyMachine
                 long internalAmps = Math.abs(Math.min(0, getInternalStorage() / voltage));
                 long genAmps = Math.max(0, batteries.size() - internalAmps);
                 long outAmps = 0L;
-
                 if (genAmps > 0) {
                     outAmps = energyContainer.acceptEnergyFromNetwork(outFacing.getOpposite(), voltage, genAmps);
-                    if (outAmps == 0 && internalAmps == 0)
-                        return;
+                    if (outAmps == 0 && internalAmps == 0) return;
                 }
-
                 long energy = (outAmps + internalAmps) * voltage;
                 long distributed = energy / batteries.size();
-
                 boolean changed = false;
                 for (IElectricItem electricItem : batteries) {
                     var charged = electricItem.discharge(distributed, getTier(), false, true, false);
@@ -258,12 +231,10 @@ public class BatteryBufferMachine extends TieredEnergyMachine
                     energy -= charged;
                     energyOutputPerSec += charged;
                 }
-
                 if (changed) {
                     BatteryBufferMachine.this.markDirty();
                     checkOutputSubscription();
                 }
-
                 // Subtract energy created out of thin air from the buffer
                 setEnergyStored(getInternalStorage() + internalAmps * voltage - energy);
             }
@@ -276,40 +247,29 @@ public class BatteryBufferMachine extends TieredEnergyMachine
                 amps = 0;
                 lastTimeStamp = latestTimeStamp;
             }
-            if (amperage <= 0 || voltage <= 0)
-                return 0;
-
+            if (amperage <= 0 || voltage <= 0) return 0;
             var batteries = getNonFullBatteries();
             var leftAmps = batteries.size() * AMPS_PER_BATTERY - amps;
             var usedAmps = Math.min(leftAmps, amperage);
-            if (leftAmps <= 0)
-                return 0;
-
+            if (leftAmps <= 0) return 0;
             if (side == null || inputsEnergy(side)) {
                 if (voltage > getInputVoltage()) {
                     doExplosion(GTUtil.getExplosionPower(voltage));
                     return usedAmps;
                 }
-
                 // Prioritizes as many packets as available from the buffer
                 long internalAmps = Math.min(leftAmps, Math.max(0, getInternalStorage() / voltage));
-
                 usedAmps = Math.min(usedAmps, leftAmps - internalAmps);
                 amps += usedAmps;
-
                 long energy = (usedAmps + internalAmps) * voltage;
                 long distributed = energy / batteries.size();
-
                 boolean changed = false;
                 for (Object item : batteries) {
                     long charged = 0;
                     if (item instanceof IElectricItem electricItem) {
-                        charged = electricItem.charge(
-                                Math.min(distributed, GTValues.V[electricItem.getTier()] * AMPS_PER_BATTERY), getTier(),
-                                true, false);
+                        charged = electricItem.charge(Math.min(distributed, GTValues.V[electricItem.getTier()] * AMPS_PER_BATTERY), getTier(), true, false);
                     } else if (item instanceof IEnergyStorage energyStorage) {
-                        charged = FeCompat.insertEu(energyStorage,
-                                Math.min(distributed, GTValues.V[getTier()] * AMPS_PER_BATTERY), false);
+                        charged = FeCompat.insertEu(energyStorage, Math.min(distributed, GTValues.V[getTier()] * AMPS_PER_BATTERY), false);
                     }
                     if (charged > 0) {
                         changed = true;
@@ -317,12 +277,10 @@ public class BatteryBufferMachine extends TieredEnergyMachine
                     energy -= charged;
                     energyInputPerSec += charged;
                 }
-
                 if (changed) {
                     BatteryBufferMachine.this.markDirty();
                     checkOutputSubscription();
                 }
-
                 // Remove energy used and then transfer overflow energy into the internal buffer
                 setEnergyStored(getInternalStorage() - internalAmps * voltage + energy);
                 return usedAmps;
@@ -359,5 +317,17 @@ public class BatteryBufferMachine extends TieredEnergyMachine
         private long getInternalStorage() {
             return energyStored;
         }
+    }
+
+    public boolean isWorkingEnabled() {
+        return this.isWorkingEnabled;
+    }
+
+    public int getInventorySize() {
+        return this.inventorySize;
+    }
+
+    public CustomItemStackHandler getBatteryInventory() {
+        return this.batteryInventory;
     }
 }

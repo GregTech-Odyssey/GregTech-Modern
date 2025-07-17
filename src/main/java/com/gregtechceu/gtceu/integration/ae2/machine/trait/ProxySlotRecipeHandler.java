@@ -16,7 +16,6 @@ import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
 import net.minecraft.world.item.crafting.Ingredient;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -25,7 +24,6 @@ import java.util.List;
 
 public final class ProxySlotRecipeHandler {
 
-    @Getter
     private final List<RecipeHandlerList> proxySlotHandlers;
 
     public ProxySlotRecipeHandler(MEPatternBufferProxyPartMachine machine, int slots) {
@@ -94,12 +92,10 @@ public final class ProxySlotRecipeHandler {
         public void setDistinct(boolean ignored, boolean notify) {}
     }
 
-    @Getter
     private static class ProxyItemRecipeHandler extends NotifiableRecipeHandlerTrait<Ingredient> {
 
         private IRecipeHandlerTrait<Ingredient> proxy = null;
         private ISubscription proxySub = null;
-
         private final IO handlerIO = IO.IN;
         private final RecipeCapability<Ingredient> capability = ItemRecipeCapability.CAP;
         private final boolean isDistinct = true;
@@ -132,7 +128,8 @@ public final class ProxySlotRecipeHandler {
         }
 
         @Override
-        public @NotNull List<Object> getContents() {
+        @NotNull
+        public List<Object> getContents() {
             if (proxy == null) return Collections.emptyList();
             return proxy.getContents();
         }
@@ -147,14 +144,32 @@ public final class ProxySlotRecipeHandler {
             if (proxy == null) return IFilteredHandler.LOW;
             return proxy.getPriority();
         }
+
+        public IRecipeHandlerTrait<Ingredient> getProxy() {
+            return this.proxy;
+        }
+
+        public ISubscription getProxySub() {
+            return this.proxySub;
+        }
+
+        public IO getHandlerIO() {
+            return this.handlerIO;
+        }
+
+        public RecipeCapability<Ingredient> getCapability() {
+            return this.capability;
+        }
+
+        public boolean isDistinct() {
+            return this.isDistinct;
+        }
     }
 
-    @Getter
     private static class ProxyFluidRecipeHandler extends NotifiableRecipeHandlerTrait<FluidIngredient> {
 
         private IRecipeHandlerTrait<FluidIngredient> proxy = null;
         private ISubscription proxySub = null;
-
         private final IO handlerIO = IO.IN;
         private final RecipeCapability<FluidIngredient> capability = FluidRecipeCapability.CAP;
         private final boolean isDistinct = true;
@@ -175,8 +190,7 @@ public final class ProxySlotRecipeHandler {
         }
 
         @Override
-        public List<FluidIngredient> handleRecipeInner(IO io, GTRecipe recipe, List<FluidIngredient> left,
-                                                       boolean simulate) {
+        public List<FluidIngredient> handleRecipeInner(IO io, GTRecipe recipe, List<FluidIngredient> left, boolean simulate) {
             if (proxy == null) return left;
             return proxy.handleRecipeInner(io, recipe, left, simulate);
         }
@@ -188,7 +202,8 @@ public final class ProxySlotRecipeHandler {
         }
 
         @Override
-        public @NotNull List<Object> getContents() {
+        @NotNull
+        public List<Object> getContents() {
             if (proxy == null) return Collections.emptyList();
             return proxy.getContents();
         }
@@ -203,5 +218,29 @@ public final class ProxySlotRecipeHandler {
             if (proxy == null) return IFilteredHandler.LOW;
             return proxy.getPriority();
         }
+
+        public IRecipeHandlerTrait<FluidIngredient> getProxy() {
+            return this.proxy;
+        }
+
+        public ISubscription getProxySub() {
+            return this.proxySub;
+        }
+
+        public IO getHandlerIO() {
+            return this.handlerIO;
+        }
+
+        public RecipeCapability<FluidIngredient> getCapability() {
+            return this.capability;
+        }
+
+        public boolean isDistinct() {
+            return this.isDistinct;
+        }
+    }
+
+    public List<RecipeHandlerList> getProxySlotHandlers() {
+        return this.proxySlotHandlers;
     }
 }

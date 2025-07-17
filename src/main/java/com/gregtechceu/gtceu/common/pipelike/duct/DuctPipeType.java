@@ -7,26 +7,19 @@ import com.gregtechceu.gtceu.client.model.PipeModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringRepresentable;
 
-import lombok.Getter;
-
 import java.util.Locale;
 
 public enum DuctPipeType implements IPipeType<DuctPipeProperties>, StringRepresentable {
 
-    SMALL("small", 0.375f, 2f),
-    NORMAL("normal", 0.5f, 4f),
-    LARGE("large", 0.75f, 8f),
-    HUGE("huge", 0.875f, 16f),
-    ;
+    SMALL("small", 0.375F, 2.0F),
+    NORMAL("normal", 0.5F, 4.0F),
+    LARGE("large", 0.75F, 8.0F),
+    HUGE("huge", 0.875F, 16.0F);
 
     public static final ResourceLocation TYPE_ID = GTCEu.id("duct");
     public static final DuctPipeType[] VALUES = values();
-
-    @Getter
     public final String name;
-    @Getter
     private final float thickness;
-    @Getter
     private final float rateMultiplier;
 
     DuctPipeType(String name, float thickness, float rateMultiplier) {
@@ -56,8 +49,18 @@ public enum DuctPipeType implements IPipeType<DuctPipeProperties>, StringReprese
     }
 
     public PipeModel createPipeModel() {
-        return new PipeModel(thickness, () -> GTCEu.id("block/pipe/pipe_duct_side"),
-                () -> GTCEu.id("block/pipe/pipe_duct_in"),
-                null, null);
+        return new PipeModel(thickness, () -> GTCEu.id("block/pipe/pipe_duct_side"), () -> GTCEu.id("block/pipe/pipe_duct_in"), null, null);
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public float getThickness() {
+        return this.thickness;
+    }
+
+    public float getRateMultiplier() {
+        return this.rateMultiplier;
     }
 }

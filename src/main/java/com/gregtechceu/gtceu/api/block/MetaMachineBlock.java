@@ -49,7 +49,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -62,9 +61,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
 
-    @Getter
     public final MachineDefinition definition;
-    @Getter
     public final RotationState rotationState;
 
     public MetaMachineBlock(Properties properties, MachineDefinition definition) {
@@ -72,8 +69,7 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
         this.definition = definition;
         this.rotationState = RotationState.get();
         if (rotationState != RotationState.NONE) {
-            BlockState defaultState = this.defaultBlockState().setValue(rotationState.property,
-                    rotationState.defaultDirection);
+            BlockState defaultState = this.defaultBlockState().setValue(rotationState.property, rotationState.defaultDirection);
             if (definition.isAllowExtendedFacing()) {
                 defaultState = defaultState.setValue(IMachineBlock.UPWARDS_FACING_PROPERTY, Direction.NORTH);
             }
@@ -105,8 +101,7 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
 
     @Override
     public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
-        return getRotationState() == RotationState.NONE ? definition.getShape(Direction.NORTH) :
-                definition.getShape(pState.getValue(getRotationState().property));
+        return getRotationState() == RotationState.NONE ? definition.getShape(Direction.NORTH) : definition.getShape(pState.getValue(getRotationState().property));
     }
 
     @Override
@@ -119,8 +114,7 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
     }
 
     @Override
-    public void setPlacedBy(Level pLevel, BlockPos pPos, BlockState pState, @Nullable LivingEntity player,
-                            ItemStack pStack) {
+    public void setPlacedBy(Level pLevel, BlockPos pPos, BlockState pState, @Nullable LivingEntity player, ItemStack pStack) {
         if (!pLevel.isClientSide) {
             var machine = getMachine(pLevel, pPos);
             if (machine != null) {
@@ -162,13 +156,12 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
                 state = state.setValue(rotationState.property, player.getDirection().getOpposite());
             }
             Vec3 pos = player.position();
-            if (Math.abs(pos.x - (double) ((float) blockPos.getX() + 0.5F)) < 2.0D &&
-                    Math.abs(pos.z - (double) ((float) blockPos.getZ() + 0.5F)) < 2.0D) {
+            if (Math.abs(pos.x - (double) ((float) blockPos.getX() + 0.5F)) < 2.0 && Math.abs(pos.z - (double) ((float) blockPos.getZ() + 0.5F)) < 2.0) {
                 double d0 = pos.y + (double) player.getEyeHeight();
-                if (d0 - (double) blockPos.getY() > 2.0D && rotationState.test(Direction.UP)) {
+                if (d0 - (double) blockPos.getY() > 2.0 && rotationState.test(Direction.UP)) {
                     state = state.setValue(rotationState.property, Direction.UP);
                 }
-                if ((double) blockPos.getY() - d0 > 0.0D && rotationState.test(Direction.DOWN)) {
+                if ((double) blockPos.getY() - d0 > 0.0 && rotationState.test(Direction.DOWN)) {
                     state = state.setValue(rotationState.property, Direction.DOWN);
                 }
             }
@@ -198,19 +191,16 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip,
-                                TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
         definition.getTooltipBuilder().accept(stack, tooltip);
-        String mainKey = String.format("%s.machine.%s.tooltip", definition.getId().getNamespace(),
-                definition.getId().getPath());
+        String mainKey = String.format("%s.machine.%s.tooltip", definition.getId().getNamespace(), definition.getId().getPath());
         if (GTUtil.isShiftDown()) {
             if (definition instanceof MultiblockMachineDefinition multiblockDefinition) {
                 var pattern = multiblockDefinition.getPatternFactory().get();
                 if (pattern != null) {
                     var aisleDims = pattern.getDimensions();
                     assert aisleDims.length == 3;
-                    tooltip.add(Component.translatable("gtceu.multiblock.dimension", aisleDims[0], aisleDims[1],
-                            aisleDims[2]));
+                    tooltip.add(Component.translatable("gtceu.multiblock.dimension", aisleDims[0], aisleDims[1], aisleDims[2]));
                 }
             }
         }
@@ -233,8 +223,7 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
         if (this.rotationState == RotationState.NONE) {
             return pState;
         }
-        return pState.setValue(this.rotationState.property,
-                pRotation.rotate(pState.getValue(this.rotationState.property)));
+        return pState.setValue(this.rotationState.property, pRotation.rotate(pState.getValue(this.rotationState.property)));
     }
 
     @Override
@@ -262,7 +251,8 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
     @Override
     public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {
         if (pState.hasBlockEntity()) {
-            if (!pState.is(pNewState.getBlock())) { // new block
+            if (!pState.is(pNewState.getBlock())) {
+                // new block
                 MetaMachine machine = getMachine(pLevel, pPos);
                 if (machine instanceof IMachineLife machineLife) {
                     machineLife.onMachineRemoved();
@@ -272,10 +262,10 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
                         machine.getCoverContainer().removeCover(direction, null);
                     }
                 }
-
                 pLevel.updateNeighbourForOutputSignal(pPos, this);
                 pLevel.removeBlockEntity(pPos);
-            } else if (rotationState != RotationState.NONE) { // old block different facing
+            } else if (rotationState != RotationState.NONE) {
+                // old block different facing
                 var oldFacing = pState.getValue(rotationState.property);
                 var newFacing = pNewState.getValue(rotationState.property);
                 if (newFacing != oldFacing) {
@@ -289,45 +279,36 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand,
-                                 BlockHitResult hit) {
+    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         var machine = getMachine(world, pos);
         ItemStack itemStack = player.getItemInHand(hand);
         boolean shouldOpenUi = true;
-
         if (machine != null && machine.getOwnerUUID() == null && player instanceof ServerPlayer sPlayer) {
             machine.setOwnerUUID(sPlayer.getUUID());
             machine.markDirty();
         }
-
         Set<GTToolType> types = ToolHelper.getToolTypes(itemStack);
-        if (machine != null && (!types.isEmpty() && ToolHelper.canUse(itemStack)) ||
-                (types.isEmpty() && player.isShiftKeyDown())) {
+        if (machine != null && (!types.isEmpty() && ToolHelper.canUse(itemStack)) || (types.isEmpty() && player.isShiftKeyDown())) {
             var result = machine.onToolClick(types, itemStack, new UseOnContext(player, hand, hit));
             if (result.getSecond() == InteractionResult.CONSUME && player instanceof ServerPlayer serverPlayer) {
                 ToolHelper.playToolSound(result.getFirst(), serverPlayer);
-
                 if (!serverPlayer.isCreative()) {
                     ToolHelper.damageItem(itemStack, serverPlayer, 1);
                 }
             }
             if (result.getSecond() != InteractionResult.PASS) return result.getSecond();
         }
-
         if (itemStack.is(GTItems.PORTABLE_SCANNER.get())) {
             return itemStack.getItem().use(world, player, hand).getResult();
         }
-
         if (itemStack.getItem() instanceof IGTTool gtToolItem) {
             shouldOpenUi = gtToolItem.definition$shouldOpenUIAfterUse(new UseOnContext(player, hand, hit));
         }
-
         if (machine instanceof IInteractedMachine interactedMachine) {
             var result = interactedMachine.onUse(state, world, pos, player, hand, hit);
             if (result != InteractionResult.PASS) return result;
         }
-        if (shouldOpenUi && machine instanceof IUIMachine uiMachine &&
-                MachineOwner.canOpenOwnerMachine(player, machine)) {
+        if (shouldOpenUi && machine instanceof IUIMachine uiMachine && MachineOwner.canOpenOwnerMachine(player, machine)) {
             return uiMachine.tryToOpenUI(player, hand, hit);
         }
         return shouldOpenUi ? InteractionResult.PASS : InteractionResult.CONSUME;
@@ -337,27 +318,29 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
         return getMachine(level, pos).canConnectRedstone(side);
     }
 
+    // This is fine to override, just not to be called.
     @Override
-    @SuppressWarnings("deprecation") // This is fine to override, just not to be called.
+    @SuppressWarnings("deprecation")
     public int getSignal(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
         return getMachine(level, pos).getOutputSignal(direction);
     }
 
+    // This is fine to override, just not to be called.
     @Override
-    @SuppressWarnings("deprecation") // This is fine to override, just not to be called.
+    @SuppressWarnings("deprecation")
     public int getDirectSignal(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
         return getMachine(level, pos).getOutputDirectSignal(direction);
     }
 
+    // This is fine to override, just not to be called.
     @Override
-    @SuppressWarnings("deprecation") // This is fine to override, just not to be called.
+    @SuppressWarnings("deprecation")
     public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
         return getMachine(level, pos).getAnalogOutputSignal();
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos,
-                                boolean isMoving) {
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
         var machine = getMachine(level, pos);
         if (machine != null) {
             machine.onNeighborChanged(block, fromPos, isMoving);
@@ -366,8 +349,7 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
     }
 
     @Override
-    public BlockState getBlockAppearance(BlockState state, BlockAndTintGetter level, BlockPos pos, Direction side,
-                                         BlockState sourceState, BlockPos sourcePos) {
+    public BlockState getBlockAppearance(BlockState state, BlockAndTintGetter level, BlockPos pos, Direction side, BlockState sourceState, BlockPos sourcePos) {
         var machine = getMachine(level, pos);
         if (machine != null) {
             return machine.getBlockAppearance(state, level, pos, side, sourceState, sourcePos);
@@ -376,8 +358,15 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
     }
 
     @Override
-    public boolean isValidSpawn(BlockState state, BlockGetter level, BlockPos pos, SpawnPlacements.Type type,
-                                EntityType<?> entityType) {
+    public boolean isValidSpawn(BlockState state, BlockGetter level, BlockPos pos, SpawnPlacements.Type type, EntityType<?> entityType) {
         return false;
+    }
+
+    public MachineDefinition getDefinition() {
+        return this.definition;
+    }
+
+    public RotationState getRotationState() {
+        return this.rotationState;
     }
 }

@@ -25,7 +25,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,17 +34,13 @@ import java.util.EnumMap;
 
 public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, OpticalPipeProperties> {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(OpticalPipeBlockEntity.class,
-            PipeBlockEntity.MANAGED_FIELD_HOLDER);
-
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(OpticalPipeBlockEntity.class, PipeBlockEntity.MANAGED_FIELD_HOLDER);
     private final EnumMap<Direction, OpticalNetHandler> handlers = new EnumMap<>(Direction.class);
     // the OpticalNetHandler can only be created on the server, so we have an empty placeholder for the client
     private final IDataAccessHatch clientDataHandler = new DefaultDataHandler();
     private final IOpticalComputationProvider clientComputationHandler = new DefaultComputationHandler();
     private WeakReference<OpticalPipeNet> currentPipeNet = new WeakReference<>(null);
     private OpticalNetHandler defaultHandler;
-
-    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
@@ -73,34 +68,23 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
     public <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable Direction facing) {
         if (capability == GTCapability.CAPABILITY_DATA_ACCESS) {
             if (level.isClientSide) {
-                return GTCapability.CAPABILITY_DATA_ACCESS.orEmpty(capability,
-                        LazyOptional.of(() -> clientDataHandler));
+                return GTCapability.CAPABILITY_DATA_ACCESS.orEmpty(capability, LazyOptional.of(() -> clientDataHandler));
             }
-
             if (handlers.isEmpty()) initHandlers();
-
             checkNetwork();
-            return GTCapability.CAPABILITY_DATA_ACCESS.orEmpty(capability,
-                    LazyOptional.of(() -> handlers.getOrDefault(facing, defaultHandler)));
+            return GTCapability.CAPABILITY_DATA_ACCESS.orEmpty(capability, LazyOptional.of(() -> handlers.getOrDefault(facing, defaultHandler)));
         }
-
         if (capability == GTCapability.CAPABILITY_COMPUTATION_PROVIDER) {
             if (level.isClientSide) {
-                return GTCapability.CAPABILITY_COMPUTATION_PROVIDER.orEmpty(capability,
-                        LazyOptional.of(() -> clientComputationHandler));
+                return GTCapability.CAPABILITY_COMPUTATION_PROVIDER.orEmpty(capability, LazyOptional.of(() -> clientComputationHandler));
             }
-
             if (handlers.isEmpty()) initHandlers();
-
             checkNetwork();
-            return GTCapability.CAPABILITY_COMPUTATION_PROVIDER.orEmpty(capability,
-                    LazyOptional.of(() -> handlers.getOrDefault(facing, defaultHandler)));
+            return GTCapability.CAPABILITY_COMPUTATION_PROVIDER.orEmpty(capability, LazyOptional.of(() -> handlers.getOrDefault(facing, defaultHandler)));
         }
-
         if (capability == GTCapability.CAPABILITY_COVERABLE) {
             return GTCapability.CAPABILITY_COVERABLE.orEmpty(capability, LazyOptional.of(this::getCoverContainer));
         }
-
         return super.getCapability(capability, facing);
     }
 
@@ -117,13 +101,20 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
     }
 
     public OpticalPipeNet getOpticalPipeNet() {
-        if (level == null || level.isClientSide)
-            return null;
+        if (level == null || level.isClientSide) return null;
         OpticalPipeNet currentPipeNet = this.currentPipeNet.get();
-        if (currentPipeNet != null && currentPipeNet.isValid() && currentPipeNet.containsNode(getPipePos()))
-            return currentPipeNet; // if current net is valid and does contain position, return it
-        LevelOpticalPipeNet worldNet = (LevelOpticalPipeNet) getPipeBlock()
-                .getWorldPipeNet((ServerLevel) getPipeLevel());
+        if (currentPipeNet != null && currentPipeNet.isValid() && currentPipeNet.containsNode(getPipePos())) return currentPipeNet; // if
+                                                                                                                                    // current
+                                                                                                                                    // net
+                                                                                                                                    // is
+                                                                                                                                    // valid
+                                                                                                                                    // and
+                                                                                                                                    // does
+                                                                                                                                    // contain
+                                                                                                                                    // position,
+                                                                                                                                    // return
+                                                                                                                                    // it
+        LevelOpticalPipeNet worldNet = (LevelOpticalPipeNet) getPipeBlock().getWorldPipeNet((ServerLevel) getPipeLevel());
         currentPipeNet = worldNet.getNetFromPos(getPipePos());
         if (currentPipeNet != null) {
             this.currentPipeNet = new WeakReference<>(currentPipeNet);
@@ -141,11 +132,9 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
         if (!getLevel().isClientSide && connected && !fromNeighbor) {
             // never allow more than two connections total
             if (getNumConnections() >= 2) return;
-
             // also check the other pipe
             BlockEntity tile = getLevel().getBlockEntity(getPipePos().relative(side));
-            if (tile instanceof IPipeNode<?, ?> pipeTile &&
-                    pipeTile.getPipeType().getClass() == this.getPipeType().getClass()) {
+            if (tile instanceof IPipeNode<?, ?> pipeTile && pipeTile.getPipeType().getClass() == this.getPipeType().getClass()) {
                 if (pipeTile.getNumConnections() >= 2) return;
             }
         }
@@ -166,7 +155,6 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
             stateChanged = true;
             TaskHandler.enqueueServerTask((ServerLevel) getLevel(), () -> setActive(false, -1), duration);
         }
-
         if (stateChanged) {
             notifyBlockUpdate();
             setChanged();
@@ -218,5 +206,9 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
         public boolean canBridge(@NotNull Collection<IOpticalComputationProvider> seen) {
             return false;
         }
+    }
+
+    public boolean isActive() {
+        return this.isActive;
     }
 }

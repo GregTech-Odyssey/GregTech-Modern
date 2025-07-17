@@ -30,34 +30,27 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class CrateMachine extends MetaMachine implements IUIMachine, IMachineLife,
-                          IDropSaveMachine, IInteractedMachine {
+public class CrateMachine extends MetaMachine implements IUIMachine, IMachineLife, IDropSaveMachine, IInteractedMachine {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(CrateMachine.class,
-            MetaMachine.MANAGED_FIELD_HOLDER);
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(CrateMachine.class, MetaMachine.MANAGED_FIELD_HOLDER);
 
     @Override
     public ManagedFieldHolder getFieldHolder() {
         return MANAGED_FIELD_HOLDER;
     }
 
-    @Getter
     private final Material material;
-    @Getter
     private final int inventorySize;
-    @Getter
     @RequireRerender
     @Persisted
     @DescSynced
     private boolean isTaped;
-
     @Persisted
     public final NotifiableItemStackHandler inventory;
 
@@ -72,18 +65,12 @@ public class CrateMachine extends MetaMachine implements IUIMachine, IMachineLif
     public ModularUI createUI(Player entityPlayer) {
         int xOffset = inventorySize >= 90 ? 162 : 0;
         int yOverflow = xOffset > 0 ? 18 : 9;
-        int yOffset = inventorySize > 3 * yOverflow ?
-                (inventorySize - 3 * yOverflow - (inventorySize - 3 * yOverflow) % yOverflow) / yOverflow * 18 : 0;
-        var modularUI = new ModularUI(176 + xOffset, 166 + yOffset, this, entityPlayer)
-                .background(GuiTextures.BACKGROUND)
-                .widget(new LabelWidget(5, 5, getBlockState().getBlock().getDescriptionId()))
-                .widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT, 7 + xOffset / 2,
-                        82 + yOffset, true));
+        int yOffset = inventorySize > 3 * yOverflow ? (inventorySize - 3 * yOverflow - (inventorySize - 3 * yOverflow) % yOverflow) / yOverflow * 18 : 0;
+        var modularUI = new ModularUI(176 + xOffset, 166 + yOffset, this, entityPlayer).background(GuiTextures.BACKGROUND).widget(new LabelWidget(5, 5, getBlockState().getBlock().getDescriptionId())).widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT, 7 + xOffset / 2, 82 + yOffset, true));
         int x = 0;
         int y = 0;
         for (int slot = 0; slot < inventorySize; slot++) {
-            modularUI.widget(new SlotWidget(inventory, slot, x * 18 + 7, y * 18 + 17)
-                    .setBackgroundTexture(GuiTextures.SLOT));
+            modularUI.widget(new SlotWidget(inventory, slot, x * 18 + 7, y * 18 + 17).setBackgroundTexture(GuiTextures.SLOT));
             x++;
             if (x == yOverflow) {
                 x = 0;
@@ -94,8 +81,7 @@ public class CrateMachine extends MetaMachine implements IUIMachine, IMachineLif
     }
 
     @Override
-    public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand,
-                                   BlockHitResult hit) {
+    public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         ItemStack stack = player.getItemInHand(hand);
         if (player.isCrouching() && !isTaped) {
             if (stack.is(GTItems.DUCT_TAPE.asItem()) || stack.is(GTItems.BASIC_TAPE.asItem())) {
@@ -118,7 +104,6 @@ public class CrateMachine extends MetaMachine implements IUIMachine, IMachineLif
             if (isTaped) {
                 this.inventory.storage.deserializeNBT(tag.getCompound("inventory"));
             }
-
             tag.remove("taped");
             this.isTaped = false;
         }
@@ -142,5 +127,17 @@ public class CrateMachine extends MetaMachine implements IUIMachine, IMachineLif
     @Override
     public void onMachineRemoved() {
         if (!isTaped) clearInventory(inventory.storage);
+    }
+
+    public Material getMaterial() {
+        return this.material;
+    }
+
+    public int getInventorySize() {
+        return this.inventorySize;
+    }
+
+    public boolean isTaped() {
+        return this.isTaped;
     }
 }

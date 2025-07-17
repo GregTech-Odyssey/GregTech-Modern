@@ -26,8 +26,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,17 +35,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class ItemFilterCover extends CoverBehavior implements IUICover {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ItemFilterCover.class,
-            CoverBehavior.MANAGED_FIELD_HOLDER);
-
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ItemFilterCover.class, CoverBehavior.MANAGED_FIELD_HOLDER);
     protected ItemFilter itemFilter;
     @Persisted
     @DescSynced
-    @Getter
     protected FilterMode filterMode = FilterMode.FILTER_INSERT;
     private FilteredItemHandlerWrapper itemFilterWrapper;
-    @Setter
-    @Getter
     protected ManualIOMode allowFlow = ManualIOMode.DISABLED;
 
     public ItemFilterCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {
@@ -76,7 +69,8 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
     }
 
     @Override
-    public @Nullable IItemHandlerModifiable getItemHandlerCap(IItemHandlerModifiable defaultValue) {
+    @Nullable
+    public IItemHandlerModifiable getItemHandlerCap(IItemHandlerModifiable defaultValue) {
         if (defaultValue == null) {
             return null;
         }
@@ -95,8 +89,7 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
     public Widget createUIWidget() {
         final var group = new WidgetGroup(0, 0, 178, 85);
         group.addWidget(new LabelWidget(60, 5, attachItem.getDescriptionId()));
-        group.addWidget(new EnumSelectorWidget<>(35, 25, 18, 18,
-                FilterMode.VALUES, filterMode, this::setFilterMode));
+        group.addWidget(new EnumSelectorWidget<>(35, 25, 18, 18, FilterMode.VALUES, filterMode, this::setFilterMode));
         group.addWidget(new EnumSelectorWidget<>(35, 45, 18, 18, ManualIOMode.VALUES, allowFlow, this::setAllowFlow));
         group.addWidget(getItemFilter().openConfigurator(62, 25));
         return group;
@@ -114,9 +107,9 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
         }
 
         @Override
-        public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
-            if ((filterMode == FilterMode.FILTER_EXTRACT) && allowFlow == ManualIOMode.UNFILTERED)
-                return super.insertItem(slot, stack, simulate);
+        @NotNull
+        public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+            if ((filterMode == FilterMode.FILTER_EXTRACT) && allowFlow == ManualIOMode.UNFILTERED) return super.insertItem(slot, stack, simulate);
             if (filterMode != FilterMode.FILTER_EXTRACT && getItemFilter().test(stack)) {
                 return super.insertItem(slot, stack, simulate);
             }
@@ -124,16 +117,28 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
         }
 
         @Override
-        public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
+        @NotNull
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
             ItemStack result = super.extractItem(slot, amount, true);
             if (result.isEmpty() && (filterMode == FilterMode.FILTER_INSERT) && allowFlow == ManualIOMode.UNFILTERED) {
                 return super.extractItem(slot, amount, false);
             }
-
             if (filterMode != FilterMode.FILTER_INSERT && getItemFilter().test(result)) {
                 return super.extractItem(slot, amount, false);
             }
             return ItemStack.EMPTY;
         }
+    }
+
+    public FilterMode getFilterMode() {
+        return this.filterMode;
+    }
+
+    public void setAllowFlow(final ManualIOMode allowFlow) {
+        this.allowFlow = allowFlow;
+    }
+
+    public ManualIOMode getAllowFlow() {
+        return this.allowFlow;
     }
 }

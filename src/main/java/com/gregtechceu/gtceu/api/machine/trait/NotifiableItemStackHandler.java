@@ -19,9 +19,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,26 +27,18 @@ import java.util.List;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
 
-public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ingredient>
-                                        implements ICapabilityTrait, IItemHandlerModifiable {
+public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ingredient> implements ICapabilityTrait, IItemHandlerModifiable {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            NotifiableItemStackHandler.class, NotifiableRecipeHandlerTrait.MANAGED_FIELD_HOLDER);
-    @Getter
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(NotifiableItemStackHandler.class, NotifiableRecipeHandlerTrait.MANAGED_FIELD_HOLDER);
     public final IO handlerIO;
-    @Getter
     public final IO capabilityIO;
     @Persisted
     @DescSynced
     public final CustomItemStackHandler storage;
-    @Accessors(fluent = true)
-    @Getter
-    @Setter
     private boolean shouldSearchContent = true;
     private Boolean isEmpty;
 
-    public NotifiableItemStackHandler(MetaMachine machine, int slots, @NotNull IO handlerIO, @NotNull IO capabilityIO,
-                                      IntFunction<CustomItemStackHandler> storageFactory) {
+    public NotifiableItemStackHandler(MetaMachine machine, int slots, @NotNull IO handlerIO, @NotNull IO capabilityIO, IntFunction<CustomItemStackHandler> storageFactory) {
         super(machine);
         this.handlerIO = handlerIO;
         this.storage = storageFactory.apply(slots);
@@ -87,16 +76,13 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
 
     // TODO: See if implementable in outside callers and unstatic; or move to different common class if not
     // Notable caller is ItemRecipeHandler, used for MinerLogic
-    public static List<Ingredient> handleRecipe(IO io, GTRecipe recipe, List<Ingredient> left, boolean simulate,
-                                                IO handlerIO, CustomItemStackHandler storage) {
+    public static List<Ingredient> handleRecipe(IO io, GTRecipe recipe, List<Ingredient> left, boolean simulate, IO handlerIO, CustomItemStackHandler storage) {
         if (io != handlerIO) return left;
         if (io != IO.IN && io != IO.OUT) return left.isEmpty() ? null : left;
-
         // Temporarily remove listener so that we can broadcast the entire set of transactions once
         Runnable listener = storage.getOnContentsChanged();
         storage.setOnContentsChanged(() -> {});
         boolean changed = false;
-
         // Store the ItemStack in each slot after an operation
         // Necessary for simulation since we don't actually modify the slot's contents
         // Doesn't hurt for execution, and definitely cheaper than copying the entire storage
@@ -107,13 +93,11 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
                 it.remove();
                 continue;
             }
-
             ItemStack[] items;
             int amount;
             if (io == IO.OUT && ingredient instanceof IntProviderIngredient provider) {
                 provider.setItemStacks(null);
                 provider.setSampledCount(-1);
-
                 ItemStack output;
                 if (simulate) {
                     output = provider.getMaxSizeStack();
@@ -126,7 +110,6 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
                     }
                     output = items[0];
                 }
-
                 int outputStorageLimit = 0;
                 for (int slot = 0; slot < storage.getSlots(); ++slot) {
                     ItemStack stack = storage.getStackInSlot(slot);
@@ -151,11 +134,9 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
                 if (ingredient instanceof SizedIngredient si) amount = si.getAmount();
                 else amount = items[0].getCount();
             }
-
             for (int slot = 0; slot < storage.getSlots(); ++slot) {
                 ItemStack current = visited[slot] == null ? storage.getStackInSlot(slot) : visited[slot];
                 int count = current.getCount();
-
                 if (io == IO.IN) {
                     if (current.isEmpty()) continue;
                     if (ingredient.test(current)) {
@@ -166,7 +147,8 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
                         }
                         amount -= extracted.getCount();
                     }
-                } else { // IO.OUT
+                } else {
+                    // IO.OUT
                     ItemStack output = items[0].copyWithCount(amount);
                     // Only try this slot if not visited or if visited with the same type of item
                     if (visited[slot] == null || ItemStack.isSameItemSameTags(visited[slot], output)) {
@@ -180,7 +162,6 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
                         }
                     }
                 }
-
                 if (amount <= 0) {
                     it.remove();
                     break;
@@ -195,14 +176,13 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
                 }
             }
         }
-
         storage.setOnContentsChanged(listener);
         if (changed && !simulate) listener.run();
-
         return left.isEmpty() ? null : left;
     }
 
-    private static @Nullable ItemStack getActioned(CustomItemStackHandler storage, int index, List<?> actions) {
+    @Nullable
+    private static ItemStack getActioned(CustomItemStackHandler storage, int index, List<?> actions) {
         return null;
     }
 
@@ -221,7 +201,8 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     }
 
     @Override
-    public @NotNull List<Object> getContents() {
+    @NotNull
+    public List<Object> getContents() {
         List<ItemStack> stacks = new ArrayList<>();
         for (int i = 0; i < getSlots(); ++i) {
             ItemStack stack = getStackInSlot(i);
@@ -263,8 +244,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
         var pos = getMachine().getPos();
         for (Direction facing : facings) {
             var filter = getMachine().getItemCapFilter(facing, IO.OUT);
-            GTTransferUtils.getAdjacentItemHandler(level, pos, facing)
-                    .ifPresent(adj -> GTTransferUtils.transferItemsFiltered(this, adj, filter));
+            GTTransferUtils.getAdjacentItemHandler(level, pos, facing).ifPresent(adj -> GTTransferUtils.transferItemsFiltered(this, adj, filter));
         }
     }
 
@@ -273,8 +253,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
         var pos = getMachine().getPos();
         for (Direction facing : facings) {
             var filter = getMachine().getItemCapFilter(facing, IO.IN);
-            GTTransferUtils.getAdjacentItemHandler(level, pos, facing)
-                    .ifPresent(adj -> GTTransferUtils.transferItemsFiltered(adj, this, filter));
+            GTTransferUtils.getAdjacentItemHandler(level, pos, facing).ifPresent(adj -> GTTransferUtils.transferItemsFiltered(adj, this, filter));
         }
     }
 
@@ -326,5 +305,25 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     @Override
     public boolean isItemValid(int slot, @NotNull ItemStack stack) {
         return storage.isItemValid(slot, stack);
+    }
+
+    public IO getHandlerIO() {
+        return this.handlerIO;
+    }
+
+    public IO getCapabilityIO() {
+        return this.capabilityIO;
+    }
+
+    public boolean shouldSearchContent() {
+        return this.shouldSearchContent;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public NotifiableItemStackHandler shouldSearchContent(final boolean shouldSearchContent) {
+        this.shouldSearchContent = shouldSearchContent;
+        return this;
     }
 }

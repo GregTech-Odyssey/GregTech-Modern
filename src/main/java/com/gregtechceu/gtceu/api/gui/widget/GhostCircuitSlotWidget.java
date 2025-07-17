@@ -17,7 +17,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -28,10 +27,7 @@ public class GhostCircuitSlotWidget extends SlotWidget {
     private static final int SET_TO_ZERO = 1;
     private static final int SET_TO_EMPTY = 2;
     private static final int SET_TO_N = 3;
-
     private static final int NO_CONFIG = -1;
-
-    @Getter
     private IItemHandlerModifiable circuitInventory;
     @Nullable
     private Widget configurator;
@@ -148,56 +144,51 @@ public class GhostCircuitSlotWidget extends SlotWidget {
     public Widget createConfigurator() {
         var group = new WidgetGroup(0, 0, 174, 132);
         group.addWidget(new LabelWidget(9, 8, "Programmed Circuit Configuration"));
-        group.addWidget(new SlotWidget(this.circuitInventory, 0, (group.getSize().width - 18) / 2, 20,
-                !ConfigHolder.INSTANCE.machines.ghostCircuit, !ConfigHolder.INSTANCE.machines.ghostCircuit)
-                .setBackground(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.INT_CIRCUIT_OVERLAY)));
+        group.addWidget(new SlotWidget(this.circuitInventory, 0, (group.getSize().width - 18) / 2, 20, !ConfigHolder.INSTANCE.machines.ghostCircuit, !ConfigHolder.INSTANCE.machines.ghostCircuit).setBackground(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.INT_CIRCUIT_OVERLAY)));
         if (ConfigHolder.INSTANCE.machines.ghostCircuit) {
-            group.addWidget(new ButtonWidget((group.getSize().width - 18) / 2, 20, 18, 18, IGuiTexture.EMPTY,
-                    clickData -> {
-                        if (!clickData.isRemote) {
-                            circuitInventory.setStackInSlot(0, ItemStack.EMPTY);
-                        }
-                    }));
+            group.addWidget(new ButtonWidget((group.getSize().width - 18) / 2, 20, 18, 18, IGuiTexture.EMPTY, clickData -> {
+                if (!clickData.isRemote) {
+                    circuitInventory.setStackInSlot(0, ItemStack.EMPTY);
+                }
+            }));
         }
         int idx = 0;
         for (int x = 0; x <= 2; x++) {
             for (int y = 0; y <= 8; y++) {
                 int finalIdx = idx;
-                group.addWidget(new ButtonWidget(5 + (18 * y), 48 + (18 * x), 18, 18,
-                        new GuiTextureGroup(GuiTextures.SLOT,
-                                new ItemStackTexture(IntCircuitBehaviour.stack(finalIdx)).scale(16f / 18)),
-                        clickData -> {
-                            if (!clickData.isRemote) {
-                                ItemStack stack = circuitInventory.getStackInSlot(0).copy();
-                                if (IntCircuitBehaviour.isIntegratedCircuit(stack)) {
-                                    IntCircuitBehaviour.setCircuitConfiguration(stack, finalIdx);
-                                    circuitInventory.setStackInSlot(0, stack);
-                                } else if (ConfigHolder.INSTANCE.machines.ghostCircuit) {
-                                    circuitInventory.setStackInSlot(0, IntCircuitBehaviour.stack(finalIdx));
-                                }
-                            }
-                        }));
+                group.addWidget(new ButtonWidget(5 + (18 * y), 48 + (18 * x), 18, 18, new GuiTextureGroup(GuiTextures.SLOT, new ItemStackTexture(IntCircuitBehaviour.stack(finalIdx)).scale(16.0F / 18)), clickData -> {
+                    if (!clickData.isRemote) {
+                        ItemStack stack = circuitInventory.getStackInSlot(0).copy();
+                        if (IntCircuitBehaviour.isIntegratedCircuit(stack)) {
+                            IntCircuitBehaviour.setCircuitConfiguration(stack, finalIdx);
+                            circuitInventory.setStackInSlot(0, stack);
+                        } else if (ConfigHolder.INSTANCE.machines.ghostCircuit) {
+                            circuitInventory.setStackInSlot(0, IntCircuitBehaviour.stack(finalIdx));
+                        }
+                    }
+                }));
                 idx++;
             }
         }
         for (int x = 0; x <= 5; x++) {
             int finalIdx = x + 27;
-            group.addWidget(new ButtonWidget(5 + (18 * x), 102, 18, 18,
-                    new GuiTextureGroup(GuiTextures.SLOT,
-                            new ItemStackTexture(IntCircuitBehaviour.stack(finalIdx)).scale(16f / 18)),
-                    clickData -> {
-                        if (!clickData.isRemote) {
-                            ItemStack stack = circuitInventory.getStackInSlot(0).copy();
-                            if (IntCircuitBehaviour.isIntegratedCircuit(stack)) {
-                                IntCircuitBehaviour.setCircuitConfiguration(stack, finalIdx);
-                                circuitInventory.setStackInSlot(0, stack);
-                            } else if (ConfigHolder.INSTANCE.machines.ghostCircuit) {
-                                circuitInventory.setStackInSlot(0, IntCircuitBehaviour.stack(finalIdx));
-                            }
-                        }
-                    }));
+            group.addWidget(new ButtonWidget(5 + (18 * x), 102, 18, 18, new GuiTextureGroup(GuiTextures.SLOT, new ItemStackTexture(IntCircuitBehaviour.stack(finalIdx)).scale(16.0F / 18)), clickData -> {
+                if (!clickData.isRemote) {
+                    ItemStack stack = circuitInventory.getStackInSlot(0).copy();
+                    if (IntCircuitBehaviour.isIntegratedCircuit(stack)) {
+                        IntCircuitBehaviour.setCircuitConfiguration(stack, finalIdx);
+                        circuitInventory.setStackInSlot(0, stack);
+                    } else if (ConfigHolder.INSTANCE.machines.ghostCircuit) {
+                        circuitInventory.setStackInSlot(0, IntCircuitBehaviour.stack(finalIdx));
+                    }
+                }
+            }));
         }
         group.setBackground(GuiTextures.BACKGROUND);
         return group;
+    }
+
+    public IItemHandlerModifiable getCircuitInventory() {
+        return this.circuitInventory;
     }
 }

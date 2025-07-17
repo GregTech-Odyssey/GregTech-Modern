@@ -17,26 +17,19 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 public class CleanroomLogic extends RecipeLogic implements IWorkable {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(CleanroomLogic.class,
-            RecipeLogic.MANAGED_FIELD_HOLDER);
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(CleanroomLogic.class, RecipeLogic.MANAGED_FIELD_HOLDER);
     public static final int BASE_CLEAN_AMOUNT = 2;
-    @Setter
     @Nullable
     private IMaintenanceMachine maintenanceMachine;
-    @Setter
     @Nullable
     private IEnergyContainer energyContainer;
     /**
      * whether the cleanroom was active and needs an update
      */
-    @Getter
-    @Setter
     @Persisted
     private boolean isActiveAndNeedsUpdate;
 
@@ -61,8 +54,7 @@ public class CleanroomLogic extends RecipeLogic implements IWorkable {
     public void serverTick() {
         // always run this logic
         if (duration > 0) {
-            EnvironmentalHazardSavedData environmentalHazards = EnvironmentalHazardSavedData
-                    .getOrCreate((ServerLevel) this.getMachine().getLevel());
+            EnvironmentalHazardSavedData environmentalHazards = EnvironmentalHazardSavedData.getOrCreate((ServerLevel) this.getMachine().getLevel());
             var zone = environmentalHazards.getZoneByContainedPos(getMachine().getPos());
             // all maintenance problems not being fixed or there are environmental hazards in the area
             // means the machine does not run
@@ -76,14 +68,11 @@ public class CleanroomLogic extends RecipeLogic implements IWorkable {
                             this.progress = Math.max(1, progress - 2);
                         }
                     }
-
                     // the cleanroom does not have enough energy, so it looses cleanliness
                     if (machine.self().getOffsetTimer() % duration == 0) {
                         adjustCleanAmount(true);
                     }
-
-                    setWaiting(Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ")
-                            .append(EURecipeCapability.CAP.getName()));
+                    setWaiting(Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(EURecipeCapability.CAP.getName()));
                     return;
                 }
                 setStatus(Status.WORKING);
@@ -117,7 +106,6 @@ public class CleanroomLogic extends RecipeLogic implements IWorkable {
         // range from 5 - ~44 % per cycle instead of the 5 - 70% it was previously
         int amountToClean = BASE_CLEAN_AMOUNT + (3 * (getTierDifference() + 1));
         if (declined) amountToClean *= -1;
-
         // each maintenance problem lowers gain by 1
         if (maintenanceMachine != null) {
             amountToClean -= maintenanceMachine.getNumMaintenanceProblems();
@@ -130,8 +118,7 @@ public class CleanroomLogic extends RecipeLogic implements IWorkable {
         // clamp to max for VA indexing
         var tier = Mth.clamp(cleanroom.getTier(), GTValues.ULV, GTValues.MAX);
         // use 3/16th an amp when fully clean otherwise 15/16th an amp during cleaning
-        long energyToDrain = cleanroom.isClean() ? Math.max(8, (3 * GTValues.V[tier] / 16)) :
-                GTValues.VA[tier];
+        long energyToDrain = cleanroom.isClean() ? Math.max(8, (3 * GTValues.V[tier] / 16)) : GTValues.VA[tier];
         if (energyContainer != null) {
             long resultEnergy = energyContainer.getEnergyStored() - energyToDrain;
             if (resultEnergy >= 0L && resultEnergy <= energyContainer.getEnergyCapacity()) {
@@ -150,5 +137,27 @@ public class CleanroomLogic extends RecipeLogic implements IWorkable {
 
     public void setDuration(int max) {
         this.duration = max;
+    }
+
+    public void setMaintenanceMachine(@Nullable final IMaintenanceMachine maintenanceMachine) {
+        this.maintenanceMachine = maintenanceMachine;
+    }
+
+    public void setEnergyContainer(@Nullable final IEnergyContainer energyContainer) {
+        this.energyContainer = energyContainer;
+    }
+
+    /**
+     * whether the cleanroom was active and needs an update
+     */
+    public boolean isActiveAndNeedsUpdate() {
+        return this.isActiveAndNeedsUpdate;
+    }
+
+    /**
+     * whether the cleanroom was active and needs an update
+     */
+    public void setActiveAndNeedsUpdate(final boolean isActiveAndNeedsUpdate) {
+        this.isActiveAndNeedsUpdate = isActiveAndNeedsUpdate;
     }
 }

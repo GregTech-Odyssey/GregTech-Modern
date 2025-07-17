@@ -33,7 +33,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -47,8 +46,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class MachineControllerCover extends CoverBehavior implements IUICover {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MachineControllerCover.class,
-            CoverBehavior.MANAGED_FIELD_HOLDER);
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MachineControllerCover.class, CoverBehavior.MANAGED_FIELD_HOLDER);
     private CustomItemStackHandler sideCoverSlot;
     private ButtonWidget modeButton;
 
@@ -58,16 +56,11 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
     }
 
     @Persisted
-    @Getter
     private boolean isInverted = false;
-
     @Persisted
-    @Getter
     private int minRedstoneStrength = 1;
-
     @Persisted
     @DescSynced
-    @Getter
     @Nullable
     private ControllerMode controllerMode = ControllerMode.MACHINE;
 
@@ -83,7 +76,6 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
     @Override
     public void onAttached(ItemStack itemStack, ServerPlayer player) {
         super.onAttached(itemStack, player);
-
         var allowedModes = getAllowedModes();
         setControllerMode(allowedModes.isEmpty() ? null : allowedModes.get(0));
     }
@@ -91,7 +83,6 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
     @Override
     public void onRemoved() {
         super.onRemoved();
-
         resetCurrentControllable();
     }
 
@@ -103,13 +94,11 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
     @Override
     public void onNeighborChanged(Block block, BlockPos fromPos, boolean isMoving) {
         super.onNeighborChanged(block, fromPos, isMoving);
-
         updateInput();
     }
 
     public void setControllerMode(@Nullable ControllerMode controllerMode) {
         resetCurrentControllable();
-
         this.controllerMode = controllerMode;
         updateAll();
     }
@@ -132,13 +121,11 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
     ///////////////////////////////////////////////////
     // *********** CONTROLLER LOGIC ***********//
     ///////////////////////////////////////////////////
-
     @Nullable
     private IControllable getControllable(@Nullable Direction side) {
         if (side == null) {
             return GTCapabilityHelper.getControllable(coverHolder.getLevel(), coverHolder.getPos(), null);
         }
-
         if (coverHolder.getCoverAtSide(side) instanceof IControllable cover) {
             return cover;
         } else {
@@ -147,9 +134,7 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
     }
 
     private void updateInput() {
-        if (controllerMode == null)
-            return;
-
+        if (controllerMode == null) return;
         IControllable controllable = getControllable(controllerMode.side);
         if (controllable != null) {
             controllable.setWorkingEnabled(shouldAllowWorking() && doOthersAllowWorking());
@@ -157,9 +142,7 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
     }
 
     private void resetCurrentControllable() {
-        if (controllerMode == null)
-            return;
-
+        if (controllerMode == null) return;
         IControllable controllable = getControllable(controllerMode.side);
         if (controllable != null) {
             controllable.setWorkingEnabled(doOthersAllowWorking());
@@ -168,59 +151,38 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
 
     private boolean shouldAllowWorking() {
         boolean shouldAllowWorking = getInputSignal() < minRedstoneStrength;
-
         return isInverted != shouldAllowWorking;
     }
 
     private boolean doOthersAllowWorking() {
-        return coverHolder.getCovers().stream()
-                .filter(cover -> this.attachedSide != cover.attachedSide)
-                .filter(cover -> cover instanceof MachineControllerCover)
-                .filter(cover -> ((MachineControllerCover) cover).controllerMode == this.controllerMode)
-                .allMatch(cover -> ((MachineControllerCover) cover).shouldAllowWorking());
+        return coverHolder.getCovers().stream().filter(cover -> this.attachedSide != cover.attachedSide).filter(cover -> cover instanceof MachineControllerCover).filter(cover -> ((MachineControllerCover) cover).controllerMode == this.controllerMode).allMatch(cover -> ((MachineControllerCover) cover).shouldAllowWorking());
     }
 
     public List<ControllerMode> getAllowedModes() {
-        return Arrays.stream(ControllerMode.values())
-                .filter(mode -> mode.side != this.attachedSide)
-                .filter(mode -> getControllable(mode.side) != null)
-                .collect(Collectors.toList());
+        return Arrays.stream(ControllerMode.values()).filter(mode -> mode.side != this.attachedSide).filter(mode -> getControllable(mode.side) != null).collect(Collectors.toList());
     }
 
     private int getInputSignal() {
         Level level = coverHolder.getLevel();
         BlockPos sourcePos = coverHolder.getPos().relative(attachedSide);
-
         return level.getSignal(sourcePos, attachedSide);
     }
 
     //////////////////////////////////////
     // *********** GUI ***********//
     //////////////////////////////////////
-
     @Override
     public Widget createUIWidget() {
         if (controllerMode != null && getControllable(controllerMode.side) == null) {
             setControllerMode(null);
         }
         WidgetGroup group = new WidgetGroup(0, 0, 176, 75);
-
         group.addWidget(new LabelWidget(10, 5, "cover.machine_controller.title"));
-        group.addWidget(new IntInputWidget(10, 20, 131, 20,
-                this::getMinRedstoneStrength, this::setMinRedstoneStrength).setMin(1).setMax(15));
-
-        modeButton = new ButtonWidget(10, 45, 131, 20,
-                new GuiTextureGroup(GuiTextures.VANILLA_BUTTON),
-                cd -> selectNextMode());
+        group.addWidget(new IntInputWidget(10, 20, 131, 20, this::getMinRedstoneStrength, this::setMinRedstoneStrength).setMin(1).setMax(15));
+        modeButton = new ButtonWidget(10, 45, 131, 20, new GuiTextureGroup(GuiTextures.VANILLA_BUTTON), cd -> selectNextMode());
         group.addWidget(modeButton);
-
         // Inverted Mode Toggle:
-        group.addWidget(new ToggleButtonWidget(
-                146, 20, 20, 20,
-                GuiTextures.INVERT_REDSTONE_BUTTON, this::isInverted, this::setInverted)
-                .isMultiLang()
-                .setTooltipText("cover.machine_controller.invert"));
-
+        group.addWidget(new ToggleButtonWidget(146, 20, 20, 20, GuiTextures.INVERT_REDSTONE_BUTTON, this::isInverted, this::setInverted).isMultiLang().setTooltipText("cover.machine_controller.invert"));
         sideCoverSlot = new CustomItemStackHandler(1);
         group.addWidget(new PhantomSlotWidget(sideCoverSlot, 0, 147, 46) {
 
@@ -229,21 +191,13 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
                 return sideCoverSlot.getStackInSlot(0);
             }
         });
-
         updateUI();
-
         return group;
     }
 
     private void selectNextMode() {
         var allowedModes = getAllowedModes();
-
-        setControllerMode(allowedModes.stream()
-                .dropWhile(mode -> this.controllerMode != null && mode != this.controllerMode)
-                .skip(1)
-                .findFirst()
-                .orElse(allowedModes.isEmpty() ? null : allowedModes.get(0)));
-
+        setControllerMode(allowedModes.stream().dropWhile(mode -> this.controllerMode != null && mode != this.controllerMode).skip(1).findFirst().orElse(allowedModes.isEmpty() ? null : allowedModes.get(0)));
         updateAll();
     }
 
@@ -256,30 +210,32 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
         if (modeButton == null) {
             return;
         }
-
-        modeButton.setButtonTexture(new GuiTextureGroup(
-                GuiTextures.VANILLA_BUTTON,
-                new TextTexture(controllerMode != null ? controllerMode.localeName : ControllerMode.nullLocaleName)));
+        modeButton.setButtonTexture(new GuiTextureGroup(GuiTextures.VANILLA_BUTTON, new TextTexture(controllerMode != null ? controllerMode.localeName : ControllerMode.nullLocaleName)));
     }
 
     private void updateCoverSlot() {
         if (sideCoverSlot == null) {
             return;
         }
+        Optional.ofNullable(controllerMode).map(mode -> mode.side).map(coverHolder::getCoverAtSide).map(CoverBehavior::getAttachItem).map(ItemStack::copy).ifPresentOrElse(item -> {
+            sideCoverSlot.setStackInSlot(0, item);
+            sideCoverSlot.onContentsChanged(0);
+        }, () -> {
+            sideCoverSlot.setStackInSlot(0, ItemStack.EMPTY);
+            sideCoverSlot.onContentsChanged(0);
+        });
+    }
 
-        Optional.ofNullable(controllerMode)
-                .map(mode -> mode.side)
-                .map(coverHolder::getCoverAtSide)
-                .map(CoverBehavior::getAttachItem)
-                .map(ItemStack::copy)
-                .ifPresentOrElse(
-                        item -> {
-                            sideCoverSlot.setStackInSlot(0, item);
-                            sideCoverSlot.onContentsChanged(0);
-                        },
-                        () -> {
-                            sideCoverSlot.setStackInSlot(0, ItemStack.EMPTY);
-                            sideCoverSlot.onContentsChanged(0);
-                        });
+    public boolean isInverted() {
+        return this.isInverted;
+    }
+
+    public int getMinRedstoneStrength() {
+        return this.minRedstoneStrength;
+    }
+
+    @Nullable
+    public ControllerMode getControllerMode() {
+        return this.controllerMode;
     }
 }

@@ -11,23 +11,13 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.network.chat.Component;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-
 import java.util.Collections;
 import java.util.List;
 
-@Accessors(chain = true)
 public class FancyTankConfigurator implements IFancyConfigurator {
 
     private final CustomFluidTank[] tanks;
-
-    @Getter
     private final Component title;
-
-    @Getter
-    @Setter
     private List<Component> tooltips = Collections.emptyList();
 
     public FancyTankConfigurator(CustomFluidTank[] tanks, Component title) {
@@ -48,21 +38,32 @@ public class FancyTankConfigurator implements IFancyConfigurator {
             rowSize = 4;
             colSize = 2;
         }
-
         var group = new WidgetGroup(0, 0, 18 * rowSize + 16, 18 * colSize + 16);
         var container = new WidgetGroup(4, 4, 18 * rowSize + 8, 18 * colSize + 8);
-
         int index = 0;
         for (int y = 0; y < colSize; y++) {
             for (int x = 0; x < rowSize; x++) {
-                container.addWidget(new TankWidget(tanks[index++], 4 + x * 18, 4 + y * 18, true, true)
-                        .setBackground(GuiTextures.FLUID_SLOT));
+                container.addWidget(new TankWidget(tanks[index++], 4 + x * 18, 4 + y * 18, true, true).setBackground(GuiTextures.FLUID_SLOT));
             }
         }
-
         container.setBackground(GuiTextures.BACKGROUND_INVERSE);
         group.addWidget(container);
-
         return group;
+    }
+
+    public Component getTitle() {
+        return this.title;
+    }
+
+    public List<Component> getTooltips() {
+        return this.tooltips;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public FancyTankConfigurator setTooltips(final List<Component> tooltips) {
+        this.tooltips = tooltips;
+        return this;
     }
 }

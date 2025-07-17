@@ -19,22 +19,12 @@ import net.minecraft.util.GsonHelper;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-@AllArgsConstructor
-@NoArgsConstructor
 public class CleanroomCondition extends RecipeCondition {
 
-    public static final Codec<CleanroomCondition> CODEC = RecordCodecBuilder
-            .create(instance -> RecipeCondition.isReverse(instance)
-                    .and(CleanroomType.CODEC.fieldOf("cleanroom").forGetter(val -> val.cleanroom))
-                    .apply(instance, CleanroomCondition::new));
-    public final static CleanroomCondition INSTANCE = new CleanroomCondition();
-
-    @Getter
+    public static final Codec<CleanroomCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(CleanroomType.CODEC.fieldOf("cleanroom").forGetter(val -> val.cleanroom)).apply(instance, CleanroomCondition::new));
+    public static final CleanroomCondition INSTANCE = new CleanroomCondition();
     private CleanroomType cleanroom = CleanroomType.CLEANROOM;
 
     public CleanroomCondition(boolean isReverse, CleanroomType cleanroom) {
@@ -49,8 +39,7 @@ public class CleanroomCondition extends RecipeCondition {
 
     @Override
     public Component getTooltips() {
-        return cleanroom == null ? null :
-                Component.translatable("gtceu.recipe.cleanroom", Component.translatable(cleanroom.getTranslationKey()));
+        return cleanroom == null ? null : Component.translatable("gtceu.recipe.cleanroom", Component.translatable(cleanroom.getTranslationKey()));
     }
 
     @Override
@@ -59,10 +48,8 @@ public class CleanroomCondition extends RecipeCondition {
         MetaMachine machine = recipeLogic.getMachine();
         if (machine instanceof ICleanroomReceiver receiver && this.cleanroom != null) {
             if (ConfigHolder.INSTANCE.machines.cleanMultiblocks && machine instanceof IMultiController) return true;
-
             ICleanroomProvider provider = receiver.getCleanroom();
             if (provider == null) return false;
-
             return provider.isClean() && provider.getTypes().contains(this.cleanroom);
         }
         return true;
@@ -99,5 +86,15 @@ public class CleanroomCondition extends RecipeCondition {
     @Override
     public RecipeCondition createTemplate() {
         return new CleanroomCondition();
+    }
+
+    public CleanroomCondition(final CleanroomType cleanroom) {
+        this.cleanroom = cleanroom;
+    }
+
+    public CleanroomCondition() {}
+
+    public CleanroomType getCleanroom() {
+        return this.cleanroom;
     }
 }

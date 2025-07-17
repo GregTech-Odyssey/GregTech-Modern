@@ -18,22 +18,11 @@ import net.minecraft.util.GsonHelper;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-@NoArgsConstructor
-@AllArgsConstructor
 public class EnvironmentalHazardCondition extends RecipeCondition {
 
-    public static final Codec<EnvironmentalHazardCondition> CODEC = RecordCodecBuilder
-            .create(instance -> RecipeCondition.isReverse(instance)
-                    .and(
-                            MedicalCondition.CODEC.fieldOf("condition").forGetter(val -> val.condition))
-                    .apply(instance, EnvironmentalHazardCondition::new));
-
-    @Getter
+    public static final Codec<EnvironmentalHazardCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(MedicalCondition.CODEC.fieldOf("condition").forGetter(val -> val.condition)).apply(instance, EnvironmentalHazardCondition::new));
     private MedicalCondition condition = GTMedicalConditions.CARBON_MONOXIDE_POISONING;
 
     public EnvironmentalHazardCondition(boolean isReverse, MedicalCondition condition) {
@@ -48,11 +37,7 @@ public class EnvironmentalHazardCondition extends RecipeCondition {
 
     @Override
     public Component getTooltips() {
-        return isReverse ?
-                Component.translatable("gtceu.recipe.environmental_hazard.reverse",
-                        Component.translatable("gtceu.medical_condition." + condition.name)) :
-                Component.translatable("gtceu.recipe.environmental_hazard",
-                        Component.translatable("gtceu.medical_condition." + condition.name));
+        return isReverse ? Component.translatable("gtceu.recipe.environmental_hazard.reverse", Component.translatable("gtceu.medical_condition." + condition.name)) : Component.translatable("gtceu.recipe.environmental_hazard", Component.translatable("gtceu.medical_condition." + condition.name));
     }
 
     @Override
@@ -97,5 +82,15 @@ public class EnvironmentalHazardCondition extends RecipeCondition {
     @Override
     public RecipeCondition createTemplate() {
         return new EnvironmentalHazardCondition();
+    }
+
+    public EnvironmentalHazardCondition() {}
+
+    public EnvironmentalHazardCondition(final MedicalCondition condition) {
+        this.condition = condition;
+    }
+
+    public MedicalCondition getCondition() {
+        return this.condition;
     }
 }

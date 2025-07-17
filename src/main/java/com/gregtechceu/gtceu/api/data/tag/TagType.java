@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiFunction;
@@ -14,7 +13,6 @@ import java.util.function.Predicate;
 public class TagType {
 
     private final String tagPath;
-    @Getter
     private boolean isParentTag = false;
     private BiFunction<TagPrefix, Material, TagKey<Item>> formatter;
     private Predicate<Material> filter;
@@ -40,8 +38,7 @@ public class TagType {
      */
     public static TagType withPrefixFormatter(String tagPath) {
         TagType type = new TagType(tagPath);
-        type.formatter = (prefix, mat) -> TagUtil.createItemTag(
-                type.tagPath.formatted(prefix.getLowerCaseName(), mat.getName()));
+        type.formatter = (prefix, mat) -> TagUtil.createItemTag(type.tagPath.formatted(prefix.getLowerCaseName(), mat.getName()));
         return type;
     }
 
@@ -51,8 +48,7 @@ public class TagType {
      */
     public static TagType withPrefixOnlyFormatter(String tagPath) {
         TagType type = new TagType(tagPath);
-        type.formatter = (prefix, mat) -> TagUtil
-                .createItemTag(type.tagPath.formatted(prefix.getLowerCaseName()));
+        type.formatter = (prefix, mat) -> TagUtil.createItemTag(type.tagPath.formatted(prefix.getLowerCaseName()));
         type.isParentTag = true;
         return type;
     }
@@ -80,5 +76,9 @@ public class TagType {
     public TagKey<Item> getTag(TagPrefix prefix, @NotNull Material material) {
         if (filter != null && !material.isNull() && !filter.test(material)) return null;
         return formatter.apply(prefix, material);
+    }
+
+    public boolean isParentTag() {
+        return this.isParentTag;
     }
 }

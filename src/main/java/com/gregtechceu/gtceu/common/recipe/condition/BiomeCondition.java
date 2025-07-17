@@ -19,20 +19,12 @@ import net.minecraft.world.level.biome.Biome;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-@NoArgsConstructor
 public class BiomeCondition extends RecipeCondition {
 
-    public static final Codec<BiomeCondition> CODEC = RecordCodecBuilder
-            .create(instance -> RecipeCondition.isReverse(instance)
-                    .and(ResourceKey.codec(Registries.BIOME).fieldOf("biome").forGetter(val -> val.biome))
-                    .apply(instance, BiomeCondition::new));
-
-    public final static BiomeCondition INSTANCE = new BiomeCondition();
-    @Getter
+    public static final Codec<BiomeCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(ResourceKey.codec(Registries.BIOME).fieldOf("biome").forGetter(val -> val.biome)).apply(instance, BiomeCondition::new));
+    public static final BiomeCondition INSTANCE = new BiomeCondition();
     private ResourceKey<Biome> biome = ResourceKey.create(Registries.BIOME, new ResourceLocation("dummy"));
 
     public BiomeCondition(boolean isReverse, ResourceKey<Biome> biome) {
@@ -56,9 +48,7 @@ public class BiomeCondition extends RecipeCondition {
 
     @Override
     public Component getTooltips() {
-        return Component.translatable("recipe.condition.biome.tooltip",
-                Component.translatableWithFallback(biome.location().toLanguageKey("biome"),
-                        biome.location().toString()));
+        return Component.translatable("recipe.condition.biome.tooltip", Component.translatableWithFallback(biome.location().toLanguageKey("biome"), biome.location().toString()));
     }
 
     @Override
@@ -85,8 +75,7 @@ public class BiomeCondition extends RecipeCondition {
     @Override
     public RecipeCondition deserialize(@NotNull JsonObject config) {
         super.deserialize(config);
-        biome = ResourceKey.create(Registries.BIOME,
-                new ResourceLocation(GsonHelper.getAsString(config, "biome", "dummy")));
+        biome = ResourceKey.create(Registries.BIOME, new ResourceLocation(GsonHelper.getAsString(config, "biome", "dummy")));
         return this;
     }
 
@@ -101,5 +90,11 @@ public class BiomeCondition extends RecipeCondition {
     public void toNetwork(FriendlyByteBuf buf) {
         super.toNetwork(buf);
         buf.writeResourceKey(biome);
+    }
+
+    public BiomeCondition() {}
+
+    public ResourceKey<Biome> getBiome() {
+        return this.biome;
     }
 }

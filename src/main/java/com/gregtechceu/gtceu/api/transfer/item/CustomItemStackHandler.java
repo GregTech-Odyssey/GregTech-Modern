@@ -8,20 +8,14 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.ItemStackHandler;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Predicate;
 
-public class CustomItemStackHandler extends ItemStackHandler
-                                    implements IContentChangeAware, ITagSerializable<CompoundTag> {
+public class CustomItemStackHandler extends ItemStackHandler implements IContentChangeAware, ITagSerializable<CompoundTag> {
 
-    @Getter
-    @Setter
-    protected @NotNull Runnable onContentsChanged = () -> {};
-    @Getter
-    @Setter
+    @NotNull
+    protected Runnable onContentsChanged = () -> {};
     protected Predicate<ItemStack> filter = stack -> true;
 
     public CustomItemStackHandler() {
@@ -53,5 +47,25 @@ public class CustomItemStackHandler extends ItemStackHandler
     public void clear() {
         stacks.clear();
         onContentsChanged.run();
+    }
+
+    @NotNull
+    public Runnable getOnContentsChanged() {
+        return this.onContentsChanged;
+    }
+
+    public void setOnContentsChanged(@NotNull final Runnable onContentsChanged) {
+        if (onContentsChanged == null) {
+            throw new NullPointerException("onContentsChanged is marked non-null but is null");
+        }
+        this.onContentsChanged = onContentsChanged;
+    }
+
+    public Predicate<ItemStack> getFilter() {
+        return this.filter;
+    }
+
+    public void setFilter(final Predicate<ItemStack> filter) {
+        this.filter = filter;
     }
 }

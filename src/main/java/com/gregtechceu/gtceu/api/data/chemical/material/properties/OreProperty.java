@@ -6,8 +6,6 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 import net.minecraft.util.Mth;
 
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -22,57 +20,41 @@ public class OreProperty implements IMaterialProperty {
      * <p>
      * Default: none, meaning only this property's Material.
      */
-    @Getter
     private final List<Material> oreByProducts = new ArrayList<>();
-
     /**
      * Crushed Ore output amount multiplier during Maceration.
      * <p>
      * Default: 1 (no multiplier).
      */
-    @Getter
-    @Setter
     private int oreMultiplier;
-
     /**
      * Byproducts output amount multiplier during Maceration.
      * <p>
      * Default: 1 (no multiplier).
      */
-    @Getter
-    @Setter
     private int byProductMultiplier;
-
     /**
      * Should ore block use the emissive texture.
      * <p>
      * Default: false.
      */
-    @Getter
-    @Setter
     private boolean emissive;
-
     /**
      * Material to which smelting of this Ore will result.
      * <p>
      * Material will have a Dust Property.
      * Default: none.
      */
-    @Getter
-    @Setter
     @NotNull
     private Material directSmeltResult = GTMaterials.NULL;
-
     /**
      * Material in which this Ore should be washed to give additional output.
      * <p>
      * Material will have a Fluid Property.
      * Default: none.
      */
-    @Setter
     @NotNull
     private Material washedIn = GTMaterials.NULL;
-
     /**
      * The amount of Material that the ore should be washed in
      * in the Chemical Bath.
@@ -80,7 +62,6 @@ public class OreProperty implements IMaterialProperty {
      * Default 100 mb
      */
     private int washedAmount = 100;
-
     /**
      * During Electromagnetic Separation, this Ore will be separated
      * into this Material and the Material specified by this field.
@@ -89,7 +70,6 @@ public class OreProperty implements IMaterialProperty {
      * Material will have a Dust Property.
      * Default: none.
      */
-    @Getter
     private final List<Material> separatedInto = new ArrayList<>();
 
     public OreProperty(int oreMultiplier, int byProductMultiplier) {
@@ -116,7 +96,8 @@ public class OreProperty implements IMaterialProperty {
         this.washedAmount = washedAmount;
     }
 
-    public @NotNull ObjectIntPair<Material> getWashedIn() {
+    @NotNull
+    public ObjectIntPair<Material> getWashedIn() {
         return ObjectIntPair.of(this.washedIn, this.washedAmount);
     }
 
@@ -167,12 +148,121 @@ public class OreProperty implements IMaterialProperty {
     @Override
     public void verifyProperty(MaterialProperties properties) {
         properties.ensureSet(PropertyKey.DUST, true);
-
-        if (!directSmeltResult.isNull())
-            directSmeltResult.getProperties().ensureSet(PropertyKey.DUST, true);
-        if (!washedIn.isNull())
-            washedIn.getProperties().ensureSet(PropertyKey.FLUID, true);
+        if (!directSmeltResult.isNull()) directSmeltResult.getProperties().ensureSet(PropertyKey.DUST, true);
+        if (!washedIn.isNull()) washedIn.getProperties().ensureSet(PropertyKey.FLUID, true);
         separatedInto.forEach(m -> m.getProperties().ensureSet(PropertyKey.DUST, true));
         oreByProducts.forEach(m -> m.getProperties().ensureSet(PropertyKey.DUST, true));
+    }
+
+    /**
+     * List of Ore byproducts.
+     * <p>
+     * Default: none, meaning only this property's Material.
+     */
+    public List<Material> getOreByProducts() {
+        return this.oreByProducts;
+    }
+
+    /**
+     * Crushed Ore output amount multiplier during Maceration.
+     * <p>
+     * Default: 1 (no multiplier).
+     */
+    public int getOreMultiplier() {
+        return this.oreMultiplier;
+    }
+
+    /**
+     * Crushed Ore output amount multiplier during Maceration.
+     * <p>
+     * Default: 1 (no multiplier).
+     */
+    public void setOreMultiplier(final int oreMultiplier) {
+        this.oreMultiplier = oreMultiplier;
+    }
+
+    /**
+     * Byproducts output amount multiplier during Maceration.
+     * <p>
+     * Default: 1 (no multiplier).
+     */
+    public int getByProductMultiplier() {
+        return this.byProductMultiplier;
+    }
+
+    /**
+     * Byproducts output amount multiplier during Maceration.
+     * <p>
+     * Default: 1 (no multiplier).
+     */
+    public void setByProductMultiplier(final int byProductMultiplier) {
+        this.byProductMultiplier = byProductMultiplier;
+    }
+
+    /**
+     * Should ore block use the emissive texture.
+     * <p>
+     * Default: false.
+     */
+    public boolean isEmissive() {
+        return this.emissive;
+    }
+
+    /**
+     * Should ore block use the emissive texture.
+     * <p>
+     * Default: false.
+     */
+    public void setEmissive(final boolean emissive) {
+        this.emissive = emissive;
+    }
+
+    /**
+     * Material to which smelting of this Ore will result.
+     * <p>
+     * Material will have a Dust Property.
+     * Default: none.
+     */
+    @NotNull
+    public Material getDirectSmeltResult() {
+        return this.directSmeltResult;
+    }
+
+    /**
+     * Material to which smelting of this Ore will result.
+     * <p>
+     * Material will have a Dust Property.
+     * Default: none.
+     */
+    public void setDirectSmeltResult(@NotNull final Material directSmeltResult) {
+        if (directSmeltResult == null) {
+            throw new NullPointerException("directSmeltResult is marked non-null but is null");
+        }
+        this.directSmeltResult = directSmeltResult;
+    }
+
+    /**
+     * Material in which this Ore should be washed to give additional output.
+     * <p>
+     * Material will have a Fluid Property.
+     * Default: none.
+     */
+    public void setWashedIn(@NotNull final Material washedIn) {
+        if (washedIn == null) {
+            throw new NullPointerException("washedIn is marked non-null but is null");
+        }
+        this.washedIn = washedIn;
+    }
+
+    /**
+     * During Electromagnetic Separation, this Ore will be separated
+     * into this Material and the Material specified by this field.
+     * Limit 2 Materials
+     * <p>
+     * Material will have a Dust Property.
+     * Default: none.
+     */
+    public List<Material> getSeparatedInto() {
+        return this.separatedInto;
     }
 }

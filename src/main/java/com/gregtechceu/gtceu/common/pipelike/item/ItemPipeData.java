@@ -6,17 +6,9 @@ import com.gregtechceu.gtceu.utils.GTMath;
 
 import net.minecraft.core.Direction;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.experimental.Accessors;
-
-@Accessors(fluent = true)
-@AllArgsConstructor
 public class ItemPipeData implements IAttachData {
 
-    @Getter
     ItemPipeProperties properties;
-    @Getter
     byte connections;
 
     @Override
@@ -48,5 +40,18 @@ public class ItemPipeData implements IAttachData {
     @Override
     public int hashCode() {
         return GTMath.hashInts(properties.hashCode(), connections);
+    }
+
+    public ItemPipeData(final ItemPipeProperties properties, final byte connections) {
+        this.properties = properties;
+        this.connections = connections;
+    }
+
+    public ItemPipeProperties properties() {
+        return this.properties;
+    }
+
+    public byte connections() {
+        return this.connections;
     }
 }

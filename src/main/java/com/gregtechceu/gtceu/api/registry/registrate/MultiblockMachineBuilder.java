@@ -43,10 +43,6 @@ import com.tterrag.registrate.builders.ItemBuilder;
 import com.tterrag.registrate.util.nullness.NonNullConsumer;
 import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import lombok.experimental.Tolerate;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,46 +53,28 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-@Accessors(chain = true, fluent = true)
 public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDefinition> {
 
-    @Setter
     private boolean generator;
-    @Setter
     private Function<MultiblockMachineDefinition, BlockPattern> pattern;
     private final List<Function<MultiblockMachineDefinition, List<MultiblockShapeInfo>>> shapeInfos = new ArrayList<>();
     /**
      * Set this to false only if your multiblock is set up such that it could have a wall-shared controller.
      */
-    @Setter
     private boolean allowFlip = true;
     private final List<Supplier<ItemStack[]>> recoveryItems = new ArrayList<>();
-    @Setter
-    private Function<MultiblockControllerMachine, Comparator<IMultiPart>> partSorter = (c) -> (a, b) -> 0;
-    @Setter
+    private Function<MultiblockControllerMachine, Comparator<IMultiPart>> partSorter = c -> (a, b) -> 0;
     private TriFunction<IMultiController, IMultiPart, Direction, BlockState> partAppearance;
-    @Getter
-    @Setter
     private BiConsumer<IMultiController, List<Component>> additionalDisplay = (m, l) -> {};
 
-    protected MultiblockMachineBuilder(Registrate registrate, String name,
-                                       Function<IMachineBlockEntity, ? extends MultiblockControllerMachine> metaMachine,
-                                       BiFunction<BlockBehaviour.Properties, MultiblockMachineDefinition, IMachineBlock> blockFactory,
-                                       BiFunction<IMachineBlock, Item.Properties, MetaMachineItem> itemFactory,
-                                       TriFunction<BlockEntityType<?>, BlockPos, BlockState, IMachineBlockEntity> blockEntityFactory) {
-        super(registrate, name, MultiblockMachineDefinition::createDefinition, metaMachine::apply, blockFactory,
-                itemFactory, blockEntityFactory);
+    protected MultiblockMachineBuilder(Registrate registrate, String name, Function<IMachineBlockEntity, ? extends MultiblockControllerMachine> metaMachine, BiFunction<BlockBehaviour.Properties, MultiblockMachineDefinition, IMachineBlock> blockFactory, BiFunction<IMachineBlock, Item.Properties, MetaMachineItem> itemFactory, TriFunction<BlockEntityType<?>, BlockPos, BlockState, IMachineBlockEntity> blockEntityFactory) {
+        super(registrate, name, MultiblockMachineDefinition::createDefinition, metaMachine::apply, blockFactory, itemFactory, blockEntityFactory);
         allowExtendedFacing(true);
         allowCoverOnFront(true);
     }
 
-    public static MultiblockMachineBuilder createMulti(Registrate registrate, String name,
-                                                       Function<IMachineBlockEntity, ? extends MultiblockControllerMachine> metaMachine,
-                                                       BiFunction<BlockBehaviour.Properties, MultiblockMachineDefinition, IMachineBlock> blockFactory,
-                                                       BiFunction<IMachineBlock, Item.Properties, MetaMachineItem> itemFactory,
-                                                       TriFunction<BlockEntityType<?>, BlockPos, BlockState, IMachineBlockEntity> blockEntityFactory) {
-        return new MultiblockMachineBuilder(registrate, name, metaMachine, blockFactory, itemFactory,
-                blockEntityFactory);
+    public static MultiblockMachineBuilder createMulti(Registrate registrate, String name, Function<IMachineBlockEntity, ? extends MultiblockControllerMachine> metaMachine, BiFunction<BlockBehaviour.Properties, MultiblockMachineDefinition, IMachineBlock> blockFactory, BiFunction<IMachineBlock, Item.Properties, MetaMachineItem> itemFactory, TriFunction<BlockEntityType<?>, BlockPos, BlockState, IMachineBlockEntity> blockEntityFactory) {
+        return new MultiblockMachineBuilder(registrate, name, metaMachine, blockFactory, itemFactory, blockEntityFactory);
     }
 
     public MultiblockMachineBuilder shapeInfo(Function<MultiblockMachineDefinition, MultiblockShapeInfo> shape) {
@@ -110,8 +88,7 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
     }
 
     public MultiblockMachineBuilder recoveryItems(Supplier<ItemLike[]> items) {
-        this.recoveryItems.add(() -> Arrays.stream(items.get()).map(ItemLike::asItem).map(Item::getDefaultInstance)
-                .toArray(ItemStack[]::new));
+        this.recoveryItems.add(() -> Arrays.stream(items.get()).map(ItemLike::asItem).map(Item::getDefaultInstance).toArray(ItemStack[]::new));
         return this;
     }
 
@@ -141,8 +118,7 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
     }
 
     @Override
-    public MultiblockMachineBuilder multiblockPreviewRenderer(boolean multiBlockWorldPreview,
-                                                              boolean multiBlockXEIPreview) {
+    public MultiblockMachineBuilder multiblockPreviewRenderer(boolean multiBlockWorldPreview, boolean multiBlockXEIPreview) {
         return (MultiblockMachineBuilder) super.multiblockPreviewRenderer(multiBlockWorldPreview, multiBlockXEIPreview);
     }
 
@@ -236,14 +212,12 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
     }
 
     @Override
-    public MultiblockMachineBuilder workableCasingRenderer(ResourceLocation baseCasing, ResourceLocation overlayModel,
-                                                           boolean tint) {
+    public MultiblockMachineBuilder workableCasingRenderer(ResourceLocation baseCasing, ResourceLocation overlayModel, boolean tint) {
         return (MultiblockMachineBuilder) super.workableCasingRenderer(baseCasing, overlayModel, tint);
     }
 
     @Override
-    public MultiblockMachineBuilder sidedWorkableCasingRenderer(String basePath, ResourceLocation overlayModel,
-                                                                boolean tint) {
+    public MultiblockMachineBuilder sidedWorkableCasingRenderer(String basePath, ResourceLocation overlayModel, boolean tint) {
         return (MultiblockMachineBuilder) super.sidedWorkableCasingRenderer(basePath, overlayModel, tint);
     }
 
@@ -297,7 +271,6 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
         return (MultiblockMachineBuilder) super.conditionalTooltip(component, condition);
     }
 
-    @Tolerate
     public MultiblockMachineBuilder partSorter(Comparator<IMultiPart> sorter) {
         this.partSorter = $ -> sorter;
         return this;
@@ -388,7 +361,6 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
     }
 
     @Override
-
     public MultiblockMachineDefinition register() {
         var definition = super.register();
         definition.setGenerator(generator);
@@ -396,12 +368,10 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
             throw new IllegalStateException("missing pattern while creating multiblock " + name);
         }
         definition.setPatternFactory(GTMemoizer.memoize(() -> pattern.apply(definition)));
-        definition.setShapes(() -> shapeInfos.stream().map(factory -> factory.apply(definition))
-                .flatMap(Collection::stream).toList());
+        definition.setShapes(() -> shapeInfos.stream().map(factory -> factory.apply(definition)).flatMap(Collection::stream).toList());
         definition.setAllowFlip(allowFlip);
         if (!recoveryItems.isEmpty()) {
-            definition.setRecoveryItems(
-                    () -> recoveryItems.stream().map(Supplier::get).flatMap(Arrays::stream).toArray(ItemStack[]::new));
+            definition.setRecoveryItems(() -> recoveryItems.stream().map(Supplier::get).flatMap(Arrays::stream).toArray(ItemStack[]::new));
         }
         definition.setPartSorter(GTMemoizer.memoizeFunctionWeakIdent(partSorter));
         if (partAppearance == null) {
@@ -410,5 +380,59 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
         definition.setPartAppearance(partAppearance);
         definition.setAdditionalDisplay(additionalDisplay);
         return value = definition;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public MultiblockMachineBuilder generator(final boolean generator) {
+        this.generator = generator;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public MultiblockMachineBuilder pattern(final Function<MultiblockMachineDefinition, BlockPattern> pattern) {
+        this.pattern = pattern;
+        return this;
+    }
+
+    /**
+     * Set this to false only if your multiblock is set up such that it could have a wall-shared controller.
+     * 
+     * @return {@code this}.
+     */
+    public MultiblockMachineBuilder allowFlip(final boolean allowFlip) {
+        this.allowFlip = allowFlip;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public MultiblockMachineBuilder partSorter(final Function<MultiblockControllerMachine, Comparator<IMultiPart>> partSorter) {
+        this.partSorter = partSorter;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public MultiblockMachineBuilder partAppearance(final TriFunction<IMultiController, IMultiPart, Direction, BlockState> partAppearance) {
+        this.partAppearance = partAppearance;
+        return this;
+    }
+
+    public BiConsumer<IMultiController, List<Component>> additionalDisplay() {
+        return this.additionalDisplay;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public MultiblockMachineBuilder additionalDisplay(final BiConsumer<IMultiController, List<Component>> additionalDisplay) {
+        this.additionalDisplay = additionalDisplay;
+        return this;
     }
 }

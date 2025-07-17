@@ -16,11 +16,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 
-import lombok.AllArgsConstructor;
-
 import java.util.UUID;
 
-@AllArgsConstructor
 public class SCPacketShareProspection implements IPacket {
 
     private UUID sender;
@@ -66,21 +63,24 @@ public class SCPacketShareProspection implements IPacket {
                 if (senderInfo == null) {
                     return;
                 }
-
-                Component playerName = senderInfo.getTabListDisplayName() != null ? senderInfo.getTabListDisplayName() :
-                        Component.literal(senderInfo.getProfile().getName());
-
-                Minecraft.getInstance().player.sendSystemMessage(Component
-                        .translatable("command.gtceu.share_prospection_data.notification", playerName));
+                Component playerName = senderInfo.getTabListDisplayName() != null ? senderInfo.getTabListDisplayName() : Component.literal(senderInfo.getProfile().getName());
+                Minecraft.getInstance().player.sendSystemMessage(Component.translatable("command.gtceu.share_prospection_data.notification", playerName));
             }
             ClientCacheManager.processProspectionShare(cacheName, key, isDimCache, dimension, data);
         } else {
-            SCPacketShareProspection newPacket = new SCPacketShareProspection(sender, receiver,
-                    cacheName, key,
-                    isDimCache, dimension,
-                    data, first);
-            GTNetwork.NETWORK.sendToPlayer(newPacket,
-                    GTCEu.getMinecraftServer().getPlayerList().getPlayer(receiver));
+            SCPacketShareProspection newPacket = new SCPacketShareProspection(sender, receiver, cacheName, key, isDimCache, dimension, data, first);
+            GTNetwork.NETWORK.sendToPlayer(newPacket, GTCEu.getMinecraftServer().getPlayerList().getPlayer(receiver));
         }
+    }
+
+    public SCPacketShareProspection(final UUID sender, final UUID receiver, final String cacheName, final String key, final boolean isDimCache, final ResourceKey<Level> dimension, final CompoundTag data, final boolean first) {
+        this.sender = sender;
+        this.receiver = receiver;
+        this.cacheName = cacheName;
+        this.key = key;
+        this.isDimCache = isDimCache;
+        this.dimension = dimension;
+        this.data = data;
+        this.first = first;
     }
 }

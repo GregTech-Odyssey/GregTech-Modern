@@ -9,7 +9,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,12 +37,9 @@ public abstract class PipeNetWalker<T extends IPipeNode<?, ?>, NodeDataType, Net
     protected final List<T> nextPipes = new ArrayList<>(5);
     protected T currentPipe;
     private Direction from = null;
-    @Getter
     protected int walkedBlocks;
-    @Getter
     protected boolean invalid;
     protected boolean running;
-    @Getter
     private boolean failed = false;
 
     protected PipeNetWalker(Net pipeNet, BlockPos sourcePipe, int walkedBlocks) {
@@ -63,8 +59,7 @@ public abstract class PipeNetWalker<T extends IPipeNode<?, ?>, NodeDataType, Net
      * @return new sub walker
      */
     @NotNull
-    protected abstract PipeNetWalker<T, NodeDataType, Net> createSubWalker(Net pipeNet, Direction facingToNextPos,
-                                                                           BlockPos nextPos, int walkedBlocks);
+    protected abstract PipeNetWalker<T, NodeDataType, Net> createSubWalker(Net pipeNet, Direction facingToNextPos, BlockPos nextPos, int walkedBlocks);
 
     /**
      * Checks the neighbour of the current pos
@@ -74,8 +69,7 @@ public abstract class PipeNetWalker<T extends IPipeNode<?, ?>, NodeDataType, Net
      * @param pipeNode        pipeNode
      * @param neighbourTile   the neighboring BlockEntity. Might not be a pipe.
      */
-    protected void checkNeighbour(T pipeNode, BlockPos pipePos, Direction faceToNeighbour,
-                                  @Nullable BlockEntity neighbourTile) {}
+    protected void checkNeighbour(T pipeNode, BlockPos pipePos, Direction faceToNeighbour, @Nullable BlockEntity neighbourTile) {}
 
     /**
      * If the pipe is valid to perform a walk on
@@ -127,8 +121,7 @@ public abstract class PipeNetWalker<T extends IPipeNode<?, ?>, NodeDataType, Net
      * @throws IllegalStateException if the walker already walked
      */
     public void traversePipeNet(int maxWalks) {
-        if (invalid)
-            throw new IllegalStateException("This walker already walked. Create a new one if you want to walk again");
+        if (invalid) throw new IllegalStateException("This walker already walked. Create a new one if you want to walk again");
         root = this;
         walked = new ObjectOpenHashSet<>();
         int i = 0;
@@ -136,8 +129,7 @@ public abstract class PipeNetWalker<T extends IPipeNode<?, ?>, NodeDataType, Net
         while (running && !walk() && i++ < maxWalks);
         running = false;
         root.walked.clear();
-        if (i >= maxWalks)
-            GTCEu.LOGGER.warn("The walker reached the maximum amount of walks {}", i);
+        if (i >= maxWalks) GTCEu.LOGGER.warn("The walker reached the maximum amount of walks {}", i);
         invalid = true;
     }
 
@@ -147,9 +139,7 @@ public abstract class PipeNetWalker<T extends IPipeNode<?, ?>, NodeDataType, Net
                 this.root.failed = true;
                 return true;
             }
-
-            if (nextPipeFacings.isEmpty())
-                return true;
+            if (nextPipeFacings.isEmpty()) return true;
             if (nextPipeFacings.size() == 1) {
                 currentPos.set(nextPipes.get(0).getPipePos());
                 currentPipe = nextPipes.get(0);
@@ -157,13 +147,10 @@ public abstract class PipeNetWalker<T extends IPipeNode<?, ?>, NodeDataType, Net
                 walkedBlocks++;
                 return !isRunning();
             }
-
             walkers = new ArrayList<>();
             for (int i = 0; i < nextPipeFacings.size(); i++) {
                 Direction side = nextPipeFacings.get(i);
-                PipeNetWalker<T, NodeDataType, Net> walker = Objects.requireNonNull(
-                        createSubWalker(pipeNet, side, currentPos.relative(side), walkedBlocks + 1),
-                        "Walker can't be null");
+                PipeNetWalker<T, NodeDataType, Net> walker = Objects.requireNonNull(createSubWalker(pipeNet, side, currentPos.relative(side), walkedBlocks + 1), "Walker can\'t be null");
                 walker.root = root;
                 walker.currentPipe = nextPipes.get(i);
                 walker.from = side.getOpposite();
@@ -178,7 +165,6 @@ public abstract class PipeNetWalker<T extends IPipeNode<?, ?>, NodeDataType, Net
                 iterator.remove();
             }
         }
-
         return !isRunning() || walkers.isEmpty();
     }
 
@@ -199,19 +185,14 @@ public abstract class PipeNetWalker<T extends IPipeNode<?, ?>, NodeDataType, Net
         T pipeTile = currentPipe;
         checkPipe(pipeTile, currentPos);
         root.walked.add(pipeTile);
-
         // check for surrounding pipes and item handlers
         for (Direction accessSide : getSurroundingPipeSides()) {
             // skip sides reported as blocked by pipe network
-            if (accessSide == from || !pipeTile.isConnected(accessSide))
-                continue;
-
+            if (accessSide == from || !pipeTile.isConnected(accessSide)) continue;
             BlockEntity tile = pipeTile.getNeighbor(accessSide);
             if (tile != null && getBasePipeClass().isAssignableFrom(tile.getClass())) {
                 T otherPipe = (T) tile;
-                if (!otherPipe.isConnected(accessSide.getOpposite()) ||
-                        otherPipe.isBlocked(accessSide.getOpposite()) || isWalked(otherPipe))
-                    continue;
+                if (!otherPipe.isConnected(accessSide.getOpposite()) || otherPipe.isBlocked(accessSide.getOpposite()) || isWalked(otherPipe)) continue;
                 if (isValidPipe(pipeTile, otherPipe, currentPos, accessSide)) {
                     nextPipeFacings.add(accessSide);
                     nextPipes.add(otherPipe);
@@ -244,5 +225,17 @@ public abstract class PipeNetWalker<T extends IPipeNode<?, ?>, NodeDataType, Net
 
     public BlockPos getCurrentPos() {
         return currentPos.immutable();
+    }
+
+    public int getWalkedBlocks() {
+        return this.walkedBlocks;
+    }
+
+    public boolean isInvalid() {
+        return this.invalid;
+    }
+
+    public boolean isFailed() {
+        return this.failed;
     }
 }

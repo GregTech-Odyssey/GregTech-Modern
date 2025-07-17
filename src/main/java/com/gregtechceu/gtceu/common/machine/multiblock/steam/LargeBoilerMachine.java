@@ -35,7 +35,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.material.Fluids;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,15 +47,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class LargeBoilerMachine extends WorkableMultiblockMachine implements IExplosionMachine, IDisplayUIMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(LargeBoilerMachine.class,
-            WorkableMultiblockMachine.MANAGED_FIELD_HOLDER);
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(LargeBoilerMachine.class, WorkableMultiblockMachine.MANAGED_FIELD_HOLDER);
     public static final int TICKS_PER_STEAM_GENERATION = 5;
-
-    @Getter
-    public final int maxTemperature, heatSpeed;
+    public final int maxTemperature;
+    public final int heatSpeed;
     @Persisted
-    @Getter
-    private int currentTemperature, throttle;
+    private int currentTemperature;
+    @Persisted
+    private int throttle;
     @Nullable
     protected TickableSubscription temperatureSubs;
     private int steamGenerated;
@@ -76,7 +74,6 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
     //////////////////////////////////////
     // ****** Recipe Logic ******//
     //////////////////////////////////////
-
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
@@ -121,13 +118,12 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
         } else if (currentTemperature > 0) {
             currentTemperature -= getCoolDownRate();
         }
-
         if (isFormed() && getOffsetTimer() % TICKS_PER_STEAM_GENERATION == 0) {
-            var maxDrain = currentTemperature * throttle * TICKS_PER_STEAM_GENERATION /
-                    (ConfigHolder.INSTANCE.machines.largeBoilers.steamPerWater * 100);
+            var maxDrain = currentTemperature * throttle * TICKS_PER_STEAM_GENERATION / (ConfigHolder.INSTANCE.machines.largeBoilers.steamPerWater * 100);
             if (currentTemperature < 100) {
                 steamGenerated = 0;
-            } else if (maxDrain > 0) { // if maxDrain is 0 because throttle is too low, skip trying to make steam
+            } else if (maxDrain > 0) {
+                // if maxDrain is 0 because throttle is too low, skip trying to make steam
                 // drain water
                 var drainWater = List.of(FluidIngredient.of(maxDrain, Fluids.WATER));
                 List<IRecipeHandler<?>> inputTanks = new ArrayList<>();
@@ -139,11 +135,8 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
                         break;
                     }
                 }
-                var drained = (drainWater == null || drainWater.isEmpty()) ? maxDrain :
-                        maxDrain - drainWater.get(0).getAmount();
-
+                var drained = (drainWater == null || drainWater.isEmpty()) ? maxDrain : maxDrain - drainWater.get(0).getAmount();
                 steamGenerated = drained * ConfigHolder.INSTANCE.machines.largeBoilers.steamPerWater;
-
                 if (drained > 0) {
                     // fill steam
                     var fillSteam = List.of(FluidIngredient.of(GTMaterials.Steam.getFluid(steamGenerated)));
@@ -155,18 +148,17 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
                         if (fillSteam == null) break;
                     }
                 }
-
                 // check explosion
                 if (drained < maxDrain) {
-                    doExplosion(2f);
+                    doExplosion(2.0F);
                     var center = getPos().below().relative(getFrontFacing().getOpposite());
                     if (GTValues.RNG.nextInt(100) > 80) {
-                        doExplosion(center, 2f);
+                        doExplosion(center, 2.0F);
                     }
                     for (Direction x : Direction.Plane.HORIZONTAL) {
                         for (Direction y : Direction.Plane.HORIZONTAL) {
                             if (GTValues.RNG.nextInt(100) > 80) {
-                                doExplosion(center.relative(x).relative(y), 2f);
+                                doExplosion(center.relative(x).relative(y), 2.0F);
                             }
                         }
                     }
@@ -205,25 +197,16 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
             return RecipeModifier.nullWrongType(LargeBoilerMachine.class, machine);
         }
         if (largeBoilerMachine.throttle == 100) return ModifierFunction.IDENTITY;
-        return ModifierFunction.builder()
-                .durationMultiplier(100.0 / largeBoilerMachine.throttle)
-                .build();
+        return ModifierFunction.builder().durationMultiplier(100.0 / largeBoilerMachine.throttle).build();
     }
 
     public void addDisplayText(List<Component> textList) {
         IDisplayUIMachine.super.addDisplayText(textList);
         if (isFormed()) {
-            textList.add(Component.translatable("gtceu.multiblock.large_boiler.temperature",
-                    currentTemperature + 274, maxTemperature + 274));
-            textList.add(Component.translatable("gtceu.multiblock.large_boiler.steam_output",
-                    steamGenerated / TICKS_PER_STEAM_GENERATION));
-
-            var throttleText = Component.translatable("gtceu.multiblock.large_boiler.throttle",
-                    ChatFormatting.AQUA.toString() + getThrottle() + "%")
-                    .withStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                            Component.translatable("gtceu.multiblock.large_boiler.throttle.tooltip"))));
+            textList.add(Component.translatable("gtceu.multiblock.large_boiler.temperature", currentTemperature + 274, maxTemperature + 274));
+            textList.add(Component.translatable("gtceu.multiblock.large_boiler.steam_output", steamGenerated / TICKS_PER_STEAM_GENERATION));
+            var throttleText = Component.translatable("gtceu.multiblock.large_boiler.throttle", ChatFormatting.AQUA.toString() + getThrottle() + "%").withStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("gtceu.multiblock.large_boiler.throttle.tooltip"))));
             textList.add(throttleText);
-
             var buttonText = Component.translatable("gtceu.multiblock.large_boiler.throttle_modify");
             buttonText.append(" ");
             buttonText.append(ComponentPanelWidget.withButton(Component.literal("[-]"), "sub"));
@@ -243,5 +226,21 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
     @Override
     public IGuiTexture getScreenTexture() {
         return GuiTextures.DISPLAY_STEAM.get(maxTemperature > 800);
+    }
+
+    public int getMaxTemperature() {
+        return this.maxTemperature;
+    }
+
+    public int getHeatSpeed() {
+        return this.heatSpeed;
+    }
+
+    public int getCurrentTemperature() {
+        return this.currentTemperature;
+    }
+
+    public int getThrottle() {
+        return this.throttle;
     }
 }

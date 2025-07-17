@@ -12,8 +12,6 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 
-import lombok.Getter;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -23,10 +21,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class LargeChemicalBathMachine extends WorkableElectricMultiblockMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            LargeChemicalBathMachine.class, WorkableElectricMultiblockMachine.MANAGED_FIELD_HOLDER);
-
-    @Getter
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(LargeChemicalBathMachine.class, WorkableElectricMultiblockMachine.MANAGED_FIELD_HOLDER);
     @DescSynced
     @RequireRerender
     private final Set<BlockPos> fluidBlockOffsets = new HashSet<>();
@@ -64,15 +59,17 @@ public class LargeChemicalBathMachine extends WorkableElectricMultiblockMachine 
             clockWise = Direction.UP;
             counterClockWise = Direction.DOWN;
         }
-
         BlockPos pos = getPos();
         BlockPos center = pos.relative(up);
-
         for (int i = 0; i < 5; i++) {
             center = center.relative(back);
             fluidBlockOffsets.add(center.subtract(pos));
             fluidBlockOffsets.add(center.relative(clockWise).subtract(pos));
             fluidBlockOffsets.add(center.relative(counterClockWise).subtract(pos));
         }
+    }
+
+    public Set<BlockPos> getFluidBlockOffsets() {
+        return this.fluidBlockOffsets;
     }
 }

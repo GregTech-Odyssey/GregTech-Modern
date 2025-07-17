@@ -42,9 +42,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,29 +49,21 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class ItemBusPartMachine extends TieredIOPartMachine
-                                implements IDistinctPart, IMachineLife, IHasCircuitSlot, IPaintable {
+public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinctPart, IMachineLife, IHasCircuitSlot, IPaintable {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ItemBusPartMachine.class,
-            TieredIOPartMachine.MANAGED_FIELD_HOLDER);
-    @Getter
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ItemBusPartMachine.class, TieredIOPartMachine.MANAGED_FIELD_HOLDER);
     @Persisted
     private final NotifiableItemStackHandler inventory;
     @Nullable
     protected TickableSubscription autoIOSubs;
     @Nullable
     protected ISubscription inventorySubs;
-    @Getter(AccessLevel.PROTECTED)
     private boolean hasCircuitSlot = true;
-    @Getter
-    @Setter
     @Persisted
     @DescSynced
     protected boolean circuitSlotEnabled;
-    @Getter
     @Persisted
     protected final NotifiableItemStackHandler circuitInventory;
-    @Getter
     @Persisted
     @DescSynced
     private boolean isDistinct = false;
@@ -105,8 +94,7 @@ public class ItemBusPartMachine extends TieredIOPartMachine
 
     protected NotifiableItemStackHandler createCircuitItemHandler(Object... args) {
         if (args.length > 0 && args[0] instanceof IO io && io == IO.IN) {
-            return new NotifiableItemStackHandler(this, 1, IO.IN, IO.NONE)
-                    .setFilter(IntCircuitBehaviour::isIntegratedCircuit);
+            return new NotifiableItemStackHandler(this, 1, IO.IN, IO.NONE).setFilter(IntCircuitBehaviour::isIntegratedCircuit);
         } else {
             hasCircuitSlot = false;
             setCircuitSlotEnabled(false);
@@ -117,7 +105,6 @@ public class ItemBusPartMachine extends TieredIOPartMachine
     @Override
     public void onMachineRemoved() {
         clearInventory(getInventory().storage);
-
         if (!ConfigHolder.INSTANCE.machines.ghostCircuit) {
             clearInventory(circuitInventory.storage);
         }
@@ -201,7 +188,6 @@ public class ItemBusPartMachine extends TieredIOPartMachine
     //////////////////////////////////////
     // ******** Auto IO *********//
     //////////////////////////////////////
-
     @Override
     public void onNeighborChanged(Block block, BlockPos fromPos, boolean isMoving) {
         super.onNeighborChanged(block, fromPos, isMoving);
@@ -219,8 +205,7 @@ public class ItemBusPartMachine extends TieredIOPartMachine
     }
 
     protected void updateInventorySubscription(Direction newFacing) {
-        if (isWorkingEnabled() && ((io == IO.OUT && !getInventory().isEmpty()) || io == IO.IN) &&
-                GTTransferUtils.hasAdjacentItemHandler(getLevel(), getPos(), newFacing)) {
+        if (isWorkingEnabled() && ((io == IO.OUT && !getInventory().isEmpty()) || io == IO.IN) && GTTransferUtils.hasAdjacentItemHandler(getLevel(), getPos(), newFacing)) {
             autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO);
         } else if (autoIOSubs != null) {
             autoIOSubs.unsubscribe();
@@ -248,8 +233,7 @@ public class ItemBusPartMachine extends TieredIOPartMachine
     }
 
     @Override
-    protected InteractionResult onScrewdriverClick(Player playerIn, InteractionHand hand, Direction gridSide,
-                                                   BlockHitResult hitResult) {
+    protected InteractionResult onScrewdriverClick(Player playerIn, InteractionHand hand, Direction gridSide, BlockHitResult hitResult) {
         InteractionResult superResult = super.onScrewdriverClick(playerIn, hand, gridSide, hitResult);
         if (superResult != InteractionResult.PASS) return superResult;
         if (io == IO.BOTH) return InteractionResult.PASS;
@@ -269,12 +253,9 @@ public class ItemBusPartMachine extends TieredIOPartMachine
         } else if (io == IO.OUT) {
             newDefinition = GTMachines.ITEM_IMPORT_BUS[this.getTier()];
         }
-
         if (newDefinition == null) return false;
         BlockState newBlockState = newDefinition.getBlock().defaultBlockState();
-
         getLevel().setBlockAndUpdate(blockPos, newBlockState);
-
         if (getLevel().getBlockEntity(blockPos) instanceof IMachineBlockEntity newHolder) {
             if (newHolder.getMetaMachine() instanceof ItemBusPartMachine newMachine) {
                 // We don't set the circuit or distinct busses, since
@@ -292,7 +273,6 @@ public class ItemBusPartMachine extends TieredIOPartMachine
     //////////////////////////////////////
     // ********** GUI ***********//
     //////////////////////////////////////
-
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
         if (this.io == IO.OUT) {
             IDistinctPart.super.superAttachConfigurators(configuratorPanel);
@@ -317,16 +297,35 @@ public class ItemBusPartMachine extends TieredIOPartMachine
         int index = 0;
         for (int y = 0; y < colSize; y++) {
             for (int x = 0; x < rowSize; x++) {
-                container.addWidget(
-                        new SlotWidget(getInventory().storage, index++, 4 + x * 18, 4 + y * 18, true, io.support(IO.IN))
-                                .setBackgroundTexture(GuiTextures.SLOT)
-                                .setIngredientIO(this.io == IO.IN ? IngredientIO.INPUT : IngredientIO.OUTPUT));
+                container.addWidget(new SlotWidget(getInventory().storage, index++, 4 + x * 18, 4 + y * 18, true, io.support(IO.IN)).setBackgroundTexture(GuiTextures.SLOT).setIngredientIO(this.io == IO.IN ? IngredientIO.INPUT : IngredientIO.OUTPUT));
             }
         }
-
         container.setBackground(GuiTextures.BACKGROUND_INVERSE);
         group.addWidget(container);
-
         return group;
+    }
+
+    public NotifiableItemStackHandler getInventory() {
+        return this.inventory;
+    }
+
+    protected boolean isHasCircuitSlot() {
+        return this.hasCircuitSlot;
+    }
+
+    public boolean isCircuitSlotEnabled() {
+        return this.circuitSlotEnabled;
+    }
+
+    public void setCircuitSlotEnabled(final boolean circuitSlotEnabled) {
+        this.circuitSlotEnabled = circuitSlotEnabled;
+    }
+
+    public NotifiableItemStackHandler getCircuitInventory() {
+        return this.circuitInventory;
+    }
+
+    public boolean isDistinct() {
+        return this.isDistinct;
     }
 }

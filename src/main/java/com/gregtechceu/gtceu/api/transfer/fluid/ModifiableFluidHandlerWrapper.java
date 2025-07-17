@@ -3,10 +3,8 @@ package com.gregtechceu.gtceu.api.transfer.fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
-import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-@AllArgsConstructor
 public class ModifiableFluidHandlerWrapper implements IFluidHandlerModifiable {
 
     private IFluidHandler handler;
@@ -27,7 +25,8 @@ public class ModifiableFluidHandlerWrapper implements IFluidHandlerModifiable {
     }
 
     @Override
-    public @NotNull FluidStack getFluidInTank(int tank) {
+    @NotNull
+    public FluidStack getFluidInTank(int tank) {
         return handler.getFluidInTank(tank);
     }
 
@@ -47,12 +46,18 @@ public class ModifiableFluidHandlerWrapper implements IFluidHandlerModifiable {
     }
 
     @Override
-    public @NotNull FluidStack drain(FluidStack resource, FluidAction action) {
+    @NotNull
+    public FluidStack drain(FluidStack resource, FluidAction action) {
         return handler.drain(resource, action);
     }
 
     @Override
-    public @NotNull FluidStack drain(int maxDrain, FluidAction action) {
+    @NotNull
+    public FluidStack drain(int maxDrain, FluidAction action) {
         return handler.drain(maxDrain, action);
+    }
+
+    public ModifiableFluidHandlerWrapper(final IFluidHandler handler) {
+        this.handler = handler;
     }
 }

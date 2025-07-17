@@ -44,8 +44,6 @@ import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
 import com.tterrag.registrate.util.nullness.NonNullBiFunction;
 import com.tterrag.registrate.util.nullness.NonNullConsumer;
 import com.tterrag.registrate.util.nullness.NonNullSupplier;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -56,52 +54,42 @@ import java.util.function.Supplier;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-@Accessors(chain = true, fluent = true)
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowing, P, GTFluidBuilder<P>>
-                           implements IGTFluidBuilder {
+public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowing, P, GTFluidBuilder<P>> implements IGTFluidBuilder {
 
-    @Setter
     public int temperature = 300;
-    @Setter
     public int density = 1000;
-    @Setter
     public int luminance = 0;
-    @Setter
     public int viscosity = 1000;
-    @Setter
     public int color = -1;
-    @Setter
     public int burnTime = -1;
-    @Setter
     public FluidState state;
 
     @FunctionalInterface
     public interface FluidTypeFactory {
 
-        FluidType create(String langKey, Material material, FluidType.Properties properties,
-                         ResourceLocation stillTexture, ResourceLocation flowingTexture, int color);
+        FluidType create(String langKey, Material material, FluidType.Properties properties, ResourceLocation stillTexture, ResourceLocation flowingTexture, int color);
     }
 
-    private final String sourceName, bucketName;
+    private final String sourceName;
+    private final String bucketName;
     private final Material material;
     private final String langKey;
-
-    private final ResourceLocation stillTexture, flowingTexture;
-
+    private final ResourceLocation stillTexture;
+    private final ResourceLocation flowingTexture;
     @Nullable
     private final NonNullSupplier<FluidType> fluidType;
-
     @Nullable
-    private Boolean defaultSource, defaultBlock, defaultBucket;
-
+    private Boolean defaultSource;
+    @Nullable
+    private Boolean defaultBlock;
+    @Nullable
+    private Boolean defaultBucket;
     private NonNullConsumer<FluidType.Properties> typeProperties = $ -> {};
-
-    private @Nullable Supplier<RenderType> layer = null;
-
+    @Nullable
+    private Supplier<RenderType> layer = null;
     private boolean registerType;
-
     @Nullable
     private NonNullSupplier<? extends GTFluid> source;
     @Nullable
@@ -110,9 +98,7 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
     private NonNullSupplier<? extends BucketItem> bucket;
     private final List<TagKey<Fluid>> tags = new ArrayList<>();
 
-    public GTFluidBuilder(AbstractRegistrate<?> owner, P parent, Material material, String name, String langKey,
-                          BuilderCallback callback, ResourceLocation stillTexture, ResourceLocation flowingTexture,
-                          GTFluidBuilder.FluidTypeFactory typeFactory) {
+    public GTFluidBuilder(AbstractRegistrate<?> owner, P parent, Material material, String name, String langKey, BuilderCallback callback, ResourceLocation stillTexture, ResourceLocation flowingTexture, GTFluidBuilder.FluidTypeFactory typeFactory) {
         super(owner, parent, "flowing_" + name, callback, ForgeRegistries.Keys.FLUIDS);
         this.sourceName = name;
         this.bucketName = name + "_bucket";
@@ -120,8 +106,7 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
         this.langKey = langKey;
         this.stillTexture = stillTexture;
         this.flowingTexture = flowingTexture;
-        this.fluidType = NonNullSupplier.lazy(() -> typeFactory.create(langKey, material, makeTypeProperties(),
-                this.stillTexture, this.flowingTexture, this.color));
+        this.fluidType = NonNullSupplier.lazy(() -> typeFactory.create(langKey, material, makeTypeProperties(), this.stillTexture, this.flowingTexture, this.color));
         this.registerType = true;
         defaultBucket();
     }
@@ -137,10 +122,8 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
     @SuppressWarnings("deprecation")
     public GTFluidBuilder<P> renderType(Supplier<RenderType> layer) {
         DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
-            Preconditions.checkArgument(RenderType.chunkBufferLayers().contains(layer.get()),
-                    "Invalid render type: " + layer);
+            Preconditions.checkArgument(RenderType.chunkBufferLayers().contains(layer.get()), "Invalid render type: " + layer);
         });
-
         if (this.layer == null) {
             onRegister(this::registerRenderType);
         }
@@ -192,14 +175,7 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
             throw new IllegalStateException("Only one call to block/noBlock per builder allowed");
         }
         NonNullSupplier<GTFluidImpl.Flowing> supplier = asSupplier();
-
-        return getOwner().<B, GTFluidBuilder<P>>block(this, sourceName, p -> factory.apply(supplier, p))
-                .properties(p -> BlockBehaviour.Properties.copy(Blocks.WATER).noLootTable())
-                .properties(p -> p.lightLevel(blockState -> fluidType.get().getLightLevel()))
-                .setData(ProviderType.LANG, NonNullBiConsumer.noop())
-                .blockstate((ctx, prov) -> prov.simpleBlock(ctx.getEntry(), prov.models().getBuilder(sourceName)
-                        .texture("particle", stillTexture)))
-                .onRegister(block -> this.block = () -> block);
+        return getOwner().<B, GTFluidBuilder<P>>block(this, sourceName, p -> factory.apply(supplier, p)).properties(p -> BlockBehaviour.Properties.copy(Blocks.WATER).noLootTable()).properties(p -> p.lightLevel(blockState -> fluidType.get().getLightLevel())).setData(ProviderType.LANG, NonNullBiConsumer.noop()).blockstate((ctx, prov) -> prov.simpleBlock(ctx.getEntry(), prov.models().getBuilder(sourceName).texture("particle", stillTexture))).onRegister(block -> this.block = () -> block);
     }
 
     public GTFluidBuilder<P> noBlock() {
@@ -230,23 +206,14 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
         if (this.defaultBucket == Boolean.FALSE) {
             throw new IllegalStateException("Only one call to bucket/noBucket per builder allowed");
         }
-
-        return getOwner().item(this, bucketName, p -> new GTBucketItem(this.source, p, this.material, this.langKey))
-                .properties(p -> p.craftRemainder(Items.BUCKET).stacksTo(1))
-                .color(() -> () -> GTBucketItem::color)
-                .setData(ProviderType.LANG, NonNullBiConsumer.noop())
-                .model(NonNullBiConsumer.noop())
-                .onRegister(bucket -> this.bucket = () -> bucket);
+        return getOwner().item(this, bucketName, p -> new GTBucketItem(this.source, p, this.material, this.langKey)).properties(p -> p.craftRemainder(Items.BUCKET).stacksTo(1)).color(() -> () -> GTBucketItem::color).setData(ProviderType.LANG, NonNullBiConsumer.noop()).model(NonNullBiConsumer.noop()).onRegister(bucket -> this.bucket = () -> bucket);
     }
 
     @SafeVarargs
     public final GTFluidBuilder<P> tag(TagKey<Fluid>... tags) {
         GTFluidBuilder<P> ret = this.tag(ProviderType.FLUID_TAGS, tags);
         if (this.tags.isEmpty()) {
-            ret.getOwner().<RegistrateTagsProvider<Fluid>, Fluid>setDataGenerator(ret.sourceName, getRegistryKey(),
-                    ProviderType.FLUID_TAGS,
-                    prov -> this.tags.stream().map(prov::addTag)
-                            .forEach(p -> p.add(getSource().builtInRegistryHolder().key())));
+            ret.getOwner().<RegistrateTagsProvider<Fluid>, Fluid>setDataGenerator(ret.sourceName, getRegistryKey(), ProviderType.FLUID_TAGS, prov -> this.tags.stream().map(prov::addTag).forEach(p -> p.add(getSource().builtInRegistryHolder().key())));
         }
         this.tags.addAll(Arrays.asList(tags));
         return ret;
@@ -262,7 +229,6 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
         FluidType.Properties properties = FluidType.Properties.create();
         RegistryEntry<Block> block = getOwner().getOptional(sourceName, ForgeRegistries.Keys.BLOCKS);
         this.typeProperties.accept(properties);
-
         // Force the translation key after the user callback runs
         // This is done because we need to remove the lang data generator if using the block key,
         // and if it was possible to undo this change, it might result in the user translation getting
@@ -275,17 +241,12 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
             properties.descriptionId(langKey);
         }
         setData(ProviderType.LANG, NonNullBiConsumer.noop());
-
-        return properties.sound(SoundActions.BUCKET_FILL, SoundEvents.BUCKET_FILL)
-                .sound(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY).temperature(temperature).density(density)
-                .viscosity(viscosity).lightLevel(luminance);
+        return properties.sound(SoundActions.BUCKET_FILL, SoundEvents.BUCKET_FILL).sound(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY).temperature(temperature).density(density).viscosity(viscosity).lightLevel(luminance);
     }
 
     @Override
     protected GTFluidImpl.Flowing createEntry() {
-        return new GTFluidImpl.Flowing(this.state, () -> this.source.get(), () -> this.get().get(),
-                (() -> this.block != null ? this.block.get() : null),
-                (() -> this.bucket != null ? this.bucket.get() : null), this.burnTime, this.fluidType);
+        return new GTFluidImpl.Flowing(this.state, () -> this.source.get(), () -> this.get().get(), (() -> this.block != null ? this.block.get() : null), (() -> this.bucket != null ? this.bucket.get() : null), this.burnTime, this.fluidType);
     }
 
     @Override
@@ -327,11 +288,8 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
         } else {
             throw new IllegalStateException("Fluid must have a type: " + getName());
         }
-
         if (defaultSource == Boolean.TRUE) {
-            source(() -> new GTFluidImpl.Source(this.state, () -> this.source.get(), () -> this.get().get(),
-                    (() -> this.block != null ? this.block.get() : null),
-                    (() -> this.bucket != null ? this.bucket.get() : null), this.burnTime, this.fluidType));
+            source(() -> new GTFluidImpl.Source(this.state, () -> this.source.get(), () -> this.get().get(), (() -> this.block != null ? this.block.get() : null), (() -> this.bucket != null ? this.bucket.get() : null), this.burnTime, this.fluidType));
         }
         if (defaultBlock == Boolean.TRUE) {
             block().register();
@@ -339,14 +297,12 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
         if (defaultBucket == Boolean.TRUE) {
             bucket().register();
         }
-
         NonNullSupplier<? extends GTFluid> source = this.source;
         if (source != null) {
             getCallback().accept(sourceName, ForgeRegistries.Keys.FLUIDS, (GTFluidBuilder) this, source);
         } else {
             throw new IllegalStateException("Fluid must have a source version: " + getName());
         }
-
         return super.register();
     }
 
@@ -356,9 +312,7 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
         return this.source;
     }
 
-    public static FluidType defaultFluidType(String langKey, Material material, FluidType.Properties properties,
-                                             ResourceLocation stillTexture, ResourceLocation flowingTexture,
-                                             int color) {
+    public static FluidType defaultFluidType(String langKey, Material material, FluidType.Properties properties, ResourceLocation stillTexture, ResourceLocation flowingTexture, int color) {
         return new FluidType(properties) {
 
             @Override
@@ -381,5 +335,61 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
                 return this.getDescription();
             }
         };
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public GTFluidBuilder<P> temperature(final int temperature) {
+        this.temperature = temperature;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public GTFluidBuilder<P> density(final int density) {
+        this.density = density;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public GTFluidBuilder<P> luminance(final int luminance) {
+        this.luminance = luminance;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public GTFluidBuilder<P> viscosity(final int viscosity) {
+        this.viscosity = viscosity;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public GTFluidBuilder<P> color(final int color) {
+        this.color = color;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public GTFluidBuilder<P> burnTime(final int burnTime) {
+        this.burnTime = burnTime;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public GTFluidBuilder<P> state(final FluidState state) {
+        this.state = state;
+        return this;
     }
 }

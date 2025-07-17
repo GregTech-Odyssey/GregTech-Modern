@@ -8,9 +8,6 @@ import com.lowdragmc.lowdraglib.networking.IPacket;
 
 import net.minecraft.network.FriendlyByteBuf;
 
-import lombok.NoArgsConstructor;
-
-@NoArgsConstructor
 public class SPacketSendWorldID implements IPacket {
 
     private String worldId;
@@ -29,4 +26,6 @@ public class SPacketSendWorldID implements IPacket {
     public void execute(IHandlerContext handler) {
         ClientCacheManager.init(worldId);
     }
+
+    public SPacketSendWorldID() {}
 }

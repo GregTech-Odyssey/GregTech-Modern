@@ -8,7 +8,6 @@ import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -18,8 +17,6 @@ import java.util.function.Predicate;
 public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializable<CompoundTag> {
 
     public final IFluidHandler[] handlers;
-
-    @Setter
     protected Predicate<FluidStack> filter = fluid -> true;
 
     public FluidHandlerList(IFluidHandler... handlers) {
@@ -36,7 +33,8 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
     }
 
     @Override
-    public @NotNull FluidStack getFluidInTank(int tank) {
+    @NotNull
+    public FluidStack getFluidInTank(int tank) {
         int index = 0;
         for (IFluidHandler handler : handlers) {
             if (tank - index < handler.getTanks()) {
@@ -76,7 +74,6 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
     @Override
     public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
         if (!filter.test(stack)) return false;
-
         int index = 0;
         for (IFluidHandler handler : handlers) {
             if (tank - index < handler.getTanks()) {
@@ -100,7 +97,8 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
     }
 
     @Override
-    public @NotNull FluidStack drain(FluidStack resource, FluidAction action) {
+    @NotNull
+    public FluidStack drain(FluidStack resource, FluidAction action) {
         if (resource.isEmpty() || !filter.test(resource)) return FluidStack.EMPTY;
         var copied = resource.copy();
         for (IFluidHandler handler : handlers) {
@@ -113,7 +111,8 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
     }
 
     @Override
-    public @NotNull FluidStack drain(int maxDrain, FluidAction action) {
+    @NotNull
+    public FluidStack drain(int maxDrain, FluidAction action) {
         if (maxDrain == 0) return FluidStack.EMPTY;
         FluidStack totalDrained = null;
         for (IFluidHandler handler : handlers) {
@@ -141,7 +140,7 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
             if (handler instanceof INBTSerializable<?> serializable) {
                 list.add(serializable.serializeNBT());
             } else {
-                GTCEu.LOGGER.warn("[FluidHandlerList] internal tank doesn't support serialization");
+                GTCEu.LOGGER.warn("[FluidHandlerList] internal tank doesn\'t support serialization");
             }
         }
         tag.put("tanks", list);
@@ -156,7 +155,7 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
             if (handlers[i] instanceof INBTSerializable serializable) {
                 serializable.deserializeNBT(list.get(i));
             } else {
-                GTCEu.LOGGER.warn("[FluidHandlerList] internal tank doesn't support serialization");
+                GTCEu.LOGGER.warn("[FluidHandlerList] internal tank doesn\'t support serialization");
             }
         }
     }
@@ -168,12 +167,10 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
                 tank -= handler.getTanks();
                 continue;
             }
-
             if (handler instanceof IFluidHandlerModifiable modifiable) {
                 return modifiable.supportsFill(tank);
             }
         }
-
         return true;
     }
 
@@ -184,12 +181,14 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
                 tank -= handler.getTanks();
                 continue;
             }
-
             if (handler instanceof IFluidHandlerModifiable modifiable) {
                 return modifiable.supportsDrain(tank);
             }
         }
-
         return true;
+    }
+
+    public void setFilter(final Predicate<FluidStack> filter) {
+        this.filter = filter;
     }
 }

@@ -18,34 +18,24 @@ import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Predicate;
 
-public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngredient>
-                                 implements ICapabilityTrait, IFluidHandlerModifiable {
+public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngredient> implements ICapabilityTrait, IFluidHandlerModifiable {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(NotifiableFluidTank.class,
-            NotifiableRecipeHandlerTrait.MANAGED_FIELD_HOLDER);
-    @Getter
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(NotifiableFluidTank.class, NotifiableRecipeHandlerTrait.MANAGED_FIELD_HOLDER);
     public final IO handlerIO;
-    @Getter
     public final IO capabilityIO;
     @Persisted
-    @Getter
     protected final CustomFluidTank[] storages;
-    @Getter
     protected boolean allowSameFluids; // Can different tanks be filled with the same fluid. It should be determined
-                                       // while creating tanks.
+    // while creating tanks.
     private Boolean isEmpty;
-
     @Persisted
     @DescSynced
-    @Getter
     protected final CustomFluidTank lockedFluid = new CustomFluidTank(FluidType.BUCKET_VOLUME);
-    @Getter
     protected Predicate<FluidStack> filter = f -> true;
 
     public NotifiableFluidTank(MetaMachine machine, int slots, int capacity, IO io, IO capabilityIO) {
@@ -91,11 +81,9 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     }
 
     @Override
-    public List<FluidIngredient> handleRecipeInner(IO io, GTRecipe recipe, List<FluidIngredient> left,
-                                                   boolean simulate) {
+    public List<FluidIngredient> handleRecipeInner(IO io, GTRecipe recipe, List<FluidIngredient> left, boolean simulate) {
         if (io != handlerIO) return left;
         if (io != IO.IN && io != IO.OUT) return left.isEmpty() ? null : left;
-
         // Temporarily remove listeners so that we can broadcast the entire set of transactions once
         Runnable[] listeners = new Runnable[storages.length];
         for (int i = 0; i < storages.length; i++) {
@@ -103,7 +91,6 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
             storages[i].setOnContentsChanged(() -> {});
         }
         boolean changed = false;
-
         FluidAction action = simulate ? FluidAction.SIMULATE : FluidAction.EXECUTE;
         // Store the FluidStack in each slot after an operation
         // Necessary for simulation since we don't actually modify the slot's contents
@@ -115,15 +102,12 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
                 it.remove();
                 continue;
             }
-
             var fluids = ingredient.getStacks();
             if (fluids.length == 0 || fluids[0].isEmpty()) {
                 it.remove();
                 continue;
             }
-
             int amount = ingredient.getAmount();
-
             if (io == IO.OUT && !allowSameFluids) {
                 CustomFluidTank existing = null;
                 int tank = 0;
@@ -146,18 +130,15 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
                         changed = true;
                     }
                     amount -= filled;
-
                     if (amount > 0) ingredient.setAmount(amount);
                     else it.remove();
                     // Continue to next ingredient regardless of if we filled this ingredient completely
                     continue;
                 }
             }
-
             for (int tank = 0; tank < storages.length; ++tank) {
                 FluidStack current = visited[tank] == null ? getFluidInTank(tank) : visited[tank];
                 int count = current.getAmount();
-
                 if (io == IO.IN) {
                     if (current.isEmpty()) continue;
                     if (ingredient.test(current)) {
@@ -169,7 +150,8 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
                         }
                         amount -= drained.getAmount();
                     }
-                } else { // IO.OUT && allow same fluids
+                } else {
+                    // IO.OUT && allow same fluids
                     FluidStack output = fluids[0].copy();
                     output.setAmount(amount);
                     if (visited[tank] == null || visited[tank].isFluidEqual(output)) {
@@ -180,7 +162,6 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
                                 visited[tank].setAmount(count + filled);
                                 changed = true;
                                 amount -= filled;
-
                                 if (!allowSameFluids) {
                                     if (amount <= 0) it.remove();
                                     break;
@@ -189,7 +170,6 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
                         }
                     }
                 }
-
                 if (amount <= 0) {
                     it.remove();
                     break;
@@ -200,12 +180,10 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
                 ingredient.setAmount(amount);
             }
         }
-
         for (int i = 0; i < storages.length; i++) {
             storages[i].setOnContentsChanged(listeners[i]);
             if (changed && action.execute()) listeners[i].run();
         }
-
         return left.isEmpty() ? null : left;
     }
 
@@ -263,7 +241,8 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     }
 
     @Override
-    public @NotNull List<Object> getContents() {
+    @NotNull
+    public List<Object> getContents() {
         List<FluidStack> ingredients = new ArrayList<>();
         for (int i = 0; i < getTanks(); ++i) {
             FluidStack stack = getFluidInTank(i);
@@ -305,8 +284,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
         var pos = getMachine().getPos();
         for (Direction facing : facings) {
             var filter = getMachine().getFluidCapFilter(facing, IO.OUT);
-            GTTransferUtils.getAdjacentFluidHandler(level, pos, facing)
-                    .ifPresent(adj -> GTTransferUtils.transferFluidsFiltered(this, adj, filter));
+            GTTransferUtils.getAdjacentFluidHandler(level, pos, facing).ifPresent(adj -> GTTransferUtils.transferFluidsFiltered(this, adj, filter));
         }
     }
 
@@ -315,8 +293,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
         var pos = getMachine().getPos();
         for (Direction facing : facings) {
             var filter = getMachine().getFluidCapFilter(facing, IO.IN);
-            GTTransferUtils.getAdjacentFluidHandler(level, pos, facing)
-                    .ifPresent(adj -> GTTransferUtils.transferFluidsFiltered(adj, this, filter));
+            GTTransferUtils.getAdjacentFluidHandler(level, pos, facing).ifPresent(adj -> GTTransferUtils.transferFluidsFiltered(adj, this, filter));
         }
     }
 
@@ -389,7 +366,6 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
 
     public FluidStack drainInternal(FluidStack resource, FluidAction action) {
         if (resource.isEmpty()) return FluidStack.EMPTY;
-
         var copied = resource.copy();
         for (var storage : storages) {
             var candidate = copied.copy();
@@ -438,5 +414,29 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
         if (this.isLocked()) {
             setFilter(stack -> stack.isFluidEqual(this.lockedFluid.getFluid()));
         }
+    }
+
+    public IO getHandlerIO() {
+        return this.handlerIO;
+    }
+
+    public IO getCapabilityIO() {
+        return this.capabilityIO;
+    }
+
+    public CustomFluidTank[] getStorages() {
+        return this.storages;
+    }
+
+    public boolean isAllowSameFluids() {
+        return this.allowSameFluids;
+    }
+
+    public CustomFluidTank getLockedFluid() {
+        return this.lockedFluid;
+    }
+
+    public Predicate<FluidStack> getFilter() {
+        return this.filter;
     }
 }

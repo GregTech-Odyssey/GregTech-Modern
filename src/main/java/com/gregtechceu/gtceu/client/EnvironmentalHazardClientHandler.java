@@ -17,7 +17,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
 
 import it.unimi.dsi.fastutil.floats.FloatIntPair;
-import lombok.Getter;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,10 +27,8 @@ public class EnvironmentalHazardClientHandler {
     public static final int PARTICLE_THRESHOLD = 200;
     public static final int MAX_PARTICLE_DISTANCE = 96;
     public static final int MAX_PARTICLE_DISTANCE_SQR = MAX_PARTICLE_DISTANCE * MAX_PARTICLE_DISTANCE;
-
     public static final float COLORING_LOW = PARTICLE_THRESHOLD;
     public static final float COLORING_HIGH = 600;
-
     public static final EnvironmentalHazardClientHandler INSTANCE = new EnvironmentalHazardClientHandler();
 
     private EnvironmentalHazardClientHandler() {
@@ -43,7 +40,6 @@ public class EnvironmentalHazardClientHandler {
     /**
      * Map of source position to a triple of (trigger, material).
      */
-    @Getter
     private final Map<ChunkPos, EnvironmentalHazardSavedData.HazardZone> hazardZones = new ConcurrentHashMap<>();
     private final Map<ChunkPos, FloatIntPair> chunkColorCache = new ConcurrentHashMap<>();
 
@@ -51,7 +47,6 @@ public class EnvironmentalHazardClientHandler {
         if (!ConfigHolder.INSTANCE.gameplay.environmentalHazards) {
             return;
         }
-
         Level level = Minecraft.getInstance().level;
         if (level == null) {
             return;
@@ -59,7 +54,6 @@ public class EnvironmentalHazardClientHandler {
         RandomSource random = level.random;
         Vec3 playerPosition = Minecraft.getInstance().player.getEyePosition();
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-
         for (var entry : hazardZones.entrySet()) {
             ChunkPos chunkPos = entry.getKey();
             if (!level.hasChunk(chunkPos.x, chunkPos.z)) {
@@ -73,7 +67,6 @@ public class EnvironmentalHazardClientHandler {
             if (source.distToCenterSqr(playerPosition) > MAX_PARTICLE_DISTANCE_SQR) {
                 continue;
             }
-
             for (int i = 0; i < 32; ++i) {
                 // random is slightly over 8 (half a chunk) so that the particles cover the chunk better.
                 // in my testing this didn't spill over too much.
@@ -82,11 +75,7 @@ public class EnvironmentalHazardClientHandler {
                 int randZ = source.getZ() - random.nextInt(9) + random.nextInt(9);
                 pos.set(randX, randY, randZ);
                 if (!level.getBlockState(pos).isCollisionShapeFullBlock(level, pos)) {
-                    level.addParticle(
-                            new HazardParticleOptions(zone.condition().color, zone.strength() / 250f),
-                            pos.getX() + random.nextDouble(), pos.getY() + random.nextDouble(),
-                            pos.getZ() + random.nextDouble(),
-                            0, 0, 0);
+                    level.addParticle(new HazardParticleOptions(zone.condition().color, zone.strength() / 250.0F), pos.getX() + random.nextDouble(), pos.getY() + random.nextDouble(), pos.getZ() + random.nextDouble(), 0, 0, 0);
                 }
             }
         }
@@ -96,20 +85,16 @@ public class EnvironmentalHazardClientHandler {
         if (!ConfigHolder.INSTANCE.gameplay.environmentalHazards) {
             return;
         }
-
         this.hazardZones.clear();
         this.hazardZones.putAll(newZones);
         // must clear tint caches when block colors change
         for (var entry : newZones.entrySet()) {
             if (entry.getValue().strength() > COLORING_LOW) {
                 ChunkPos pos = entry.getKey();
-                for (int y = Minecraft.getInstance().level.getMinSection(); y <
-                        Minecraft.getInstance().level.getMaxSection(); ++y) {
+                for (int y = Minecraft.getInstance().level.getMinSection(); y < Minecraft.getInstance().level.getMaxSection(); ++y) {
                     Minecraft.getInstance().levelRenderer.setSectionDirtyWithNeighbors(pos.x, y, pos.z);
                 }
-
-                ((ClientLevelAccessor) Minecraft.getInstance().level).getTintCaches()
-                        .forEach((colorResolver, blockTintCache) -> blockTintCache.invalidateForChunk(pos.x, pos.z));
+                ((ClientLevelAccessor) Minecraft.getInstance().level).getTintCaches().forEach((colorResolver, blockTintCache) -> blockTintCache.invalidateForChunk(pos.x, pos.z));
             }
         }
     }
@@ -118,7 +103,6 @@ public class EnvironmentalHazardClientHandler {
         if (!ConfigHolder.INSTANCE.gameplay.environmentalHazards) {
             return;
         }
-
         if (hazardZones.containsKey(pos)) {
             hazardZones.get(pos).strength(newStrength);
         }
@@ -132,7 +116,6 @@ public class EnvironmentalHazardClientHandler {
         if (!ConfigHolder.INSTANCE.gameplay.environmentalHazards) {
             return;
         }
-
         this.hazardZones.put(pos, zone);
         // must clear tint caches when block colors change
         if (zone.strength() > COLORING_LOW) {
@@ -142,18 +125,14 @@ public class EnvironmentalHazardClientHandler {
 
     public void removeHazardZone(ChunkPos pos) {
         this.hazardZones.remove(pos);
-
         updateChunks(pos);
     }
 
     private void updateChunks(ChunkPos pos) {
-        for (int y = Minecraft.getInstance().level.getMinSection(); y <
-                Minecraft.getInstance().level.getMaxSection(); ++y) {
+        for (int y = Minecraft.getInstance().level.getMinSection(); y < Minecraft.getInstance().level.getMaxSection(); ++y) {
             Minecraft.getInstance().levelRenderer.setSectionDirtyWithNeighbors(pos.x, y, pos.z);
         }
-
-        ((ClientLevelAccessor) Minecraft.getInstance().level).getTintCaches()
-                .forEach((colorResolver, blockTintCache) -> blockTintCache.invalidateForChunk(pos.x, pos.z));
+        ((ClientLevelAccessor) Minecraft.getInstance().level).getTintCaches().forEach((colorResolver, blockTintCache) -> blockTintCache.invalidateForChunk(pos.x, pos.z));
     }
 
     public int colorZone(int color, ChunkPos pos) {
@@ -162,11 +141,9 @@ public class EnvironmentalHazardClientHandler {
             return color;
         }
         var entry = chunkColorCache.get(pos);
-        if (entry != null &&
-                (entry.firstFloat() > zone.strength() + 0.5f || entry.firstFloat() < zone.strength() - 0.5f)) {
+        if (entry != null && (entry.firstFloat() > zone.strength() + 0.5F || entry.firstFloat() < zone.strength() - 0.5F)) {
             return entry.valueInt();
         }
-
         color = colorize(color, zone.strength(), zone.condition().color);
         chunkColorCache.put(pos, FloatIntPair.of(zone.strength(), color));
         return color;
@@ -180,19 +157,22 @@ public class EnvironmentalHazardClientHandler {
      */
     private static int colorize(int color, float pollution, int newColor) {
         if (pollution < COLORING_LOW) return color;
-
-        int r = (color >> 16) & 0xFF;
-        int g = (color >> 8) & 0xFF;
-        int b = color & 0xFF;
+        int r = (color >> 16) & 255;
+        int g = (color >> 8) & 255;
+        int b = color & 255;
         float ratio = (pollution - COLORING_LOW) / COLORING_HIGH;
         if (ratio > 1) ratio = 1;
-
         float complement = 1 - ratio;
+        r = ((int) (r * complement + ratio * FastColor.ARGB32.red(newColor))) & 255;
+        g = ((int) (g * complement + ratio * FastColor.ARGB32.green(newColor))) & 255;
+        b = ((int) (b * complement + ratio * FastColor.ARGB32.blue(newColor))) & 255;
+        return FastColor.ARGB32.color(255, r, g, b);
+    }
 
-        r = ((int) (r * complement + ratio * FastColor.ARGB32.red(newColor))) & 0xFF;
-        g = ((int) (g * complement + ratio * FastColor.ARGB32.green(newColor))) & 0xFF;
-        b = ((int) (b * complement + ratio * FastColor.ARGB32.blue(newColor))) & 0xFF;
-
-        return FastColor.ARGB32.color(0xFF, r, g, b);
+    /**
+     * Map of source position to a triple of (trigger, material).
+     */
+    public Map<ChunkPos, EnvironmentalHazardSavedData.HazardZone> getHazardZones() {
+        return this.hazardZones;
     }
 }

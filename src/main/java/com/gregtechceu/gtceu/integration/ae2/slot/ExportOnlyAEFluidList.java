@@ -10,17 +10,13 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraftforge.fluids.FluidStack;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
 public class ExportOnlyAEFluidList extends NotifiableFluidTank implements IConfigurableSlotList {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            ExportOnlyAEFluidList.class, NotifiableFluidTank.MANAGED_FIELD_HOLDER);
-
-    @Getter
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ExportOnlyAEFluidList.class, NotifiableFluidTank.MANAGED_FIELD_HOLDER);
     @Persisted
     protected ExportOnlyAEFluidSlot[] inventory;
 
@@ -122,12 +118,14 @@ public class ExportOnlyAEFluidList extends NotifiableFluidTank implements IConfi
         }
 
         @Override
-        public @NotNull FluidStack drain(int maxDrain, FluidAction action) {
+        @NotNull
+        public FluidStack drain(int maxDrain, FluidAction action) {
             return fluid.drain(maxDrain, action);
         }
 
         @Override
-        public @NotNull FluidStack drain(FluidStack resource, FluidAction action) {
+        @NotNull
+        public FluidStack drain(FluidStack resource, FluidAction action) {
             return fluid.drain(resource, action);
         }
 
@@ -140,5 +138,9 @@ public class ExportOnlyAEFluidList extends NotifiableFluidTank implements IConfi
         public boolean supportsFill(int tank) {
             return false;
         }
+    }
+
+    public ExportOnlyAEFluidSlot[] getInventory() {
+        return this.inventory;
     }
 }

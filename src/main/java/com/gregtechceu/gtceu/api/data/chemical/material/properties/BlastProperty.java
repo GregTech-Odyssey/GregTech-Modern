@@ -5,8 +5,6 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import lombok.Getter;
-import lombok.Setter;
 
 public class BlastProperty implements IMaterialProperty {
 
@@ -18,52 +16,36 @@ public class BlastProperty implements IMaterialProperty {
      * If a Material with this Property has a Fluid, its temperature
      * will be set to this if it is the default Fluid temperature.
      */
-    @Getter
     private int blastTemperature;
-
     /**
      * The {@link GasTier} of this Material, representing which Gas EBF recipes will be generated.
      * <p>
      * Default: null, meaning no Gas EBF recipes.
      */
-    @Setter
-    @Getter
     private GasTier gasTier = null;
-
     /**
      * The duration of the EBF recipe, overriding the stock behavior.
      * <p>
      * Default: -1, meaning the duration will be: material.getAverageMass() * blastTemperature / 50
      */
-    @Setter
-    @Getter
     private int durationOverride = -1;
-
     /**
      * The EU/t of the EBF recipe, overriding the stock behavior.
      * <p>
      * Default: -1, meaning the EU/t will be 120.
      */
-    @Setter
-    @Getter
     private int EUtOverride = -1;
-
     /**
      * The duration of the EBF recipe, overriding the stock behavior.
      * <p>
      * Default: -1, meaning the duration will be: material.getMass() * 3
      */
-    @Setter
-    @Getter
     private int vacuumDurationOverride = -1;
-
     /**
      * The EU/t of the Vacuum Freezer recipe (if needed), overriding the stock behavior.
      * <p>
      * Default: -1, meaning the EU/t will be 120 EU/t.
      */
-    @Setter
-    @Getter
     private int vacuumEUtOverride = -1;
 
     public BlastProperty(int blastTemperature) {
@@ -75,8 +57,7 @@ public class BlastProperty implements IMaterialProperty {
         this.gasTier = gasTier;
     }
 
-    public BlastProperty(int blastTemperature, GasTier gasTier, int eutOverride, int durationOverride,
-                         int vacuumEUtOverride, int vacuumDurationOverride) {
+    public BlastProperty(int blastTemperature, GasTier gasTier, int eutOverride, int durationOverride, int vacuumEUtOverride, int vacuumDurationOverride) {
         this.blastTemperature = blastTemperature;
         this.gasTier = gasTier;
         this.EUtOverride = eutOverride;
@@ -111,8 +92,7 @@ public class BlastProperty implements IMaterialProperty {
         else if ("HIGHEST".equalsIgnoreCase(gasTierName)) return GasTier.HIGHEST;
         else {
             String message = "Gas Tier must be either \"LOW\", \"MID\", \"HIGH\", \"HIGHER\", or \"HIGHEST\"";
-            throw new IllegalArgumentException(
-                    "Could not find valid gas tier for name: " + gasTierName + ". " + message);
+            throw new IllegalArgumentException("Could not find valid gas tier for name: " + gasTierName + ". " + message);
         }
     }
 
@@ -122,7 +102,6 @@ public class BlastProperty implements IMaterialProperty {
         LOW(() -> FluidIngredient.of(GTMaterials.Nitrogen.getFluidTag(), 1000)),
         MID(() -> FluidIngredient.of(GTMaterials.Helium.getFluidTag(), 100)),
         HIGH(() -> FluidIngredient.of(GTMaterials.Argon.getFluidTag(), 50)),
-
         // Tiers reserved for addons
         HIGHER(() -> FluidIngredient.of(GTMaterials.Neon.getFluidTag(), 25)),
         HIGHEST(() -> FluidIngredient.of(GTMaterials.Krypton.getFluidTag(), 10));
@@ -188,8 +167,109 @@ public class BlastProperty implements IMaterialProperty {
         }
 
         public BlastProperty build() {
-            return new BlastProperty(temp, gasTier, eutOverride, durationOverride, vacuumEUtOverride,
-                    vacuumDurationOverride);
+            return new BlastProperty(temp, gasTier, eutOverride, durationOverride, vacuumEUtOverride, vacuumDurationOverride);
         }
+    }
+
+    /**
+     * Blast Furnace Temperature of this Material.
+     * If below 1000K, Primitive Blast Furnace recipes will be also added.
+     * If above 1750K, a Hot Ingot and its Vacuum Freezer recipe will be also added.
+     * <p>
+     * If a Material with this Property has a Fluid, its temperature
+     * will be set to this if it is the default Fluid temperature.
+     */
+    public int getBlastTemperature() {
+        return this.blastTemperature;
+    }
+
+    /**
+     * The {@link GasTier} of this Material, representing which Gas EBF recipes will be generated.
+     * <p>
+     * Default: null, meaning no Gas EBF recipes.
+     */
+    public void setGasTier(final GasTier gasTier) {
+        this.gasTier = gasTier;
+    }
+
+    /**
+     * The {@link GasTier} of this Material, representing which Gas EBF recipes will be generated.
+     * <p>
+     * Default: null, meaning no Gas EBF recipes.
+     */
+    public GasTier getGasTier() {
+        return this.gasTier;
+    }
+
+    /**
+     * The duration of the EBF recipe, overriding the stock behavior.
+     * <p>
+     * Default: -1, meaning the duration will be: material.getAverageMass() * blastTemperature / 50
+     */
+    public void setDurationOverride(final int durationOverride) {
+        this.durationOverride = durationOverride;
+    }
+
+    /**
+     * The duration of the EBF recipe, overriding the stock behavior.
+     * <p>
+     * Default: -1, meaning the duration will be: material.getAverageMass() * blastTemperature / 50
+     */
+    public int getDurationOverride() {
+        return this.durationOverride;
+    }
+
+    /**
+     * The EU/t of the EBF recipe, overriding the stock behavior.
+     * <p>
+     * Default: -1, meaning the EU/t will be 120.
+     */
+    public void setEUtOverride(final int EUtOverride) {
+        this.EUtOverride = EUtOverride;
+    }
+
+    /**
+     * The EU/t of the EBF recipe, overriding the stock behavior.
+     * <p>
+     * Default: -1, meaning the EU/t will be 120.
+     */
+    public int getEUtOverride() {
+        return this.EUtOverride;
+    }
+
+    /**
+     * The duration of the EBF recipe, overriding the stock behavior.
+     * <p>
+     * Default: -1, meaning the duration will be: material.getMass() * 3
+     */
+    public void setVacuumDurationOverride(final int vacuumDurationOverride) {
+        this.vacuumDurationOverride = vacuumDurationOverride;
+    }
+
+    /**
+     * The duration of the EBF recipe, overriding the stock behavior.
+     * <p>
+     * Default: -1, meaning the duration will be: material.getMass() * 3
+     */
+    public int getVacuumDurationOverride() {
+        return this.vacuumDurationOverride;
+    }
+
+    /**
+     * The EU/t of the Vacuum Freezer recipe (if needed), overriding the stock behavior.
+     * <p>
+     * Default: -1, meaning the EU/t will be 120 EU/t.
+     */
+    public void setVacuumEUtOverride(final int vacuumEUtOverride) {
+        this.vacuumEUtOverride = vacuumEUtOverride;
+    }
+
+    /**
+     * The EU/t of the Vacuum Freezer recipe (if needed), overriding the stock behavior.
+     * <p>
+     * Default: -1, meaning the EU/t will be 120 EU/t.
+     */
+    public int getVacuumEUtOverride() {
+        return this.vacuumEUtOverride;
     }
 }

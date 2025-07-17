@@ -11,22 +11,15 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.level.Level;
 
 import com.mojang.serialization.Codec;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Consumer;
 
-@Accessors(chain = true)
 public class MedicalCondition {
 
     public static final Map<String, MedicalCondition> CONDITIONS = new HashMap<>();
-    public static final Codec<MedicalCondition> CODEC = Codec.STRING.xmap(MedicalCondition.CONDITIONS::get,
-            MedicalCondition::getName);
-
-    @Getter
+    public static final Codec<MedicalCondition> CODEC = Codec.STRING.xmap(MedicalCondition.CONDITIONS::get, MedicalCondition::getName);
     public final String name;
     public final int color;
     public final float maxProgression; // amount of seconds until maximum progression is reached
@@ -38,32 +31,22 @@ public class MedicalCondition {
     /**
      * This should mirror the {@link AirScrubberRecipes} recipe's outputs for this condition.
      */
-    @Getter
-    @Setter
     @NotNull
     public Consumer<GTRecipeBuilder> recipeModifier = builder -> {};
 
-    public MedicalCondition(String name, int color, int maxProgression, IdleProgressionType idleProgressionType,
-                            float idleProgressionRate, boolean canBePermanent, Symptom.ConfiguredSymptom... symptoms) {
+    public MedicalCondition(String name, int color, int maxProgression, IdleProgressionType idleProgressionType, float idleProgressionRate, boolean canBePermanent, Symptom.ConfiguredSymptom... symptoms) {
         this.name = name;
         this.color = color;
         this.maxProgression = maxProgression;
-        this.damageTypeData = new DamageTypeData.Builder()
-                .simpleId("medical_condition/" + name)
-                .scaling(DamageScaling.NEVER)
-                .tag(DamageTypeTags.BYPASSES_ARMOR)
-                .build();
-
+        this.damageTypeData = new DamageTypeData.Builder().simpleId("medical_condition/" + name).scaling(DamageScaling.NEVER).tag(DamageTypeTags.BYPASSES_ARMOR).build();
         this.symptoms.addAll(Arrays.asList(symptoms));
         this.idleProgressionType = idleProgressionType;
         this.idleProgressionRate = idleProgressionRate;
         this.canBePermanent = canBePermanent;
-
         CONDITIONS.put(name, this);
     }
 
-    public MedicalCondition(String name, int color, int maxProgression, IdleProgressionType progressionType,
-                            boolean canBePermanent, Symptom.ConfiguredSymptom... symptoms) {
+    public MedicalCondition(String name, int color, int maxProgression, IdleProgressionType progressionType, boolean canBePermanent, Symptom.ConfiguredSymptom... symptoms) {
         this(name, color, maxProgression, progressionType, 1, canBePermanent, symptoms);
     }
 
@@ -82,6 +65,31 @@ public class MedicalCondition {
     public enum IdleProgressionType {
         UNTREATED_PROGRESSION,
         HEAL,
-        NONE
+        NONE;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    /**
+     * This should mirror the {@link AirScrubberRecipes} recipe's outputs for this condition.
+     */
+    @NotNull
+    public Consumer<GTRecipeBuilder> getRecipeModifier() {
+        return this.recipeModifier;
+    }
+
+    /**
+     * This should mirror the {@link AirScrubberRecipes} recipe's outputs for this condition.
+     * 
+     * @return {@code this}.
+     */
+    public MedicalCondition setRecipeModifier(@NotNull final Consumer<GTRecipeBuilder> recipeModifier) {
+        if (recipeModifier == null) {
+            throw new NullPointerException("recipeModifier is marked non-null but is null");
+        }
+        this.recipeModifier = recipeModifier;
+        return this;
     }
 }

@@ -10,7 +10,6 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.material.Fluid;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,26 +20,16 @@ import java.util.function.Function;
 public final class FluidStorageKey {
 
     private static final Map<ResourceLocation, FluidStorageKey> keys = new Object2ObjectOpenHashMap<>();
-
-    @Getter
     private final ResourceLocation resourceLocation;
-    @Getter
     private final TagKey<Fluid> extraTag;
-    @Getter
     private final MaterialIconType iconType;
     private final Function<Material, String> registryNameFunction;
     private final Function<Material, String> translationKeyFunction;
     private final int hashCode;
-    @Getter
     private final FluidState defaultFluidState;
-    @Getter
     private final int registrationPriority;
 
-    public FluidStorageKey(@NotNull ResourceLocation resourceLocation, @Nullable TagKey<Fluid> extraTag,
-                           @NotNull MaterialIconType iconType,
-                           @NotNull Function<@NotNull Material, @NotNull String> registryNameFunction,
-                           @NotNull Function<@NotNull Material, @NotNull String> translationKeyFunction,
-                           @Nullable FluidState defaultFluidState, int registrationPriority) {
+    public FluidStorageKey(@NotNull ResourceLocation resourceLocation, @Nullable TagKey<Fluid> extraTag, @NotNull MaterialIconType iconType, @NotNull Function<@NotNull Material, @NotNull String> registryNameFunction, @NotNull Function<@NotNull Material, @NotNull String> translationKeyFunction, @Nullable FluidState defaultFluidState, int registrationPriority) {
         this.resourceLocation = resourceLocation;
         this.extraTag = extraTag;
         this.iconType = iconType;
@@ -55,26 +44,16 @@ public final class FluidStorageKey {
         keys.put(resourceLocation, this);
     }
 
-    public FluidStorageKey(@NotNull ResourceLocation resourceLocation, @NotNull String tagKey,
-                           @NotNull MaterialIconType iconType,
-                           @NotNull Function<@NotNull Material, @NotNull String> registryNameFunction,
-                           @NotNull Function<@NotNull Material, @NotNull String> translationKeyFunction,
-                           @Nullable FluidState defaultFluidState, int registrationPriority) {
-        this(resourceLocation, TagUtil.createFluidTag(tagKey), iconType,
-                registryNameFunction, translationKeyFunction,
-                defaultFluidState, registrationPriority);
+    public FluidStorageKey(@NotNull ResourceLocation resourceLocation, @NotNull String tagKey, @NotNull MaterialIconType iconType, @NotNull Function<@NotNull Material, @NotNull String> registryNameFunction, @NotNull Function<@NotNull Material, @NotNull String> translationKeyFunction, @Nullable FluidState defaultFluidState, int registrationPriority) {
+        this(resourceLocation, TagUtil.createFluidTag(tagKey), iconType, registryNameFunction, translationKeyFunction, defaultFluidState, registrationPriority);
     }
 
-    public FluidStorageKey(@NotNull ResourceLocation resourceLocation, @NotNull MaterialIconType iconType,
-                           @NotNull Function<@NotNull Material, @NotNull String> registryNameFunction,
-                           @NotNull Function<@NotNull Material, @NotNull String> translationKeyFunction,
-                           @Nullable FluidState defaultFluidState, int registrationPriority) {
-        this(resourceLocation, (TagKey<Fluid>) null, iconType,
-                registryNameFunction, translationKeyFunction,
-                defaultFluidState, registrationPriority);
+    public FluidStorageKey(@NotNull ResourceLocation resourceLocation, @NotNull MaterialIconType iconType, @NotNull Function<@NotNull Material, @NotNull String> registryNameFunction, @NotNull Function<@NotNull Material, @NotNull String> translationKeyFunction, @Nullable FluidState defaultFluidState, int registrationPriority) {
+        this(resourceLocation, (TagKey<Fluid>) null, iconType, registryNameFunction, translationKeyFunction, defaultFluidState, registrationPriority);
     }
 
-    public static @Nullable FluidStorageKey getByName(@NotNull ResourceLocation location) {
+    @Nullable
+    public static FluidStorageKey getByName(@NotNull ResourceLocation location) {
         return keys.get(location);
     }
 
@@ -86,14 +65,16 @@ public final class FluidStorageKey {
      * @param baseName the base name of the fluid
      * @return the registry name to use
      */
-    public @NotNull String getRegistryNameFor(@NotNull Material baseName) {
+    @NotNull
+    public String getRegistryNameFor(@NotNull Material baseName) {
         return registryNameFunction.apply(baseName);
     }
 
     /**
      * @return the translation key for fluids with this key
      */
-    public @NotNull String getTranslationKeyFor(@NotNull Material material) {
+    @NotNull
+    public String getTranslationKeyFor(@NotNull Material material) {
         return this.translationKeyFunction.apply(material);
     }
 
@@ -101,9 +82,7 @@ public final class FluidStorageKey {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         FluidStorageKey fluidKey = (FluidStorageKey) o;
-
         return resourceLocation.equals(fluidKey.getResourceLocation());
     }
 
@@ -113,7 +92,28 @@ public final class FluidStorageKey {
     }
 
     @Override
-    public @NotNull String toString() {
+    @NotNull
+    public String toString() {
         return "FluidStorageKey{" + resourceLocation + '}';
+    }
+
+    public ResourceLocation getResourceLocation() {
+        return this.resourceLocation;
+    }
+
+    public TagKey<Fluid> getExtraTag() {
+        return this.extraTag;
+    }
+
+    public MaterialIconType getIconType() {
+        return this.iconType;
+    }
+
+    public FluidState getDefaultFluidState() {
+        return this.defaultFluidState;
+    }
+
+    public int getRegistrationPriority() {
+        return this.registrationPriority;
     }
 }

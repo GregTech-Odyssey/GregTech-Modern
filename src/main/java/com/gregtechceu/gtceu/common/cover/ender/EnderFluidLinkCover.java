@@ -23,7 +23,6 @@ import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,15 +31,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class EnderFluidLinkCover extends AbstractEnderLinkCover<VirtualTank> {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(EnderFluidLinkCover.class,
-            AbstractEnderLinkCover.MANAGED_FIELD_HOLDER);
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(EnderFluidLinkCover.class, AbstractEnderLinkCover.MANAGED_FIELD_HOLDER);
     public static final int TRANSFER_RATE = 8000; // mB/t
-
     @Persisted
     @DescSynced
     protected VirtualTank visualTank;
-
-    @Getter
     @Persisted
     @DescSynced
     protected final FilterHandler<FluidStack, FluidFilter> filterHandler;
@@ -50,8 +45,7 @@ public class EnderFluidLinkCover extends AbstractEnderLinkCover<VirtualTank> {
         super(definition, coverHolder, attachedSide);
         this.mBLeftToTransferLastSecond = TRANSFER_RATE * 20;
         filterHandler = FilterHandlers.fluid(this);
-        if (!isRemote()) visualTank = VirtualEnderRegistry.getInstance()
-                .getOrCreateEntry(getOwner(), EntryTypes.ENDER_FLUID, getChannelName());
+        if (!isRemote()) visualTank = VirtualEnderRegistry.getInstance().getOrCreateEntry(getOwner(), EntryTypes.ENDER_FLUID, getChannelName());
     }
 
     @Override
@@ -86,50 +80,49 @@ public class EnderFluidLinkCover extends AbstractEnderLinkCover<VirtualTank> {
             int platformTransferredFluid = doTransferFluids(mBLeftToTransferLastSecond);
             this.mBLeftToTransferLastSecond -= platformTransferredFluid;
         }
-
         if (timer % 20 == 0) {
             this.mBLeftToTransferLastSecond = TRANSFER_RATE * 20;
         }
     }
 
-    protected @Nullable IFluidHandlerModifiable getOwnFluidHandler() {
+    @Nullable
+    protected IFluidHandlerModifiable getOwnFluidHandler() {
         return coverHolder.getFluidHandlerCap(attachedSide, false);
     }
 
     private int doTransferFluids(int platformTransferLimit) {
         var ownFluidHandler = getOwnFluidHandler();
-
         if (ownFluidHandler != null) {
             return switch (io) {
-                case IN -> GTTransferUtils.transferFluidsFiltered(ownFluidHandler, visualTank.getFluidTank(),
-                        filterHandler.getFilter(), platformTransferLimit);
-                case OUT -> GTTransferUtils.transferFluidsFiltered(visualTank.getFluidTank(), ownFluidHandler,
-                        filterHandler.getFilter(), platformTransferLimit);
+                case IN -> GTTransferUtils.transferFluidsFiltered(ownFluidHandler, visualTank.getFluidTank(), filterHandler.getFilter(), platformTransferLimit);
+                case OUT -> GTTransferUtils.transferFluidsFiltered(visualTank.getFluidTank(), ownFluidHandler, filterHandler.getFilter(), platformTransferLimit);
                 default -> 0;
             };
-
         }
         return 0;
     }
 
     @Override
-    public @NotNull ManagedFieldHolder getFieldHolder() {
+    @NotNull
+    public ManagedFieldHolder getFieldHolder() {
         return MANAGED_FIELD_HOLDER;
     }
 
     //////////////////////////////////////
     // ************ GUI ************ //
     //////////////////////////////////////
-
     @Override
     protected Widget addVirtualEntryWidget(VirtualEntry entry, int x, int y, int width, int height, boolean canClick) {
-        return new TankWidget(((VirtualTank) entry).getFluidTank(), 0, x, y, width, height, canClick, canClick)
-                .setBackground(GuiTextures.FLUID_SLOT);
+        return new TankWidget(((VirtualTank) entry).getFluidTank(), 0, x, y, width, height, canClick, canClick).setBackground(GuiTextures.FLUID_SLOT);
     }
 
     @NotNull
     @Override
     protected String getUITitle() {
         return "cover.ender_fluid_link.title";
+    }
+
+    public FilterHandler<FluidStack, FluidFilter> getFilterHandler() {
+        return this.filterHandler;
     }
 }

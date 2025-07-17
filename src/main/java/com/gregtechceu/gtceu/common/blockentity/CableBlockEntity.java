@@ -36,7 +36,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,20 +50,15 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties> implements IDataInfoProvider {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(CableBlockEntity.class,
-            PipeBlockEntity.MANAGED_FIELD_HOLDER);
-
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(CableBlockEntity.class, PipeBlockEntity.MANAGED_FIELD_HOLDER);
     protected WeakReference<EnergyNet> currentEnergyNet = new WeakReference<>(null);
-
     private static final int meltTemp = 3000;
-
     private final EnumMap<Direction, EnergyNetHandler> handlers = new EnumMap<>(Direction.class);
     private final PerTickLongCounter maxVoltageCounter = new PerTickLongCounter();
     private final AveragingPerTickCounter averageVoltageCounter = new AveragingPerTickCounter();
     private final AveragingPerTickCounter averageAmperageCounter = new AveragingPerTickCounter();
     private EnergyNetHandler defaultHandler;
     private int heatQueue;
-    @Getter
     @Persisted
     @DescSynced
     private int temperature = getDefaultTemp();
@@ -79,7 +73,8 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
     }
 
     @Override
-    public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+    @NotNull
+    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         if (cap == GTCapability.CAPABILITY_ENERGY_CONTAINER) {
             var container = getEnergyContainer(side);
             if (container != null) {
@@ -99,20 +94,23 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
             if (level.getBlockEntity(getBlockPos().relative(side)) instanceof CableBlockEntity) {
                 return false;
             }
-            return GTCapabilityHelper.getEnergyContainer(level, getBlockPos().relative(side), side.getOpposite()) !=
-                    null;
+            return GTCapabilityHelper.getEnergyContainer(level, getBlockPos().relative(side), side.getOpposite()) != null;
         }
         return false;
     }
 
     @Nullable
     private EnergyNet getEnergyNet() {
-        if (!(level instanceof ServerLevel serverLevel))
-            return null;
+        if (!(level instanceof ServerLevel serverLevel)) return null;
         EnergyNet currentEnergyNet = this.currentEnergyNet.get();
-        if (currentEnergyNet != null && currentEnergyNet.isValid() &&
-                currentEnergyNet.containsNode(getBlockPos()))
-            return currentEnergyNet; // return current net if it is still valid
+        if (currentEnergyNet != null && currentEnergyNet.isValid() && currentEnergyNet.containsNode(getBlockPos())) return currentEnergyNet; // return
+                                                                                                                                             // current
+                                                                                                                                             // net
+                                                                                                                                             // if
+                                                                                                                                             // it
+                                                                                                                                             // is
+                                                                                                                                             // still
+                                                                                                                                             // valid
         LevelEnergyNet worldENet = LevelEnergyNet.getOrCreate(serverLevel);
         currentEnergyNet = worldENet.getNetFromPos(getBlockPos());
         if (currentEnergyNet != null) {
@@ -138,8 +136,7 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
         if (side != null && !isConnected(side)) return null;
         // the EnergyNetHandler can only be created on the server, so we have an empty placeholder for the client
         if (isRemote()) return IEnergyContainer.DEFAULT;
-        if (handlers.isEmpty())
-            initHandlers();
+        if (handlers.isEmpty()) initHandlers();
         checkNetwork();
         return handlers.getOrDefault(side, defaultHandler);
     }
@@ -227,13 +224,11 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
         }
         averageVoltageCounter.increment(getLevel(), voltage * amps);
         averageAmperageCounter.increment(getLevel(), amps);
-
         int dif = GTMath.saturatedCast(averageAmperageCounter.getLast(getLevel()) - getMaxAmperage());
         if (dif > 0) {
             applyHeat(dif * 40);
             return true;
         }
-
         return false;
     }
 
@@ -249,24 +244,20 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
             // if received heat from overvolting or overamping, add heat
             setTemperature(temperature + heatQueue);
         }
-
         if (temperature >= meltTemp) {
             // cable melted
             level.setBlockAndUpdate(worldPosition, Blocks.FIRE.defaultBlockState());
             return false;
         }
-
         if (temperature <= getDefaultTemp()) {
             unsubscribeHeat();
             return false;
         }
-
         if (getPipeType().insulationLevel >= 0 && temperature >= 1500 && GTValues.RNG.nextFloat() < 0.1) {
             // insulation melted
             uninsulate();
             return false;
         }
-
         if (heatQueue == 0) {
             // otherwise cool down
             setTemperature((int) (temperature - Math.pow(temperature - getDefaultTemp(), 0.35)));
@@ -280,12 +271,11 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
         int temp = temperature;
         setTemperature(getDefaultTemp());
         int index = getPipeType().insulationLevel;
-        CableBlock newBlock = GTMaterialBlocks.CABLE_BLOCKS
-                .get(Insulation.values()[index].tagPrefix, getPipeBlock().material)
-                .get();
+        CableBlock newBlock = GTMaterialBlocks.CABLE_BLOCKS.get(Insulation.values()[index].tagPrefix, getPipeBlock().material).get();
         level.setBlockAndUpdate(getBlockPos(), newBlock.defaultBlockState());
         CableBlockEntity newCable = (CableBlockEntity) level.getBlockEntity(getBlockPos());
-        if (newCable != null) { // should never be null
+        if (newCable != null) {
+            // should never be null
             newCable.setTemperature(temp);
             newCable.subscribeHeat();
             for (Direction facing : GTUtil.DIRECTIONS) {
@@ -307,18 +297,11 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
             float xPos = facing.getStepX() * 0.76F + worldPosition.getX() + 0.25F;
             float yPos = facing.getStepY() * 0.76F + worldPosition.getY() + 0.25F;
             float zPos = facing.getStepZ() * 0.76F + worldPosition.getZ() + 0.25F;
-
             float ySpd = facing.getStepY() * 0.1F + 0.2F + 0.1F * GTValues.RNG.nextFloat();
             float temp = GTValues.RNG.nextFloat() * 2 * (float) Math.PI;
             float xSpd = (float) Math.sin(temp) * 0.1F;
             float zSpd = (float) Math.cos(temp) * 0.1F;
-
-            ((ServerLevel) level).sendParticles(ParticleTypes.SMOKE,
-                    xPos + GTValues.RNG.nextFloat() * 0.5F,
-                    yPos + GTValues.RNG.nextFloat() * 0.5F,
-                    zPos + GTValues.RNG.nextFloat() * 0.5F,
-                    0,
-                    xSpd, ySpd, zSpd, 1);
+            ((ServerLevel) level).sendParticles(ParticleTypes.SMOKE, xPos + GTValues.RNG.nextFloat() * 0.5F, yPos + GTValues.RNG.nextFloat() * 0.5F, zPos + GTValues.RNG.nextFloat() * 0.5F, 0, xSpd, ySpd, zSpd, 1);
         }
     }
 
@@ -327,7 +310,6 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
     //////////////////////////////////////
     // ******* Interaction *******//
     //////////////////////////////////////
-
     @Override
     public ResourceTexture getPipeTexture(boolean isBlock) {
         return isBlock ? GuiTextures.TOOL_WIRE_CONNECT : GuiTextures.TOOL_WIRE_BLOCK;
@@ -344,19 +326,17 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
     }
 
     @Override
-    public @NotNull List<Component> getDataInfo(PortableScannerBehavior.DisplayMode mode) {
+    @NotNull
+    public List<Component> getDataInfo(PortableScannerBehavior.DisplayMode mode) {
         List<Component> list = new ArrayList<>();
-
-        if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL ||
-                mode == PortableScannerBehavior.DisplayMode.SHOW_ELECTRICAL_INFO) {
-            list.add(Component.translatable("behavior.portable_scanner.eu_per_sec",
-                    Component.translatable(FormattingUtil.formatNumbers(getAverageVoltage()))
-                            .withStyle(ChatFormatting.RED)));
-            list.add(Component.translatable("behavior.portable_scanner.amp_per_sec",
-                    Component.translatable(FormattingUtil.formatNumbers(getAverageAmperage()))
-                            .withStyle(ChatFormatting.RED)));
+        if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_ELECTRICAL_INFO) {
+            list.add(Component.translatable("behavior.portable_scanner.eu_per_sec", Component.translatable(FormattingUtil.formatNumbers(getAverageVoltage())).withStyle(ChatFormatting.RED)));
+            list.add(Component.translatable("behavior.portable_scanner.amp_per_sec", Component.translatable(FormattingUtil.formatNumbers(getAverageAmperage())).withStyle(ChatFormatting.RED)));
         }
-
         return list;
+    }
+
+    public int getTemperature() {
+        return this.temperature;
     }
 }

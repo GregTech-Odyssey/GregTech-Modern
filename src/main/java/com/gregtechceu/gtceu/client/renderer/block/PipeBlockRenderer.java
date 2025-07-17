@@ -29,7 +29,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -39,7 +38,6 @@ import java.util.function.Consumer;
 
 public class PipeBlockRenderer implements IRenderer, ICoverableRenderer {
 
-    @Getter
     PipeModel pipeModel;
 
     public PipeBlockRenderer(PipeModel pipeModel) {
@@ -51,13 +49,8 @@ public class PipeBlockRenderer implements IRenderer, ICoverableRenderer {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void renderItem(ItemStack stack,
-                           ItemDisplayContext transformType,
-                           boolean leftHand, PoseStack matrixStack,
-                           MultiBufferSource buffer, int combinedLight,
-                           int combinedOverlay, BakedModel model) {
-        pipeModel.renderItem(stack, transformType, leftHand, matrixStack, buffer, combinedLight, combinedOverlay,
-                model);
+    public void renderItem(ItemStack stack, ItemDisplayContext transformType, boolean leftHand, PoseStack matrixStack, MultiBufferSource buffer, int combinedLight, int combinedOverlay, BakedModel model) {
+        pipeModel.renderItem(stack, transformType, leftHand, matrixStack, buffer, combinedLight, combinedOverlay, model);
     }
 
     @Override
@@ -73,36 +66,21 @@ public class PipeBlockRenderer implements IRenderer, ICoverableRenderer {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public List<BakedQuad> renderModel(BlockAndTintGetter level, BlockPos pos, BlockState state, Direction side,
-                                       RandomSource rand) {
+    public List<BakedQuad> renderModel(BlockAndTintGetter level, BlockPos pos, BlockState state, Direction side, RandomSource rand) {
         if (level == null) {
             return pipeModel.bakeQuads(side, PipeModel.ITEM_CONNECTIONS, 0);
         } else if (level.getBlockEntity(pos) instanceof IPipeNode<?, ?> pipeNode) {
-            var quads = new LinkedList<>(
-                    pipeModel.bakeQuads(side, pipeNode.getVisualConnections(), pipeNode.getBlockedConnections()));
+            var quads = new LinkedList<>(pipeModel.bakeQuads(side, pipeNode.getVisualConnections(), pipeNode.getBlockedConnections()));
             var modelState = ModelFactory.getRotation(pipeNode.getCoverContainer().getFrontFacing());
-            var modelFacing = side == null ? null :
-                    ModelFactory.modelFacing(side, pipeNode.getCoverContainer().getFrontFacing());
-            ICoverableRenderer.super.renderCovers(quads, side, rand, pipeNode.getCoverContainer(), modelFacing, pos,
-                    level, modelState);
+            var modelFacing = side == null ? null : ModelFactory.modelFacing(side, pipeNode.getCoverContainer().getFrontFacing());
+            ICoverableRenderer.super.renderCovers(quads, side, rand, pipeNode.getCoverContainer(), modelFacing, pos, level, modelState);
             if (!pipeNode.getFrameMaterial().isNull()) {
-                ResourceLocation rl = MaterialIconType.frameGt
-                        .getBlockTexturePath(pipeNode.getFrameMaterial().getMaterialIconSet(), true);
-                BlockState blockState = GTMaterialBlocks.MATERIAL_BLOCKS
-                        .get(TagPrefix.frameGt, pipeNode.getFrameMaterial())
-                        .getDefaultState();
+                ResourceLocation rl = MaterialIconType.frameGt.getBlockTexturePath(pipeNode.getFrameMaterial().getMaterialIconSet(), true);
+                BlockState blockState = GTMaterialBlocks.MATERIAL_BLOCKS.get(TagPrefix.frameGt, pipeNode.getFrameMaterial()).getDefaultState();
                 var frameModel = Minecraft.getInstance().getBlockRenderer().getBlockModel(blockState);
                 for (Direction face : Direction.values()) {
                     if ((pipeNode.getConnections() & 1 << (12 + face.get3DDataValue())) == 0) {
-                        var frameTintedFaces = frameModel.getQuads(state, face, rand)
-                                .stream()
-                                .map(quad -> new BakedQuad(quad.getVertices(),
-                                        quad.getTintIndex() + (quad.isTinted() ? 3 : 0),
-                                        quad.getDirection(),
-                                        quad.getSprite(),
-                                        quad.isShade(),
-                                        quad.hasAmbientOcclusion()))
-                                .toList();
+                        var frameTintedFaces = frameModel.getQuads(state, face, rand).stream().map(quad -> new BakedQuad(quad.getVertices(), quad.getTintIndex() + (quad.isTinted() ? 3 : 0), quad.getDirection(), quad.getSprite(), quad.isShade(), quad.hasAmbientOcclusion())).toList();
                         quads.addAll(frameTintedFaces);
                     }
                 }
@@ -125,5 +103,9 @@ public class PipeBlockRenderer implements IRenderer, ICoverableRenderer {
         if (atlasName.equals(TextureAtlas.LOCATION_BLOCKS)) {
             pipeModel.registerTextureAtlas(register);
         }
+    }
+
+    public PipeModel getPipeModel() {
+        return this.pipeModel;
     }
 }

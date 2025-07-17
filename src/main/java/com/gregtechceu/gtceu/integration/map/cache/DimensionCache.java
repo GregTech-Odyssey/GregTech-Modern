@@ -7,8 +7,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.ChunkPos;
 
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,9 +14,7 @@ import java.util.concurrent.ConcurrentMap;
 
 public class DimensionCache {
 
-    @Getter
     private final ConcurrentMap<GridPos, GridCache> cache = new ConcurrentHashMap<>();
-
     public boolean dirty;
 
     public boolean addVein(int gridX, int gridZ, GeneratedVeinMetadata vein) {
@@ -65,11 +61,7 @@ public class DimensionCache {
             for (int j = topLeft.z; j <= bottomRight.z; j++) {
                 GridPos curPos = new GridPos(i, j);
                 if (cache.containsKey(curPos)) {
-                    found.addAll(cache.get(curPos)
-                            .getVeinsMatching(vein -> vein.center().getX() >= topLeftBlock.getX() &&
-                                    vein.center().getX() <= bottomRightBlock.getX() &&
-                                    vein.center().getZ() >= topLeftBlock.getZ() &&
-                                    vein.center().getZ() <= bottomRightBlock.getZ()));
+                    found.addAll(cache.get(curPos).getVeinsMatching(vein -> vein.center().getX() >= topLeftBlock.getX() && vein.center().getX() <= bottomRightBlock.getX() && vein.center().getZ() >= topLeftBlock.getZ() && vein.center().getZ() <= bottomRightBlock.getZ()));
                 }
             }
         }
@@ -89,5 +81,9 @@ public class DimensionCache {
         if (cache.containsKey(gPos)) {
             cache.get(gPos).removeVeinsMatching(vein -> pos.equals(vein.originChunk()));
         }
+    }
+
+    public ConcurrentMap<GridPos, GridCache> getCache() {
+        return this.cache;
     }
 }

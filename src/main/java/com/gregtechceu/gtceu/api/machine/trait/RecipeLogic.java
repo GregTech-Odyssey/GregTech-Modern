@@ -23,17 +23,12 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.annotation.UpdateListener;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -46,25 +41,19 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
         IDLE,
         WORKING,
         WAITING,
-        SUSPEND
+        SUSPEND;
     }
 
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(RecipeLogic.class);
-
     public final IRecipeLogicMachine machine;
-    public List<GTRecipe> lastFailedMatches;
-
-    @Getter
     @Persisted
     @DescSynced
     @UpdateListener(methodName = "onStatusSynced")
     private Status status = Status.IDLE;
-
     @Persisted
     @DescSynced
     @UpdateListener(methodName = "onActiveSynced")
     protected boolean isActive;
-
     @Nullable
     @Persisted
     @DescSynced
@@ -73,39 +62,25 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
      * unsafe, it may not be found from {@link RecipeManager}. Do not index it.
      */
     @Nullable
-    @Getter
     @Persisted
-    @DescSynced
     protected GTRecipe lastRecipe;
-    @Getter
-    @Persisted
-    @DescSynced
-    protected int consecutiveRecipes = 0; // Consecutive recipes that have been run
     /**
      * safe, it is the origin recipe before {@link IRecipeLogicMachine#fullModifyRecipe(GTRecipe)}'
      * which can be found
      * from {@link RecipeManager}.
      */
     @Nullable
-    @Getter
     @Persisted
     protected GTRecipe lastOriginRecipe;
     @Persisted
-    @Getter
-    @Setter
     protected int progress;
-    @Getter
     @Persisted
     protected int duration;
-    @Getter(onMethod_ = @VisibleForTesting)
     protected boolean recipeDirty;
     @Persisted
-    @Getter
     protected long totalContinuousRunningTime;
     @Persisted
-    @Setter
     protected boolean suspendAfterFinish = false;
-    @Getter
     protected final Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches = makeChanceCaches();
     protected TickableSubscription subscription;
     protected Object workingSound;
@@ -139,11 +114,9 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
         recipeDirty = false;
         lastRecipe = null;
         lastOriginRecipe = null;
-        consecutiveRecipes = 0;
         progress = 0;
         duration = 0;
         isActive = false;
-        lastFailedMatches = null;
         if (status != Status.SUSPEND) {
             setStatus(Status.IDLE);
         }
@@ -191,23 +164,16 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
                 findAndHandleRecipe();
             } else if (!machine.keepSubscribing() || getMachine().getOffsetTimer() % 5 == 0) {
                 findAndHandleRecipe();
-                if (lastFailedMatches != null) {
-                    for (GTRecipe match : lastFailedMatches) {
-                        if (checkMatchedRecipeAvailable(match)) break;
-                    }
-                }
             }
         }
         boolean unsubscribe = false;
         if (isSuspend()) {
             // Machine is paused and can unsubscribe
             unsubscribe = true;
-        } else if (lastRecipe == null && isIdle() && !machine.keepSubscribing() && !recipeDirty &&
-                lastFailedMatches == null) {
-                    // No recipes available and the machine wants to unsubscribe until notified
-                    unsubscribe = true;
-                }
-
+        } else if (lastRecipe == null && isIdle() && !machine.keepSubscribing() && !recipeDirty) {
+            // No recipes available and the machine wants to unsubscribe until notified
+            unsubscribe = true;
+        }
         if (unsubscribe && subscription != null) {
             subscription.unsubscribe();
             subscription = null;
@@ -221,7 +187,6 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
     protected ActionResult checkRecipe(GTRecipe recipe) {
         var conditionResult = RecipeHelper.checkConditions(recipe, this);
         if (!conditionResult.isSuccess()) return conditionResult;
-
         return matchRecipe(recipe);
     }
 
@@ -234,7 +199,6 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
             }
             if (lastRecipe != null && getStatus() == Status.WORKING) {
                 lastOriginRecipe = match;
-                lastFailedMatches = null;
                 return true;
             }
         }
@@ -275,19 +239,20 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
         }
     }
 
-    public @NotNull Iterator<GTRecipe> searchRecipe() {
+    @NotNull
+    public Iterator<GTRecipe> searchRecipe() {
         return machine.getRecipeType().searchRecipe(machine, r -> matchRecipe(r).isSuccess());
     }
 
     public void findAndHandleRecipe() {
-        lastFailedMatches = null;
         // try to execute last recipe if possible
         if (!recipeDirty && lastRecipe != null && checkRecipe(lastRecipe).isSuccess()) {
             GTRecipe recipe = lastRecipe;
             lastRecipe = null;
             lastOriginRecipe = null;
             setupRecipe(recipe);
-        } else { // try to find and handle a new recipe
+        } else {
+            // try to find and handle a new recipe
             lastRecipe = null;
             lastOriginRecipe = null;
             handleSearchingRecipes(searchRecipe());
@@ -299,28 +264,17 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
         while (matches.hasNext()) {
             GTRecipe match = matches.next();
             if (match == null) continue;
-
             // If a new recipe was found, cache found recipe.
-            if (checkMatchedRecipeAvailable(match))
-                return;
-
-            // cache matching recipes.
-            if (lastFailedMatches == null) {
-                lastFailedMatches = new ArrayList<>();
-            }
-            lastFailedMatches.add(match);
+            if (checkMatchedRecipeAvailable(match)) return;
         }
     }
 
     public ActionResult handleTickRecipe(GTRecipe recipe) {
         if (!recipe.hasTick()) return ActionResult.SUCCESS;
-
         var result = RecipeHelper.matchTickRecipe(machine, recipe);
         if (!result.isSuccess()) return result;
-
         result = handleTickRecipeIO(recipe, IO.IN);
         if (!result.isSuccess()) return result;
-
         result = handleTickRecipeIO(recipe, IO.OUT);
         return result;
     }
@@ -328,7 +282,6 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
     public void setupRecipe(GTRecipe recipe) {
         if (!machine.beforeWorking(recipe)) {
             setStatus(Status.IDLE);
-            consecutiveRecipes = 0;
             progress = 0;
             duration = 0;
             isActive = false;
@@ -421,7 +374,6 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
     public void onRecipeFinish() {
         machine.afterWorking();
         if (lastRecipe != null) {
-            consecutiveRecipes++;
             handleRecipeIO(lastRecipe, IO.OUT);
             if (machine.alwaysTryModifyRecipe()) {
                 if (lastOriginRecipe != null) {
@@ -447,7 +399,6 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
                     setStatus(Status.IDLE);
                     waitingReason = recipeCheck.reason();
                 }
-                consecutiveRecipes = 0;
                 progress = 0;
                 duration = 0;
                 isActive = false;
@@ -498,11 +449,7 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
                 workingSound = null;
             }
             if (sound != null) {
-                workingSound = sound.playAutoReleasedSound(
-                        () -> machine.shouldWorkingPlaySound() && isWorking() && !getMachine().isInValid() &&
-                                getMachine().getLevel().isLoaded(getMachine().getPos()) &&
-                                MetaMachine.getMachine(getMachine().getLevel(), getMachine().getPos()) == getMachine(),
-                        getMachine().getPos(), true, 0, 1, 1);
+                workingSound = sound.playAutoReleasedSound(() -> machine.shouldWorkingPlaySound() && isWorking() && !getMachine().isInValid() && getMachine().getLevel().isLoaded(getMachine().getPos()) && MetaMachine.getMachine(getMachine().getLevel(), getMachine().getPos()) == getMachine(), getMachine().getPos(), true, 0, 1, 1);
             }
         } else if (workingSound instanceof AutoReleasedSound soundEntry) {
             soundEntry.release();
@@ -539,54 +486,54 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
         return map;
     }
 
-    @Override
-    public void saveCustomPersistedData(@NotNull CompoundTag tag, boolean forDrop) {
-        super.saveCustomPersistedData(tag, forDrop);
-        CompoundTag chanceCache = new CompoundTag();
-        this.chanceCaches.forEach((cap, cache) -> {
-            ListTag cacheTag = new ListTag();
-            for (var entry : cache.object2IntEntrySet()) {
-                CompoundTag compoundTag = new CompoundTag();
-                var obj = cap.serializer.toNbtGeneric(cap.of(entry.getKey()));
-                compoundTag.put("entry", obj);
-                compoundTag.putInt("cached_chance", entry.getIntValue());
-                cacheTag.add(compoundTag);
-            }
-            chanceCache.put(cap.name, cacheTag);
-        });
-        tag.put("chance_cache", chanceCache);
+    public Status getStatus() {
+        return this.status;
     }
 
-    @Override
-    public void loadCustomPersistedData(@NotNull CompoundTag tag) {
-        super.loadCustomPersistedData(tag);
-        CompoundTag chanceCache = tag.getCompound("chance_cache");
-        for (String key : chanceCache.getAllKeys()) {
-            RecipeCapability<?> cap = GTRegistries.RECIPE_CAPABILITIES.get(key);
-            if (cap == null) continue; // Necessary since we removed a RecipeCapability when nuking Create
-            // noinspection rawtypes
-            Object2IntMap map = this.chanceCaches.computeIfAbsent(cap, RecipeCapability::makeChanceCache);
+    /**
+     * unsafe, it may not be found from {@link RecipeManager}. Do not index it.
+     */
+    @Nullable
+    public GTRecipe getLastRecipe() {
+        return this.lastRecipe;
+    }
 
-            ListTag chanceTag = chanceCache.getList(key, Tag.TAG_COMPOUND);
-            for (int i = 0; i < chanceTag.size(); ++i) {
-                CompoundTag chanceKey = chanceTag.getCompound(i);
-                var entry = cap.serializer.fromNbt(chanceKey.get("entry"));
-                int value = chanceKey.getInt("cached_chance");
-                // noinspection unchecked
-                map.put(entry, value);
-            }
-        }
-        this.chanceCaches.forEach((cap, cache) -> {
-            ListTag cacheTag = new ListTag();
-            for (var entry : cache.object2IntEntrySet()) {
-                CompoundTag compoundTag = new CompoundTag();
-                var obj = cap.serializer.toNbtGeneric(cap.of(entry.getKey()));
-                compoundTag.put("entry", obj);
-                compoundTag.putInt("cached_chance", entry.getIntValue());
-                cacheTag.add(compoundTag);
-            }
-            chanceCache.put(cap.name, cacheTag);
-        });
-        tag.put("chance_cache", chanceCache);
+    /**
+     * safe, it is the origin recipe before {@link IRecipeLogicMachine#fullModifyRecipe(GTRecipe)}'
+     * which can be found
+     * from {@link RecipeManager}.
+     */
+    @Nullable
+    public GTRecipe getLastOriginRecipe() {
+        return this.lastOriginRecipe;
+    }
+
+    public int getProgress() {
+        return this.progress;
+    }
+
+    public void setProgress(final int progress) {
+        this.progress = progress;
+    }
+
+    public int getDuration() {
+        return this.duration;
+    }
+
+    @VisibleForTesting
+    public boolean isRecipeDirty() {
+        return this.recipeDirty;
+    }
+
+    public long getTotalContinuousRunningTime() {
+        return this.totalContinuousRunningTime;
+    }
+
+    public void setSuspendAfterFinish(final boolean suspendAfterFinish) {
+        this.suspendAfterFinish = suspendAfterFinish;
+    }
+
+    public Map<RecipeCapability<?>, Object2IntMap<?>> getChanceCaches() {
+        return this.chanceCaches;
     }
 }

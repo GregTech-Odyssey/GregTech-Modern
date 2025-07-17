@@ -12,7 +12,6 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -20,13 +19,9 @@ import java.util.function.Supplier;
 
 public class ExportOnlyAEItemList extends NotifiableItemStackHandler implements IConfigurableSlotList {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ExportOnlyAEItemList.class,
-            NotifiableItemStackHandler.MANAGED_FIELD_HOLDER);
-
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ExportOnlyAEItemList.class, NotifiableItemStackHandler.MANAGED_FIELD_HOLDER);
     @Persisted
-    @Getter
     protected ExportOnlyAEItemSlot[] inventory;
-
     private CustomItemStackHandler itemHandler;
 
     public ExportOnlyAEItemList(MetaMachine holder, int slots) {
@@ -91,8 +86,7 @@ public class ExportOnlyAEItemList extends NotifiableItemStackHandler implements 
     }
 
     @Override
-    public List<Ingredient> handleRecipeInner(IO io, GTRecipe recipe, List<Ingredient> left,
-                                              boolean simulate) {
+    public List<Ingredient> handleRecipeInner(IO io, GTRecipe recipe, List<Ingredient> left, boolean simulate) {
         return NotifiableItemStackHandler.handleRecipe(io, recipe, left, simulate, this.handlerIO, getHandler());
     }
 
@@ -159,9 +153,7 @@ public class ExportOnlyAEItemList extends NotifiableItemStackHandler implements 
 
         @Override
         protected void validateSlotIndex(int slot) {
-            if (slot < 0 || slot >= getSlots())
-                throw new RuntimeException(
-                        "Slot " + slot + " not in valid range - [0," + getSlots() + ")");
+            if (slot < 0 || slot >= getSlots()) throw new RuntimeException("Slot " + slot + " not in valid range - [0," + getSlots() + ")");
         }
 
         @Override
@@ -173,5 +165,9 @@ public class ExportOnlyAEItemList extends NotifiableItemStackHandler implements 
         public boolean isItemValid(int slot, ItemStack stack) {
             return false;
         }
+    }
+
+    public ExportOnlyAEItemSlot[] getInventory() {
+        return this.inventory;
     }
 }

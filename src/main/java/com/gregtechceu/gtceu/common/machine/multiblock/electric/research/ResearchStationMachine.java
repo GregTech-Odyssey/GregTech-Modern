@@ -22,7 +22,6 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -32,12 +31,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class ResearchStationMachine extends WorkableElectricMultiblockMachine
-                                    implements IOpticalComputationReceiver, IDisplayUIMachine {
+public class ResearchStationMachine extends WorkableElectricMultiblockMachine implements IOpticalComputationReceiver, IDisplayUIMachine {
 
-    @Getter
     private IOpticalComputationProvider computationProvider;
-    @Getter
     private IObjectHolder objectHolder;
 
     public ResearchStationMachine(IMachineBlockEntity holder, Object... args) {
@@ -66,12 +62,8 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine
                 this.objectHolder = iObjectHolder;
                 addHandlerList(RecipeHandlerList.of(IO.IN, iObjectHolder.getAsHandler()));
             }
-
-            part.self().holder.self()
-                    .getCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER)
-                    .ifPresent(provider -> this.computationProvider = provider);
+            part.self().holder.self().getCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER).ifPresent(provider -> this.computationProvider = provider);
         }
-
         // should never happen, but would rather do this than have an obscure NPE
         if (computationProvider == null || objectHolder == null) {
             onStructureInvalid();
@@ -109,15 +101,8 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine
 
     @Override
     public void addDisplayText(List<Component> textList) {
-        MultiblockDisplayText.builder(textList, isFormed())
-                .setWorkingStatus(recipeLogic.isWorkingEnabled(), recipeLogic.isActive())
-                .setWorkingStatusKeys("gtceu.multiblock.idling", "gtceu.multiblock.work_paused",
-                        "gtceu.multiblock.research_station.researching")
-                .addEnergyUsageLine(energyContainer)
-                .addEnergyTierLine(tier)
-                .addWorkingStatusLine()
-                // .addComputationUsageExactLine(computationProvider.getMaxCWUt()) // TODO: (Onion)
-                .addProgressLineOnlyPercent(recipeLogic.getProgressPercent());
+        // .addComputationUsageExactLine(computationProvider.getMaxCWUt()) // TODO: (Onion)
+        MultiblockDisplayText.builder(textList, isFormed()).setWorkingStatus(recipeLogic.isWorkingEnabled(), recipeLogic.isActive()).setWorkingStatusKeys("gtceu.multiblock.idling", "gtceu.multiblock.work_paused", "gtceu.multiblock.research_station.researching").addEnergyUsageLine(energyContainer).addEnergyTierLine(tier).addWorkingStatusLine().addProgressLineOnlyPercent(recipeLogic.getProgressPercent());
     }
 
     public static class ResearchStationRecipeLogic extends RecipeLogic {
@@ -137,7 +122,6 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine
         protected ActionResult matchRecipe(GTRecipe recipe) {
             var match = matchRecipeNoOutput(recipe);
             if (!match.isSuccess()) return match;
-
             return matchTickRecipeNoOutput(recipe);
         }
 
@@ -146,8 +130,7 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine
             var modified = machine.fullModifyRecipe(match);
             if (modified != null) {
                 // What is the point of this
-                if (!modified.inputs.containsKey(CWURecipeCapability.CAP) &&
-                        !modified.tickInputs.containsKey(CWURecipeCapability.CAP)) {
+                if (!modified.inputs.containsKey(CWURecipeCapability.CAP) && !modified.tickInputs.containsKey(CWURecipeCapability.CAP)) {
                     return true;
                 }
                 var recipeMatch = checkRecipe(modified);
@@ -158,7 +141,6 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine
                 }
                 if (lastRecipe != null && getStatus() == Status.WORKING) {
                     lastOriginRecipe = match;
-                    lastFailedMatches = null;
                     return true;
                 }
             }
@@ -167,15 +149,13 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine
 
         protected ActionResult matchRecipeNoOutput(GTRecipe recipe) {
             if (!machine.hasCapabilityProxies()) return ActionResult.FAIL_NO_CAPABILITIES;
-            return RecipeHelper.handleRecipe(machine, recipe, IO.IN, recipe.inputs, Collections.emptyMap(), false,
-                    true);
+            return RecipeHelper.handleRecipe(machine, recipe, IO.IN, recipe.inputs, Collections.emptyMap(), false, true);
         }
 
         protected ActionResult matchTickRecipeNoOutput(GTRecipe recipe) {
             if (recipe.hasTick()) {
                 if (!machine.hasCapabilityProxies()) return ActionResult.FAIL_NO_CAPABILITIES;
-                return RecipeHelper.handleRecipe(machine, recipe, IO.IN, recipe.tickInputs, Collections.emptyMap(),
-                        false, true);
+                return RecipeHelper.handleRecipe(machine, recipe, IO.IN, recipe.tickInputs, Collections.emptyMap(), false, true);
             }
             return ActionResult.SUCCESS;
         }
@@ -189,7 +169,6 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine
                 holder.setLocked(true);
                 return ActionResult.SUCCESS;
             }
-
             // "replace" the items in the slots rather than outputting elsewhere
             // unlock the object holder
             IObjectHolder holder = getMachine().getObjectHolder();
@@ -197,7 +176,6 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine
                 holder.setLocked(false);
                 return ActionResult.SUCCESS;
             }
-
             holder.setHeldItem(ItemStack.EMPTY);
             ItemStack outputItem = ItemStack.EMPTY;
             var contents = lastRecipe.getOutputContents(ItemRecipeCapability.CAP);
@@ -218,5 +196,13 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine
             }
             return ActionResult.SUCCESS;
         }
+    }
+
+    public IOpticalComputationProvider getComputationProvider() {
+        return this.computationProvider;
+    }
+
+    public IObjectHolder getObjectHolder() {
+        return this.objectHolder;
     }
 }

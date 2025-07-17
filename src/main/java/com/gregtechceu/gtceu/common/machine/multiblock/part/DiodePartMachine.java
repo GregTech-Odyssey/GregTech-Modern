@@ -19,23 +19,16 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
-import lombok.Getter;
-
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class DiodePartMachine extends TieredIOPartMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(DiodePartMachine.class,
-            TieredIOPartMachine.MANAGED_FIELD_HOLDER);
-
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(DiodePartMachine.class, TieredIOPartMachine.MANAGED_FIELD_HOLDER);
     public static int MAX_AMPS = 16;
-
     @Persisted
     protected NotifiableEnergyContainer energyContainer;
-
-    @Getter
     @DescSynced
     @Persisted(key = "amp_mode")
     private int amps;
@@ -43,11 +36,8 @@ public class DiodePartMachine extends TieredIOPartMachine {
     public DiodePartMachine(IMachineBlockEntity holder, int tier) {
         super(holder, tier, IO.BOTH);
         long tierVoltage = GTValues.V[getTier()];
-
         this.amps = 1;
-        this.energyContainer = new NotifiableEnergyContainer(this, tierVoltage * MAX_AMPS * 2, tierVoltage, MAX_AMPS,
-                tierVoltage, MAX_AMPS);
-
+        this.energyContainer = new NotifiableEnergyContainer(this, tierVoltage * MAX_AMPS * 2, tierVoltage, MAX_AMPS, tierVoltage, MAX_AMPS);
         reinitializeEnergyContainer();
     }
 
@@ -60,7 +50,9 @@ public class DiodePartMachine extends TieredIOPartMachine {
         }
     }
 
-    /** Change this value (or override) to make the Diode able to handle more amps. Must be a power of 2 */
+    /**
+     * Change this value (or override) to make the Diode able to handle more amps. Must be a power of 2
+     */
     protected int getMaxAmperage() {
         return MAX_AMPS;
     }
@@ -68,14 +60,11 @@ public class DiodePartMachine extends TieredIOPartMachine {
     @Override
     public void onLoad() {
         super.onLoad();
-
-        if (!GTCEu.isClientThread())
-            reinitializeEnergyContainer();
+        if (!GTCEu.isClientThread()) reinitializeEnergyContainer();
     }
 
     protected void reinitializeEnergyContainer() {
         long tierVoltage = GTValues.V[getTier()];
-
         this.energyContainer.resetBasicInfo(tierVoltage * MAX_AMPS * 2, tierVoltage, amps, tierVoltage, amps);
         this.energyContainer.setSideInputCondition(s -> s != getFrontFacing());
         this.energyContainer.setSideOutputCondition(s -> s == getFrontFacing() && isWorkingEnabled());
@@ -95,8 +84,7 @@ public class DiodePartMachine extends TieredIOPartMachine {
     }
 
     @Override
-    protected InteractionResult onSoftMalletClick(Player playerIn, InteractionHand hand, Direction gridSide,
-                                                  BlockHitResult hitResult) {
+    protected InteractionResult onSoftMalletClick(Player playerIn, InteractionHand hand, Direction gridSide, BlockHitResult hitResult) {
         cycleAmpMode();
         if (getLevel().isClientSide) {
             scheduleRenderUpdate();
@@ -109,5 +97,9 @@ public class DiodePartMachine extends TieredIOPartMachine {
     @Override
     public ManagedFieldHolder getFieldHolder() {
         return MANAGED_FIELD_HOLDER;
+    }
+
+    public int getAmps() {
+        return this.amps;
     }
 }

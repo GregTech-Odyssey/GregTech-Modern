@@ -29,7 +29,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 
 import com.google.common.collect.Multimap;
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -40,17 +39,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class GTToolItem extends DiggerItem implements IGTTool {
 
-    @Getter
     protected final GTToolType toolType;
-    @Getter
     protected final int electricTier;
-    @Getter
     protected final Material material;
-    @Getter
     private IGTToolDefinition toolStats;
 
-    protected GTToolItem(GTToolType toolType, MaterialToolTier tier, Material material, IGTToolDefinition definition,
-                         Properties properties) {
+    protected GTToolItem(GTToolType toolType, MaterialToolTier tier, Material material, IGTToolDefinition definition, Properties properties) {
         super(0, 0, tier, toolType.harvestTags.isEmpty() ? null : toolType.harvestTags.get(0), properties);
         this.toolType = toolType;
         this.material = material;
@@ -62,13 +56,13 @@ public class GTToolItem extends DiggerItem implements IGTTool {
         definition$init();
     }
 
-    public static GTToolItem create(GTToolType toolType, MaterialToolTier tier, Material material,
-                                    IGTToolDefinition definition, Properties properties) {
+    public static GTToolItem create(GTToolType toolType, MaterialToolTier tier, Material material, IGTToolDefinition definition, Properties properties) {
         return new GTToolItem(toolType, tier, material, definition, properties);
     }
 
     @Override
-    public @Nullable ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
+    @Nullable
+    public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
         return definition$initCapabilities(stack, nbt);
     }
 
@@ -143,8 +137,7 @@ public class GTToolItem extends DiggerItem implements IGTTool {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
-                                TooltipFlag isAdvanced) {
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
         definition$appendHoverText(stack, level, tooltipComponents, isAdvanced);
     }
 
@@ -214,5 +207,21 @@ public class GTToolItem extends DiggerItem implements IGTTool {
     @Override
     public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
         return this.definition$isCorrectToolForDrops(stack, state);
+    }
+
+    public GTToolType getToolType() {
+        return this.toolType;
+    }
+
+    public int getElectricTier() {
+        return this.electricTier;
+    }
+
+    public Material getMaterial() {
+        return this.material;
+    }
+
+    public IGTToolDefinition getToolStats() {
+        return this.toolStats;
     }
 }

@@ -33,8 +33,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,38 +42,25 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class SteamWorkableMachine extends SteamMachine
-                                           implements IRecipeLogicMachine, IMufflableMachine, IMachineLife {
+public abstract class SteamWorkableMachine extends SteamMachine implements IRecipeLogicMachine, IMufflableMachine, IMachineLife {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(SteamWorkableMachine.class,
-            SteamMachine.MANAGED_FIELD_HOLDER);
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(SteamWorkableMachine.class, SteamMachine.MANAGED_FIELD_HOLDER);
     @Nullable
-    @Getter
-    @Setter
     private ICleanroomProvider cleanroom;
-    @Getter
     @Persisted
     @DescSynced
     public final RecipeLogic recipeLogic;
-    @Getter
     public final GTRecipeType[] recipeTypes;
-    @Getter
-    @Setter
     public int activeRecipeType;
     @Persisted
     @DescSynced
-    @Getter
     @RequireRerender
     protected Direction outputFacing;
     @Persisted
     @DescSynced
-    @Getter
-    @Setter
     protected boolean isMuffled;
     protected boolean previouslyMuffled = true;
-    @Getter
     protected final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
-    @Getter
     protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
     protected final List<ISubscription> traitSubscriptions;
 
@@ -103,13 +88,11 @@ public abstract class SteamWorkableMachine extends SteamMachine
         super.onLoad();
         // attach self traits
         Map<IO, List<IRecipeHandler<?>>> ioTraits = new Object2ObjectOpenHashMap<>();
-
         for (MachineTrait trait : getTraits()) {
             if (trait instanceof IRecipeHandlerTrait<?> handlerTrait) {
                 ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ArrayList<>()).add(handlerTrait);
             }
         }
-
         for (var entry : ioTraits.entrySet()) {
             var handlerList = RecipeHandlerList.of(entry.getKey(), entry.getValue());
             this.addHandlerList(handlerList);
@@ -141,8 +124,7 @@ public abstract class SteamWorkableMachine extends SteamMachine
     }
 
     @Override
-    protected InteractionResult onWrenchClick(Player playerIn, InteractionHand hand, Direction gridSide,
-                                              BlockHitResult hitResult) {
+    protected InteractionResult onWrenchClick(Player playerIn, InteractionHand hand, Direction gridSide, BlockHitResult hitResult) {
         if (!playerIn.isShiftKeyDown() && !isRemote()) {
             if (hasFrontFacing() && gridSide == getFrontFacing()) return InteractionResult.PASS;
             setOutputFacing(gridSide);
@@ -167,9 +149,7 @@ public abstract class SteamWorkableMachine extends SteamMachine
         super.clientTick();
         if (previouslyMuffled != isMuffled) {
             previouslyMuffled = isMuffled;
-
-            if (recipeLogic != null)
-                recipeLogic.updateSound();
+            if (recipeLogic != null) recipeLogic.updateSound();
         }
     }
 
@@ -177,8 +157,7 @@ public abstract class SteamWorkableMachine extends SteamMachine
     // ******* Rendering ********//
     //////////////////////////////////////
     @Override
-    public ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes,
-                                    Direction side) {
+    public ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes, Direction side) {
         if (toolTypes.contains(GTToolType.WRENCH)) {
             if (!player.isShiftKeyDown()) {
                 if (!hasFrontFacing() || side != getFrontFacing()) {
@@ -187,5 +166,50 @@ public abstract class SteamWorkableMachine extends SteamMachine
             }
         }
         return super.sideTips(player, pos, state, toolTypes, side);
+    }
+
+    @Nullable
+    public ICleanroomProvider getCleanroom() {
+        return this.cleanroom;
+    }
+
+    public void setCleanroom(@Nullable final ICleanroomProvider cleanroom) {
+        this.cleanroom = cleanroom;
+    }
+
+    public RecipeLogic getRecipeLogic() {
+        return this.recipeLogic;
+    }
+
+    public GTRecipeType[] getRecipeTypes() {
+        return this.recipeTypes;
+    }
+
+    public int getActiveRecipeType() {
+        return this.activeRecipeType;
+    }
+
+    public void setActiveRecipeType(final int activeRecipeType) {
+        this.activeRecipeType = activeRecipeType;
+    }
+
+    public Direction getOutputFacing() {
+        return this.outputFacing;
+    }
+
+    public boolean isMuffled() {
+        return this.isMuffled;
+    }
+
+    public void setMuffled(final boolean isMuffled) {
+        this.isMuffled = isMuffled;
+    }
+
+    public Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {
+        return this.capabilitiesProxy;
+    }
+
+    public Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> getCapabilitiesFlat() {
+        return this.capabilitiesFlat;
     }
 }

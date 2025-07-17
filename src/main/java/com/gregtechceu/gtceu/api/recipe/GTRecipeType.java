@@ -29,68 +29,37 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SmeltingRecipe;
 
 import it.unimi.dsi.fastutil.objects.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.*;
 
-@Accessors(chain = true)
 public class GTRecipeType implements RecipeType<GTRecipe> {
 
     public final ResourceLocation registryName;
     public final String group;
-    public final Object2IntSortedMap<RecipeCapability<?>> maxInputs = new Object2IntAVLTreeMap<>(
-            RecipeCapability.COMPARATOR);
-    public final Object2IntSortedMap<RecipeCapability<?>> maxOutputs = new Object2IntAVLTreeMap<>(
-            RecipeCapability.COMPARATOR);
-    @Setter
+    public final Object2IntSortedMap<RecipeCapability<?>> maxInputs = new Object2IntAVLTreeMap<>(RecipeCapability.COMPARATOR);
+    public final Object2IntSortedMap<RecipeCapability<?>> maxOutputs = new Object2IntAVLTreeMap<>(RecipeCapability.COMPARATOR);
     private GTRecipeBuilder recipeBuilder;
-    @Getter
-    @Setter
     private ChanceBoostFunction chanceFunction = ChanceBoostFunction.OVERCLOCK;
-    @Getter
-    @Setter
     private GTRecipeTypeUI recipeUI = new GTRecipeTypeUI(this);
-    @Setter
-    @Getter
     private GTRecipeType smallRecipeMap;
-    @Setter
-    @Getter
     @Nullable
     private Supplier<ItemStack> iconSupplier;
     @Nullable
-    @Setter
-    @Getter
     protected SoundEntry sound;
-    @Getter
     protected List<Function<CompoundTag, String>> dataInfos = new ArrayList<>();
-    @Getter
-    @Setter
     protected boolean isScanner;
     // Does this recipe type have a research item slot? If this is true you MUST create a custom UI.
-    @Getter
-    @Setter
     protected boolean hasResearchSlot;
-    @Getter
     protected final Map<RecipeType<?>, List<GTRecipe>> proxyRecipes;
-    @Getter
     private final GTRecipeCategory category;
-    @Getter
     private final Map<GTRecipeCategory, Set<GTRecipe>> categoryMap = new Object2ObjectOpenHashMap<>();
-    @Getter
     private final GTRecipeLookup lookup = new GTRecipeLookup(this);
-    @Setter
-    @Getter
     private boolean offsetVoltageText = false;
-    @Setter
-    @Getter
     private int voltageTextOffset = 20;
     private final Map<String, Collection<GTRecipe>> researchEntries = new Object2ObjectOpenHashMap<>();
-    @Getter
     private final List<ICustomRecipeLogic> customRecipeLogicRunners = new ArrayList<>();
 
     public GTRecipeType(ResourceLocation registryName, String group, RecipeType<?>... proxyRecipes) {
@@ -107,10 +76,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     }
 
     public GTRecipeType setMaxIOSize(int maxInputs, int maxOutputs, int maxFluidInputs, int maxFluidOutputs) {
-        return setMaxSize(IO.IN, ItemRecipeCapability.CAP, maxInputs)
-                .setMaxSize(IO.IN, FluidRecipeCapability.CAP, maxFluidInputs)
-                .setMaxSize(IO.OUT, ItemRecipeCapability.CAP, maxOutputs)
-                .setMaxSize(IO.OUT, FluidRecipeCapability.CAP, maxFluidOutputs);
+        return setMaxSize(IO.IN, ItemRecipeCapability.CAP, maxInputs).setMaxSize(IO.IN, FluidRecipeCapability.CAP, maxFluidInputs).setMaxSize(IO.OUT, ItemRecipeCapability.CAP, maxOutputs).setMaxSize(IO.OUT, FluidRecipeCapability.CAP, maxFluidOutputs);
     }
 
     public GTRecipeType setEUIO(IO io) {
@@ -175,7 +141,6 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     }
 
     /**
-     *
      * @param recipeLogic A function which is passed the normal findRecipe() result. Returns null if no valid recipe for
      *                    the custom logic is found.
      */
@@ -198,7 +163,8 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         return null;
     }
 
-    public @NotNull Iterator<GTRecipe> searchRecipe(IRecipeCapabilityHolder holder, Predicate<GTRecipe> canHandle) {
+    @NotNull
+    public Iterator<GTRecipe> searchRecipe(IRecipeCapabilityHolder holder, Predicate<GTRecipe> canHandle) {
         if (!holder.hasCapabilityProxies()) return Collections.emptyIterator();
         var iterator = getLookup().getRecipeIterator(holder, canHandle);
         boolean any = false;
@@ -208,12 +174,10 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
             any = true;
             break;
         }
-
         if (any) {
             iterator.reset();
             return iterator;
         }
-
         for (ICustomRecipeLogic logic : customRecipeLogicRunners) {
             GTRecipe recipe = logic.createCustomRecipe(holder);
             if (recipe != null && canHandle.test(recipe)) return Collections.singleton(recipe).iterator();
@@ -232,7 +196,6 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     //////////////////////////////////////
     // ***** Recipe Builder ******//
     //////////////////////////////////////
-
     public GTRecipeType prepareBuilder(Consumer<GTRecipeBuilder> onPrepare) {
         onPrepare.accept(recipeBuilder);
         return this;
@@ -244,10 +207,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
 
     public GTRecipeBuilder recipeBuilder(ResourceLocation id, Object... append) {
         if (append.length > 0) {
-            String toAppend = Arrays.stream(append)
-                    .map(Object::toString)
-                    .map(FormattingUtil::toLowerCaseUnderscore)
-                    .reduce("", (a, b) -> a + "_" + b);
+            String toAppend = Arrays.stream(append).map(Object::toString).map(FormattingUtil::toLowerCaseUnderscore).reduce("", (a, b) -> a + "_" + b);
             id = id.withSuffix(toAppend);
         }
         return recipeBuilder(id);
@@ -271,7 +231,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     }
 
     public void addDataStickEntry(@NotNull String researchId, @NotNull GTRecipe recipe) {
-        Collection<GTRecipe> collection = researchEntries.computeIfAbsent(researchId, (k) -> new ObjectOpenHashSet<>());
+        Collection<GTRecipe> collection = researchEntries.computeIfAbsent(researchId, k -> new ObjectOpenHashSet<>());
         collection.add(recipe);
     }
 
@@ -341,5 +301,147 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
          * Not required, can NOOP if unneeded.
          */
         default void buildRepresentativeRecipes() {}
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public GTRecipeType setRecipeBuilder(final GTRecipeBuilder recipeBuilder) {
+        this.recipeBuilder = recipeBuilder;
+        return this;
+    }
+
+    public ChanceBoostFunction getChanceFunction() {
+        return this.chanceFunction;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public GTRecipeType setChanceFunction(final ChanceBoostFunction chanceFunction) {
+        this.chanceFunction = chanceFunction;
+        return this;
+    }
+
+    public GTRecipeTypeUI getRecipeUI() {
+        return this.recipeUI;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public GTRecipeType setRecipeUI(final GTRecipeTypeUI recipeUI) {
+        this.recipeUI = recipeUI;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public GTRecipeType setSmallRecipeMap(final GTRecipeType smallRecipeMap) {
+        this.smallRecipeMap = smallRecipeMap;
+        return this;
+    }
+
+    public GTRecipeType getSmallRecipeMap() {
+        return this.smallRecipeMap;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public GTRecipeType setIconSupplier(@Nullable final Supplier<ItemStack> iconSupplier) {
+        this.iconSupplier = iconSupplier;
+        return this;
+    }
+
+    @Nullable
+    public Supplier<ItemStack> getIconSupplier() {
+        return this.iconSupplier;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public GTRecipeType setSound(@Nullable final SoundEntry sound) {
+        this.sound = sound;
+        return this;
+    }
+
+    @Nullable
+    public SoundEntry getSound() {
+        return this.sound;
+    }
+
+    public List<Function<CompoundTag, String>> getDataInfos() {
+        return this.dataInfos;
+    }
+
+    public boolean isScanner() {
+        return this.isScanner;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public GTRecipeType setScanner(final boolean isScanner) {
+        this.isScanner = isScanner;
+        return this;
+    }
+
+    public boolean isHasResearchSlot() {
+        return this.hasResearchSlot;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public GTRecipeType setHasResearchSlot(final boolean hasResearchSlot) {
+        this.hasResearchSlot = hasResearchSlot;
+        return this;
+    }
+
+    public Map<RecipeType<?>, List<GTRecipe>> getProxyRecipes() {
+        return this.proxyRecipes;
+    }
+
+    public GTRecipeCategory getCategory() {
+        return this.category;
+    }
+
+    public Map<GTRecipeCategory, Set<GTRecipe>> getCategoryMap() {
+        return this.categoryMap;
+    }
+
+    public GTRecipeLookup getLookup() {
+        return this.lookup;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public GTRecipeType setOffsetVoltageText(final boolean offsetVoltageText) {
+        this.offsetVoltageText = offsetVoltageText;
+        return this;
+    }
+
+    public boolean isOffsetVoltageText() {
+        return this.offsetVoltageText;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public GTRecipeType setVoltageTextOffset(final int voltageTextOffset) {
+        this.voltageTextOffset = voltageTextOffset;
+        return this;
+    }
+
+    public int getVoltageTextOffset() {
+        return this.voltageTextOffset;
+    }
+
+    public List<ICustomRecipeLogic> getCustomRecipeLogicRunners() {
+        return this.customRecipeLogicRunners;
     }
 }

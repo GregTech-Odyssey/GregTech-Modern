@@ -13,8 +13,6 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 
-import lombok.Getter;
-
 import java.util.Arrays;
 import java.util.function.Consumer;
 
@@ -24,17 +22,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class SimpleItemFilter implements ItemFilter {
 
-    @Getter
     protected boolean isBlackList;
-    @Getter
     protected boolean ignoreNbt;
-    @Getter
     protected ItemStack[] matches = new ItemStack[9];
-
     protected Consumer<ItemFilter> itemWriter = filter -> {};
     protected Consumer<ItemFilter> onUpdated = filter -> itemWriter.accept(filter);
-
-    @Getter
     protected int maxStackSize;
 
     protected SimpleItemFilter() {
@@ -101,9 +93,7 @@ public class SimpleItemFilter implements ItemFilter {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 final int index = i * 3 + j;
-
                 var handler = new CustomItemStackHandler(matches[index]);
-
                 var slot = new PhantomSlotWidget(handler, 0, i * 18, j * 18) {
 
                     @Override
@@ -118,19 +108,15 @@ public class SimpleItemFilter implements ItemFilter {
                         setMaxStackSize(maxStackSize);
                     }
                 };
-
                 slot.setChangeListener(() -> {
                     matches[index] = handler.getStackInSlot(0);
                     onUpdated.accept(this);
                 }).setBackground(GuiTextures.SLOT);
-
                 group.addWidget(slot);
             }
         }
-        group.addWidget(new ToggleButtonWidget(18 * 3 + 5, 0, 20, 20,
-                GuiTextures.BUTTON_BLACKLIST, this::isBlackList, this::setBlackList));
-        group.addWidget(new ToggleButtonWidget(18 * 3 + 5, 20, 20, 20,
-                GuiTextures.BUTTON_FILTER_NBT, this::isIgnoreNbt, this::setIgnoreNbt));
+        group.addWidget(new ToggleButtonWidget(18 * 3 + 5, 0, 20, 20, GuiTextures.BUTTON_BLACKLIST, this::isBlackList, this::setBlackList));
+        group.addWidget(new ToggleButtonWidget(18 * 3 + 5, 20, 20, 20, GuiTextures.BUTTON_FILTER_NBT, this::isIgnoreNbt, this::setIgnoreNbt));
         return group;
     }
 
@@ -142,17 +128,14 @@ public class SimpleItemFilter implements ItemFilter {
     @Override
     public int testItemCount(ItemStack itemStack) {
         int totalItemCount = getTotalConfiguredItemCount(itemStack);
-
         if (isBlackList) {
             return (totalItemCount > 0) ? 0 : Integer.MAX_VALUE;
         }
-
         return totalItemCount;
     }
 
     public int getTotalConfiguredItemCount(ItemStack itemStack) {
         int totalCount = 0;
-
         for (var candidate : matches) {
             if (ignoreNbt && ItemStack.isSameItem(candidate, itemStack)) {
                 totalCount += candidate.getCount();
@@ -160,15 +143,29 @@ public class SimpleItemFilter implements ItemFilter {
                 totalCount += candidate.getCount();
             }
         }
-
         return totalCount;
     }
 
     public void setMaxStackSize(int maxStackSize) {
         this.maxStackSize = maxStackSize;
-
         for (ItemStack match : matches) {
             match.setCount(Math.min(match.getCount(), maxStackSize));
         }
+    }
+
+    public boolean isBlackList() {
+        return this.isBlackList;
+    }
+
+    public boolean isIgnoreNbt() {
+        return this.ignoreNbt;
+    }
+
+    public ItemStack[] getMatches() {
+        return this.matches;
+    }
+
+    public int getMaxStackSize() {
+        return this.maxStackSize;
     }
 }

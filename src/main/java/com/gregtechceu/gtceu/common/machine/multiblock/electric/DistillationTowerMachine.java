@@ -28,7 +28,6 @@ import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import net.minecraftforge.fluids.capability.templates.VoidFluidHandler;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,12 +37,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class DistillationTowerMachine extends WorkableElectricMultiblockMachine
-                                      implements FluidRecipeCapability.ICustomParallel {
+public class DistillationTowerMachine extends WorkableElectricMultiblockMachine implements FluidRecipeCapability.ICustomParallel {
 
-    @Getter
     private List<IFluidHandler> fluidOutputs;
-    @Getter
     @Nullable
     private IFluidHandler firstValid = null;
     private final int yOffset;
@@ -77,11 +73,7 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine
     public void onStructureFormed() {
         super.onStructureFormed();
         final int startY = getPos().getY() + yOffset;
-        List<IMultiPart> parts = getParts().stream()
-                .filter(part -> PartAbility.EXPORT_FLUIDS.isApplicable(part.self().getBlockState().getBlock()))
-                .filter(part -> part.self().getPos().getY() >= startY)
-                .toList();
-
+        List<IMultiPart> parts = getParts().stream().filter(part -> PartAbility.EXPORT_FLUIDS.isApplicable(part.self().getBlockState().getBlock())).filter(part -> part.self().getPos().getY() >= startY).toList();
         if (!parts.isEmpty()) {
             // Loop from controller y + offset -> the highest output hatch
             int maxY = parts.get(parts.size() - 1).self().getPos().getY();
@@ -92,23 +84,15 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine
                     fluidOutputs.add(VoidFluidHandler.INSTANCE);
                     continue;
                 }
-
                 var part = parts.get(outputIndex);
                 if (part.self().getPos().getY() == y) {
-                    var handler = part.getRecipeHandlers().get(0).getCapability(FluidRecipeCapability.CAP)
-                            .stream()
-                            .filter(IFluidHandler.class::isInstance)
-                            .findFirst()
-                            .map(IFluidHandler.class::cast)
-                            .orElse(VoidFluidHandler.INSTANCE);
+                    var handler = part.getRecipeHandlers().get(0).getCapability(FluidRecipeCapability.CAP).stream().filter(IFluidHandler.class::isInstance).findFirst().map(IFluidHandler.class::cast).orElse(VoidFluidHandler.INSTANCE);
                     addOutput(handler);
                     outputIndex++;
                 } else if (part.self().getPos().getY() > y) {
                     fluidOutputs.add(VoidFluidHandler.INSTANCE);
                 } else {
-                    GTCEu.LOGGER.error(
-                            "The Distillation Tower at {} has a fluid export hatch with an unexpected Y position",
-                            getPos());
+                    GTCEu.LOGGER.error("The Distillation Tower at {} has a fluid export hatch with an unexpected Y position", getPos());
                     onStructureInvalid();
                     return;
                 }
@@ -132,23 +116,13 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine
     public int limitFluidParallel(GTRecipe recipe, int multiplier, boolean tick) {
         int minMultiplier = 0;
         int maxMultiplier = multiplier;
-
         var contents = (tick ? recipe.tickInputs : recipe.inputs).get(FluidRecipeCapability.CAP);
         if (contents == null || contents.isEmpty()) return multiplier;
-
-        int maxAmount = contents.stream()
-                .map(Content::getContent)
-                .map(FluidRecipeCapability.CAP::of)
-                .filter(i -> !i.isEmpty())
-                .mapToInt(FluidIngredient::getAmount)
-                .max()
-                .orElse(0);
-
+        int maxAmount = contents.stream().map(Content::getContent).map(FluidRecipeCapability.CAP::of).filter(i -> !i.isEmpty()).mapToInt(FluidIngredient::getAmount).max().orElse(0);
         if (maxAmount == 0) return multiplier;
         if (multiplier > Integer.MAX_VALUE / maxAmount) {
             maxMultiplier = multiplier = Integer.MAX_VALUE / maxAmount;
         }
-
         while (minMultiplier != maxMultiplier) {
             GTRecipe copy = modifyOutputs(recipe, ContentModifier.multiplier(multiplier));
             boolean filled = getRecipeLogic().applyFluidOutputs(copy, FluidAction.SIMULATE);
@@ -161,9 +135,7 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine
     }
 
     private static GTRecipe modifyOutputs(GTRecipe recipe, ContentModifier cm) {
-        return new GTRecipe(recipe.recipeType, recipe.id, recipe.inputs, cm.applyContents(recipe.outputs),
-                recipe.tickInputs, cm.applyContents(recipe.tickOutputs), recipe.conditions,
-                recipe.data, recipe.duration, recipe.recipeCategory);
+        return new GTRecipe(recipe.recipeType, recipe.id, recipe.inputs, cm.applyContents(recipe.outputs), recipe.tickInputs, cm.applyContents(recipe.tickOutputs), recipe.conditions, recipe.data, recipe.duration, recipe.recipeCategory);
     }
 
     public static class DistillationTowerLogic extends RecipeLogic {
@@ -185,7 +157,8 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine
 
         // Copy of lastRecipe with fluid outputs trimmed, for output displays like Jade or GUI text
         @Override
-        public @Nullable GTRecipe getLastRecipe() {
+        @Nullable
+        public GTRecipe getLastRecipe() {
             return workingRecipe;
         }
 
@@ -193,7 +166,6 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine
         protected ActionResult matchRecipe(GTRecipe recipe) {
             var match = matchDTRecipe(recipe);
             if (!match.isSuccess()) return match;
-
             return RecipeHelper.matchTickRecipe(this.machine, recipe);
         }
 
@@ -204,24 +176,17 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine
         }
 
         private ActionResult matchDTRecipe(GTRecipe recipe) {
-            var result = RecipeHelper.handleRecipe(machine, recipe, IO.IN, recipe.inputs,
-                    Collections.emptyMap(), false, true);
+            var result = RecipeHelper.handleRecipe(machine, recipe, IO.IN, recipe.inputs, Collections.emptyMap(), false, true);
             if (!result.isSuccess()) return result;
-
             var items = recipe.getOutputContents(ItemRecipeCapability.CAP);
             if (!items.isEmpty()) {
                 Map<RecipeCapability<?>, List<Content>> out = Map.of(ItemRecipeCapability.CAP, items);
                 result = RecipeHelper.handleRecipe(machine, recipe, IO.OUT, out, Collections.emptyMap(), false, true);
                 if (!result.isSuccess()) return result;
             }
-
             if (!applyFluidOutputs(recipe, FluidAction.SIMULATE)) {
-                return ActionResult
-                        .fail(Component.translatable("gtceu.recipe_logic.insufficient_out")
-                                .append(": ")
-                                .append(FluidRecipeCapability.CAP.getName()));
+                return ActionResult.fail(Component.translatable("gtceu.recipe_logic.insufficient_out").append(": ").append(FluidRecipeCapability.CAP.getName()));
             }
-
             return ActionResult.SUCCESS;
         }
 
@@ -230,7 +195,6 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine
                 this.workingRecipe = recipe;
                 return;
             }
-
             this.workingRecipe = recipe.copy();
             var contents = recipe.getOutputContents(FluidRecipeCapability.CAP);
             var outputs = getMachine().getFluidOutputs();
@@ -252,53 +216,47 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine
                 }
                 return handleIO;
             }
-
             var items = recipe.getOutputContents(ItemRecipeCapability.CAP);
             if (!items.isEmpty()) {
                 Map<RecipeCapability<?>, List<Content>> out = Map.of(ItemRecipeCapability.CAP, items);
                 RecipeHelper.handleRecipe(this.machine, recipe, io, out, chanceCaches, false, false);
             }
-
             if (applyFluidOutputs(recipe, FluidAction.EXECUTE)) {
                 workingRecipe = null;
                 return ActionResult.SUCCESS;
             }
-
-            return ActionResult.fail(Component.translatable("gtceu.recipe_logic.insufficient_out")
-                    .append(": ")
-                    .append(FluidRecipeCapability.CAP.getName()));
+            return ActionResult.fail(Component.translatable("gtceu.recipe_logic.insufficient_out").append(": ").append(FluidRecipeCapability.CAP.getName()));
         }
 
         private boolean applyFluidOutputs(GTRecipe recipe, FluidAction action) {
-            var fluids = recipe.getOutputContents(FluidRecipeCapability.CAP)
-                    .stream()
-                    .map(Content::getContent)
-                    .map(FluidRecipeCapability.CAP::of)
-                    .toList();
-
+            var fluids = recipe.getOutputContents(FluidRecipeCapability.CAP).stream().map(Content::getContent).map(FluidRecipeCapability.CAP::of).toList();
             // Distillery recipes should output to the first non-void handler
             if (recipe.recipeType == GTRecipeTypes.DISTILLERY_RECIPES) {
                 var fluid = fluids.get(0).getStacks()[0];
                 var handler = getMachine().getFirstValid();
                 if (handler == null) return false;
-                int filled = (handler instanceof NotifiableFluidTank nft) ?
-                        nft.fillInternal(fluid, action) :
-                        handler.fill(fluid, action);
+                int filled = (handler instanceof NotifiableFluidTank nft) ? nft.fillInternal(fluid, action) : handler.fill(fluid, action);
                 return filled == fluid.getAmount();
             }
-
             boolean valid = true;
             var outputs = getMachine().getFluidOutputs();
             for (int i = 0; i < Math.min(fluids.size(), outputs.size()); ++i) {
                 var handler = outputs.get(i);
                 var fluid = fluids.get(i).getStacks()[0];
-                int filled = (handler instanceof NotifiableFluidTank nft) ?
-                        nft.fillInternal(fluid, action) :
-                        handler.fill(fluid, action);
+                int filled = (handler instanceof NotifiableFluidTank nft) ? nft.fillInternal(fluid, action) : handler.fill(fluid, action);
                 if (filled != fluid.getAmount()) valid = false;
                 if (action.simulate() && !valid) break;
             }
             return valid;
         }
+    }
+
+    public List<IFluidHandler> getFluidOutputs() {
+        return this.fluidOutputs;
+    }
+
+    @Nullable
+    public IFluidHandler getFirstValid() {
+        return this.firstValid;
     }
 }

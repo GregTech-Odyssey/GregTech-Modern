@@ -11,8 +11,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +33,6 @@ public class LaserPipeNet extends PipeNet<LaserPipeProperties> {
                 // walker failed, don't cache, so it tries again on next insertion
                 return null;
             }
-
             netData.put(pipePos, data);
         }
         return data;
@@ -59,30 +56,24 @@ public class LaserPipeNet extends PipeNet<LaserPipeProperties> {
         return LaserPipeProperties.INSTANCE;
     }
 
-    @AllArgsConstructor
     public static class LaserData implements IAttachData {
 
         /**
          * The current position of the pipe
          */
-        @Getter
         private final BlockPos pipePos;
         /**
          * The current face to handler
          */
-        @Getter
         private final Direction faceToHandler;
         /**
          * The manhattan distance traveled during walking
          */
-        @Getter
         private final int distance;
         /**
          * The laser pipe properties of the current pipe
          */
-        @Getter
         private final LaserPipeProperties properties;
-        @Getter
         byte connections;
 
         @Override
@@ -120,6 +111,55 @@ public class LaserPipeNet extends PipeNet<LaserPipeProperties> {
         @Nullable
         public ILaserContainer getHandler(@NotNull Level world) {
             return GTCapabilityHelper.getLaser(world, getHandlerPos(), faceToHandler.getOpposite());
+        }
+
+        /**
+         * Creates a new {@code LaserData} instance.
+         *
+         * @param pipePos       The current position of the pipe
+         * @param faceToHandler The current face to handler
+         * @param distance      The manhattan distance traveled during walking
+         * @param properties    The laser pipe properties of the current pipe
+         * @param connections
+         */
+        public LaserData(final BlockPos pipePos, final Direction faceToHandler, final int distance, final LaserPipeProperties properties, final byte connections) {
+            this.pipePos = pipePos;
+            this.faceToHandler = faceToHandler;
+            this.distance = distance;
+            this.properties = properties;
+            this.connections = connections;
+        }
+
+        /**
+         * The current position of the pipe
+         */
+        public BlockPos getPipePos() {
+            return this.pipePos;
+        }
+
+        /**
+         * The current face to handler
+         */
+        public Direction getFaceToHandler() {
+            return this.faceToHandler;
+        }
+
+        /**
+         * The manhattan distance traveled during walking
+         */
+        public int getDistance() {
+            return this.distance;
+        }
+
+        /**
+         * The laser pipe properties of the current pipe
+         */
+        public LaserPipeProperties getProperties() {
+            return this.properties;
+        }
+
+        public byte getConnections() {
+            return this.connections;
         }
     }
 }

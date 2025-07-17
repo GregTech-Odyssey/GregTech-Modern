@@ -18,8 +18,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,16 +27,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class ShutterCover extends CoverBehavior implements IControllable {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ShutterCover.class,
-            CoverBehavior.MANAGED_FIELD_HOLDER);
-
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ShutterCover.class, CoverBehavior.MANAGED_FIELD_HOLDER);
     @Persisted
-    @Getter
-    @Setter
     private boolean workingEnabled = true;
 
-    public ShutterCover(@NotNull CoverDefinition definition, @NotNull ICoverable coverableView,
-                        @NotNull Direction attachedSide) {
+    public ShutterCover(@NotNull CoverDefinition definition, @NotNull ICoverable coverableView, @NotNull Direction attachedSide) {
         super(definition, coverableView, attachedSide);
     }
 
@@ -56,24 +49,33 @@ public class ShutterCover extends CoverBehavior implements IControllable {
     public InteractionResult onSoftMalletClick(Player playerIn, InteractionHand hand, BlockHitResult hitResult) {
         this.workingEnabled = !this.workingEnabled;
         if (!playerIn.level().isClientSide) {
-            playerIn.sendSystemMessage(Component.translatable(isWorkingEnabled() ?
-                    "cover.shutter.message.enabled" : "cover.shutter.message.disabled"));
+            playerIn.sendSystemMessage(Component.translatable(isWorkingEnabled() ? "cover.shutter.message.enabled" : "cover.shutter.message.disabled"));
         }
         return InteractionResult.SUCCESS;
     }
 
     @Override
-    public @Nullable IItemHandlerModifiable getItemHandlerCap(IItemHandlerModifiable defaultValue) {
+    @Nullable
+    public IItemHandlerModifiable getItemHandlerCap(IItemHandlerModifiable defaultValue) {
         return isWorkingEnabled() ? null : super.getItemHandlerCap(defaultValue);
     }
 
     @Override
-    public @Nullable IFluidHandlerModifiable getFluidHandlerCap(IFluidHandlerModifiable defaultValue) {
+    @Nullable
+    public IFluidHandlerModifiable getFluidHandlerCap(IFluidHandlerModifiable defaultValue) {
         return isWorkingEnabled() ? null : super.getFluidHandlerCap(defaultValue);
     }
 
     @Override
     public ManagedFieldHolder getFieldHolder() {
         return MANAGED_FIELD_HOLDER;
+    }
+
+    public boolean isWorkingEnabled() {
+        return this.workingEnabled;
+    }
+
+    public void setWorkingEnabled(final boolean workingEnabled) {
+        this.workingEnabled = workingEnabled;
     }
 }

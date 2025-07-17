@@ -23,7 +23,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.resources.ResourceLocation;
 
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -34,7 +33,6 @@ import java.util.*;
 public class MachineUIProject extends UIProject {
 
     @Nullable
-    @Getter
     protected MachineDefinition machineDefinition;
 
     private MachineUIProject() {
@@ -88,19 +86,12 @@ public class MachineUIProject extends UIProject {
     @Override
     public void onLoad(Editor editor) {
         editor.getResourcePanel().loadResource(getResources(), false);
-        editor.getTabPages().addTab(new TabButton(50, 16, 60, 14).setTexture(
-                new GuiTextureGroup(ColorPattern.T_GREEN.rectTexture().setBottomRadius(10).transform(0, 0.4f),
-                        new TextTexture("Main")),
-                new GuiTextureGroup(ColorPattern.T_RED.rectTexture().setBottomRadius(10).transform(0, 0.4f),
-                        new TextTexture("Main"))),
-                new UIMainPanel(editor, root, machineDefinition == null ? null : machineDefinition.getDescriptionId()));
-
+        editor.getTabPages().addTab(new TabButton(50, 16, 60, 14).setTexture(new GuiTextureGroup(ColorPattern.T_GREEN.rectTexture().setBottomRadius(10).transform(0, 0.4F), new TextTexture("Main")), new GuiTextureGroup(ColorPattern.T_RED.rectTexture().setBottomRadius(10).transform(0, 0.4F), new TextTexture("Main"))), new UIMainPanel(editor, root, machineDefinition == null ? null : machineDefinition.getDescriptionId()));
         for (WidgetToolBox.Default tab : WidgetToolBox.Default.TABS) {
             if (tab == WidgetToolBox.Default.CONTAINER) {
                 continue;
             }
-            editor.getToolPanel().addNewToolBox("ldlib.gui.editor.group." + tab.groupName, tab.icon,
-                    tab.createToolBox());
+            editor.getToolPanel().addNewToolBox("ldlib.gui.editor.group." + tab.groupName, tab.icon, tab.createToolBox());
         }
     }
 
@@ -113,8 +104,7 @@ public class MachineUIProject extends UIProject {
                 menu.remove("ldlib.gui.editor.menu.save");
                 menu.leaf(Icons.SAVE, "ldlib.gui.editor.menu.save", () -> {
                     var editableUI = machineDefinition.getEditableUI();
-                    var path = new File(LDLib.location,
-                            "assets/%s/ui/machine".formatted(editableUI.getUiPath().getNamespace()));
+                    var path = new File(LDLib.location, "assets/%s/ui/machine".formatted(editableUI.getUiPath().getNamespace()));
                     path.mkdirs();
                     saveProject(new File(path, editableUI.getUiPath().getPath() + "." + this.getRegisterUI().name()));
                     editableUI.reloadCustomUI();
@@ -140,8 +130,7 @@ public class MachineUIProject extends UIProject {
                                 deserializeNBT(editableUI.getCustomUI());
                             } else {
                                 var template = editableUI.createDefault();
-                                template.setSelfPosition(
-                                        new Position(root.getSelfPosition().x, root.getSelfPosition().y));
+                                template.setSelfPosition(new Position(root.getSelfPosition().x, root.getSelfPosition().y));
                                 this.root = template;
                             }
                             setMachine(definition);
@@ -151,5 +140,10 @@ public class MachineUIProject extends UIProject {
                 }
             }));
         }
+    }
+
+    @Nullable
+    public MachineDefinition getMachineDefinition() {
+        return this.machineDefinition;
     }
 }

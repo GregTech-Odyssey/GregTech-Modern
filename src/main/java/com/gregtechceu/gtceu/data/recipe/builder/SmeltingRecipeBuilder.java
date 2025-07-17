@@ -17,25 +17,17 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
 import com.google.gson.JsonObject;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
-@Accessors(chain = true, fluent = true)
 public class SmeltingRecipeBuilder {
 
     private Ingredient input;
-    @Setter
     protected String group;
-
     private ItemStack output = ItemStack.EMPTY;
-    @Setter
     private float experience;
-    @Setter
     private int cookingTime;
-    @Setter
     protected ResourceLocation id;
 
     public SmeltingRecipeBuilder(@Nullable ResourceLocation id) {
@@ -86,11 +78,9 @@ public class SmeltingRecipeBuilder {
         if (group != null) {
             json.addProperty("group", group);
         }
-
         if (!input.isEmpty()) {
             json.add("ingredient", input.toJson());
         }
-
         if (output.isEmpty()) {
             GTCEu.LOGGER.error("shapeless recipe {} output is empty", id);
             throw new IllegalArgumentException(id + ": output items is empty");
@@ -105,7 +95,6 @@ public class SmeltingRecipeBuilder {
             }
             json.add("result", result);
         }
-
         json.addProperty("experience", experience);
         json.addProperty("cookingtime", cookingTime);
     }
@@ -141,5 +130,37 @@ public class SmeltingRecipeBuilder {
                 return null;
             }
         });
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public SmeltingRecipeBuilder group(final String group) {
+        this.group = group;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public SmeltingRecipeBuilder experience(final float experience) {
+        this.experience = experience;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public SmeltingRecipeBuilder cookingTime(final int cookingTime) {
+        this.cookingTime = cookingTime;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public SmeltingRecipeBuilder id(final ResourceLocation id) {
+        this.id = id;
+        return this;
     }
 }

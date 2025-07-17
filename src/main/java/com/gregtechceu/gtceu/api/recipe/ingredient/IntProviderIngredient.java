@@ -19,8 +19,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import it.unimi.dsi.fastutil.ints.IntList;
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,14 +27,9 @@ import java.util.stream.Stream;
 public class IntProviderIngredient extends Ingredient {
 
     public static final ResourceLocation TYPE = GTCEu.id("int_provider");
-
-    @Getter
     protected final IntProvider countProvider;
-    @Setter
     protected int sampledCount = -1;
-    @Getter
     protected final Ingredient inner;
-    @Setter
     protected ItemStack[] itemStacks = null;
 
     protected IntProviderIngredient(Ingredient inner, IntProvider countProvider) {
@@ -46,8 +39,7 @@ public class IntProviderIngredient extends Ingredient {
     }
 
     public static IntProviderIngredient of(Ingredient inner, IntProvider countProvider) {
-        Preconditions.checkArgument(countProvider.getMinValue() >= 0,
-                "IntProviderIngredient must have a min value of at least 0.");
+        Preconditions.checkArgument(countProvider.getMinValue() >= 0, "IntProviderIngredient must have a min value of at least 0.");
         return new IntProviderIngredient(inner, countProvider);
     }
 
@@ -72,7 +64,8 @@ public class IntProviderIngredient extends Ingredient {
         return itemStacks;
     }
 
-    public @NotNull ItemStack getMaxSizeStack() {
+    @NotNull
+    public ItemStack getMaxSizeStack() {
         if (inner.getItems().length == 0) return ItemStack.EMPTY;
         else return inner.getItems()[0].copyWithCount(countProvider.getMaxValue());
     }
@@ -85,7 +78,8 @@ public class IntProviderIngredient extends Ingredient {
     }
 
     @Override
-    public @NotNull IntList getStackingIds() {
+    @NotNull
+    public IntList getStackingIds() {
         return inner.getStackingIds();
     }
 
@@ -105,11 +99,11 @@ public class IntProviderIngredient extends Ingredient {
     }
 
     @Override
-    public @NotNull JsonElement toJson() {
+    @NotNull
+    public JsonElement toJson() {
         JsonObject json = new JsonObject();
         json.addProperty("type", TYPE.toString());
-        json.add("count_provider", IntProvider.CODEC.encodeStart(JsonOps.INSTANCE, countProvider)
-                .getOrThrow(false, GTCEu.LOGGER::error));
+        json.add("count_provider", IntProvider.CODEC.encodeStart(JsonOps.INSTANCE, countProvider).getOrThrow(false, GTCEu.LOGGER::error));
         json.add("ingredient", inner.toJson());
         return json;
     }
@@ -117,16 +111,16 @@ public class IntProviderIngredient extends Ingredient {
     public static final IIngredientSerializer<IntProviderIngredient> SERIALIZER = new IIngredientSerializer<>() {
 
         @Override
-        public @NotNull IntProviderIngredient parse(FriendlyByteBuf buffer) {
-            IntProvider amount = IntProvider.CODEC.parse(NbtOps.INSTANCE, buffer.readNbt().get("provider"))
-                    .getOrThrow(false, GTCEu.LOGGER::error);
+        @NotNull
+        public IntProviderIngredient parse(FriendlyByteBuf buffer) {
+            IntProvider amount = IntProvider.CODEC.parse(NbtOps.INSTANCE, buffer.readNbt().get("provider")).getOrThrow(false, GTCEu.LOGGER::error);
             return new IntProviderIngredient(Ingredient.fromNetwork(buffer), amount);
         }
 
         @Override
-        public @NotNull IntProviderIngredient parse(JsonObject json) {
-            IntProvider amount = IntProvider.CODEC.parse(JsonOps.INSTANCE, json.get("count_provider"))
-                    .getOrThrow(false, GTCEu.LOGGER::error);
+        @NotNull
+        public IntProviderIngredient parse(JsonObject json) {
+            IntProvider amount = IntProvider.CODEC.parse(JsonOps.INSTANCE, json.get("count_provider")).getOrThrow(false, GTCEu.LOGGER::error);
             Ingredient inner = Ingredient.fromJson(json.get("ingredient"));
             return new IntProviderIngredient(inner, amount);
         }
@@ -134,10 +128,25 @@ public class IntProviderIngredient extends Ingredient {
         @Override
         public void write(FriendlyByteBuf buffer, IntProviderIngredient ingredient) {
             CompoundTag wrapper = new CompoundTag();
-            wrapper.put("provider", IntProvider.CODEC.encodeStart(NbtOps.INSTANCE, ingredient.countProvider)
-                    .getOrThrow(false, GTCEu.LOGGER::error));
+            wrapper.put("provider", IntProvider.CODEC.encodeStart(NbtOps.INSTANCE, ingredient.countProvider).getOrThrow(false, GTCEu.LOGGER::error));
             buffer.writeNbt(wrapper);
             ingredient.inner.toNetwork(buffer);
         }
     };
+
+    public IntProvider getCountProvider() {
+        return this.countProvider;
+    }
+
+    public void setSampledCount(final int sampledCount) {
+        this.sampledCount = sampledCount;
+    }
+
+    public Ingredient getInner() {
+        return this.inner;
+    }
+
+    public void setItemStacks(final ItemStack[] itemStacks) {
+        this.itemStacks = itemStacks;
+    }
 }

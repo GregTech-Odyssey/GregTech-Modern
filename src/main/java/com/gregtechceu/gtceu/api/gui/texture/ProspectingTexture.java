@@ -22,7 +22,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import lombok.Getter;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -37,12 +36,9 @@ import static com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_TEX_COLOR;
 public class ProspectingTexture extends AbstractTexture {
 
     public static final String SELECTED_ALL = "[all]";
-    @Getter
     private String selected = SELECTED_ALL;
     private boolean darkMode;
-    @Getter
     private final int imageWidth;
-    @Getter
     private final int imageHeight;
     public final Object[][][] data;
     private final int playerXGui;
@@ -53,13 +49,11 @@ public class ProspectingTexture extends AbstractTexture {
     private final ProspectorMode mode;
     private final int radius;
 
-    public ProspectingTexture(int playerChunkX, int playerChunkZ, int posX, int posZ, float direction,
-                              ProspectorMode mode, int radius, boolean darkMode) {
+    public ProspectingTexture(int playerChunkX, int playerChunkZ, int posX, int posZ, float direction, ProspectorMode mode, int radius, boolean darkMode) {
         this.darkMode = darkMode;
         this.radius = radius;
         this.mode = mode;
-        this.data = (Object[][][]) Array.newInstance(mode.getItemClass(), (radius * 2 - 1) * mode.cellSize,
-                (radius * 2 - 1) * mode.cellSize, 0);
+        this.data = (Object[][][]) Array.newInstance(mode.getItemClass(), (radius * 2 - 1) * mode.cellSize, (radius * 2 - 1) * mode.cellSize, 0);
         this.imageWidth = (radius * 2 - 1) * 16;
         this.imageHeight = (radius * 2 - 1) * 16;
         this.playerChunkX = playerChunkX;
@@ -79,7 +73,6 @@ public class ProspectingTexture extends AbstractTexture {
         if (playerChunkX > packet.chunkX) {
             ox = -ox;
         }
-
         int oy;
         if ((packet.chunkZ > 0 && playerChunkZ > 0) || (packet.chunkZ < 0 && playerChunkZ < 0)) {
             oy = Math.abs(Math.abs(packet.chunkZ) - Math.abs(playerChunkZ));
@@ -89,16 +82,13 @@ public class ProspectingTexture extends AbstractTexture {
         if (playerChunkZ > packet.chunkZ) {
             oy = -oy;
         }
-
         int currentColumn = (this.radius - 1) + ox;
         int currentRow = (this.radius - 1) + oy;
         if (currentRow < 0) {
             return;
         }
-
         for (int x = 0; x < mode.cellSize; x++) {
-            System.arraycopy(packet.data[x], 0, data[x + currentColumn * mode.cellSize], currentRow * mode.cellSize,
-                    mode.cellSize);
+            System.arraycopy(packet.data[x], 0, data[x + currentColumn * mode.cellSize], currentRow * mode.cellSize, mode.cellSize);
         }
         load();
     }
@@ -115,13 +105,12 @@ public class ProspectingTexture extends AbstractTexture {
                 for (var item : items) {
                     if (!selected.equals(SELECTED_ALL) && !selected.equals(mode.getUniqueID(item))) continue;
                     var color = mode.getItemColor(item);
-                    image.setPixelRGBA(i, j,
-                            combine(255, ColorUtils.blueI(color), ColorUtils.greenI(color), ColorUtils.redI(color)));
+                    image.setPixelRGBA(i, j, combine(255, ColorUtils.blueI(color), ColorUtils.greenI(color), ColorUtils.redI(color)));
                     break;
                 }
                 // draw grid
                 if ((i) % 16 == 0 || (j) % 16 == 0) {
-                    image.setPixelRGBA(i, j, ColorUtils.averageColor(image.getPixelRGBA(i, j), 0xff000000));
+                    image.setPixelRGBA(i, j, ColorUtils.averageColor(image.getPixelRGBA(i, j), -16777216));
                 }
             }
         }
@@ -132,7 +121,7 @@ public class ProspectingTexture extends AbstractTexture {
      * The resulting color of this operation is stored as least to most significant bits.
      */
     public static int combine(int alpha, int blue, int green, int red) {
-        return (alpha & 0xFF) << 24 | (blue & 0xFF) << 16 | (green & 0xFF) << 8 | (red & 0xFF);
+        return (alpha & 255) << 24 | (blue & 255) << 16 | (green & 255) << 8 | (red & 255);
     }
 
     public void load() {
@@ -157,7 +146,6 @@ public class ProspectingTexture extends AbstractTexture {
         bufferbuilder.vertex(matrix4f, x + imageWidth, y, 0).uv(1, 0).color(-1).endVertex();
         bufferbuilder.vertex(matrix4f, x, y, 0).uv(0, 0).color(-1).endVertex();
         tessellator.end();
-
         // draw special grid (e.g. fluid)
         for (int cx = 0; cx < radius * 2 - 1; cx++) {
             for (int cz = 0; cz < radius * 2 - 1; cz++) {
@@ -167,10 +155,7 @@ public class ProspectingTexture extends AbstractTexture {
                 }
             }
         }
-
-        GuiTextures.UP.copy().setColor(ColorPattern.RED.color).rotate(direction / 2).draw(graphics, 0, 0,
-                x + playerXGui - 20, y + playerYGui - 20, 40, 40);
-
+        GuiTextures.UP.copy().setColor(ColorPattern.RED.color).rotate(direction / 2).draw(graphics, 0, 0, x + playerXGui - 20, y + playerYGui - 20, 40, 40);
         // draw red vertical line
         if (playerXGui % 16 > 7 || playerXGui % 16 == 0) {
             DrawerHelper.drawSolidRect(graphics, x + playerXGui - 1, y, 1, imageHeight, ColorPattern.RED.color);
@@ -200,5 +185,17 @@ public class ProspectingTexture extends AbstractTexture {
             this.selected = uniqueID;
             load();
         }
+    }
+
+    public String getSelected() {
+        return this.selected;
+    }
+
+    public int getImageWidth() {
+        return this.imageWidth;
+    }
+
+    public int getImageHeight() {
+        return this.imageHeight;
     }
 }

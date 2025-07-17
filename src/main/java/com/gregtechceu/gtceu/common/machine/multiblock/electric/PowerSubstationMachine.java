@@ -38,7 +38,6 @@ import net.minecraft.world.entity.player.Player;
 import com.google.common.annotations.VisibleForTesting;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigInteger;
@@ -48,42 +47,30 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class PowerSubstationMachine extends WorkableMultiblockMachine
-                                    implements IEnergyInfoProvider, IFancyUIMachine, IDisplayUIMachine {
+public class PowerSubstationMachine extends WorkableMultiblockMachine implements IEnergyInfoProvider, IFancyUIMachine, IDisplayUIMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            PowerSubstationMachine.class, WorkableMultiblockMachine.MANAGED_FIELD_HOLDER);
-
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(PowerSubstationMachine.class, WorkableMultiblockMachine.MANAGED_FIELD_HOLDER);
     // Structure Constants
     public static final int MAX_BATTERY_LAYERS = 18;
     public static final int MIN_CASINGS = 14;
-
     // Passive Drain Constants
     // 1% capacity per 24 hours
     public static final long PASSIVE_DRAIN_DIVISOR = 20 * 60 * 60 * 24 * 100;
     // no more than 100kEU/t per storage block
-    public static final long PASSIVE_DRAIN_MAX_PER_STORAGE = 100_000L;
-
+    public static final long PASSIVE_DRAIN_MAX_PER_STORAGE = 100000L;
     // Match Context Headers
     public static final String PMC_BATTERY_HEADER = "PSSBattery_";
-
     private static final BigInteger BIG_INTEGER_MAX_LONG = BigInteger.valueOf(Long.MAX_VALUE);
-
     private IMaintenanceMachine maintenance;
-
     private PowerStationEnergyBank energyBank;
     private EnergyContainerList inputHatches;
     private EnergyContainerList outputHatches;
     private long passiveDrain;
-
     // Stats tracked for UI display
     private long netInLastSec;
-    @Getter
     private long inputPerSec;
     private long netOutLastSec;
-    @Getter
     private long outputPerSec;
-
     protected ConditionalSubscriptionHandler tickSubscription;
 
     public PowerSubstationMachine(IMachineBlockEntity holder) {
@@ -97,8 +84,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine
         super.onStructureFormed();
         List<IEnergyContainer> inputs = new ArrayList<>();
         List<IEnergyContainer> outputs = new ArrayList<>();
-        Long2ObjectMap<IO> ioMap = getMultiblockState().getMatchContext().getOrCreate("ioMap",
-                Long2ObjectMaps::emptyMap);
+        Long2ObjectMap<IO> ioMap = getMultiblockState().getMatchContext().getOrCreate("ioMap", Long2ObjectMaps::emptyMap);
         for (IMultiPart part : getParts()) {
             IO io = ioMap.getOrDefault(part.self().getPos().asLong(), IO.BOTH);
             if (io == IO.NONE) continue;
@@ -108,29 +94,20 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine
             var handlerLists = part.getRecipeHandlers();
             for (var handlerList : handlerLists) {
                 if (!handlerList.isValid(io)) continue;
-
-                var containers = handlerList.getCapability(EURecipeCapability.CAP).stream()
-                        .filter(IEnergyContainer.class::isInstance)
-                        .map(IEnergyContainer.class::cast)
-                        .toList();
-
+                var containers = handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).toList();
                 if (handlerList.getHandlerIO() == IO.IN) {
                     inputs.addAll(containers);
                 } else if (handlerList.getHandlerIO() == IO.OUT) {
                     outputs.addAll(containers);
                 }
-
-                traitSubscriptions
-                        .add(handlerList.subscribe(tickSubscription::updateSubscription, EURecipeCapability.CAP));
+                traitSubscriptions.add(handlerList.subscribe(tickSubscription::updateSubscription, EURecipeCapability.CAP));
             }
         }
         this.inputHatches = new EnergyContainerList(inputs);
         this.outputHatches = new EnergyContainerList(outputs);
-
         List<IBatteryData> batteries = new ArrayList<>();
         for (Map.Entry<String, Object> battery : getMultiblockState().getMatchContext().entrySet()) {
-            if (battery.getKey().startsWith(PMC_BATTERY_HEADER) &&
-                    battery.getValue() instanceof BatteryMatchWrapper wrapper) {
+            if (battery.getKey().startsWith(PMC_BATTERY_HEADER) && battery.getValue() instanceof BatteryMatchWrapper wrapper) {
                 for (int i = 0; i < wrapper.amount; i++) {
                     batteries.add(wrapper.partType);
                 }
@@ -168,27 +145,22 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine
         if (!getLevel().isClientSide) {
             if (getOffsetTimer() % 20 == 0) {
                 // active here is just used for rendering
-                getRecipeLogic()
-                        .setStatus(energyBank.hasEnergy() ? RecipeLogic.Status.WORKING : RecipeLogic.Status.IDLE);
+                getRecipeLogic().setStatus(energyBank.hasEnergy() ? RecipeLogic.Status.WORKING : RecipeLogic.Status.IDLE);
                 inputPerSec = netInLastSec;
                 outputPerSec = netOutLastSec;
                 netInLastSec = 0;
                 netOutLastSec = 0;
             }
-
             if (isWorkingEnabled() && isFormed()) {
                 // Bank from Energy Input Hatches
                 long energyBanked = energyBank.fill(inputHatches.getEnergyStored());
                 inputHatches.changeEnergy(-energyBanked);
                 netInLastSec += energyBanked;
-
                 // Passive drain
                 long energyPassiveDrained = energyBank.drain(getPassiveDrain());
                 netOutLastSec += energyPassiveDrained;
-
                 // Debank to Dynamo Hatches
-                long energyDebanked = energyBank
-                        .drain(outputHatches.getEnergyCapacity() - outputHatches.getEnergyStored());
+                long energyDebanked = energyBank.drain(outputHatches.getEnergyCapacity() - outputHatches.getEnergyStored());
                 outputHatches.changeEnergy(energyDebanked);
                 netOutLastSec += energyDebanked;
             }
@@ -201,69 +173,41 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine
         if (isFormed()) {
             if (!isWorkingEnabled()) {
                 textList.add(Component.translatable("gtceu.multiblock.work_paused"));
-
             } else if (isActive()) {
                 textList.add(Component.translatable("gtceu.multiblock.running"));
                 int currentProgress = (int) (recipeLogic.getProgressPercent() * 100);
-                double maxInSec = (float) recipeLogic.getDuration() / 20.0f;
-                double currentInSec = (float) recipeLogic.getProgress() / 20.0f;
-                textList.add(
-                        Component.translatable("gtceu.multiblock.progress", String.format("%.2f", (float) currentInSec),
-                                String.format("%.2f", (float) maxInSec), currentProgress));
+                double maxInSec = (float) recipeLogic.getDuration() / 20.0F;
+                double currentInSec = (float) recipeLogic.getProgress() / 20.0F;
+                textList.add(Component.translatable("gtceu.multiblock.progress", String.format("%.2f", (float) currentInSec), String.format("%.2f", (float) maxInSec), currentProgress));
             } else {
                 textList.add(Component.translatable("gtceu.multiblock.idling"));
             }
-
             if (recipeLogic.isWaiting()) {
-                textList.add(Component.translatable("gtceu.multiblock.waiting")
-                        .setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+                textList.add(Component.translatable("gtceu.multiblock.waiting").setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
             }
-
             if (energyBank != null) {
                 BigInteger energyStored = energyBank.getStored();
                 BigInteger energyCapacity = energyBank.getCapacity();
-
                 var STYLE_GOLD = Style.EMPTY.withColor(ChatFormatting.GOLD);
                 var STYLE_DARK_RED = Style.EMPTY.withColor(ChatFormatting.DARK_RED);
                 var STYLE_GREEN = Style.EMPTY.withColor(ChatFormatting.GREEN);
                 var STYLE_RED = Style.EMPTY.withColor(ChatFormatting.RED);
-
                 var storedComponent = Component.literal(FormattingUtil.formatNumbers(energyStored));
-                textList.add(Component.translatable("gtceu.multiblock.power_substation.stored",
-                        storedComponent.setStyle(STYLE_GOLD)));
-
+                textList.add(Component.translatable("gtceu.multiblock.power_substation.stored", storedComponent.setStyle(STYLE_GOLD)));
                 var capacityComponent = Component.literal(FormattingUtil.formatNumbers(energyCapacity));
-                textList.add(Component.translatable("gtceu.multiblock.power_substation.capacity",
-                        capacityComponent.setStyle(STYLE_GOLD)));
-
+                textList.add(Component.translatable("gtceu.multiblock.power_substation.capacity", capacityComponent.setStyle(STYLE_GOLD)));
                 var passiveDrainComponent = Component.literal(FormattingUtil.formatNumbers(getPassiveDrain()));
-                textList.add(Component.translatable("gtceu.multiblock.power_substation.passive_drain",
-                        passiveDrainComponent.setStyle(STYLE_DARK_RED)));
-
+                textList.add(Component.translatable("gtceu.multiblock.power_substation.passive_drain", passiveDrainComponent.setStyle(STYLE_DARK_RED)));
                 var avgInComponent = Component.literal(FormattingUtil.formatNumbers(inputPerSec / 20));
-                textList.add(Component
-                        .translatable("gtceu.multiblock.power_substation.average_in",
-                                avgInComponent.setStyle(STYLE_GREEN))
-                        .withStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                Component.translatable("gtceu.multiblock.power_substation.average_in_hover")))));
-
+                textList.add(Component.translatable("gtceu.multiblock.power_substation.average_in", avgInComponent.setStyle(STYLE_GREEN)).withStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("gtceu.multiblock.power_substation.average_in_hover")))));
                 var avgOutComponent = Component.literal(FormattingUtil.formatNumbers(Math.abs(outputPerSec / 20)));
-                textList.add(Component
-                        .translatable("gtceu.multiblock.power_substation.average_out",
-                                avgOutComponent.setStyle(STYLE_RED))
-                        .withStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                Component.translatable("gtceu.multiblock.power_substation.average_out_hover")))));
-
+                textList.add(Component.translatable("gtceu.multiblock.power_substation.average_out", avgOutComponent.setStyle(STYLE_RED)).withStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("gtceu.multiblock.power_substation.average_out_hover")))));
                 if (inputPerSec > outputPerSec) {
-                    BigInteger timeToFillSeconds = energyCapacity.subtract(energyStored)
-                            .divide(BigInteger.valueOf(inputPerSec - outputPerSec));
-                    textList.add(Component.translatable("gtceu.multiblock.power_substation.time_to_fill",
-                            getTimeToFillDrainText(timeToFillSeconds).setStyle(STYLE_GREEN)));
+                    BigInteger timeToFillSeconds = energyCapacity.subtract(energyStored).divide(BigInteger.valueOf(inputPerSec - outputPerSec));
+                    textList.add(Component.translatable("gtceu.multiblock.power_substation.time_to_fill", getTimeToFillDrainText(timeToFillSeconds).setStyle(STYLE_GREEN)));
                 } else if (inputPerSec < outputPerSec) {
-                    BigInteger timeToDrainSeconds = energyStored
-                            .divide(BigInteger.valueOf(outputPerSec - inputPerSec));
-                    textList.add(Component.translatable("gtceu.multiblock.power_substation.time_to_drain",
-                            getTimeToFillDrainText(timeToDrainSeconds).setStyle(STYLE_RED)));
+                    BigInteger timeToDrainSeconds = energyStored.divide(BigInteger.valueOf(outputPerSec - inputPerSec));
+                    textList.add(Component.translatable("gtceu.multiblock.power_substation.time_to_drain", getTimeToFillDrainText(timeToDrainSeconds).setStyle(STYLE_RED)));
                 }
             }
         }
@@ -275,7 +219,6 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine
             // too large to represent in a java Duration
             timeToFillSeconds = BIG_INTEGER_MAX_LONG;
         }
-
         Duration duration = Duration.ofSeconds(timeToFillSeconds.longValue());
         String key;
         long fillTime;
@@ -288,16 +231,16 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine
         } else if (duration.toHours() <= 72) {
             fillTime = duration.toHours();
             key = "gtceu.multiblock.power_substation.time_hours";
-        } else if (duration.toDays() <= 730) { // 2 years
+        } else if (duration.toDays() <= 730) {
+            // 2 years
             fillTime = duration.toDays();
             key = "gtceu.multiblock.power_substation.time_days";
-        } else if (duration.toDays() / 365 < 1_000_000) {
+        } else if (duration.toDays() / 365 < 1000000) {
             fillTime = duration.toDays() / 365;
             key = "gtceu.multiblock.power_substation.time_years";
         } else {
             return Component.translatable("gtceu.multiblock.power_substation.time_forever");
         }
-
         return Component.translatable(key, FormattingUtil.formatNumbers(fillTime));
     }
 
@@ -343,18 +286,15 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine
     }
 
     @Override
-    public @NotNull ManagedFieldHolder getFieldHolder() {
+    @NotNull
+    public ManagedFieldHolder getFieldHolder() {
         return MANAGED_FIELD_HOLDER;
     }
 
     @Override
     public Widget createUIWidget() {
         var group = new WidgetGroup(0, 0, 182 + 8, 117 + 8);
-        group.addWidget(new DraggableScrollableWidgetGroup(4, 4, 182, 117).setBackground(getScreenTexture())
-                .addWidget(new LabelWidget(4, 5, self().getBlockState().getBlock().getDescriptionId()))
-                .addWidget(new ComponentPanelWidget(4, 17, this::addDisplayText)
-                        .setMaxWidthLimit(150)
-                        .clickHandler(this::handleDisplayClick)));
+        group.addWidget(new DraggableScrollableWidgetGroup(4, 4, 182, 117).setBackground(getScreenTexture()).addWidget(new LabelWidget(4, 5, self().getBlockState().getBlock().getDescriptionId())).addWidget(new ComponentPanelWidget(4, 17, this::addDisplayText).setMaxWidthLimit(150).clickHandler(this::handleDisplayClick)));
         group.setBackground(GuiTextures.BACKGROUND_INVERSE);
         return group;
     }
@@ -366,8 +306,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine
 
     @Override
     public List<IFancyUIProvider> getSubTabs() {
-        return getParts().stream().filter(IFancyUIProvider.class::isInstance).map(IFancyUIProvider.class::cast)
-                .toList();
+        return getParts().stream().filter(IFancyUIProvider.class::isInstance).map(IFancyUIProvider.class::cast).toList();
     }
 
     @Override
@@ -392,17 +331,14 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine
 
     public static class PowerStationEnergyBank extends MachineTrait {
 
-        protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-                PowerSubstationMachine.PowerStationEnergyBank.class);
+        protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(PowerSubstationMachine.PowerStationEnergyBank.class);
         private static final String NBT_SIZE = "Size";
         private static final String NBT_STORED = "Stored";
         private static final String NBT_MAX = "Max";
-
         // @Persisted(key = NBT_STORED)
         private long[] storage;
         // @Persisted(key = NBT_MAX)
         private long[] maximums;
-        @Getter
         private BigInteger capacity;
         private int index;
 
@@ -459,62 +395,54 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine
             return newStorage;
         }
 
-        /** @return Amount filled into storage */
+        /**
+         * @return Amount filled into storage
+         */
         public long fill(long amount) {
             if (amount < 0) throw new IllegalArgumentException("Amount cannot be negative!");
-
             // ensure index
             if (index != storage.length - 1 && storage[index] == maximums[index]) {
                 index++;
             }
-
             long maxFill = Math.min(maximums[index] - storage[index], amount);
-
             // storage is completely full
             if (maxFill == 0 && index == storage.length - 1) {
                 return 0;
             }
-
             // fill this "battery" as much as possible
             storage[index] += maxFill;
             amount -= maxFill;
-
             // try to fill other "batteries" if necessary
             if (amount > 0 && index != storage.length - 1) {
                 return maxFill + fill(amount);
             }
-
             // other fill not necessary, either because the storage is now completely full,
             // or we were able to consume all the energy in this "battery"
             return maxFill;
         }
 
-        /** @return Amount drained from storage */
+        /**
+         * @return Amount drained from storage
+         */
         public long drain(long amount) {
             if (amount < 0) throw new IllegalArgumentException("Amount cannot be negative!");
-
             // ensure index
             if (index != 0 && storage[index] == 0) {
                 index--;
             }
-
             long maxDrain = Math.min(storage[index], amount);
-
             // storage is completely empty
             if (maxDrain == 0 && index == 0) {
                 return 0;
             }
-
             // drain this "battery" as much as possible
             storage[index] -= maxDrain;
             amount -= maxDrain;
-
             // try to drain other "batteries" if necessary
             if (amount > 0 && index != 0) {
                 index--;
                 return maxDrain + drain(amount);
             }
-
             // other drain not necessary, either because the storage is now completely empty,
             // or we were able to drain all the energy from this "battery"
             return maxDrain;
@@ -562,19 +490,19 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine
             }
             maximumsExcl = Arrays.copyOf(maximumsExcl, index);
             BigInteger capacityExcl = summarize(maximumsExcl);
-
-            return capacityExcl.divide(BigInteger.valueOf(PASSIVE_DRAIN_DIVISOR))
-                    .add(BigInteger.valueOf(PASSIVE_DRAIN_MAX_PER_STORAGE * numExcl))
-                    .longValue();
+            return capacityExcl.divide(BigInteger.valueOf(PASSIVE_DRAIN_DIVISOR)).add(BigInteger.valueOf(PASSIVE_DRAIN_MAX_PER_STORAGE * numExcl)).longValue();
         }
 
         @Override
         public ManagedFieldHolder getFieldHolder() {
             return MANAGED_FIELD_HOLDER;
         }
+
+        public BigInteger getCapacity() {
+            return this.capacity;
+        }
     }
 
-    @Getter
     public static class BatteryMatchWrapper {
 
         private final IBatteryData partType;
@@ -588,5 +516,21 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine
             amount++;
             return this;
         }
+
+        public IBatteryData getPartType() {
+            return this.partType;
+        }
+
+        public int getAmount() {
+            return this.amount;
+        }
+    }
+
+    public long getInputPerSec() {
+        return this.inputPerSec;
+    }
+
+    public long getOutputPerSec() {
+        return this.outputPerSec;
     }
 }

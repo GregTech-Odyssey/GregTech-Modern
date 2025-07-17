@@ -14,17 +14,12 @@ import net.minecraft.resources.ResourceLocation;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-@NoArgsConstructor
 public class RockBreakerCondition extends RecipeCondition {
 
-    public static final Codec<RockBreakerCondition> CODEC = RecordCodecBuilder
-            .create(instance -> RecipeCondition.isReverse(instance)
-                    .apply(instance, RockBreakerCondition::new));
-
-    public final static RockBreakerCondition INSTANCE = new RockBreakerCondition();
+    public static final Codec<RockBreakerCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).apply(instance, RockBreakerCondition::new));
+    public static final RockBreakerCondition INSTANCE = new RockBreakerCondition();
 
     public RockBreakerCondition(boolean isReverse) {
         super(isReverse);
@@ -44,7 +39,8 @@ public class RockBreakerCondition extends RecipeCondition {
     public boolean testCondition(@NotNull GTRecipe recipe, @NotNull RecipeLogic recipeLogic) {
         var fluidA = BuiltInRegistries.FLUID.get(new ResourceLocation(recipe.data.getString("fluidA")));
         var fluidB = BuiltInRegistries.FLUID.get(new ResourceLocation(recipe.data.getString("fluidB")));
-        boolean hasFluidA = false, hasFluidB = false;
+        boolean hasFluidA = false;
+        boolean hasFluidB = false;
         var level = recipeLogic.machine.self().getLevel();
         var pos = recipeLogic.machine.self().getPos();
         for (Direction side : GTUtil.DIRECTIONS) {
@@ -62,4 +58,6 @@ public class RockBreakerCondition extends RecipeCondition {
     public RecipeCondition createTemplate() {
         return new RockBreakerCondition();
     }
+
+    public RockBreakerCondition() {}
 }

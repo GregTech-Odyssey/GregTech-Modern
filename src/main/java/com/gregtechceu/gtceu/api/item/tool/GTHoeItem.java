@@ -29,24 +29,18 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 
 import com.google.common.collect.Multimap;
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class GTHoeItem extends HoeItem implements IGTTool {
 
-    @Getter
     private final GTToolType toolType;
-    @Getter
     private final Material material;
-    @Getter
     private final int electricTier;
-    @Getter
     private final IGTToolDefinition toolStats;
 
-    protected GTHoeItem(GTToolType toolType, MaterialToolTier tier, Material material, IGTToolDefinition toolStats,
-                        Properties properties) {
+    protected GTHoeItem(GTToolType toolType, MaterialToolTier tier, Material material, IGTToolDefinition toolStats, Properties properties) {
         super(tier, 0, 0, properties);
         this.toolType = toolType;
         this.material = material;
@@ -58,13 +52,13 @@ public class GTHoeItem extends HoeItem implements IGTTool {
         definition$init();
     }
 
-    public static GTHoeItem create(GTToolType toolType, MaterialToolTier tier, Material material,
-                                   IGTToolDefinition toolStats, Item.Properties properties) {
+    public static GTHoeItem create(GTToolType toolType, MaterialToolTier tier, Material material, IGTToolDefinition toolStats, Item.Properties properties) {
         return new GTHoeItem(toolType, tier, material, toolStats, properties);
     }
 
     @Override
-    public @Nullable ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
+    @Nullable
+    public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
         return definition$initCapabilities(stack, nbt);
     }
 
@@ -144,8 +138,7 @@ public class GTHoeItem extends HoeItem implements IGTTool {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
-                                TooltipFlag isAdvanced) {
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
         definition$appendHoverText(stack, level, tooltipComponents, isAdvanced);
     }
 
@@ -210,5 +203,21 @@ public class GTHoeItem extends HoeItem implements IGTTool {
     @Override
     public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
         return this.definition$isCorrectToolForDrops(stack, state);
+    }
+
+    public GTToolType getToolType() {
+        return this.toolType;
+    }
+
+    public Material getMaterial() {
+        return this.material;
+    }
+
+    public int getElectricTier() {
+        return this.electricTier;
+    }
+
+    public IGTToolDefinition getToolStats() {
+        return this.toolStats;
     }
 }

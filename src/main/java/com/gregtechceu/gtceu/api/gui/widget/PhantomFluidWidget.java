@@ -33,8 +33,6 @@ import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.emi.emi.api.stack.EmiStack;
-import lombok.Getter;
-import lombok.Setter;
 import mezz.jei.api.ingredients.ITypedIngredient;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,21 +47,16 @@ import javax.annotation.Nullable;
 @LDLRegister(name = "gtm_phantom_fluid_slot", group = "widget.gtm_container", priority = 50)
 public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTarget, IConfigurableWidget {
 
-    @Setter
     private Supplier<FluidStack> phantomFluidGetter;
-    @Setter
     private Consumer<FluidStack> phantomFluidSetter;
-
     @Nullable
-    @Getter
     protected FluidStack lastPhantomStack;
 
     public PhantomFluidWidget() {
         super();
     }
 
-    public PhantomFluidWidget(@Nullable IFluidHandler fluidTank, int tank, int x, int y, int width, int height,
-                              Supplier<FluidStack> phantomFluidGetter, Consumer<FluidStack> phantomFluidSetter) {
+    public PhantomFluidWidget(@Nullable IFluidHandler fluidTank, int tank, int x, int y, int width, int height, Supplier<FluidStack> phantomFluidGetter, Consumer<FluidStack> phantomFluidSetter) {
         super(fluidTank, tank, x, y, width, height, false, false);
         this.phantomFluidGetter = phantomFluidGetter;
         this.phantomFluidSetter = phantomFluidSetter;
@@ -98,9 +91,7 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
             }
         }
         if (ingredient instanceof ItemStack itemStack) {
-            return FluidUtil.getFluidHandler(itemStack)
-                    .map(h -> h.drain(Integer.MAX_VALUE, FluidAction.SIMULATE))
-                    .orElse(FluidStack.EMPTY);
+            return FluidUtil.getFluidHandler(itemStack).map(h -> h.drain(Integer.MAX_VALUE, FluidAction.SIMULATE)).orElse(FluidStack.EMPTY);
         }
         return FluidStack.EMPTY;
     }
@@ -122,11 +113,9 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
         } else if (GTCEu.Mods.isJEILoaded() && ingredient instanceof ITypedIngredient<?> jeiStack) {
             ingredient = jeiStack.getIngredient();
         }
-
         if (!(ingredient instanceof FluidStack) && drainFrom(ingredient).isEmpty()) {
             return Collections.emptyList();
         }
-
         Rect2i rectangle = toRectangleBox();
         return Lists.newArrayList(new Target() {
 
@@ -150,15 +139,12 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
                         ingredient = null;
                     }
                 }
-
                 FluidStack ingredientStack;
                 if (ingredient instanceof FluidStack fluidStack) ingredientStack = fluidStack;
                 else ingredientStack = drainFrom(ingredient);
-
                 if (!ingredientStack.isEmpty()) {
                     writeClientAction(2, ingredientStack::writeToPacket);
                 }
-
                 if (isClientSideWidget) {
                     if (phantomFluidSetter != null) {
                         phantomFluidSetter.accept(ingredientStack);
@@ -214,9 +200,7 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
 
     private void handlePhantomClick() {
         ItemStack itemStack = gui.getModularUIContainer().getCarried();
-        FluidStack fluid = FluidUtil.getFluidContained(itemStack)
-                .map(f -> new FluidStack(f, FluidType.BUCKET_VOLUME))
-                .orElse(FluidStack.EMPTY);
+        FluidStack fluid = FluidUtil.getFluidContained(itemStack).map(f -> new FluidStack(f, FluidType.BUCKET_VOLUME)).orElse(FluidStack.EMPTY);
         if (phantomFluidSetter != null) phantomFluidSetter.accept(fluid);
     }
 
@@ -231,7 +215,6 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
         FluidStack stack = phantomFluidGetter.get();
         if (stack != null && !stack.isEmpty()) {
             RenderSystem.disableBlend();
-
             double progress = stack.getAmount() * 1.0 / Math.max(Math.max(stack.getAmount(), lastTankCapacity), 1);
             float drawnU = (float) fillDirection.getDrawnU(progress);
             float drawnV = (float) fillDirection.getDrawnV(progress);
@@ -241,22 +224,30 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
             int height = size.height - 2;
             int x = pos.x + 1;
             int y = pos.y + 1;
-            DrawerHelper.drawFluidForGui(graphics, FluidHelperImpl.toFluidStack(stack), stack.getAmount(),
-                    (int) (x + drawnU * width), (int) (y + drawnV * height), ((int) (width * drawnWidth)),
-                    ((int) (height * drawnHeight)));
+            DrawerHelper.drawFluidForGui(graphics, FluidHelperImpl.toFluidStack(stack), stack.getAmount(), (int) (x + drawnU * width), (int) (y + drawnV * height), ((int) (width * drawnWidth)), ((int) (height * drawnHeight)));
             if (showAmount) {
                 graphics.pose().pushPose();
                 graphics.pose().scale(0.5F, 0.5F, 1);
                 String s = TextFormattingUtil.formatLongToCompactStringBuckets(stack.getAmount(), 3) + "B";
                 Font fontRenderer = Minecraft.getInstance().font;
-                graphics.drawString(fontRenderer, s,
-                        (int) ((pos.x + (size.width / 3f)) * 2 - fontRenderer.width(s) + 21),
-                        (int) ((pos.y + (size.height / 3f) + 6) * 2), 0xFFFFFF, true);
+                graphics.drawString(fontRenderer, s, (int) ((pos.x + (size.width / 3.0F)) * 2 - fontRenderer.width(s) + 21), (int) ((pos.y + (size.height / 3.0F) + 6) * 2), 16777215, true);
                 graphics.pose().popPose();
             }
-
             RenderSystem.enableBlend();
             RenderSystem.setShaderColor(1, 1, 1, 1);
         }
+    }
+
+    public void setPhantomFluidGetter(final Supplier<FluidStack> phantomFluidGetter) {
+        this.phantomFluidGetter = phantomFluidGetter;
+    }
+
+    public void setPhantomFluidSetter(final Consumer<FluidStack> phantomFluidSetter) {
+        this.phantomFluidSetter = phantomFluidSetter;
+    }
+
+    @Nullable
+    public FluidStack getLastPhantomStack() {
+        return this.lastPhantomStack;
     }
 }

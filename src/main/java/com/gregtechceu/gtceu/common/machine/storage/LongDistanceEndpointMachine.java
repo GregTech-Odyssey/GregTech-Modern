@@ -22,8 +22,6 @@ import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,15 +35,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public abstract class LongDistanceEndpointMachine extends MetaMachine implements ILDEndpoint, IDataInfoProvider {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            LongDistanceEndpointMachine.class, MetaMachine.MANAGED_FIELD_HOLDER);
-
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(LongDistanceEndpointMachine.class, MetaMachine.MANAGED_FIELD_HOLDER);
     @NotNull
-    @Getter
     private final LongDistancePipeType pipeType;
     @Persisted
-    @Getter
-    @Setter
     private IO ioType = IO.NONE;
     private ILDEndpoint link;
     private boolean placed = false;
@@ -82,7 +75,6 @@ public abstract class LongDistanceEndpointMachine extends MetaMachine implements
             // manually remove this endpoint from the network
             network.onRemoveEndpoint(this);
         }
-
         // find networks on input and output face
         List<LongDistanceNetwork> networks = findNetworks();
         if (networks.isEmpty()) {
@@ -135,7 +127,6 @@ public abstract class LongDistanceEndpointMachine extends MetaMachine implements
     @Override
     public void onNeighborChanged(Block block, BlockPos fromPos, boolean isMoving) {
         if (!placed || isRemote()) return;
-
         List<LongDistanceNetwork> networks = findNetworks();
         this.updateNetwork();
         LongDistanceNetwork network = LongDistanceNetwork.get(getLevel(), getPos());
@@ -229,21 +220,17 @@ public abstract class LongDistanceEndpointMachine extends MetaMachine implements
     @Override
     public List<Component> getDataInfo(PortableScannerBehavior.DisplayMode mode) {
         List<Component> textComponents = new ArrayList<>();
-
-        if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL ||
-                mode == PortableScannerBehavior.DisplayMode.SHOW_MACHINE_INFO) {
+        if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_MACHINE_INFO) {
             LongDistanceNetwork network = LongDistanceNetwork.get(getLevel(), getPos());
             if (network == null) {
                 textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_no_network"));
             } else {
                 textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_network_header"));
-                textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_pipe_count",
-                        FormattingUtil.formatNumbers(network.getTotalSize())));
-                ILDEndpoint in = network.getActiveInputIndex(), out = network.getActiveOutputIndex();
-                textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_input_pos",
-                        Component.literal(in == null ? "none" : in.getPos().toString())));
-                textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_output_pos",
-                        Component.literal(out == null ? "none" : out.getPos().toString())));
+                textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_pipe_count", FormattingUtil.formatNumbers(network.getTotalSize())));
+                ILDEndpoint in = network.getActiveInputIndex();
+                ILDEndpoint out = network.getActiveOutputIndex();
+                textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_input_pos", Component.literal(in == null ? "none" : in.getPos().toString())));
+                textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_output_pos", Component.literal(out == null ? "none" : out.getPos().toString())));
             }
             if (isInput()) {
                 textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_input_endpoint"));
@@ -252,7 +239,19 @@ public abstract class LongDistanceEndpointMachine extends MetaMachine implements
                 textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_output_endpoint"));
             }
         }
-
         return textComponents;
+    }
+
+    @NotNull
+    public LongDistancePipeType getPipeType() {
+        return this.pipeType;
+    }
+
+    public IO getIoType() {
+        return this.ioType;
+    }
+
+    public void setIoType(final IO ioType) {
+        this.ioType = ioType;
     }
 }

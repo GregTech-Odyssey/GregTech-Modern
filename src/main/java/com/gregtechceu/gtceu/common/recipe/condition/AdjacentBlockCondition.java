@@ -14,16 +14,12 @@ import net.minecraft.resources.ResourceLocation;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-@NoArgsConstructor
 public class AdjacentBlockCondition extends RecipeCondition {
 
-    public static final Codec<AdjacentBlockCondition> CODEC = RecordCodecBuilder
-            .create(instance -> RecipeCondition.isReverse(instance)
-                    .apply(instance, AdjacentBlockCondition::new));
-    public final static AdjacentBlockCondition INSTANCE = new AdjacentBlockCondition();
+    public static final Codec<AdjacentBlockCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).apply(instance, AdjacentBlockCondition::new));
+    public static final AdjacentBlockCondition INSTANCE = new AdjacentBlockCondition();
 
     public AdjacentBlockCondition(boolean isReverse) {
         super(isReverse);
@@ -43,7 +39,8 @@ public class AdjacentBlockCondition extends RecipeCondition {
     public boolean testCondition(@NotNull GTRecipe recipe, @NotNull RecipeLogic recipeLogic) {
         var blockA = BuiltInRegistries.BLOCK.get(new ResourceLocation(recipe.data.getString("blockA")));
         var blockB = BuiltInRegistries.BLOCK.get(new ResourceLocation(recipe.data.getString("blockB")));
-        boolean hasBlockA = false, hasBlockB = false;
+        boolean hasBlockA = false;
+        boolean hasBlockB = false;
         var level = recipeLogic.machine.self().getLevel();
         var pos = recipeLogic.machine.self().getPos();
         for (Direction side : GTUtil.DIRECTIONS) {
@@ -61,4 +58,6 @@ public class AdjacentBlockCondition extends RecipeCondition {
     public RecipeCondition createTemplate() {
         return new AdjacentBlockCondition();
     }
+
+    public AdjacentBlockCondition() {}
 }

@@ -16,13 +16,10 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 
-import lombok.RequiredArgsConstructor;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
-@RequiredArgsConstructor
 public class SPacketSyncOreVeins implements IPacket {
 
     private final Map<ResourceLocation, GTOreDefinition> veins;
@@ -38,8 +35,7 @@ public class SPacketSyncOreVeins implements IPacket {
         buf.writeVarInt(size);
         for (var entry : veins.entrySet()) {
             buf.writeResourceLocation(entry.getKey());
-            CompoundTag tag = (CompoundTag) GTOreDefinition.FULL_CODEC.encodeStart(ops, entry.getValue())
-                    .getOrThrow(false, GTCEu.LOGGER::error);
+            CompoundTag tag = (CompoundTag) GTOreDefinition.FULL_CODEC.encodeStart(ops, entry.getValue()).getOrThrow(false, GTCEu.LOGGER::error);
             buf.writeNbt(tag);
         }
     }
@@ -60,5 +56,9 @@ public class SPacketSyncOreVeins implements IPacket {
         ClientProxy.CLIENT_ORE_VEINS.clear();
         ClientProxy.CLIENT_ORE_VEINS.putAll(veins);
         GTClientCache.instance.oreVeinDefinitionsChanged(ClientProxy.CLIENT_ORE_VEINS);
+    }
+
+    public SPacketSyncOreVeins(final Map<ResourceLocation, GTOreDefinition> veins) {
+        this.veins = veins;
     }
 }

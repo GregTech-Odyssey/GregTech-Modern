@@ -44,8 +44,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
 import com.mojang.datafixers.util.Pair;
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,44 +55,30 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDataType>, NodeDataType>
-                                     extends BlockEntity implements IPipeNode<PipeType, NodeDataType>, IEnhancedManaged,
-                                     IAsyncAutoSyncBlockEntity, IAutoPersistBlockEntity, IToolGridHighlight, IToolable {
+public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDataType>, NodeDataType> extends BlockEntity implements IPipeNode<PipeType, NodeDataType>, IEnhancedManaged, IAsyncAutoSyncBlockEntity, IAutoPersistBlockEntity, IToolGridHighlight, IToolable {
 
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(PipeBlockEntity.class);
-    @Getter
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
     private final long offset = GTValues.RNG.nextInt(20);
-
-    @Getter
     @DescSynced
     @Persisted(key = "cover")
     protected final PipeCoverContainer coverContainer;
-
-    @Getter
-    @Setter
     @DescSynced
     @Persisted
     @RequireRerender
     protected int connections = Node.ALL_CLOSED;
-    @Setter
     @DescSynced
     @Persisted
     @RequireRerender
     private int blockedConnections = Node.ALL_CLOSED;
     private NodeDataType cachedNodeData;
-
     @Persisted
     @DescSynced
     @RequireRerender
-    @Getter
-    @Setter
     private int paintingColor = -1;
-
     @RequireRerender
     @DescSynced
     @Persisted
-    @Setter
     @NotNull
     private Material frameMaterial = GTMaterials.NULL;
     private final List<TickableSubscription> serverTicks;
@@ -161,7 +145,8 @@ public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeTyp
     }
 
     @Override
-    public @NotNull Material getFrameMaterial() {
+    @NotNull
+    public Material getFrameMaterial() {
         // backwards compat
         // noinspection ConstantValue
         if (frameMaterial == null) {
@@ -218,7 +203,6 @@ public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeTyp
     //////////////////////////////////////
     // ******* Pipe Status *******//
     //////////////////////////////////////
-
     @Override
     public void setBlocked(Direction side, boolean isBlocked) {
         if (level instanceof ServerLevel serverLevel && canHaveBlockedFaces()) {
@@ -254,24 +238,18 @@ public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeTyp
             }
             BlockEntity tile = getNeighbor(side);
             // block connections if Pipe Types do not match
-            if (connected &&
-                    tile instanceof IPipeNode<?, ?> pipeTile &&
-                    pipeTile.getPipeType().getClass() != this.getPipeType().getClass()) {
+            if (connected && tile instanceof IPipeNode<?, ?> pipeTile && pipeTile.getPipeType().getClass() != this.getPipeType().getClass()) {
                 return;
             }
-
             if (!connected) {
                 var cover = getCoverContainer().getCoverAtSide(side);
                 if (cover != null && cover.canPipePassThrough()) return;
             }
-
             connections = withSideConnection(connections, side, connected);
-
             updateNetworkConnection(side, connected);
             // notify neighbor of change so Auto Output updates its ticking status
             getLevel().neighborChanged(getBlockPos().relative(side), getPipeBlock(), getBlockPos());
             setChanged();
-
             if (!fromNeighbor && tile instanceof IPipeNode<?, ?> pipeTile) {
                 syncPipeConnections(side, pipeTile);
             }
@@ -311,7 +289,8 @@ public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeTyp
 
     @Override
     public boolean triggerEvent(int id, int para) {
-        if (id == 1) { // chunk re render
+        if (id == 1) {
+            // chunk re render
             if (level != null && level.isClientSide) {
                 scheduleRenderUpdate();
             }
@@ -331,8 +310,7 @@ public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeTyp
     // ******* Interaction *******//
     //////////////////////////////////////
     @Override
-    public boolean shouldRenderGrid(Player player, BlockPos pos, BlockState state, ItemStack held,
-                                    Set<GTToolType> toolTypes) {
+    public boolean shouldRenderGrid(Player player, BlockPos pos, BlockState state, ItemStack held, Set<GTToolType> toolTypes) {
         if (toolTypes.contains(getPipeTuneTool())) return true;
         for (CoverBehavior cover : coverContainer.getCovers()) {
             if (cover.shouldRenderGrid(player, pos, state, held, toolTypes)) return true;
@@ -345,8 +323,7 @@ public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeTyp
     }
 
     @Override
-    public ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes,
-                                    Direction side) {
+    public ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes, Direction side) {
         if (toolTypes.contains(getPipeTuneTool())) {
             if (player.isShiftKeyDown() && this.canHaveBlockedFaces()) {
                 return getPipeTexture(isBlocked(side));
@@ -362,19 +339,15 @@ public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeTyp
     }
 
     @Override
-    public Pair<GTToolType, InteractionResult> onToolClick(Set<GTToolType> toolTypes, ItemStack itemStack,
-                                                           UseOnContext context) {
+    public Pair<GTToolType, InteractionResult> onToolClick(Set<GTToolType> toolTypes, ItemStack itemStack, UseOnContext context) {
         // the side hit from the machine grid
         var playerIn = context.getPlayer();
         if (playerIn == null) return Pair.of(null, InteractionResult.PASS);
-
         var hand = context.getHand();
-        var hitResult = new BlockHitResult(context.getClickLocation(), context.getClickedFace(),
-                context.getClickedPos(), false);
+        var hitResult = new BlockHitResult(context.getClickLocation(), context.getClickedFace(), context.getClickedPos(), false);
         Direction gridSide = ICoverable.determineGridSideHit(hitResult);
         CoverBehavior coverBehavior = gridSide == null ? null : coverContainer.getCoverAtSide(gridSide);
         if (gridSide == null) gridSide = hitResult.getDirection();
-
         // Prioritize covers where they apply (Screwdriver, Soft Mallet)
         if (toolTypes.isEmpty() && playerIn.isShiftKeyDown()) {
             if (coverBehavior != null) {
@@ -406,14 +379,12 @@ public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeTyp
                 }
             } else {
                 if (!frameMaterial.isNull()) {
-                    Block.popResource(getLevel(), getPipePos(),
-                            GTMaterialBlocks.MATERIAL_BLOCKS.get(TagPrefix.frameGt, frameMaterial).asStack());
+                    Block.popResource(getLevel(), getPipePos(), GTMaterialBlocks.MATERIAL_BLOCKS.get(TagPrefix.frameGt, frameMaterial).asStack());
                     frameMaterial = GTMaterials.NULL;
                     return Pair.of(GTToolType.CROWBAR, InteractionResult.sidedSuccess(playerIn.level().isClientSide));
                 }
             }
         }
-
         return Pair.of(null, InteractionResult.PASS);
     }
 
@@ -423,19 +394,15 @@ public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeTyp
 
     @Override
     public int getDefaultPaintingColor() {
-        return this.getPipeBlock() instanceof MaterialPipeBlock<?, ?, ?> materialPipeBlock ?
-                materialPipeBlock.material.getMaterialRGB() : IPipeNode.super.getDefaultPaintingColor();
+        return this.getPipeBlock() instanceof MaterialPipeBlock<?, ?, ?> materialPipeBlock ? materialPipeBlock.material.getMaterialRGB() : IPipeNode.super.getDefaultPaintingColor();
     }
 
     public void doExplosion(float explosionPower) {
         getLevel().removeBlock(getPipePos(), false);
         if (!getLevel().isClientSide) {
-            ((ServerLevel) getLevel()).sendParticles(ParticleTypes.LARGE_SMOKE, getPipePos().getX() + 0.5,
-                    getPipePos().getY() + 0.5, getPipePos().getZ() + 0.5,
-                    10, 0.2, 0.2, 0.2, 0.0);
+            ((ServerLevel) getLevel()).sendParticles(ParticleTypes.LARGE_SMOKE, getPipePos().getX() + 0.5, getPipePos().getY() + 0.5, getPipePos().getZ() + 0.5, 10, 0.2, 0.2, 0.2, 0.0);
         }
-        getLevel().explode(null, getPipePos().getX() + 0.5, getPipePos().getY() + 0.5, getPipePos().getZ() + 0.5,
-                explosionPower, Level.ExplosionInteraction.NONE);
+        getLevel().explode(null, getPipePos().getX() + 0.5, getPipePos().getY() + 0.5, getPipePos().getZ() + 0.5, explosionPower, Level.ExplosionInteraction.NONE);
     }
 
     public static boolean isFaceBlocked(int blockedConnections, Direction side) {
@@ -444,5 +411,40 @@ public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeTyp
 
     public static boolean isConnected(int connections, Direction side) {
         return (connections & (1 << side.ordinal())) > 0;
+    }
+
+    public FieldManagedStorage getSyncStorage() {
+        return this.syncStorage;
+    }
+
+    public PipeCoverContainer getCoverContainer() {
+        return this.coverContainer;
+    }
+
+    public int getConnections() {
+        return this.connections;
+    }
+
+    public void setConnections(final int connections) {
+        this.connections = connections;
+    }
+
+    public void setBlockedConnections(final int blockedConnections) {
+        this.blockedConnections = blockedConnections;
+    }
+
+    public int getPaintingColor() {
+        return this.paintingColor;
+    }
+
+    public void setPaintingColor(final int paintingColor) {
+        this.paintingColor = paintingColor;
+    }
+
+    public void setFrameMaterial(@NotNull final Material frameMaterial) {
+        if (frameMaterial == null) {
+            throw new NullPointerException("frameMaterial is marked non-null but is null");
+        }
+        this.frameMaterial = frameMaterial;
     }
 }

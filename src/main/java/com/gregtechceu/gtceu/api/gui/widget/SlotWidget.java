@@ -30,7 +30,6 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,13 +49,11 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
         super();
     }
 
-    public SlotWidget(Container inventory, int slotIndex, int xPosition, int yPosition, boolean canTakeItems,
-                      boolean canPutItems) {
+    public SlotWidget(Container inventory, int slotIndex, int xPosition, int yPosition, boolean canTakeItems, boolean canPutItems) {
         super(inventory, slotIndex, xPosition, yPosition, canTakeItems, canPutItems);
     }
 
-    public SlotWidget(IItemHandlerModifiable itemHandler, int slotIndex, int xPosition, int yPosition,
-                      boolean canTakeItems, boolean canPutItems) {
+    public SlotWidget(IItemHandlerModifiable itemHandler, int slotIndex, int xPosition, int yPosition, boolean canTakeItems, boolean canPutItems) {
         this.setSelfPosition(xPosition, yPosition);
         this.setSize(18, 18);
         this.recomputePosition();
@@ -65,7 +62,7 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
         this.drawHoverOverlay = true;
         this.drawHoverTips = true;
         this.ingredientIO = IngredientIO.RENDER_ONLY;
-        this.XEIChance = 1.0f;
+        this.XEIChance = 1.0F;
         this.setBackgroundTexture(ITEM_SLOT_TEXTURE);
         this.canTakeItems = canTakeItems;
         this.canPutItems = canPutItems;
@@ -188,7 +185,6 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
                 this.overlay = SlotWidget.this.overlay;
             }
         }.setCanPutItems(false).setCanTakeItems(false).setHandlerSlot(handler, 0)));
-
         ConfiguratorParser.createConfigurators(father, new HashMap<>(), getClass(), this);
     }
 
@@ -206,7 +202,6 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
                     return getXEIIngredientsClickable(entryHandler, slotHandler.index);
                 }
             }
-
             if (GTCEu.Mods.isJEILoaded() && !realStack.isEmpty()) {
                 return JEICallWrapper.getJEIStackClickable(realStack, getPosition(), getSize());
             }
@@ -231,7 +226,6 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
                 return getXEIIngredientsClickable(entryHandler, slotHandler.index);
             }
         }
-
         if (GTCEu.Mods.isJEILoaded() && !realStack.isEmpty()) {
             return List.of(JEICallWrapper.getJEIStackClickable(realStack, getPosition(), getSize()));
         } else if (GTCEu.Mods.isEMILoaded()) {
@@ -283,7 +277,6 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
     public class WidgetSlotItemHandler extends Slot {
 
         private static final Container emptyInventory = new SimpleContainer(0);
-        @Getter
         private final IItemHandlerModifiable itemHandler;
         private final int index;
 
@@ -295,8 +288,7 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            return SlotWidget.this.canPutStack(stack) &&
-                    (!stack.isEmpty() && this.itemHandler.isItemValid(this.index, stack));
+            return SlotWidget.this.canPutStack(stack) && (!stack.isEmpty() && this.itemHandler.isItemValid(this.index, stack));
         }
 
         @Override
@@ -363,6 +355,10 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
         public boolean isActive() {
             return SlotWidget.this.isEnabled() && (HOVER_SLOT == null || HOVER_SLOT == this);
         }
+
+        public IItemHandlerModifiable getItemHandler() {
+            return this.itemHandler;
+        }
     }
 
     public static final class JEICallWrapper {
@@ -372,21 +368,11 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
         }
 
         public static List<Object> getJEIIngredients(ItemEntryList list, UnaryOperator<ItemStack> realStack) {
-            return list.getStacks()
-                    .stream()
-                    .filter(stack -> !stack.isEmpty())
-                    .map(realStack)
-                    .collect(Collectors.toList());
+            return list.getStacks().stream().filter(stack -> !stack.isEmpty()).map(realStack).collect(Collectors.toList());
         }
 
-        public static List<Object> getJEIIngredientsClickable(ItemEntryList list, Position pos, Size size,
-                                                              UnaryOperator<ItemStack> realStack) {
-            return list.getStacks()
-                    .stream()
-                    .filter(stack -> !stack.isEmpty())
-                    .map(realStack)
-                    .map(stack -> getJEIStackClickable(stack, pos, size))
-                    .collect(Collectors.toList());
+        public static List<Object> getJEIIngredientsClickable(ItemEntryList list, Position pos, Size size, UnaryOperator<ItemStack> realStack) {
+            return list.getStacks().stream().filter(stack -> !stack.isEmpty()).map(realStack).map(stack -> getJEIStackClickable(stack, pos, size)).collect(Collectors.toList());
         }
     }
 
@@ -396,21 +382,15 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
             return EmiIngredient.of(stream.map(realStack).map(EmiStack::of).toList());
         }
 
-        public static List<Object> getEMIIngredients(ItemStackList list, float xeiChance,
-                                                     UnaryOperator<ItemStack> realStack) {
+        public static List<Object> getEMIIngredients(ItemStackList list, float xeiChance, UnaryOperator<ItemStack> realStack) {
             return List.of(toEMIIngredient(list.stream(), realStack).setChance(xeiChance));
         }
 
-        public static List<Object> getEMIIngredients(ItemTagList list, float xeiChance,
-                                                     UnaryOperator<ItemStack> realStack) {
-            return list.getEntries().stream()
-                    .map(ItemTagList.ItemTagEntry::stacks)
-                    .map(stream -> toEMIIngredient(stream, realStack).setChance(xeiChance))
-                    .collect(Collectors.toList());
+        public static List<Object> getEMIIngredients(ItemTagList list, float xeiChance, UnaryOperator<ItemStack> realStack) {
+            return list.getEntries().stream().map(ItemTagList.ItemTagEntry::stacks).map(stream -> toEMIIngredient(stream, realStack).setChance(xeiChance)).collect(Collectors.toList());
         }
 
-        public static List<Object> getEMIIngredients(ItemEntryList list, float xeiChance,
-                                                     UnaryOperator<ItemStack> realStack) {
+        public static List<Object> getEMIIngredients(ItemEntryList list, float xeiChance, UnaryOperator<ItemStack> realStack) {
             if (list instanceof ItemTagList tagList) return getEMIIngredients(tagList, xeiChance, realStack);
             if (list instanceof ItemStackList stackList) return getEMIIngredients(stackList, xeiChance, realStack);
             return Collections.emptyList();

@@ -21,8 +21,6 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.longs.LongSets;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -30,29 +28,22 @@ import java.util.stream.Collectors;
 
 public class MultiblockState {
 
-    public final static PatternError UNLOAD_ERROR = new PatternStringError("multiblocked.pattern.error.chunk");
-    public final static PatternError UNINIT_ERROR = new PatternStringError("multiblocked.pattern.error.init");
-
+    public static final PatternError UNLOAD_ERROR = new PatternStringError("multiblocked.pattern.error.chunk");
+    public static final PatternError UNINIT_ERROR = new PatternStringError("multiblocked.pattern.error.init");
     private BlockPos pos;
     private BlockState blockState;
     private BlockEntity tileEntity;
     private boolean tileEntityInitialized;
-    @Getter
     private final PatternMatchContext matchContext;
-    @Getter
     private Object2IntOpenHashMap<SimplePredicate> globalCount;
-    @Getter
     private Object2IntOpenHashMap<SimplePredicate> layerCount;
     public TraceabilityPredicate predicate;
     public IO io;
     public PatternError error;
-    @Getter
-    @Setter
     private boolean neededFlip = false;
     public final Level world;
     public final BlockPos controllerPos;
     public IMultiController lastController;
-
     // persist
     public LongOpenHashSet cache;
 
@@ -86,8 +77,7 @@ public class MultiblockState {
 
     public IMultiController getController() {
         if (world.isLoaded(controllerPos)) {
-            if (world.getBlockEntity(controllerPos) instanceof IMachineBlockEntity machineBlockEntity &&
-                    machineBlockEntity.getMetaMachine() instanceof IMultiController controller) {
+            if (world.getBlockEntity(controllerPos) instanceof IMachineBlockEntity machineBlockEntity && machineBlockEntity.getMetaMachine() instanceof IMultiController controller) {
                 return lastController = controller;
             }
         } else {
@@ -126,7 +116,6 @@ public class MultiblockState {
             this.tileEntity = this.world.getBlockEntity(this.pos);
             this.tileEntityInitialized = true;
         }
-
         return this.tileEntity;
     }
 
@@ -196,5 +185,25 @@ public class MultiblockState {
                 }
             }
         }
+    }
+
+    public PatternMatchContext getMatchContext() {
+        return this.matchContext;
+    }
+
+    public Object2IntOpenHashMap<SimplePredicate> getGlobalCount() {
+        return this.globalCount;
+    }
+
+    public Object2IntOpenHashMap<SimplePredicate> getLayerCount() {
+        return this.layerCount;
+    }
+
+    public boolean isNeededFlip() {
+        return this.neededFlip;
+    }
+
+    public void setNeededFlip(final boolean neededFlip) {
+        this.neededFlip = neededFlip;
     }
 }

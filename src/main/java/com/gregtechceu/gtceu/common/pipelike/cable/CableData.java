@@ -6,15 +6,9 @@ import com.gregtechceu.gtceu.utils.GTMath;
 
 import net.minecraft.core.Direction;
 
-import lombok.Getter;
-import lombok.experimental.Accessors;
-
-@Accessors(fluent = true)
 public class CableData implements IAttachData {
 
-    @Getter
     WireProperties properties;
-    @Getter
     byte connections;
 
     public CableData(WireProperties properties, byte connections) {
@@ -51,5 +45,13 @@ public class CableData implements IAttachData {
     @Override
     public int hashCode() {
         return GTMath.hashInts(properties.hashCode(), connections);
+    }
+
+    public WireProperties properties() {
+        return this.properties;
+    }
+
+    public byte connections() {
+        return this.connections;
     }
 }

@@ -26,7 +26,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -35,21 +34,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class MEPatternBufferProxyPartMachine extends TieredIOPartMachine
-                                             implements IMachineLife, IDataStickInteractable {
+public class MEPatternBufferProxyPartMachine extends TieredIOPartMachine implements IMachineLife, IDataStickInteractable {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            MEPatternBufferProxyPartMachine.class, TieredIOPartMachine.MANAGED_FIELD_HOLDER);
-
-    @Getter
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MEPatternBufferProxyPartMachine.class, TieredIOPartMachine.MANAGED_FIELD_HOLDER);
     private final ProxySlotRecipeHandler proxySlotRecipeHandler;
-
     @Persisted
-    @Getter
     @DescSynced
-    private @Nullable BlockPos bufferPos;
-
-    private @Nullable MEPatternBufferPartMachine buffer = null;
+    @Nullable
+    private BlockPos bufferPos;
+    @Nullable
+    private MEPatternBufferPartMachine buffer = null;
     private boolean bufferResolved = false;
 
     public MEPatternBufferProxyPartMachine(IMachineBlockEntity holder) {
@@ -128,5 +122,14 @@ public class MEPatternBufferProxyPartMachine extends TieredIOPartMachine
             }
         }
         return InteractionResult.PASS;
+    }
+
+    public ProxySlotRecipeHandler getProxySlotRecipeHandler() {
+        return this.proxySlotRecipeHandler;
+    }
+
+    @Nullable
+    public BlockPos getBufferPos() {
+        return this.bufferPos;
     }
 }

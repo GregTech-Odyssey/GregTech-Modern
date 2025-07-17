@@ -23,7 +23,6 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import it.unimi.dsi.fastutil.objects.Object2LongMaps;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -34,18 +33,13 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
 
     @Persisted
     @DescSynced
-    @Getter
     private VoidingMode voidingMode = VoidingMode.VOID_ANY;
-
     @Persisted
     @DescSynced
-    @Getter
     protected int globalTransferSizeMillibuckets = 1;
     @Persisted
     @DescSynced
-    @Getter
     private BucketMode transferBucketMode = BucketMode.MILLI_BUCKET;
-
     private NumberInputWidget<Integer> stackSizeInput;
     private EnumSelectorWidget<BucketMode> stackSizeBucketModeInput;
 
@@ -56,14 +50,12 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
     //////////////////////////////////////////////
     // *********** COVER LOGIC ***********//
     //////////////////////////////////////////////
-
     @Override
     protected void doVoidFluids() {
         IFluidHandlerModifiable fluidHandler = getOwnFluidHandler();
         if (fluidHandler == null) {
             return;
         }
-
         switch (voidingMode) {
             case VOID_ANY -> voidAny(fluidHandler);
             case VOID_OVERFLOW -> voidOverflow(fluidHandler);
@@ -72,13 +64,11 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
 
     private void voidOverflow(IFluidHandlerModifiable fluidHandler) {
         var fluidAmounts = enumerateDistinctFluids(fluidHandler, TransferDirection.EXTRACT);
-
         for (var entry : Object2LongMaps.fastIterable(fluidAmounts)) {
             var stack = entry.getKey();
             long presentAmount = entry.getLongValue();
             int targetAmount = getFilteredFluidAmount(stack);
             if (targetAmount <= 0L || targetAmount > presentAmount) continue;
-
             long diff = presentAmount - targetAmount;
             for (int op : GTMath.split(diff)) {
                 var toDrain = new FluidStack(stack, op);
@@ -88,18 +78,14 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
     }
 
     private int getFilteredFluidAmount(FluidStack fluidStack) {
-        if (!filterHandler.isFilterPresent())
-            return globalTransferSizeMillibuckets;
-
+        if (!filterHandler.isFilterPresent()) return globalTransferSizeMillibuckets;
         FluidFilter filter = filterHandler.getFilter();
         return filter.isBlackList() ? globalTransferSizeMillibuckets : filter.testFluidAmount(fluidStack);
     }
 
     public void setVoidingMode(VoidingMode voidingMode) {
         this.voidingMode = voidingMode;
-
         configureStackSizeInput();
-
         if (!this.isRemote()) {
             configureFilter();
         }
@@ -108,9 +94,7 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
     private void setTransferBucketMode(BucketMode transferBucketMode) {
         var oldMultiplier = this.transferBucketMode.multiplier;
         var newMultiplier = transferBucketMode.multiplier;
-
         this.transferBucketMode = transferBucketMode;
-
         if (stackSizeInput == null) return;
         stackSizeInput.setValue(getCurrentBucketModeTransferSize());
     }
@@ -118,25 +102,19 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
     //////////////////////////////////////
     // *********** GUI ***********//
     //////////////////////////////////////
-
     @Override
-    protected @NotNull String getUITitle() {
+    @NotNull
+    protected String getUITitle() {
         return "cover.fluid.voiding.advanced.title";
     }
 
     @Override
     protected void buildAdditionalUI(WidgetGroup group) {
-        group.addWidget(
-                new EnumSelectorWidget<>(146, 20, 20, 20, VoidingMode.values(), voidingMode, this::setVoidingMode));
-
-        this.stackSizeInput = new IntInputWidget(35, 20, 84, 20,
-                this::getCurrentBucketModeTransferSize, this::setCurrentBucketModeTransferSize).setMin(1)
-                .setMax(Integer.MAX_VALUE);
+        group.addWidget(new EnumSelectorWidget<>(146, 20, 20, 20, VoidingMode.values(), voidingMode, this::setVoidingMode));
+        this.stackSizeInput = new IntInputWidget(35, 20, 84, 20, this::getCurrentBucketModeTransferSize, this::setCurrentBucketModeTransferSize).setMin(1).setMax(Integer.MAX_VALUE);
         configureStackSizeInput();
         group.addWidget(this.stackSizeInput);
-
-        this.stackSizeBucketModeInput = new EnumSelectorWidget<>(121, 20, 20, 20, BucketMode.values(),
-                transferBucketMode, this::setTransferBucketMode);
+        this.stackSizeBucketModeInput = new EnumSelectorWidget<>(121, 20, 20, 20, BucketMode.values(), transferBucketMode, this::setTransferBucketMode);
         group.addWidget(this.stackSizeBucketModeInput);
     }
 
@@ -153,37 +131,40 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
         if (filterHandler.getFilter() instanceof SimpleFluidFilter filter) {
             filter.setMaxStackSize(voidingMode == VoidingMode.VOID_ANY ? 1 : Integer.MAX_VALUE);
         }
-
         configureStackSizeInput();
     }
 
     private void configureStackSizeInput() {
-        if (this.stackSizeInput == null || stackSizeBucketModeInput == null)
-            return;
-
+        if (this.stackSizeInput == null || stackSizeBucketModeInput == null) return;
         this.stackSizeInput.setVisible(shouldShowStackSize());
         this.stackSizeBucketModeInput.setVisible(shouldShowStackSize());
     }
 
     private boolean shouldShowStackSize() {
-        if (this.voidingMode == VoidingMode.VOID_ANY)
-            return false;
-
-        if (!this.filterHandler.isFilterPresent())
-            return true;
-
+        if (this.voidingMode == VoidingMode.VOID_ANY) return false;
+        if (!this.filterHandler.isFilterPresent()) return true;
         return this.filterHandler.getFilter().isBlackList();
     }
 
     //////////////////////////////////////
     // ***** LDLib SyncData ******//
     //////////////////////////////////////
-
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            AdvancedFluidVoidingCover.class, FluidVoidingCover.MANAGED_FIELD_HOLDER);
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(AdvancedFluidVoidingCover.class, FluidVoidingCover.MANAGED_FIELD_HOLDER);
 
     @Override
     public ManagedFieldHolder getFieldHolder() {
         return MANAGED_FIELD_HOLDER;
+    }
+
+    public VoidingMode getVoidingMode() {
+        return this.voidingMode;
+    }
+
+    public int getGlobalTransferSizeMillibuckets() {
+        return this.globalTransferSizeMillibuckets;
+    }
+
+    public BucketMode getTransferBucketMode() {
+        return this.transferBucketMode;
     }
 }

@@ -24,7 +24,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,9 +33,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class OpticalPipeBlock extends PipeBlock<OpticalPipeType, OpticalPipeProperties, LevelOpticalPipeNet> {
 
     public final PipeBlockRenderer renderer;
-    @Getter
     public final PipeModel pipeModel;
-
     private final OpticalPipeType pipeType;
     private final OpticalPipeProperties properties;
 
@@ -44,8 +41,7 @@ public class OpticalPipeBlock extends PipeBlock<OpticalPipeType, OpticalPipeProp
         super(properties, pipeType);
         this.pipeType = pipeType;
         this.properties = OpticalPipeProperties.INSTANCE;
-        this.pipeModel = new PipeModel(pipeType.getThickness(), () -> GTCEu.id("block/pipe/pipe_optical_side"),
-                () -> GTCEu.id("block/pipe/pipe_optical_in"), null, null);
+        this.pipeModel = new PipeModel(pipeType.getThickness(), () -> GTCEu.id("block/pipe/pipe_optical_side"), () -> GTCEu.id("block/pipe/pipe_optical_in"), null, null);
         this.renderer = new PipeBlockRenderer(this.pipeModel);
     }
 
@@ -77,15 +73,15 @@ public class OpticalPipeBlock extends PipeBlock<OpticalPipeType, OpticalPipeProp
     }
 
     @Override
-    public @Nullable PipeBlockRenderer getRenderer(BlockState state) {
+    @Nullable
+    public PipeBlockRenderer getRenderer(BlockState state) {
         return renderer;
     }
 
     @OnlyIn(Dist.CLIENT)
     public static BlockColor tintedColor() {
         return (blockState, level, blockPos, index) -> {
-            if (blockPos != null && level != null &&
-                    level.getBlockEntity(blockPos) instanceof PipeBlockEntity<?, ?> pipe) {
+            if (blockPos != null && level != null && level.getBlockEntity(blockPos) instanceof PipeBlockEntity<?, ?> pipe) {
                 if (!pipe.getFrameMaterial().isNull()) {
                     if (index == 3) {
                         return pipe.getFrameMaterial().getMaterialRGB();
@@ -102,16 +98,18 @@ public class OpticalPipeBlock extends PipeBlock<OpticalPipeType, OpticalPipeProp
     }
 
     @Override
-    public boolean canPipesConnect(IPipeNode<OpticalPipeType, OpticalPipeProperties> selfTile, Direction side,
-                                   IPipeNode<OpticalPipeType, OpticalPipeProperties> sideTile) {
+    public boolean canPipesConnect(IPipeNode<OpticalPipeType, OpticalPipeProperties> selfTile, Direction side, IPipeNode<OpticalPipeType, OpticalPipeProperties> sideTile) {
         return selfTile instanceof OpticalPipeBlockEntity && sideTile instanceof OpticalPipeBlockEntity;
     }
 
     @Override
-    public boolean canPipeConnectToBlock(IPipeNode<OpticalPipeType, OpticalPipeProperties> selfTile, Direction side,
-                                         @Nullable BlockEntity tile) {
+    public boolean canPipeConnectToBlock(IPipeNode<OpticalPipeType, OpticalPipeProperties> selfTile, Direction side, @Nullable BlockEntity tile) {
         if (tile == null) return false;
         if (tile.getCapability(GTCapability.CAPABILITY_DATA_ACCESS, side.getOpposite()).isPresent()) return true;
         return tile.getCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER, side.getOpposite()).isPresent();
+    }
+
+    public PipeModel getPipeModel() {
+        return this.pipeModel;
     }
 }

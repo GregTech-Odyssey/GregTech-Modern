@@ -36,24 +36,18 @@ import net.minecraftforge.common.ToolActions;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 
 import com.google.common.collect.Multimap;
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class GTShovelItem extends ShovelItem implements IGTTool {
 
-    @Getter
     private final GTToolType toolType;
-    @Getter
     private final Material material;
-    @Getter
     private final int electricTier;
-    @Getter
     private final IGTToolDefinition toolStats;
 
-    protected GTShovelItem(GTToolType toolType, MaterialToolTier tier, Material material, IGTToolDefinition toolStats,
-                           Properties properties) {
+    protected GTShovelItem(GTToolType toolType, MaterialToolTier tier, Material material, IGTToolDefinition toolStats, Properties properties) {
         super(tier, 0, 0, properties);
         this.toolType = toolType;
         this.material = material;
@@ -65,13 +59,13 @@ public class GTShovelItem extends ShovelItem implements IGTTool {
         definition$init();
     }
 
-    public static GTShovelItem create(GTToolType toolType, MaterialToolTier tier, Material material,
-                                      IGTToolDefinition toolStats, Item.Properties properties) {
+    public static GTShovelItem create(GTToolType toolType, MaterialToolTier tier, Material material, IGTToolDefinition toolStats, Item.Properties properties) {
         return new GTShovelItem(toolType, tier, material, toolStats, properties);
     }
 
     @Override
-    public @Nullable ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
+    @Nullable
+    public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
         return definition$initCapabilities(stack, nbt);
     }
 
@@ -104,26 +98,21 @@ public class GTShovelItem extends ShovelItem implements IGTTool {
             if (modifiedState != null && level.isEmptyBlock(blockpos.above())) {
                 level.playSound(player, blockpos, SoundEvents.SHOVEL_FLATTEN, SoundSource.BLOCKS, 1.0F, 1.0F);
                 resultState = modifiedState;
-            } else if (blockstate.getBlock() instanceof CampfireBlock &&
-                    blockstate.getValue(CampfireBlock.LIT)) {
-                        if (!level.isClientSide()) {
-                            level.levelEvent(null, 1009, blockpos, 0);
-                        }
-
-                        CampfireBlock.dowse(context.getPlayer(), level, blockpos, blockstate);
-                        resultState = blockstate.setValue(CampfireBlock.LIT, false);
-                    }
-
+            } else if (blockstate.getBlock() instanceof CampfireBlock && blockstate.getValue(CampfireBlock.LIT)) {
+                if (!level.isClientSide()) {
+                    level.levelEvent(null, 1009, blockpos, 0);
+                }
+                CampfireBlock.dowse(context.getPlayer(), level, blockpos, blockstate);
+                resultState = blockstate.setValue(CampfireBlock.LIT, false);
+            }
             if (resultState != null) {
                 if (!level.isClientSide) {
                     level.setBlock(blockpos, resultState, Block.UPDATE_ALL_IMMEDIATE);
                     level.gameEvent(GameEvent.BLOCK_CHANGE, blockpos, GameEvent.Context.of(player, resultState));
                     if (player != null) {
-                        context.getItemInHand().hurtAndBreak(1, player,
-                                (breaker) -> breaker.broadcastBreakEvent(context.getHand()));
+                        context.getItemInHand().hurtAndBreak(1, player, breaker -> breaker.broadcastBreakEvent(context.getHand()));
                     }
                 }
-
                 return InteractionResult.sidedSuccess(level.isClientSide);
             } else {
                 return InteractionResult.PASS;
@@ -187,8 +176,7 @@ public class GTShovelItem extends ShovelItem implements IGTTool {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
-                                TooltipFlag isAdvanced) {
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
         definition$appendHoverText(stack, level, tooltipComponents, isAdvanced);
     }
 
@@ -253,5 +241,21 @@ public class GTShovelItem extends ShovelItem implements IGTTool {
     @Override
     public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
         return this.definition$isCorrectToolForDrops(stack, state);
+    }
+
+    public GTToolType getToolType() {
+        return this.toolType;
+    }
+
+    public Material getMaterial() {
+        return this.material;
+    }
+
+    public int getElectricTier() {
+        return this.electricTier;
+    }
+
+    public IGTToolDefinition getToolStats() {
+        return this.toolStats;
     }
 }

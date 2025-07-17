@@ -12,17 +12,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OpticalRoutePath implements IRoutePath<IOpticalComputationProvider> {
 
-    @Getter
     private final OpticalPipeBlockEntity targetPipe;
-    @Getter
     private final Direction targetFacing;
-    @Getter
     private final int distance;
 
     public OpticalRoutePath(OpticalPipeBlockEntity targetPipe, Direction targetFacing, int distance) {
@@ -33,8 +29,7 @@ public class OpticalRoutePath implements IRoutePath<IOpticalComputationProvider>
 
     @Nullable
     public IOpticalDataAccessHatch getDataHatch() {
-        IDataAccessHatch dataAccessHatch = getTargetCapability(GTCapability.CAPABILITY_DATA_ACCESS,
-                targetPipe.getPipeLevel());
+        IDataAccessHatch dataAccessHatch = getTargetCapability(GTCapability.CAPABILITY_DATA_ACCESS, targetPipe.getPipeLevel());
         return dataAccessHatch instanceof IOpticalDataAccessHatch opticalHatch ? opticalHatch : null;
     }
 
@@ -44,14 +39,26 @@ public class OpticalRoutePath implements IRoutePath<IOpticalComputationProvider>
     }
 
     @Override
-    public @NotNull BlockPos getTargetPipePos() {
+    @NotNull
+    public BlockPos getTargetPipePos() {
         return targetPipe.getPipePos();
     }
 
     @Nullable
     @Override
     public IOpticalComputationProvider getHandler(Level world) {
-        return GTCapabilityHelper.getOpticalComputationProvider(world, getTargetPipePos().relative(targetFacing),
-                targetFacing.getOpposite());
+        return GTCapabilityHelper.getOpticalComputationProvider(world, getTargetPipePos().relative(targetFacing), targetFacing.getOpposite());
+    }
+
+    public OpticalPipeBlockEntity getTargetPipe() {
+        return this.targetPipe;
+    }
+
+    public Direction getTargetFacing() {
+        return this.targetFacing;
+    }
+
+    public int getDistance() {
+        return this.distance;
     }
 }

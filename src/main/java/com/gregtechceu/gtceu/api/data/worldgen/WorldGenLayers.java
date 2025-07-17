@@ -10,37 +10,21 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
 public enum WorldGenLayers implements IWorldGenLayer, StringRepresentable {
 
-    STONE(
-            "stone", new TagMatchTest(BlockTags.STONE_ORE_REPLACEABLES),
-            Set.of(Level.OVERWORLD.location())),
-    DEEPSLATE(
-            "deepslate", new TagMatchTest(BlockTags.DEEPSLATE_ORE_REPLACEABLES),
-            Set.of(Level.OVERWORLD.location())),
-    NETHERRACK(
-            "netherrack", new TagMatchTest(BlockTags.NETHER_CARVER_REPLACEABLES),
-            Set.of(Level.NETHER.location())),
-    ENDSTONE(
-            "endstone", WorldGeneratorUtils.END_ORE_REPLACEABLES,
-            Set.of(Level.END.location()));
+    STONE("stone", new TagMatchTest(BlockTags.STONE_ORE_REPLACEABLES), Set.of(Level.OVERWORLD.location())),
+    DEEPSLATE("deepslate", new TagMatchTest(BlockTags.DEEPSLATE_ORE_REPLACEABLES), Set.of(Level.OVERWORLD.location())),
+    NETHERRACK("netherrack", new TagMatchTest(BlockTags.NETHER_CARVER_REPLACEABLES), Set.of(Level.NETHER.location())),
+    ENDSTONE("endstone", WorldGeneratorUtils.END_ORE_REPLACEABLES, Set.of(Level.END.location()));
 
     private final String name;
-
     @SuppressWarnings("NonFinalFieldInEnum")
-    @Getter
-    @Setter
     private Set<ResourceLocation> levels;
-
     @SuppressWarnings("NonFinalFieldInEnum")
-    @Getter
-    @Setter
     private RuleTest target;
 
     WorldGenLayers(String name, RuleTest target, Set<ResourceLocation> levels) {
@@ -67,5 +51,21 @@ public enum WorldGenLayers implements IWorldGenLayer, StringRepresentable {
     @Override
     public boolean isApplicableForLevel(ResourceLocation level) {
         return levels.contains(level);
+    }
+
+    public Set<ResourceLocation> getLevels() {
+        return this.levels;
+    }
+
+    public void setLevels(final Set<ResourceLocation> levels) {
+        this.levels = levels;
+    }
+
+    public RuleTest getTarget() {
+        return this.target;
+    }
+
+    public void setTarget(final RuleTest target) {
+        this.target = target;
     }
 }

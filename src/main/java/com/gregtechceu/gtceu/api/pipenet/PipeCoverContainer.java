@@ -28,23 +28,43 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.wrapper.EmptyHandler;
 
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
 
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(PipeCoverContainer.class);
-    @Getter
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
     private final IPipeNode<?, ?> pipeTile;
-
     @DescSynced
     @Persisted
     @UpdateListener(methodName = "onCoverSet")
-    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty",
-                     serializeMethod = "serializeCoverUid",
-                     deserializeMethod = "deserializeCoverUid")
-    private CoverBehavior up, down, north, south, west, east;
+    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty", serializeMethod = "serializeCoverUid", deserializeMethod = "deserializeCoverUid")
+    private CoverBehavior up;
+    @DescSynced
+    @Persisted
+    @UpdateListener(methodName = "onCoverSet")
+    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty", serializeMethod = "serializeCoverUid", deserializeMethod = "deserializeCoverUid")
+    private CoverBehavior down;
+    @DescSynced
+    @Persisted
+    @UpdateListener(methodName = "onCoverSet")
+    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty", serializeMethod = "serializeCoverUid", deserializeMethod = "deserializeCoverUid")
+    private CoverBehavior north;
+    @DescSynced
+    @Persisted
+    @UpdateListener(methodName = "onCoverSet")
+    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty", serializeMethod = "serializeCoverUid", deserializeMethod = "deserializeCoverUid")
+    private CoverBehavior south;
+    @DescSynced
+    @Persisted
+    @UpdateListener(methodName = "onCoverSet")
+    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty", serializeMethod = "serializeCoverUid", deserializeMethod = "deserializeCoverUid")
+    private CoverBehavior west;
+    @DescSynced
+    @Persisted
+    @UpdateListener(methodName = "onCoverSet")
+    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty", serializeMethod = "serializeCoverUid", deserializeMethod = "deserializeCoverUid")
+    private CoverBehavior east;
 
     public PipeCoverContainer(IPipeNode<?, ?> pipeTile) {
         this.pipeTile = pipeTile;
@@ -120,9 +140,7 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
         float thickness = pipeTile.getPipeType().getThickness();
         // no cover plate for pipes >= 1 block thick
         if (thickness >= 1) return 0;
-
         // If the available space for the cover is less than the regular cover plate thickness, use that
-
         // need to divide by 2 because thickness is centered on the block, so the space is half on each side of the pipe
         return Math.min(1.0 / 16.0, (1.0 - thickness) / 2);
     }
@@ -151,8 +169,7 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
     @Override
     public IItemHandlerModifiable getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
         if (pipeTile instanceof ItemPipeBlockEntity itemPipe) {
-            return getLevel() instanceof ServerLevel ? itemPipe.getHandler(side, useCoverCapability) :
-                    (IItemHandlerModifiable) EmptyHandler.INSTANCE;
+            return getLevel() instanceof ServerLevel ? itemPipe.getHandler(side, useCoverCapability) : (IItemHandlerModifiable) EmptyHandler.INSTANCE;
         } else {
             return null;
         }
@@ -201,8 +218,7 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
 
     @SuppressWarnings("unused")
     private boolean onCoverDirty(CoverBehavior coverBehavior) {
-        return coverBehavior != null && (coverBehavior.getSyncStorage().hasDirtySyncFields() ||
-                coverBehavior.getSyncStorage().hasDirtyPersistedFields());
+        return coverBehavior != null && (coverBehavior.getSyncStorage().hasDirtySyncFields() || coverBehavior.getSyncStorage().hasDirtyPersistedFields());
     }
 
     @SuppressWarnings("unused")
@@ -221,7 +237,11 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
         if (definition != null) {
             return definition.createCoverBehavior(this, side);
         }
-        GTCEu.LOGGER.error("couldn't find cover definition {}", definitionId);
+        GTCEu.LOGGER.error("couldn\'t find cover definition {}", definitionId);
         throw new RuntimeException();
+    }
+
+    public FieldManagedStorage getSyncStorage() {
+        return this.syncStorage;
     }
 }

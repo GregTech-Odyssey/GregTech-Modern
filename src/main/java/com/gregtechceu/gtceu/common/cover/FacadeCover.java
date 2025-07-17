@@ -19,8 +19,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -29,10 +27,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class FacadeCover extends CoverBehavior {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(FacadeCover.class,
-            CoverBehavior.MANAGED_FIELD_HOLDER);
-    @Setter
-    @Getter
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(FacadeCover.class, CoverBehavior.MANAGED_FIELD_HOLDER);
     @DescSynced
     @Persisted
     @RequireRerender
@@ -71,5 +66,13 @@ public class FacadeCover extends CoverBehavior {
     @Nullable
     public BlockState getAppearance(BlockState sourceState, BlockPos sourcePos) {
         return facadeState;
+    }
+
+    public void setFacadeState(final BlockState facadeState) {
+        this.facadeState = facadeState;
+    }
+
+    public BlockState getFacadeState() {
+        return this.facadeState;
     }
 }

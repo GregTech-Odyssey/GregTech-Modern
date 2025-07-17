@@ -34,7 +34,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -44,51 +43,36 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class SurfaceRockBlock extends Block {
 
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
-
     private static final VoxelShape AABB_NORTH = Block.box(2, 2, 0, 14, 14, 3);
     private static final VoxelShape AABB_SOUTH = Block.box(2, 2, 13, 14, 14, 16);
     private static final VoxelShape AABB_WEST = Block.box(0, 2, 2, 3, 14, 14);
     private static final VoxelShape AABB_EAST = Block.box(13, 2, 2, 16, 14, 14);
     private static final VoxelShape AABB_UP = Block.box(2, 13, 2, 14, 16, 14);
     private static final VoxelShape AABB_DOWN = Block.box(2, 0, 2, 14, 3, 14);
-
-    @Getter
     private final Material material;
 
     public SurfaceRockBlock(Properties properties, Material material) {
         super(properties);
         this.material = material;
-
         registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.DOWN));
-
         if (GTCEu.isClientSide()) {
             SurfaceRockRenderer.create(this);
         }
     }
 
     @Override
-    public boolean onDestroyedByPlayer(BlockState state, Level level, BlockPos pos, Player player, boolean willHarvest,
-                                       FluidState fluid) {
+    public boolean onDestroyedByPlayer(BlockState state, Level level, BlockPos pos, Player player, boolean willHarvest, FluidState fluid) {
         if (!level.isClientSide) {
-            ServerCache.instance.prospectSurfaceRockMaterial(
-                    level.dimension(),
-                    this.material,
-                    pos,
-                    (ServerPlayer) player);
+            ServerCache.instance.prospectSurfaceRockMaterial(level.dimension(), this.material, pos, (ServerPlayer) player);
         }
         return super.onDestroyedByPlayer(state, level, pos, player, willHarvest, fluid);
     }
 
     @Override
     @SuppressWarnings("deprecation")
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
-                                 BlockHitResult hit) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (!level.isClientSide) {
-            ServerCache.instance.prospectSurfaceRockMaterial(
-                    level.dimension(),
-                    this.material,
-                    pos,
-                    (ServerPlayer) player);
+            ServerCache.instance.prospectSurfaceRockMaterial(level.dimension(), this.material, pos, (ServerPlayer) player);
         }
         if (level.destroyBlock(pos, true, player)) {
             return InteractionResult.SUCCESS;
@@ -126,15 +110,12 @@ public class SurfaceRockBlock extends Block {
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
         var facing = state.getValue(FACING);
         var attachedBlock = pos.relative(facing);
-
         return level.getBlockState(attachedBlock).isFaceSturdy(level, attachedBlock, facing.getOpposite());
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos,
-                                boolean movedByPiston) {
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
-
         if (!canSurvive(state, level, pos)) {
             Block.updateOrDestroy(state, Blocks.AIR.defaultBlockState(), level, pos, Block.UPDATE_ALL);
         }
@@ -184,5 +165,9 @@ public class SurfaceRockBlock extends Block {
     @Override
     public MutableComponent getName() {
         return Component.translatable("block.surface_rock", material.getLocalizedName());
+    }
+
+    public Material getMaterial() {
+        return this.material;
     }
 }

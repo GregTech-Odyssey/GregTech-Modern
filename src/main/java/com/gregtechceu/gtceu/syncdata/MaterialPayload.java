@@ -9,10 +9,8 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.Nullable;
 
-@NoArgsConstructor
 public class MaterialPayload extends ObjectTypedPayload<Material> {
 
     @Override
@@ -35,4 +33,6 @@ public class MaterialPayload extends ObjectTypedPayload<Material> {
     public void deserializeNBT(Tag tag) {
         payload = GTCEuAPI.materialManager.getMaterial(tag.getAsString());
     }
+
+    public MaterialPayload() {}
 }

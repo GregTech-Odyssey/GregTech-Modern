@@ -8,8 +8,6 @@ import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -93,8 +91,6 @@ public interface ModifierFunction {
         return new FunctionBuilder();
     }
 
-    @Setter
-    @Accessors(chain = true, fluent = true)
     final class FunctionBuilder {
 
         private int parallels = 1;
@@ -149,17 +145,12 @@ public interface ModifierFunction {
             return recipe -> {
                 var newConditions = new ArrayList<>(recipe.conditions);
                 newConditions.addAll(addedConditions);
-                var copied = new GTRecipe(recipe.recipeType, recipe.id,
-                        inputModifier.applyContents(recipe.inputs),
-                        outputModifier.applyContents(recipe.outputs),
-                        applyAllButEU(tickInputModifier, recipe.tickInputs),
-                        applyAllButEU(tickOutputModifier, recipe.tickOutputs),
-                        newConditions, recipe.data, recipe.duration, recipe.recipeCategory);
+                var copied = new GTRecipe(recipe.recipeType, recipe.id, inputModifier.applyContents(recipe.inputs), outputModifier.applyContents(recipe.outputs), applyAllButEU(tickInputModifier, recipe.tickInputs), applyAllButEU(tickOutputModifier, recipe.tickOutputs), newConditions, recipe.data, recipe.duration, recipe.recipeCategory);
                 copied.parallels = recipe.parallels * parallels;
                 copied.ocLevel = recipe.ocLevel + addOCs;
                 copied.batchParallels = recipe.batchParallels * batchParallels;
                 if (recipe.data.getBoolean("duration_is_total_cwu")) {
-                    copied.duration = (int) Math.max(1, (recipe.duration * (1f - 0.025f * addOCs)));
+                    copied.duration = (int) Math.max(1, (recipe.duration * (1.0F - 0.025F * addOCs)));
                 } else {
                     copied.duration = Math.max(1, durationModifier.apply(recipe.duration));
                 }
@@ -172,8 +163,7 @@ public interface ModifierFunction {
             };
         }
 
-        private static Map<RecipeCapability<?>, List<Content>> applyAllButEU(ContentModifier cm,
-                                                                             Map<RecipeCapability<?>, List<Content>> contents) {
+        private static Map<RecipeCapability<?>, List<Content>> applyAllButEU(ContentModifier cm, Map<RecipeCapability<?>, List<Content>> contents) {
             if (cm == ContentModifier.IDENTITY) return new HashMap<>(contents);
             Map<RecipeCapability<?>, List<Content>> copyContents = new HashMap<>();
             for (var entry : contents.entrySet()) {
@@ -192,6 +182,78 @@ public interface ModifierFunction {
                 }
             }
             return copyContents;
+        }
+
+        /**
+         * @return {@code this}.
+         */
+        public ModifierFunction.FunctionBuilder parallels(final int parallels) {
+            this.parallels = parallels;
+            return this;
+        }
+
+        /**
+         * @return {@code this}.
+         */
+        public ModifierFunction.FunctionBuilder batchParallels(final int batchParallels) {
+            this.batchParallels = batchParallels;
+            return this;
+        }
+
+        /**
+         * @return {@code this}.
+         */
+        public ModifierFunction.FunctionBuilder addOCs(final int addOCs) {
+            this.addOCs = addOCs;
+            return this;
+        }
+
+        /**
+         * @return {@code this}.
+         */
+        public ModifierFunction.FunctionBuilder eutModifier(final ContentModifier eutModifier) {
+            this.eutModifier = eutModifier;
+            return this;
+        }
+
+        /**
+         * @return {@code this}.
+         */
+        public ModifierFunction.FunctionBuilder durationModifier(final ContentModifier durationModifier) {
+            this.durationModifier = durationModifier;
+            return this;
+        }
+
+        /**
+         * @return {@code this}.
+         */
+        public ModifierFunction.FunctionBuilder inputModifier(final ContentModifier inputModifier) {
+            this.inputModifier = inputModifier;
+            return this;
+        }
+
+        /**
+         * @return {@code this}.
+         */
+        public ModifierFunction.FunctionBuilder outputModifier(final ContentModifier outputModifier) {
+            this.outputModifier = outputModifier;
+            return this;
+        }
+
+        /**
+         * @return {@code this}.
+         */
+        public ModifierFunction.FunctionBuilder tickInputModifier(final ContentModifier tickInputModifier) {
+            this.tickInputModifier = tickInputModifier;
+            return this;
+        }
+
+        /**
+         * @return {@code this}.
+         */
+        public ModifierFunction.FunctionBuilder tickOutputModifier(final ContentModifier tickOutputModifier) {
+            this.tickOutputModifier = tickOutputModifier;
+            return this;
         }
     }
 }

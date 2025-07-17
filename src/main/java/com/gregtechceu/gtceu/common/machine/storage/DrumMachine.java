@@ -39,7 +39,6 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
@@ -50,15 +49,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropSaveMachine, IInteractedMachine {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(DrumMachine.class,
-            MetaMachine.MANAGED_FIELD_HOLDER);
-
-    @Getter
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(DrumMachine.class, MetaMachine.MANAGED_FIELD_HOLDER);
     @Persisted
     @DescSynced
     @RequireRerender
     protected boolean autoOutputFluids;
-    @Getter
     private final int maxStoredFluids;
     @Persisted
     protected final NotifiableFluidTank cache;
@@ -66,12 +61,11 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     protected TickableSubscription autoOutputSubs;
     @Nullable
     protected ISubscription exportFluidSubs;
+    // rename "Fluid" for Item capability
     @Persisted(key = "Fluid")
     @DescSynced
-    @Getter
-    @DropSaved // rename "Fluid" for Item capability
+    @DropSaved
     protected FluidStack stored = FluidStack.EMPTY;
-    @Getter
     protected final Material material;
 
     public DrumMachine(IMachineBlockEntity holder, Material material, int maxStoredFluids, Object... args) {
@@ -90,8 +84,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     }
 
     protected NotifiableFluidTank createCacheFluidHandler(Object... args) {
-        return new NotifiableFluidTank(this, 1, maxStoredFluids, IO.BOTH)
-                .setFilter(material.getProperty(PropertyKey.FLUID_PIPE));
+        return new NotifiableFluidTank(this, 1, maxStoredFluids, IO.BOTH).setFilter(material.getProperty(PropertyKey.FLUID_PIPE));
     }
 
     @Override
@@ -128,7 +121,6 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     //////////////////////////////////////
     // ****** Fluid Logic *******//
     //////////////////////////////////////
-
     @Override
     public void loadFromItem(CompoundTag tag) {
         IDropSaveMachine.super.loadFromItem(tag);
@@ -165,7 +157,8 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     }
 
     @Override
-    public @Nullable Direction getOutputFacingFluids() {
+    @Nullable
+    public Direction getOutputFacingFluids() {
         return Direction.DOWN;
     }
 
@@ -177,8 +170,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
 
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingFluids();
-        if ((isAutoOutputFluids() && !cache.isEmpty()) && outputFacing != null &&
-                GTTransferUtils.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacing)) {
+        if ((isAutoOutputFluids() && !cache.isEmpty()) && outputFacing != null && GTTransferUtils.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacing)) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, this::checkAutoOutput);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
@@ -197,8 +189,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
 
     @SuppressWarnings("resource")
     @Override
-    public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand,
-                                   BlockHitResult hit) {
+    public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (!isRemote()) {
             if (FluidUtil.interactWithFluidHandler(player, hand, cache)) {
                 return InteractionResult.SUCCESS;
@@ -213,13 +204,11 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     }
 
     @Override
-    protected InteractionResult onScrewdriverClick(Player playerIn, InteractionHand hand, Direction gridSide,
-                                                   BlockHitResult hitResult) {
+    protected InteractionResult onScrewdriverClick(Player playerIn, InteractionHand hand, Direction gridSide, BlockHitResult hitResult) {
         if (!isRemote()) {
             if (!playerIn.isShiftKeyDown()) {
                 setAutoOutputFluids(!isAutoOutputFluids());
-                playerIn.sendSystemMessage(Component
-                        .translatable("gtceu.machine.drum." + (autoOutputFluids ? "enable" : "disable") + "_output"));
+                playerIn.sendSystemMessage(Component.translatable("gtceu.machine.drum." + (autoOutputFluids ? "enable" : "disable") + "_output"));
                 return InteractionResult.SUCCESS;
             }
         }
@@ -230,13 +219,28 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     // ******* Rendering ********//
     //////////////////////////////////////
     @Override
-    public ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes,
-                                    Direction side) {
+    public ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes, Direction side) {
         if (toolTypes.contains(GTToolType.SCREWDRIVER)) {
             if (side == getOutputFacingFluids()) {
                 return isAutoOutputFluids() ? GuiTextures.TOOL_DISABLE_AUTO_OUTPUT : GuiTextures.TOOL_AUTO_OUTPUT;
             }
         }
         return super.sideTips(player, pos, state, toolTypes, side);
+    }
+
+    public boolean isAutoOutputFluids() {
+        return this.autoOutputFluids;
+    }
+
+    public int getMaxStoredFluids() {
+        return this.maxStoredFluids;
+    }
+
+    public FluidStack getStored() {
+        return this.stored;
+    }
+
+    public Material getMaterial() {
+        return this.material;
     }
 }

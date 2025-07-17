@@ -54,8 +54,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.BlockHitResult;
 
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,39 +66,33 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class MinerMachine extends WorkableTieredMachine
-                          implements IMiner, IControllable, IFancyUIMachine, IDataInfoProvider, IAutoOutputItem {
+public class MinerMachine extends WorkableTieredMachine implements IMiner, IControllable, IFancyUIMachine, IDataInfoProvider, IAutoOutputItem {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MinerMachine.class,
-            WorkableTieredMachine.MANAGED_FIELD_HOLDER);
-
-    @Getter
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MinerMachine.class, WorkableTieredMachine.MANAGED_FIELD_HOLDER);
     @Persisted
     @DescSynced
     @RequireRerender
     protected Direction outputFacingItems;
-    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected boolean autoOutputItems;
-    @Getter
-    @Setter
     @Persisted
     protected boolean allowInputFromOutputSideItems;
-    @Getter
     @Persisted
     protected final CustomItemStackHandler chargerInventory;
     private final long energyPerTick;
     @Nullable
-    protected TickableSubscription autoOutputSubs, batterySubs;
+    protected TickableSubscription autoOutputSubs;
     @Nullable
-    protected ISubscription exportItemSubs, energySubs;
+    protected TickableSubscription batterySubs;
+    @Nullable
+    protected ISubscription exportItemSubs;
+    @Nullable
+    protected ISubscription energySubs;
 
-    public MinerMachine(IMachineBlockEntity holder, int tier, int speed, int maximumRadius, int fortune,
-                        Object... args) {
-        super(holder, tier, GTMachineUtils.defaultTankSizeFunction, args, (tier + 1) * (tier + 1), fortune, speed,
-                maximumRadius);
+    public MinerMachine(IMachineBlockEntity holder, int tier, int speed, int maximumRadius, int fortune, Object... args) {
+        super(holder, tier, GTMachineUtils.defaultTankSizeFunction, args, (tier + 1) * (tier + 1), fortune, speed, maximumRadius);
         this.energyPerTick = GTValues.V[tier - 1];
         this.chargerInventory = createChargerItemHandler();
     }
@@ -108,7 +100,6 @@ public class MinerMachine extends WorkableTieredMachine
     //////////////////////////////////////
     // ***** Initialization ******//
     //////////////////////////////////////
-
     @Override
     public ManagedFieldHolder getFieldHolder() {
         return MANAGED_FIELD_HOLDER;
@@ -116,9 +107,7 @@ public class MinerMachine extends WorkableTieredMachine
 
     protected CustomItemStackHandler createChargerItemHandler(Object... args) {
         var handler = new CustomItemStackHandler();
-        handler.setFilter(item -> GTCapabilityHelper.getElectricItem(item) != null ||
-                (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE &&
-                        GTCapabilityHelper.getForgeEnergyItem(item) != null));
+        handler.setFilter(item -> GTCapabilityHelper.getElectricItem(item) != null || (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE && GTCapabilityHelper.getForgeEnergyItem(item) != null));
         return handler;
     }
 
@@ -132,18 +121,15 @@ public class MinerMachine extends WorkableTieredMachine
         if (args.length > 3 && args[args.length - 4] instanceof Integer invSize) {
             return new NotifiableItemStackHandler(this, invSize, IO.OUT);
         }
-        throw new IllegalArgumentException(
-                "MinerMachine need args [inventorySize, fortune, speed, maximumRadius] for initialization");
+        throw new IllegalArgumentException("MinerMachine need args [inventorySize, fortune, speed, maximumRadius] for initialization");
     }
 
     @Override
     protected RecipeLogic createRecipeLogic(Object... args) {
-        if (args.length > 2 && args[args.length - 3] instanceof Integer fortune &&
-                args[args.length - 2] instanceof Integer speed && args[args.length - 1] instanceof Integer maxRadius) {
+        if (args.length > 2 && args[args.length - 3] instanceof Integer fortune && args[args.length - 2] instanceof Integer speed && args[args.length - 1] instanceof Integer maxRadius) {
             return new MinerLogic(this, fortune, speed, maxRadius);
         }
-        throw new IllegalArgumentException(
-                "MinerMachine need args [inventorySize, fortune, speed, maximumRadius] for initialization");
+        throw new IllegalArgumentException("MinerMachine need args [inventorySize, fortune, speed, maximumRadius] for initialization");
     }
 
     @Override
@@ -186,7 +172,6 @@ public class MinerMachine extends WorkableTieredMachine
             exportItemSubs.unsubscribe();
             exportItemSubs = null;
         }
-
         if (energySubs != null) {
             energySubs.unsubscribe();
             energySubs = null;
@@ -198,8 +183,7 @@ public class MinerMachine extends WorkableTieredMachine
     //////////////////////////////////////
     protected void updateAutoOutputSubscription() {
         var outputFace = getOutputFacingItems();
-        if (isAutoOutputItems() && outputFace != null && !exportItems.isEmpty() &&
-                GTTransferUtils.hasAdjacentItemHandler(getLevel(), getPos(), outputFace)) {
+        if (isAutoOutputItems() && outputFace != null && !exportItems.isEmpty() && GTTransferUtils.hasAdjacentItemHandler(getLevel(), getPos(), outputFace)) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
@@ -248,30 +232,23 @@ public class MinerMachine extends WorkableTieredMachine
     //////////////////////////////////////
     // *********** GUI ***********//
     //////////////////////////////////////
-
-    public static BiFunction<ResourceLocation, Integer, EditableMachineUI> EDITABLE_UI_CREATOR = Util
-            .memoize((path, inventorySize) -> new EditableMachineUI("misc", path, () -> {
-                WidgetGroup template = createTemplate(inventorySize).createDefault();
-                SlotWidget batterySlot = createBatterySlot().createDefault();
-                batterySlot.setSelfPosition(new Position(100, 10));
-                WidgetGroup group = new WidgetGroup(0, 0, Math.max(template.getSize().width + 12, 172),
-                        template.getSize().height + 8);
-                Size size = group.getSize();
-
-                template.setSelfPosition(new Position(
-                        (size.width - 4 - template.getSize().width) / 2 + 4,
-                        (size.height - template.getSize().height) / 2));
-
-                group.addWidget(template);
-                group.addWidget(batterySlot);
-                return group;
-            }, (template, machine) -> {
-                if (machine instanceof MinerMachine minerMachine) {
-                    createTemplate(inventorySize).setupUI(template, minerMachine);
-                    createEnergyBar().setupUI(template, minerMachine);
-                    createBatterySlot().setupUI(template, minerMachine);
-                }
-            }));
+    public static BiFunction<ResourceLocation, Integer, EditableMachineUI> EDITABLE_UI_CREATOR = Util.memoize((path, inventorySize) -> new EditableMachineUI("misc", path, () -> {
+        WidgetGroup template = createTemplate(inventorySize).createDefault();
+        SlotWidget batterySlot = createBatterySlot().createDefault();
+        batterySlot.setSelfPosition(new Position(100, 10));
+        WidgetGroup group = new WidgetGroup(0, 0, Math.max(template.getSize().width + 12, 172), template.getSize().height + 8);
+        Size size = group.getSize();
+        template.setSelfPosition(new Position((size.width - 4 - template.getSize().width) / 2 + 4, (size.height - template.getSize().height) / 2));
+        group.addWidget(template);
+        group.addWidget(batterySlot);
+        return group;
+    }, (template, machine) -> {
+        if (machine instanceof MinerMachine minerMachine) {
+            createTemplate(inventorySize).setupUI(template, minerMachine);
+            createEnergyBar().setupUI(template, minerMachine);
+            createBatterySlot().setupUI(template, minerMachine);
+        }
+    }));
 
     protected static EditableUI<WidgetGroup, MinerMachine> createTemplate(int inventorySize) {
         return new EditableUI<>("miner", WidgetGroup.class, () -> {
@@ -279,7 +256,6 @@ public class MinerMachine extends WorkableTieredMachine
             int width = rowSize * 18 + 120;
             int height = Math.max(rowSize * 18, 80);
             WidgetGroup group = new WidgetGroup(0, 0, width, height);
-
             WidgetGroup slots = new WidgetGroup(120, (height - rowSize * 18) / 2, rowSize * 18, rowSize * 18);
             for (int y = 0; y < rowSize; y++) {
                 for (int x = 0; x < rowSize; x++) {
@@ -292,16 +268,11 @@ public class MinerMachine extends WorkableTieredMachine
                     slots.addWidget(slot);
                 }
             }
-
             var componentPanel = new ComponentPanelWidget(4, 5, list -> {});
             componentPanel.setMaxWidthLimit(110);
             componentPanel.setId("component_panel");
-
             var container = new WidgetGroup(0, 0, 117, height);
-            container.addWidget(new DraggableScrollableWidgetGroup(4, 4, container.getSize().width - 8,
-                    container.getSize().height - 8)
-                    .setBackground(GuiTextures.DISPLAY)
-                    .addWidget(componentPanel));
+            container.addWidget(new DraggableScrollableWidgetGroup(4, 4, container.getSize().width - 8, container.getSize().height - 8).setBackground(GuiTextures.DISPLAY).addWidget(componentPanel));
             container.setBackground(GuiTextures.BACKGROUND_INVERSE);
             group.addWidget(container);
             group.addWidget(slots);
@@ -333,42 +304,28 @@ public class MinerMachine extends WorkableTieredMachine
             slotWidget.setHandlerSlot(machine.chargerInventory, 0);
             slotWidget.setCanPutItems(true);
             slotWidget.setCanTakeItems(true);
-            slotWidget.setHoverTooltips(LangHandler.getMultiLang("gtceu.gui.charger_slot.tooltip",
-                    GTValues.VNF[machine.getTier()], GTValues.VNF[machine.getTier()]).toArray(new MutableComponent[0]));
+            slotWidget.setHoverTooltips(LangHandler.getMultiLang("gtceu.gui.charger_slot.tooltip", GTValues.VNF[machine.getTier()], GTValues.VNF[machine.getTier()]).toArray(new MutableComponent[0]));
         });
     }
 
     private void addDisplayText(@NotNull List<Component> textList) {
         int workingArea = IMiner.getWorkingArea(getRecipeLogic().getCurrentRadius());
-        textList.add(Component.translatable("gtceu.machine.miner.startx", getRecipeLogic().getX()).append(" ")
-                .append(Component.translatable("gtceu.machine.miner.minex", getRecipeLogic().getMineX())));
-        textList.add(Component.translatable("gtceu.machine.miner.starty", getRecipeLogic().getY()).append(" ")
-                .append(Component.translatable("gtceu.machine.miner.miney", getRecipeLogic().getMineY())));
-        textList.add(Component.translatable("gtceu.machine.miner.startz", getRecipeLogic().getZ()).append(" ")
-                .append(Component.translatable("gtceu.machine.miner.minez", getRecipeLogic().getMineZ())));
+        textList.add(Component.translatable("gtceu.machine.miner.startx", getRecipeLogic().getX()).append(" ").append(Component.translatable("gtceu.machine.miner.minex", getRecipeLogic().getMineX())));
+        textList.add(Component.translatable("gtceu.machine.miner.starty", getRecipeLogic().getY()).append(" ").append(Component.translatable("gtceu.machine.miner.miney", getRecipeLogic().getMineY())));
+        textList.add(Component.translatable("gtceu.machine.miner.startz", getRecipeLogic().getZ()).append(" ").append(Component.translatable("gtceu.machine.miner.minez", getRecipeLogic().getMineZ())));
         textList.add(Component.translatable("gtceu.universal.tooltip.working_area", workingArea, workingArea));
-        if (getRecipeLogic().isDone())
-            textList.add(Component.translatable("gtceu.multiblock.large_miner.done")
-                    .setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN)));
-        else if (getRecipeLogic().isWorking())
-            textList.add(Component.translatable("gtceu.multiblock.large_miner.working")
-                    .setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));
-        else if (!this.isWorkingEnabled())
-            textList.add(Component.translatable("gtceu.multiblock.work_paused"));
-        if (getRecipeLogic().isInventoryFull())
-            textList.add(Component.translatable("gtceu.multiblock.large_miner.invfull")
-                    .setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
-        if (!drainInput(true))
-            textList.add(Component.translatable("gtceu.multiblock.large_miner.needspower")
-                    .setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+        if (getRecipeLogic().isDone()) textList.add(Component.translatable("gtceu.multiblock.large_miner.done").setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN)));
+        else if (getRecipeLogic().isWorking()) textList.add(Component.translatable("gtceu.multiblock.large_miner.working").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));
+        else if (!this.isWorkingEnabled()) textList.add(Component.translatable("gtceu.multiblock.work_paused"));
+        if (getRecipeLogic().isInventoryFull()) textList.add(Component.translatable("gtceu.multiblock.large_miner.invfull").setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+        if (!drainInput(true)) textList.add(Component.translatable("gtceu.multiblock.large_miner.needspower").setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
     }
 
     @Override
     public boolean drainInput(boolean simulate) {
         long resultEnergy = energyContainer.getEnergyStored() - energyPerTick;
         if (resultEnergy >= 0L && resultEnergy <= energyContainer.getEnergyCapacity()) {
-            if (!simulate)
-                energyContainer.removeEnergy(energyPerTick);
+            if (!simulate) energyContainer.removeEnergy(energyPerTick);
             return true;
         }
         return false;
@@ -378,24 +335,16 @@ public class MinerMachine extends WorkableTieredMachine
     // ******* Interaction *******//
     //////////////////////////////////////
     @Override
-    protected InteractionResult onScrewdriverClick(Player playerIn, InteractionHand hand, Direction gridSide,
-                                                   BlockHitResult hitResult) {
+    protected InteractionResult onScrewdriverClick(Player playerIn, InteractionHand hand, Direction gridSide, BlockHitResult hitResult) {
         if (isRemote()) return InteractionResult.SUCCESS;
-
         if (!this.isActive()) {
             int currentRadius = getRecipeLogic().getCurrentRadius();
-            if (currentRadius == 1)
-                getRecipeLogic().setCurrentRadius(getRecipeLogic().getMaximumRadius());
-            else if (playerIn.isShiftKeyDown())
-                getRecipeLogic().setCurrentRadius(Math.max(1, Math.round(currentRadius / 2.0f)));
-            else
-                getRecipeLogic().setCurrentRadius(Math.max(1, currentRadius - 1));
-
+            if (currentRadius == 1) getRecipeLogic().setCurrentRadius(getRecipeLogic().getMaximumRadius());
+            else if (playerIn.isShiftKeyDown()) getRecipeLogic().setCurrentRadius(Math.max(1, Math.round(currentRadius / 2.0F)));
+            else getRecipeLogic().setCurrentRadius(Math.max(1, currentRadius - 1));
             getRecipeLogic().resetArea(true);
-
             int workingArea = IMiner.getWorkingArea(getRecipeLogic().getCurrentRadius());
-            playerIn.sendSystemMessage(
-                    Component.translatable("gtceu.universal.tooltip.working_area", workingArea, workingArea));
+            playerIn.sendSystemMessage(Component.translatable("gtceu.universal.tooltip.working_area", workingArea, workingArea));
         } else {
             playerIn.sendSystemMessage(Component.translatable("gtceu.multiblock.large_miner.errorradius"));
         }
@@ -405,12 +354,30 @@ public class MinerMachine extends WorkableTieredMachine
     @NotNull
     @Override
     public List<Component> getDataInfo(PortableScannerBehavior.DisplayMode mode) {
-        if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL ||
-                mode == PortableScannerBehavior.DisplayMode.SHOW_MACHINE_INFO) {
+        if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_MACHINE_INFO) {
             int workingArea = IMiner.getWorkingArea(getRecipeLogic().getCurrentRadius());
-            return Collections.singletonList(
-                    Component.translatable("gtceu.universal.tooltip.working_area", workingArea, workingArea));
+            return Collections.singletonList(Component.translatable("gtceu.universal.tooltip.working_area", workingArea, workingArea));
         }
         return new ArrayList<>();
+    }
+
+    public Direction getOutputFacingItems() {
+        return this.outputFacingItems;
+    }
+
+    public boolean isAutoOutputItems() {
+        return this.autoOutputItems;
+    }
+
+    public boolean isAllowInputFromOutputSideItems() {
+        return this.allowInputFromOutputSideItems;
+    }
+
+    public void setAllowInputFromOutputSideItems(final boolean allowInputFromOutputSideItems) {
+        this.allowInputFromOutputSideItems = allowInputFromOutputSideItems;
+    }
+
+    public CustomItemStackHandler getChargerInventory() {
+        return this.chargerInventory;
     }
 }

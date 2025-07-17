@@ -20,7 +20,6 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.item.ItemStack;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,19 +32,22 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhancedManaged {
 
     private final IEnhancedManaged container;
-
     @Persisted
     @DescSynced
-    @Getter
-    private @NotNull ItemStack filterItem = ItemStack.EMPTY;
-
-    private @Nullable F filter;
-    private @Nullable CustomItemStackHandler filterSlot;
-    private @Nullable WidgetGroup filterGroup;
-
-    private @NotNull Consumer<F> onFilterLoaded = (filter) -> {};
-    private @NotNull Consumer<F> onFilterRemoved = (filter) -> {};
-    private @NotNull Consumer<F> onFilterUpdated = (filter) -> {};
+    @NotNull
+    private ItemStack filterItem = ItemStack.EMPTY;
+    @Nullable
+    private F filter;
+    @Nullable
+    private CustomItemStackHandler filterSlot;
+    @Nullable
+    private WidgetGroup filterGroup;
+    @NotNull
+    private Consumer<F> onFilterLoaded = filter -> {};
+    @NotNull
+    private Consumer<F> onFilterRemoved = filter -> {};
+    @NotNull
+    private Consumer<F> onFilterUpdated = filter -> {};
 
     public FilterHandler(IEnhancedManaged container) {
         this.container = container;
@@ -60,11 +62,8 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhan
     //////////////////////////////////
     // ***** PUBLIC API ******//
     //////////////////////////////////
-
     public Widget createFilterSlotUI(int xPos, int yPos) {
-        return new SlotWidget(getFilterSlot(), 0, xPos, yPos)
-                .setChangeListener(this::updateFilter)
-                .setBackgroundTexture(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.FILTER_SLOT_OVERLAY));
+        return new SlotWidget(getFilterSlot(), 0, xPos, yPos).setChangeListener(this::updateFilter).setBackgroundTexture(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.FILTER_SLOT_OVERLAY));
     }
 
     public Widget createFilterConfigUI(int xPos, int yPos, int width, int height) {
@@ -72,7 +71,6 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhan
         if (!this.filterItem.isEmpty()) {
             this.filterGroup.addWidget(getFilter().openConfigurator(0, 0));
         }
-
         return this.filterGroup;
     }
 
@@ -88,7 +86,6 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhan
                 loadFilterFromItem();
             }
         }
-
         return this.filter;
     }
 
@@ -114,7 +111,6 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhan
     ///////////////////////////////////////
     // ***** FILTER HANDLING ******//
     ///////////////////////////////////////
-
     private CustomItemStackHandler getFilterSlot() {
         if (this.filterSlot == null) {
             this.filterSlot = new CustomItemStackHandler(this.filterItem) {
@@ -124,29 +120,23 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhan
                     return 1;
                 }
             };
-
             this.filterSlot.setFilter(this::canInsertFilterItem);
         }
-
         return this.filterSlot;
     }
 
     private void updateFilter() {
         var filterContainer = getFilterSlot();
-
         if (GTCEu.isClientThread()) {
             if (!filterContainer.getStackInSlot(0).isEmpty() && !this.filterItem.isEmpty()) {
                 return;
             }
         }
-
         this.filterItem = filterContainer.getStackInSlot(0);
-
         if (this.filter != null) {
             this.filter = null;
             this.onFilterRemoved.accept(this.filter);
         }
-
         loadFilterFromItem();
     }
 
@@ -154,9 +144,7 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhan
         if (!this.filterItem.isEmpty()) {
             this.filter = loadFilter(this.filterItem);
             filter.setOnUpdated(this.onFilterUpdated);
-            if (filter instanceof SmartItemFilter smart &&
-                    container instanceof CoverBehavior cover &&
-                    cover.coverHolder instanceof MachineCoverContainer mcc) {
+            if (filter instanceof SmartItemFilter smart && container instanceof CoverBehavior cover && cover.coverHolder instanceof MachineCoverContainer mcc) {
                 var machine = MetaMachine.getMachine(mcc.getLevel(), mcc.getPos());
                 if (machine != null) {
                     smart.setModeFromMachine(machine.getDefinition().getName());
@@ -168,11 +156,8 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhan
     }
 
     private void updateFilterGroupUI() {
-        if (this.filterGroup == null)
-            return;
-
+        if (this.filterGroup == null) return;
         this.filterGroup.clearAllWidgets();
-
         if (!this.filterItem.isEmpty() && this.filter != null) {
             this.filterGroup.addWidget(this.filter.openConfigurator(0, 0));
         }
@@ -181,10 +166,7 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhan
     //////////////////////////////////////
     // ***** LDLib SyncData ******//
     //////////////////////////////////////
-
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(FilterHandler.class);
-
-    @Getter
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
 
     @Override
@@ -200,5 +182,14 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhan
     @Override
     public void scheduleRenderUpdate() {
         this.container.scheduleRenderUpdate();
+    }
+
+    @NotNull
+    public ItemStack getFilterItem() {
+        return this.filterItem;
+    }
+
+    public FieldManagedStorage getSyncStorage() {
+        return this.syncStorage;
     }
 }

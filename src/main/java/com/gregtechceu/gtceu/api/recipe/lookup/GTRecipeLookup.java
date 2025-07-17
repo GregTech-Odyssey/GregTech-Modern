@@ -20,8 +20,6 @@ import net.minecraft.world.item.ItemStack;
 import com.mojang.datafixers.util.Either;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,14 +29,10 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
-@RequiredArgsConstructor
 public class GTRecipeLookup {
 
     private final GTRecipeType recipeType;
-
-    @Getter
     private final Branch lookup = new Branch();
-
     private static final WeakHashMap<AbstractMapIngredient, WeakReference<AbstractMapIngredient>> ingredientRoot = new WeakHashMap<>();
 
     /**
@@ -62,7 +56,6 @@ public class GTRecipeLookup {
         // First, check if items and fluids are valid.
         int totalSize = 0;
         List<RecipeHandlerList> handlers = holder.getCapabilitiesForIO(IO.IN);
-
         for (var handler : handlers) {
             for (var entries : handler.getHandlerMap().entrySet()) {
                 int size = 0;
@@ -80,15 +73,12 @@ public class GTRecipeLookup {
                 totalSize += size;
             }
         }
-
         if (totalSize == 0) {
             return null;
         }
-
         // Build input.
         List<List<AbstractMapIngredient>> list = new ObjectArrayList<>(totalSize);
         list.addAll(fromHolder(holder));
-
         // nothing was added, so return nothing
         if (list.isEmpty()) return null;
         return list;
@@ -117,8 +107,7 @@ public class GTRecipeLookup {
      * @return the Recipe Iterator
      */
     @NotNull
-    public RecipeIterator getRecipeIterator(@NotNull IRecipeCapabilityHolder holder,
-                                            @NotNull Predicate<GTRecipe> canHandle) {
+    public RecipeIterator getRecipeIterator(@NotNull IRecipeCapabilityHolder holder, @NotNull Predicate<GTRecipe> canHandle) {
         List<List<AbstractMapIngredient>> list = prepareRecipeFind(holder);
         return new RecipeIterator(this.recipeType, list, canHandle);
     }
@@ -169,9 +158,7 @@ public class GTRecipeLookup {
      * @return a recipe
      */
     @Nullable
-    public GTRecipe recurseIngredientTreeFindRecipe(@NotNull List<List<AbstractMapIngredient>> ingredients,
-                                                    @NotNull Branch branchRoot,
-                                                    @NotNull Predicate<GTRecipe> canHandle) {
+    public GTRecipe recurseIngredientTreeFindRecipe(@NotNull List<List<AbstractMapIngredient>> ingredients, @NotNull Branch branchRoot, @NotNull Predicate<GTRecipe> canHandle) {
         // Try each ingredient as a starting point, adding it to the skip-list.
         // The skip-list is a packed long, where each 1 bit represents an index to skip
         for (int i = 0; i < ingredients.size(); i++) {
@@ -195,24 +182,18 @@ public class GTRecipeLookup {
      * @return a recipe
      */
     @Nullable
-    public GTRecipe recurseIngredientTreeFindRecipe(@NotNull List<List<AbstractMapIngredient>> ingredients,
-                                                    @NotNull Branch branchMap, @NotNull Predicate<GTRecipe> canHandle,
-                                                    int index, int count, long skip) {
+    public GTRecipe recurseIngredientTreeFindRecipe(@NotNull List<List<AbstractMapIngredient>> ingredients, @NotNull Branch branchMap, @NotNull Predicate<GTRecipe> canHandle, int index, int count, long skip) {
         // exhausted all the ingredients, and didn't find anything
         if (count == ingredients.size()) return null;
-
         // Iterate over current level of nodes.
         for (AbstractMapIngredient obj : ingredients.get(index)) {
             // determine the root nodes
             Map<AbstractMapIngredient, Either<GTRecipe, Branch>> targetMap = determineRootNodes(obj, branchMap);
-
             Either<GTRecipe, Branch> result = targetMap.get(obj);
             if (result != null) {
                 // if there is a recipe (left mapping), return it immediately as found, if it can be handled
                 // Otherwise, recurse and go to the next branch.
-                GTRecipe r = result.map(potentialRecipe -> canHandle.test(potentialRecipe) ? potentialRecipe : null,
-                        potentialBranch -> diveIngredientTreeFindRecipe(ingredients, potentialBranch, canHandle, index,
-                                count, skip));
+                GTRecipe r = result.map(potentialRecipe -> canHandle.test(potentialRecipe) ? potentialRecipe : null, potentialBranch -> diveIngredientTreeFindRecipe(ingredients, potentialBranch, canHandle, index, count, skip));
                 if (r != null) {
                     return r;
                 }
@@ -233,10 +214,7 @@ public class GTRecipeLookup {
      * @return a recipe
      */
     @Nullable
-    private GTRecipe diveIngredientTreeFindRecipe(@NotNull List<List<AbstractMapIngredient>> ingredients,
-                                                  @NotNull Branch map,
-                                                  @NotNull Predicate<GTRecipe> canHandle, int currentIndex, int count,
-                                                  long skip) {
+    private GTRecipe diveIngredientTreeFindRecipe(@NotNull List<List<AbstractMapIngredient>> ingredients, @NotNull Branch map, @NotNull Predicate<GTRecipe> canHandle, int currentIndex, int count, long skip) {
         // We loop around ingredients.size() if we reach the end.
         // only end when all ingredients are exhausted, or a recipe is found
         int i = (currentIndex + 1) % ingredients.size();
@@ -246,8 +224,7 @@ public class GTRecipeLookup {
                 // Recursive call
                 // Increase the count, so the recursion can terminate if needed (ingredients is exhausted)
                 // Append the current index to the skip list
-                GTRecipe found = recurseIngredientTreeFindRecipe(ingredients, map, canHandle, i, count + 1,
-                        skip | (1L << i));
+                GTRecipe found = recurseIngredientTreeFindRecipe(ingredients, map, canHandle, i, count + 1, skip | (1L << i));
                 if (found != null) {
                     return found;
                 }
@@ -277,9 +254,7 @@ public class GTRecipeLookup {
      * @param branchRoot       the root branch to start searching from
      * @param collidingRecipes the list to store recipe collisions
      */
-    private void recurseIngredientTreeFindRecipeCollisions(@NotNull List<List<AbstractMapIngredient>> ingredients,
-                                                           @NotNull Branch branchRoot,
-                                                           @NotNull Set<GTRecipe> collidingRecipes) {
+    private void recurseIngredientTreeFindRecipeCollisions(@NotNull List<List<AbstractMapIngredient>> ingredients, @NotNull Branch branchRoot, @NotNull Set<GTRecipe> collidingRecipes) {
         // Try each ingredient as a starting point, adding it to the skip-list.
         // The skip-list is a packed long, where each 1 bit represents an index to skip
         for (int i = 0; i < ingredients.size(); i++) {
@@ -298,26 +273,19 @@ public class GTRecipeLookup {
      * @param collidingRecipes the set to store the recipes in
      */
     @Nullable
-    private GTRecipe recurseIngredientTreeFindRecipeCollisions(@NotNull List<List<AbstractMapIngredient>> ingredients,
-                                                               @NotNull Branch branchMap, int index, int count,
-                                                               long skip,
-                                                               @NotNull Set<GTRecipe> collidingRecipes) {
+    private GTRecipe recurseIngredientTreeFindRecipeCollisions(@NotNull List<List<AbstractMapIngredient>> ingredients, @NotNull Branch branchMap, int index, int count, long skip, @NotNull Set<GTRecipe> collidingRecipes) {
         // exhausted all the ingredients, and didn't find anything
         if (count == ingredients.size()) return null;
-
         List<AbstractMapIngredient> wr = ingredients.get(index);
         // Iterate over current level of nodes.
         for (AbstractMapIngredient obj : wr) {
             // determine the root nodes
             Map<AbstractMapIngredient, Either<GTRecipe, Branch>> targetMap = determineRootNodes(obj, branchMap);
-
             Either<GTRecipe, Branch> result = targetMap.get(obj);
             if (result != null) {
                 // if there is a recipe (left mapping), return it immediately as found
                 // Otherwise, recurse and go to the next branch.
-                GTRecipe r = result.map(recipe -> recipe,
-                        right -> diveIngredientTreeFindRecipeCollisions(ingredients, right, index, count, skip,
-                                collidingRecipes));
+                GTRecipe r = result.map(recipe -> recipe, right -> diveIngredientTreeFindRecipeCollisions(ingredients, right, index, count, skip, collidingRecipes));
                 if (r != null) {
                     collidingRecipes.add(r);
                 }
@@ -338,9 +306,7 @@ public class GTRecipeLookup {
      * @return a recipe
      */
     @Nullable
-    private GTRecipe diveIngredientTreeFindRecipeCollisions(@NotNull List<List<AbstractMapIngredient>> ingredients,
-                                                            @NotNull Branch map, int currentIndex, int count, long skip,
-                                                            @NotNull Set<GTRecipe> collidingRecipes) {
+    private GTRecipe diveIngredientTreeFindRecipeCollisions(@NotNull List<List<AbstractMapIngredient>> ingredients, @NotNull Branch map, int currentIndex, int count, long skip, @NotNull Set<GTRecipe> collidingRecipes) {
         // We loop around ingredients.size() if we reach the end.
         // only end when all ingredients are exhausted, or a recipe is found
         int i = (currentIndex + 1) % ingredients.size();
@@ -350,8 +316,7 @@ public class GTRecipeLookup {
                 // Recursive call
                 // Increase the count, so the recursion can terminate if needed (ingredients is exhausted)
                 // Append the current index to the skip list
-                GTRecipe r = recurseIngredientTreeFindRecipeCollisions(ingredients, map, i, count + 1, skip | (1L << i),
-                        collidingRecipes);
+                GTRecipe r = recurseIngredientTreeFindRecipeCollisions(ingredients, map, i, count + 1, skip | (1L << i), collidingRecipes);
                 if (r != null) {
                     return r;
                 }
@@ -369,9 +334,7 @@ public class GTRecipeLookup {
      * @param ingredients the ingredient to use as a default value, if not cached
      * @param cache       the ingredient root to retrieve from
      */
-    protected static void retrieveCachedIngredient(@NotNull List<List<AbstractMapIngredient>> list,
-                                                   @NotNull List<AbstractMapIngredient> ingredients,
-                                                   @NotNull WeakHashMap<AbstractMapIngredient, WeakReference<AbstractMapIngredient>> cache) {
+    protected static void retrieveCachedIngredient(@NotNull List<List<AbstractMapIngredient>> list, @NotNull List<AbstractMapIngredient> ingredients, @NotNull WeakHashMap<AbstractMapIngredient, WeakReference<AbstractMapIngredient>> cache) {
         for (int i = 0; i < ingredients.size(); i++) {
             AbstractMapIngredient mappedIngredient = ingredients.get(i);
             // attempt to use the cached value if possible, otherwise cache for the next time
@@ -417,8 +380,8 @@ public class GTRecipeLookup {
             }
         };
     }
-    // spotless:on
 
+    // spotless:on
     /**
      * Converts a Recipe Capability holder's handlers into
      * a list of {@link AbstractMapIngredient AbstractMapIngredients}
@@ -466,7 +429,6 @@ public class GTRecipeLookup {
         if (recipe == null) {
             return false;
         }
-
         // Add combustion fuels to the Powerless Jetpack
         if (recipe.getType() == GTRecipeTypes.COMBUSTION_GENERATOR_FUELS) {
             Content content = recipe.getInputContents(FluidRecipeCapability.CAP).get(0);
@@ -490,25 +452,20 @@ public class GTRecipeLookup {
      * @param index       where in the ingredients list we are.
      * @param count       how many branches were added already.
      */
-    private boolean recurseIngredientTreeAdd(@NotNull GTRecipe recipe,
-                                             @NotNull List<List<AbstractMapIngredient>> ingredients,
-                                             @NotNull Branch branchMap, int index, int count) {
+    private boolean recurseIngredientTreeAdd(@NotNull GTRecipe recipe, @NotNull List<List<AbstractMapIngredient>> ingredients, @NotNull Branch branchMap, int index, int count) {
         if (count >= ingredients.size()) return true;
         if (index >= ingredients.size()) {
             throw new RuntimeException("Index out of bounds for recurseItemTreeAdd, should not happen");
         }
         // Loop through NUMBER_OF_INGREDIENTS times.
-
         // the current contents to be added to a node in the branch
         final List<AbstractMapIngredient> current = ingredients.get(index);
         final Branch branchRight = new Branch();
         Either<GTRecipe, Branch> r;
-
         // for every ingredient, add it to a node
         for (AbstractMapIngredient obj : current) {
             // determine the root nodes
             Map<AbstractMapIngredient, Either<GTRecipe, Branch>> targetMap = determineRootNodes(obj, branchMap);
-
             // Either add the recipe or create a branch.
             r = targetMap.compute(obj, (k, v) -> {
                 if (count == ingredients.size() - 1) {
@@ -518,12 +475,8 @@ public class GTRecipeLookup {
                         if (v.left().isEmpty() || v.left().get() != recipe) {
                             // the recipe already there was not the one being added, so there is a conflict
                             if (ConfigHolder.INSTANCE.dev.debug || GTCEu.isDev()) {
-                                GTCEu.LOGGER.warn(
-                                        "Recipe duplicate or conflict found in GTRecipeType {} and was not added. See next lines for details",
-                                        BuiltInRegistries.RECIPE_TYPE.getKey(this.recipeType));
-
+                                GTCEu.LOGGER.warn("Recipe duplicate or conflict found in GTRecipeType {} and was not added. See next lines for details", BuiltInRegistries.RECIPE_TYPE.getKey(this.recipeType));
                                 GTCEu.LOGGER.warn("Attempted to add GTRecipe: {}", recipe.getId());
-
                                 if (v.left().isPresent()) {
                                     GTCEu.LOGGER.warn("Which conflicts with: {}", v.left().get().getId());
                                 } else {
@@ -546,7 +499,6 @@ public class GTRecipeLookup {
                 // there is an existing ingredient here already, so use it
                 return v;
             });
-
             // left branches are always either empty or contain recipes.
             // If there's a recipe present, the addition is finished for this ingredient
             if (r.left().isPresent()) {
@@ -558,14 +510,9 @@ public class GTRecipeLookup {
                     return false;
                 }
             }
-
             // recursive part: apply the addition for the next ingredient in the list, for the right branch.
             // the right branch only contains ingredients, or is empty when the left branch is present
-            boolean addedNextBranch = r.right()
-                    .filter(m -> recurseIngredientTreeAdd(recipe, ingredients, m, (index + 1) % ingredients.size(),
-                            count + 1))
-                    .isPresent();
-
+            boolean addedNextBranch = r.right().filter(m -> recurseIngredientTreeAdd(recipe, ingredients, m, (index + 1) % ingredients.size(), count + 1)).isPresent();
             if (!addedNextBranch) {
                 // failed to add the next branch, so undo any made changes
                 if (count == ingredients.size() - 1) {
@@ -597,8 +544,15 @@ public class GTRecipeLookup {
      * @return the correct nodes for the ingredient
      */
     @NotNull
-    protected static Map<AbstractMapIngredient, Either<GTRecipe, Branch>> determineRootNodes(@NotNull AbstractMapIngredient ingredient,
-                                                                                             @NotNull Branch branchMap) {
+    protected static Map<AbstractMapIngredient, Either<GTRecipe, Branch>> determineRootNodes(@NotNull AbstractMapIngredient ingredient, @NotNull Branch branchMap) {
         return ingredient.isSpecialIngredient() ? branchMap.getSpecialNodes() : branchMap.getNodes();
+    }
+
+    public GTRecipeLookup(final GTRecipeType recipeType) {
+        this.recipeType = recipeType;
+    }
+
+    public Branch getLookup() {
+        return this.lookup;
     }
 }

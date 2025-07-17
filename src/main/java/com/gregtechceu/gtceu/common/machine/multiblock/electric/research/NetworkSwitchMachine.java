@@ -16,8 +16,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import lombok.AccessLevel;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -32,7 +30,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class NetworkSwitchMachine extends DataBankMachine implements IOpticalComputationProvider {
 
     public static final int EUT_PER_HATCH = GTValues.VA[GTValues.IV];
-
     private final MultipleComputationHandler computationHandler = new MultipleComputationHandler(this);
 
     public NetworkSwitchMachine(IMachineBlockEntity holder) {
@@ -118,15 +115,8 @@ public class NetworkSwitchMachine extends DataBankMachine implements IOpticalCom
 
     @Override
     public void addDisplayText(List<Component> textList) {
-        MultiblockDisplayText.builder(textList, isFormed())
-                .setWorkingStatus(true, isActive() && isWorkingEnabled()) // transform into two-state system for display
-                .setWorkingStatusKeys(
-                        "gtceu.multiblock.idling",
-                        "gtceu.multiblock.idling",
-                        "gtceu.multiblock.data_bank.providing")
-                .addEnergyUsageExactLine(getEnergyUsage())
-                .addComputationUsageLine(computationHandler.getMaxCWUtForDisplay())
-                .addWorkingStatusLine();
+        // transform into two-state system for display
+        MultiblockDisplayText.builder(textList, isFormed()).setWorkingStatus(true, isActive() && isWorkingEnabled()).setWorkingStatusKeys("gtceu.multiblock.idling", "gtceu.multiblock.idling", "gtceu.multiblock.data_bank.providing").addEnergyUsageExactLine(getEnergyUsage()).addComputationUsageLine(computationHandler.getMaxCWUtForDisplay()).addWorkingStatusLine();
     }
 
     /*
@@ -139,25 +129,25 @@ public class NetworkSwitchMachine extends DataBankMachine implements IOpticalCom
      * }
      * }
      */
-
-    /** Handles computation load across multiple receivers and to multiple transmitters. */
+    /**
+     * Handles computation load across multiple receivers and to multiple transmitters.
+     */
     private static class MultipleComputationHandler extends NotifiableComputationContainer {
 
         // providers in the NS provide distributable computation to the NS
         private final Set<IOpticalComputationHatch> providers = new ObjectOpenHashSet<>();
         // transmitters in the NS give computation to other multis
         private final Set<IOpticalComputationHatch> transmitters = new ObjectOpenHashSet<>();
-
-        /** The EU/t cost of this Network Switch given the attached providers and transmitters. */
-        @Getter(value = AccessLevel.PRIVATE)
+        /**
+         * The EU/t cost of this Network Switch given the attached providers and transmitters.
+         */
         private int EUt;
 
         public MultipleComputationHandler(MetaMachine machine) {
             super(machine, IO.IN, false);
         }
 
-        private void onStructureForm(Collection<IOpticalComputationHatch> providers,
-                                     Collection<IOpticalComputationHatch> transmitters) {
+        private void onStructureForm(Collection<IOpticalComputationHatch> providers, Collection<IOpticalComputationHatch> transmitters) {
             reset();
             this.providers.addAll(providers);
             this.transmitters.addAll(transmitters);
@@ -225,7 +215,9 @@ public class NetworkSwitchMachine extends DataBankMachine implements IOpticalCom
             return false;
         }
 
-        /** Test if any of the provider hatches do not allow bridging */
+        /**
+         * Test if any of the provider hatches do not allow bridging
+         */
         private boolean hasNonBridgingConnections() {
             Collection<IOpticalComputationProvider> seen = new ArrayList<>();
             for (var provider : providers) {
@@ -239,6 +231,13 @@ public class NetworkSwitchMachine extends DataBankMachine implements IOpticalCom
         @Override
         public IOpticalComputationProvider getComputationProvider() {
             return this;
+        }
+
+        /**
+         * The EU/t cost of this Network Switch given the attached providers and transmitters.
+         */
+        private int getEUt() {
+            return this.EUt;
         }
     }
 }

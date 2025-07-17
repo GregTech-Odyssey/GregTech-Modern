@@ -69,8 +69,6 @@ import appeng.helpers.patternprovider.PatternContainer;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import it.unimi.dsi.fastutil.objects.*;
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
 
@@ -84,11 +82,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class MEPatternBufferPartMachine extends MEBusPartMachine
-                                        implements ICraftingProvider, PatternContainer, IDataStickInteractable {
+public class MEPatternBufferPartMachine extends MEBusPartMachine implements ICraftingProvider, PatternContainer, IDataStickInteractable {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            MEPatternBufferPartMachine.class, MEBusPartMachine.MANAGED_FIELD_HOLDER);
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MEPatternBufferPartMachine.class, MEBusPartMachine.MANAGED_FIELD_HOLDER);
     protected static final int MAX_PATTERN_COUNT = 27;
     private final InternalInventory internalPatternInventory = new InternalInventory() {
 
@@ -109,41 +105,26 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
             onPatternChange(slotIndex);
         }
     };
-
-    @Getter
+    // Maybe an Expansion Option in the future? a bit redundant for rn. Maybe Packdevs want to add their own
+    // version.
     @Persisted
-    @DescSynced // Maybe an Expansion Option in the future? a bit redundant for rn. Maybe Packdevs want to add their own
-                // version.
+    @DescSynced
     private final CustomItemStackHandler patternInventory = new CustomItemStackHandler(MAX_PATTERN_COUNT);
-
-    @Getter
     @Persisted
     protected final NotifiableItemStackHandler shareInventory;
-
-    @Getter
     @Persisted
     protected final NotifiableFluidTank shareTank;
-
-    @Getter
     @Persisted
     protected final InternalSlot[] internalInventory = new InternalSlot[MAX_PATTERN_COUNT];
-
     private final BiMap<IPatternDetails, InternalSlot> detailsSlotMap = HashBiMap.create(MAX_PATTERN_COUNT);
-
     @DescSynced
     @Persisted
-    @Setter
     private String customName = "";
-
     private boolean needPatternSync;
-
     @Persisted
     private final Set<BlockPos> proxies = new ObjectOpenHashSet<>();
     private final Set<MEPatternBufferProxyPartMachine> proxyMachines = new ReferenceOpenHashSet<>();
-
-    @Getter
     protected final InternalSlotRecipeHandler internalRecipeHandler;
-
     @Nullable
     protected TickableSubscription updateSubs;
 
@@ -251,7 +232,6 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
 
     private void onPatternChange(int index) {
         if (isRemote()) return;
-
         // remove old if applicable
         var internalInv = internalInventory[index];
         var newPattern = patternInventory.getStackInSlot(index);
@@ -261,7 +241,6 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
         if (oldPatternDetails != null && !oldPatternDetails.equals(newPatternDetails)) {
             internalInv.refund();
         }
-
         needPatternSync = true;
     }
 
@@ -270,22 +249,12 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
     //////////////////////////////////////
     @Override
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
-        configuratorPanel.attachConfigurators(new ButtonConfigurator(
-                new GuiTextureGroup(GuiTextures.BUTTON, GuiTextures.REFUND_OVERLAY), this::refundAll)
-                .setTooltips(List.of(Component.translatable("gui.gtceu.refund_all.desc"))));
+        configuratorPanel.attachConfigurators(new ButtonConfigurator(new GuiTextureGroup(GuiTextures.BUTTON, GuiTextures.REFUND_OVERLAY), this::refundAll).setTooltips(List.of(Component.translatable("gui.gtceu.refund_all.desc"))));
         if (isHasCircuitSlot() && isCircuitSlotEnabled()) {
             configuratorPanel.attachConfigurators(new CircuitFancyConfigurator(circuitInventory.storage));
         }
-        configuratorPanel.attachConfigurators(new FancyInvConfigurator(
-                shareInventory.storage, Component.translatable("gui.gtceu.share_inventory.title"))
-                .setTooltips(List.of(
-                        Component.translatable("gui.gtceu.share_inventory.desc.0"),
-                        Component.translatable("gui.gtceu.share_inventory.desc.1"))));
-        configuratorPanel.attachConfigurators(new FancyTankConfigurator(
-                shareTank.getStorages(), Component.translatable("gui.gtceu.share_tank.title"))
-                .setTooltips(List.of(
-                        Component.translatable("gui.gtceu.share_tank.desc.0"),
-                        Component.translatable("gui.gtceu.share_inventory.desc.1"))));
+        configuratorPanel.attachConfigurators(new FancyInvConfigurator(shareInventory.storage, Component.translatable("gui.gtceu.share_inventory.title")).setTooltips(List.of(Component.translatable("gui.gtceu.share_inventory.desc.0"), Component.translatable("gui.gtceu.share_inventory.desc.1"))));
+        configuratorPanel.attachConfigurators(new FancyTankConfigurator(shareTank.getStorages(), Component.translatable("gui.gtceu.share_tank.title")).setTooltips(List.of(Component.translatable("gui.gtceu.share_tank.desc.0"), Component.translatable("gui.gtceu.share_inventory.desc.1"))));
     }
 
     @Override
@@ -297,33 +266,21 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
         for (int y = 0; y < colSize; ++y) {
             for (int x = 0; x < rowSize; ++x) {
                 int finalI = index;
-                var slot = new AEPatternViewSlotWidget(patternInventory, index++, 8 + x * 18, 14 + y * 18)
-                        .setOccupiedTexture(GuiTextures.SLOT)
-                        .setItemHook(stack -> {
-                            if (!stack.isEmpty() && stack.getItem() instanceof EncodedPatternItem iep) {
-                                final ItemStack out = iep.getOutput(stack);
-                                if (!out.isEmpty()) {
-                                    return out;
-                                }
-                            }
-                            return stack;
-                        })
-                        .setChangeListener(() -> onPatternChange(finalI))
-                        .setBackground(GuiTextures.SLOT, GuiTextures.PATTERN_OVERLAY);
+                var slot = new AEPatternViewSlotWidget(patternInventory, index++, 8 + x * 18, 14 + y * 18).setOccupiedTexture(GuiTextures.SLOT).setItemHook(stack -> {
+                    if (!stack.isEmpty() && stack.getItem() instanceof EncodedPatternItem iep) {
+                        final ItemStack out = iep.getOutput(stack);
+                        if (!out.isEmpty()) {
+                            return out;
+                        }
+                    }
+                    return stack;
+                }).setChangeListener(() -> onPatternChange(finalI)).setBackground(GuiTextures.SLOT, GuiTextures.PATTERN_OVERLAY);
                 group.addWidget(slot);
             }
         }
         // ME Network status
-        group.addWidget(new LabelWidget(
-                8,
-                2,
-                () -> this.isOnline ? "gtceu.gui.me_network.online" : "gtceu.gui.me_network.offline"));
-
-        group.addWidget(new AETextInputButtonWidget(18 * rowSize + 8 - 70, 2, 70, 10)
-                .setText(customName)
-                .setOnConfirm(this::setCustomName)
-                .setButtonTooltips(Component.translatable("gui.gtceu.rename.desc")));
-
+        group.addWidget(new LabelWidget(8, 2, () -> this.isOnline ? "gtceu.gui.me_network.online" : "gtceu.gui.me_network.offline"));
+        group.addWidget(new AETextInputButtonWidget(18 * rowSize + 8 - 70, 2, 70, 10).setText(customName).setOnConfirm(this::setCustomName).setButtonTooltips(Component.translatable("gui.gtceu.rename.desc")));
         return group;
     }
 
@@ -334,11 +291,9 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
 
     @Override
     public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
-        if (!isFormed() || !getMainNode().isActive() || !detailsSlotMap.containsKey(patternDetails) ||
-                !checkInput(inputHolder)) {
+        if (!isFormed() || !getMainNode().isActive() || !detailsSlotMap.containsKey(patternDetails) || !checkInput(inputHolder)) {
             return false;
         }
-
         var slot = detailsSlotMap.get(patternDetails);
         if (slot != null) {
             slot.pushPattern(patternDetails, inputHolder);
@@ -354,10 +309,7 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
 
     private boolean checkInput(KeyCounter[] inputHolder) {
         for (KeyCounter input : inputHolder) {
-            var illegal = input.keySet().stream()
-                    .map(AEKey::getType)
-                    .map(AEKeyType::getId)
-                    .anyMatch(id -> !id.equals(AEKeyType.items().getId()) && !id.equals(AEKeyType.fluids().getId()));
+            var illegal = input.keySet().stream().map(AEKey::getType).map(AEKeyType::getId).anyMatch(id -> !id.equals(AEKeyType.items().getId()) && !id.equals(AEKeyType.fluids().getId()));
             if (illegal) return false;
         }
         return true;
@@ -369,7 +321,8 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
     }
 
     @Override
-    public @Nullable IGrid getGrid() {
+    @Nullable
+    public IGrid getGrid() {
         return getMainNode().getGrid();
     }
 
@@ -386,35 +339,18 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
             MultiblockMachineDefinition controllerDefinition = controller.self().getDefinition();
             // has customName
             if (!customName.isEmpty()) {
-                return new PatternContainerGroup(
-                        AEItemKey.of(controllerDefinition.asStack()),
-                        Component.literal(customName),
-                        Collections.emptyList());
+                return new PatternContainerGroup(AEItemKey.of(controllerDefinition.asStack()), Component.literal(customName), Collections.emptyList());
             } else {
-                ItemStack circuitStack = isHasCircuitSlot() ? circuitInventory.storage.getStackInSlot(0) :
-                        ItemStack.EMPTY;
-                int circuitConfiguration = circuitStack.isEmpty() ? -1 :
-                        IntCircuitBehaviour.getCircuitConfiguration(circuitStack);
-
-                Component groupName = circuitConfiguration != -1 ?
-                        Component.translatable(controllerDefinition.getDescriptionId())
-                                .append(" - " + circuitConfiguration) :
-                        Component.translatable(controllerDefinition.getDescriptionId());
-
-                return new PatternContainerGroup(
-                        AEItemKey.of(controllerDefinition.asStack()), groupName, Collections.emptyList());
+                ItemStack circuitStack = isHasCircuitSlot() ? circuitInventory.storage.getStackInSlot(0) : ItemStack.EMPTY;
+                int circuitConfiguration = circuitStack.isEmpty() ? -1 : IntCircuitBehaviour.getCircuitConfiguration(circuitStack);
+                Component groupName = circuitConfiguration != -1 ? Component.translatable(controllerDefinition.getDescriptionId()).append(" - " + circuitConfiguration) : Component.translatable(controllerDefinition.getDescriptionId());
+                return new PatternContainerGroup(AEItemKey.of(controllerDefinition.asStack()), groupName, Collections.emptyList());
             }
         } else {
             if (!customName.isEmpty()) {
-                return new PatternContainerGroup(
-                        AEItemKey.of(GTAEMachines.ME_PATTERN_BUFFER.getItem()),
-                        Component.literal(customName),
-                        Collections.emptyList());
+                return new PatternContainerGroup(AEItemKey.of(GTAEMachines.ME_PATTERN_BUFFER.getItem()), Component.literal(customName), Collections.emptyList());
             } else {
-                return new PatternContainerGroup(
-                        AEItemKey.of(GTAEMachines.ME_PATTERN_BUFFER.getItem()),
-                        GTAEMachines.ME_PATTERN_BUFFER.get().getDefinition().getItem().getDescription(),
-                        Collections.emptyList());
+                return new PatternContainerGroup(AEItemKey.of(GTAEMachines.ME_PATTERN_BUFFER.getItem()), GTAEMachines.ME_PATTERN_BUFFER.get().getDefinition().getItem().getDescription(), Collections.emptyList());
             }
         }
     }
@@ -445,12 +381,8 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
 
     public class InternalSlot implements ITagSerializable<CompoundTag>, IContentChangeAware {
 
-        @Getter
-        @Setter
         private Runnable onContentsChanged = () -> {};
-
-        private final Object2LongOpenCustomHashMap<ItemStack> itemInventory = new Object2LongOpenCustomHashMap<>(
-                ItemStackHashStrategy.comparingAllButCount());
+        private final Object2LongOpenCustomHashMap<ItemStack> itemInventory = new Object2LongOpenCustomHashMap<>(ItemStackHashStrategy.comparingAllButCount());
         private final Object2LongOpenHashMap<FluidStack> fluidInventory = new Object2LongOpenHashMap<>();
         private List<ItemStack> itemStacks = null;
         private List<FluidStack> fluidStacks = null;
@@ -485,18 +417,14 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
         public List<ItemStack> getItems() {
             if (itemStacks == null) {
                 itemStacks = new ArrayList<>();
-                itemInventory.object2LongEntrySet().stream()
-                        .map(e -> GTMath.splitStacks(e.getKey(), e.getLongValue()))
-                        .forEach(itemStacks::addAll);
+                itemInventory.object2LongEntrySet().stream().map(e -> GTMath.splitStacks(e.getKey(), e.getLongValue())).forEach(itemStacks::addAll);
             }
             return itemStacks;
         }
 
         public List<FluidStack> getFluids() {
             if (fluidStacks == null) {
-                fluidStacks = fluidInventory.object2LongEntrySet().stream()
-                        .map(e -> new FluidStack(e.getKey(), GTMath.saturatedCast(e.getLongValue())))
-                        .toList();
+                fluidStacks = fluidInventory.object2LongEntrySet().stream().map(e -> new FluidStack(e.getKey(), GTMath.saturatedCast(e.getLongValue()))).toList();
             }
             return fluidStacks;
         }
@@ -506,7 +434,6 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
             if (network != null) {
                 MEStorage networkInv = network.getStorageService().getInventory();
                 var energy = network.getEnergyService();
-
                 for (var it = itemInventory.object2LongEntrySet().iterator(); it.hasNext();) {
                     var entry = it.next();
                     var stack = entry.getKey();
@@ -515,10 +442,8 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
                         it.remove();
                         continue;
                     }
-
                     var key = AEItemKey.of(stack);
                     if (key == null) continue;
-
                     long inserted = StorageHelper.poweredInsert(energy, networkInv, key, count, actionSource);
                     if (inserted > 0) {
                         count -= inserted;
@@ -526,7 +451,6 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
                         else entry.setValue(count);
                     }
                 }
-
                 for (var it = fluidInventory.object2LongEntrySet().iterator(); it.hasNext();) {
                     var entry = it.next();
                     var stack = entry.getKey();
@@ -535,10 +459,8 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
                         it.remove();
                         continue;
                     }
-
                     var key = AEFluidKey.of(stack);
                     if (key == null) continue;
-
                     long inserted = StorageHelper.poweredInsert(energy, networkInv, key, amount, actionSource);
                     if (inserted > 0) {
                         amount -= inserted;
@@ -555,7 +477,8 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
             onContentsChanged();
         }
 
-        public @Nullable List<Ingredient> handleItemInternal(List<Ingredient> left, boolean simulate) {
+        @Nullable
+        public List<Ingredient> handleItemInternal(List<Ingredient> left, boolean simulate) {
             boolean changed = false;
             for (var it = left.listIterator(); it.hasNext();) {
                 var ingredient = it.next();
@@ -563,13 +486,11 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
                     it.remove();
                     continue;
                 }
-
                 var items = ingredient.getItems();
                 if (items.length == 0 || items[0].isEmpty()) {
                     it.remove();
                     continue;
                 }
-
                 int amount = items[0].getCount();
                 for (var it2 = itemInventory.object2LongEntrySet().iterator(); it2.hasNext();) {
                     var entry = it2.next();
@@ -588,13 +509,11 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
                         else entry.setValue(count);
                     }
                     amount -= extracted;
-
                     if (amount <= 0) {
                         it.remove();
                         break;
                     }
                 }
-
                 if (amount > 0) {
                     if (ingredient instanceof SizedIngredient si) {
                         si.setAmount(amount);
@@ -607,7 +526,8 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
             return left.isEmpty() ? null : left;
         }
 
-        public @Nullable List<FluidIngredient> handleFluidInternal(List<FluidIngredient> left, boolean simulate) {
+        @Nullable
+        public List<FluidIngredient> handleFluidInternal(List<FluidIngredient> left, boolean simulate) {
             boolean changed = false;
             for (var it = left.listIterator(); it.hasNext();) {
                 var ingredient = it.next();
@@ -615,13 +535,11 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
                     it.remove();
                     continue;
                 }
-
                 var fluids = ingredient.getStacks();
                 if (fluids.length == 0 || fluids[0].isEmpty()) {
                     it.remove();
                     continue;
                 }
-
                 int amount = fluids[0].getAmount();
                 for (var it2 = fluidInventory.object2LongEntrySet().iterator(); it2.hasNext();) {
                     var entry = it2.next();
@@ -640,18 +558,15 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
                         else entry.setValue(count);
                     }
                     amount -= extracted;
-
                     if (amount <= 0) {
                         it.remove();
                         break;
                     }
                 }
-
                 if (amount > 0) {
                     ingredient.setAmount(amount);
                 }
             }
-
             if (changed) onContentsChanged();
             return left.isEmpty() ? null : left;
         }
@@ -659,7 +574,6 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
         @Override
         public CompoundTag serializeNBT() {
             CompoundTag tag = new CompoundTag();
-
             ListTag itemsTag = new ListTag();
             for (var entry : itemInventory.object2LongEntrySet()) {
                 var ct = entry.getKey().serializeNBT();
@@ -667,7 +581,6 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
                 itemsTag.add(ct);
             }
             if (!itemsTag.isEmpty()) tag.put("inventory", itemsTag);
-
             ListTag fluidsTag = new ListTag();
             for (var entry : fluidInventory.object2LongEntrySet()) {
                 var ct = entry.getKey().writeToNBT(new CompoundTag());
@@ -675,7 +588,6 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
                 fluidsTag.add(ct);
             }
             if (!fluidsTag.isEmpty()) tag.put("fluidInventory", fluidsTag);
-
             return tag;
         }
 
@@ -690,7 +602,6 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
                     itemInventory.put(stack, count);
                 }
             }
-
             ListTag fluids = tag.getList("fluidInventory", Tag.TAG_COMPOUND);
             for (Tag t : fluids) {
                 if (!(t instanceof CompoundTag ct)) continue;
@@ -701,5 +612,37 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
                 }
             }
         }
+
+        public Runnable getOnContentsChanged() {
+            return this.onContentsChanged;
+        }
+
+        public void setOnContentsChanged(final Runnable onContentsChanged) {
+            this.onContentsChanged = onContentsChanged;
+        }
+    }
+
+    public CustomItemStackHandler getPatternInventory() {
+        return this.patternInventory;
+    }
+
+    public NotifiableItemStackHandler getShareInventory() {
+        return this.shareInventory;
+    }
+
+    public NotifiableFluidTank getShareTank() {
+        return this.shareTank;
+    }
+
+    public InternalSlot[] getInternalInventory() {
+        return this.internalInventory;
+    }
+
+    public void setCustomName(final String customName) {
+        this.customName = customName;
+    }
+
+    public InternalSlotRecipeHandler getInternalRecipeHandler() {
+        return this.internalRecipeHandler;
     }
 }

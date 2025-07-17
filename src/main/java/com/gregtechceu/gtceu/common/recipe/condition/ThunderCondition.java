@@ -14,18 +14,12 @@ import net.minecraft.world.level.Level;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-@NoArgsConstructor
 public class ThunderCondition extends RecipeCondition {
 
-    public static final Codec<ThunderCondition> CODEC = RecordCodecBuilder
-            .create(instance -> RecipeCondition.isReverse(instance)
-                    .and(Codec.FLOAT.fieldOf("level").forGetter(val -> val.level))
-                    .apply(instance, ThunderCondition::new));
-
-    public final static ThunderCondition INSTANCE = new ThunderCondition();
+    public static final Codec<ThunderCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(Codec.FLOAT.fieldOf("level").forGetter(val -> val.level)).apply(instance, ThunderCondition::new));
+    public static final ThunderCondition INSTANCE = new ThunderCondition();
     private float level;
 
     public ThunderCondition(boolean isReverse, float level) {
@@ -89,4 +83,6 @@ public class ThunderCondition extends RecipeCondition {
         super.toNetwork(buf);
         buf.writeFloat(level);
     }
+
+    public ThunderCondition() {}
 }

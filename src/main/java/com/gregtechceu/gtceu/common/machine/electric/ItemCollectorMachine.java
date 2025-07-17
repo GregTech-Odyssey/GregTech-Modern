@@ -56,7 +56,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -67,63 +66,49 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class ItemCollectorMachine extends TieredEnergyMachine
-                                  implements IAutoOutputItem, IFancyUIMachine, IMachineLife, IWorkable {
+public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOutputItem, IFancyUIMachine, IMachineLife, IWorkable {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ItemCollectorMachine.class,
-            TieredEnergyMachine.MANAGED_FIELD_HOLDER);
-
-    @Getter
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ItemCollectorMachine.class, TieredEnergyMachine.MANAGED_FIELD_HOLDER);
     private static final int[] INVENTORY_SIZES = { 4, 9, 16, 25, 25 };
     private static final double MOTION_MULTIPLIER = 0.04;
     private static final int BASE_EU_CONSUMPTION = 6;
-
-    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected Direction outputFacingItems;
-    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected boolean autoOutputItems;
     @Persisted
     protected final NotifiableItemStackHandler output;
-
-    @Getter
     @Persisted
     protected final CustomItemStackHandler chargerInventory;
     @Persisted
     protected final CustomItemStackHandler filterInventory;
-
     @Nullable
-    protected TickableSubscription autoOutputSubs, batterySubs, collectionSubs;
+    protected TickableSubscription autoOutputSubs;
     @Nullable
-    protected ISubscription exportItemSubs, energySubs;
+    protected TickableSubscription batterySubs;
+    @Nullable
+    protected TickableSubscription collectionSubs;
+    @Nullable
+    protected ISubscription exportItemSubs;
+    @Nullable
+    protected ISubscription energySubs;
     private final long energyPerTick;
-
     private final int inventorySize;
-
     private AABB aabb;
-
     @Persisted
-    @Getter
     @DescSynced
     private int range;
-
     private boolean rangeDirty = false;
-
     private final int maxRange;
-
-    @Getter
     @Persisted
     @DescSynced
     private boolean isWorkingEnabled = true;
-
     @DescSynced
     @Persisted
-    @Getter
     @RequireRerender
     private boolean active = false;
 
@@ -134,7 +119,6 @@ public class ItemCollectorMachine extends TieredEnergyMachine
         this.output = createOutputItemHandler();
         this.chargerInventory = createChargerItemHandler();
         this.filterInventory = createFilterItemHandler();
-
         maxRange = (int) Math.pow(2, tier + 2);
         range = maxRange;
         setOutputFacingItems(getFrontFacing());
@@ -143,19 +127,15 @@ public class ItemCollectorMachine extends TieredEnergyMachine
     //////////////////////////////////////
     // ***** Initialization *****//
     //////////////////////////////////////
-
     protected CustomItemStackHandler createChargerItemHandler() {
         var handler = new CustomItemStackHandler();
-        handler.setFilter(item -> GTCapabilityHelper.getElectricItem(item) != null ||
-                (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE &&
-                        GTCapabilityHelper.getForgeEnergyItem(item) != null));
+        handler.setFilter(item -> GTCapabilityHelper.getElectricItem(item) != null || (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE && GTCapabilityHelper.getForgeEnergyItem(item) != null));
         return handler;
     }
 
     protected CustomItemStackHandler createFilterItemHandler() {
         var handler = new CustomItemStackHandler();
-        handler.setFilter(
-                item -> item.is(GTItems.ITEM_FILTER.asItem()) || item.is(GTItems.TAG_FILTER.asItem()));
+        handler.setFilter(item -> item.is(GTItems.ITEM_FILTER.asItem()) || item.is(GTItems.TAG_FILTER.asItem()));
         return handler;
     }
 
@@ -172,15 +152,12 @@ public class ItemCollectorMachine extends TieredEnergyMachine
     public void onLoad() {
         super.onLoad();
         if (isRemote()) return;
-
         if (getLevel() instanceof ServerLevel serverLevel) {
-
             serverLevel.getServer().tell(new TickTask(0, () -> {
                 this.updateAutoOutputSubscription();
                 this.updateCollectionSubscription();
             }));
         }
-
         exportItemSubs = output.addChangedListener(this::updateAutoOutputSubscription);
         energySubs = energyContainer.addChangedListener(() -> {
             this.updateBatterySubscription();
@@ -216,7 +193,6 @@ public class ItemCollectorMachine extends TieredEnergyMachine
     //////////////////////////////////////
     // ********* Logic **********//
     //////////////////////////////////////
-
     public void updateCollectionSubscription() {
         if (drainEnergy(true) && isWorkingEnabled) {
             collectionSubs = subscribeServerTick(collectionSubs, this::update);
@@ -232,7 +208,8 @@ public class ItemCollectorMachine extends TieredEnergyMachine
         if (drainEnergy(false)) {
             if (aabb == null || rangeDirty) {
                 rangeDirty = false;
-                BlockPos pos1, pos2;
+                BlockPos pos1;
+                BlockPos pos2;
                 pos1 = getPos().offset(-range, 0, -range);
                 pos2 = getPos().offset(range, 2, range);
                 this.aabb = AABB.of(BoundingBox.fromCorners(pos1, pos2));
@@ -244,10 +221,8 @@ public class ItemCollectorMachine extends TieredEnergyMachine
 
     public void moveItemsInRange() {
         ItemFilter filter = null;
-        if (!filterInventory.getStackInSlot(0).isEmpty())
-            filter = ItemFilter.loadFilter(filterInventory.getStackInSlot(0));
+        if (!filterInventory.getStackInSlot(0).isEmpty()) filter = ItemFilter.loadFilter(filterInventory.getStackInSlot(0));
         BlockPos centerPos = self().getPos().above();
-
         List<ItemEntity> itemEntities = getLevel().getEntitiesOfClass(ItemEntity.class, aabb);
         for (ItemEntity itemEntity : itemEntities) {
             if (!itemEntity.isAlive()) continue;
@@ -255,7 +230,7 @@ public class ItemCollectorMachine extends TieredEnergyMachine
             double distX = (centerPos.getX() + 0.5) - itemEntity.position().x;
             double distZ = (centerPos.getZ() + 0.5) - itemEntity.position().z;
             double dist = Math.sqrt(Math.pow(distX, 2) + Math.pow(distZ, 2));
-            if (dist >= 0.7f) {
+            if (dist >= 0.7F) {
                 if (itemEntity.pickupDelay == 32767) continue; // INFINITE_PICKUP_DELAY = 32767
                 double dirX = distX / dist;
                 double dirZ = distZ / dist;
@@ -265,39 +240,31 @@ public class ItemCollectorMachine extends TieredEnergyMachine
             } else {
                 ItemStack stack = itemEntity.getItem();
                 if (!canFillOutput(stack)) continue;
-
                 ItemStack remainder = fillOutput(stack);
-                if (remainder.isEmpty())
-                    itemEntity.kill();
-                else if (stack.getCount() > remainder.getCount())
-                    itemEntity.setItem(remainder);
+                if (remainder.isEmpty()) itemEntity.kill();
+                else if (stack.getCount() > remainder.getCount()) itemEntity.setItem(remainder);
             }
         }
     }
 
     private boolean canFillOutput(ItemStack stack) {
         for (int i = 0; i < output.getSlots(); i++) {
-            if (output.insertItemInternal(i, stack, true).getCount() < stack.getCount())
-                return true;
+            if (output.insertItemInternal(i, stack, true).getCount() < stack.getCount()) return true;
         }
-
         return false;
     }
 
     private ItemStack fillOutput(ItemStack stack) {
         for (int i = 0; i < output.getSlots(); i++) {
-            if (output.insertItemInternal(i, stack, true).getCount() < stack.getCount())
-                return output.insertItemInternal(i, stack, false);
+            if (output.insertItemInternal(i, stack, true).getCount() < stack.getCount()) return output.insertItemInternal(i, stack, false);
         }
-
         return ItemStack.EMPTY;
     }
 
     public boolean drainEnergy(boolean simulate) {
         long resultEnergy = energyContainer.getEnergyStored() - energyPerTick;
         if (resultEnergy >= 0L && resultEnergy <= energyContainer.getEnergyCapacity()) {
-            if (!simulate)
-                energyContainer.removeEnergy(energyPerTick);
+            if (!simulate) energyContainer.removeEnergy(energyPerTick);
             return true;
         }
         return false;
@@ -327,8 +294,7 @@ public class ItemCollectorMachine extends TieredEnergyMachine
     }
 
     protected void updateBatterySubscription() {
-        if (energyContainer.dischargeOrRechargeEnergyContainers(chargerInventory, 0, true))
-            batterySubs = subscribeServerTick(batterySubs, this::chargeBattery);
+        if (energyContainer.dischargeOrRechargeEnergyContainers(chargerInventory, 0, true)) batterySubs = subscribeServerTick(batterySubs, this::chargeBattery);
         else if (batterySubs != null) {
             batterySubs.unsubscribe();
             batterySubs = null;
@@ -337,9 +303,7 @@ public class ItemCollectorMachine extends TieredEnergyMachine
 
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingItems();
-        if ((isAutoOutputItems() && !output.isEmpty()) && outputFacing != null &&
-                GTTransferUtils.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing))
-            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput);
+        if ((isAutoOutputItems() && !output.isEmpty()) && outputFacing != null && GTTransferUtils.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput);
         else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;
@@ -348,15 +312,13 @@ public class ItemCollectorMachine extends TieredEnergyMachine
 
     protected void autoOutput() {
         if (getOffsetTimer() % 5 == 0) {
-            if (isAutoOutputItems() && getOutputFacingItems() != null)
-                output.exportToNearby(getOutputFacingItems());
+            if (isAutoOutputItems() && getOutputFacingItems() != null) output.exportToNearby(getOutputFacingItems());
             updateAutoOutputSubscription();
         }
     }
 
     protected void chargeBattery() {
-        if (!energyContainer.dischargeOrRechargeEnergyContainers(chargerInventory, 0, false))
-            updateBatterySubscription();
+        if (!energyContainer.dischargeOrRechargeEnergyContainers(chargerInventory, 0, false)) updateBatterySubscription();
     }
 
     @Override
@@ -397,44 +359,32 @@ public class ItemCollectorMachine extends TieredEnergyMachine
     //////////////////////////////////////
     // ********** GUI ***********//
     //////////////////////////////////////
-
-    public static BiFunction<ResourceLocation, Integer, EditableMachineUI> EDITABLE_UI_CREATOR = Util
-            .memoize((path, inventorySize) -> new EditableMachineUI("misc", path, () -> {
-                var template = createTemplate(inventorySize).createDefault();
-                var energyBar = createEnergyBar().createDefault();
-                var batterySlot = createBatterySlot().createDefault();
-
-                var energyGroup = new WidgetGroup(0, 0, energyBar.getSize().width, energyBar.getSize().height + 20);
-                batterySlot.setSelfPosition(
-                        new Position((energyBar.getSize().width - 18) / 2, energyBar.getSize().height + 1));
-                energyGroup.addWidget(energyBar);
-                energyGroup.addWidget(batterySlot);
-                var group = new WidgetGroup(0, 0,
-                        Math.max(energyGroup.getSize().width + template.getSize().width + 4 + 8, 172),
-                        Math.max(template.getSize().height + 8 + 30, energyGroup.getSize().height + 8));
-                var size = group.getSize();
-                energyGroup.setSelfPosition(new Position(3, (size.height - energyGroup.getSize().height) / 2));
-
-                template.setSelfPosition(new Position(
-                        (size.width - energyGroup.getSize().width - 4 - template.getSize().width) / 2 + 2 +
-                                energyGroup.getSize().width + 2,
-                        (size.height - template.getSize().height) / 2 + 15));
-
-                group.addWidget(energyGroup);
-                group.addWidget(template);
-                return group;
-            }, (template, machine) -> {
-                if (machine instanceof ItemCollectorMachine itemCollectorMachine) {
-                    createTemplate(inventorySize).setupUI(template, itemCollectorMachine);
-                    createEnergyBar().setupUI(template, itemCollectorMachine);
-                    createBatterySlot().setupUI(template, itemCollectorMachine);
-                    var rangeSelector = new IntInputWidget((template.getSize().width - 80) / 2, 5, 80, 20,
-                            itemCollectorMachine::getRange, itemCollectorMachine::setRange);
-                    rangeSelector.setMin(1);
-                    rangeSelector.setMax(itemCollectorMachine.maxRange);
-                    template.addWidget(rangeSelector);
-                }
-            }));
+    public static BiFunction<ResourceLocation, Integer, EditableMachineUI> EDITABLE_UI_CREATOR = Util.memoize((path, inventorySize) -> new EditableMachineUI("misc", path, () -> {
+        var template = createTemplate(inventorySize).createDefault();
+        var energyBar = createEnergyBar().createDefault();
+        var batterySlot = createBatterySlot().createDefault();
+        var energyGroup = new WidgetGroup(0, 0, energyBar.getSize().width, energyBar.getSize().height + 20);
+        batterySlot.setSelfPosition(new Position((energyBar.getSize().width - 18) / 2, energyBar.getSize().height + 1));
+        energyGroup.addWidget(energyBar);
+        energyGroup.addWidget(batterySlot);
+        var group = new WidgetGroup(0, 0, Math.max(energyGroup.getSize().width + template.getSize().width + 4 + 8, 172), Math.max(template.getSize().height + 8 + 30, energyGroup.getSize().height + 8));
+        var size = group.getSize();
+        energyGroup.setSelfPosition(new Position(3, (size.height - energyGroup.getSize().height) / 2));
+        template.setSelfPosition(new Position((size.width - energyGroup.getSize().width - 4 - template.getSize().width) / 2 + 2 + energyGroup.getSize().width + 2, (size.height - template.getSize().height) / 2 + 15));
+        group.addWidget(energyGroup);
+        group.addWidget(template);
+        return group;
+    }, (template, machine) -> {
+        if (machine instanceof ItemCollectorMachine itemCollectorMachine) {
+            createTemplate(inventorySize).setupUI(template, itemCollectorMachine);
+            createEnergyBar().setupUI(template, itemCollectorMachine);
+            createBatterySlot().setupUI(template, itemCollectorMachine);
+            var rangeSelector = new IntInputWidget((template.getSize().width - 80) / 2, 5, 80, 20, itemCollectorMachine::getRange, itemCollectorMachine::setRange);
+            rangeSelector.setMin(1);
+            rangeSelector.setMax(itemCollectorMachine.maxRange);
+            template.addWidget(rangeSelector);
+        }
+    }));
 
     protected static EditableUI<SlotWidget, ItemCollectorMachine> createBatterySlot() {
         return new EditableUI<>("battery_slot", SlotWidget.class, () -> {
@@ -445,8 +395,7 @@ public class ItemCollectorMachine extends TieredEnergyMachine
             slotWidget.setHandlerSlot(machine.chargerInventory, 0);
             slotWidget.setCanPutItems(true);
             slotWidget.setCanTakeItems(true);
-            slotWidget.setHoverTooltips(LangHandler.getMultiLang("gtceu.gui.charger_slot.tooltip",
-                    GTValues.VNF[machine.getTier()], GTValues.VNF[machine.getTier()]).toArray(new MutableComponent[0]));
+            slotWidget.setHoverTooltips(LangHandler.getMultiLang("gtceu.gui.charger_slot.tooltip", GTValues.VNF[machine.getTier()], GTValues.VNF[machine.getTier()]).toArray(new MutableComponent[0]));
         });
     }
 
@@ -454,7 +403,6 @@ public class ItemCollectorMachine extends TieredEnergyMachine
         return new EditableUI<>("functional_container", WidgetGroup.class, () -> {
             int rowSize = (int) Math.sqrt(inventorySize);
             WidgetGroup main = new WidgetGroup(0, 0, rowSize * 18 + 8 + 25, rowSize * 18 + 8);
-
             for (int y = 0; y < rowSize; y++) {
                 for (int x = 0; x < rowSize; x++) {
                     int index = y * rowSize + x;
@@ -466,11 +414,9 @@ public class ItemCollectorMachine extends TieredEnergyMachine
                     main.addWidget(slotWidget);
                 }
             }
-
             SlotWidget filterSlotWidget = new SlotWidget();
             filterSlotWidget.initTemplate();
-            filterSlotWidget
-                    .setSelfPosition(new Position(4, (main.getSize().height - filterSlotWidget.getSize().height) / 2));
+            filterSlotWidget.setSelfPosition(new Position(4, (main.getSize().height - filterSlotWidget.getSize().height) / 2));
             filterSlotWidget.setBackground(GuiTextures.SLOT, GuiTextures.FILTER_SLOT_OVERLAY);
             filterSlotWidget.setId("filter_slot");
             main.addWidget(filterSlotWidget);
@@ -490,7 +436,6 @@ public class ItemCollectorMachine extends TieredEnergyMachine
                 slot.setCanTakeItems(true);
                 slot.setCanPutItems(true);
             });
-
         });
     }
 
@@ -498,8 +443,7 @@ public class ItemCollectorMachine extends TieredEnergyMachine
     // ******* Rendering ********//
     //////////////////////////////////////
     @Override
-    public ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes,
-                                    Direction side) {
+    public ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes, Direction side) {
         if (toolTypes.contains(GTToolType.WRENCH)) {
             if (!player.isShiftKeyDown()) {
                 if (!hasFrontFacing() || side != getFrontFacing()) {
@@ -513,7 +457,6 @@ public class ItemCollectorMachine extends TieredEnergyMachine
         } else if (toolTypes.contains(GTToolType.SOFT_MALLET)) {
             return isWorkingEnabled ? GuiTextures.TOOL_PAUSE : GuiTextures.TOOL_START;
         }
-
         return super.sideTips(player, pos, state, toolTypes, side);
     }
 
@@ -521,16 +464,13 @@ public class ItemCollectorMachine extends TieredEnergyMachine
     // ******* Interactions ********//
     //////////////////////////////////////
     @Override
-    protected InteractionResult onWrenchClick(Player playerIn, InteractionHand hand, Direction gridSide,
-                                              BlockHitResult hitResult) {
+    protected InteractionResult onWrenchClick(Player playerIn, InteractionHand hand, Direction gridSide, BlockHitResult hitResult) {
         if (!playerIn.isShiftKeyDown() && !isRemote()) {
             var tool = playerIn.getItemInHand(hand);
             if (tool.getDamageValue() >= tool.getMaxDamage()) return InteractionResult.PASS;
             if (hasFrontFacing() && gridSide == getFrontFacing()) return InteractionResult.PASS;
-
             // important not to use getters here, which have different logic
             Direction itemFacing = this.outputFacingItems;
-
             if (gridSide != itemFacing) {
                 // if it is a new side, move it
                 setOutputFacingItems(gridSide);
@@ -540,22 +480,47 @@ public class ItemCollectorMachine extends TieredEnergyMachine
             }
             return InteractionResult.sidedSuccess(playerIn.level().isClientSide);
         }
-
         return super.onWrenchClick(playerIn, hand, gridSide, hitResult);
     }
 
     @Override
-    protected InteractionResult onSoftMalletClick(Player playerIn, InteractionHand hand, Direction gridSide,
-                                                  BlockHitResult hitResult) {
+    protected InteractionResult onSoftMalletClick(Player playerIn, InteractionHand hand, Direction gridSide, BlockHitResult hitResult) {
         var controllable = GTCapabilityHelper.getControllable(getLevel(), getPos(), gridSide);
         if (controllable != null) {
             if (!isRemote()) {
                 controllable.setWorkingEnabled(!controllable.isWorkingEnabled());
-                playerIn.sendSystemMessage(Component.translatable(controllable.isWorkingEnabled() ?
-                        "behaviour.soft_hammer.enabled" : "behaviour.soft_hammer.disabled"));
+                playerIn.sendSystemMessage(Component.translatable(controllable.isWorkingEnabled() ? "behaviour.soft_hammer.enabled" : "behaviour.soft_hammer.disabled"));
             }
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;
+    }
+
+    public static int[] getINVENTORY_SIZES() {
+        return ItemCollectorMachine.INVENTORY_SIZES;
+    }
+
+    public Direction getOutputFacingItems() {
+        return this.outputFacingItems;
+    }
+
+    public boolean isAutoOutputItems() {
+        return this.autoOutputItems;
+    }
+
+    public CustomItemStackHandler getChargerInventory() {
+        return this.chargerInventory;
+    }
+
+    public int getRange() {
+        return this.range;
+    }
+
+    public boolean isWorkingEnabled() {
+        return this.isWorkingEnabled;
+    }
+
+    public boolean isActive() {
+        return this.active;
     }
 }

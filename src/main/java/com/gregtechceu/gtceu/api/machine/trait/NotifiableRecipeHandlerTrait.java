@@ -7,22 +7,15 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait implements IRecipeHandlerTrait<T> {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            NotifiableRecipeHandlerTrait.class);
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(NotifiableRecipeHandlerTrait.class);
     protected List<Runnable> listeners = new ArrayList<>();
-
     @Persisted
     @DescSynced
-    @Getter
-    @Setter
     protected boolean isDistinct;
 
     public NotifiableRecipeHandlerTrait(MetaMachine machine) {
@@ -42,5 +35,13 @@ public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait imple
 
     public void notifyListeners() {
         listeners.forEach(Runnable::run);
+    }
+
+    public boolean isDistinct() {
+        return this.isDistinct;
+    }
+
+    public void setDistinct(final boolean isDistinct) {
+        this.isDistinct = isDistinct;
     }
 }

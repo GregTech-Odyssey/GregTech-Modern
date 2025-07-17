@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.integration.xei.entry.item.ItemStackList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -15,7 +14,6 @@ import java.util.stream.Collectors;
 
 public class CycleItemEntryHandler implements IItemHandlerModifiable {
 
-    @Getter
     private final List<ItemEntryList> entries;
     private List<List<ItemStack>> unwrapped = null;
 
@@ -25,9 +23,7 @@ public class CycleItemEntryHandler implements IItemHandlerModifiable {
 
     public List<List<ItemStack>> getUnwrapped() {
         if (unwrapped == null) {
-            unwrapped = entries.stream()
-                    .map(CycleItemEntryHandler::getStacksNullable)
-                    .collect(Collectors.toCollection(ArrayList::new));
+            unwrapped = entries.stream().map(CycleItemEntryHandler::getStacksNullable).collect(Collectors.toCollection(ArrayList::new));
         }
         return unwrapped;
     }
@@ -50,8 +46,7 @@ public class CycleItemEntryHandler implements IItemHandlerModifiable {
     @Override
     public ItemStack getStackInSlot(int slot) {
         List<ItemStack> stackList = getUnwrapped().get(slot);
-        return stackList == null || stackList.isEmpty() ? ItemStack.EMPTY :
-                stackList.get(Math.abs((int) (System.currentTimeMillis() / 1000) % stackList.size()));
+        return stackList == null || stackList.isEmpty() ? ItemStack.EMPTY : stackList.get(Math.abs((int) (System.currentTimeMillis() / 1000) % stackList.size()));
     }
 
     @Override
@@ -82,5 +77,9 @@ public class CycleItemEntryHandler implements IItemHandlerModifiable {
     @Override
     public boolean isItemValid(int slot, @NotNull ItemStack stack) {
         return true;
+    }
+
+    public List<ItemEntryList> getEntries() {
+        return this.entries;
     }
 }

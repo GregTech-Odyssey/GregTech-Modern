@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.api.transfer.fluid;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraftforge.fluids.FluidStack;
 
-import lombok.Setter;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,7 +12,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public abstract class FluidHandlerDelegate implements IFluidHandlerModifiable {
 
-    @Setter
     public IFluidHandlerModifiable delegate;
 
     public FluidHandlerDelegate(IFluidHandlerModifiable delegate) {
@@ -23,7 +21,6 @@ public abstract class FluidHandlerDelegate implements IFluidHandlerModifiable {
     //////////////////////////////////////
     // ****** OVERRIDE THESE ******//
     //////////////////////////////////////
-
     @Override
     public int getTanks() {
         return delegate.getTanks();
@@ -69,12 +66,17 @@ public abstract class FluidHandlerDelegate implements IFluidHandlerModifiable {
     }
 
     @Override
-    public @NotNull FluidStack drain(int maxDrain, FluidAction action) {
+    @NotNull
+    public FluidStack drain(int maxDrain, FluidAction action) {
         return delegate.drain(maxDrain, action);
     }
 
     @Override
     public boolean supportsDrain(int tank) {
         return delegate.supportsDrain(tank);
+    }
+
+    public void setDelegate(final IFluidHandlerModifiable delegate) {
+        this.delegate = delegate;
     }
 }

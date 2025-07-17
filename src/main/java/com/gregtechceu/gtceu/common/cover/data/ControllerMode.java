@@ -2,8 +2,6 @@ package com.gregtechceu.gtceu.common.cover.data;
 
 import net.minecraft.core.Direction;
 
-import lombok.Getter;
-
 public enum ControllerMode {
 
     MACHINE("cover.machine_controller.mode.machine", null),
@@ -14,7 +12,6 @@ public enum ControllerMode {
     COVER_SOUTH("cover.machine_controller.mode.cover_south", Direction.SOUTH),
     COVER_WEST("cover.machine_controller.mode.cover_west", Direction.WEST);
 
-    @Getter
     public final String localeName;
     public final Direction side;
 
@@ -24,4 +21,8 @@ public enum ControllerMode {
     }
 
     public static final String nullLocaleName = "cover.machine_controller.mode.null";
+
+    public String getLocaleName() {
+        return this.localeName;
+    }
 }

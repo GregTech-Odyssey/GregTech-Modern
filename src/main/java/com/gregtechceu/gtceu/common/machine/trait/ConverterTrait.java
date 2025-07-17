@@ -15,32 +15,23 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraftforge.energy.IEnergyStorage;
 
-import lombok.Getter;
-
 public class ConverterTrait extends NotifiableEnergyContainer {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ConverterTrait.class,
-            NotifiableEnergyContainer.MANAGED_FIELD_HOLDER);
-
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ConverterTrait.class, NotifiableEnergyContainer.MANAGED_FIELD_HOLDER);
     /**
      * If TRUE, the front facing of the machine will OUTPUT EU, other sides INPUT FE.
      * If FALSE, the front facing of the machine will OUTPUT FE, other sides INPUT EU.
      */
-    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     private boolean feToEu;
-    @Getter
     private final int amps;
-    @Getter
     private final long voltage;
-    @Getter
     private final FEContainer feContainer;
 
     public ConverterTrait(ConverterMachine machine, int amps) {
-        super(machine, GTValues.V[machine.getTier()] * 16 * amps, GTValues.V[machine.getTier()], amps,
-                GTValues.V[machine.getTier()], amps);
+        super(machine, GTValues.V[machine.getTier()] * 16 * amps, GTValues.V[machine.getTier()], amps, GTValues.V[machine.getTier()], amps);
         this.amps = amps;
         this.voltage = GTValues.V[machine.getTier()];
         setSideInputCondition(side -> !this.feToEu && side != this.getMachine().getFrontFacing());
@@ -70,15 +61,15 @@ public class ConverterTrait extends NotifiableEnergyContainer {
 
     @Override
     public void serverTick() {
-        if (feToEu) { // output eu
+        if (feToEu) {
+            // output eu
             super.serverTick();
-        } else { // output fe
+        } else {
+            // output fe
             var fontFacing = machine.getFrontFacing();
-            var energyContainer = GTCapabilityHelper.getForgeEnergy(machine.getLevel(),
-                    machine.getPos().relative(fontFacing), fontFacing.getOpposite());
+            var energyContainer = GTCapabilityHelper.getForgeEnergy(machine.getLevel(), machine.getPos().relative(fontFacing), fontFacing.getOpposite());
             if (energyContainer != null && energyContainer.canReceive()) {
-                var energyUsed = FeCompat.insertEu(energyContainer,
-                        Math.min(getEnergyStored(), voltage * amps), false);
+                var energyUsed = FeCompat.insertEu(energyContainer, Math.min(getEnergyStored(), voltage * amps), false);
                 if (energyUsed > 0) {
                     setEnergyStored(getEnergyStored() - energyUsed);
                 }
@@ -89,7 +80,6 @@ public class ConverterTrait extends NotifiableEnergyContainer {
     //////////////////////////////
     // ***** Forge Energy ******//
     //////////////////////////////
-
     private class FEContainer extends MachineTrait implements IEnergyStorage {
 
         protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(FEContainer.class);
@@ -116,14 +106,12 @@ public class ConverterTrait extends NotifiableEnergyContainer {
 
         @Override
         public int getEnergyStored() {
-            return FeCompat.toFeBounded(ConverterTrait.this.getEnergyStored(), FeCompat.ratio(feToEu),
-                    Integer.MAX_VALUE);
+            return FeCompat.toFeBounded(ConverterTrait.this.getEnergyStored(), FeCompat.ratio(feToEu), Integer.MAX_VALUE);
         }
 
         @Override
         public int getMaxEnergyStored() {
-            return FeCompat.toFeBounded(ConverterTrait.this.getEnergyCapacity(), FeCompat.ratio(feToEu),
-                    Integer.MAX_VALUE);
+            return FeCompat.toFeBounded(ConverterTrait.this.getEnergyCapacity(), FeCompat.ratio(feToEu), Integer.MAX_VALUE);
         }
 
         @Override
@@ -140,5 +128,25 @@ public class ConverterTrait extends NotifiableEnergyContainer {
         public ManagedFieldHolder getFieldHolder() {
             return MANAGED_FIELD_HOLDER;
         }
+    }
+
+    /**
+     * If TRUE, the front facing of the machine will OUTPUT EU, other sides INPUT FE.
+     * If FALSE, the front facing of the machine will OUTPUT FE, other sides INPUT EU.
+     */
+    public boolean isFeToEu() {
+        return this.feToEu;
+    }
+
+    public int getAmps() {
+        return this.amps;
+    }
+
+    public long getVoltage() {
+        return this.voltage;
+    }
+
+    public FEContainer getFeContainer() {
+        return this.feContainer;
     }
 }

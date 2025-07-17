@@ -11,8 +11,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
-import lombok.Getter;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +19,6 @@ import java.util.Map;
  */
 public class GroupingMapRenderer extends GenericMapRenderer {
 
-    @Getter
     private static final GroupingMapRenderer instance;
 
     static {
@@ -30,11 +27,9 @@ public class GroupingMapRenderer extends GenericMapRenderer {
         if (toggle.xaerosMapIntegration && GTCEu.isModLoaded(GTValues.MODID_XAEROS_MINIMAP)) {
             renderers.put(GTValues.MODID_XAEROS_MINIMAP, new XaerosRenderer());
         }
-
         instance = new GroupingMapRenderer(renderers);
     }
 
-    @Getter
     private final Map<String, GenericMapRenderer> renderers;
     private final GenericMapRenderer[] rendererList;
 
@@ -45,8 +40,7 @@ public class GroupingMapRenderer extends GenericMapRenderer {
     }
 
     @Override
-    public boolean addMarker(String name, String id, ResourceKey<Level> dim, ChunkPos pos,
-                             ProspectorMode.FluidInfo fluid) {
+    public boolean addMarker(String name, String id, ResourceKey<Level> dim, ChunkPos pos, ProspectorMode.FluidInfo fluid) {
         boolean value = false;
         for (GenericMapRenderer renderer : rendererList) {
             value |= renderer.addMarker(name, id, dim, pos, fluid);
@@ -93,5 +87,13 @@ public class GroupingMapRenderer extends GenericMapRenderer {
         for (GenericMapRenderer renderer : rendererList) {
             renderer.clear();
         }
+    }
+
+    public static GroupingMapRenderer getInstance() {
+        return GroupingMapRenderer.instance;
+    }
+
+    public Map<String, GenericMapRenderer> getRenderers() {
+        return this.renderers;
     }
 }

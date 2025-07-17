@@ -16,29 +16,20 @@ import net.minecraft.core.Direction;
 
 import appeng.api.networking.*;
 import appeng.api.networking.security.IActionSource;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.EnumSet;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-@Getter
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public abstract class MEBusPartMachine extends ItemBusPartMachine implements IGridConnectedMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MEBusPartMachine.class,
-            ItemBusPartMachine.MANAGED_FIELD_HOLDER);
-
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MEBusPartMachine.class, ItemBusPartMachine.MANAGED_FIELD_HOLDER);
     @Persisted
     protected final GridNodeHolder nodeHolder;
-
     @DescSynced
-    @Getter
-    @Setter
     protected boolean isOnline;
-
     protected final IActionSource actionSource;
 
     public MEBusPartMachine(IMachineBlockEntity holder, IO io, Object... args) {
@@ -92,5 +83,21 @@ public abstract class MEBusPartMachine extends ItemBusPartMachine implements IGr
     @Override
     public boolean swapIO() {
         return false;
+    }
+
+    public GridNodeHolder getNodeHolder() {
+        return this.nodeHolder;
+    }
+
+    public IActionSource getActionSource() {
+        return this.actionSource;
+    }
+
+    public boolean isOnline() {
+        return this.isOnline;
+    }
+
+    public void setOnline(final boolean isOnline) {
+        this.isOnline = isOnline;
     }
 }

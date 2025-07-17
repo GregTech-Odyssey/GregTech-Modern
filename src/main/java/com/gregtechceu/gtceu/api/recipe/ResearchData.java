@@ -10,20 +10,15 @@ import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-@AllArgsConstructor
 public final class ResearchData implements Iterable<ResearchData.ResearchEntry> {
 
-    public static final Codec<ResearchData> CODEC = ResearchEntry.CODEC.listOf().xmap(ResearchData::new,
-            data -> data.entries);
-
+    public static final Codec<ResearchData> CODEC = ResearchEntry.CODEC.listOf().xmap(ResearchData::new, data -> data.entries);
     private final List<ResearchEntry> entries;
 
     public ResearchData() {
@@ -78,16 +73,10 @@ public final class ResearchData implements Iterable<ResearchData.ResearchEntry> 
      */
     public static final class ResearchEntry {
 
-        public static final Codec<ResearchEntry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                Codec.STRING.fieldOf("researchId").forGetter(val -> val.researchId),
-                ItemStack.CODEC.fieldOf("dataItem").forGetter(val -> val.dataItem))
-                .apply(instance, ResearchEntry::new));
-
+        public static final Codec<ResearchEntry> CODEC = RecordCodecBuilder.create(instance -> instance.group(Codec.STRING.fieldOf("researchId").forGetter(val -> val.researchId), ItemStack.CODEC.fieldOf("dataItem").forGetter(val -> val.dataItem)).apply(instance, ResearchEntry::new));
         @NotNull
-        @Getter
         private final String researchId;
         @NotNull
-        @Getter
         private final ItemStack dataItem;
 
         /**
@@ -100,15 +89,13 @@ public final class ResearchData implements Iterable<ResearchData.ResearchEntry> 
         }
 
         public static ResearchEntry fromJson(JsonObject tag) {
-            return new ResearchEntry(tag.get("researchId").getAsString(), ItemStack.CODEC
-                    .parse(JsonOps.INSTANCE, tag.get("dataItem")).getOrThrow(false, GTCEu.LOGGER::error));
+            return new ResearchEntry(tag.get("researchId").getAsString(), ItemStack.CODEC.parse(JsonOps.INSTANCE, tag.get("dataItem")).getOrThrow(false, GTCEu.LOGGER::error));
         }
 
         public JsonObject toJson() {
             JsonObject json = new JsonObject();
             json.addProperty("researchId", researchId);
-            json.add("dataItem",
-                    ItemStack.CODEC.encodeStart(JsonOps.INSTANCE, dataItem).getOrThrow(false, GTCEu.LOGGER::error));
+            json.add("dataItem", ItemStack.CODEC.encodeStart(JsonOps.INSTANCE, dataItem).getOrThrow(false, GTCEu.LOGGER::error));
             return json;
         }
 
@@ -122,5 +109,19 @@ public final class ResearchData implements Iterable<ResearchData.ResearchEntry> 
             buf.writeUtf(this.researchId);
             buf.writeItem(this.dataItem);
         }
+
+        @NotNull
+        public String getResearchId() {
+            return this.researchId;
+        }
+
+        @NotNull
+        public ItemStack getDataItem() {
+            return this.dataItem;
+        }
+    }
+
+    public ResearchData(final List<ResearchEntry> entries) {
+        this.entries = entries;
     }
 }

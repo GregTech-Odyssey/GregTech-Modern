@@ -11,7 +11,6 @@ import com.gregtechceu.gtceu.utils.ResearchManager;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class ResearchRecipeBuilder<T extends ResearchRecipeBuilder<T>> {
@@ -57,16 +56,13 @@ public abstract class ResearchRecipeBuilder<T extends ResearchRecipeBuilder<T>> 
         if (itemResearchStack.isEmpty() && fluidResearchStack.isEmpty()) {
             throw new IllegalArgumentException("Research recipe must have an item or fluid stack!");
         }
-
         if (researchId == null) {
             if (!itemResearchStack.isEmpty()) researchId = GTStringUtils.itemStackToString(itemResearchStack);
             else researchId = GTStringUtils.fluidStackToString(fluidResearchStack);
         }
-
         if (dataStack == null) {
             dataStack = getDefaultDataItem();
         }
-
         boolean foundBehavior = false;
         if (dataStack.getItem() instanceof IComponentItem metaItem) {
             for (IItemComponent behaviour : metaItem.getComponents()) {
@@ -87,12 +83,10 @@ public abstract class ResearchRecipeBuilder<T extends ResearchRecipeBuilder<T>> 
 
     public abstract GTRecipeBuilder.ResearchRecipeEntry build();
 
-    @NoArgsConstructor
     public static class ScannerRecipeBuilder extends ResearchRecipeBuilder<ScannerRecipeBuilder> {
 
         public static final int DEFAULT_SCANNER_DURATION = 1200; // 60 secs
         public static final int DEFAULT_SCANNER_EUT = GTValues.VA[GTValues.HV];
-
         private int duration;
 
         public ScannerRecipeBuilder duration(int duration) {
@@ -110,19 +104,18 @@ public abstract class ResearchRecipeBuilder<T extends ResearchRecipeBuilder<T>> 
             validateResearchItem();
             if (duration <= 0) duration = DEFAULT_SCANNER_DURATION;
             if (eut <= 0) eut = DEFAULT_SCANNER_EUT;
-            return new GTRecipeBuilder.ResearchRecipeEntry(researchId, itemResearchStack, fluidResearchStack, dataStack,
-                    duration, eut, 0);
+            return new GTRecipeBuilder.ResearchRecipeEntry(researchId, itemResearchStack, fluidResearchStack, dataStack, duration, eut, 0);
         }
+
+        public ScannerRecipeBuilder() {}
     }
 
-    @NoArgsConstructor
     public static class StationRecipeBuilder extends ResearchRecipeBuilder<StationRecipeBuilder> {
 
         public static final int DEFAULT_STATION_EUT = GTValues.VA[GTValues.LuV];
         // By default, the total CWU needed will be 200 seconds if exactly enough CWU/t is provided.
         // Providing more CWU/t will allow it to take less time.
         public static final int DEFAULT_STATION_TOTAL_CWUT = 4000;
-
         private int cwut;
         private int totalCWU;
 
@@ -152,14 +145,13 @@ public abstract class ResearchRecipeBuilder<T extends ResearchRecipeBuilder<T>> 
             if (cwut > totalCWU) {
                 throw new IllegalArgumentException("Total CWU cannot be greater than CWU/t!");
             }
-
             // "duration" is the total CWU/t.
             // Not called duration in API because logic does not treat it like normal duration.
             int duration = totalCWU;
             if (eut <= 0) eut = DEFAULT_STATION_EUT;
-
-            return new GTRecipeBuilder.ResearchRecipeEntry(researchId, itemResearchStack, fluidResearchStack, dataStack,
-                    duration, eut, cwut);
+            return new GTRecipeBuilder.ResearchRecipeEntry(researchId, itemResearchStack, fluidResearchStack, dataStack, duration, eut, cwut);
         }
+
+        public StationRecipeBuilder() {}
     }
 }

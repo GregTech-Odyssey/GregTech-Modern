@@ -34,8 +34,6 @@ import appeng.api.stacks.AEKey;
 import appeng.api.stacks.GenericStack;
 import appeng.api.storage.MEStorage;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
@@ -48,15 +46,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class MEStockingBusPartMachine extends MEInputBusPartMachine implements IMEStockingPart {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            MEStockingBusPartMachine.class, MEInputBusPartMachine.MANAGED_FIELD_HOLDER);
-
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MEStockingBusPartMachine.class, MEInputBusPartMachine.MANAGED_FIELD_HOLDER);
     @DescSynced
     @Persisted
-    @Getter
     private boolean autoPull;
-
-    @Setter
     private Predicate<GenericStack> autoPullTest;
 
     public MEStockingBusPartMachine(IMachineBlockEntity holder, Object... args) {
@@ -67,7 +60,6 @@ public class MEStockingBusPartMachine extends MEInputBusPartMachine implements I
     /////////////////////////////////
     // ***** Machine LifeCycle ****//
     /////////////////////////////////
-
     @Override
     public void addedToController(IMultiController controller) {
         super.addedToController(controller);
@@ -94,7 +86,6 @@ public class MEStockingBusPartMachine extends MEInputBusPartMachine implements I
     /////////////////////////////////
     // ********** Sync ME *********//
     /////////////////////////////////
-
     @Override
     public void autoIO() {
         super.autoIO();
@@ -149,7 +140,6 @@ public class MEStockingBusPartMachine extends MEInputBusPartMachine implements I
         if (config == null) return false;
         // In distinct mode, we don't need to check other buses since only one bus can run a recipe at a time.
         if (!isFormed() || isDistinct()) return false;
-
         // Otherwise, we need to test for if the item is configured
         // in any stocking bus in the multi (besides ourselves).
         for (IMultiController controller : getControllers()) {
@@ -189,29 +179,21 @@ public class MEStockingBusPartMachine extends MEInputBusPartMachine implements I
             aeItemHandler.clearInventory(0);
             return;
         }
-
         MEStorage networkStorage = grid.getStorageService().getInventory();
         var counter = networkStorage.getAvailableStacks();
-
         // Use a PriorityQueue to sort the stacks on size, take the first CONFIG_SIZE
         // biggest stacks.
-        PriorityQueue<Object2LongMap.Entry<AEKey>> topItems = new PriorityQueue<>(
-                Comparator.comparingLong(Object2LongMap.Entry<AEKey>::getLongValue));
-
+        PriorityQueue<Object2LongMap.Entry<AEKey>> topItems = new PriorityQueue<>(Comparator.comparingLong(Object2LongMap.Entry<AEKey>::getLongValue));
         for (Object2LongMap.Entry<AEKey> entry : counter) {
             long amount = entry.getLongValue();
             if (!topItems.isEmpty() && amount < topItems.peek().getLongValue()) continue;
             AEKey what = entry.getKey();
-
             if (amount <= 0) continue;
             if (!(what instanceof AEItemKey itemKey)) continue;
-
             long request = networkStorage.extract(what, amount, Actionable.SIMULATE, actionSource);
             if (request == 0) continue;
-
             // Ensure that it is valid to configure with this stack
             if (autoPullTest != null && !autoPullTest.test(new GenericStack(itemKey, amount))) continue;
-
             if (topItems.size() < CONFIG_SIZE) {
                 topItems.offer(entry);
             } else if (amount > topItems.peek().getLongValue()) {
@@ -219,34 +201,28 @@ public class MEStockingBusPartMachine extends MEInputBusPartMachine implements I
                 topItems.offer(entry);
             }
         }
-
         // Now, topItems is a PQ with CONFIG_SIZE highest amount items in the system.
         int index;
         int itemAmount = topItems.size();
         for (index = 0; index < CONFIG_SIZE; index++) {
             if (topItems.isEmpty()) break;
             Object2LongMap.Entry<AEKey> entry = topItems.poll();
-
             AEKey what = entry.getKey();
             long amount = entry.getLongValue();
-
             // If we get here, the item has already been checked by the PQ.
             long request = networkStorage.extract(what, amount, Actionable.SIMULATE, actionSource);
-
             // Since we want our items to be displayed from highest to lowest, but poll() returns
             // the lowest first, we fill in the slots starting at itemAmount-1
             var slot = this.aeItemHandler.getInventory()[itemAmount - index - 1];
             slot.setConfig(new GenericStack(what, 1));
             slot.setStock(new GenericStack(what, request));
         }
-
         aeItemHandler.clearInventory(index);
     }
 
     ///////////////////////////////
     // ********** GUI ***********//
     ///////////////////////////////
-
     @Override
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
         IMEStockingPart.super.attachConfigurators(configuratorPanel);
@@ -254,16 +230,13 @@ public class MEStockingBusPartMachine extends MEInputBusPartMachine implements I
     }
 
     @Override
-    protected InteractionResult onScrewdriverClick(Player playerIn, InteractionHand hand, Direction gridSide,
-                                                   BlockHitResult hitResult) {
+    protected InteractionResult onScrewdriverClick(Player playerIn, InteractionHand hand, Direction gridSide, BlockHitResult hitResult) {
         if (!isRemote()) {
             setAutoPull(!autoPull);
             if (autoPull) {
-                playerIn.sendSystemMessage(
-                        Component.translatable("gtceu.machine.me.stocking_auto_pull_enabled"));
+                playerIn.sendSystemMessage(Component.translatable("gtceu.machine.me.stocking_auto_pull_enabled"));
             } else {
-                playerIn.sendSystemMessage(
-                        Component.translatable("gtceu.machine.me.stocking_auto_pull_disabled"));
+                playerIn.sendSystemMessage(Component.translatable("gtceu.machine.me.stocking_auto_pull_disabled"));
             }
         }
         return InteractionResult.sidedSuccess(isRemote());
@@ -272,7 +245,6 @@ public class MEStockingBusPartMachine extends MEInputBusPartMachine implements I
     ////////////////////////////////
     // ****** Configuration ******//
     ////////////////////////////////
-
     @Override
     protected CompoundTag writeConfigToTag() {
         if (!autoPull) {
@@ -283,8 +255,7 @@ public class MEStockingBusPartMachine extends MEInputBusPartMachine implements I
         // if in auto-pull, no need to write actual configured slots, but still need to write the ghost circuit
         CompoundTag tag = new CompoundTag();
         tag.putBoolean("AutoPull", true);
-        tag.putByte("GhostCircuit",
-                (byte) IntCircuitBehaviour.getCircuitConfiguration(circuitInventory.getStackInSlot(0)));
+        tag.putByte("GhostCircuit", (byte) IntCircuitBehaviour.getCircuitConfiguration(circuitInventory.getStackInSlot(0)));
         return tag;
     }
 
@@ -346,14 +317,11 @@ public class MEStockingBusPartMachine extends MEInputBusPartMachine implements I
                     // or extract (modulate) when this is called
                     if (!isOnline()) return ItemStack.EMPTY;
                     MEStorage aeNetwork = getMainNode().getGrid().getStorageService().getInventory();
-
                     Actionable action = simulate ? Actionable.SIMULATE : Actionable.MODULATE;
                     var key = config.what();
                     long extracted = aeNetwork.extract(key, amount, action, actionSource);
-
                     if (extracted > 0) {
-                        ItemStack resultStack = key instanceof AEItemKey itemKey ?
-                                itemKey.toStack((int) extracted) : ItemStack.EMPTY;
+                        ItemStack resultStack = key instanceof AEItemKey itemKey ? itemKey.toStack((int) extracted) : ItemStack.EMPTY;
                         if (!simulate) {
                             // may as well update the display here
                             this.stock = ExportOnlyAESlot.copy(stock, stock.amount() - extracted);
@@ -373,9 +341,15 @@ public class MEStockingBusPartMachine extends MEInputBusPartMachine implements I
 
         @Override
         public ExportOnlyAEStockingItemSlot copy() {
-            return new ExportOnlyAEStockingItemSlot(
-                    this.config == null ? null : copy(this.config),
-                    this.stock == null ? null : copy(this.stock));
+            return new ExportOnlyAEStockingItemSlot(this.config == null ? null : copy(this.config), this.stock == null ? null : copy(this.stock));
         }
+    }
+
+    public boolean isAutoPull() {
+        return this.autoPull;
+    }
+
+    public void setAutoPullTest(final Predicate<GenericStack> autoPullTest) {
+        this.autoPullTest = autoPullTest;
     }
 }

@@ -25,18 +25,12 @@ import net.minecraft.world.level.block.Blocks;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-@NoArgsConstructor
 public class DimensionCondition extends RecipeCondition {
 
-    public static final Codec<DimensionCondition> CODEC = RecordCodecBuilder
-            .create(instance -> RecipeCondition.isReverse(instance)
-                    .and(ResourceLocation.CODEC.fieldOf("dimension").forGetter(val -> val.dimension))
-                    .apply(instance, DimensionCondition::new));
-
-    public final static DimensionCondition INSTANCE = new DimensionCondition();
+    public static final Codec<DimensionCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(ResourceLocation.CODEC.fieldOf("dimension").forGetter(val -> val.dimension)).apply(instance, DimensionCondition::new));
+    public static final DimensionCondition INSTANCE = new DimensionCondition();
     private ResourceLocation dimension = new ResourceLocation("dummy");
 
     public DimensionCondition(ResourceLocation dimension) {
@@ -64,17 +58,13 @@ public class DimensionCondition extends RecipeCondition {
     }
 
     public SlotWidget setupDimensionMarkers(int xOffset, int yOffset) {
-        DimensionMarker dimMarker = GTRegistries.DIMENSION_MARKERS.getOrDefault(this.dimension,
-                new DimensionMarker(DimensionMarker.MAX_TIER, () -> Blocks.BARRIER, this.dimension.toString()));
+        DimensionMarker dimMarker = GTRegistries.DIMENSION_MARKERS.getOrDefault(this.dimension, new DimensionMarker(DimensionMarker.MAX_TIER, () -> Blocks.BARRIER, this.dimension.toString()));
         ItemStack icon = dimMarker.getIcon();
         CustomItemStackHandler handler = new CustomItemStackHandler(1);
-        SlotWidget dimSlot = new SlotWidget(handler, 0, xOffset, yOffset, false, false)
-                .setIngredientIO(IngredientIO.INPUT);
+        SlotWidget dimSlot = new SlotWidget(handler, 0, xOffset, yOffset, false, false).setIngredientIO(IngredientIO.INPUT);
         handler.setStackInSlot(0, icon);
         if (ConfigHolder.INSTANCE.compat.showDimensionTier) {
-            dimSlot.setOverlay(
-                    new TextTexture("T" + (dimMarker.tier >= DimensionMarker.MAX_TIER ? "?" : dimMarker.tier))
-                            .scale(0.75f).transform(-3.0f, 5.0f));
+            dimSlot.setOverlay(new TextTexture("T" + (dimMarker.tier >= DimensionMarker.MAX_TIER ? "?" : dimMarker.tier)).scale(0.75F).transform(-3.0F, 5.0F));
         }
         return dimSlot;
     }
@@ -105,8 +95,7 @@ public class DimensionCondition extends RecipeCondition {
     @Override
     public RecipeCondition deserialize(@NotNull JsonObject config) {
         super.deserialize(config);
-        dimension = new ResourceLocation(
-                GsonHelper.getAsString(config, "dimension", "dummy"));
+        dimension = new ResourceLocation(GsonHelper.getAsString(config, "dimension", "dummy"));
         return this;
     }
 
@@ -122,4 +111,6 @@ public class DimensionCondition extends RecipeCondition {
         super.toNetwork(buf);
         buf.writeUtf(dimension.toString());
     }
+
+    public DimensionCondition() {}
 }

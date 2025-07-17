@@ -12,7 +12,6 @@ import net.minecraftforge.fml.ModLoader;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
@@ -26,9 +25,8 @@ public abstract sealed class MachineOwner permits PlayerOwner, FTBOwner {
     public static final UUID EMPTY = new UUID(0, 0);
     protected static final Map<UUID, MachineOwner> MACHINE_OWNERS = new Object2ObjectOpenHashMap<>();
     protected static final Map<UUID, PlayerOwner> PLAYER_OWNERS = new Object2ObjectOpenHashMap<>();
-
-    @Getter
-    protected final @NotNull UUID playerUUID;
+    @NotNull
+    protected final UUID playerUUID;
 
     protected MachineOwner(UUID playerUUID) {
         this.playerUUID = playerUUID == null ? EMPTY : playerUUID;
@@ -56,7 +54,8 @@ public abstract sealed class MachineOwner permits PlayerOwner, FTBOwner {
     }
 
     @UnmodifiableView
-    public abstract @NotNull Set<UUID> getMembers();
+    @NotNull
+    public abstract Set<UUID> getMembers();
 
     public boolean isPlayerInTeam(Player player) {
         return isPlayerInTeam(player.getUUID());
@@ -70,14 +69,16 @@ public abstract sealed class MachineOwner permits PlayerOwner, FTBOwner {
 
     public abstract boolean isPlayerFriendly(UUID playerUUID);
 
-    public static @Nullable MachineOwner getOwner(UUID playerUUID) {
+    @Nullable
+    public static MachineOwner getOwner(UUID playerUUID) {
         if (playerUUID == null) {
             return null;
         }
         return MACHINE_OWNERS.computeIfAbsent(playerUUID, MachineOwner.machineOwnerGenerator);
     }
 
-    public static @Nullable PlayerOwner getPlayerOwner(UUID playerUUID) {
+    @Nullable
+    public static PlayerOwner getPlayerOwner(UUID playerUUID) {
         if (playerUUID == null) {
             return null;
         }
@@ -113,20 +114,23 @@ public abstract sealed class MachineOwner permits PlayerOwner, FTBOwner {
         } else {
             online += ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(playerUUID) != null;
         }
-        compList.add(Component.translatable("behavior.portable_scanner.player_name",
-                playerName, Component.translatable(online)));
+        compList.add(Component.translatable("behavior.portable_scanner.player_name", playerName, Component.translatable(online)));
     }
 
     @Override
     public boolean equals(Object object) {
         if (this == object) return true;
         if (!(object instanceof MachineOwner that)) return false;
-
         return playerUUID.equals(that.playerUUID);
     }
 
     @Override
     public int hashCode() {
         return playerUUID.hashCode();
+    }
+
+    @NotNull
+    public UUID getPlayerUUID() {
+        return this.playerUUID;
     }
 }

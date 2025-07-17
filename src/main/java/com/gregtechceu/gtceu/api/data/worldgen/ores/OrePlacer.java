@@ -16,8 +16,6 @@ import net.minecraft.world.level.levelgen.FlatLevelSource;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 
-import lombok.Getter;
-
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -35,7 +33,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class OrePlacer {
 
-    @Getter
     private final OreGenCache oreGenCache = new OreGenCache();
 
     /**
@@ -47,44 +44,29 @@ public class OrePlacer {
      */
     public void placeOres(WorldGenLevel level, ChunkGenerator chunkGenerator, ChunkAccess chunk) {
         if (!ConfigHolder.INSTANCE.dev.doSuperflatOres && chunkGenerator instanceof FlatLevelSource) return;
-
         var random = new XoroshiroRandomSource(level.getSeed() ^ chunk.getPos().toLong());
         var generatedVeins = oreGenCache.consumeChunkVeins(level, chunkGenerator, chunk);
         var generatedIndicators = oreGenCache.consumeChunkIndicators(level, chunkGenerator, chunk);
-
         try (BulkSectionAccess access = new BulkSectionAccess(level)) {
             generatedVeins.forEach(generatedVein -> placeVein(chunk.getPos(), random, access, generatedVein, null));
             generatedIndicators.forEach(generatedIndicator -> placeIndicators(chunk, access, generatedIndicator));
         }
     }
 
-    public void placeVein(ChunkPos chunk, RandomSource random, BulkSectionAccess access,
-                          GeneratedVein generatedVein, @Nullable RuleTest targetOverride) {
+    public void placeVein(ChunkPos chunk, RandomSource random, BulkSectionAccess access, GeneratedVein generatedVein, @Nullable RuleTest targetOverride) {
         RuleTest layerTarget = targetOverride != null ? targetOverride : generatedVein.getLayer().getTarget();
-
         resolvePlacerLists(chunk, generatedVein).forEach(((sectionPos, placers) -> {
             LevelChunkSection section = access.getSection(sectionPos.origin());
-
-            if (section == null)
-                return;
-
+            if (section == null) return;
             placers.forEach((pos, placer) -> {
-                var blockState = section.getBlockState(
-                        SectionPos.sectionRelative(pos.getX()),
-                        SectionPos.sectionRelative(pos.getY()),
-                        SectionPos.sectionRelative(pos.getZ()));
-
-                if (layerTarget.test(blockState, random))
-                    placer.placeBlock(access, section);
+                var blockState = section.getBlockState(SectionPos.sectionRelative(pos.getX()), SectionPos.sectionRelative(pos.getY()), SectionPos.sectionRelative(pos.getZ()));
+                if (layerTarget.test(blockState, random)) placer.placeBlock(access, section);
             });
         }));
     }
 
     private Map<SectionPos, Map<BlockPos, OreBlockPlacer>> resolvePlacerLists(ChunkPos chunk, GeneratedVein vein) {
-        return vein.consumeOres(chunk).entrySet().stream()
-                .collect(Collectors.groupingBy(
-                        entry -> SectionPos.of(entry.getKey()),
-                        Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+        return vein.consumeOres(chunk).entrySet().stream().collect(Collectors.groupingBy(entry -> SectionPos.of(entry.getKey()), Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 
     private void placeIndicators(ChunkAccess chunk, BulkSectionAccess access, GeneratedIndicators generatedVein) {
@@ -92,5 +74,9 @@ public class OrePlacer {
         generatedVein.consumeIndicators(chunk.getPos()).forEach(placer -> {
             placer.placeIndicators(access);
         });
+    }
+
+    public OreGenCache getOreGenCache() {
+        return this.oreGenCache;
     }
 }

@@ -2,14 +2,6 @@ java {
     withSourcesJar()
 }
 
-// Use delombok'd files for sources
-sourcesJar {
-    exclude {
-        sourceSets.main.allSource.contains it.file
-    }
-    from delombok
-}
-
 base {
     archivesName = "${project.name}-${libs.versions.minecraft.get()}"
 }

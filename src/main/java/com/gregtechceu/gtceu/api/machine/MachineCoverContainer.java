@@ -25,7 +25,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -33,17 +32,38 @@ import java.util.ArrayList;
 public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
 
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MachineCoverContainer.class);
-    @Getter
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
-    @Getter
     private final MetaMachine machine;
     @DescSynced
     @Persisted
     @UpdateListener(methodName = "onCoverSet")
-    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty",
-                     serializeMethod = "serializeCoverUid",
-                     deserializeMethod = "deserializeCoverUid")
-    private CoverBehavior up, down, north, south, west, east;
+    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty", serializeMethod = "serializeCoverUid", deserializeMethod = "deserializeCoverUid")
+    private CoverBehavior up;
+    @DescSynced
+    @Persisted
+    @UpdateListener(methodName = "onCoverSet")
+    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty", serializeMethod = "serializeCoverUid", deserializeMethod = "deserializeCoverUid")
+    private CoverBehavior down;
+    @DescSynced
+    @Persisted
+    @UpdateListener(methodName = "onCoverSet")
+    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty", serializeMethod = "serializeCoverUid", deserializeMethod = "deserializeCoverUid")
+    private CoverBehavior north;
+    @DescSynced
+    @Persisted
+    @UpdateListener(methodName = "onCoverSet")
+    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty", serializeMethod = "serializeCoverUid", deserializeMethod = "deserializeCoverUid")
+    private CoverBehavior south;
+    @DescSynced
+    @Persisted
+    @UpdateListener(methodName = "onCoverSet")
+    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty", serializeMethod = "serializeCoverUid", deserializeMethod = "deserializeCoverUid")
+    private CoverBehavior west;
+    @DescSynced
+    @Persisted
+    @UpdateListener(methodName = "onCoverSet")
+    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty", serializeMethod = "serializeCoverUid", deserializeMethod = "deserializeCoverUid")
+    private CoverBehavior east;
 
     public MachineCoverContainer(MetaMachine machine) {
         this.machine = machine;
@@ -118,7 +138,6 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
             // cover collision box overlaps with meta tile entity collision box
             return false;
         }
-
         return true;
     }
 
@@ -191,8 +210,7 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
             for (IRef ref : coverBehavior.getSyncStorage().getNonLazyFields()) {
                 ref.update();
             }
-            return coverBehavior.getSyncStorage().hasDirtySyncFields() ||
-                    coverBehavior.getSyncStorage().hasDirtyPersistedFields();
+            return coverBehavior.getSyncStorage().hasDirtySyncFields() || coverBehavior.getSyncStorage().hasDirtyPersistedFields();
         }
         return false;
     }
@@ -213,7 +231,15 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
         if (definition != null) {
             return definition.createCoverBehavior(this, side);
         }
-        GTCEu.LOGGER.error("couldn't find cover definition {}", definitionId);
+        GTCEu.LOGGER.error("couldn\'t find cover definition {}", definitionId);
         throw new RuntimeException();
+    }
+
+    public FieldManagedStorage getSyncStorage() {
+        return this.syncStorage;
+    }
+
+    public MetaMachine getMachine() {
+        return this.machine;
     }
 }

@@ -35,9 +35,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,27 +51,21 @@ public class Material implements Comparable<Material> {
      * @see MaterialInfo
      */
     @NotNull
-    @Getter
     private final MaterialInfo materialInfo;
-
     /**
      * Properties of this Material.
      *
      * @see MaterialProperties
      */
     @NotNull
-    @Getter
     private final MaterialProperties properties;
-
     /**
      * Generation flags of this material
      *
      * @see MaterialFlags
      */
     @NotNull
-    @Getter
     private final MaterialFlags flags;
-
     /**
      * Chemical formula of this material
      */
@@ -93,8 +84,7 @@ public class Material implements Comparable<Material> {
         }
         if (!materialInfo.componentList.isEmpty()) {
             StringBuilder components = new StringBuilder();
-            for (MaterialStack component : materialInfo.componentList)
-                components.append(component.toString());
+            for (MaterialStack component : materialInfo.componentList) components.append(component.toString());
             return components.toString();
         }
         return "";
@@ -123,8 +113,7 @@ public class Material implements Comparable<Material> {
         return this;
     }
 
-    private Material(@NotNull MaterialInfo materialInfo, @NotNull MaterialProperties properties,
-                     @NotNull MaterialFlags flags) {
+    private Material(@NotNull MaterialInfo materialInfo, @NotNull MaterialProperties properties, @NotNull MaterialFlags flags) {
         this.materialInfo = materialInfo;
         this.properties = properties;
         this.flags = flags;
@@ -161,8 +150,7 @@ public class Material implements Comparable<Material> {
     }
 
     public void addFlags(MaterialFlag... flags) {
-        if (!GTCEuAPI.materialManager.canModifyMaterials())
-            throw new IllegalStateException("Cannot add flag to material when registry is frozen!");
+        if (!GTCEuAPI.materialManager.canModifyMaterials()) throw new IllegalStateException("Cannot add flag to material when registry is frozen!");
         this.flags.addFlags(flags).verify(this);
     }
 
@@ -188,10 +176,7 @@ public class Material implements Comparable<Material> {
     }
 
     protected void calculateDecompositionType() {
-        if (!materialInfo.componentList.isEmpty() &&
-                !hasFlag(MaterialFlags.DECOMPOSITION_BY_CENTRIFUGING) &&
-                !hasFlag(MaterialFlags.DECOMPOSITION_BY_ELECTROLYZING) &&
-                !hasFlag(MaterialFlags.DISABLE_DECOMPOSITION)) {
+        if (!materialInfo.componentList.isEmpty() && !hasFlag(MaterialFlags.DECOMPOSITION_BY_CENTRIFUGING) && !hasFlag(MaterialFlags.DECOMPOSITION_BY_ELECTROLYZING) && !hasFlag(MaterialFlags.DISABLE_DECOMPOSITION)) {
             boolean onlyMetalMaterials = true;
             for (MaterialStack materialStack : materialInfo.componentList) {
                 Material material = materialStack.material();
@@ -219,13 +204,10 @@ public class Material implements Comparable<Material> {
         if (prop == null) {
             throw new IllegalArgumentException("Material " + getResourceLocation() + " does not have a Fluid!");
         }
-
         Fluid fluid = prop.get(prop.getPrimaryKey());
         if (fluid != null) return fluid;
-
         fluid = getFluid(FluidStorageKeys.LIQUID);
         if (fluid != null) return fluid;
-
         return getFluid(FluidStorageKeys.GAS);
     }
 
@@ -238,7 +220,6 @@ public class Material implements Comparable<Material> {
         if (prop == null) {
             throw new IllegalArgumentException("Material " + getResourceLocation() + " does not have a Fluid!");
         }
-
         return prop.get(key);
     }
 
@@ -283,16 +264,12 @@ public class Material implements Comparable<Material> {
         if (prop == null) {
             throw new IllegalArgumentException("Material " + getResourceLocation() + " does not have a Fluid!");
         }
-
         FluidStorageKey key = prop.getPrimaryKey();
         FluidBuilder fluid = null;
-
         if (key != null) fluid = prop.getStorage().getQueuedBuilder(key);
         if (fluid != null) return fluid;
-
         fluid = getFluidBuilder(FluidStorageKeys.LIQUID);
         if (fluid != null) return fluid;
-
         return getFluidBuilder(FluidStorageKeys.GAS);
     }
 
@@ -307,14 +284,12 @@ public class Material implements Comparable<Material> {
         if (prop == null) {
             throw new IllegalArgumentException("Material " + getResourceLocation() + " does not have a Fluid!");
         }
-
         return prop.getStorage().getQueuedBuilder(key);
     }
 
     public MaterialToolTier getToolTier() {
         ToolProperty prop = getProperty(PropertyKey.TOOL);
-        if (prop == null)
-            throw new IllegalArgumentException("Material " + materialInfo.resourceLocation + " does not have a tool!");
+        if (prop == null) throw new IllegalArgumentException("Material " + materialInfo.resourceLocation + " does not have a tool!");
         return prop.getTier(this);
     }
 
@@ -334,17 +309,13 @@ public class Material implements Comparable<Material> {
     }
 
     public int getBlockHarvestLevel() {
-        if (!hasProperty(PropertyKey.DUST))
-            throw new IllegalArgumentException("Material " + materialInfo.resourceLocation +
-                    " does not have a harvest level! Is probably a Fluid");
+        if (!hasProperty(PropertyKey.DUST)) throw new IllegalArgumentException("Material " + materialInfo.resourceLocation + " does not have a harvest level! Is probably a Fluid");
         int harvestLevel = getProperty(PropertyKey.DUST).getHarvestLevel();
         return harvestLevel > 0 ? harvestLevel - 1 : harvestLevel;
     }
 
     public int getToolHarvestLevel() {
-        if (!hasProperty(PropertyKey.TOOL))
-            throw new IllegalArgumentException("Material " + materialInfo.resourceLocation +
-                    " does not have a tool harvest level! Is probably not a Tool Material");
+        if (!hasProperty(PropertyKey.TOOL)) throw new IllegalArgumentException("Material " + materialInfo.resourceLocation + " does not have a tool harvest level! Is probably not a Tool Material");
         return getProperty(PropertyKey.TOOL).getHarvestLevel();
     }
 
@@ -368,11 +339,11 @@ public class Material implements Comparable<Material> {
     }
 
     public int getMaterialARGB() {
-        return materialInfo.colors.getInt(0) | 0xff000000;
+        return materialInfo.colors.getInt(0) | -16777216;
     }
 
     public int getMaterialSecondaryARGB() {
-        return materialInfo.colors.getInt(1) | 0xff000000;
+        return materialInfo.colors.getInt(1) | -16777216;
     }
 
     /**
@@ -382,7 +353,7 @@ public class Material implements Comparable<Material> {
      * @return Gets a specific color layer.
      */
     public int getMaterialARGB(int index) {
-        return materialInfo.colors.getInt(index) | 0xff000000;
+        return materialInfo.colors.getInt(index) | -16777216;
     }
 
     public int getMaterialRGB() {
@@ -416,19 +387,16 @@ public class Material implements Comparable<Material> {
     }
 
     public boolean isRadioactive() {
-        if (materialInfo.element != null)
-            return materialInfo.element.halfLifeSeconds() >= 0;
-        for (MaterialStack material : materialInfo.componentList)
-            if (material.material().isRadioactive()) return true;
+        if (materialInfo.element != null) return materialInfo.element.halfLifeSeconds() >= 0;
+        for (MaterialStack material : materialInfo.componentList) if (material.material().isRadioactive()) return true;
         return false;
     }
 
     public long getProtons() {
-        if (materialInfo.element != null)
-            return materialInfo.element.protons();
-        if (materialInfo.componentList.isEmpty())
-            return Math.max(1, 43);
-        long totalProtons = 0, totalAmount = 0;
+        if (materialInfo.element != null) return materialInfo.element.protons();
+        if (materialInfo.componentList.isEmpty()) return Math.max(1, 43);
+        long totalProtons = 0;
+        long totalAmount = 0;
         for (MaterialStack material : materialInfo.componentList) {
             if (material.isEmpty()) continue;
             totalAmount += material.amount();
@@ -439,11 +407,10 @@ public class Material implements Comparable<Material> {
     }
 
     public long getNeutrons() {
-        if (materialInfo.element != null)
-            return materialInfo.element.neutrons();
-        if (materialInfo.componentList.isEmpty())
-            return 55;
-        long totalNeutrons = 0, totalAmount = 0;
+        if (materialInfo.element != null) return materialInfo.element.neutrons();
+        if (materialInfo.componentList.isEmpty()) return 55;
+        long totalNeutrons = 0;
+        long totalAmount = 0;
         for (MaterialStack material : materialInfo.componentList) {
             if (material.isEmpty()) continue;
             totalAmount += material.amount();
@@ -454,11 +421,10 @@ public class Material implements Comparable<Material> {
     }
 
     public long getMass() {
-        if (materialInfo.element != null)
-            return materialInfo.element.mass();
-        if (materialInfo.componentList.isEmpty())
-            return 98;
-        long totalMass = 0, totalAmount = 0;
+        if (materialInfo.element != null) return materialInfo.element.mass();
+        if (materialInfo.componentList.isEmpty()) return 98;
+        long totalMass = 0;
+        long totalAmount = 0;
         for (MaterialStack material : materialInfo.componentList) {
             if (material.isEmpty()) continue;
             totalAmount += material.amount();
@@ -546,14 +512,11 @@ public class Material implements Comparable<Material> {
         private final MaterialProperties properties;
         private final MaterialFlags flags;
         private Set<TagPrefix> ignoredTagPrefixes = null;
-
         private String formula = null;
-
         /*
          * The temporary list of components for this Material.
          */
         private List<MaterialStack> composition = new ArrayList<>();
-
         /*
          * Temporary value to use to determine how to calculate default RGB
          */
@@ -570,8 +533,7 @@ public class Material implements Comparable<Material> {
         public Builder(ResourceLocation resourceLocation) {
             super(resourceLocation);
             String name = resourceLocation.getPath();
-            if (name.charAt(name.length() - 1) == '_')
-                throw new IllegalArgumentException("Material name cannot end with a '_'!");
+            if (name.charAt(name.length() - 1) == '_') throw new IllegalArgumentException("Material name cannot end with a \'_\'!");
             materialInfo = new MaterialInfo(resourceLocation);
             properties = new MaterialProperties();
             flags = new MaterialFlags();
@@ -580,7 +542,6 @@ public class Material implements Comparable<Material> {
         /*
          * Material Types
          */
-
         /**
          * Add a {@link FluidProperty} to this Material.<br>
          * Will be created as a {@link FluidStorageKeys#LIQUID}, without a Fluid Block.
@@ -962,19 +923,12 @@ public class Material implements Comparable<Material> {
         }
 
         public Builder components(Object... components) {
-            Preconditions.checkArgument(
-                    components.length % 2 == 0,
-                    "Material Components list malformed!");
-
+            Preconditions.checkArgument(components.length % 2 == 0, "Material Components list malformed!");
             for (int i = 0; i < components.length; i += 2) {
                 if (components[i] == null) {
-                    throw new IllegalArgumentException(
-                            "Material in Components List is null for Material " + this.materialInfo.resourceLocation);
+                    throw new IllegalArgumentException("Material in Components List is null for Material " + this.materialInfo.resourceLocation);
                 }
-                composition.add(new MaterialStack(
-                        components[i] instanceof CharSequence chars ? GTMaterials.get(chars.toString()) :
-                                (Material) components[i],
-                        ((Number) components[i + 1]).longValue()));
+                composition.add(new MaterialStack(components[i] instanceof CharSequence chars ? GTMaterials.get(chars.toString()) : (Material) components[i], ((Number) components[i + 1]).longValue()));
             }
             return this;
         }
@@ -999,6 +953,7 @@ public class Material implements Comparable<Material> {
             return this;
         }
 
+        // rename for kjs conflicts
         /**
          * Add {@link MaterialFlags} to this Material.<br>
          * Dependent Flags (for example, {@link MaterialFlags#GENERATE_LONG_ROD} requiring
@@ -1009,7 +964,6 @@ public class Material implements Comparable<Material> {
          * @param f2 An Array of {@link MaterialFlag}. If no {@link Collection} is required, use
          *           {@link Builder#flags(MaterialFlag...)}.
          */
-        // rename for kjs conflicts
         public Builder appendFlags(Collection<MaterialFlag> f1, MaterialFlag... f2) {
             this.flags.addFlags(f1.toArray(new MaterialFlag[0]));
             this.flags.addFlags(f2);
@@ -1083,17 +1037,13 @@ public class Material implements Comparable<Material> {
         }
 
         // Tons of shortcut functions for adding various hazard effects.
-
         public Builder removeHazard() {
-            properties.setProperty(HAZARD,
-                    new HazardProperty(HazardProperty.HazardTrigger.NONE, GTMedicalConditions.NONE,
-                            0, false));
+            properties.setProperty(HAZARD, new HazardProperty(HazardProperty.HazardTrigger.NONE, GTMedicalConditions.NONE, 0, false));
             return this;
         }
 
         public Builder radioactiveHazard(float multiplier) {
-            properties.setProperty(HAZARD, new HazardProperty(HazardProperty.HazardTrigger.ANY,
-                    GTMedicalConditions.CARCINOGEN, multiplier, true));
+            properties.setProperty(HAZARD, new HazardProperty(HazardProperty.HazardTrigger.ANY, GTMedicalConditions.CARCINOGEN, multiplier, true));
             return this;
         }
 
@@ -1102,21 +1052,17 @@ public class Material implements Comparable<Material> {
             return this;
         }
 
-        public Builder hazard(HazardProperty.HazardTrigger trigger, MedicalCondition condition,
-                              float progressionMultiplier) {
+        public Builder hazard(HazardProperty.HazardTrigger trigger, MedicalCondition condition, float progressionMultiplier) {
             properties.setProperty(HAZARD, new HazardProperty(trigger, condition, progressionMultiplier, false));
             return this;
         }
 
-        public Builder hazard(HazardProperty.HazardTrigger trigger, MedicalCondition condition,
-                              float progressionMultiplier, boolean applyToDerivatives) {
-            properties.setProperty(HAZARD,
-                    new HazardProperty(trigger, condition, progressionMultiplier, applyToDerivatives));
+        public Builder hazard(HazardProperty.HazardTrigger trigger, MedicalCondition condition, float progressionMultiplier, boolean applyToDerivatives) {
+            properties.setProperty(HAZARD, new HazardProperty(trigger, condition, progressionMultiplier, applyToDerivatives));
             return this;
         }
 
-        public Builder hazard(HazardProperty.HazardTrigger trigger, MedicalCondition condition,
-                              boolean applyToDerivatives) {
+        public Builder hazard(HazardProperty.HazardTrigger trigger, MedicalCondition condition, boolean applyToDerivatives) {
             properties.setProperty(HAZARD, new HazardProperty(trigger, condition, 1, applyToDerivatives));
             return this;
         }
@@ -1206,11 +1152,9 @@ public class Material implements Comparable<Material> {
             return this;
         }
 
-        public Builder cableProperties(long voltage, int amperage, int loss, boolean isSuperCon,
-                                       int criticalTemperature) {
+        public Builder cableProperties(long voltage, int amperage, int loss, boolean isSuperCon, int criticalTemperature) {
             properties.ensureSet(PropertyKey.DUST);
-            properties.setProperty(PropertyKey.WIRE,
-                    new WireProperties(voltage, amperage, loss, isSuperCon, criticalTemperature));
+            properties.setProperty(PropertyKey.WIRE, new WireProperties(voltage, amperage, loss, isSuperCon, criticalTemperature));
             return this;
         }
 
@@ -1218,10 +1162,8 @@ public class Material implements Comparable<Material> {
             return fluidPipeProperties(maxTemp, throughput, gasProof, false, false, false);
         }
 
-        public Builder fluidPipeProperties(int maxTemp, int throughput, boolean gasProof, boolean acidProof,
-                                           boolean cryoProof, boolean plasmaProof) {
-            properties.setProperty(PropertyKey.FLUID_PIPE,
-                    new FluidPipeProperties(maxTemp, throughput, gasProof, acidProof, cryoProof, plasmaProof));
+        public Builder fluidPipeProperties(int maxTemp, int throughput, boolean gasProof, boolean acidProof, boolean cryoProof, boolean plasmaProof) {
+            properties.setProperty(PropertyKey.FLUID_PIPE, new FluidPipeProperties(maxTemp, throughput, gasProof, acidProof, cryoProof, plasmaProof));
             return this;
         }
 
@@ -1249,11 +1191,9 @@ public class Material implements Comparable<Material> {
                     }
                 }
             }
-            if (properties.hasProperty(HAZARD) &&
-                    properties.getProperty(HAZARD).hazardTrigger == HazardProperty.HazardTrigger.NONE) {
+            if (properties.hasProperty(HAZARD) && properties.getProperty(HAZARD).hazardTrigger == HazardProperty.HazardTrigger.NONE) {
                 properties.removeProperty(HAZARD);
             }
-
             var mat = new Material(materialInfo, properties, flags);
             if (formula != null) {
                 mat.setFormula(formula);
@@ -1267,7 +1207,6 @@ public class Material implements Comparable<Material> {
         }
 
         @Override
-
         public Material register() {
             return value = buildAndRegister();
         }
@@ -1276,7 +1215,6 @@ public class Material implements Comparable<Material> {
     /**
      * Holds the basic info for a Material, like the name, color, id, etc..
      */
-    @Accessors(chain = true)
     private static class MaterialInfo {
 
         /**
@@ -1285,52 +1223,37 @@ public class Material implements Comparable<Material> {
          * Required.
          */
         private final ResourceLocation resourceLocation;
-
         /**
          * The colors of this Material.
          * if any past index 0 are -1, they aren't used.
          * <p>
          * Default: 0xFFFFFF if no Components, otherwise it will be the average of Components.
          */
-        @Getter
-        @Setter
         private IntList colors = IntArrayList.of(-1, -1);
-
         /**
          * The color of this Material.
          * <p>
          * Default: 0xFFFFFF if no Components, otherwise it will be the average of Components.
          */
-        @Getter
-        @Setter
         private boolean hasFluidColor = true;
-
         /**
          * The IconSet of this Material.
          * <p>
          * Default: - GEM_VERTICAL if it has GemProperty.
          * - DULL if has DustProperty or IngotProperty.
          */
-        @Getter
-        @Setter
         private MaterialIconSet iconSet;
-
         /**
          * The components of this Material.
          * <p>
          * Default: none.
          */
-        @Getter
-        @Setter
         private ImmutableList<MaterialStack> componentList;
-
         /**
          * The Element of this Material, if it is a direct Element.
          * <p>
          * Default: none.
          */
-        @Getter
-        @Setter
         private Element element;
 
         private MaterialInfo(ResourceLocation resourceLocation) {
@@ -1342,19 +1265,15 @@ public class Material implements Comparable<Material> {
             if (iconSet == null) {
                 if (p.hasProperty(PropertyKey.GEM)) {
                     iconSet = MaterialIconSet.GEM_VERTICAL;
-                } else if (p.hasProperty(PropertyKey.DUST) || p.hasProperty(PropertyKey.INGOT) ||
-                        p.hasProperty(PropertyKey.POLYMER)) {
-                            iconSet = MaterialIconSet.DULL;
-                        } else
-                    if (p.hasProperty(PropertyKey.FLUID)) {
-                        iconSet = MaterialIconSet.FLUID;
-                    } else iconSet = MaterialIconSet.DULL;
+                } else if (p.hasProperty(PropertyKey.DUST) || p.hasProperty(PropertyKey.INGOT) || p.hasProperty(PropertyKey.POLYMER)) {
+                    iconSet = MaterialIconSet.DULL;
+                } else if (p.hasProperty(PropertyKey.FLUID)) {
+                    iconSet = MaterialIconSet.FLUID;
+                } else iconSet = MaterialIconSet.DULL;
             }
-
             // Verify MaterialRGB
             if (colors.getInt(0) == -1) {
-                if (!averageRGB || componentList.isEmpty())
-                    colors.set(0, 0xFFFFFF);
+                if (!averageRGB || componentList.isEmpty()) colors.set(0, 16777215);
                 else {
                     long colorTemp = 0;
                     long divisor = 0;
@@ -1371,5 +1290,144 @@ public class Material implements Comparable<Material> {
             this.componentList = ImmutableList.copyOf(Arrays.stream(components).toList());
             return this;
         }
+
+        /**
+         * The colors of this Material.
+         * if any past index 0 are -1, they aren't used.
+         * <p>
+         * Default: 0xFFFFFF if no Components, otherwise it will be the average of Components.
+         */
+        public IntList getColors() {
+            return this.colors;
+        }
+
+        /**
+         * The colors of this Material.
+         * if any past index 0 are -1, they aren't used.
+         * <p>
+         * Default: 0xFFFFFF if no Components, otherwise it will be the average of Components.
+         * 
+         * @return {@code this}.
+         */
+        public Material.MaterialInfo setColors(final IntList colors) {
+            this.colors = colors;
+            return this;
+        }
+
+        /**
+         * The color of this Material.
+         * <p>
+         * Default: 0xFFFFFF if no Components, otherwise it will be the average of Components.
+         */
+        public boolean isHasFluidColor() {
+            return this.hasFluidColor;
+        }
+
+        /**
+         * The color of this Material.
+         * <p>
+         * Default: 0xFFFFFF if no Components, otherwise it will be the average of Components.
+         * 
+         * @return {@code this}.
+         */
+        public Material.MaterialInfo setHasFluidColor(final boolean hasFluidColor) {
+            this.hasFluidColor = hasFluidColor;
+            return this;
+        }
+
+        /**
+         * The IconSet of this Material.
+         * <p>
+         * Default: - GEM_VERTICAL if it has GemProperty.
+         * - DULL if has DustProperty or IngotProperty.
+         */
+        public MaterialIconSet getIconSet() {
+            return this.iconSet;
+        }
+
+        /**
+         * The IconSet of this Material.
+         * <p>
+         * Default: - GEM_VERTICAL if it has GemProperty.
+         * - DULL if has DustProperty or IngotProperty.
+         * 
+         * @return {@code this}.
+         */
+        public Material.MaterialInfo setIconSet(final MaterialIconSet iconSet) {
+            this.iconSet = iconSet;
+            return this;
+        }
+
+        /**
+         * The components of this Material.
+         * <p>
+         * Default: none.
+         */
+        public ImmutableList<MaterialStack> getComponentList() {
+            return this.componentList;
+        }
+
+        /**
+         * The components of this Material.
+         * <p>
+         * Default: none.
+         * 
+         * @return {@code this}.
+         */
+        public Material.MaterialInfo setComponentList(final ImmutableList<MaterialStack> componentList) {
+            this.componentList = componentList;
+            return this;
+        }
+
+        /**
+         * The Element of this Material, if it is a direct Element.
+         * <p>
+         * Default: none.
+         */
+        public Element getElement() {
+            return this.element;
+        }
+
+        /**
+         * The Element of this Material, if it is a direct Element.
+         * <p>
+         * Default: none.
+         * 
+         * @return {@code this}.
+         */
+        public Material.MaterialInfo setElement(final Element element) {
+            this.element = element;
+            return this;
+        }
+    }
+
+    /**
+     * Basic Info of this Material.
+     *
+     * @see MaterialInfo
+     */
+    @NotNull
+    public MaterialInfo getMaterialInfo() {
+        return this.materialInfo;
+    }
+
+    /**
+     * Properties of this Material.
+     *
+     * @see MaterialProperties
+     */
+    @NotNull
+    public MaterialProperties getProperties() {
+        return this.properties;
+    }
+
+    /**
+     * Generation flags of this material
+     *
+     * @see MaterialFlags
+     */
+    @NotNull
+    public MaterialFlags getFlags() {
+        return this.flags;
     }
 }

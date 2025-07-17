@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -15,13 +14,11 @@ import java.util.function.Predicate;
 
 public class IOFluidHandlerList extends FluidHandlerList implements IFluidHandlerModifiable {
 
-    @Getter
     private final IO io;
     private final Predicate<FluidStack> inFilter;
     private final Predicate<FluidStack> outFilter;
 
-    public IOFluidHandlerList(List<IFluidHandler> handlers, IO io, Predicate<FluidStack> inFilter,
-                              Predicate<FluidStack> outFilter) {
+    public IOFluidHandlerList(List<IFluidHandler> handlers, IO io, Predicate<FluidStack> inFilter, Predicate<FluidStack> outFilter) {
         super(handlers);
         this.io = io;
         this.inFilter = inFilter;
@@ -35,13 +32,15 @@ public class IOFluidHandlerList extends FluidHandlerList implements IFluidHandle
     }
 
     @Override
-    public @NotNull FluidStack drain(FluidStack resource, FluidAction action) {
+    @NotNull
+    public FluidStack drain(FluidStack resource, FluidAction action) {
         if (!io.support(IO.OUT) || !outFilter.test(resource)) return FluidStack.EMPTY;
         return super.drain(resource, action);
     }
 
     @Override
-    public @NotNull FluidStack drain(int maxDrain, FluidAction action) {
+    @NotNull
+    public FluidStack drain(int maxDrain, FluidAction action) {
         if (!io.support(IO.OUT)) return FluidStack.EMPTY;
         var fluidStack = super.drain(maxDrain, FluidAction.SIMULATE);
         if (fluidStack.isEmpty() || !outFilter.test(fluidStack)) return FluidStack.EMPTY;
@@ -66,5 +65,9 @@ public class IOFluidHandlerList extends FluidHandlerList implements IFluidHandle
             }
             index += handler.getTanks();
         }
+    }
+
+    public IO getIo() {
+        return this.io;
     }
 }

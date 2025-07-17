@@ -40,8 +40,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigDecimal;
@@ -55,36 +53,26 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class MaintenanceHatchPartMachine extends TieredPartMachine
-                                         implements IMachineLife, IMaintenanceMachine, IInteractedMachine {
+public class MaintenanceHatchPartMachine extends TieredPartMachine implements IMachineLife, IMaintenanceMachine, IInteractedMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            MaintenanceHatchPartMachine.class, MultiblockPartMachine.MANAGED_FIELD_HOLDER);
-    private static final float MAX_DURATION_MULTIPLIER = 1.1f;
-    private static final float MIN_DURATION_MULTIPLIER = 0.9f;
-    private static final float DURATION_ACTION_AMOUNT = 0.01f;
-
-    @Getter
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MaintenanceHatchPartMachine.class, MultiblockPartMachine.MANAGED_FIELD_HOLDER);
+    private static final float MAX_DURATION_MULTIPLIER = 1.1F;
+    private static final float MIN_DURATION_MULTIPLIER = 0.9F;
+    private static final float DURATION_ACTION_AMOUNT = 0.01F;
     private final boolean isConfigurable;
     @Persisted
     private final NotifiableItemStackHandler itemStackHandler;
-    @Getter
-    @Setter
     @Persisted
     @DescSynced
     @RequireRerender
     private boolean isTaped;
-    @Getter
-    @Setter
     @Persisted
     protected int timeActive;
-    @Getter
     @Persisted
     @DescSynced
     protected byte maintenanceProblems = startProblems();
-    @Getter
     @Persisted
-    private float durationMultiplier = 1f;
+    private float durationMultiplier = 1.0F;
     @Nullable
     protected TickableSubscription maintenanceSubs;
 
@@ -162,9 +150,7 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine
      * @param entityPlayer the player performing the fixing
      */
     private void fixMaintenanceProblems(@Nullable Player entityPlayer) {
-        if (!hasMaintenanceProblems())
-            return;
-
+        if (!hasMaintenanceProblems()) return;
         if (entityPlayer != null) {
             // Fix automatically on slot click by player in Creative Mode
             if (entityPlayer.isCreative()) {
@@ -185,7 +171,6 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine
     }
 
     /**
-     *
      * Handles duct taping for manual and auto-taping use
      *
      * @param handler is the handler to get duct tape from
@@ -237,7 +222,6 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine
         if (!proceed) {
             return;
         }
-
         for (int i = 0; i < toolsToMatch.size(); i++) {
             GTToolType toolToMatch = toolsToMatch.get(i);
             if (toolToMatch != null) {
@@ -245,23 +229,19 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine
                 ItemStack heldItem = entityPlayer.containerMenu.getCarried();
                 if (ToolHelper.is(heldItem, toolToMatch)) {
                     fixProblemWithTool(i, heldItem, entityPlayer);
-
                     if (toolsToMatch.stream().allMatch(Objects::isNull)) {
                         return;
                     }
                 }
-
                 // Then try all the remaining inventory slots
                 for (ItemStack itemStack : entityPlayer.getInventory().items) {
                     if (ToolHelper.is(itemStack, toolToMatch)) {
                         fixProblemWithTool(i, itemStack, entityPlayer);
-
                         if (toolsToMatch.stream().allMatch(Objects::isNull)) {
                             return;
                         }
                     }
                 }
-
                 if (entityPlayer instanceof ServerPlayer player) {
                     for (ItemStack stack : entityPlayer.getInventory().items) {
                         if (ToolHelper.is(stack, toolToMatch)) {
@@ -273,7 +253,6 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine
                         }
                     }
                 }
-
             }
         }
     }
@@ -300,22 +279,17 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine
 
     @Override
     public float getTimeMultiplier() {
-        var result = 1f;
-        if (durationMultiplier < 1.0)
-            result = -20 * durationMultiplier + 21;
-        else
-            result = -8 * durationMultiplier + 9;
-        return BigDecimal.valueOf(result)
-                .setScale(2, RoundingMode.HALF_UP)
-                .floatValue();
+        var result = 1.0F;
+        if (durationMultiplier < 1.0) result = -20 * durationMultiplier + 21;
+        else result = -8 * durationMultiplier + 9;
+        return BigDecimal.valueOf(result).setScale(2, RoundingMode.HALF_UP).floatValue();
     }
 
     //////////////////////////////////////
     // ******* INTERACTION *******//
     //////////////////////////////////////
     @Override
-    public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand,
-                                   BlockHitResult hit) {
+    public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (hasMaintenanceProblems()) {
             if (consumeDuctTape(player, hand)) {
                 fixAllMaintenanceProblems();
@@ -334,37 +308,29 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine
         WidgetGroup group;
         if (isConfigurable) {
             group = new WidgetGroup(0, 0, 150, 70);
-            group.addWidget(new DraggableScrollableWidgetGroup(4, 4, 150 - 8, 70 - 8).setBackground(GuiTextures.DISPLAY)
-                    .addWidget(new ComponentPanelWidget(4, 5, list -> {
-                        list.add(getTextWidgetText("duration", this::getDurationMultiplier));
-                        list.add(getTextWidgetText("time", this::getTimeMultiplier));
-                        var buttonText = Component.translatable("gtceu.maintenance.configurable_duration.modify");
-                        buttonText.append(" ");
-                        buttonText.append(ComponentPanelWidget.withButton(Component.literal("[-]"), "sub"));
-                        buttonText.append(" ");
-                        buttonText.append(ComponentPanelWidget.withButton(Component.literal("[+]"), "add"));
-                        list.add(buttonText);
-                    }).setMaxWidthLimit(150 - 8 - 8 - 4).clickHandler((componentData, clickData) -> {
-                        if (!clickData.isRemote) {
-                            if (componentData.equals("sub")) {
-                                durationMultiplier = Mth.clamp(durationMultiplier - DURATION_ACTION_AMOUNT,
-                                        MIN_DURATION_MULTIPLIER, MAX_DURATION_MULTIPLIER);
-                            } else if (componentData.equals("add")) {
-                                durationMultiplier = Mth.clamp(durationMultiplier + DURATION_ACTION_AMOUNT,
-                                        MIN_DURATION_MULTIPLIER, MAX_DURATION_MULTIPLIER);
-                            }
-                        }
-                    })));
-
+            group.addWidget(new DraggableScrollableWidgetGroup(4, 4, 150 - 8, 70 - 8).setBackground(GuiTextures.DISPLAY).addWidget(new ComponentPanelWidget(4, 5, list -> {
+                list.add(getTextWidgetText("duration", this::getDurationMultiplier));
+                list.add(getTextWidgetText("time", this::getTimeMultiplier));
+                var buttonText = Component.translatable("gtceu.maintenance.configurable_duration.modify");
+                buttonText.append(" ");
+                buttonText.append(ComponentPanelWidget.withButton(Component.literal("[-]"), "sub"));
+                buttonText.append(" ");
+                buttonText.append(ComponentPanelWidget.withButton(Component.literal("[+]"), "add"));
+                list.add(buttonText);
+            }).setMaxWidthLimit(150 - 8 - 8 - 4).clickHandler((componentData, clickData) -> {
+                if (!clickData.isRemote) {
+                    if (componentData.equals("sub")) {
+                        durationMultiplier = Mth.clamp(durationMultiplier - DURATION_ACTION_AMOUNT, MIN_DURATION_MULTIPLIER, MAX_DURATION_MULTIPLIER);
+                    } else if (componentData.equals("add")) {
+                        durationMultiplier = Mth.clamp(durationMultiplier + DURATION_ACTION_AMOUNT, MIN_DURATION_MULTIPLIER, MAX_DURATION_MULTIPLIER);
+                    }
+                }
+            })));
         } else {
             group = new WidgetGroup(0, 0, 8 + 18, 8 + 20 + 18);
         }
-        group.addWidget(new SlotWidget(itemStackHandler, 0, group.getSize().width - 4 - 18, 4)
-                .setBackgroundTexture(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.DUCT_TAPE_OVERLAY))
-                .setHoverTooltips("gtceu.machine.maintenance_hatch_tape_slot.tooltip"));
-        group.addWidget(new ButtonWidget(group.getSize().width - 4 - 18, 4 + 20, 18, 18, GuiTextures.MAINTENANCE_BUTTON,
-                data -> fixMaintenanceProblems(group.getGui().entityPlayer))
-                .setHoverTooltips("gtceu.machine.maintenance_hatch_tool_slot.tooltip"));
+        group.addWidget(new SlotWidget(itemStackHandler, 0, group.getSize().width - 4 - 18, 4).setBackgroundTexture(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.DUCT_TAPE_OVERLAY)).setHoverTooltips("gtceu.machine.maintenance_hatch_tape_slot.tooltip"));
+        group.addWidget(new ButtonWidget(group.getSize().width - 4 - 18, 4 + 20, 18, 18, GuiTextures.MAINTENANCE_BUTTON, data -> fixMaintenanceProblems(group.getGui().entityPlayer)).setHoverTooltips("gtceu.machine.maintenance_hatch_tool_slot.tooltip"));
         group.setBackground(GuiTextures.BACKGROUND_INVERSE);
         return group;
     }
@@ -374,12 +340,36 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine
         if (multiplier.getAsDouble() == 1.0) {
             tooltip = Component.translatable("gtceu.maintenance.configurable_" + type + ".unchanged_description");
         } else {
-            tooltip = Component.translatable("gtceu.maintenance.configurable_" + type + ".changed_description",
-                    FormattingUtil.formatNumber2Places(multiplier.getAsDouble()));
+            tooltip = Component.translatable("gtceu.maintenance.configurable_" + type + ".changed_description", FormattingUtil.formatNumber2Places(multiplier.getAsDouble()));
         }
-        return Component
-                .translatable("gtceu.maintenance.configurable_" + type,
-                        FormattingUtil.formatNumber2Places(multiplier.getAsDouble()))
-                .setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltip)));
+        return Component.translatable("gtceu.maintenance.configurable_" + type, FormattingUtil.formatNumber2Places(multiplier.getAsDouble())).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltip)));
+    }
+
+    public boolean isConfigurable() {
+        return this.isConfigurable;
+    }
+
+    public boolean isTaped() {
+        return this.isTaped;
+    }
+
+    public void setTaped(final boolean isTaped) {
+        this.isTaped = isTaped;
+    }
+
+    public int getTimeActive() {
+        return this.timeActive;
+    }
+
+    public void setTimeActive(final int timeActive) {
+        this.timeActive = timeActive;
+    }
+
+    public byte getMaintenanceProblems() {
+        return this.maintenanceProblems;
+    }
+
+    public float getDurationMultiplier() {
+        return this.durationMultiplier;
     }
 }

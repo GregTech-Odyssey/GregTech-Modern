@@ -8,12 +8,10 @@ import com.lowdragmc.lowdraglib.networking.IPacket;
 import net.minecraft.network.FriendlyByteBuf;
 
 import it.unimi.dsi.fastutil.booleans.BooleanBooleanPair;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @SuppressWarnings("unchecked")
-@NoArgsConstructor
 public class CPacketKeysPressed implements IPacket {
 
     private Object updateKeys;
@@ -56,4 +54,6 @@ public class CPacketKeysPressed implements IPacket {
             }
         }
     }
+
+    public CPacketKeysPressed() {}
 }

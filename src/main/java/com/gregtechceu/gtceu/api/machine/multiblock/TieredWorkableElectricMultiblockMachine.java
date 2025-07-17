@@ -10,21 +10,15 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 
-import lombok.Getter;
-
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class TieredWorkableElectricMultiblockMachine extends WorkableElectricMultiblockMachine
-                                                     implements ITieredMachine, IOverclockMachine {
+public class TieredWorkableElectricMultiblockMachine extends WorkableElectricMultiblockMachine implements ITieredMachine, IOverclockMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            TieredWorkableElectricMultiblockMachine.class, WorkableElectricMultiblockMachine.MANAGED_FIELD_HOLDER);
-
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(TieredWorkableElectricMultiblockMachine.class, WorkableElectricMultiblockMachine.MANAGED_FIELD_HOLDER);
     private final int tier;
     @Persisted
-    @Getter
     protected int overclockTier;
 
     public TieredWorkableElectricMultiblockMachine(IMachineBlockEntity holder, int tier, Object... args) {
@@ -72,5 +66,9 @@ public class TieredWorkableElectricMultiblockMachine extends WorkableElectricMul
     @Override
     public long getMaxVoltage() {
         return Math.min(GTValues.V[tier], super.getMaxVoltage());
+    }
+
+    public int getOverclockTier() {
+        return this.overclockTier;
     }
 }

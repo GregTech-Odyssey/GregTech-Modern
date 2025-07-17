@@ -17,7 +17,6 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,22 +24,18 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait<Integer>
-                                            implements IOpticalComputationHatch, IOpticalComputationReceiver {
+public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait<Integer> implements IOpticalComputationHatch, IOpticalComputationReceiver {
 
-    @Getter
     protected IO handlerIO;
-    @Getter
     protected boolean transmitter;
-
     protected long lastTimeStamp;
-    private int currentOutputCwu = 0, lastOutputCwu = 0;
+    private int currentOutputCwu = 0;
+    private int lastOutputCwu = 0;
 
     public NotifiableComputationContainer(MetaMachine machine, IO handlerIO, boolean transmitter) {
         super(machine);
         this.handlerIO = handlerIO;
         this.transmitter = transmitter;
-
         this.lastTimeStamp = Long.MIN_VALUE;
     }
 
@@ -52,7 +47,6 @@ public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait
             currentOutputCwu = 0;
             lastTimeStamp = latestTimeStamp;
         }
-
         seen.add(this);
         if (handlerIO == IO.IN) {
             if (isTransmitter()) {
@@ -73,8 +67,7 @@ public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait
                             }
                         }
                     }
-                    GTCEu.LOGGER
-                            .error("NotifiableComputationContainer could request CWU/t from its machine's controller!");
+                    GTCEu.LOGGER.error("NotifiableComputationContainer could request CWU/t from its machine\'s controller!");
                     return 0;
                 } else {
                     GTCEu.LOGGER.error("NotifiableComputationContainer could request CWU/t from its machine!");
@@ -117,8 +110,7 @@ public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait
                             }
                         }
                     }
-                    GTCEu.LOGGER.error(
-                            "NotifiableComputationContainer could not get maximum CWU/t from its machine's controller!");
+                    GTCEu.LOGGER.error("NotifiableComputationContainer could not get maximum CWU/t from its machine\'s controller!");
                     return 0;
                 } else {
                     GTCEu.LOGGER.error("NotifiableComputationContainer could not get maximum CWU/t from its machine!");
@@ -160,8 +152,7 @@ public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait
                             }
                         }
                     }
-                    GTCEu.LOGGER.error(
-                            "NotifiableComputationContainer could not test bridge status of its machine's controller!");
+                    GTCEu.LOGGER.error("NotifiableComputationContainer could not test bridge status of its machine\'s controller!");
                     return false;
                 } else {
                     GTCEu.LOGGER.error("NotifiableComputationContainer could not test bridge status of its machine!");
@@ -179,11 +170,9 @@ public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait
     }
 
     @Override
-    public List<Integer> handleRecipeInner(IO io, GTRecipe recipe, List<Integer> left,
-                                           boolean simulate) {
+    public List<Integer> handleRecipeInner(IO io, GTRecipe recipe, List<Integer> left, boolean simulate) {
         IOpticalComputationProvider provider = getOpticalNetProvider();
         if (provider == null) return left;
-
         int sum = left.stream().mapToInt(Integer::intValue).sum();
         if (io == IO.IN) {
             int availableCWUt = requestCWUt(Integer.MAX_VALUE, true);
@@ -220,7 +209,8 @@ public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait
     }
 
     @Override
-    public @NotNull List<Object> getContents() {
+    @NotNull
+    public List<Object> getContents() {
         return List.of(lastOutputCwu);
     }
 
@@ -256,10 +246,8 @@ public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait
         for (Direction direction : GTUtil.DIRECTIONS) {
             BlockEntity blockEntity = machine.getLevel().getBlockEntity(machine.getPos().relative(direction));
             if (blockEntity == null) continue;
-
             // noinspection DataFlowIssue can be null just fine.
-            IOpticalComputationProvider provider = blockEntity
-                    .getCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER, direction.getOpposite()).orElse(null);
+            IOpticalComputationProvider provider = blockEntity.getCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER, direction.getOpposite()).orElse(null);
             // noinspection ConstantValue can be null because above.
             if (provider != null && provider != this) {
                 return provider;
@@ -273,10 +261,17 @@ public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait
         for (Direction direction : GTUtil.DIRECTIONS) {
             BlockEntity blockEntity = machine.getLevel().getBlockEntity(machine.getPos().relative(direction));
             if (blockEntity instanceof OpticalPipeBlockEntity) {
-                return blockEntity.getCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER, direction.getOpposite())
-                        .orElse(null);
+                return blockEntity.getCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER, direction.getOpposite()).orElse(null);
             }
         }
         return null;
+    }
+
+    public IO getHandlerIO() {
+        return this.handlerIO;
+    }
+
+    public boolean isTransmitter() {
+        return this.transmitter;
     }
 }

@@ -5,8 +5,6 @@ import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 
-import lombok.Getter;
-
 /**
  * The capability can be input or output or both
  */
@@ -17,9 +15,7 @@ public enum IO implements EnumSelectorWidget.SelectableEnum {
     BOTH("gtceu.io.both", "both"),
     NONE("gtceu.io.none", "none");
 
-    @Getter
     public final String tooltip;
-    @Getter
     public final IGuiTexture icon;
 
     IO(String tooltip, String textureName) {
@@ -31,5 +27,13 @@ public enum IO implements EnumSelectorWidget.SelectableEnum {
         if (io == this) return true;
         if (io == NONE) return false;
         return this == BOTH;
+    }
+
+    public String getTooltip() {
+        return this.tooltip;
+    }
+
+    public IGuiTexture getIcon() {
+        return this.icon;
     }
 }

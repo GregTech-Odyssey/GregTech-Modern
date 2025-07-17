@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 
 import net.minecraft.core.Direction;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -12,26 +11,23 @@ import java.util.List;
 public class EnergyContainerList implements IEnergyContainer {
 
     private final List<? extends IEnergyContainer> energyContainerList;
-    @Getter
     private final long inputVoltage;
-    @Getter
     private final long outputVoltage;
     /**
      * Always < 4. A list with amps > 4 will always be compacted into more voltage at fewer amps.
      */
-    @Getter
     private final long inputAmperage;
     /**
      * Always < 4. A list with amps > 4 will always be compacted into more voltage at fewer amps.
      */
-    @Getter
     private final long outputAmperage;
-
-    /** The highest single energy container's input voltage in the list. */
-    @Getter
+    /**
+     * The highest single energy container's input voltage in the list.
+     */
     private final long highestInputVoltage;
-    /** The number of energy containers at the highest input voltage in the list. */
-    @Getter
+    /**
+     * The number of energy containers at the highest input voltage in the list.
+     */
     private final int numHighestInputContainers;
 
     public EnergyContainerList(List<? extends IEnergyContainer> energyContainerList) {
@@ -56,7 +52,6 @@ public class EnergyContainerList implements IEnergyContainer {
                 numHighestInputContainers++;
             }
         }
-
         long[] voltageAmperage = calculateVoltageAmperage(totalInputVoltage, inputAmperage);
         this.inputVoltage = voltageAmperage[0];
         this.inputAmperage = voltageAmperage[1];
@@ -127,7 +122,7 @@ public class EnergyContainerList implements IEnergyContainer {
     private static boolean isPowerOfFour(long l) {
         if (l == 0) return false;
         if ((l & (l - 1)) != 0) return false;
-        return (l & 0x55555555) != 0;
+        return (l & 1431655765) != 0;
     }
 
     @Override
@@ -206,14 +201,42 @@ public class EnergyContainerList implements IEnergyContainer {
 
     @Override
     public String toString() {
-        return "EnergyContainerList{" +
-                "energyContainerList=" + energyContainerList +
-                ", energyStored=" + getEnergyStored() +
-                ", energyCapacity=" + getEnergyCapacity() +
-                ", inputVoltage=" + inputVoltage +
-                ", inputAmperage=" + inputAmperage +
-                ", outputVoltage=" + outputVoltage +
-                ", outputAmperage=" + outputAmperage +
-                '}';
+        return "EnergyContainerList{" + "energyContainerList=" + energyContainerList + ", energyStored=" + getEnergyStored() + ", energyCapacity=" + getEnergyCapacity() + ", inputVoltage=" + inputVoltage + ", inputAmperage=" + inputAmperage + ", outputVoltage=" + outputVoltage + ", outputAmperage=" + outputAmperage + '}';
+    }
+
+    public long getInputVoltage() {
+        return this.inputVoltage;
+    }
+
+    public long getOutputVoltage() {
+        return this.outputVoltage;
+    }
+
+    /**
+     * Always < 4. A list with amps > 4 will always be compacted into more voltage at fewer amps.
+     */
+    public long getInputAmperage() {
+        return this.inputAmperage;
+    }
+
+    /**
+     * Always < 4. A list with amps > 4 will always be compacted into more voltage at fewer amps.
+     */
+    public long getOutputAmperage() {
+        return this.outputAmperage;
+    }
+
+    /**
+     * The highest single energy container's input voltage in the list.
+     */
+    public long getHighestInputVoltage() {
+        return this.highestInputVoltage;
+    }
+
+    /**
+     * The number of energy containers at the highest input voltage in the list.
+     */
+    public int getNumHighestInputContainers() {
+        return this.numHighestInputContainers;
     }
 }

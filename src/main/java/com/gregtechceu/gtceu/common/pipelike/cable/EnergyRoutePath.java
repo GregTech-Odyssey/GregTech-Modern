@@ -9,25 +9,18 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 public class EnergyRoutePath implements IRoutePath<IEnergyContainer> {
 
     private final CableBlockEntity targetPipe;
-    @Getter
     private final BlockPos targetPipePos;
-    @Getter
     private final Direction targetFacing;
-    @Getter
     private final int distance;
-    @Getter
     private final CableBlockEntity[] path;
-    @Getter
     private final long maxLoss;
 
-    public EnergyRoutePath(BlockPos targetPipePos, Direction targetFacing, CableBlockEntity[] path, int distance,
-                           long maxLoss) {
+    public EnergyRoutePath(BlockPos targetPipePos, Direction targetFacing, CableBlockEntity[] path, int distance, long maxLoss) {
         this.targetPipe = path[path.length - 1];
         this.targetPipePos = targetPipePos;
         this.targetFacing = targetFacing;
@@ -38,7 +31,26 @@ public class EnergyRoutePath implements IRoutePath<IEnergyContainer> {
 
     @Nullable
     public IEnergyContainer getHandler(Level world) {
-        return GTCapabilityHelper.getEnergyContainer(world, getTargetPipePos().relative(targetFacing),
-                targetFacing.getOpposite());
+        return GTCapabilityHelper.getEnergyContainer(world, getTargetPipePos().relative(targetFacing), targetFacing.getOpposite());
+    }
+
+    public BlockPos getTargetPipePos() {
+        return this.targetPipePos;
+    }
+
+    public Direction getTargetFacing() {
+        return this.targetFacing;
+    }
+
+    public int getDistance() {
+        return this.distance;
+    }
+
+    public CableBlockEntity[] getPath() {
+        return this.path;
+    }
+
+    public long getMaxLoss() {
+        return this.maxLoss;
     }
 }

@@ -39,10 +39,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -103,11 +99,10 @@ public abstract class ProspectorMode<T> {
                                 list.add(new ItemStack(block));
                             }
                         }
-                        return new ItemStackTexture(list.toArray(ItemStack[]::new)).scale(0.8f);
+                        return new ItemStackTexture(list.toArray(ItemStack[]::new)).scale(0.8F);
                     }
                 }
-                return new ItemStackTexture(new ItemStack(BuiltInRegistries.BLOCK.get(new ResourceLocation(name))))
-                        .scale(0.8f);
+                return new ItemStackTexture(new ItemStack(BuiltInRegistries.BLOCK.get(new ResourceLocation(name)))).scale(0.8F);
             });
         }
 
@@ -152,21 +147,14 @@ public abstract class ProspectorMode<T> {
                     }
                 }
             }
-            counter.forEach((item, count) -> tooltips
-                    .add(Component.translatable(getDescriptionId(item)).append(" --- " + count)));
+            counter.forEach((item, count) -> tooltips.add(Component.translatable(getDescriptionId(item)).append(" --- " + count)));
         }
     };
 
-    @Accessors(fluent = true)
-    @AllArgsConstructor
     public static final class FluidInfo {
 
-        @Getter
         private final Fluid fluid;
-        @Getter
         private final int yield;
-        @Getter
-        @Setter
         private int left;
 
         public static FluidInfo fromNbt(CompoundTag tag) {
@@ -188,9 +176,33 @@ public abstract class ProspectorMode<T> {
             if (savedData.getDefinition() == null) {
                 return null;
             }
-            return new FluidInfo(savedData.getDefinition().getStoredFluid().get(),
-                    savedData.getFluidYield(),
-                    100 * savedData.getOperationsRemaining() / BedrockFluidVeinSavedData.MAXIMUM_VEIN_OPERATIONS);
+            return new FluidInfo(savedData.getDefinition().getStoredFluid().get(), savedData.getFluidYield(), 100 * savedData.getOperationsRemaining() / BedrockFluidVeinSavedData.MAXIMUM_VEIN_OPERATIONS);
+        }
+
+        public FluidInfo(final Fluid fluid, final int yield, final int left) {
+            this.fluid = fluid;
+            this.yield = yield;
+            this.left = left;
+        }
+
+        public Fluid fluid() {
+            return this.fluid;
+        }
+
+        public int yield() {
+            return this.yield;
+        }
+
+        public int left() {
+            return this.left;
+        }
+
+        /**
+         * @return {@code this}.
+         */
+        public ProspectorMode.FluidInfo left(final int left) {
+            this.left = left;
+            return this;
         }
     }
 
@@ -199,12 +211,9 @@ public abstract class ProspectorMode<T> {
         @Override
         public void scan(FluidInfo[][][] storage, LevelChunk chunk) {
             if (chunk.getLevel() instanceof ServerLevel serverLevel) {
-                var fluidVein = BedrockFluidVeinSavedData.getOrCreate(serverLevel)
-                        .getFluidVeinWorldEntry(chunk.getPos().x, chunk.getPos().z);
+                var fluidVein = BedrockFluidVeinSavedData.getOrCreate(serverLevel).getFluidVeinWorldEntry(chunk.getPos().x, chunk.getPos().z);
                 if (fluidVein.getDefinition() != null) {
-                    storage[0][0] = new FluidInfo[] {
-                            FluidInfo.fromVeinWorldEntry(fluidVein)
-                    };
+                    storage[0][0] = new FluidInfo[] { FluidInfo.fromVeinWorldEntry(fluidVein) };
                 }
             }
         }
@@ -213,7 +222,7 @@ public abstract class ProspectorMode<T> {
         public int getItemColor(FluidInfo item) {
             var fluidStack = new FluidStack(item.fluid, item.yield);
             if (fluidStack.getFluid() == Fluids.LAVA) {
-                return 0xFFFF7000;
+                return -36864;
             }
             return GTUtil.getFluidColor(fluidStack);
         }
@@ -242,8 +251,7 @@ public abstract class ProspectorMode<T> {
 
         @Override
         public FluidInfo deserialize(FriendlyByteBuf buf) {
-            return new FluidInfo(BuiltInRegistries.FLUID.get(new ResourceLocation(buf.readUtf())), buf.readVarInt(),
-                    buf.readVarInt());
+            return new FluidInfo(BuiltInRegistries.FLUID.get(new ResourceLocation(buf.readUtf())), buf.readVarInt(), buf.readVarInt());
         }
 
         @Override
@@ -255,8 +263,7 @@ public abstract class ProspectorMode<T> {
         public void appendTooltips(List<FluidInfo[]> items, List<Component> tooltips, String selected) {
             for (var array : items) {
                 for (FluidInfo item : array) {
-                    tooltips.add(Component.translatable(getDescriptionId(item))
-                            .append(" --- %s (%s%%)".formatted(item.yield, item.left)));
+                    tooltips.add(Component.translatable(getDescriptionId(item)).append(" --- %s (%s%%)".formatted(item.yield, item.left)));
                 }
             }
         }
@@ -271,31 +278,23 @@ public abstract class ProspectorMode<T> {
                 float drawnV = (float) ProgressTexture.FillDirection.DOWN_TO_UP.getDrawnV(progress);
                 float drawnWidth = (float) ProgressTexture.FillDirection.DOWN_TO_UP.getDrawnWidth(progress);
                 float drawnHeight = (float) ProgressTexture.FillDirection.DOWN_TO_UP.getDrawnHeight(progress);
-                DrawerHelper.drawFluidForGui(graphics,
-                        FluidHelperImpl.toFluidStack(new FluidStack(item.fluid(), item.left)), 100,
-                        (int) (x + drawnU * width), (int) (y + drawnV * height), ((int) (width * drawnWidth)),
-                        ((int) (height * drawnHeight)));
+                DrawerHelper.drawFluidForGui(graphics, FluidHelperImpl.toFluidStack(new FluidStack(item.fluid(), item.left)), 100, (int) (x + drawnU * width), (int) (y + drawnV * height), ((int) (width * drawnWidth)), ((int) (height * drawnHeight)));
             }
         }
     };
 
-    public record OreInfo(Material material, int weight, int left, int yield) {
+    public record OreInfo(Material material, int weight, int left, int yield) {}
 
-    }
-
-    public static ProspectorMode<OreInfo> BEDROCK_ORE = new ProspectorMode<>("metaitem.prospector.mode.bedrock_ore",
-            1) {
+    public static ProspectorMode<OreInfo> BEDROCK_ORE = new ProspectorMode<>("metaitem.prospector.mode.bedrock_ore", 1) {
 
         @Override
         public void scan(OreInfo[][][] storage, LevelChunk chunk) {
             if (chunk.getLevel() instanceof ServerLevel serverLevel) {
-                var oreVein = BedrockOreVeinSavedData.getOrCreate(serverLevel).getOreVeinWorldEntry(chunk.getPos().x,
-                        chunk.getPos().z);
+                var oreVein = BedrockOreVeinSavedData.getOrCreate(serverLevel).getOreVeinWorldEntry(chunk.getPos().x, chunk.getPos().z);
                 if (oreVein.getDefinition() != null) {
                     var left = 100 * oreVein.getOperationsRemaining() / BedrockOreVeinSavedData.MAXIMUM_VEIN_OPERATIONS;
                     for (var entry : oreVein.getDefinition().materials()) {
-                        storage[0][0] = ArrayUtils.add(storage[0][0],
-                                new OreInfo(entry.material(), entry.weight(), left, oreVein.getOreYield()));
+                        storage[0][0] = ArrayUtils.add(storage[0][0], new OreInfo(entry.material(), entry.weight(), left, oreVein.getOreYield()));
                     }
                 }
             }
@@ -309,17 +308,16 @@ public abstract class ProspectorMode<T> {
         @Override
         public IGuiTexture getItemIcon(OreInfo item) {
             Material material = item.material;
-            ItemStack stack = ChemicalHelper.get(TagPrefix.get(ConfigHolder.INSTANCE.machines.bedrockOreDropTagPrefix),
-                    material);
+            ItemStack stack = ChemicalHelper.get(TagPrefix.get(ConfigHolder.INSTANCE.machines.bedrockOreDropTagPrefix), material);
             if (stack.isEmpty()) stack = ChemicalHelper.get(TagPrefix.crushed, material); // backup 1: crushed; if raw
-                                                                                          // ore doesn't exist
+            // ore doesn't exist
             if (stack.isEmpty()) stack = ChemicalHelper.get(TagPrefix.gem, material); // backup 2: gem; if crushed ore
-                                                                                      // doesn't exist
+            // doesn't exist
             if (stack.isEmpty()) stack = ChemicalHelper.get(TagPrefix.ore, material); // backup 3: ore; if gem doesn't
-                                                                                      // exist
+            // exist
             if (stack.isEmpty()) stack = ChemicalHelper.get(TagPrefix.dust, material); // backup 4: just fallback to
-                                                                                       // dust...
-            return new ItemStackTexture(stack).scale(0.8f);
+            // dust...
+            return new ItemStackTexture(stack).scale(0.8F);
         }
 
         @Override
@@ -343,9 +341,7 @@ public abstract class ProspectorMode<T> {
         @Override
         public OreInfo deserialize(FriendlyByteBuf buf) {
             ResourceLocation materialId = buf.readResourceLocation();
-            return new OreInfo(
-                    GTCEuAPI.materialManager.getRegistry(materialId.getNamespace()).get(materialId.getPath()),
-                    buf.readVarInt(), buf.readVarInt(), buf.readVarInt());
+            return new OreInfo(GTCEuAPI.materialManager.getRegistry(materialId.getNamespace()).get(materialId.getPath()), buf.readVarInt(), buf.readVarInt(), buf.readVarInt());
         }
 
         @Override
@@ -359,15 +355,11 @@ public abstract class ProspectorMode<T> {
                 int totalWeight = Arrays.stream(array).mapToInt(OreInfo::weight).sum();
                 for (OreInfo item : array) {
                     float chance = (float) item.weight / totalWeight * 100;
-                    tooltips.add(Component.translatable(getDescriptionId(item)).append(" (")
-                            .append(Component.translatable("gtceu.gui.content.chance_base",
-                                    FormattingUtil.formatNumber2Places(chance)))
-                            .append(") --- %s (%s%%)".formatted(item.yield, item.left)));
+                    tooltips.add(Component.translatable(getDescriptionId(item)).append(" (").append(Component.translatable("gtceu.gui.content.chance_base", FormattingUtil.formatNumber2Places(chance))).append(") --- %s (%s%%)".formatted(item.yield, item.left)));
                 }
             }
         }
     };
-
     public final String unlocalizedName;
     public final int cellSize;
 

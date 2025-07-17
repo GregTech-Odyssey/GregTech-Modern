@@ -15,7 +15,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import appeng.api.stacks.GenericStack;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import lombok.Getter;
 
 public abstract class ConfigWidget extends WidgetGroup {
 
@@ -24,9 +23,7 @@ public abstract class ConfigWidget extends WidgetGroup {
     protected Int2ObjectMap<IConfigurableSlot> changeMap = new Int2ObjectOpenHashMap<>();
     protected IConfigurableSlot[] displayList;
     protected AmountSetWidget amountSetWidget;
-    protected final static int UPDATE_ID = 1000;
-
-    @Getter
+    protected static final int UPDATE_ID = 1000;
     protected final boolean isStocking;
 
     public ConfigWidget(int x, int y, IConfigurableSlot[] config, boolean isStocking) {
@@ -170,5 +167,9 @@ public abstract class ConfigWidget extends WidgetGroup {
             return s1.amount() == s2.amount() && s1.what().matches(s2);
         }
         return false;
+    }
+
+    public boolean isStocking() {
+        return this.isStocking;
     }
 }

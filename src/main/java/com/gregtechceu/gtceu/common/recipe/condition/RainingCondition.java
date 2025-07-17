@@ -14,18 +14,12 @@ import net.minecraft.world.level.Level;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-@NoArgsConstructor
 public class RainingCondition extends RecipeCondition {
 
-    public static final Codec<RainingCondition> CODEC = RecordCodecBuilder
-            .create(instance -> RecipeCondition.isReverse(instance)
-                    .and(Codec.FLOAT.fieldOf("level").forGetter(val -> val.level))
-                    .apply(instance, RainingCondition::new));
-
-    public final static RainingCondition INSTANCE = new RainingCondition();
+    public static final Codec<RainingCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(Codec.FLOAT.fieldOf("level").forGetter(val -> val.level)).apply(instance, RainingCondition::new));
+    public static final RainingCondition INSTANCE = new RainingCondition();
     private float level;
 
     public RainingCondition(boolean isReverse, float level) {
@@ -89,4 +83,6 @@ public class RainingCondition extends RecipeCondition {
         super.toNetwork(buf);
         buf.writeFloat(level);
     }
+
+    public RainingCondition() {}
 }

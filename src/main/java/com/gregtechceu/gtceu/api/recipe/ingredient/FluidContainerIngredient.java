@@ -21,7 +21,6 @@ import net.minecraftforge.fluids.capability.templates.VoidFluidHandler;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,11 +32,7 @@ import javax.annotation.Nonnull;
 public class FluidContainerIngredient extends Ingredient {
 
     public static final ResourceLocation TYPE = GTCEu.id("fluid_container");
-
-    public static final Codec<FluidContainerIngredient> CODEC = FluidIngredient.CODEC.xmap(
-            FluidContainerIngredient::new, FluidContainerIngredient::getFluid);
-
-    @Getter
+    public static final Codec<FluidContainerIngredient> CODEC = FluidIngredient.CODEC.xmap(FluidContainerIngredient::new, FluidContainerIngredient::getFluid);
     private final FluidIngredient fluid;
 
     public FluidContainerIngredient(FluidIngredient fluid) {
@@ -46,8 +41,7 @@ public class FluidContainerIngredient extends Ingredient {
     }
 
     public FluidContainerIngredient(FluidStack fluidStack) {
-        this(FluidIngredient.of(TagUtil.createFluidTag(BuiltInRegistries.FLUID.getKey(fluidStack.getFluid()).getPath()),
-                fluidStack.getAmount()));
+        this(FluidIngredient.of(TagUtil.createFluidTag(BuiltInRegistries.FLUID.getKey(fluidStack.getFluid()).getPath()), fluidStack.getAmount()));
     }
 
     public FluidContainerIngredient(TagKey<Fluid> tag, int amount) {
@@ -59,11 +53,7 @@ public class FluidContainerIngredient extends Ingredient {
     @Nonnull
     @Override
     public ItemStack[] getItems() {
-        if (cachedStacks == null)
-            cachedStacks = Arrays.stream(this.fluid.getStacks())
-                    .map(FluidUtil::getFilledBucket)
-                    .filter(s -> !s.isEmpty())
-                    .toArray(ItemStack[]::new);
+        if (cachedStacks == null) cachedStacks = Arrays.stream(this.fluid.getStacks()).map(FluidUtil::getFilledBucket).filter(s -> !s.isEmpty()).toArray(ItemStack[]::new);
         return this.cachedStacks;
     }
 
@@ -82,11 +72,8 @@ public class FluidContainerIngredient extends Ingredient {
 
     @Override
     public boolean test(@Nullable ItemStack stack) {
-        if (stack == null || stack.isEmpty())
-            return false;
-        return FluidUtil.getFluidContained(stack).map(fluid::test).orElse(false) &&
-                FluidUtil.tryEmptyContainer(stack, VoidFluidHandler.INSTANCE, fluid.getAmount(), null, false)
-                        .isSuccess();
+        if (stack == null || stack.isEmpty()) return false;
+        return FluidUtil.getFluidContained(stack).map(fluid::test).orElse(false) && FluidUtil.tryEmptyContainer(stack, VoidFluidHandler.INSTANCE, fluid.getAmount(), null, false).isSuccess();
     }
 
     @Override
@@ -95,8 +82,7 @@ public class FluidContainerIngredient extends Ingredient {
     }
 
     public ItemStack getExtractedStack(ItemStack input) {
-        FluidActionResult result = FluidUtil.tryEmptyContainer(input, VoidFluidHandler.INSTANCE, fluid.getAmount(),
-                ForgeHooks.getCraftingPlayer(), true);
+        FluidActionResult result = FluidUtil.tryEmptyContainer(input, VoidFluidHandler.INSTANCE, fluid.getAmount(), ForgeHooks.getCraftingPlayer(), true);
         if (result.isSuccess()) {
             return result.getResult();
         }
@@ -116,13 +102,15 @@ public class FluidContainerIngredient extends Ingredient {
     public static final IIngredientSerializer<FluidContainerIngredient> SERIALIZER = new IIngredientSerializer<>() {
 
         @Override
-        public @NotNull FluidContainerIngredient parse(FriendlyByteBuf buffer) {
+        @NotNull
+        public FluidContainerIngredient parse(FriendlyByteBuf buffer) {
             FluidIngredient fluid = FluidIngredient.fromNetwork(buffer);
             return new FluidContainerIngredient(fluid);
         }
 
         @Override
-        public @NotNull FluidContainerIngredient parse(JsonObject json) {
+        @NotNull
+        public FluidContainerIngredient parse(JsonObject json) {
             FluidIngredient fluid = FluidIngredient.fromJson(GsonHelper.getAsJsonObject(json, "fluid"));
             return new FluidContainerIngredient(fluid);
         }
@@ -132,4 +120,8 @@ public class FluidContainerIngredient extends Ingredient {
             ingredient.fluid.toNetwork(buffer);
         }
     };
+
+    public FluidIngredient getFluid() {
+        return this.fluid;
+    }
 }

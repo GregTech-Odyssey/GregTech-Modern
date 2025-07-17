@@ -14,8 +14,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
-import lombok.Getter;
-
 import java.util.Arrays;
 import java.util.function.Consumer;
 
@@ -25,19 +23,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class SimpleFluidFilter implements FluidFilter {
 
-    @Getter
     protected boolean isBlackList;
-    @Getter
     protected boolean ignoreNbt;
-    @Getter
     protected FluidStack[] matches = new FluidStack[9];
-
     protected Consumer<FluidFilter> itemWriter = filter -> {};
     protected Consumer<FluidFilter> onUpdated = filter -> itemWriter.accept(filter);
-
-    @Getter
     protected int maxStackSize = 1;
-
     private CustomFluidTank[] fluidStorageSlots = new CustomFluidTank[9];
 
     protected SimpleFluidFilter() {
@@ -104,13 +95,9 @@ public class SimpleFluidFilter implements FluidFilter {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 final int index = i * 3 + j;
-
                 fluidStorageSlots[index] = new CustomFluidTank(maxStackSize);
                 fluidStorageSlots[index].setFluid(matches[index]);
-
-                var tank = new ScrollablePhantomFluidWidget(fluidStorageSlots[index], 0, i * 18, j * 18, 18, 18,
-                        () -> fluidStorageSlots[index].getFluid(),
-                        (fluid) -> fluidStorageSlots[index].setFluid(fluid)) {
+                var tank = new ScrollablePhantomFluidWidget(fluidStorageSlots[index], 0, i * 18, j * 18, 18, 18, () -> fluidStorageSlots[index].getFluid(), fluid -> fluidStorageSlots[index].setFluid(fluid)) {
 
                     @Override
                     public void updateScreen() {
@@ -124,19 +111,15 @@ public class SimpleFluidFilter implements FluidFilter {
                         setShowAmount(maxStackSize > 1L);
                     }
                 };
-
                 tank.setChangeListener(() -> {
                     matches[index] = fluidStorageSlots[index].getFluidInTank(0);
                     onUpdated.accept(this);
                 }).setBackground(GuiTextures.SLOT);
-
                 group.addWidget(tank);
             }
         }
-        group.addWidget(new ToggleButtonWidget(18 * 3 + 5, 0, 20, 20,
-                GuiTextures.BUTTON_BLACKLIST, this::isBlackList, this::setBlackList));
-        group.addWidget(new ToggleButtonWidget(18 * 3 + 5, 20, 20, 20,
-                GuiTextures.BUTTON_FILTER_NBT, this::isIgnoreNbt, this::setIgnoreNbt));
+        group.addWidget(new ToggleButtonWidget(18 * 3 + 5, 0, 20, 20, GuiTextures.BUTTON_BLACKLIST, this::isBlackList, this::setBlackList));
+        group.addWidget(new ToggleButtonWidget(18 * 3 + 5, 20, 20, 20, GuiTextures.BUTTON_FILTER_NBT, this::isIgnoreNbt, this::setIgnoreNbt));
         return group;
     }
 
@@ -148,17 +131,14 @@ public class SimpleFluidFilter implements FluidFilter {
     @Override
     public int testFluidAmount(FluidStack fluidStack) {
         int totalFluidAmount = getTotalConfiguredFluidAmount(fluidStack);
-
         if (isBlackList) {
             return (totalFluidAmount > 0) ? 0 : Integer.MAX_VALUE;
         }
-
         return totalFluidAmount;
     }
 
     public int getTotalConfiguredFluidAmount(FluidStack fluidStack) {
         int totalAmount = 0;
-
         for (var candidate : matches) {
             if (ignoreNbt && candidate.getFluid() == fluidStack.getFluid()) {
                 totalAmount += candidate.getAmount();
@@ -166,21 +146,32 @@ public class SimpleFluidFilter implements FluidFilter {
                 totalAmount += candidate.getAmount();
             }
         }
-
         return totalAmount;
     }
 
     public void setMaxStackSize(int maxStackSize) {
         this.maxStackSize = maxStackSize;
-
         for (CustomFluidTank slot : fluidStorageSlots) {
-            if (slot != null)
-                slot.setCapacity(maxStackSize);
+            if (slot != null) slot.setCapacity(maxStackSize);
         }
-
         for (FluidStack match : matches) {
-            if (!match.isEmpty())
-                match.setAmount(Math.min(match.getAmount(), maxStackSize));
+            if (!match.isEmpty()) match.setAmount(Math.min(match.getAmount(), maxStackSize));
         }
+    }
+
+    public boolean isBlackList() {
+        return this.isBlackList;
+    }
+
+    public boolean isIgnoreNbt() {
+        return this.ignoreNbt;
+    }
+
+    public FluidStack[] getMatches() {
+        return this.matches;
+    }
+
+    public int getMaxStackSize() {
+        return this.maxStackSize;
     }
 }

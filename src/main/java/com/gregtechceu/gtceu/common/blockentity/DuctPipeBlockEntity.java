@@ -19,7 +19,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,12 +27,10 @@ import java.util.EnumMap;
 
 public class DuctPipeBlockEntity extends PipeBlockEntity<DuctPipeType, DuctPipeProperties> {
 
-    @Getter
     protected final EnumMap<Direction, DuctNetHandler> handlers = new EnumMap<>(Direction.class);
     // the DuctNetHandler can only be created on the server, so we have an empty placeholder for the client
     public final IHazardParticleContainer clientCapability = new DefaultDuctContainer();
     private WeakReference<DuctPipeNet> currentPipeNet = new WeakReference<>(null);
-    @Getter
     protected DuctNetHandler defaultHandler;
 
     protected DuctPipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
@@ -47,17 +44,15 @@ public class DuctPipeBlockEntity extends PipeBlockEntity<DuctPipeType, DuctPipeP
     public static void onBlockEntityRegister(BlockEntityType<DuctPipeBlockEntity> ductBlockEntityBlockEntityType) {}
 
     @Override
-    public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+    @NotNull
+    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         if (cap == GTCapability.CAPABILITY_HAZARD_CONTAINER) {
-            if (getLevel().isClientSide())
-                return GTCapability.CAPABILITY_HAZARD_CONTAINER.orEmpty(cap, LazyOptional.of(() -> clientCapability));
-
+            if (getLevel().isClientSide()) return GTCapability.CAPABILITY_HAZARD_CONTAINER.orEmpty(cap, LazyOptional.of(() -> clientCapability));
             if (handlers.isEmpty()) {
                 initHandlers();
             }
             checkNetwork();
-            return GTCapability.CAPABILITY_HAZARD_CONTAINER.orEmpty(cap,
-                    LazyOptional.of(() -> handlers.getOrDefault(side, defaultHandler)));
+            return GTCapability.CAPABILITY_HAZARD_CONTAINER.orEmpty(cap, LazyOptional.of(() -> handlers.getOrDefault(side, defaultHandler)));
         } else if (cap == GTCapability.CAPABILITY_COVERABLE) {
             return GTCapability.CAPABILITY_COVERABLE.orEmpty(cap, LazyOptional.of(this::getCoverContainer));
         } else if (cap == GTCapability.CAPABILITY_TOOLABLE) {
@@ -115,11 +110,7 @@ public class DuctPipeBlockEntity extends PipeBlockEntity<DuctPipeType, DuctPipeP
                 return false;
             }
             BlockPos relative = getBlockPos().relative(side);
-            return GTCapabilityHelper.getHazardContainer(level, relative, side.getOpposite()) !=
-                    null ||
-                    (level.getBlockEntity(relative) instanceof IMachineBlockEntity machineBlockEntity &&
-                            (machineBlockEntity.getMetaMachine() instanceof IEnvironmentalHazardCleaner ||
-                                    machineBlockEntity.getMetaMachine() instanceof IEnvironmentalHazardEmitter));
+            return GTCapabilityHelper.getHazardContainer(level, relative, side.getOpposite()) != null || (level.getBlockEntity(relative) instanceof IMachineBlockEntity machineBlockEntity && (machineBlockEntity.getMetaMachine() instanceof IEnvironmentalHazardCleaner || machineBlockEntity.getMetaMachine() instanceof IEnvironmentalHazardEmitter));
         }
         return false;
     }
@@ -145,5 +136,13 @@ public class DuctPipeBlockEntity extends PipeBlockEntity<DuctPipeType, DuctPipeP
         public float getHazardCapacity(MedicalCondition condition) {
             return 0;
         }
+    }
+
+    public EnumMap<Direction, DuctNetHandler> getHandlers() {
+        return this.handlers;
+    }
+
+    public DuctNetHandler getDefaultHandler() {
+        return this.defaultHandler;
     }
 }

@@ -27,19 +27,14 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.items.ItemHandlerHelper;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 public class CreativeTankMachine extends QuantumTankMachine {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(CreativeTankMachine.class,
-            QuantumTankMachine.MANAGED_FIELD_HOLDER);
-
-    @Getter
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(CreativeTankMachine.class, QuantumTankMachine.MANAGED_FIELD_HOLDER);
     @Persisted
     @DropSaved
     private int mBPerCycle = 1000;
-    @Getter
     @Persisted
     @DropSaved
     private int ticksPerCycle = 1;
@@ -63,7 +58,7 @@ public class CreativeTankMachine extends QuantumTankMachine {
 
     @Override
     public long getStoredAmount() {
-        return (long) Math.ceil(1d * mBPerCycle / ticksPerCycle);
+        return (long) Math.ceil(1.0 * mBPerCycle / ticksPerCycle);
     }
 
     private InteractionResult updateStored(FluidStack fluid) {
@@ -85,8 +80,7 @@ public class CreativeTankMachine extends QuantumTankMachine {
     }
 
     @Override
-    public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand,
-                                   BlockHitResult hit) {
+    public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         var heldItem = player.getItemInHand(hand);
         if (hit.getDirection() == getFrontFacing() && !isRemote()) {
             // Clear fluid if empty + shift-rclick
@@ -96,31 +90,23 @@ public class CreativeTankMachine extends QuantumTankMachine {
                 }
                 return InteractionResult.PASS;
             }
-
             // If no fluid set and held-item has fluid, set fluid
             if (stored.isEmpty()) {
-                return FluidUtil.getFluidContained(heldItem)
-                        .map(this::updateStored)
-                        .orElse(InteractionResult.PASS);
+                return FluidUtil.getFluidContained(heldItem).map(this::updateStored).orElse(InteractionResult.PASS);
             }
-
             // Need to make a fake source to fully fill held-item since our cache only allows mbPerTick extraction
             CustomFluidTank source = new CustomFluidTank(new FluidStack(stored, Integer.MAX_VALUE));
-            ItemStack result = FluidUtil.tryFillContainer(heldItem, source, Integer.MAX_VALUE, player, true)
-                    .getResult();
+            ItemStack result = FluidUtil.tryFillContainer(heldItem, source, Integer.MAX_VALUE, player, true).getResult();
             if (!result.isEmpty() && heldItem.getCount() > 1) {
                 ItemHandlerHelper.giveItemToPlayer(player, result);
                 result = heldItem.copy();
                 result.shrink(1);
             }
-
             if (!result.isEmpty()) {
                 player.setItemInHand(hand, result);
                 return InteractionResult.SUCCESS;
             } else {
-                return FluidUtil.getFluidContained(heldItem)
-                        .map(this::updateStored)
-                        .orElse(InteractionResult.PASS);
+                return FluidUtil.getFluidContained(heldItem).map(this::updateStored).orElse(InteractionResult.PASS);
             }
         }
         return InteractionResult.PASS;
@@ -129,28 +115,15 @@ public class CreativeTankMachine extends QuantumTankMachine {
     @Override
     public WidgetGroup createUIWidget() {
         var group = new WidgetGroup(0, 0, 176, 131);
-        group.addWidget(new PhantomFluidWidget(cache, 0, 36, 6, 18, 18, this::getStored, this::updateStored)
-                .setShowAmount(false)
-                .setBackground(GuiTextures.FLUID_SLOT));
+        group.addWidget(new PhantomFluidWidget(cache, 0, 36, 6, 18, 18, this::getStored, this::updateStored).setShowAmount(false).setBackground(GuiTextures.FLUID_SLOT));
         group.addWidget(new LabelWidget(7, 9, "gtceu.creative.tank.fluid"));
         group.addWidget(new ImageWidget(7, 45, 154, 14, GuiTextures.DISPLAY));
-        group.addWidget(new TextFieldWidget(9, 47, 152, 10, () -> String.valueOf(mBPerCycle), this::setmBPerCycle)
-                .setMaxStringLength(11)
-                .setNumbersOnly(1, Integer.MAX_VALUE));
+        group.addWidget(new TextFieldWidget(9, 47, 152, 10, () -> String.valueOf(mBPerCycle), this::setmBPerCycle).setMaxStringLength(11).setNumbersOnly(1, Integer.MAX_VALUE));
         group.addWidget(new LabelWidget(7, 28, "gtceu.creative.tank.mbpc"));
         group.addWidget(new ImageWidget(7, 82, 154, 14, GuiTextures.DISPLAY));
-        group.addWidget(new TextFieldWidget(9, 84, 152, 10, () -> String.valueOf(ticksPerCycle), this::setTicksPerCycle)
-                .setMaxStringLength(11)
-                .setNumbersOnly(1, Integer.MAX_VALUE));
+        group.addWidget(new TextFieldWidget(9, 84, 152, 10, () -> String.valueOf(ticksPerCycle), this::setTicksPerCycle).setMaxStringLength(11).setNumbersOnly(1, Integer.MAX_VALUE));
         group.addWidget(new LabelWidget(7, 65, "gtceu.creative.tank.tpc"));
-        group.addWidget(new SwitchWidget(7, 101, 162, 20, (clickData, value) -> setWorkingEnabled(value))
-                .setTexture(
-                        new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON,
-                                new TextTexture("gtceu.creative.activity.off")),
-                        new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON,
-                                new TextTexture("gtceu.creative.activity.on")))
-                .setPressed(isWorkingEnabled()));
-
+        group.addWidget(new SwitchWidget(7, 101, 162, 20, (clickData, value) -> setWorkingEnabled(value)).setTexture(new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, new TextTexture("gtceu.creative.activity.off")), new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, new TextTexture("gtceu.creative.activity.on"))).setPressed(isWorkingEnabled()));
         return group;
     }
 
@@ -166,7 +139,8 @@ public class CreativeTankMachine extends QuantumTankMachine {
         }
 
         @Override
-        public @NotNull FluidStack getFluidInTank(int tank) {
+        @NotNull
+        public FluidStack getFluidInTank(int tank) {
             return stored;
         }
 
@@ -177,13 +151,15 @@ public class CreativeTankMachine extends QuantumTankMachine {
         }
 
         @Override
-        public @NotNull FluidStack drain(int maxDrain, FluidAction action) {
+        @NotNull
+        public FluidStack drain(int maxDrain, FluidAction action) {
             if (!stored.isEmpty()) return new FluidStack(stored, mBPerCycle);
             return FluidStack.EMPTY;
         }
 
         @Override
-        public @NotNull FluidStack drain(FluidStack resource, FluidAction action) {
+        @NotNull
+        public FluidStack drain(FluidStack resource, FluidAction action) {
             if (!stored.isEmpty() && stored.isFluidEqual(resource)) return new FluidStack(resource, mBPerCycle);
             return FluidStack.EMPTY;
         }
@@ -197,5 +173,13 @@ public class CreativeTankMachine extends QuantumTankMachine {
         public int getTankCapacity(int tank) {
             return 1000;
         }
+    }
+
+    public int getMBPerCycle() {
+        return this.mBPerCycle;
+    }
+
+    public int getTicksPerCycle() {
+        return this.ticksPerCycle;
     }
 }

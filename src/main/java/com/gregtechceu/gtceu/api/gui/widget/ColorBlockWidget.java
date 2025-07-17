@@ -7,25 +7,19 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.IntSupplier;
 
-@Setter
-@Accessors(chain = true)
 public class ColorBlockWidget extends Widget {
 
     private IntSupplier colorSupplier;
-    @Getter
     private int currentColor;
     private static boolean isShowAlpha = false;
 
     public ColorBlockWidget(int x, int y, int width, int height) {
         super(x, y, width, height);
-        this.currentColor = 0xFFFFFFFF;
+        this.currentColor = -1;
     }
 
     @Override
@@ -53,13 +47,32 @@ public class ColorBlockWidget extends Widget {
         int y = getPosition().y + 1;
         int width = getSize().width - 2;
         int height = getSize().height - 2;
-
         if (colorSupplier != null) {
             currentColor = colorSupplier.getAsInt();
         }
-        final int BORDER_COLOR = 0xFF000000;
-        int opaqueColor = isShowAlpha ? currentColor : currentColor | 0xFF000000;
+        final int BORDER_COLOR = -16777216;
+        int opaqueColor = isShowAlpha ? currentColor : currentColor | -16777216;
         graphics.fill(x, y, x + width, y + height, opaqueColor);
         DrawerHelper.drawBorder(graphics, x, y, width, height, BORDER_COLOR, 1);
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public ColorBlockWidget setColorSupplier(final IntSupplier colorSupplier) {
+        this.colorSupplier = colorSupplier;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public ColorBlockWidget setCurrentColor(final int currentColor) {
+        this.currentColor = currentColor;
+        return this;
+    }
+
+    public int getCurrentColor() {
+        return this.currentColor;
     }
 }

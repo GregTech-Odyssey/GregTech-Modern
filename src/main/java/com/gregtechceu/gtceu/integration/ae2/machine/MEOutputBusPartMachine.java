@@ -21,7 +21,6 @@ import net.minecraft.world.item.ItemStack;
 
 import appeng.api.config.Actionable;
 import appeng.api.stacks.AEItemKey;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -36,9 +35,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class MEOutputBusPartMachine extends MEBusPartMachine implements IMachineLife, IInteractedMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            MEOutputBusPartMachine.class, MEBusPartMachine.MANAGED_FIELD_HOLDER);
-
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MEOutputBusPartMachine.class, MEBusPartMachine.MANAGED_FIELD_HOLDER);
     @Persisted
     private KeyStorage internalBuffer; // Do not use KeyCounter, use our simple implementation
 
@@ -49,7 +46,6 @@ public class MEOutputBusPartMachine extends MEBusPartMachine implements IMachine
     /////////////////////////////////
     // ***** Machine LifeCycle ****//
     /////////////////////////////////
-
     @Override
     protected NotifiableItemStackHandler createInventory(Object... args) {
         this.internalBuffer = new KeyStorage();
@@ -61,8 +57,7 @@ public class MEOutputBusPartMachine extends MEBusPartMachine implements IMachine
         var grid = getMainNode().getGrid();
         if (grid != null && !internalBuffer.isEmpty()) {
             for (var entry : internalBuffer) {
-                grid.getStorageService().getInventory().insert(entry.getKey(), entry.getLongValue(),
-                        Actionable.MODULATE, actionSource);
+                grid.getStorageService().getInventory().insert(entry.getKey(), entry.getLongValue(), Actionable.MODULATE, actionSource);
             }
         }
     }
@@ -75,7 +70,6 @@ public class MEOutputBusPartMachine extends MEBusPartMachine implements IMachine
     /////////////////////////////////
     // ********** Sync ME *********//
     /////////////////////////////////
-
     @Override
     protected boolean shouldSubscribe() {
         return super.shouldSubscribe() && !internalBuffer.storage.isEmpty();
@@ -96,18 +90,14 @@ public class MEOutputBusPartMachine extends MEBusPartMachine implements IMachine
     ///////////////////////////////
     // ********** GUI ***********//
     ///////////////////////////////
-
     @Override
     public Widget createUIWidget() {
         WidgetGroup group = new WidgetGroup(0, 0, 170, 65);
         // ME Network status
-        group.addWidget(new LabelWidget(5, 0, () -> this.isOnline ?
-                "gtceu.gui.me_network.online" :
-                "gtceu.gui.me_network.offline"));
+        group.addWidget(new LabelWidget(5, 0, () -> this.isOnline ? "gtceu.gui.me_network.online" : "gtceu.gui.me_network.offline"));
         group.addWidget(new LabelWidget(5, 10, "gtceu.gui.waiting_list"));
         // display list
         group.addWidget(new AEListGridWidget.Item(5, 20, 3, this.internalBuffer));
-
         return group;
     }
 
@@ -119,7 +109,8 @@ public class MEOutputBusPartMachine extends MEBusPartMachine implements IMachine
         }
 
         @Override
-        public @NotNull List<Object> getContents() {
+        @NotNull
+        public List<Object> getContents() {
             return Collections.emptyList();
         }
 
@@ -134,7 +125,6 @@ public class MEOutputBusPartMachine extends MEBusPartMachine implements IMachine
         }
     }
 
-    @NoArgsConstructor
     private class ItemStackHandlerDelegate extends CustomItemStackHandler {
 
         // Necessary for InaccessibleInfiniteHandler
@@ -183,5 +173,7 @@ public class MEOutputBusPartMachine extends MEBusPartMachine implements IMachine
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
             return ItemStack.EMPTY;
         }
+
+        public ItemStackHandlerDelegate() {}
     }
 }

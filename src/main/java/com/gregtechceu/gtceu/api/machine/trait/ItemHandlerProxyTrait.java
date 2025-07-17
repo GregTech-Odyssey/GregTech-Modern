@@ -10,20 +10,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@Accessors(chain = true)
 public class ItemHandlerProxyTrait extends MachineTrait implements IItemHandlerModifiable, ICapabilityTrait {
 
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ItemHandlerProxyTrait.class);
-    @Getter
     public final IO capabilityIO;
-    @Setter
-    @Getter
     @Nullable
     public IItemHandlerModifiable proxy;
 
@@ -40,7 +33,6 @@ public class ItemHandlerProxyTrait extends MachineTrait implements IItemHandlerM
     //////////////////////////////////////
     // ******* Capability ********//
     //////////////////////////////////////
-
     @Override
     public int getSlots() {
         return proxy == null ? 0 : proxy.getSlots();
@@ -115,8 +107,24 @@ public class ItemHandlerProxyTrait extends MachineTrait implements IItemHandlerM
         var pos = getMachine().getPos();
         for (Direction facing : facings) {
             var filter = getMachine().getItemCapFilter(facing, IO.OUT);
-            GTTransferUtils.getAdjacentItemHandler(level, pos, facing)
-                    .ifPresent(adj -> GTTransferUtils.transferItemsFiltered(this, adj, filter));
+            GTTransferUtils.getAdjacentItemHandler(level, pos, facing).ifPresent(adj -> GTTransferUtils.transferItemsFiltered(this, adj, filter));
         }
+    }
+
+    public IO getCapabilityIO() {
+        return this.capabilityIO;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public ItemHandlerProxyTrait setProxy(@Nullable final IItemHandlerModifiable proxy) {
+        this.proxy = proxy;
+        return this;
+    }
+
+    @Nullable
+    public IItemHandlerModifiable getProxy() {
+        return this.proxy;
     }
 }

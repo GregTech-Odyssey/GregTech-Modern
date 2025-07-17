@@ -6,18 +6,14 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FluidVeinWorldEntry {
 
     @Nullable
-    @Getter
     private BedrockFluidDefinition vein;
-    @Getter
     private int fluidYield;
-    @Getter
     private int operationsRemaining;
 
     public FluidVeinWorldEntry(@Nullable BedrockFluidDefinition vein, int fluidYield, int operationsRemaining) {
@@ -38,8 +34,7 @@ public class FluidVeinWorldEntry {
     }
 
     public void decreaseOperations(int amount) {
-        operationsRemaining = ConfigHolder.INSTANCE.worldgen.oreVeins.infiniteBedrockOresFluids ? operationsRemaining :
-                Math.max(0, operationsRemaining - amount);
+        operationsRemaining = ConfigHolder.INSTANCE.worldgen.oreVeins.infiniteBedrockOresFluids ? operationsRemaining : Math.max(0, operationsRemaining - amount);
     }
 
     public CompoundTag writeToNBT() {
@@ -57,7 +52,6 @@ public class FluidVeinWorldEntry {
         FluidVeinWorldEntry info = new FluidVeinWorldEntry();
         info.fluidYield = tag.getInt("fluidYield");
         info.operationsRemaining = tag.getInt("operationsRemaining");
-
         if (tag.contains("vein")) {
             ResourceLocation id = new ResourceLocation(tag.getString("vein"));
             if (GTRegistries.BEDROCK_FLUID_DEFINITIONS.containKey(id)) {
@@ -65,5 +59,18 @@ public class FluidVeinWorldEntry {
             }
         }
         return info;
+    }
+
+    @Nullable
+    public BedrockFluidDefinition getVein() {
+        return this.vein;
+    }
+
+    public int getFluidYield() {
+        return this.fluidYield;
+    }
+
+    public int getOperationsRemaining() {
+        return this.operationsRemaining;
     }
 }

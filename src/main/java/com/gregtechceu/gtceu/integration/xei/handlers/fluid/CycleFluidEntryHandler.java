@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidStackList;
 
 import net.minecraftforge.fluids.FluidStack;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -15,9 +14,7 @@ import java.util.stream.Collectors;
 
 public class CycleFluidEntryHandler implements IFluidHandlerModifiable {
 
-    @Getter
     private final List<FluidEntryList> entries;
-
     private List<List<FluidStack>> unwrapped = null;
 
     public CycleFluidEntryHandler(List<FluidEntryList> entries) {
@@ -26,9 +23,7 @@ public class CycleFluidEntryHandler implements IFluidHandlerModifiable {
 
     public List<List<FluidStack>> getUnwrapped() {
         if (unwrapped == null) {
-            unwrapped = entries.stream()
-                    .map(CycleFluidEntryHandler::getStacksNullable)
-                    .collect(Collectors.toCollection(ArrayList::new));
+            unwrapped = entries.stream().map(CycleFluidEntryHandler::getStacksNullable).collect(Collectors.toCollection(ArrayList::new));
         }
         return unwrapped;
     }
@@ -51,8 +46,7 @@ public class CycleFluidEntryHandler implements IFluidHandlerModifiable {
     @Override
     public FluidStack getFluidInTank(int tank) {
         List<FluidStack> stackList = getUnwrapped().get(tank);
-        return stackList == null || stackList.isEmpty() ? FluidStack.EMPTY :
-                stackList.get(Math.abs((int) (System.currentTimeMillis() / 1000) % stackList.size()));
+        return stackList == null || stackList.isEmpty() ? FluidStack.EMPTY : stackList.get(Math.abs((int) (System.currentTimeMillis() / 1000) % stackList.size()));
     }
 
     @Override
@@ -90,12 +84,17 @@ public class CycleFluidEntryHandler implements IFluidHandlerModifiable {
     }
 
     @Override
-    public @NotNull FluidStack drain(int maxDrain, FluidAction action) {
+    @NotNull
+    public FluidStack drain(int maxDrain, FluidAction action) {
         return FluidStack.EMPTY;
     }
 
     @Override
     public boolean supportsDrain(int tank) {
         return false;
+    }
+
+    public List<FluidEntryList> getEntries() {
+        return this.entries;
     }
 }

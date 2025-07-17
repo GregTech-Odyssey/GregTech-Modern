@@ -4,7 +4,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 
 import com.mojang.serialization.JsonOps;
-import lombok.Getter;
 
 import java.util.Set;
 
@@ -12,7 +11,6 @@ public class SimpleWorldGenLayer implements IWorldGenLayer {
 
     private final String name;
     private final IWorldGenLayer.RuleTestSupplier target;
-    @Getter
     private final Set<ResourceLocation> levels;
 
     public SimpleWorldGenLayer(String name, IWorldGenLayer.RuleTestSupplier target, Set<ResourceLocation> levels) {
@@ -29,9 +27,7 @@ public class SimpleWorldGenLayer implements IWorldGenLayer {
 
     @Override
     public String toString() {
-        return getSerializedName() + "[" +
-                RuleTest.CODEC.encodeStart(JsonOps.INSTANCE, target.get()).result().orElse(null) + "]" +
-                ",dimensions=" + levels.toString();
+        return getSerializedName() + "[" + RuleTest.CODEC.encodeStart(JsonOps.INSTANCE, target.get()).result().orElse(null) + "]" + ",dimensions=" + levels.toString();
     }
 
     @Override
@@ -43,7 +39,6 @@ public class SimpleWorldGenLayer implements IWorldGenLayer {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof IWorldGenLayer that)) return false;
-
         return getSerializedName().equals(that.getSerializedName());
     }
 
@@ -54,5 +49,9 @@ public class SimpleWorldGenLayer implements IWorldGenLayer {
     @Override
     public boolean isApplicableForLevel(ResourceLocation level) {
         return levels.contains(level);
+    }
+
+    public Set<ResourceLocation> getLevels() {
+        return this.levels;
     }
 }

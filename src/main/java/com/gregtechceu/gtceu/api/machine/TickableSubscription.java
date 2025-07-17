@@ -1,11 +1,8 @@
 package com.gregtechceu.gtceu.api.machine;
 
-import lombok.Getter;
-
 public class TickableSubscription {
 
     private final Runnable runnable;
-    @Getter
     private boolean stillSubscribed;
 
     public TickableSubscription(Runnable runnable) {
@@ -21,5 +18,9 @@ public class TickableSubscription {
 
     public void unsubscribe() {
         stillSubscribed = false;
+    }
+
+    public boolean isStillSubscribed() {
+        return this.stillSubscribed;
     }
 }

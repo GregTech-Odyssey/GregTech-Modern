@@ -41,8 +41,6 @@ import net.minecraftforge.common.Tags;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,8 +48,7 @@ import java.util.*;
 
 public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MinerLogic.class,
-            RecipeLogic.MANAGED_FIELD_HOLDER);
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MinerLogic.class, RecipeLogic.MANAGED_FIELD_HOLDER);
     private static final short MAX_SPEED = Short.MAX_VALUE;
     private static final byte POWER = 5;
     private static final byte TICK_TOLERANCE = 20;
@@ -59,69 +56,45 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
     protected final IMiner miner;
     @Nullable
     private NotifiableAccountedInvWrapper cachedItemHandler = null;
-    @Getter
     private final int fortune;
-    @Getter
     private final int speed;
-    @Getter
     private final int maximumRadius;
-    @Getter
     public ItemStack pickaxeTool;
     private final LinkedList<BlockPos> blocksToMine = new LinkedList<>();
-    @Getter
     @Persisted
     protected int x = Integer.MAX_VALUE;
-    @Getter
     @Persisted
     protected int y = Integer.MAX_VALUE;
-    @Getter
     @Persisted
     protected int z = Integer.MAX_VALUE;
-    @Getter
     @Persisted
     protected int startX = Integer.MAX_VALUE;
-    @Getter
     @Persisted
     protected int startZ = Integer.MAX_VALUE;
-    @Getter
     @Persisted
     protected int startY = Integer.MAX_VALUE;
-    @Getter
     @Persisted
     protected int pipeY = Integer.MAX_VALUE;
-    @Getter
     @Persisted
     protected int mineX = Integer.MAX_VALUE;
-    @Getter
     @Persisted
     protected int mineZ = Integer.MAX_VALUE;
-    @Getter
     @Persisted
     protected int mineY = Integer.MAX_VALUE;
-    @Getter
     private int minBuildHeight = Integer.MAX_VALUE;
-    @Getter
     private int maxBuildHeight = Integer.MAX_VALUE;
-    @Getter
     @Persisted
     private int pipeLength = 0;
-    @Getter
-    @Setter
     @Persisted
     private int currentRadius;
-    @Getter
     @Persisted
     private boolean isDone;
-    @Getter
     private boolean isInventoryFull;
-    @Getter
     private final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
-    @Getter
     protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
-    private final ItemRecipeHandler inputItemHandler, outputItemHandler;
+    private final ItemRecipeHandler inputItemHandler;
+    private final ItemRecipeHandler outputItemHandler;
     private final IgnoreEnergyRecipeHandler inputEnergyHandler;
-    @Setter
-    @Getter
     private Direction dir = Direction.DOWN;
 
     /**
@@ -143,15 +116,11 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
         this.pickaxeTool = GTMaterialItems.TOOL_ITEMS.get(GTMaterials.Neutronium, GTToolType.PICKAXE).get().get();
         this.capabilitiesProxy = new EnumMap<>(IO.class);
         this.capabilitiesFlat = new EnumMap<>(IO.class);
-        this.inputItemHandler = new ItemRecipeHandler(IO.IN,
-                machine.getRecipeType().getMaxInputs(ItemRecipeCapability.CAP));
-        this.outputItemHandler = new ItemRecipeHandler(IO.OUT,
-                machine.getRecipeType().getMaxOutputs(ItemRecipeCapability.CAP));
+        this.inputItemHandler = new ItemRecipeHandler(IO.IN, machine.getRecipeType().getMaxInputs(ItemRecipeCapability.CAP));
+        this.outputItemHandler = new ItemRecipeHandler(IO.OUT, machine.getRecipeType().getMaxOutputs(ItemRecipeCapability.CAP));
         this.inputEnergyHandler = new IgnoreEnergyRecipeHandler();
-
         RecipeHandlerList inHandlers = RecipeHandlerList.of(IO.IN, inputItemHandler, inputEnergyHandler);
         RecipeHandlerList outHandlers = RecipeHandlerList.of(IO.OUT, outputItemHandler);
-
         addHandlerList(inHandlers);
         addHandlerList(outHandlers);
     }
@@ -178,11 +147,9 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
 
     private static BlockState findMiningReplacementBlock(Level level) {
         try {
-            return BlockStateParser.parseForBlock(level.holderLookup(Registries.BLOCK),
-                    ConfigHolder.INSTANCE.machines.replaceMinedBlocksWith, false).blockState();
+            return BlockStateParser.parseForBlock(level.holderLookup(Registries.BLOCK), ConfigHolder.INSTANCE.machines.replaceMinedBlocksWith, false).blockState();
         } catch (CommandSyntaxException ignored) {
-            GTCEu.LOGGER.error("failed to parse replaceMinedBlocksWith, invalid BlockState: {}",
-                    ConfigHolder.INSTANCE.machines.replaceMinedBlocksWith);
+            GTCEu.LOGGER.error("failed to parse replaceMinedBlocksWith, invalid BlockState: {}", ConfigHolder.INSTANCE.machines.replaceMinedBlocksWith);
             return Blocks.COBBLESTONE.defaultBlockState();
         }
     }
@@ -203,11 +170,9 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
             } else {
                 // the miner cannot drain, therefore it is inactive
                 if (this.isWorking()) {
-                    setWaiting(Component.translatable("gtceu.recipe_logic.insufficient_out").append(": ")
-                            .append(ItemRecipeCapability.CAP.getName()));
+                    setWaiting(Component.translatable("gtceu.recipe_logic.insufficient_out").append(": ").append(ItemRecipeCapability.CAP.getName()));
                 }
             }
-
             // drill a hole beneath the miner and extend the pipe downwards by one
             if ((dir == Direction.DOWN && mineY < pipeY) || (dir == Direction.UP && mineY > pipeY)) {
                 var miningPos = getMiningPos();
@@ -225,15 +190,12 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
                 }
                 incrementPipeLength();
             }
-
             // check if the miner needs new blocks to mine and get them if needed
             checkBlocksToMine();
-
             // if there are blocks to mine and the correct amount of time has passed, do the mining
             if (getMachine().getOffsetTimer() % this.speed == 0 && !blocksToMine.isEmpty()) {
                 NonNullList<ItemStack> blockDrops = NonNullList.create();
                 BlockState blockState = serverLevel.getBlockState(blocksToMine.getFirst());
-
                 // check to make sure the ore is still there,
                 while (!blockState.is(Tags.Blocks.ORES)) {
                     blocksToMine.removeFirst();
@@ -242,11 +204,7 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
                 }
                 // When we are here we have an ore to mine! I'm glad we aren't threaded
                 if (!blocksToMine.isEmpty() & blockState.is(Tags.Blocks.ORES)) {
-                    LootParams.Builder builder = new LootParams.Builder(serverLevel)
-                            .withParameter(LootContextParams.BLOCK_STATE, blockState)
-                            .withParameter(LootContextParams.ORIGIN, Vec3.atLowerCornerOf(blocksToMine.getFirst()))
-                            .withParameter(LootContextParams.TOOL, getPickaxeTool());
-
+                    LootParams.Builder builder = new LootParams.Builder(serverLevel).withParameter(LootContextParams.BLOCK_STATE, blockState).withParameter(LootContextParams.ORIGIN, Vec3.atLowerCornerOf(blocksToMine.getFirst())).withParameter(LootContextParams.TOOL, getPickaxeTool());
                     // get the small ore drops, if a small ore
                     getSmallOreBlockDrops(blockDrops, blockState, builder);
                     // get the block's drops.
@@ -263,13 +221,11 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
                     mineAndInsertItems(blockDrops, serverLevel);
                 }
             }
-
             if (blocksToMine.isEmpty()) {
                 // there were no blocks to mine, so the current position is the previous position
                 x = mineX;
                 y = mineY;
                 z = mineZ;
-
                 // attempt to get more blocks to mine, if there are none, the miner is done mining
                 blocksToMine.addAll(getBlocksToMine());
                 if (blocksToMine.isEmpty()) {
@@ -304,15 +260,14 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
      */
     protected void onMineOperation() {}
 
+    // todo implement small ores
     /**
      * called to handle mining small ores
      *
      * @param blockDrops the List of items to fill after the operation
      * @param blockState the {@link BlockState} of the block being mined
      */
-    // todo implement small ores
-    protected void getSmallOreBlockDrops(NonNullList<ItemStack> blockDrops, BlockState blockState,
-                                         LootParams.Builder builder) {
+    protected void getSmallOreBlockDrops(NonNullList<ItemStack> blockDrops, BlockState blockState, LootParams.Builder builder) {
         /*
          * small ores
          * if orePrefix of block in blockPos is small
@@ -339,8 +294,7 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
      * @param blockDrops the List of items to fill after the operation
      * @param blockState the {@link BlockState} of the block being mined
      */
-    protected void getRegularBlockDrops(NonNullList<ItemStack> blockDrops, BlockState blockState,
-                                        LootParams.Builder builder) {
+    protected void getRegularBlockDrops(NonNullList<ItemStack> blockDrops, BlockState blockState, LootParams.Builder builder) {
         blockDrops.addAll(blockState.getDrops(builder));
     }
 
@@ -348,21 +302,16 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
         return 0;
     }
 
-    protected boolean doPostProcessing(NonNullList<ItemStack> blockDrops, BlockState blockState,
-                                       LootParams.Builder builder) {
+    protected boolean doPostProcessing(NonNullList<ItemStack> blockDrops, BlockState blockState, LootParams.Builder builder) {
         ItemStack oreDrop = new ItemStack(blockState.getBlock());
         if (oreDrop.isEmpty()) return false;
-
         // create dummy recipe handler
         inputItemHandler.storage.setStackInSlot(0, oreDrop);
         outputItemHandler.storage.clear();
-
         var matches = machine.getRecipeType().searchRecipe(this, r -> RecipeHelper.matchContents(this, r).isSuccess());
-
         while (matches.hasNext()) {
             GTRecipe match = matches.next();
             if (match == null) continue;
-
             long eut = match.getInputEUt();
             if (GTUtil.getTierByVoltage(eut) <= getVoltageTier()) {
                 if (RecipeHelper.handleRecipeIO(this, match, IO.OUT, this.chanceCaches).isSuccess()) {
@@ -381,8 +330,7 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
         return false;
     }
 
-    protected void dropPostProcessing(NonNullList<ItemStack> blockDrops, List<ItemStack> outputs, BlockState blockState,
-                                      LootParams.Builder builder) {
+    protected void dropPostProcessing(NonNullList<ItemStack> blockDrops, List<ItemStack> outputs, BlockState blockState, LootParams.Builder builder) {
         blockDrops.addAll(outputs);
     }
 
@@ -392,17 +340,13 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
      * @param blockDrops the List of items to fill after the operation
      * @param blockState the {@link BlockState} of the block being mined
      */
-    protected void getSilkTouchDrops(NonNullList<ItemStack> blockDrops, BlockState blockState,
-                                     LootParams.Builder builder) {
+    protected void getSilkTouchDrops(NonNullList<ItemStack> blockDrops, BlockState blockState, LootParams.Builder builder) {
         blockDrops.add(new ItemStack(blockState.getBlock()));
     }
 
     protected NotifiableAccountedInvWrapper getCachedItemHandler() {
         if (cachedItemHandler == null) {
-            cachedItemHandler = new NotifiableAccountedInvWrapper(machine
-                    .getCapabilitiesFlat(IO.OUT, ItemRecipeCapability.CAP).stream()
-                    .map(IItemHandlerModifiable.class::cast)
-                    .toArray(IItemHandlerModifiable[]::new));
+            cachedItemHandler = new NotifiableAccountedInvWrapper(machine.getCapabilitiesFlat(IO.OUT, ItemRecipeCapability.CAP).stream().map(IItemHandlerModifiable.class::cast).toArray(IItemHandlerModifiable[]::new));
         }
         return cachedItemHandler;
     }
@@ -428,7 +372,6 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
                 mineY = blocksToMine.getFirst().getY();
                 blocksToMine.removeFirst();
                 onMineOperation();
-
                 // if the inventory was previously considered full, mark it as not since an item was able to fit
                 isInventoryFull = false;
             } else {
@@ -483,8 +426,7 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
      * Checks whether there are any more blocks to mine, if there are currently none queued
      */
     public void checkBlocksToMine() {
-        if (blocksToMine.isEmpty())
-            blocksToMine.addAll(getBlocksToMine());
+        if (blocksToMine.isEmpty()) blocksToMine.addAll(getBlocksToMine());
     }
 
     /**
@@ -507,20 +449,14 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
      */
     private LinkedList<BlockPos> getBlocksToMine() {
         LinkedList<BlockPos> blocks = new LinkedList<>();
-
         // determine how many blocks to retrieve this time
         var level = getMachine().getLevel();
         assert level != null;
         double quotient = getQuotient(getMeanTickTime(level));
         int calcAmount = quotient < 1 ? 1 : (int) (Math.min(quotient, Short.MAX_VALUE));
         int calculated = 0;
-
-        if (this.minBuildHeight == Integer.MAX_VALUE)
-            this.minBuildHeight = level.getMinBuildHeight();
-
-        if (this.maxBuildHeight == Integer.MAX_VALUE)
-            this.maxBuildHeight = level.getMaxBuildHeight();
-
+        if (this.minBuildHeight == Integer.MAX_VALUE) this.minBuildHeight = level.getMinBuildHeight();
+        if (this.maxBuildHeight == Integer.MAX_VALUE) this.maxBuildHeight = level.getMaxBuildHeight();
         // keep getting blocks until the target amount is reached
         while (calculated < calcAmount) {
             // moving down the y-axis
@@ -531,9 +467,7 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
                     if (x <= startX + currentRadius * 2) {
                         BlockPos blockPos = new BlockPos(x, y, z);
                         BlockState state = level.getBlockState(blockPos);
-                        if (state.getDestroySpeed(level, blockPos) >= 0 &&
-                                level.getBlockEntity(blockPos) == null &&
-                                state.is(Tags.Blocks.ORES)) {
+                        if (state.getDestroySpeed(level, blockPos) >= 0 && level.getBlockEntity(blockPos) == null && state.is(Tags.Blocks.ORES)) {
                             blocks.addLast(blockPos);
                         }
                         // move to the next x position
@@ -552,12 +486,9 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
                         --y;
                     }
                 }
-            } else
-                return blocks;
-
+            } else return blocks;
             // only count iterations where blocks were found
-            if (!blocks.isEmpty())
-                calculated++;
+            if (!blocks.isEmpty()) calculated++;
         }
         return blocks;
     }
@@ -567,12 +498,9 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
      * @return the mean value
      */
     private static long mean(@NotNull long[] values) {
-        if (values.length == 0L)
-            return 0L;
-
+        if (values.length == 0L) return 0L;
         long sum = 0L;
-        for (long v : values)
-            sum += v;
+        for (long v : values) sum += v;
         return sum / values.length;
     }
 
@@ -581,7 +509,7 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
      * @return the mean tick time
      */
     private static double getMeanTickTime(@NotNull Level world) {
-        return mean(Objects.requireNonNull(world.getServer()).tickTimes) * 1.0E-6D;
+        return mean(Objects.requireNonNull(world.getServer()).tickTimes) * 1.0E-6;
     }
 
     /**
@@ -621,5 +549,105 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
                 pos = pos.relative(dir);
             }
         }
+    }
+
+    public int getFortune() {
+        return this.fortune;
+    }
+
+    public int getSpeed() {
+        return this.speed;
+    }
+
+    public int getMaximumRadius() {
+        return this.maximumRadius;
+    }
+
+    public ItemStack getPickaxeTool() {
+        return this.pickaxeTool;
+    }
+
+    public int getX() {
+        return this.x;
+    }
+
+    public int getY() {
+        return this.y;
+    }
+
+    public int getZ() {
+        return this.z;
+    }
+
+    public int getStartX() {
+        return this.startX;
+    }
+
+    public int getStartZ() {
+        return this.startZ;
+    }
+
+    public int getStartY() {
+        return this.startY;
+    }
+
+    public int getPipeY() {
+        return this.pipeY;
+    }
+
+    public int getMineX() {
+        return this.mineX;
+    }
+
+    public int getMineZ() {
+        return this.mineZ;
+    }
+
+    public int getMineY() {
+        return this.mineY;
+    }
+
+    public int getMinBuildHeight() {
+        return this.minBuildHeight;
+    }
+
+    public int getMaxBuildHeight() {
+        return this.maxBuildHeight;
+    }
+
+    public int getPipeLength() {
+        return this.pipeLength;
+    }
+
+    public int getCurrentRadius() {
+        return this.currentRadius;
+    }
+
+    public void setCurrentRadius(final int currentRadius) {
+        this.currentRadius = currentRadius;
+    }
+
+    public boolean isDone() {
+        return this.isDone;
+    }
+
+    public boolean isInventoryFull() {
+        return this.isInventoryFull;
+    }
+
+    public Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {
+        return this.capabilitiesProxy;
+    }
+
+    public Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> getCapabilitiesFlat() {
+        return this.capabilitiesFlat;
+    }
+
+    public void setDir(final Direction dir) {
+        this.dir = dir;
+    }
+
+    public Direction getDir() {
+        return this.dir;
     }
 }

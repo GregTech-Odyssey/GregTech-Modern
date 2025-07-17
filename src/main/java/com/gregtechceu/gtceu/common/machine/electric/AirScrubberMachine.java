@@ -25,7 +25,6 @@ import net.minecraft.world.level.chunk.LevelChunk;
 
 import it.unimi.dsi.fastutil.objects.Object2FloatMap;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import static com.gregtechceu.gtceu.api.GTValues.LV;
@@ -34,10 +33,7 @@ import static com.gregtechceu.gtceu.api.GTValues.VHA;
 public class AirScrubberMachine extends SimpleTieredMachine implements IEnvironmentalHazardCleaner {
 
     public static final float MIN_CLEANING_PER_OPERATION = 10;
-
     private float cleaningPerOperation;
-
-    @Getter
     private float removedLastSecond;
 
     public AirScrubberMachine(IMachineBlockEntity holder, int tier, Object... args) {
@@ -55,9 +51,7 @@ public class AirScrubberMachine extends SimpleTieredMachine implements IEnvironm
         if (this.recipeLogic.isActive()) {
             return;
         }
-
-        GTRecipeBuilder builder = GTRecipeTypes.AIR_SCRUBBER_RECIPES.recipeBuilder(condition.name + "_autogen")
-                .duration(200).EUt(VHA[LV]);
+        GTRecipeBuilder builder = GTRecipeTypes.AIR_SCRUBBER_RECIPES.recipeBuilder(condition.name + "_autogen").duration(200).EUt(VHA[LV]);
         condition.recipeModifier.accept(builder);
         this.recipeLogic.checkMatchedRecipeAvailable(builder.buildRawRecipe());
     }
@@ -83,24 +77,19 @@ public class AirScrubberMachine extends SimpleTieredMachine implements IEnvironm
         if (!super.onWorking() || !ConfigHolder.INSTANCE.gameplay.environmentalHazards) {
             return false;
         }
-
         if (getOffsetTimer() % 20 == 0) {
             removedLastSecond = 0;
-
             for (Direction dir : GTUtil.DIRECTIONS) {
                 BlockPos offset = getPos().relative(dir);
                 if (GTCapabilityHelper.getHazardContainer(getLevel(), offset, dir.getOpposite()) != null) {
-                    if (getLevel().getBlockEntity(offset) instanceof DuctPipeBlockEntity duct &&
-                            !duct.isConnected(dir.getOpposite())) {
+                    if (getLevel().getBlockEntity(offset) instanceof DuctPipeBlockEntity duct && !duct.isConnected(dir.getOpposite())) {
                         continue;
                     }
                     return true;
                 }
             }
-
             final ServerLevel serverLevel = (ServerLevel) getLevel();
             EnvironmentalHazardSavedData savedData = EnvironmentalHazardSavedData.getOrCreate(serverLevel);
-
             final ChunkPos pos = new ChunkPos(getPos());
             Object2FloatMap<ChunkPos> relativePositions = new Object2FloatOpenHashMap<>();
             int radius = tier / 2;
@@ -120,7 +109,6 @@ public class AirScrubberMachine extends SimpleTieredMachine implements IEnvironm
                     if (zone == null || zone.strength() <= 0) {
                         return null;
                     }
-
                     float toClean = cleaningPerOperation / distance;
                     removedLastSecond += toClean;
                     zone.removeStrength(toClean);
@@ -135,5 +123,9 @@ public class AirScrubberMachine extends SimpleTieredMachine implements IEnvironm
             }
         }
         return true;
+    }
+
+    public float getRemovedLastSecond() {
+        return this.removedLastSecond;
     }
 }

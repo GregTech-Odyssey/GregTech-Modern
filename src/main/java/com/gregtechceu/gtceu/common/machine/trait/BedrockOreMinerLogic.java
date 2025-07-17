@@ -20,7 +20,6 @@ import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -28,8 +27,6 @@ import java.util.List;
 public class BedrockOreMinerLogic extends RecipeLogic {
 
     public static final int MAX_PROGRESS = 20;
-
-    @Getter
     @Nullable
     private List<WeightedMaterial> veinMaterials;
 
@@ -72,36 +69,31 @@ public class BedrockOreMinerLogic extends RecipeLogic {
             WeightedMaterial wm = GTUtil.getRandomItem(serverLevel.random, veinMaterials);
             if (wm == null) return null;
             Material material = wm.material();
-            ItemStack stack = ChemicalHelper.get(TagPrefix.get(ConfigHolder.INSTANCE.machines.bedrockOreDropTagPrefix),
-                    material, getOreToProduce());
+            ItemStack stack = ChemicalHelper.get(TagPrefix.get(ConfigHolder.INSTANCE.machines.bedrockOreDropTagPrefix), material, getOreToProduce());
             if (stack.isEmpty()) stack = ChemicalHelper.get(TagPrefix.crushed, material, getOreToProduce()); // backup
-                                                                                                             // 1:
-                                                                                                             // crushed;
-                                                                                                             // if raw
-                                                                                                             // ore
-                                                                                                             // doesn't
-                                                                                                             // exist
+            // 1:
+            // crushed;
+            // if raw
+            // ore
+            // doesn't
+            // exist
             if (stack.isEmpty()) stack = ChemicalHelper.get(TagPrefix.gem, material, getOreToProduce()); // backup 2:
-                                                                                                         // gem; if
-                                                                                                         // crushed ore
-                                                                                                         // doesn't
-                                                                                                         // exist
+            // gem; if
+            // crushed ore
+            // doesn't
+            // exist
             if (stack.isEmpty()) stack = ChemicalHelper.get(TagPrefix.ore, material, getOreToProduce()); // backup 3:
-                                                                                                         // normal ore;
-                                                                                                         // if gem
-                                                                                                         // doesn't
-                                                                                                         // exist.
+            // normal ore;
+            // if gem
+            // doesn't
+            // exist.
             if (stack.isEmpty()) stack = ChemicalHelper.get(TagPrefix.dust, material, getOreToProduce()); // backup 4:
-                                                                                                          // fallback to
-                                                                                                          // dust
+            // fallback to
+            // dust
             if (stack.isEmpty()) {
                 return null;
             }
-            var recipe = GTRecipeBuilder.ofRaw()
-                    .duration(MAX_PROGRESS)
-                    .EUt(GTValues.VA[getMachine().getEnergyTier()])
-                    .outputItems(stack)
-                    .buildRawRecipe();
+            var recipe = GTRecipeBuilder.ofRaw().duration(MAX_PROGRESS).EUt(GTValues.VA[getMachine().getEnergyTier()]).outputItems(stack).buildRawRecipe();
             if (RecipeHelper.matchContents(getMachine(), recipe).isSuccess()) {
                 return recipe;
             }
@@ -115,11 +107,8 @@ public class BedrockOreMinerLogic extends RecipeLogic {
             int depletedYield = definition.depletedYield();
             int regularYield = entry.getOreYield();
             int remainingOperations = entry.getOperationsRemaining();
-
-            int produced = Math.max(depletedYield,
-                    regularYield * remainingOperations / BedrockOreVeinSavedData.MAXIMUM_VEIN_OPERATIONS);
+            int produced = Math.max(depletedYield, regularYield * remainingOperations / BedrockOreVeinSavedData.MAXIMUM_VEIN_OPERATIONS);
             produced *= BedrockOreMinerMachine.getRigMultiplier(getMachine().getTier());
-
             // Overclocks produce 50% more ore
             if (isOverclocked()) {
                 produced = produced * 3 / 2;
@@ -183,5 +172,10 @@ public class BedrockOreMinerLogic extends RecipeLogic {
 
     private int getChunkZ() {
         return SectionPos.blockToSectionCoord(getMachine().getPos().getZ());
+    }
+
+    @Nullable
+    public List<WeightedMaterial> getVeinMaterials() {
+        return this.veinMaterials;
     }
 }

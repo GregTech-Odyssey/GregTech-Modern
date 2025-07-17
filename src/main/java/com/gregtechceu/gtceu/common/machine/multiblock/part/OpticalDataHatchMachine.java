@@ -18,7 +18,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.BlockHitResult;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -31,7 +30,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class OpticalDataHatchMachine extends MultiblockPartMachine implements IOpticalDataAccessHatch {
 
-    @Getter
     private final boolean isTransmitter;
 
     public OpticalDataHatchMachine(IMachineBlockEntity holder, boolean isTransmitter) {
@@ -45,12 +43,9 @@ public class OpticalDataHatchMachine extends MultiblockPartMachine implements IO
         if (!isFormed()) {
             return false;
         }
-
         if (isTransmitter()) {
             IMultiController controller = getControllers().first();
-            if (!(controller instanceof IWorkableMultiController workable) || !workable.getRecipeLogic().isWorking())
-                return false;
-
+            if (!(controller instanceof IWorkableMultiController workable) || !workable.getRecipeLogic().isWorking()) return false;
             List<IDataAccessHatch> dataAccesses = new ArrayList<>();
             List<IDataAccessHatch> transmitters = new ArrayList<>();
             for (var part : controller.getParts()) {
@@ -58,22 +53,17 @@ public class OpticalDataHatchMachine extends MultiblockPartMachine implements IO
                 if (part instanceof IDataAccessHatch hatch && PartAbility.DATA_ACCESS.isApplicable(block)) {
                     dataAccesses.add(hatch);
                 }
-                if (part instanceof IDataAccessHatch hatch &&
-                        PartAbility.OPTICAL_DATA_RECEPTION.isApplicable(block)) {
+                if (part instanceof IDataAccessHatch hatch && PartAbility.OPTICAL_DATA_RECEPTION.isApplicable(block)) {
                     transmitters.add(hatch);
                 }
             }
-
-            return isRecipeAvailable(dataAccesses, seen, recipe) ||
-                    isRecipeAvailable(transmitters, seen, recipe);
+            return isRecipeAvailable(dataAccesses, seen, recipe) || isRecipeAvailable(transmitters, seen, recipe);
         } else {
             BlockEntity tileEntity = getLevel().getBlockEntity(getPos().relative(getFrontFacing()));
             if (tileEntity == null) return false;
-
             if (tileEntity instanceof OpticalPipeBlockEntity) {
                 // noinspection DataFlowIssue
-                IDataAccessHatch cap = tileEntity.getCapability(GTCapability.CAPABILITY_DATA_ACCESS,
-                        getFrontFacing().getOpposite()).orElse(null);
+                IDataAccessHatch cap = tileEntity.getCapability(GTCapability.CAPABILITY_DATA_ACCESS, getFrontFacing().getOpposite()).orElse(null);
                 // noinspection ConstantValue
                 return cap != null && cap.isRecipeAvailable(recipe, seen);
             }
@@ -81,9 +71,7 @@ public class OpticalDataHatchMachine extends MultiblockPartMachine implements IO
         return false;
     }
 
-    private static boolean isRecipeAvailable(@NotNull Iterable<? extends IDataAccessHatch> hatches,
-                                             @NotNull Collection<IDataAccessHatch> seen,
-                                             @NotNull GTRecipe recipe) {
+    private static boolean isRecipeAvailable(@NotNull Iterable<? extends IDataAccessHatch> hatches, @NotNull Collection<IDataAccessHatch> seen, @NotNull GTRecipe recipe) {
         for (IDataAccessHatch hatch : hatches) {
             if (seen.contains(hatch)) continue;
             if (hatch.isRecipeAvailable(recipe, seen)) {
@@ -111,5 +99,9 @@ public class OpticalDataHatchMachine extends MultiblockPartMachine implements IO
     @Override
     public GTRecipe modifyRecipe(GTRecipe recipe) {
         return IOpticalDataAccessHatch.super.modifyRecipe(recipe);
+    }
+
+    public boolean isTransmitter() {
+        return this.isTransmitter;
     }
 }

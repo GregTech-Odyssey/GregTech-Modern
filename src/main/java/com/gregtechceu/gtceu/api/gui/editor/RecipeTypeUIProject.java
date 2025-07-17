@@ -21,8 +21,6 @@ import net.minecraft.nbt.NbtIo;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -36,8 +34,6 @@ import java.util.Map;
 public class RecipeTypeUIProject extends UIProject {
 
     @Nullable
-    @Getter
-    @Setter
     protected GTRecipeType recipeType;
 
     private RecipeTypeUIProject() {
@@ -88,18 +84,12 @@ public class RecipeTypeUIProject extends UIProject {
     @Override
     public void onLoad(Editor editor) {
         editor.getResourcePanel().loadResource(getResources(), false);
-        editor.getTabPages().addTab(new TabButton(50, 16, 60, 14).setTexture(
-                new GuiTextureGroup(ColorPattern.T_GREEN.rectTexture().setBottomRadius(10).transform(0, 0.4f),
-                        new TextTexture("Main")),
-                new GuiTextureGroup(ColorPattern.T_RED.rectTexture().setBottomRadius(10).transform(0, 0.4f),
-                        new TextTexture("Main"))),
-                new UIMainPanel(editor, root, recipeType == null ? null : recipeType.registryName.toLanguageKey()));
+        editor.getTabPages().addTab(new TabButton(50, 16, 60, 14).setTexture(new GuiTextureGroup(ColorPattern.T_GREEN.rectTexture().setBottomRadius(10).transform(0, 0.4F), new TextTexture("Main")), new GuiTextureGroup(ColorPattern.T_RED.rectTexture().setBottomRadius(10).transform(0, 0.4F), new TextTexture("Main"))), new UIMainPanel(editor, root, recipeType == null ? null : recipeType.registryName.toLanguageKey()));
         for (WidgetToolBox.Default tab : WidgetToolBox.Default.TABS) {
             if (tab == WidgetToolBox.Default.CONTAINER) {
                 continue;
             }
-            editor.getToolPanel().addNewToolBox("ldlib.gui.editor.group." + tab.groupName, tab.icon,
-                    tab.createToolBox());
+            editor.getToolPanel().addNewToolBox("ldlib.gui.editor.group." + tab.groupName, tab.icon, tab.createToolBox());
         }
     }
 
@@ -111,8 +101,7 @@ public class RecipeTypeUIProject extends UIProject {
             } else {
                 menu.remove("ldlib.gui.editor.menu.save");
                 menu.leaf(Icons.SAVE, "ldlib.gui.editor.menu.save", () -> {
-                    var path = new File(LDLib.getLDLibDir(),
-                            "assets/%s/ui/recipe_type".formatted(recipeType.registryName.getNamespace()));
+                    var path = new File(LDLib.getLDLibDir(), "assets/%s/ui/recipe_type".formatted(recipeType.registryName.getNamespace()));
                     path.mkdirs();
                     saveProject(new File(path, recipeType.registryName.getPath() + "." + this.getRegisterUI().name()));
                     recipeType.getRecipeUI().reloadCustomUI();
@@ -135,11 +124,9 @@ public class RecipeTypeUIProject extends UIProject {
                         root.clearAllWidgets();
                         if (recipeType.getRecipeUI().hasCustomUI()) {
                             var nbt = recipeType.getRecipeUI().getCustomUI();
-                            IConfigurableWidget.deserializeNBT(root, nbt.getCompound("root"),
-                                    Resources.fromNBT(nbt.getCompound("resources")), false);
+                            IConfigurableWidget.deserializeNBT(root, nbt.getCompound("root"), Resources.fromNBT(nbt.getCompound("resources")), false);
                         } else {
-                            var widget = recipeType.getRecipeUI().createEditableUITemplate(false, false)
-                                    .createDefault();
+                            var widget = recipeType.getRecipeUI().createEditableUITemplate(false, false).createDefault();
                             root.setSize(widget.getSize());
                             for (Widget children : widget.widgets) {
                                 root.addWidget(children);
@@ -150,5 +137,14 @@ public class RecipeTypeUIProject extends UIProject {
                 }
             }));
         }
+    }
+
+    @Nullable
+    public GTRecipeType getRecipeType() {
+        return this.recipeType;
+    }
+
+    public void setRecipeType(@Nullable final GTRecipeType recipeType) {
+        this.recipeType = recipeType;
     }
 }

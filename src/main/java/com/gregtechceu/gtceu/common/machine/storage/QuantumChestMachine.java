@@ -52,8 +52,6 @@ import net.minecraftforge.items.ItemHandlerHelper;
 
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,12 +63,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class QuantumChestMachine extends TieredMachine implements IAutoOutputItem, IInteractedMachine, IControllable,
-                                 IDropSaveMachine, IFancyUIMachine {
+public class QuantumChestMachine extends TieredMachine implements IAutoOutputItem, IInteractedMachine, IControllable, IDropSaveMachine, IFancyUIMachine {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(QuantumChestMachine.class,
-            MetaMachine.MANAGED_FIELD_HOLDER);
-
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(QuantumChestMachine.class, MetaMachine.MANAGED_FIELD_HOLDER);
     /**
      * Sourced from FunctionalStorage's
      * <a
@@ -78,36 +73,26 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
      * ItemControllerDrawerTile</a>
      */
     public static final Object2LongOpenHashMap<UUID> INTERACTION_LOGGER = new Object2LongOpenHashMap<>();
-
-    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected Direction outputFacingItems;
-    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected boolean autoOutputItems;
-    @Getter
-    @Setter
     @Persisted
     protected boolean allowInputFromOutputSideItems;
     @Persisted
     private boolean isVoiding;
-
     private final long maxAmount;
     protected final ItemCache cache;
     @DescSynced
     private final CustomItemStackHandler lockedItem;
-
-    @Getter
     @DescSynced
     protected ItemStack stored = ItemStack.EMPTY;
-    @Getter
     @DescSynced
     protected long storedAmount = 0;
-
     @Nullable
     protected TickableSubscription autoOutputSubs;
 
@@ -122,7 +107,6 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     //////////////////////////////////////
     // ***** Initialization ******//
     //////////////////////////////////////
-
     @Override
     public ManagedFieldHolder getFieldHolder() {
         return MANAGED_FIELD_HOLDER;
@@ -175,9 +159,9 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     //////////////////////////////////////
     // ****** Capability ********//
     //////////////////////////////////////
-
     @Override
-    public @Nullable IItemHandlerModifiable getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
+    @Nullable
+    public IItemHandlerModifiable getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
         if (side == getFrontFacing()) {
             return null;
         }
@@ -185,7 +169,8 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     }
 
     @Override
-    public @Nullable IFluidHandlerModifiable getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
+    @Nullable
+    public IFluidHandlerModifiable getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
         if (side == getFrontFacing()) {
             return null;
         }
@@ -195,7 +180,6 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     //////////////////////////////////////
     // ******* Auto Output *******//
     //////////////////////////////////////
-
     @Override
     public void setAutoOutputItems(boolean allow) {
         this.autoOutputItems = allow;
@@ -226,8 +210,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
 
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingItems();
-        if ((isAutoOutputItems() && !stored.isEmpty()) && outputFacing != null &&
-                GTTransferUtils.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) {
+        if ((isAutoOutputItems() && !stored.isEmpty()) && outputFacing != null && GTTransferUtils.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, this::checkAutoOutput);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
@@ -247,7 +230,6 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     //////////////////////////////////////
     // ******* Interaction *******//
     //////////////////////////////////////
-
     @Override
     public boolean isFacingValid(Direction facing) {
         if (facing == outputFacingItems) return false;
@@ -255,16 +237,15 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     }
 
     @Override
-    public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand,
-                                   BlockHitResult hit) {
+    public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (hit.getDirection() == getFrontFacing() && !isRemote()) {
             // Check to see if the hit is within the glass frame of the chest
             var aabb = new AABB(hit.getBlockPos()).deflate(0.12);
             var hitVector = hit.getLocation().relative(getFrontFacing(), -0.5);
             if (!aabb.contains(hitVector)) return InteractionResult.PASS;
-
             var held = player.getMainHandItem();
-            if (!held.isEmpty() && cache.canInsert(held)) { // push
+            if (!held.isEmpty() && cache.canInsert(held)) {
+                // push
                 var remaining = cache.insertItem(0, held, false);
                 player.setItemInHand(InteractionHand.MAIN_HAND, remaining);
                 return InteractionResult.SUCCESS;
@@ -289,7 +270,8 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     public boolean onLeftClick(Player player, Level world, InteractionHand hand, BlockPos pos, Direction direction) {
         if (direction == getFrontFacing() && !isRemote()) {
             if (player.getItemInHand(hand).is(GTToolType.WRENCH.itemTags.get(0))) return false;
-            if (!stored.isEmpty()) { // pull
+            if (!stored.isEmpty()) {
+                // pull
                 var drained = cache.extractItem(0, player.isShiftKeyDown() ? stored.getMaxStackSize() : 1, false);
                 if (!drained.isEmpty()) {
                     if (!player.addItem(drained)) {
@@ -302,8 +284,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     }
 
     @Override
-    protected InteractionResult onWrenchClick(Player playerIn, InteractionHand hand, Direction gridSide,
-                                              BlockHitResult hitResult) {
+    protected InteractionResult onWrenchClick(Player playerIn, InteractionHand hand, Direction gridSide, BlockHitResult hitResult) {
         if (!playerIn.isShiftKeyDown() && !isRemote()) {
             var tool = playerIn.getItemInHand(hand);
             if (tool.getDamageValue() >= tool.getMaxDamage()) return InteractionResult.PASS;
@@ -315,25 +296,19 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
             }
             return InteractionResult.sidedSuccess(playerIn.level().isClientSide);
         }
-
         return super.onWrenchClick(playerIn, hand, gridSide, hitResult);
     }
 
     @Override
-    protected InteractionResult onScrewdriverClick(Player playerIn, InteractionHand hand, Direction gridSide,
-                                                   BlockHitResult hitResult) {
+    protected InteractionResult onScrewdriverClick(Player playerIn, InteractionHand hand, Direction gridSide, BlockHitResult hitResult) {
         if (!isRemote()) {
             if (gridSide == getOutputFacingItems()) {
                 if (isAllowInputFromOutputSideItems()) {
                     setAllowInputFromOutputSideItems(false);
-                    playerIn.sendSystemMessage(
-                            Component.translatable("gtceu.machine.basic.input_from_output_side.disallow")
-                                    .append(Component.translatable("gtceu.creative.chest.item")));
+                    playerIn.sendSystemMessage(Component.translatable("gtceu.machine.basic.input_from_output_side.disallow").append(Component.translatable("gtceu.creative.chest.item")));
                 } else {
                     setAllowInputFromOutputSideItems(true);
-                    playerIn.sendSystemMessage(
-                            Component.translatable("gtceu.machine.basic.input_from_output_side.allow")
-                                    .append(Component.translatable("gtceu.creative.chest.item")));
+                    playerIn.sendSystemMessage(Component.translatable("gtceu.machine.basic.input_from_output_side.allow").append(Component.translatable("gtceu.creative.chest.item")));
                 }
             }
             return InteractionResult.SUCCESS;
@@ -361,53 +336,25 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     //////////////////////////////////////
     // *********** GUI ***********//
     //////////////////////////////////////
-
     public Widget createUIWidget() {
         var group = new WidgetGroup(0, 0, 109, 63);
         var importItems = createImportItems();
-        group.addWidget(new ImageWidget(4, 4, 81, 55, GuiTextures.DISPLAY))
-                .addWidget(new LabelWidget(8, 8, "gtceu.machine.quantum_chest.items_stored"))
-                .addWidget(new LabelWidget(8, 18, () -> FormattingUtil.formatNumbers(storedAmount))
-                        .setTextColor(-1)
-                        .setDropShadow(true))
-                .addWidget(new SlotWidget(importItems, 0, 87, 5, false, true)
-                        .setBackgroundTexture(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.IN_SLOT_OVERLAY)))
-                .addWidget(new SlotWidget(cache, 0, 87, 23, false, false)
-                        .setItemHook(s -> s.copyWithCount((int) Math.min(storedAmount, s.getMaxStackSize())))
-                        .setBackgroundTexture(GuiTextures.SLOT))
-                .addWidget(new ButtonWidget(87, 42, 18, 18,
-                        new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, Icons.DOWN.scale(0.7f)), cd -> {
-                            if (!cd.isRemote) {
-                                if (!stored.isEmpty()) {
-                                    var extracted = cache.extractItem(0,
-                                            (int) Math.min(storedAmount, stored.getMaxStackSize()), false);
-                                    if (!group.getGui().entityPlayer.addItem(extracted)) {
-                                        Block.popResource(group.getGui().entityPlayer.level(),
-                                                group.getGui().entityPlayer.getOnPos(), extracted);
-                                    }
-                                }
-                            }
-                        }))
-                .addWidget(new PhantomSlotWidget(lockedItem, 0, 58, 41,
-                        stack -> stored.isEmpty() || ItemStack.isSameItemSameTags(stack, stored))
-                        .setMaxStackSize(1))
-                .addWidget(new ToggleButtonWidget(4, 41, 18, 18,
-                        GuiTextures.BUTTON_ITEM_OUTPUT, this::isAutoOutputItems, this::setAutoOutputItems)
-                        .setShouldUseBaseBackground()
-                        .setTooltipText("gtceu.gui.item_auto_output.tooltip"))
-                .addWidget(new ToggleButtonWidget(22, 41, 18, 18,
-                        GuiTextures.BUTTON_LOCK, this::isLocked, this::setLocked)
-                        .setShouldUseBaseBackground()
-                        .setTooltipText("gtceu.gui.item_lock.tooltip"))
-                .addWidget(new ToggleButtonWidget(40, 41, 18, 18,
-                        GuiTextures.BUTTON_VOID, () -> isVoiding, (b) -> isVoiding = b)
-                        .setShouldUseBaseBackground()
-                        .setTooltipText("gtceu.gui.item_voiding_partial.tooltip"));
+        group.addWidget(new ImageWidget(4, 4, 81, 55, GuiTextures.DISPLAY)).addWidget(new LabelWidget(8, 8, "gtceu.machine.quantum_chest.items_stored")).addWidget(new LabelWidget(8, 18, () -> FormattingUtil.formatNumbers(storedAmount)).setTextColor(-1).setDropShadow(true)).addWidget(new SlotWidget(importItems, 0, 87, 5, false, true).setBackgroundTexture(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.IN_SLOT_OVERLAY))).addWidget(new SlotWidget(cache, 0, 87, 23, false, false).setItemHook(s -> s.copyWithCount((int) Math.min(storedAmount, s.getMaxStackSize()))).setBackgroundTexture(GuiTextures.SLOT)).addWidget(new ButtonWidget(87, 42, 18, 18, new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, Icons.DOWN.scale(0.7F)), cd -> {
+            if (!cd.isRemote) {
+                if (!stored.isEmpty()) {
+                    var extracted = cache.extractItem(0, (int) Math.min(storedAmount, stored.getMaxStackSize()), false);
+                    if (!group.getGui().entityPlayer.addItem(extracted)) {
+                        Block.popResource(group.getGui().entityPlayer.level(), group.getGui().entityPlayer.getOnPos(), extracted);
+                    }
+                }
+            }
+        })).addWidget(new PhantomSlotWidget(lockedItem, 0, 58, 41, stack -> stored.isEmpty() || ItemStack.isSameItemSameTags(stack, stored)).setMaxStackSize(1)).addWidget(new ToggleButtonWidget(4, 41, 18, 18, GuiTextures.BUTTON_ITEM_OUTPUT, this::isAutoOutputItems, this::setAutoOutputItems).setShouldUseBaseBackground().setTooltipText("gtceu.gui.item_auto_output.tooltip")).addWidget(new ToggleButtonWidget(22, 41, 18, 18, GuiTextures.BUTTON_LOCK, this::isLocked, this::setLocked).setShouldUseBaseBackground().setTooltipText("gtceu.gui.item_lock.tooltip")).addWidget(new ToggleButtonWidget(40, 41, 18, 18, GuiTextures.BUTTON_VOID, () -> isVoiding, b -> isVoiding = b).setShouldUseBaseBackground().setTooltipText("gtceu.gui.item_voiding_partial.tooltip"));
         group.setBackground(GuiTextures.BACKGROUND_INVERSE);
         return group;
     }
 
-    private @NotNull CustomItemStackHandler createImportItems() {
+    @NotNull
+    private CustomItemStackHandler createImportItems() {
         var importItems = new CustomItemStackHandler();
         importItems.setFilter(cache::canInsert);
         importItems.setOnContentsChanged(() -> {
@@ -425,8 +372,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     // ******* Rendering ********//
     //////////////////////////////////////
     @Override
-    public ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes,
-                                    Direction side) {
+    public ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes, Direction side) {
         if (toolTypes.contains(GTToolType.WRENCH)) {
             if (!player.isShiftKeyDown()) {
                 if (!hasFrontFacing() || side != getFrontFacing()) {
@@ -445,8 +391,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
 
     protected class ItemCache extends MachineTrait implements IItemHandlerModifiable {
 
-        private final Predicate<ItemStack> filter = i -> !isLocked() ||
-                ItemStack.isSameItemSameTags(i, getLockedItem());
+        private final Predicate<ItemStack> filter = i -> !isLocked() || ItemStack.isSameItemSameTags(i, getLockedItem());
 
         public ItemCache(MetaMachine holder) {
             super(holder);
@@ -460,12 +405,14 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         }
 
         @Override
-        public @NotNull ItemStack getStackInSlot(int slot) {
+        @NotNull
+        public ItemStack getStackInSlot(int slot) {
             return stored.copyWithCount(GTMath.saturatedCast(storedAmount));
         }
 
         @Override
-        public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+        @NotNull
+        public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
             long free = isVoiding ? Long.MAX_VALUE : maxAmount - storedAmount;
             long canStore = 0;
             if ((stored.isEmpty() || ItemHandlerHelper.canItemStacksStack(stored, stack)) && filter.test(stack)) {
@@ -480,7 +427,8 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         }
 
         @Override
-        public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
+        @NotNull
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
             if (stored.isEmpty()) return ItemStack.EMPTY;
             long toExtract = Math.min(storedAmount, amount);
             var copy = stored.copyWithCount((int) toExtract);
@@ -513,8 +461,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
             var pos = getMachine().getPos();
             for (Direction facing : facings) {
                 var filter = getMachine().getItemCapFilter(facing, IO.OUT);
-                GTTransferUtils.getAdjacentItemHandler(level, pos, facing)
-                        .ifPresent(adj -> GTTransferUtils.transferItemsFiltered(this, adj, filter));
+                GTTransferUtils.getAdjacentItemHandler(level, pos, facing).ifPresent(adj -> GTTransferUtils.transferItemsFiltered(this, adj, filter));
             }
         }
 
@@ -526,5 +473,29 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         public ManagedFieldHolder getFieldHolder() {
             return MANAGED_FIELD_HOLDER;
         }
+    }
+
+    public Direction getOutputFacingItems() {
+        return this.outputFacingItems;
+    }
+
+    public boolean isAutoOutputItems() {
+        return this.autoOutputItems;
+    }
+
+    public boolean isAllowInputFromOutputSideItems() {
+        return this.allowInputFromOutputSideItems;
+    }
+
+    public void setAllowInputFromOutputSideItems(final boolean allowInputFromOutputSideItems) {
+        this.allowInputFromOutputSideItems = allowInputFromOutputSideItems;
+    }
+
+    public ItemStack getStored() {
+        return this.stored;
+    }
+
+    public long getStoredAmount() {
+        return this.storedAmount;
     }
 }

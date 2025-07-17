@@ -13,16 +13,11 @@ import net.minecraft.network.chat.Component;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-@AllArgsConstructor
 public class ResearchCondition extends RecipeCondition {
 
-    public static final Codec<ResearchCondition> CODEC = RecordCodecBuilder
-            .create(instance -> RecipeCondition.isReverse(instance)
-                    .and(ResearchData.CODEC.fieldOf("research").forGetter(val -> val.data))
-                    .apply(instance, ResearchCondition::new));
+    public static final Codec<ResearchCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(ResearchData.CODEC.fieldOf("research").forGetter(val -> val.data)).apply(instance, ResearchCondition::new));
     public static final ResearchCondition INSTANCE = new ResearchCondition();
     public ResearchData data;
 
@@ -79,5 +74,9 @@ public class ResearchCondition extends RecipeCondition {
     @Override
     public RecipeCondition createTemplate() {
         return new ResearchCondition();
+    }
+
+    public ResearchCondition(final ResearchData data) {
+        this.data = data;
     }
 }

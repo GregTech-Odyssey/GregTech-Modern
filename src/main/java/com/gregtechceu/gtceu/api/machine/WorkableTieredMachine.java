@@ -14,8 +14,6 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,27 +23,17 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class WorkableTieredMachine extends TieredEnergyMachine implements IRecipeLogicMachine,
-                                            IMachineLife, IMufflableMachine, IOverclockMachine {
+public abstract class WorkableTieredMachine extends TieredEnergyMachine implements IRecipeLogicMachine, IMachineLife, IMufflableMachine, IOverclockMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(WorkableTieredMachine.class,
-            TieredEnergyMachine.MANAGED_FIELD_HOLDER);
-
-    @Getter
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(WorkableTieredMachine.class, TieredEnergyMachine.MANAGED_FIELD_HOLDER);
     @Persisted
     @DescSynced
     public final RecipeLogic recipeLogic;
-    @Getter
     public final GTRecipeType[] recipeTypes;
-    @Getter
-    @Setter
     @Persisted
     public int activeRecipeType;
-    @Getter
     public final Int2IntFunction tankScalingFunction;
     @Nullable
-    @Getter
-    @Setter
     private ICleanroomProvider cleanroom;
     @Persisted
     public final NotifiableItemStackHandler importItems;
@@ -59,23 +47,17 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     public final NotifiableComputationContainer importComputation;
     @Persisted
     public final NotifiableComputationContainer exportComputation;
-    @Getter
     protected final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
-    @Getter
     protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
     @Persisted
-    @Getter
     protected int overclockTier;
     protected final List<ISubscription> traitSubscriptions;
     @Persisted
     @DescSynced
-    @Getter
-    @Setter
     protected boolean isMuffled;
     protected boolean previouslyMuffled = true;
 
-    public WorkableTieredMachine(IMachineBlockEntity holder, int tier, Int2IntFunction tankScalingFunction,
-                                 Object... args) {
+    public WorkableTieredMachine(IMachineBlockEntity holder, int tier, Int2IntFunction tankScalingFunction, Object... args) {
         super(holder, tier, args);
         this.overclockTier = getMaxOverclockTier();
         this.recipeTypes = getDefinition().getRecipeTypes();
@@ -105,8 +87,7 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     protected NotifiableEnergyContainer createEnergyContainer(Object... args) {
         long tierVoltage = GTValues.V[getTier()];
         if (isEnergyEmitter()) {
-            return NotifiableEnergyContainer.emitterContainer(this,
-                    tierVoltage * 64L, tierVoltage, getMaxInputOutputAmperage());
+            return NotifiableEnergyContainer.emitterContainer(this, tierVoltage * 64L, tierVoltage, getMaxInputOutputAmperage());
         } else {
             return new NotifiableEnergyContainer(this, tierVoltage * 64L, tierVoltage, 2, 0L, 0L) {
 
@@ -130,13 +111,11 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     }
 
     protected NotifiableFluidTank createImportFluidHandler(Object... args) {
-        return new NotifiableFluidTank(this, getRecipeType().getMaxInputs(FluidRecipeCapability.CAP),
-                this.tankScalingFunction.applyAsInt(this.getTier()), IO.IN);
+        return new NotifiableFluidTank(this, getRecipeType().getMaxInputs(FluidRecipeCapability.CAP), this.tankScalingFunction.applyAsInt(this.getTier()), IO.IN);
     }
 
     protected NotifiableFluidTank createExportFluidHandler(Object... args) {
-        return new NotifiableFluidTank(this, getRecipeType().getMaxOutputs(FluidRecipeCapability.CAP),
-                this.tankScalingFunction.applyAsInt(this.getTier()), IO.OUT);
+        return new NotifiableFluidTank(this, getRecipeType().getMaxOutputs(FluidRecipeCapability.CAP), this.tankScalingFunction.applyAsInt(this.getTier()), IO.OUT);
     }
 
     protected NotifiableComputationContainer createImportComputationContainer(Object... args) {
@@ -160,13 +139,11 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
         super.onLoad();
         // attach self traits
         Map<IO, List<IRecipeHandler<?>>> ioTraits = new EnumMap<>(IO.class);
-
         for (MachineTrait trait : getTraits()) {
             if (trait instanceof IRecipeHandlerTrait<?> handlerTrait) {
                 ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ArrayList<>()).add(handlerTrait);
             }
         }
-
         for (var entry : ioTraits.entrySet()) {
             var handlerList = RecipeHandlerList.of(entry.getKey(), entry.getValue());
             this.addHandlerList(handlerList);
@@ -187,7 +164,6 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     //////////////////////////////////////
     // ********** MISC ***********//
     //////////////////////////////////////
-
     @Override
     protected long getMaxInputOutputAmperage() {
         return 2L;
@@ -202,7 +178,6 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     //////////////////////////////////////
     // ******** OVERCLOCK *********//
     //////////////////////////////////////
-
     @Override
     public int getMaxOverclockTier() {
         return GTUtil.getTierByVoltage(Math.max(energyContainer.getInputVoltage(), energyContainer.getOutputVoltage()));
@@ -223,22 +198,18 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
 
     @Override
     public long getOverclockVoltage() {
-        return Math.min(GTValues.V[getOverclockTier()],
-                Math.max(energyContainer.getInputVoltage(), energyContainer.getOutputVoltage()));
+        return Math.min(GTValues.V[getOverclockTier()], Math.max(energyContainer.getInputVoltage(), energyContainer.getOutputVoltage()));
     }
 
     //////////////////////////////////////
     // ****** RECIPE LOGIC *******//
     //////////////////////////////////////
-
     @Override
     public void clientTick() {
         super.clientTick();
         if (previouslyMuffled != isMuffled) {
             previouslyMuffled = isMuffled;
-
-            if (recipeLogic != null)
-                recipeLogic.updateSound();
+            if (recipeLogic != null) recipeLogic.updateSound();
         }
     }
 
@@ -250,5 +221,54 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     @NotNull
     public GTRecipeType getRecipeType() {
         return recipeTypes[activeRecipeType];
+    }
+
+    public RecipeLogic getRecipeLogic() {
+        return this.recipeLogic;
+    }
+
+    public GTRecipeType[] getRecipeTypes() {
+        return this.recipeTypes;
+    }
+
+    public int getActiveRecipeType() {
+        return this.activeRecipeType;
+    }
+
+    public void setActiveRecipeType(final int activeRecipeType) {
+        this.activeRecipeType = activeRecipeType;
+    }
+
+    public Int2IntFunction getTankScalingFunction() {
+        return this.tankScalingFunction;
+    }
+
+    @Nullable
+    public ICleanroomProvider getCleanroom() {
+        return this.cleanroom;
+    }
+
+    public void setCleanroom(@Nullable final ICleanroomProvider cleanroom) {
+        this.cleanroom = cleanroom;
+    }
+
+    public Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {
+        return this.capabilitiesProxy;
+    }
+
+    public Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> getCapabilitiesFlat() {
+        return this.capabilitiesFlat;
+    }
+
+    public int getOverclockTier() {
+        return this.overclockTier;
+    }
+
+    public boolean isMuffled() {
+        return this.isMuffled;
+    }
+
+    public void setMuffled(final boolean isMuffled) {
+        this.isMuffled = isMuffled;
     }
 }

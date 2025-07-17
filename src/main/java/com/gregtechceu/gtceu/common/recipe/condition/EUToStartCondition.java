@@ -14,18 +14,12 @@ import net.minecraft.util.GsonHelper;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-@NoArgsConstructor
 public class EUToStartCondition extends RecipeCondition {
 
-    public static final Codec<EUToStartCondition> CODEC = RecordCodecBuilder
-            .create(instance -> RecipeCondition.isReverse(instance)
-                    .and(Codec.LONG.fieldOf("eu_to_start").forGetter(val -> val.euToStart))
-                    .apply(instance, EUToStartCondition::new));
+    public static final Codec<EUToStartCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(Codec.LONG.fieldOf("eu_to_start").forGetter(val -> val.euToStart)).apply(instance, EUToStartCondition::new));
     public static final EUToStartCondition INSTANCE = new EUToStartCondition();
-
     private long euToStart;
 
     public EUToStartCondition(long euToStart) {
@@ -49,8 +43,7 @@ public class EUToStartCondition extends RecipeCondition {
 
     @Override
     public boolean testCondition(@NotNull GTRecipe recipe, @NotNull RecipeLogic recipeLogic) {
-        return recipeLogic.getMachine().getTraits().stream().filter(IEnergyContainer.class::isInstance)
-                .anyMatch(energyContainer -> ((IEnergyContainer) energyContainer).getEnergyCapacity() > euToStart);
+        return recipeLogic.getMachine().getTraits().stream().filter(IEnergyContainer.class::isInstance).anyMatch(energyContainer -> ((IEnergyContainer) energyContainer).getEnergyCapacity() > euToStart);
     }
 
     @Override
@@ -85,4 +78,6 @@ public class EUToStartCondition extends RecipeCondition {
         super.toNetwork(buf);
         buf.writeLong(euToStart);
     }
+
+    public EUToStartCondition() {}
 }

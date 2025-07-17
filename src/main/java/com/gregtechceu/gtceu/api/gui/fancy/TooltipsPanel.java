@@ -8,7 +8,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -17,7 +16,6 @@ import java.util.List;
 
 public class TooltipsPanel extends Widget {
 
-    @Getter
     protected List<IFancyTooltip> tooltips = new ArrayList<>();
 
     public TooltipsPanel() {
@@ -42,8 +40,7 @@ public class TooltipsPanel extends Widget {
         for (IFancyTooltip tooltip : this.tooltips) {
             if (tooltip.showFancyTooltip()) {
                 // draw icon
-                tooltip.getFancyTooltipIcon().draw(graphics, mouseX, mouseY, position.x, position.y + offsetY,
-                        size.width, size.width);
+                tooltip.getFancyTooltipIcon().draw(graphics, mouseX, mouseY, position.x, position.y + offsetY, size.width, size.width);
                 offsetY += size.getWidth() + 2;
             }
         }
@@ -60,13 +57,16 @@ public class TooltipsPanel extends Widget {
             for (IFancyTooltip tooltip : this.tooltips) {
                 if (tooltip.showFancyTooltip()) {
                     if (isMouseOver(position.x, position.y + offsetY, size.width, size.width, mouseX, mouseY)) {
-                        gui.getModularUIGui().setHoverTooltip(tooltip.getFancyTooltip(), ItemStack.EMPTY, null,
-                                tooltip.getFancyComponent());
+                        gui.getModularUIGui().setHoverTooltip(tooltip.getFancyTooltip(), ItemStack.EMPTY, null, tooltip.getFancyComponent());
                         return;
                     }
                     offsetY += size.getWidth() + 2;
                 }
             }
         }
+    }
+
+    public List<IFancyTooltip> getTooltips() {
+        return this.tooltips;
     }
 }

@@ -17,10 +17,8 @@ import com.lowdragmc.lowdraglib.utils.Size;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 
-import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.Nullable;
 
-@AllArgsConstructor
 public class CoverConfigurator implements IFancyConfigurator {
 
     protected final ICoverable coverable;
@@ -49,10 +47,15 @@ public class CoverConfigurator implements IFancyConfigurator {
                 coverConfigurator.setBackground(GuiTextures.BACKGROUND);
                 coverConfigurator.setSelfPosition(new Position(4, -4));
                 group.addWidget(coverConfigurator);
-                group.setSize(new Size(Math.max(120, coverConfigurator.getSize().width + 8),
-                        Math.max(80, 80 + coverConfigurator.getSize().height)));
+                group.setSize(new Size(Math.max(120, coverConfigurator.getSize().width + 8), Math.max(80, 80 + coverConfigurator.getSize().height)));
             }
         }
         return group;
+    }
+
+    public CoverConfigurator(final ICoverable coverable, @Nullable final Direction side, @Nullable final CoverBehavior coverBehavior) {
+        this.coverable = coverable;
+        this.side = side;
+        this.coverBehavior = coverBehavior;
     }
 }

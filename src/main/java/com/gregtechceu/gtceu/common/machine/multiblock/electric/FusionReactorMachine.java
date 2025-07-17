@@ -40,7 +40,6 @@ import it.unimi.dsi.fastutil.longs.Long2IntAVLTreeMap;
 import it.unimi.dsi.fastutil.longs.Long2IntSortedMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,21 +56,15 @@ import static com.gregtechceu.gtceu.common.data.GTBlocks.*;
 @MethodsReturnNonnullByDefault
 public class FusionReactorMachine extends WorkableElectricMultiblockMachine implements ITieredMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(FusionReactorMachine.class,
-            WorkableElectricMultiblockMachine.MANAGED_FIELD_HOLDER);
-
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(FusionReactorMachine.class, WorkableElectricMultiblockMachine.MANAGED_FIELD_HOLDER);
     // Standard OC used for Fusion
-    public static final OverclockingLogic FUSION_OC = OverclockingLogic.create(PERFECT_HALF_DURATION_FACTOR,
-            PERFECT_HALF_VOLTAGE_FACTOR, false);
-
+    public static final OverclockingLogic FUSION_OC = OverclockingLogic.create(PERFECT_HALF_DURATION_FACTOR, PERFECT_HALF_VOLTAGE_FACTOR, false);
     // Max EU -> Tier map, used to find minimum tier needed for X EU to start
     private static final Long2IntSortedMap FUSION_ENERGY = new Long2IntAVLTreeMap();
     // Tier -> Suffix map, i.e. LuV -> MKI
     private static final Int2ObjectMap<String> FUSION_NAMES = new Int2ObjectArrayMap<>(4);
     // Minimum registered fusion reactor tier
     private static int MINIMUM_TIER = MAX;
-
-    @Getter
     private final int tier;
     @Nullable
     protected EnergyContainerList inputEnergyContainers;
@@ -79,7 +72,6 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine impl
     protected long heat = 0;
     @Persisted
     protected final NotifiableEnergyContainer energyContainer;
-    @Getter
     @DescSynced
     private Integer color = -1;
     @Nullable
@@ -120,19 +112,14 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine impl
         super.onStructureFormed();
         // capture all energy containers
         List<IEnergyContainer> energyContainers = new ArrayList<>();
-        Long2ObjectMap<IO> ioMap = getMultiblockState().getMatchContext().getOrCreate("ioMap",
-                Long2ObjectMaps::emptyMap);
+        Long2ObjectMap<IO> ioMap = getMultiblockState().getMatchContext().getOrCreate("ioMap", Long2ObjectMaps::emptyMap);
         for (IMultiPart part : getParts()) {
             IO io = ioMap.getOrDefault(part.self().getPos().asLong(), IO.BOTH);
             if (io == IO.NONE || io == IO.OUT) continue;
             var handlerLists = part.getRecipeHandlers();
             for (var handlerList : handlerLists) {
                 if (!handlerList.isValid(io)) continue;
-
-                handlerList.getCapability(EURecipeCapability.CAP).stream()
-                        .filter(IEnergyContainer.class::isInstance)
-                        .map(IEnergyContainer.class::cast)
-                        .forEach(energyContainers::add);
+                handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).forEach(energyContainers::add);
                 traitSubscriptions.add(handlerList.subscribe(this::updatePreHeatSubscription, EURecipeCapability.CAP));
             }
         }
@@ -156,8 +143,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine impl
     //////////////////////////////////////
     protected void updatePreHeatSubscription() {
         // do preheat logic for heat cool down and charge internal energy container
-        if (heat > 0 || (inputEnergyContainers != null && inputEnergyContainers.getEnergyStored() > 0 &&
-                energyContainer.getEnergyStored() < energyContainer.getEnergyCapacity())) {
+        if (heat > 0 || (inputEnergyContainers != null && inputEnergyContainers.getEnergyStored() > 0 && energyContainer.getEnergyStored() < energyContainer.getEnergyCapacity())) {
             preHeatSubs = subscribeServerTick(preHeatSubs, this::updateHeat);
         } else if (preHeatSubs != null) {
             preHeatSubs.unsubscribe();
@@ -182,21 +168,16 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine impl
         if (!(machine instanceof FusionReactorMachine fusionReactorMachine)) {
             return RecipeModifier.nullWrongType(FusionReactorMachine.class, machine);
         }
-        if (RecipeHelper.getRecipeEUtTier(recipe) > fusionReactorMachine.getTier() ||
-                !recipe.data.contains("eu_to_start") ||
-                recipe.data.getLong("eu_to_start") > fusionReactorMachine.energyContainer.getEnergyCapacity()) {
+        if (RecipeHelper.getRecipeEUtTier(recipe) > fusionReactorMachine.getTier() || !recipe.data.contains("eu_to_start") || recipe.data.getLong("eu_to_start") > fusionReactorMachine.energyContainer.getEnergyCapacity()) {
             return ModifierFunction.NULL;
         }
-
         long heatDiff = recipe.data.getLong("eu_to_start") - fusionReactorMachine.heat;
-
         // if the stored heat is >= required energy, recipe is okay to run
         if (heatDiff <= 0) {
             return FUSION_OC.getModifier(machine, recipe, fusionReactorMachine.getMaxVoltage(), false);
         }
         // if the remaining energy needed is more than stored, do not run
         if (fusionReactorMachine.energyContainer.getEnergyStored() < heatDiff) return ModifierFunction.NULL;
-
         // remove the energy needed
         fusionReactorMachine.energyContainer.removeEnergy(heatDiff);
         // increase the stored heat
@@ -214,10 +195,8 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine impl
             // if the remaining energy needed is more than stored, do not run
             if (heatDiff > 0) {
                 recipeLogic.setWaiting(Component.translatable("gtceu.recipe_logic.insufficient_fuel"));
-
                 // if the remaining energy needed is more than stored, do not run
-                if (this.energyContainer.getEnergyStored() < heatDiff)
-                    return super.onWorking();
+                if (this.energyContainer.getEnergyStored() < heatDiff) return super.onWorking();
                 // remove the energy needed
                 this.energyContainer.removeEnergy(heatDiff);
                 // increase the stored heat
@@ -225,12 +204,10 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine impl
                 this.updatePreHeatSubscription();
             }
         }
-
         if (color == -1) {
             if (!recipe.getOutputContents(FluidRecipeCapability.CAP).isEmpty()) {
-                var stack = FluidRecipeCapability.CAP
-                        .of(recipe.getOutputContents(FluidRecipeCapability.CAP).get(0).getContent()).getStacks()[0];
-                int newColor = 0xFF000000 | GTUtil.getFluidColor(stack);
+                var stack = FluidRecipeCapability.CAP.of(recipe.getOutputContents(FluidRecipeCapability.CAP).get(0).getContent()).getStacks()[0];
+                int newColor = -16777216 | GTUtil.getFluidColor(stack);
                 if (!Objects.equals(color, newColor)) {
                     color = newColor;
                 }
@@ -245,8 +222,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine impl
         // Don't drain heat when there is not enough energy and there is still some recipe progress, as that makes it
         // doubly hard to complete the recipe
         // (Will have to recover heat and recipe progress)
-        if ((getRecipeLogic().isIdle() || !isWorkingEnabled() ||
-                (getRecipeLogic().isWaiting() && getRecipeLogic().getProgress() == 0)) && heat > 0) {
+        if ((getRecipeLogic().isIdle() || !isWorkingEnabled() || (getRecipeLogic().isWaiting() && getRecipeLogic().getProgress() == 0)) && heat > 0) {
             heat = heat <= 10000 ? 0 : (heat - 10000);
         }
         // charge the internal energy storage
@@ -281,8 +257,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine impl
     public void addDisplayText(List<Component> textList) {
         super.addDisplayText(textList);
         if (isFormed()) {
-            textList.add(Component.translatable("gtceu.multiblock.fusion_reactor.energy",
-                    this.energyContainer.getEnergyStored(), this.energyContainer.getEnergyCapacity()));
+            textList.add(Component.translatable("gtceu.multiblock.fusion_reactor.energy", this.energyContainer.getEnergyStored(), this.energyContainer.getEnergyCapacity()));
             textList.add(Component.translatable("gtceu.multiblock.fusion_reactor.heat", heat));
         }
     }
@@ -293,10 +268,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine impl
         int recipeTier = RecipeHelper.getPreOCRecipeEuTier(recipe);
         int fusionTier = findCeilingTier(euToStart);
         int tier = Math.max(MINIMUM_TIER, Math.max(recipeTier, fusionTier));
-        group.addWidget(new LabelWidget(-8, group.getSizeHeight() - 10,
-                LocalizationUtils.format("gtceu.recipe.eu_to_start",
-                        FormattingUtil.formatNumberReadable2F(euToStart, false),
-                        FUSION_NAMES.get(tier))));
+        group.addWidget(new LabelWidget(-8, group.getSizeHeight() - 10, LocalizationUtils.format("gtceu.recipe.eu_to_start", FormattingUtil.formatNumberReadable2F(euToStart, false), FUSION_NAMES.get(tier))));
     }
 
     //////////////////////////////////////
@@ -333,9 +305,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine impl
     }
 
     public static Block getCoilState(int tier) {
-        if (tier == GTValues.LuV)
-            return SUPERCONDUCTING_COIL.get();
-
+        if (tier == GTValues.LuV) return SUPERCONDUCTING_COIL.get();
         return FUSION_COIL.get();
     }
 
@@ -346,5 +316,13 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine impl
             case UV -> FusionCasingBlock.CasingType.FUSION_CASING_MK3;
             default -> FusionCasingBlock.CasingType.FUSION_CASING;
         };
+    }
+
+    public int getTier() {
+        return this.tier;
+    }
+
+    public Integer getColor() {
+        return this.color;
     }
 }

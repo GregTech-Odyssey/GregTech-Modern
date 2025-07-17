@@ -15,7 +15,6 @@ import net.minecraft.Util;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
-import lombok.Getter;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.helpers.IGuiHelper;
@@ -31,17 +30,12 @@ import java.util.function.Function;
 
 public class GTRecipeJEICategory extends ModularUIRecipeCategory<GTRecipe> {
 
-    public static final Function<GTRecipeCategory, RecipeType<GTRecipe>> TYPES = Util
-            .memoize(c -> new RecipeType<>(c.registryKey, GTRecipe.class));
-
+    public static final Function<GTRecipeCategory, RecipeType<GTRecipe>> TYPES = Util.memoize(c -> new RecipeType<>(c.registryKey, GTRecipe.class));
     private final GTRecipeCategory category;
-    @Getter
     private final IDrawable background;
-    @Getter
     private final IDrawable icon;
 
-    public GTRecipeJEICategory(IJeiHelpers helpers,
-                               @NotNull GTRecipeCategory category) {
+    public GTRecipeJEICategory(IJeiHelpers helpers, @NotNull GTRecipeCategory category) {
         super(GTRecipeWrapper::new);
         this.category = category;
         var recipeType = category.getRecipeType();
@@ -92,7 +86,16 @@ public class GTRecipeJEICategory extends ModularUIRecipeCategory<GTRecipe> {
     }
 
     @Override
-    public @Nullable ResourceLocation getRegistryName(@NotNull GTRecipe recipe) {
+    @Nullable
+    public ResourceLocation getRegistryName(@NotNull GTRecipe recipe) {
         return recipe.id;
+    }
+
+    public IDrawable getBackground() {
+        return this.background;
+    }
+
+    public IDrawable getIcon() {
+        return this.icon;
     }
 }

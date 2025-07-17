@@ -16,8 +16,6 @@ import net.minecraft.core.Direction;
 
 import appeng.api.networking.*;
 import appeng.api.networking.security.IActionSource;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.EnumSet;
 
@@ -27,19 +25,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public abstract class MEHatchPartMachine extends FluidHatchPartMachine implements IGridConnectedMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MEHatchPartMachine.class,
-            FluidHatchPartMachine.MANAGED_FIELD_HOLDER);
-
-    protected final static int CONFIG_SIZE = 16;
-
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MEHatchPartMachine.class, FluidHatchPartMachine.MANAGED_FIELD_HOLDER);
+    protected static final int CONFIG_SIZE = 16;
     @Persisted
     protected final GridNodeHolder nodeHolder;
-
     @DescSynced
-    @Getter
-    @Setter
     protected boolean isOnline;
-
     protected final IActionSource actionSource;
 
     public MEHatchPartMachine(IMachineBlockEntity holder, IO io, Object... args) {
@@ -93,5 +84,13 @@ public abstract class MEHatchPartMachine extends FluidHatchPartMachine implement
     @Override
     public boolean swapIO() {
         return false;
+    }
+
+    public boolean isOnline() {
+        return this.isOnline;
+    }
+
+    public void setOnline(final boolean isOnline) {
+        this.isOnline = isOnline;
     }
 }

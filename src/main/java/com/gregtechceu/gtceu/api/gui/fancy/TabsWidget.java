@@ -15,8 +15,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,7 +23,6 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-@Getter
 public class TabsWidget extends Widget {
 
     protected final Consumer<IFancyUIProvider> onTabClick;
@@ -33,28 +30,17 @@ public class TabsWidget extends Widget {
     protected List<IFancyUIProvider> subTabs;
     @Nullable
     protected IFancyUIProvider selectedTab;
-    @Setter
-    protected IGuiTexture leftButtonTexture = new GuiTextureGroup(GuiTextures.BUTTON, Icons.LEFT.copy().scale(0.7f)),
-            leftButtonHoverTexture = new GuiTextureGroup(GuiTextures.BUTTON,
-                    Icons.LEFT.copy().setColor(0xffaaaaaa).scale(0.7f));
-    @Setter
-    protected IGuiTexture rightButtonTexture = new GuiTextureGroup(GuiTextures.BUTTON, Icons.RIGHT.copy().scale(0.7f)),
-            rightButtonHoverTexture = new GuiTextureGroup(GuiTextures.BUTTON,
-                    Icons.RIGHT.copy().setColor(0xffaaaaaa).scale(0.7f));
-    @Setter
-    protected IGuiTexture tabTexture = new ResourceTexture("gtceu:textures/gui/tab/tabs_top.png").getSubTexture(1 / 3f,
-            0, 1 / 3f, 0.5f);
-    @Setter
-    protected IGuiTexture tabHoverTexture = new ResourceTexture("gtceu:textures/gui/tab/tabs_top.png")
-            .getSubTexture(1 / 3f, 0.5f, 1 / 3f, 0.5f);
-    @Setter
+    protected IGuiTexture leftButtonTexture = new GuiTextureGroup(GuiTextures.BUTTON, Icons.LEFT.copy().scale(0.7F));
+    protected IGuiTexture leftButtonHoverTexture = new GuiTextureGroup(GuiTextures.BUTTON, Icons.LEFT.copy().setColor(-5592406).scale(0.7F));
+    protected IGuiTexture rightButtonTexture = new GuiTextureGroup(GuiTextures.BUTTON, Icons.RIGHT.copy().scale(0.7F));
+    protected IGuiTexture rightButtonHoverTexture = new GuiTextureGroup(GuiTextures.BUTTON, Icons.RIGHT.copy().setColor(-5592406).scale(0.7F));
+    protected IGuiTexture tabTexture = new ResourceTexture("gtceu:textures/gui/tab/tabs_top.png").getSubTexture(1 / 3.0F, 0, 1 / 3.0F, 0.5F);
+    protected IGuiTexture tabHoverTexture = new ResourceTexture("gtceu:textures/gui/tab/tabs_top.png").getSubTexture(1 / 3.0F, 0.5F, 1 / 3.0F, 0.5F);
     protected IGuiTexture tabPressedTexture = tabHoverTexture;
-    @Getter
     protected int offset;
     /**
      * (old tab, new tab)
      */
-    @Setter
     @Nullable
     protected BiConsumer<IFancyUIProvider, IFancyUIProvider> onTabSwitch;
 
@@ -122,8 +108,7 @@ public class TabsWidget extends Widget {
                     onTabSwitch.accept(selectedTab, hoveredTab);
                 }
                 selectedTab = hoveredTab;
-                writeClientAction(0,
-                        buf -> buf.writeVarInt(selectedTab == mainTab ? -1 : subTabs.indexOf(selectedTab)));
+                writeClientAction(0, buf -> buf.writeVarInt(selectedTab == mainTab ? -1 : subTabs.indexOf(selectedTab)));
                 onTabClick.accept(selectedTab);
                 playButtonClickSound();
             }
@@ -161,7 +146,8 @@ public class TabsWidget extends Widget {
         // main tab
         drawTab(mainTab, graphics, mouseX, mouseY, position.x + 8, position.y, 24, 24, hoveredTab);
         // render sub tabs
-        if (hasButton()) { // need a scrollable bar
+        if (hasButton()) {
+            // need a scrollable bar
             // render buttons
             if (isHoverLeftButton(mouseX, mouseY)) {
                 leftButtonHoverTexture.draw(graphics, mouseX, mouseY, position.x + 8 + 24 + 4, position.y, 16, 24);
@@ -169,8 +155,7 @@ public class TabsWidget extends Widget {
                 leftButtonTexture.draw(graphics, mouseX, mouseY, position.x + 8 + 24 + 4, position.y, 16, 24);
             }
             if (isHoverRightButton(mouseX, mouseY)) {
-                rightButtonHoverTexture.draw(graphics, mouseX, mouseY, position.x + size.width - 8 - 16, position.y, 16,
-                        24);
+                rightButtonHoverTexture.draw(graphics, mouseX, mouseY, position.x + size.width - 8 - 16, position.y, 16, 24);
             } else {
                 rightButtonTexture.draw(graphics, mouseX, mouseY, position.x + size.width - 8 - 16, position.y, 16, 24);
             }
@@ -183,8 +168,7 @@ public class TabsWidget extends Widget {
             graphics.disableScissor();
         } else {
             for (int i = subTabs.size() - 1; i >= 0; i--) {
-                drawTab(subTabs.get(i), graphics, mouseX, mouseY,
-                        position.x + size.width - 8 - 24 * (subTabs.size() - i), position.y, 24, 24, hoveredTab);
+                drawTab(subTabs.get(i), graphics, mouseX, mouseY, position.x + size.width - 8 - 24 * (subTabs.size() - i), position.y, 24, 24, hoveredTab);
             }
         }
     }
@@ -194,8 +178,7 @@ public class TabsWidget extends Widget {
     public void drawInForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         var hoveredTab = getHoveredTab(mouseX, mouseY);
         if (hoveredTab != null && gui != null && gui.getModularUIGui() != null) {
-            gui.getModularUIGui().setHoverTooltip(hoveredTab.getTabTooltips(), ItemStack.EMPTY, null,
-                    hoveredTab.getTabTooltipComponent());
+            gui.getModularUIGui().setHoverTooltip(hoveredTab.getTabTooltips(), ItemStack.EMPTY, null, hoveredTab.getTabTooltipComponent());
         }
         super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
     }
@@ -221,7 +204,8 @@ public class TabsWidget extends Widget {
                 return mainTab;
             }
             // others
-            if (hasButton()) { // need a scrollable bar
+            if (hasButton()) {
+                // need a scrollable bar
                 var sx = position.x + 8 + 24 + 4 + 16;
                 if (isMouseOver(sx, position.y, getSubTabsWidth(), 24, mouseX, mouseY)) {
                     var i = ((int) mouseX - sx + getOffset()) / 24;
@@ -240,8 +224,7 @@ public class TabsWidget extends Widget {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void drawTab(IFancyUIProvider tab, @NotNull GuiGraphics graphics, int mouseX, int mouseY, int x, int y,
-                        int width, int height, IFancyUIProvider hoveredTab) {
+    public void drawTab(IFancyUIProvider tab, @NotNull GuiGraphics graphics, int mouseX, int mouseY, int x, int y, int width, int height, IFancyUIProvider hoveredTab) {
         // render background
         if (tab == selectedTab) {
             tabPressedTexture.draw(graphics, mouseX, mouseY, x, y, width, height);
@@ -251,11 +234,103 @@ public class TabsWidget extends Widget {
             tabTexture.draw(graphics, mouseX, mouseY, x, y, width, height);
         }
         // render icon
-        tab.getTabIcon().draw(graphics, mouseX, mouseY, x + (width - 16) / 2f, y + (height - 16) / 2f, 16, 16);
+        tab.getTabIcon().draw(graphics, mouseX, mouseY, x + (width - 16) / 2.0F, y + (height - 16) / 2.0F, 16, 16);
     }
 
     public void selectTab(IFancyUIProvider selectedTab) {
         this.selectedTab = selectedTab;
         this.detectAndSendChanges();
+    }
+
+    public Consumer<IFancyUIProvider> getOnTabClick() {
+        return this.onTabClick;
+    }
+
+    public IFancyUIProvider getMainTab() {
+        return this.mainTab;
+    }
+
+    public List<IFancyUIProvider> getSubTabs() {
+        return this.subTabs;
+    }
+
+    @Nullable
+    public IFancyUIProvider getSelectedTab() {
+        return this.selectedTab;
+    }
+
+    public IGuiTexture getLeftButtonTexture() {
+        return this.leftButtonTexture;
+    }
+
+    public IGuiTexture getLeftButtonHoverTexture() {
+        return this.leftButtonHoverTexture;
+    }
+
+    public IGuiTexture getRightButtonTexture() {
+        return this.rightButtonTexture;
+    }
+
+    public IGuiTexture getRightButtonHoverTexture() {
+        return this.rightButtonHoverTexture;
+    }
+
+    public IGuiTexture getTabTexture() {
+        return this.tabTexture;
+    }
+
+    public IGuiTexture getTabHoverTexture() {
+        return this.tabHoverTexture;
+    }
+
+    public IGuiTexture getTabPressedTexture() {
+        return this.tabPressedTexture;
+    }
+
+    /**
+     * (old tab, new tab)
+     */
+    @Nullable
+    public BiConsumer<IFancyUIProvider, IFancyUIProvider> getOnTabSwitch() {
+        return this.onTabSwitch;
+    }
+
+    public void setLeftButtonTexture(final IGuiTexture leftButtonTexture) {
+        this.leftButtonTexture = leftButtonTexture;
+    }
+
+    public void setLeftButtonHoverTexture(final IGuiTexture leftButtonHoverTexture) {
+        this.leftButtonHoverTexture = leftButtonHoverTexture;
+    }
+
+    public void setRightButtonTexture(final IGuiTexture rightButtonTexture) {
+        this.rightButtonTexture = rightButtonTexture;
+    }
+
+    public void setRightButtonHoverTexture(final IGuiTexture rightButtonHoverTexture) {
+        this.rightButtonHoverTexture = rightButtonHoverTexture;
+    }
+
+    public void setTabTexture(final IGuiTexture tabTexture) {
+        this.tabTexture = tabTexture;
+    }
+
+    public void setTabHoverTexture(final IGuiTexture tabHoverTexture) {
+        this.tabHoverTexture = tabHoverTexture;
+    }
+
+    public void setTabPressedTexture(final IGuiTexture tabPressedTexture) {
+        this.tabPressedTexture = tabPressedTexture;
+    }
+
+    public int getOffset() {
+        return this.offset;
+    }
+
+    /**
+     * (old tab, new tab)
+     */
+    public void setOnTabSwitch(@Nullable final BiConsumer<IFancyUIProvider, IFancyUIProvider> onTabSwitch) {
+        this.onTabSwitch = onTabSwitch;
     }
 }

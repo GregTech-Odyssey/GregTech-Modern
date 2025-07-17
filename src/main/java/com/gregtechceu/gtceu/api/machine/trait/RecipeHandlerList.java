@@ -8,8 +8,6 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,7 +16,6 @@ import java.util.*;
 public class RecipeHandlerList {
 
     public static final RecipeHandlerList NO_DATA = new RecipeHandlerList(IO.NONE);
-
     public static final Comparator<RecipeHandlerList> COMPARATOR = (h1, h2) -> {
         int cmp = Long.compare(h1.getPriority(), h2.getPriority());
         if (cmp != 0) return cmp;
@@ -26,19 +23,11 @@ public class RecipeHandlerList {
         boolean b2 = h2.getTotalContentAmount() > 0;
         return Boolean.compare(b1, b2);
     };
-
-    @Getter
     private final Map<RecipeCapability<?>, List<IRecipeHandler<?>>> handlerMap = new Reference2ObjectOpenHashMap<>();
     private final List<IRecipeHandler<?>> allHandlers = new ArrayList<>();
     private final List<NotifiableRecipeHandlerTrait<?>> allHandlerTraits = new ArrayList<>();
-
-    @Getter
     private final IO handlerIO;
-    @Getter
     private int color = -1;
-
-    @Setter
-    @Getter
     @NotNull
     private RecipeHandlerGroup group = RecipeHandlerGroupColor.UNDYED;
 
@@ -106,8 +95,7 @@ public class RecipeHandlerList {
     protected void setDistinct(boolean distinct, boolean notify) {
         boolean currentDistinct = isDistinct();
         if (currentDistinct != distinct) {
-            this.group = currentDistinct ? new RecipeHandlerGroupColor(color) :
-                    RecipeHandlerGroupDistinctness.BUS_DISTINCT;
+            this.group = currentDistinct ? new RecipeHandlerGroupColor(color) : RecipeHandlerGroupDistinctness.BUS_DISTINCT;
             for (var rht : allHandlerTraits) {
                 rht.setDistinct(distinct);
                 if (notify) rht.notifyListeners();
@@ -139,7 +127,8 @@ public class RecipeHandlerList {
         return getHandlerMap().containsKey(cap);
     }
 
-    public @NotNull List<IRecipeHandler<?>> getCapability(RecipeCapability<?> cap) {
+    @NotNull
+    public List<IRecipeHandler<?>> getCapability(RecipeCapability<?> cap) {
         return getHandlerMap().getOrDefault(cap, Collections.emptyList());
     }
 
@@ -161,9 +150,7 @@ public class RecipeHandlerList {
     }
 
     @Contract(pure = true)
-    public Map<RecipeCapability<?>, List<Object>> handleRecipe(IO io, GTRecipe recipe,
-                                                               Map<RecipeCapability<?>, List<Object>> contents,
-                                                               boolean simulate) {
+    public Map<RecipeCapability<?>, List<Object>> handleRecipe(IO io, GTRecipe recipe, Map<RecipeCapability<?>, List<Object>> contents, boolean simulate) {
         if (getHandlerMap().isEmpty()) return contents;
         var copy = new Reference2ObjectOpenHashMap<>(contents);
         for (var it = copy.reference2ObjectEntrySet().fastIterator(); it.hasNext();) {
@@ -205,5 +192,29 @@ public class RecipeHandlerList {
             }
         }
         return new Subscription(subs);
+    }
+
+    public Map<RecipeCapability<?>, List<IRecipeHandler<?>>> getHandlerMap() {
+        return this.handlerMap;
+    }
+
+    public IO getHandlerIO() {
+        return this.handlerIO;
+    }
+
+    public int getColor() {
+        return this.color;
+    }
+
+    public void setGroup(@NotNull final RecipeHandlerGroup group) {
+        if (group == null) {
+            throw new NullPointerException("group is marked non-null but is null");
+        }
+        this.group = group;
+    }
+
+    @NotNull
+    public RecipeHandlerGroup getGroup() {
+        return this.group;
     }
 }

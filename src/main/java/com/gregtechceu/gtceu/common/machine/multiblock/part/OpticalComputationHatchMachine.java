@@ -10,17 +10,13 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
-import lombok.Getter;
-
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class OpticalComputationHatchMachine extends MultiblockPartMachine {
 
-    @Getter
     private final boolean transmitter;
-
     protected NotifiableComputationContainer computationContainer;
 
     public OpticalComputationHatchMachine(IMachineBlockEntity holder, boolean transmitter) {
@@ -48,5 +44,9 @@ public class OpticalComputationHatchMachine extends MultiblockPartMachine {
     @Override
     public boolean canShared() {
         return false;
+    }
+
+    public boolean isTransmitter() {
+        return this.transmitter;
     }
 }

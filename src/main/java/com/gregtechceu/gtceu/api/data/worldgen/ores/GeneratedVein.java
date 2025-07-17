@@ -7,8 +7,6 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 
-import lombok.Getter;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -22,12 +20,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class GeneratedVein {
 
-    @Getter
     private final ChunkPos origin;
-
-    @Getter
     private final IWorldGenLayer layer;
-
     private final Map<ChunkPos, Map<BlockPos, OreBlockPlacer>> generatedOres;
 
     /**
@@ -38,7 +32,6 @@ public class GeneratedVein {
     public GeneratedVein(ChunkPos origin, IWorldGenLayer layer, Map<BlockPos, OreBlockPlacer> oresByPosition) {
         this.origin = origin;
         this.layer = layer;
-
         this.generatedOres = WorldGeneratorUtils.groupByChunks(oresByPosition);
     }
 
@@ -55,7 +48,14 @@ public class GeneratedVein {
 
     @Override
     public String toString() {
-        return "GeneratedVein[origin=" + origin + ", chunks={" +
-                generatedOres.keySet().stream().map(ChunkPos::toString).collect(Collectors.joining(", ")) + "}]";
+        return "GeneratedVein[origin=" + origin + ", chunks={" + generatedOres.keySet().stream().map(ChunkPos::toString).collect(Collectors.joining(", ")) + "}]";
+    }
+
+    public ChunkPos getOrigin() {
+        return this.origin;
+    }
+
+    public IWorldGenLayer getLayer() {
+        return this.layer;
     }
 }

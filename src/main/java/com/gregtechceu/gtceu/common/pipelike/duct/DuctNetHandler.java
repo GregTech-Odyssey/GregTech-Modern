@@ -14,7 +14,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,7 +22,6 @@ import java.util.Objects;
 
 public class DuctNetHandler implements IHazardParticleContainer {
 
-    @Getter
     private DuctPipeNet net;
     private final DuctPipeBlockEntity pipe;
     private final Direction facing;
@@ -43,20 +41,15 @@ public class DuctNetHandler implements IHazardParticleContainer {
         if (net == null || pipe.isInValid() || facing == null || pipe.isBlocked(facing)) {
             return null;
         }
-
         final List<DuctRoutePath> data = net.getNetData(pipe.getPipePos(), facing);
         if (data == null) {
             return null;
         }
-
         return new IHazardParticleContainer() {
 
             @Override
             public boolean inputsHazard(Direction side, MedicalCondition condition) {
-                return data.stream()
-                        .map(path -> path.getHandler(net.getLevel()))
-                        .filter(Objects::nonNull)
-                        .anyMatch(handler -> handler.inputsHazard(side, condition));
+                return data.stream().map(path -> path.getHandler(net.getLevel())).filter(Objects::nonNull).anyMatch(handler -> handler.inputsHazard(side, condition));
             }
 
             @Override
@@ -65,16 +58,12 @@ public class DuctNetHandler implements IHazardParticleContainer {
                 for (DuctRoutePath path : data) {
                     IHazardParticleContainer handler = path.getHandler(net.getLevel());
                     if (handler == null && path.getTargetPipe().isConnected(path.getTargetFacing())) {
-                        if (net.getLevel().getBlockEntity(path.getTargetPipePos()
-                                .relative(path.getTargetFacing())) instanceof IMachineBlockEntity machineBE &&
-                                machineBE.getMetaMachine() instanceof IEnvironmentalHazardCleaner cleaner) {
+                        if (net.getLevel().getBlockEntity(path.getTargetPipePos().relative(path.getTargetFacing())) instanceof IMachineBlockEntity machineBE && machineBE.getMetaMachine() instanceof IEnvironmentalHazardCleaner cleaner) {
                             cleaner.cleanHazard(condition, differenceAmount);
                             break;
                         }
-
                         var savedData = EnvironmentalHazardSavedData.getOrCreate(net.getLevel());
-                        savedData.addZone(path.getTargetPipePos().relative(path.getTargetFacing()),
-                                differenceAmount, true, HazardProperty.HazardTrigger.INHALATION, condition);
+                        savedData.addZone(path.getTargetPipePos().relative(path.getTargetFacing()), differenceAmount, true, HazardProperty.HazardTrigger.INHALATION, condition);
                         total += differenceAmount;
                         emitPollutionParticles(net.getLevel(), path.getTargetPipePos(), path.getTargetFacing());
                         break;
@@ -157,11 +146,9 @@ public class DuctNetHandler implements IHazardParticleContainer {
         float xPos = frontFacing.getStepX() * 0.76F + pos.getX() + 0.25F;
         float yPos = frontFacing.getStepY() * 0.76F + pos.getY() + 0.25F;
         float zPos = frontFacing.getStepZ() * 0.76F + pos.getZ() + 0.25F;
-
         float ySpd = frontFacing.getStepY() * 0.1F + 0.2F + 0.1F * GTValues.RNG.nextFloat();
         float xSpd;
         float zSpd;
-
         if (frontFacing.getStepY() == -1) {
             float temp = GTValues.RNG.nextFloat() * 2 * (float) Math.PI;
             xSpd = (float) Math.sin(temp) * 0.1F;
@@ -170,12 +157,10 @@ public class DuctNetHandler implements IHazardParticleContainer {
             xSpd = frontFacing.getStepX() * (0.1F + 0.2F * GTValues.RNG.nextFloat());
             zSpd = frontFacing.getStepZ() * (0.1F + 0.2F * GTValues.RNG.nextFloat());
         }
-        level.sendParticles(ParticleTypes.LARGE_SMOKE,
-                xPos + GTValues.RNG.nextFloat() * 0.5F,
-                yPos + GTValues.RNG.nextFloat() * 0.5F,
-                zPos + GTValues.RNG.nextFloat() * 0.5F,
-                1,
-                xSpd, ySpd, zSpd,
-                0.1);
+        level.sendParticles(ParticleTypes.LARGE_SMOKE, xPos + GTValues.RNG.nextFloat() * 0.5F, yPos + GTValues.RNG.nextFloat() * 0.5F, zPos + GTValues.RNG.nextFloat() * 0.5F, 1, xSpd, ySpd, zSpd, 0.1);
+    }
+
+    public DuctPipeNet getNet() {
+        return this.net;
     }
 }

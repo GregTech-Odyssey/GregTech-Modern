@@ -4,9 +4,6 @@ import com.gregtechceu.gtceu.api.fluids.FluidBuilder;
 
 import net.minecraft.world.level.material.Fluid;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,15 +11,29 @@ import java.util.function.Supplier;
 
 public interface FluidStorage {
 
-    @AllArgsConstructor
-    public static class FluidEntry {
+    class FluidEntry {
 
-        @Getter
         private Supplier<? extends Fluid> fluid;
         @Nullable
-        @Getter
-        @Setter
         private FluidBuilder builder;
+
+        public FluidEntry(final Supplier<? extends Fluid> fluid, @Nullable final FluidBuilder builder) {
+            this.fluid = fluid;
+            this.builder = builder;
+        }
+
+        public Supplier<? extends Fluid> getFluid() {
+            return this.fluid;
+        }
+
+        @Nullable
+        public FluidBuilder getBuilder() {
+            return this.builder;
+        }
+
+        public void setBuilder(@Nullable final FluidBuilder builder) {
+            this.builder = builder;
+        }
     }
 
     /**
@@ -31,21 +42,24 @@ public interface FluidStorage {
      * @param key     the key corresponding with the fluid
      * @param builder the FluidBuilder to build
      */
-    public void enqueueRegistration(@NotNull FluidStorageKey key, @NotNull FluidBuilder builder);
+    void enqueueRegistration(@NotNull FluidStorageKey key, @NotNull FluidBuilder builder);
 
     /**
      * @param key the key corresponding with the FluidBuilder
      * @return the fluid builder queued to be registered
      */
-    public @Nullable FluidBuilder getQueuedBuilder(@NotNull FluidStorageKey key);
+    @Nullable
+    FluidBuilder getQueuedBuilder(@NotNull FluidStorageKey key);
 
     /**
      * @param key the key corresponding with the fluid
      * @return the fluid associated with the key
      */
-    public @Nullable Fluid get(@NotNull FluidStorageKey key);
+    @Nullable
+    Fluid get(@NotNull FluidStorageKey key);
 
-    public @Nullable FluidEntry getEntry(@NotNull FluidStorageKey key);
+    @Nullable
+    FluidEntry getEntry(@NotNull FluidStorageKey key);
 
     /**
      * @param key   the key to associate with the fluid

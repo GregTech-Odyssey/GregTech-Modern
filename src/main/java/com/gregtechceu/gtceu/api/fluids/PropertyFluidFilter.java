@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.fluids.attribute.FluidAttributes;
 
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnmodifiableView;
 
@@ -15,21 +14,12 @@ import java.util.Collection;
 public class PropertyFluidFilter implements IPropertyFluidFilter {
 
     private final Object2BooleanMap<FluidAttribute> containmentPredicate = new Object2BooleanOpenHashMap<>();
-
-    @Getter
     private final int maxFluidTemperature;
-    @Getter
     private final boolean gasProof;
-    @Getter
     private final boolean cryoProof;
-    @Getter
     private final boolean plasmaProof;
 
-    public PropertyFluidFilter(int maxFluidTemperature,
-                               boolean gasProof,
-                               boolean acidProof,
-                               boolean cryoProof,
-                               boolean plasmaProof) {
+    public PropertyFluidFilter(int maxFluidTemperature, boolean gasProof, boolean acidProof, boolean cryoProof, boolean plasmaProof) {
         this.maxFluidTemperature = maxFluidTemperature;
         this.gasProof = gasProof;
         if (acidProof) setCanContain(FluidAttributes.ACID, true);
@@ -57,18 +47,30 @@ public class PropertyFluidFilter implements IPropertyFluidFilter {
     }
 
     @Override
-    public @NotNull @UnmodifiableView Collection<@NotNull FluidAttribute> getContainedAttributes() {
+    @NotNull
+    @UnmodifiableView
+    public Collection<@NotNull FluidAttribute> getContainedAttributes() {
         return containmentPredicate.keySet();
     }
 
     @Override
     public String toString() {
-        return "SimplePropertyFluidFilter{" +
-                "maxFluidTemperature=" + maxFluidTemperature +
-                ", gasProof=" + gasProof +
-                ", cryoProof=" + cryoProof +
-                ", plasmaProof=" + plasmaProof +
-                ", containmentPredicate=" + containmentPredicate +
-                '}';
+        return "SimplePropertyFluidFilter{" + "maxFluidTemperature=" + maxFluidTemperature + ", gasProof=" + gasProof + ", cryoProof=" + cryoProof + ", plasmaProof=" + plasmaProof + ", containmentPredicate=" + containmentPredicate + '}';
+    }
+
+    public int getMaxFluidTemperature() {
+        return this.maxFluidTemperature;
+    }
+
+    public boolean isGasProof() {
+        return this.gasProof;
+    }
+
+    public boolean isCryoProof() {
+        return this.cryoProof;
+    }
+
+    public boolean isPlasmaProof() {
+        return this.plasmaProof;
     }
 }

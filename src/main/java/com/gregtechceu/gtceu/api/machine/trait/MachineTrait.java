@@ -8,8 +8,6 @@ import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,12 +19,8 @@ import java.util.function.Predicate;
  */
 public abstract class MachineTrait implements IEnhancedManaged {
 
-    @Getter
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
-
-    @Getter
     protected final MetaMachine machine;
-    @Setter
     protected Predicate<@Nullable Direction> capabilityValidator;
 
     public MachineTrait(MetaMachine machine) {
@@ -61,5 +55,17 @@ public abstract class MachineTrait implements IEnhancedManaged {
     @Override
     public void scheduleRenderUpdate() {
         machine.scheduleRenderUpdate();
+    }
+
+    public FieldManagedStorage getSyncStorage() {
+        return this.syncStorage;
+    }
+
+    public MetaMachine getMachine() {
+        return this.machine;
+    }
+
+    public void setCapabilityValidator(final Predicate<@Nullable Direction> capabilityValidator) {
+        this.capabilityValidator = capabilityValidator;
     }
 }

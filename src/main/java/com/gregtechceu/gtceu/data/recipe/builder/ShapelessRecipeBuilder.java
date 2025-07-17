@@ -18,27 +18,19 @@ import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-@Accessors(chain = true, fluent = true)
 public class ShapelessRecipeBuilder {
 
     private List<Ingredient> ingredients = new ArrayList<>();
-    @Setter
     protected String group;
-
     private ItemStack output = ItemStack.EMPTY;
-    @Setter
     private float experience;
-    @Setter
     private int cookingTime;
-    @Setter
     protected ResourceLocation id;
 
     public ShapelessRecipeBuilder(@Nullable ResourceLocation id) {
@@ -89,13 +81,11 @@ public class ShapelessRecipeBuilder {
         if (group != null) {
             json.addProperty("group", group);
         }
-
         JsonArray jsonarray = new JsonArray();
         for (Ingredient ingredient : ingredients) {
             jsonarray.add(ingredient.toJson());
         }
         json.add("ingredients", jsonarray);
-
         if (output.isEmpty()) {
             GTCEu.LOGGER.error("shapeless recipe {} output is empty", id);
             throw new IllegalArgumentException(id + ": output items is empty");
@@ -143,5 +133,37 @@ public class ShapelessRecipeBuilder {
                 return null;
             }
         });
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public ShapelessRecipeBuilder group(final String group) {
+        this.group = group;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public ShapelessRecipeBuilder experience(final float experience) {
+        this.experience = experience;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public ShapelessRecipeBuilder cookingTime(final int cookingTime) {
+        this.cookingTime = cookingTime;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public ShapelessRecipeBuilder id(final ResourceLocation id) {
+        this.id = id;
+        return this;
     }
 }

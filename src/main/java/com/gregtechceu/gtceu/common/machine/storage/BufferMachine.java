@@ -34,8 +34,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
@@ -46,53 +44,38 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class BufferMachine extends TieredMachine implements IMachineLife, IAutoOutputBoth, IFancyUIMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(BufferMachine.class,
-            MetaMachine.MANAGED_FIELD_HOLDER);
-
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(BufferMachine.class, MetaMachine.MANAGED_FIELD_HOLDER);
     public static final int TANK_SIZE = 64000;
-
-    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected Direction outputFacingItems;
-    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected Direction outputFacingFluids;
-    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected boolean autoOutputItems;
-    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected boolean autoOutputFluids;
-    @Getter
-    @Setter
     @Persisted
     protected boolean allowInputFromOutputSideItems;
-    @Getter
-    @Setter
     @Persisted
     protected boolean allowInputFromOutputSideFluids;
-
     @Persisted
-    @Getter
     protected final NotifiableItemStackHandler inventory;
-
     @Persisted
-    @Getter
     protected final NotifiableFluidTank tank;
-
     @Nullable
     protected TickableSubscription autoOutputSubs;
-
     @Nullable
-    protected ISubscription invSubs, tankSubs;
+    protected ISubscription invSubs;
+    @Nullable
+    protected ISubscription tankSubs;
 
     public BufferMachine(IMachineBlockEntity holder, int tier, Object... args) {
         super(holder, tier);
@@ -103,7 +86,6 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
     ////////////////////////////////
     // ***** Initialization ******//
     ////////////////////////////////
-
     @Override
     public ManagedFieldHolder getFieldHolder() {
         return MANAGED_FIELD_HOLDER;
@@ -142,7 +124,6 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
             invSubs.unsubscribe();
             this.invSubs = null;
         }
-
         if (tankSubs != null) {
             tankSubs.unsubscribe();
             this.tankSubs = null;
@@ -152,7 +133,6 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
     ////////////////////////////////
     // ******* Auto Output *******//
     ////////////////////////////////
-
     @Override
     public void setAutoOutputFluids(boolean allow) {
         this.autoOutputFluids = allow;
@@ -186,10 +166,7 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
     protected void updateAutoOutputSubscription() {
         var outputFacingItems = getOutputFacingItems();
         var outputFacingFluids = getOutputFacingFluids();
-        if ((isAutoOutputItems() && !inventory.isEmpty() && outputFacingItems != null &&
-                GTTransferUtils.hasAdjacentItemHandler(getLevel(), getPos(), outputFacingItems)) ||
-                (isAutoOutputFluids() && !tank.isEmpty() && outputFacingFluids != null &&
-                        GTTransferUtils.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacingFluids))) {
+        if ((isAutoOutputItems() && !inventory.isEmpty() && outputFacingItems != null && GTTransferUtils.hasAdjacentItemHandler(getLevel(), getPos(), outputFacingItems)) || (isAutoOutputFluids() && !tank.isEmpty() && outputFacingFluids != null && GTTransferUtils.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacingFluids))) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
@@ -212,29 +189,21 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
     ////////////////////////////////
     // ********** GUI *********** //
     ////////////////////////////////
-
     @Override
     public Widget createUIWidget() {
         int invTier = getTankSize(tier);
         var group = new WidgetGroup(0, 0, 18 * (invTier + 1) + 16, 18 * invTier + 16);
         var container = new WidgetGroup(4, 4, 18 * (invTier + 1) + 8, 18 * invTier + 8);
-
         int index = 0;
         for (int y = 0; y < invTier; y++) {
             for (int x = 0; x < invTier; x++) {
-                container.addWidget(new SlotWidget(
-                        getInventory().storage, index++, 4 + x * 18, 4 + y * 18, true, true)
-                        .setBackgroundTexture(GuiTextures.SLOT));
+                container.addWidget(new SlotWidget(getInventory().storage, index++, 4 + x * 18, 4 + y * 18, true, true).setBackgroundTexture(GuiTextures.SLOT));
             }
         }
-
         index = 0;
         for (int y = 0; y < invTier; y++) {
-            container.addWidget(new TankWidget(
-                    tank.getStorages()[index++], 4 + invTier * 18, 4 + y * 18, true, true)
-                    .setBackground(GuiTextures.FLUID_SLOT));
+            container.addWidget(new TankWidget(tank.getStorages()[index++], 4 + invTier * 18, 4 + y * 18, true, true).setBackground(GuiTextures.FLUID_SLOT));
         }
-
         container.setBackground(GuiTextures.BACKGROUND_INVERSE);
         group.addWidget(container);
         return group;
@@ -244,8 +213,7 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
     // ******* Rendering ********//
     ///////////////////////////////
     @Override
-    public ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes,
-                                    Direction side) {
+    public ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes, Direction side) {
         if (toolTypes.contains(GTToolType.SCREWDRIVER)) {
             if (side == getOutputFacingItems() || side == getOutputFacingFluids()) {
                 return GuiTextures.TOOL_ALLOW_INPUT;
@@ -257,9 +225,48 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
     ////////////////////////////////
     // ********** Misc ***********//
     ////////////////////////////////
-
     @Override
     public void onMachineRemoved() {
         clearInventory(inventory.storage);
+    }
+
+    public Direction getOutputFacingItems() {
+        return this.outputFacingItems;
+    }
+
+    public Direction getOutputFacingFluids() {
+        return this.outputFacingFluids;
+    }
+
+    public boolean isAutoOutputItems() {
+        return this.autoOutputItems;
+    }
+
+    public boolean isAutoOutputFluids() {
+        return this.autoOutputFluids;
+    }
+
+    public boolean isAllowInputFromOutputSideItems() {
+        return this.allowInputFromOutputSideItems;
+    }
+
+    public void setAllowInputFromOutputSideItems(final boolean allowInputFromOutputSideItems) {
+        this.allowInputFromOutputSideItems = allowInputFromOutputSideItems;
+    }
+
+    public boolean isAllowInputFromOutputSideFluids() {
+        return this.allowInputFromOutputSideFluids;
+    }
+
+    public void setAllowInputFromOutputSideFluids(final boolean allowInputFromOutputSideFluids) {
+        this.allowInputFromOutputSideFluids = allowInputFromOutputSideFluids;
+    }
+
+    public NotifiableItemStackHandler getInventory() {
+        return this.inventory;
+    }
+
+    public NotifiableFluidTank getTank() {
+        return this.tank;
     }
 }

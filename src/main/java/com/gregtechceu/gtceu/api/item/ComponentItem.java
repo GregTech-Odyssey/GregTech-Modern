@@ -37,7 +37,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 
 import com.google.common.collect.Multimap;
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -48,12 +47,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class ComponentItem extends Item
-                           implements HeldItemUIFactory.IHeldItemUIHolder, IItemRendererProvider, IComponentItem {
+public class ComponentItem extends Item implements HeldItemUIFactory.IHeldItemUIHolder, IItemRendererProvider, IComponentItem {
 
     protected int burnTime = -1;
-
-    @Getter
     protected List<IItemComponent> components;
 
     protected ComponentItem(Properties properties) {
@@ -90,8 +86,7 @@ public class ComponentItem extends Item
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
-                                TooltipFlag isAdvanced) {
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
         for (IItemComponent component : components) {
             if (component instanceof IAddInformation addInformation) {
                 addInformation.appendHoverText(stack, level, tooltipComponents, isAdvanced);
@@ -244,8 +239,7 @@ public class ComponentItem extends Item
     }
 
     @Override
-    public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity interactionTarget,
-                                                  InteractionHand usedHand) {
+    public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity interactionTarget, InteractionHand usedHand) {
         for (IItemComponent component : components) {
             if (component instanceof IInteractionItem interactionItem) {
                 var result = interactionItem.interactLivingEntity(stack, player, interactionTarget, usedHand);
@@ -362,7 +356,8 @@ public class ComponentItem extends Item
     }
 
     @Override
-    public @Nullable FoodProperties getFoodProperties(ItemStack stack, @Nullable LivingEntity entity) {
+    @Nullable
+    public FoodProperties getFoodProperties(ItemStack stack, @Nullable LivingEntity entity) {
         for (IItemComponent component : components) {
             if (component instanceof IEdibleItem foodBehavior) {
                 return foodBehavior.getFoodProperties(stack, entity);
@@ -374,7 +369,8 @@ public class ComponentItem extends Item
     @Override
     @Deprecated
     @SuppressWarnings("deprecation")
-    public @Nullable FoodProperties getFoodProperties() {
+    @Nullable
+    public FoodProperties getFoodProperties() {
         // If item has `foodProperties` from super, return it.
         if (super.isEdible()) return super.getFoodProperties();
         // If item has `IEdibleItem` components, return food stats from default stack
@@ -442,5 +438,9 @@ public class ComponentItem extends Item
         }
         electricItem.setInfiniteCharge(true);
         return itemStack;
+    }
+
+    public List<IItemComponent> getComponents() {
+        return this.components;
     }
 }

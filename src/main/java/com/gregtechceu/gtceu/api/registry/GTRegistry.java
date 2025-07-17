@@ -14,7 +14,6 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,17 +22,13 @@ import java.util.*;
 public abstract class GTRegistry<K, V> implements Iterable<V> {
 
     public static final Map<ResourceLocation, GTRegistry<?, ?>> REGISTERED = new HashMap<>();
-
     protected final BiMap<K, V> registry;
-    @Getter
     protected final ResourceLocation registryName;
-    @Getter
     protected boolean frozen = true;
 
     public GTRegistry(ResourceLocation registryName) {
         registry = initRegistry();
         this.registryName = registryName;
-
         REGISTERED.put(registryName, this);
     }
 
@@ -53,11 +48,9 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
         if (frozen) {
             throw new IllegalStateException("Registry is already frozen!");
         }
-
         if (!checkActiveModContainerIsGregtech()) {
             return;
         }
-
         this.frozen = true;
     }
 
@@ -65,20 +58,26 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
         if (!frozen) {
             throw new IllegalStateException("Registry is already unfrozen!");
         }
-
         if (!checkActiveModContainerIsGregtech()) {
             return;
         }
-
         this.frozen = false;
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean checkActiveModContainerIsGregtech() {
         ModContainer container = ModLoadingContext.get().getActiveContainer();
-        return container != null && (container.getModId().equals(this.registryName.getNamespace()) ||
-                container.getModId().equals(GTCEu.MOD_ID) ||
-                container.getModId().equals("minecraft")); // check for minecraft modid in case of datagen or a mishap
+        return container != null && (container.getModId().equals(this.registryName.getNamespace()) || container.getModId().equals(GTCEu.MOD_ID) || container.getModId().equals("minecraft")); // check
+                                                                                                                                                                                              // for
+                                                                                                                                                                                              // minecraft
+                                                                                                                                                                                              // modid
+                                                                                                                                                                                              // in
+                                                                                                                                                                                              // case
+                                                                                                                                                                                              // of
+                                                                                                                                                                                              // datagen
+                                                                                                                                                                                              // or
+                                                                                                                                                                                              // a
+                                                                                                                                                                                              // mishap
     }
 
     public <T extends V> T register(K key, T value) {
@@ -86,8 +85,7 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
             throw new IllegalStateException("[register] registry %s has been frozen".formatted(registryName));
         }
         if (containKey(key)) {
-            throw new IllegalStateException(
-                    "[register] registry %s contains key %s already".formatted(registryName, key));
+            throw new IllegalStateException("[register] registry %s contains key %s already".formatted(registryName, key));
         }
         registry.put(key, value);
         return value;
@@ -99,7 +97,7 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
             throw new IllegalStateException("[replace] registry %s has been frozen".formatted(registryName));
         }
         if (!containKey(key)) {
-            GTCEu.LOGGER.warn("[replace] couldn't find key %s in registry %s".formatted(registryName, key));
+            GTCEu.LOGGER.warn("[replace] couldn\'t find key %s in registry %s".formatted(registryName, key));
         }
         registry.put(key, value);
         return value;
@@ -169,7 +167,6 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
     public abstract Codec<V> codec();
 
     // ************************ Built-in Registry ************************//
-
     public static class String<V> extends GTRegistry<java.lang.String, V> {
 
         public String(ResourceLocation registryName) {
@@ -207,14 +204,7 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
 
         @Override
         public Codec<V> codec() {
-            return Codec.STRING
-                    .flatXmap(
-                            str -> Optional.ofNullable(this.get(str)).map(DataResult::success)
-                                    .orElseGet(() -> DataResult
-                                            .error(() -> "Unknown registry key in " + this.registryName + ": " + str)),
-                            obj -> Optional.ofNullable(this.getKey(obj)).map(DataResult::success)
-                                    .orElseGet(() -> DataResult.error(
-                                            () -> "Unknown registry element in " + this.registryName + ": " + obj)));
+            return Codec.STRING.flatXmap(str -> Optional.ofNullable(this.get(str)).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "Unknown registry key in " + this.registryName + ": " + str)), obj -> Optional.ofNullable(this.getKey(obj)).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "Unknown registry element in " + this.registryName + ": " + obj)));
         }
     }
 
@@ -255,14 +245,15 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
 
         @Override
         public Codec<V> codec() {
-            return ResourceLocation.CODEC
-                    .flatXmap(
-                            rl -> Optional.ofNullable(this.get(rl)).map(DataResult::success)
-                                    .orElseGet(() -> DataResult
-                                            .error(() -> "Unknown registry key in " + this.registryName + ": " + rl)),
-                            obj -> Optional.ofNullable(this.getKey(obj)).map(DataResult::success)
-                                    .orElseGet(() -> DataResult.error(
-                                            () -> "Unknown registry element in " + this.registryName + ": " + obj)));
+            return ResourceLocation.CODEC.flatXmap(rl -> Optional.ofNullable(this.get(rl)).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "Unknown registry key in " + this.registryName + ": " + rl)), obj -> Optional.ofNullable(this.getKey(obj)).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "Unknown registry element in " + this.registryName + ": " + obj)));
         }
+    }
+
+    public ResourceLocation getRegistryName() {
+        return this.registryName;
+    }
+
+    public boolean isFrozen() {
+        return this.frozen;
     }
 }

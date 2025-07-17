@@ -196,7 +196,6 @@ public class TraceabilityPredicate {
         for (SimplePredicate predicate : limited) {
             if (predicate.testLimited(blockWorldState)) {
                 flag = true;
-                break;
             }
         }
 

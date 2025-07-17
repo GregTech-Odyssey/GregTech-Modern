@@ -13,8 +13,6 @@ import appeng.api.stacks.AEKey;
 import appeng.api.storage.MEStorage;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
@@ -24,15 +22,11 @@ import java.util.Iterator;
  * Provides methods for serialization and deserialization.
  */
 @MethodsReturnNonnullByDefault
-public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAware,
-                        Iterable<Object2LongMap.Entry<AEKey>> {
+public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAware, Iterable<Object2LongMap.Entry<AEKey>> {
 
     public final Object2LongOpenHashMap<AEKey> storage = new Object2LongOpenHashMap<>(); // TODO trim periodically or
-                                                                                         // not
-
+    // not
     @Nullable
-    @Getter
-    @Setter
     private Runnable onContentsChanged;
 
     /**
@@ -48,8 +42,7 @@ public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAwar
             var entry = it.next();
             var key = entry.getKey();
             var amount = entry.getLongValue();
-            long inserted = inventory.insert(key, amount, Actionable.MODULATE,
-                    source);
+            long inserted = inventory.insert(key, amount, Actionable.MODULATE, source);
             if (inserted > 0) {
                 changed = true;
                 if (inserted >= amount) {
@@ -99,5 +92,14 @@ public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAwar
 
     public boolean isEmpty() {
         return storage.isEmpty();
+    }
+
+    @Nullable
+    public Runnable getOnContentsChanged() {
+        return this.onContentsChanged;
+    }
+
+    public void setOnContentsChanged(@Nullable final Runnable onContentsChanged) {
+        this.onContentsChanged = onContentsChanged;
     }
 }

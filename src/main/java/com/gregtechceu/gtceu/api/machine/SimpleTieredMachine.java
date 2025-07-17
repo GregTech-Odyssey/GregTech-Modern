@@ -48,8 +48,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import com.google.common.collect.Tables;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -62,12 +60,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class SimpleTieredMachine extends WorkableTieredMachine
-                                 implements IAutoOutputBoth, IFancyUIMachine, IHasCircuitSlot {
+public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoOutputBoth, IFancyUIMachine, IHasCircuitSlot {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(SimpleTieredMachine.class,
-            WorkableTieredMachine.MANAGED_FIELD_HOLDER);
-
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(SimpleTieredMachine.class, WorkableTieredMachine.MANAGED_FIELD_HOLDER);
     @Persisted
     @DescSynced
     @RequireRerender
@@ -76,37 +71,34 @@ public class SimpleTieredMachine extends WorkableTieredMachine
     @DescSynced
     @RequireRerender
     protected Direction outputFacingFluids;
-    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected boolean autoOutputItems;
-    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected boolean autoOutputFluids;
-    @Getter
-    @Setter
     @Persisted
     protected boolean allowInputFromOutputSideItems;
-    @Getter
-    @Setter
     @Persisted
     protected boolean allowInputFromOutputSideFluids;
-    @Getter
     @Persisted
     protected final CustomItemStackHandler chargerInventory;
-    @Getter
     @Persisted
     protected final NotifiableItemStackHandler circuitInventory;
     @Nullable
-    protected TickableSubscription autoOutputSubs, batterySubs;
+    protected TickableSubscription autoOutputSubs;
     @Nullable
-    protected ISubscription exportItemSubs, exportFluidSubs, energySubs;
+    protected TickableSubscription batterySubs;
+    @Nullable
+    protected ISubscription exportItemSubs;
+    @Nullable
+    protected ISubscription exportFluidSubs;
+    @Nullable
+    protected ISubscription energySubs;
 
-    public SimpleTieredMachine(IMachineBlockEntity holder, int tier, Int2IntFunction tankScalingFunction,
-                               Object... args) {
+    public SimpleTieredMachine(IMachineBlockEntity holder, int tier, Int2IntFunction tankScalingFunction, Object... args) {
         super(holder, tier, tankScalingFunction, args);
         this.outputFacingItems = hasFrontFacing() ? getFrontFacing().getOpposite() : Direction.UP;
         this.outputFacingFluids = outputFacingItems;
@@ -129,15 +121,12 @@ public class SimpleTieredMachine extends WorkableTieredMachine
                 return 1;
             }
         };
-        handler.setFilter(item -> GTCapabilityHelper.getElectricItem(item) != null ||
-                (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE &&
-                        GTCapabilityHelper.getForgeEnergyItem(item) != null));
+        handler.setFilter(item -> GTCapabilityHelper.getElectricItem(item) != null || (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE && GTCapabilityHelper.getForgeEnergyItem(item) != null));
         return handler;
     }
 
     protected NotifiableItemStackHandler createCircuitItemHandler(Object... args) {
-        return new NotifiableItemStackHandler(this, 1, IO.IN, IO.NONE)
-                .setFilter(IntCircuitBehaviour::isIntegratedCircuit);
+        return new NotifiableItemStackHandler(this, 1, IO.IN, IO.NONE).setFilter(IntCircuitBehaviour::isIntegratedCircuit);
     }
 
     //////////////////////////////////////
@@ -165,12 +154,10 @@ public class SimpleTieredMachine extends WorkableTieredMachine
             exportItemSubs.unsubscribe();
             exportItemSubs = null;
         }
-
         if (exportFluidSubs != null) {
             exportFluidSubs.unsubscribe();
             exportFluidSubs = null;
         }
-
         if (energySubs != null) {
             energySubs.unsubscribe();
             energySubs = null;
@@ -180,7 +167,6 @@ public class SimpleTieredMachine extends WorkableTieredMachine
     //////////////////////////////////////
     // ******* Auto Output *******//
     //////////////////////////////////////
-
     @Override
     public boolean hasAutoOutputFluid() {
         return exportFluids.getTanks() > 0;
@@ -192,7 +178,8 @@ public class SimpleTieredMachine extends WorkableTieredMachine
     }
 
     @Override
-    public @Nullable Direction getOutputFacingFluids() {
+    @Nullable
+    public Direction getOutputFacingFluids() {
         if (hasAutoOutputFluid()) {
             return outputFacingFluids;
         }
@@ -200,7 +187,8 @@ public class SimpleTieredMachine extends WorkableTieredMachine
     }
 
     @Override
-    public @Nullable Direction getOutputFacingItems() {
+    @Nullable
+    public Direction getOutputFacingItems() {
         if (hasAutoOutputItem()) {
             return outputFacingItems;
         }
@@ -248,10 +236,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine
     protected void updateAutoOutputSubscription() {
         var outputFacingItems = getOutputFacingItems();
         var outputFacingFluids = getOutputFacingFluids();
-        if ((isAutoOutputItems() && !exportItems.isEmpty() && outputFacingItems != null &&
-                GTTransferUtils.hasAdjacentItemHandler(getLevel(), getPos(), outputFacingItems)) ||
-                (isAutoOutputFluids() && !exportFluids.isEmpty() && outputFacingFluids != null &&
-                        GTTransferUtils.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacingFluids))) {
+        if ((isAutoOutputItems() && !exportItems.isEmpty() && outputFacingItems != null && GTTransferUtils.hasAdjacentItemHandler(getLevel(), getPos(), outputFacingItems)) || (isAutoOutputFluids() && !exportFluids.isEmpty() && outputFacingFluids != null && GTTransferUtils.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacingFluids))) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
@@ -309,7 +294,6 @@ public class SimpleTieredMachine extends WorkableTieredMachine
     //////////////////////////////////////
     // *********** GUI ***********//
     //////////////////////////////////////
-
     @Override
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
         IFancyUIMachine.super.attachConfigurators(configuratorPanel);
@@ -319,47 +303,36 @@ public class SimpleTieredMachine extends WorkableTieredMachine
     }
 
     @SuppressWarnings("UnstableApiUsage")
-    public static BiFunction<ResourceLocation, GTRecipeType, EditableMachineUI> EDITABLE_UI_CREATOR = Util
-            .memoize((path, recipeType) -> new EditableMachineUI("simple", path, () -> {
-                WidgetGroup template = recipeType.getRecipeUI().createEditableUITemplate(false, false).createDefault();
-                SlotWidget batterySlot = createBatterySlot().createDefault();
-                WidgetGroup group = new WidgetGroup(0, 0, template.getSize().width,
-                        Math.max(template.getSize().height, 78));
-                template.setSelfPosition(new Position(0, (group.getSize().height - template.getSize().height) / 2));
-                batterySlot.setSelfPosition(new Position(group.getSize().width / 2 - 9, group.getSize().height - 18));
-                group.addWidget(batterySlot);
-                group.addWidget(template);
+    public static BiFunction<ResourceLocation, GTRecipeType, EditableMachineUI> EDITABLE_UI_CREATOR = Util.memoize((path, recipeType) -> new EditableMachineUI("simple", path, () -> {
+        WidgetGroup template = recipeType.getRecipeUI().createEditableUITemplate(false, false).createDefault();
+        SlotWidget batterySlot = createBatterySlot().createDefault();
+        WidgetGroup group = new WidgetGroup(0, 0, template.getSize().width, Math.max(template.getSize().height, 78));
+        template.setSelfPosition(new Position(0, (group.getSize().height - template.getSize().height) / 2));
+        batterySlot.setSelfPosition(new Position(group.getSize().width / 2 - 9, group.getSize().height - 18));
+        group.addWidget(batterySlot);
+        group.addWidget(template);
+        // TODO fix this.
+        // if (ConfigHolder.INSTANCE.machines.ghostCircuit) {
+        // SlotWidget circuitSlot = createCircuitConfigurator().createDefault();
+        // circuitSlot.setSelfPosition(new Position(120, 62));
+        // group.addWidget(circuitSlot);
+        // }
+        return group;
+    }, (template, machine) -> {
+        if (machine instanceof SimpleTieredMachine tieredMachine) {
+            var storages = Tables.newCustomTable(new EnumMap<>(IO.class), LinkedHashMap<RecipeCapability<?>, Object>::new);
+            storages.put(IO.IN, ItemRecipeCapability.CAP, tieredMachine.importItems.storage);
+            storages.put(IO.OUT, ItemRecipeCapability.CAP, tieredMachine.exportItems.storage);
+            storages.put(IO.IN, FluidRecipeCapability.CAP, tieredMachine.importFluids);
+            storages.put(IO.OUT, FluidRecipeCapability.CAP, tieredMachine.exportFluids);
+            storages.put(IO.IN, CWURecipeCapability.CAP, tieredMachine.importComputation);
+            storages.put(IO.OUT, CWURecipeCapability.CAP, tieredMachine.exportComputation);
+            tieredMachine.getRecipeType().getRecipeUI().createEditableUITemplate(false, false).setupUI(template, new GTRecipeTypeUI.RecipeHolder(tieredMachine.recipeLogic::getProgressPercent, storages, new CompoundTag(), Collections.emptyList(), false, false));
+            createBatterySlot().setupUI(template, tieredMachine);
+        }
+    }));
 
-                // TODO fix this.
-                // if (ConfigHolder.INSTANCE.machines.ghostCircuit) {
-                // SlotWidget circuitSlot = createCircuitConfigurator().createDefault();
-                // circuitSlot.setSelfPosition(new Position(120, 62));
-                // group.addWidget(circuitSlot);
-                // }
-
-                return group;
-            }, (template, machine) -> {
-                if (machine instanceof SimpleTieredMachine tieredMachine) {
-                    var storages = Tables.newCustomTable(new EnumMap<>(IO.class),
-                            LinkedHashMap<RecipeCapability<?>, Object>::new);
-                    storages.put(IO.IN, ItemRecipeCapability.CAP, tieredMachine.importItems.storage);
-                    storages.put(IO.OUT, ItemRecipeCapability.CAP, tieredMachine.exportItems.storage);
-                    storages.put(IO.IN, FluidRecipeCapability.CAP, tieredMachine.importFluids);
-                    storages.put(IO.OUT, FluidRecipeCapability.CAP, tieredMachine.exportFluids);
-                    storages.put(IO.IN, CWURecipeCapability.CAP, tieredMachine.importComputation);
-                    storages.put(IO.OUT, CWURecipeCapability.CAP, tieredMachine.exportComputation);
-
-                    tieredMachine.getRecipeType().getRecipeUI().createEditableUITemplate(false, false).setupUI(template,
-                            new GTRecipeTypeUI.RecipeHolder(tieredMachine.recipeLogic::getProgressPercent,
-                                    storages,
-                                    new CompoundTag(),
-                                    Collections.emptyList(),
-                                    false, false));
-                    createBatterySlot().setupUI(template, tieredMachine);
-                    // createCircuitConfigurator().setupUI(template, tieredMachine);
-                }
-            }));
-
+    // createCircuitConfigurator().setupUI(template, tieredMachine);
     /**
      * Create an energy bar widget.
      */
@@ -372,8 +345,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine
             slotWidget.setHandlerSlot(machine.chargerInventory, 0);
             slotWidget.setCanPutItems(true);
             slotWidget.setCanTakeItems(true);
-            slotWidget.setHoverTooltips(LangHandler.getMultiLang("gtceu.gui.charger_slot.tooltip",
-                    GTValues.VNF[machine.getTier()], GTValues.VNF[machine.getTier()]).toArray(Component[]::new));
+            slotWidget.setHoverTooltips(LangHandler.getMultiLang("gtceu.gui.charger_slot.tooltip", GTValues.VNF[machine.getTier()], GTValues.VNF[machine.getTier()]).toArray(Component[]::new));
         });
     }
 
@@ -389,8 +361,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine
             slotWidget.setCircuitInventory(machine.circuitInventory);
             slotWidget.setCanPutItems(false);
             slotWidget.setCanTakeItems(false);
-            slotWidget.setHoverTooltips(
-                    LangHandler.getMultiLang("gtceu.gui.configurator_slot.tooltip").toArray(Component[]::new));
+            slotWidget.setHoverTooltips(LangHandler.getMultiLang("gtceu.gui.configurator_slot.tooltip").toArray(Component[]::new));
         });
     }
 
@@ -403,8 +374,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine
     // ******* Rendering ********//
     //////////////////////////////////////
     @Override
-    public ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes,
-                                    Direction side) {
+    public ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes, Direction side) {
         if (toolTypes.contains(GTToolType.WRENCH)) {
             if (!player.isShiftKeyDown()) {
                 if (!hasFrontFacing() || side != getFrontFacing()) {
@@ -418,5 +388,37 @@ public class SimpleTieredMachine extends WorkableTieredMachine
             }
         }
         return super.sideTips(player, pos, state, toolTypes, side);
+    }
+
+    public boolean isAutoOutputItems() {
+        return this.autoOutputItems;
+    }
+
+    public boolean isAutoOutputFluids() {
+        return this.autoOutputFluids;
+    }
+
+    public boolean isAllowInputFromOutputSideItems() {
+        return this.allowInputFromOutputSideItems;
+    }
+
+    public void setAllowInputFromOutputSideItems(final boolean allowInputFromOutputSideItems) {
+        this.allowInputFromOutputSideItems = allowInputFromOutputSideItems;
+    }
+
+    public boolean isAllowInputFromOutputSideFluids() {
+        return this.allowInputFromOutputSideFluids;
+    }
+
+    public void setAllowInputFromOutputSideFluids(final boolean allowInputFromOutputSideFluids) {
+        this.allowInputFromOutputSideFluids = allowInputFromOutputSideFluids;
+    }
+
+    public CustomItemStackHandler getChargerInventory() {
+        return this.chargerInventory;
+    }
+
+    public NotifiableItemStackHandler getCircuitInventory() {
+        return this.circuitInventory;
     }
 }

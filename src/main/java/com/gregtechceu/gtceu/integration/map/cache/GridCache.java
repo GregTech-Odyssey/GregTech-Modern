@@ -7,8 +7,6 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -16,7 +14,6 @@ import java.util.stream.Collectors;
 
 public class GridCache {
 
-    @Getter
     private final List<GeneratedVeinMetadata> veins = new ArrayList<>();
 
     public boolean addVein(GeneratedVeinMetadata vein) {
@@ -28,18 +25,14 @@ public class GridCache {
     public ListTag toNBT(boolean isClient) {
         ListTag result = new ListTag();
         for (GeneratedVeinMetadata pos : veins) {
-            result.add((isClient ? GeneratedVeinMetadata.CLIENT_CODEC : GeneratedVeinMetadata.CODEC)
-                    .encodeStart(NbtOps.INSTANCE, pos)
-                    .getOrThrow(false, GTCEu.LOGGER::error));
+            result.add((isClient ? GeneratedVeinMetadata.CLIENT_CODEC : GeneratedVeinMetadata.CODEC).encodeStart(NbtOps.INSTANCE, pos).getOrThrow(false, GTCEu.LOGGER::error));
         }
         return result;
     }
 
     public void fromNBT(ListTag tag, boolean isClient) {
         for (Tag veinTag : tag) {
-            GeneratedVeinMetadata vein = (isClient ? GeneratedVeinMetadata.CLIENT_CODEC : GeneratedVeinMetadata.CODEC)
-                    .parse(NbtOps.INSTANCE, veinTag)
-                    .getOrThrow(false, GTCEu.LOGGER::error);
+            GeneratedVeinMetadata vein = (isClient ? GeneratedVeinMetadata.CLIENT_CODEC : GeneratedVeinMetadata.CODEC).parse(NbtOps.INSTANCE, veinTag).getOrThrow(false, GTCEu.LOGGER::error);
             if (!veins.contains(vein)) {
                 veins.add(vein);
             }
@@ -57,5 +50,9 @@ public class GridCache {
                 i--;
             }
         }
+    }
+
+    public List<GeneratedVeinMetadata> getVeins() {
+        return this.veins;
     }
 }
