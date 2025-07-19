@@ -104,7 +104,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @NotNull
     public MultiblockState getMultiblockState() {
         if (multiblockState == null) {
-            multiblockState = new MultiblockState(getLevel(), getPos());
+            multiblockState = new MultiblockState(this, getLevel(), getPos());
         }
         return multiblockState;
     }

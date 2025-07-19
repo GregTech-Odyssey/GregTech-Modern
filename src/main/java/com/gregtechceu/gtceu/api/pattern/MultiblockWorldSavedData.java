@@ -11,7 +11,8 @@ import net.minecraft.world.level.saveddata.SavedData;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.longs.Long2ReferenceOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -31,14 +32,14 @@ public class MultiblockWorldSavedData extends SavedData {
     /**
      * Store all formed multiblocks' structure info
      */
-    public final Long2ObjectOpenHashMap<MultiblockState> mapping;
+    public final Long2ReferenceOpenHashMap<MultiblockState> mapping;
     /**
      * Chunk pos mapping.
      */
     public final Long2ObjectOpenHashMap<Set<MultiblockState>> chunkPosMapping;
 
     private MultiblockWorldSavedData() {
-        this.mapping = new Long2ObjectOpenHashMap<>();
+        this.mapping = new Long2ReferenceOpenHashMap<>();
         this.chunkPosMapping = new Long2ObjectOpenHashMap<>();
     }
 
@@ -53,7 +54,7 @@ public class MultiblockWorldSavedData extends SavedData {
     public void addMapping(MultiblockState state) {
         this.mapping.put(state.controllerPos.asLong(), state);
         for (var blockPos : state.cache) {
-            chunkPosMapping.computeIfAbsent(ChunkPos.asLong(BlockPos.getX(blockPos) >> 4, BlockPos.getZ(blockPos) >> 4), c -> new ObjectOpenHashSet<>()).add(state);
+            chunkPosMapping.computeIfAbsent(ChunkPos.asLong(BlockPos.getX(blockPos) >> 4, BlockPos.getZ(blockPos) >> 4), c -> new ReferenceOpenHashSet<>()).add(state);
         }
     }
 

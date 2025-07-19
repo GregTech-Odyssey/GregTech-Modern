@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
-import com.gregtechceu.gtceu.api.pattern.error.PatternStringError;
 import com.gregtechceu.gtceu.api.pattern.error.SinglePredicateError;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
 
@@ -12,23 +11,18 @@ import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class SimplePredicate {
@@ -47,8 +41,6 @@ public class SimplePredicate {
     public int previewCount = -1;
     public boolean disableRenderFormed = false;
     public IO io = IO.BOTH;
-    public String slotName;
-    public String nbtParser;
 
     public final String type;
 
@@ -130,23 +122,6 @@ public class SimplePredicate {
             } else if (blockWorldState.io != io) {
                 blockWorldState.io = null;
             }
-        }
-        if (nbtParser != null && !blockWorldState.world.isClientSide) {
-            BlockEntity te = blockWorldState.getTileEntity();
-            if (te != null) {
-                CompoundTag nbt = te.saveWithFullMetadata();
-                if (Pattern.compile(nbtParser).matcher(nbt.toString()).find()) {
-                    return true;
-                }
-            }
-            blockWorldState.setError(new PatternStringError("The NBT fails to match"));
-            return false;
-        }
-        if (slotName != null) {
-            Long2ObjectMap<Set<String>> slots = blockWorldState.getMatchContext().getOrCreate("slots",
-                    Long2ObjectArrayMap::new);
-            slots.computeIfAbsent(blockWorldState.getPos().asLong(), s -> new HashSet<>()).add(slotName);
-            return true;
         }
         return true;
     }

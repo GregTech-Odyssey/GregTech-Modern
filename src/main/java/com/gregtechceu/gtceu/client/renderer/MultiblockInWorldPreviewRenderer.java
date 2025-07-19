@@ -121,10 +121,13 @@ public class MultiblockInWorldPreviewRenderer {
             for (int y = 0; y < aisle.length; y++) {
                 BlockInfo[] column = aisle[y];
                 for (int z = 0; z < column.length; z++) {
-                    var blockState = column[z].getBlockState();
-                    // if its controller record its position offset.
-                    if (blockState.getBlock() instanceof IMachineBlock machineBlock && machineBlock.getDefinition() instanceof MultiblockMachineDefinition) {
-                        controllerPatternPos = new BlockPos(x, y, z);
+                    BlockInfo blockInfo = column[z];
+                    if (blockInfo != null) {
+                        var blockState = blockInfo.getBlockState();
+                        // if its controller record its position offset.
+                        if (blockState.getBlock() instanceof IMachineBlock machineBlock && machineBlock.getDefinition() instanceof MultiblockMachineDefinition) {
+                            controllerPatternPos = new BlockPos(x, y, z);
+                        }
                     }
                 }
             }
@@ -150,40 +153,43 @@ public class MultiblockInWorldPreviewRenderer {
                     continue;
                 }
                 for (int z = 0; z < column.length; z++) {
-                    var blockState = column[z].getBlockState();
-                    var offset = new BlockPos(x, y, z).subtract(controllerPatternPos);
-                    // rotation
-                    offset = switch (front) {
-                        case NORTH, UP, DOWN -> offset.rotate(Rotation.NONE);
-                        case SOUTH -> offset.rotate(Rotation.CLOCKWISE_180);
-                        case EAST -> offset.rotate(Rotation.COUNTERCLOCKWISE_90);
-                        case WEST -> offset.rotate(Rotation.CLOCKWISE_90);
-                    };
-                    Rotation r = up == Direction.NORTH ? Rotation.NONE : up == Direction.EAST ? Rotation.CLOCKWISE_90 : up == Direction.SOUTH ? Rotation.CLOCKWISE_180 : up == Direction.WEST ? Rotation.COUNTERCLOCKWISE_90 : Rotation.NONE;
-                    offset = rotateByFrontAxis(offset, front, r);
-                    if (blockState.getBlock() instanceof MetaMachineBlock machineBlock) {
-                        var rotationState = machineBlock.getRotationState();
-                        if (rotationState != RotationState.NONE) {
-                            var face = blockState.getValue(rotationState.property);
-                            if (face.getAxis() != Direction.Axis.Y) {
-                                face = switch (front) {
-                                    case NORTH, UP, DOWN -> front;
-                                    case SOUTH -> face.getOpposite();
-                                    case WEST -> face.getCounterClockWise();
-                                    case EAST -> face.getClockWise();
-                                };
-                            }
-                            if (rotationState.test(face)) {
-                                blockState = blockState.setValue(rotationState.property, face);
+                    BlockInfo blockInfo = column[z];
+                    if (blockInfo != null) {
+                        var blockState = blockInfo.getBlockState();
+                        var offset = new BlockPos(x, y, z).subtract(controllerPatternPos);
+                        // rotation
+                        offset = switch (front) {
+                            case NORTH, UP, DOWN -> offset.rotate(Rotation.NONE);
+                            case SOUTH -> offset.rotate(Rotation.CLOCKWISE_180);
+                            case EAST -> offset.rotate(Rotation.COUNTERCLOCKWISE_90);
+                            case WEST -> offset.rotate(Rotation.CLOCKWISE_90);
+                        };
+                        Rotation r = up == Direction.NORTH ? Rotation.NONE : up == Direction.EAST ? Rotation.CLOCKWISE_90 : up == Direction.SOUTH ? Rotation.CLOCKWISE_180 : up == Direction.WEST ? Rotation.COUNTERCLOCKWISE_90 : Rotation.NONE;
+                        offset = rotateByFrontAxis(offset, front, r);
+                        if (blockState.getBlock() instanceof MetaMachineBlock machineBlock) {
+                            var rotationState = machineBlock.getRotationState();
+                            if (rotationState != RotationState.NONE) {
+                                var face = blockState.getValue(rotationState.property);
+                                if (face.getAxis() != Direction.Axis.Y) {
+                                    face = switch (front) {
+                                        case NORTH, UP, DOWN -> front;
+                                        case SOUTH -> face.getOpposite();
+                                        case WEST -> face.getCounterClockWise();
+                                        case EAST -> face.getClockWise();
+                                    };
+                                }
+                                if (rotationState.test(face)) {
+                                    blockState = blockState.setValue(rotationState.property, face);
+                                }
                             }
                         }
-                    }
-                    BlockPos realPos = pos.offset(offset);
-                    if (column[z].getBlockEntity(realPos) instanceof IMachineBlockEntity holder && holder.getMetaMachine() instanceof IMultiController cont) {
-                        holder.getSelf().setLevel(LEVEL);
-                        controllerBase = cont;
-                    } else {
-                        blockMap.put(realPos, BlockInfo.fromBlockState(blockState));
+                        BlockPos realPos = pos.offset(offset);
+                        if (blockInfo.getBlockEntity(realPos) instanceof IMachineBlockEntity holder && holder.getMetaMachine() instanceof IMultiController cont) {
+                            holder.getSelf().setLevel(LEVEL);
+                            controllerBase = cont;
+                        } else {
+                            blockMap.put(realPos, BlockInfo.fromBlockState(blockState));
+                        }
                     }
                 }
             }

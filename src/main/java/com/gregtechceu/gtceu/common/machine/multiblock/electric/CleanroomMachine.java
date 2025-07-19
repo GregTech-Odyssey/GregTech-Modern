@@ -416,13 +416,8 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         }, null) {
 
             @Override
-            public boolean isAny() {
-                return true;
-            }
-
-            @Override
-            public boolean addCache() {
-                return true;
+            public boolean testParts() {
+                return false;
             }
         };
     }

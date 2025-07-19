@@ -7,14 +7,39 @@ import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
 import net.minecraft.network.chat.Component;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class TraceabilityPredicate {
+
+    public static final TraceabilityPredicate AIR = new TraceabilityPredicate(SimplePredicate.AIR) {
+
+        @Override
+        public boolean test(MultiblockState worldState) {
+            return worldState.getBlockState().isAir();
+        }
+
+        @Override
+        public boolean isAny() {
+            return false;
+        }
+
+        @Override
+        public boolean isAir() {
+            return true;
+        }
+
+        @Override
+        public boolean isSingle() {
+            return false;
+        }
+
+        @Override
+        public boolean hasAir() {
+            return true;
+        }
+    };
 
     public List<SimplePredicate> common = new ArrayList<>();
     public List<SimplePredicate> limited = new ArrayList<>();
@@ -177,18 +202,6 @@ public class TraceabilityPredicate {
         return this;
     }
 
-    public TraceabilityPredicate setNBTParser(String nbtParser) {
-        common.forEach(predicate -> predicate.nbtParser = nbtParser);
-        limited.forEach(predicate -> predicate.nbtParser = nbtParser);
-        return this;
-    }
-
-    public TraceabilityPredicate setSlotName(String slotName) {
-        common.forEach(predicate -> predicate.slotName = slotName);
-        limited.forEach(predicate -> predicate.slotName = slotName);
-        return this;
-    }
-
     public boolean test(MultiblockState blockWorldState) {
         blockWorldState.io = IO.BOTH;
         boolean flag = false;
@@ -224,12 +237,12 @@ public class TraceabilityPredicate {
         return this;
     }
 
-    public boolean isAny() {
-        return this.common.size() == 1 && this.limited.isEmpty() && this.common.get(0) == SimplePredicate.ANY;
+    public boolean testParts() {
+        return true;
     }
 
-    public boolean addCache() {
-        return !isAny();
+    public boolean isAny() {
+        return this.common.size() == 1 && this.limited.isEmpty() && this.common.get(0) == SimplePredicate.ANY;
     }
 
     public boolean isAir() {
@@ -237,7 +250,7 @@ public class TraceabilityPredicate {
     }
 
     public boolean isSingle() {
-        return !isAny() && !isAir() && this.common.size() + this.limited.size() == 1;
+        return this.common.size() + this.limited.size() == 1;
     }
 
     public boolean hasAir() {

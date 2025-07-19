@@ -39,7 +39,6 @@ public class FactoryBlockPattern {
             }
         }
         if (flags != 0x7) throw new IllegalArgumentException("Must have 3 different axes!");
-        this.symbolMap.put(' ', Predicates.any());
     }
 
     /**
@@ -110,8 +109,9 @@ public class FactoryBlockPattern {
     }
 
     public FactoryBlockPattern where(char symbol, TraceabilityPredicate blockMatcher) {
-        if (blockMatcher.isAny() || blockMatcher.isAir()) {
-            this.symbolMap.put(symbol, blockMatcher);
+        if (blockMatcher.isAny()) return this;
+        if (blockMatcher.isAir()) {
+            this.symbolMap.put(symbol, TraceabilityPredicate.AIR);
         } else {
             this.symbolMap.put(symbol, new TraceabilityPredicate(blockMatcher).sort());
         }
@@ -127,38 +127,19 @@ public class FactoryBlockPattern {
         for (int i = 0, minZ = 0, maxZ = 0; i < size; minZ += aisleRepetitions[i][0], maxZ += aisleRepetitions[i][1], i++) {
             for (int j = 0; j < this.aisleHeight; j++) {
                 for (int k = 0; k < this.rowWidth; k++) {
-                    char ch = this.depth.get(i)[j].charAt(k);
-                    var tp = this.symbolMap.get(ch);
-                    if (tp == null) {
-                        throw new IllegalStateException("Predicates for character(s) " + ch + " are missing");
-                    }
+                    var tp = this.symbolMap.get(this.depth.get(i)[j].charAt(k));
                     predicate[i][j][k] = tp;
-                    if (tp.isController) {
+                    if (tp != null && tp.isController) {
                         centerOffset = new int[] { k, j, i, minZ, maxZ };
                     }
                 }
             }
         }
 
+        var pattern = new BlockPattern(predicate, structureDir, aisleRepetitions, centerOffset);
         if (definition != null) {
-            definition.setCheckPriority(-(predicate.length * predicate[0].length * predicate[0][0].length));
+            definition.setCheckPriority(-(pattern.fingerLength * pattern.thumbLength * pattern.palmLength));
         }
-
-        return new BlockPattern(predicate, structureDir, aisleRepetitions, centerOffset);
-    }
-
-    private TraceabilityPredicate[][][] makePredicateArray() {
-        TraceabilityPredicate[][][] predicate = (TraceabilityPredicate[][][]) Array
-                .newInstance(TraceabilityPredicate.class, this.depth.size(), this.aisleHeight, this.rowWidth);
-
-        for (int i = 0; i < this.depth.size(); ++i) {
-            for (int j = 0; j < this.aisleHeight; ++j) {
-                for (int k = 0; k < this.rowWidth; ++k) {
-                    predicate[i][j][k] = this.symbolMap.get(this.depth.get(i)[j].charAt(k));
-                }
-            }
-        }
-
-        return predicate;
+        return pattern;
     }
 }
