@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
@@ -18,6 +19,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
+
+import top.theillusivec4.curios.api.CuriosApi;
+import top.theillusivec4.curios.api.SlotResult;
+import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
+import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
 
 import java.util.*;
 
@@ -79,7 +85,7 @@ public class HazardProperty implements IMaterialProperty {
         /**
          * Equipment validity is treated in an OR fashion.
          * that is, EITHER all curio slots are valid, OR all equipment slots are valid.
-         * 
+         *
          * @param curioSlots     curio slot names to test for
          * @param equipmentTypes armor slots to test for
          */
@@ -99,7 +105,26 @@ public class HazardProperty implements IMaterialProperty {
                     correctArmorItems.add(equipmentType);
                 }
             }
-            return correctArmorItems.containsAll(equipmentTypes);
+            if (!GTCEu.Mods.isCuriosLoaded() || this.curioSlots.isEmpty()) {
+                return correctArmorItems.containsAll(equipmentTypes);
+            }
+            Set<String> correctCurios = new HashSet<>();
+            ICuriosItemHandler curiosInventory = CuriosApi.getCuriosInventory(livingEntity)
+                    .resolve()
+                    .orElse(null);
+            if (curiosInventory == null) {
+                return correctArmorItems.containsAll(equipmentTypes);
+            }
+            List<SlotResult> results = curiosInventory.findCurios(this.curioSlots.toArray(String[]::new));
+            for (SlotResult result : results) {
+                ItemStack armor = result.stack();
+                if (!armor.isEmpty() && ((armor.getItem() instanceof ArmorComponentItem armorItem &&
+                        armorItem.getArmorLogic().isPPE()) ||
+                        armor.getTags().anyMatch(tag -> tag.equals(CustomTags.PPE_ARMOR)))) {
+                    correctCurios.add(result.slotContext().identifier());
+                }
+            }
+            return correctArmorItems.containsAll(equipmentTypes) || correctCurios.containsAll(curioSlots);
         }
 
         public void damageEquipment(Player player, int amount) {
@@ -109,6 +134,26 @@ public class HazardProperty implements IMaterialProperty {
                     ItemStack armor = player.getItemBySlot(type.getSlot());
                     if (!armor.isEmpty() && ((armor.getItem() instanceof ArmorComponentItem armorItem && armorItem.getArmorLogic().isPPE()) || armor.getTags().anyMatch(tag -> tag.equals(CustomTags.PPE_ARMOR)))) {
                         armor.hurtAndBreak(amount, player, p -> p.broadcastBreakEvent(type.getSlot()));
+                    }
+                }
+                if (GTCEu.Mods.isCuriosLoaded()) {
+                    ICuriosItemHandler curiosInventory = CuriosApi.getCuriosInventory(player)
+                            .resolve()
+                            .orElse(null);
+                    if (curiosInventory != null) {
+                        for (String curioItem : this.getCurioSlots()) {
+                            curiosInventory.getStacksHandler(curioItem).ifPresent(handler -> {
+                                IDynamicStackHandler stackHandler = handler.getStacks();
+                                for (int i = 0; i < handler.getSlots(); ++i) {
+                                    ItemStack armor = stackHandler.getStackInSlot(i);
+                                    if (!armor.isEmpty() && ((armor.getItem() instanceof ArmorComponentItem armorItem &&
+                                            armorItem.getArmorLogic().isPPE()) ||
+                                            armor.getTags().anyMatch(tag -> tag.equals(CustomTags.PPE_ARMOR)))) {
+                                        armor.hurtAndBreak(amount, player, p -> {});
+                                    }
+                                }
+                            });
+                        }
                     }
                 }
             }

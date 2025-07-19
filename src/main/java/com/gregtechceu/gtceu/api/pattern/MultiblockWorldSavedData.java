@@ -19,6 +19,8 @@ import java.util.concurrent.*;
 
 public class MultiblockWorldSavedData extends SavedData {
 
+    private static final Comparator<IMultiController> COMPARATOR = Comparator.comparingInt(c -> -c.checkPriority());
+
     public static final String DATA_NAME = "gtceu_multiblock";
 
     public static MultiblockWorldSavedData getOrCreate(ServerLevel serverLevel) {
@@ -50,8 +52,8 @@ public class MultiblockWorldSavedData extends SavedData {
 
     public void addMapping(MultiblockState state) {
         this.mapping.put(state.controllerPos.asLong(), state);
-        for (BlockPos blockPos : state.getCache()) {
-            chunkPosMapping.computeIfAbsent(ChunkPos.asLong(blockPos.getX() >> 4, blockPos.getZ() >> 4), c -> new ObjectOpenHashSet<>()).add(state);
+        for (var blockPos : state.cache) {
+            chunkPosMapping.computeIfAbsent(ChunkPos.asLong(BlockPos.getX(blockPos) >> 4, BlockPos.getZ(blockPos) >> 4), c -> new ObjectOpenHashSet<>()).add(state);
         }
     }
 
@@ -76,12 +78,14 @@ public class MultiblockWorldSavedData extends SavedData {
             .setDaemon(true)
             .build();
     private static final ThreadLocal<Boolean> IN_SERVICE = ThreadLocal.withInitial(() -> false);
-    private long periodID = Long.MIN_VALUE;
+    public int periodID = 0;
+    private int waiting;
 
     public void createExecutorService() {
         if (executorService != null && !executorService.isShutdown()) return;
         executorService = Executors.newSingleThreadScheduledExecutor(THREAD_FACTORY);
-        executorService.scheduleAtFixedRate(this::searchingTask, 0, 250, TimeUnit.MILLISECONDS); // per 5 tick
+        executorService.scheduleAtFixedRate(this::searchingTask, 0, 500, TimeUnit.MILLISECONDS);
+        waiting = 10;
     }
 
     /**
@@ -90,7 +94,7 @@ public class MultiblockWorldSavedData extends SavedData {
      * @param controller controller
      */
     public void addAsyncLogic(IMultiController controller) {
-        controllers.add(controller);
+        controllers.addIfAbsent(controller);
         createExecutorService();
     }
 
@@ -100,21 +104,25 @@ public class MultiblockWorldSavedData extends SavedData {
      * @param controller controller
      */
     public void removeAsyncLogic(IMultiController controller) {
-        if (controllers.contains(controller)) {
-            controllers.remove(controller);
-            if (controllers.isEmpty()) {
-                releaseExecutorService();
-            }
+        if (controllers.remove(controller) && controllers.isEmpty()) {
+            releaseExecutorService();
         }
     }
 
     private void searchingTask() {
         try {
             if (!GTCEu.canGetServerLevel()) return;
+            boolean delay = waiting > 0;
+            if (delay) {
+                waiting--;
+            }
             IN_SERVICE.set(true);
-            for (var controller : controllers) {
+            var arr = controllers.toArray(new IMultiController[0]);
+            Arrays.parallelSort(arr, COMPARATOR);
+            for (var controller : arr) {
+                if (delay && controller.checkPriority() < -1000) continue;
                 try {
-                    controller.asyncCheckPattern(periodID);
+                    controller.asyncCheckPattern(this);
                 } catch (Throwable e) {
                     GTCEu.LOGGER.error("Error while assembling multiblock {}: {}", controller, e.getMessage());
                 }
@@ -124,7 +132,11 @@ public class MultiblockWorldSavedData extends SavedData {
         } finally {
             IN_SERVICE.set(false);
         }
-        periodID++;
+        if (periodID > 100) {
+            periodID = 0;
+        } else {
+            periodID++;
+        }
     }
 
     public static boolean isThreadService() {
@@ -136,9 +148,5 @@ public class MultiblockWorldSavedData extends SavedData {
             executorService.shutdownNow();
         }
         executorService = null;
-    }
-
-    public long getPeriodID() {
-        return periodID;
     }
 }

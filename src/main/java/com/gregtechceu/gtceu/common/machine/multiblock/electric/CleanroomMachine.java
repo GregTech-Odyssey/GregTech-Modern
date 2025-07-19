@@ -168,9 +168,9 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
 
     @Override
     public boolean shouldAddPartToController(IMultiPart part) {
-        var cache = getMultiblockState().getCache();
+        var cache = getMultiblockState().cache;
         for (Direction side : GTUtil.DIRECTIONS) {
-            if (!cache.contains(part.self().getPos().relative(side))) {
+            if (!cache.contains(part.self().getPos().relative(side).asLong())) {
                 return true;
             }
         }
@@ -277,6 +277,16 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
     public boolean isBlockFloor(@NotNull Level world, @NotNull BlockPos.MutableBlockPos pos, @NotNull Direction direction) {
         var state = world.getBlockState(pos.move(direction));
         return state == getCasingState() || state == getGlassState() || state.is(CustomTags.CLEANROOM_FLOORS);
+    }
+
+    @Override
+    public int checkPriority() {
+        return 5;
+    }
+
+    @Override
+    public boolean requiresServerExecution() {
+        return true;
     }
 
     @NotNull

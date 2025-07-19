@@ -2,10 +2,12 @@ package com.gregtechceu.gtceu.api.blockentity;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.capability.*;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
@@ -15,8 +17,12 @@ import com.gregtechceu.gtceu.api.misc.EnergyInfoProviderList;
 import com.gregtechceu.gtceu.api.misc.LaserContainerList;
 import com.gregtechceu.gtceu.client.renderer.GTRendererProvider;
 
+import com.lowdragmc.lowdraglib.Platform;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
+import com.lowdragmc.lowdraglib.networking.LDLNetworking;
+import com.lowdragmc.lowdraglib.networking.s2c.SPacketManagedPayload;
+import com.lowdragmc.lowdraglib.syncdata.managed.IRef;
 import com.lowdragmc.lowdraglib.syncdata.managed.MultiManagedStorage;
 
 import net.minecraft.core.BlockPos;
@@ -46,10 +52,13 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
     public final MultiManagedStorage managedStorage = new MultiManagedStorage();
     public final MetaMachine metaMachine;
     private final long offset = GTValues.RNG.nextInt(20);
+    private final MachineDefinition definition;
 
     protected MetaMachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
-        this.metaMachine = getDefinition().createMetaMachine(this);
+        this.definition = blockState.getBlock() instanceof MetaMachineBlock machineBlock ? machineBlock.definition : null;
+        assert definition != null : "MetaMachineBlockEntity is created for an un available block: +" + blockState.getBlock();
+        this.metaMachine = definition.createMetaMachine(this);
     }
 
     public static MetaMachineBlockEntity createBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
@@ -259,6 +268,32 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
             }
         }
         return new AABB(worldPosition.offset(-1, 0, -1), worldPosition.offset(2, 2, 2));
+    }
+
+    @Override
+    public void asyncTick(long periodID) {
+        if (Platform.isServerNotSafe()) return;
+        if (getMetaMachine().needSync() || periodID + getOffset() % 20 == 0) {
+            if (useAsyncThread() && !getSelf().isRemoved()) {
+                for (IRef field : getNonLazyFields()) {
+                    field.update();
+                }
+                if (getRootStorage().hasDirtySyncFields() && !isAsyncSyncing()) {
+                    setAsyncSyncing(true);
+                    Platform.getMinecraftServer().execute(() -> {
+                        if (Platform.isServerNotSafe()) return;
+                        var packet = SPacketManagedPayload.of(this, false);
+                        LDLNetworking.NETWORK.sendToTrackingChunk(packet, this.getSelf().getLevel().getChunkAt(this.getCurrentPos()));
+                        setAsyncSyncing(false);
+                    });
+                }
+            }
+        }
+    }
+
+    @Override
+    public MachineDefinition getDefinition() {
+        return definition;
     }
 
     public MetaMachine getMetaMachine() {

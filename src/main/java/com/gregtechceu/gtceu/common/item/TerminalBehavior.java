@@ -26,6 +26,7 @@ public class TerminalBehavior implements IInteractionItem {
                 if (!controller.isFormed()) {
                     if (!level.isClientSide) {
                         controller.getPattern().autoBuild(context.getPlayer(), controller.getMultiblockState());
+                        controller.getMultiblockState().cleanCache();
                     }
                     return InteractionResult.sidedSuccess(level.isClientSide);
                 }

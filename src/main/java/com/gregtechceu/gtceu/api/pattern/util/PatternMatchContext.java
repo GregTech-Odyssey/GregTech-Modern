@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.api.pattern.util;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+
 import java.util.function.Supplier;
 
 /**
@@ -11,57 +11,53 @@ import java.util.function.Supplier;
  */
 public class PatternMatchContext {
 
-    private final Map<String, Object> data = new HashMap<>();
+    private final Object2ObjectOpenHashMap<Object, Object> data = new Object2ObjectOpenHashMap<>();
 
     public void reset() {
         this.data.clear();
     }
 
-    public void set(String key, Object value) {
+    public void set(Object key, Object value) {
         this.data.put(key, value);
     }
 
-    public int getInt(String key) {
-        return data.containsKey(key) ? (int) data.get(key) : 0;
+    public int getInt(Object key) {
+        var value = data.get(key);
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+        return 0;
     }
 
-    public void increment(String key, int value) {
+    public void increment(Object key, int value) {
         set(key, getOrDefault(key, 0) + value);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T getOrDefault(String key, T defaultValue) {
+    public <T> T getOrDefault(Object key, T defaultValue) {
         return (T) data.getOrDefault(key, defaultValue);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T get(String key) {
+    public <T> T get(Object key) {
         return (T) data.get(key);
     }
 
-    public <T> T getOrCreate(String key, Supplier<T> creator) {
-        T result = get(key);
-        if (result == null) {
-            result = creator.get();
-            set(key, result);
-        }
-        return result;
+    @SuppressWarnings("unchecked")
+    public <T> T getOrCreate(Object key, Supplier<T> creator) {
+        return (T) data.computeIfAbsent(key, k -> creator.get());
     }
 
-    public <T> T getOrPut(String key, T initialValue) {
-        T result = get(key);
-        if (result == null) {
-            result = initialValue;
-            set(key, result);
-        }
-        return result;
+    @SuppressWarnings("unchecked")
+    public <T> T getOrPut(Object key, T initialValue) {
+        return (T) data.computeIfAbsent(key, k -> initialValue);
     }
 
-    public boolean containsKey(String key) {
+    public boolean containsKey(Object key) {
         return data.containsKey(key);
     }
 
-    public Set<Map.Entry<String, Object>> entrySet() {
-        return data.entrySet();
+    public Object2ObjectMap.FastEntrySet<Object, Object> entrySet() {
+        return data.object2ObjectEntrySet();
     }
 }

@@ -45,7 +45,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 public class PowerSubstationMachine extends WorkableMultiblockMachine implements IEnergyInfoProvider, IFancyUIMachine, IDisplayUIMachine {
 
@@ -106,12 +105,11 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
         this.inputHatches = new EnergyContainerList(inputs);
         this.outputHatches = new EnergyContainerList(outputs);
         List<IBatteryData> batteries = new ArrayList<>();
-        for (Map.Entry<String, Object> battery : getMultiblockState().getMatchContext().entrySet()) {
-            if (battery.getKey().startsWith(PMC_BATTERY_HEADER) && battery.getValue() instanceof BatteryMatchWrapper wrapper) {
+        for (var battery : getMultiblockState().getMatchContext().entrySet()) {
+            if (battery.getKey() instanceof String string && string.startsWith(PMC_BATTERY_HEADER) && battery.getValue() instanceof BatteryMatchWrapper wrapper)
                 for (int i = 0; i < wrapper.amount; i++) {
                     batteries.add(wrapper.partType);
                 }
-            }
         }
         if (batteries.isEmpty()) {
             // only empty batteries found in the structure

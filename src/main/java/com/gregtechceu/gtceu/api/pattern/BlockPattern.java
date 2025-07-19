@@ -38,6 +38,8 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,34 +51,25 @@ import java.util.function.Consumer;
 
 public class BlockPattern {
 
-    static Direction[] FACINGS = { Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST, Direction.UP, Direction.DOWN };
-    static Direction[] FACINGS_H = { Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST };
+    public final static Direction[] FACINGS = { Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST, Direction.UP, Direction.DOWN };
+    public final static Direction[] FACINGS_H = { Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST };
     public final int[][] aisleRepetitions;
     public final RelativeDirection[] structureDir;
-    protected final TraceabilityPredicate[][][] blockMatches; // [z][y][x]
-    protected final int fingerLength; // z size
-    protected final int thumbLength; // y size
-    protected final int palmLength; // x size
-    protected final int[] centerOffset; // x, y, z, minZ, maxZ
-    protected int[] formedRepetitionCount;
+    public final TraceabilityPredicate[][][] blockMatches; // [z][y][x]
+    public final int fingerLength; // z size
+    public final int thumbLength; // y size
+    public final int palmLength; // x size
+    public final int[] centerOffset; // x, y, z, minZ, maxZ
+    public int[] formedRepetitionCount;
 
     public BlockPattern(TraceabilityPredicate[][][] predicatesIn, RelativeDirection[] structureDir, int[][] aisleRepetitions, int[] centerOffset) {
         this.blockMatches = predicatesIn;
-        this.fingerLength = predicatesIn.length;
         this.structureDir = structureDir;
         this.aisleRepetitions = aisleRepetitions;
         this.formedRepetitionCount = new int[aisleRepetitions.length];
-        if (this.fingerLength > 0) {
-            this.thumbLength = predicatesIn[0].length;
-            if (this.thumbLength > 0) {
-                this.palmLength = predicatesIn[0][0].length;
-            } else {
-                this.palmLength = 0;
-            }
-        } else {
-            this.thumbLength = 0;
-            this.palmLength = 0;
-        }
+        this.fingerLength = predicatesIn.length;
+        this.thumbLength = predicatesIn[0].length;
+        this.palmLength = predicatesIn[0][0].length;
         this.centerOffset = centerOffset;
     }
 
@@ -94,17 +87,15 @@ public class BlockPattern {
         for (Direction direction : facings) {
             boolean result = checkPatternAt(worldState, centerPos, direction, upwardsFacing, false, savePredicate);
             if (result) {
+                worldState.cleanCache();
                 return true;
             } else if (allowsFlip) {
-                return checkPatternAt(worldState, centerPos, direction, upwardsFacing, true, savePredicate);
+                result = checkPatternAt(worldState, centerPos, direction, upwardsFacing, true, savePredicate);
+                worldState.cleanCache();
+                return result;
             }
         }
         return false;
-    }
-
-    @Deprecated(forRemoval = true, since = "7.0")
-    public int[] getDimensions() {
-        return new int[] { fingerLength, thumbLength, palmLength };
     }
 
     public boolean checkPatternAt(MultiblockState worldState, BlockPos centerPos, Direction frontFacing, Direction upwardsFacing, boolean isFlipped, boolean savePredicate) {
@@ -133,7 +124,7 @@ public class BlockPattern {
                         if (predicate.addCache()) {
                             worldState.addPosCache(pos);
                             if (savePredicate) {
-                                matchContext.getOrCreate("predicates", HashMap::new).put(pos, predicate);
+                                matchContext.getOrCreate("predicates", Object2ObjectOpenHashMap::new).put(pos, predicate);
                             }
                         }
                         boolean canPartShared = true;
@@ -145,7 +136,7 @@ public class BlockPattern {
                                     canPartShared = false;
                                     worldState.setError(new PatternStringError("multiblocked.pattern.error.share"));
                                 } else {
-                                    matchContext.getOrCreate("parts", HashSet::new).add(part);
+                                    matchContext.getOrCreate("parts", ObjectOpenHashSet::new).add(part);
                                 }
                             }
                         }
@@ -355,7 +346,7 @@ public class BlockPattern {
 
     public BlockInfo[][][] getPreview(int[] repetition) {
         Object2IntOpenHashMap<SimplePredicate> cacheGlobal = new Object2IntOpenHashMap<>();
-        Map<BlockPos, BlockInfo> blocks = new HashMap<>();
+        Long2ObjectOpenHashMap<BlockInfo> blocks = new Long2ObjectOpenHashMap<>();
         int minX = Integer.MAX_VALUE;
         int minY = Integer.MAX_VALUE;
         int minZ = Integer.MAX_VALUE;
@@ -457,7 +448,7 @@ public class BlockPattern {
                         }
                         BlockInfo info = infos == null || infos.length == 0 ? BlockInfo.EMPTY : infos[0];
                         BlockPos pos = setActualRelativeOffset(z, y, x, Direction.NORTH, Direction.UP, false);
-                        blocks.put(pos, info);
+                        blocks.put(pos.asLong(), info);
                         minX = Math.min(pos.getX(), minX);
                         minY = Math.min(pos.getY(), minY);
                         minZ = Math.min(pos.getZ(), minZ);
@@ -473,11 +464,14 @@ public class BlockPattern {
         int finalMinX = minX;
         int finalMinY = minY;
         int finalMinZ = minZ;
-        blocks.forEach((pos, info) -> {
+        for (var e : blocks.long2ObjectEntrySet()) {
+            var blockPos = e.getLongKey();
+            var pos = BlockPos.of(blockPos);
+            var info = e.getValue();
             resetFacing(pos, info.getBlockState(), null, (p, f) -> {
-                BlockInfo blockInfo = blocks.get(p.relative(f));
+                BlockInfo blockInfo = blocks.get(p.relative(f).asLong());
                 if (blockInfo == null || blockInfo.getBlockState().getBlock() == Blocks.AIR) {
-                    if (blocks.get(pos).getBlockState().getBlock() instanceof MetaMachineBlock machineBlock) {
+                    if (blocks.get(blockPos).getBlockState().getBlock() instanceof MetaMachineBlock machineBlock) {
                         if (machineBlock.newBlockEntity(BlockPos.ZERO, machineBlock.defaultBlockState()) instanceof IMachineBlockEntity machineBlockEntity) {
                             var machine = machineBlockEntity.getMetaMachine();
                             if (machine instanceof IMultiController) {
@@ -492,7 +486,7 @@ public class BlockPattern {
                 return false;
             }, info::setBlockState);
             result[pos.getX() - finalMinX][pos.getY() - finalMinY][pos.getZ() - finalMinZ] = info;
-        });
+        }
         return result;
     }
 

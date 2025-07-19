@@ -63,7 +63,7 @@ public class GTResearchMachines {
             .recipeType(GTRecipeTypes.RESEARCH_STATION_RECIPES)
             .appearanceBlock(ADVANCED_COMPUTER_CASING)
             .tooltipBuilder((s, l) -> l.addAll(LangHandler.getMultiLang("gtceu.machine.research_station.tooltip")))
-            .pattern(definition -> FactoryBlockPattern.start()
+            .pattern(definition -> FactoryBlockPattern.start(definition)
                     .aisle("XXX", "VVV", "PPP", "PPP", "PPP", "VVV", "XXX")
                     .aisle("XXX", "VAV", "AAA", "AAA", "AAA", "VAV", "XXX")
                     .aisle("XXX", "VAV", "XAX", "XSX", "XAX", "VAV", "XXX")
@@ -120,6 +120,7 @@ public class GTResearchMachines {
 
     public static final MachineDefinition DATA_BANK = REGISTRATE.multiblock("data_bank", DataBankMachine::new)
             .langValue("Data Bank")
+            .checkPriority(2)
             .rotationState(RotationState.NON_Y_AXIS)
             .appearanceBlock(COMPUTER_CASING)
             .recipeType(GTRecipeTypes.DUMMY_RECIPES)
@@ -130,7 +131,7 @@ public class GTResearchMachines {
                             FormattingUtil.formatNumbers(DataBankMachine.EUT_PER_HATCH)),
                     Component.translatable("gtceu.machine.data_bank.tooltip.4",
                             FormattingUtil.formatNumbers(DataBankMachine.EUT_PER_HATCH_CHAINED)))
-            .pattern(definition -> FactoryBlockPattern.start()
+            .pattern(definition -> FactoryBlockPattern.start(definition)
                     .aisle("XDDDX", "XDDDX", "XDDDX")
                     .aisle("XDDDX", "XAAAX", "XDDDX")
                     .aisle("XCCCX", "XCSCX", "XCCCX")
@@ -151,6 +152,7 @@ public class GTResearchMachines {
 
     public static final MachineDefinition NETWORK_SWITCH = REGISTRATE
             .multiblock("network_switch", NetworkSwitchMachine::new)
+            .checkPriority(2)
             .langValue("Network Switch")
             .rotationState(RotationState.NON_Y_AXIS)
             .appearanceBlock(COMPUTER_CASING)
@@ -160,7 +162,7 @@ public class GTResearchMachines {
                     Component.translatable("gtceu.machine.network_switch.tooltip.2"),
                     Component.translatable("gtceu.machine.network_switch.tooltip.3",
                             FormattingUtil.formatNumbers(NetworkSwitchMachine.EUT_PER_HATCH)))
-            .pattern(definition -> FactoryBlockPattern.start()
+            .pattern(definition -> FactoryBlockPattern.start(definition)
                     .aisle("XXX", "XXX", "XXX")
                     .aisle("XXX", "XAX", "XXX")
                     .aisle("XXX", "XSX", "XXX")
@@ -191,6 +193,7 @@ public class GTResearchMachines {
     public static final MachineDefinition HIGH_PERFORMANCE_COMPUTING_ARRAY = REGISTRATE
             .multiblock("high_performance_computation_array", HPCAMachine::new)
             .langValue("High Performance Computation Array (HPCA)")
+            .checkPriority(2)
             .rotationState(RotationState.NON_Y_AXIS)
             // TODO : Make a controllerAppearanceBlock() so the controller CTM's to the correct casings - Also just a
             // good API addition for packdevs
@@ -198,7 +201,7 @@ public class GTResearchMachines {
             .recipeType(GTRecipeTypes.DUMMY_RECIPES)
             .tooltipBuilder((s, l) -> l
                     .addAll(LangHandler.getMultiLang("gtceu.machine.high_performance_computation_array.tooltip")))
-            .pattern(definition -> FactoryBlockPattern.start()
+            .pattern(definition -> FactoryBlockPattern.start(definition)
                     .aisle("AA", "CC", "CC", "CC", "AA")
                     .aisle("VA", "XV", "XV", "XV", "VA")
                     .aisle("VA", "XV", "XV", "XV", "VA")

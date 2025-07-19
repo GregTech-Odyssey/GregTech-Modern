@@ -55,6 +55,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDefinition> {
 
+    private int checkPriority;
     private boolean generator;
     private Function<MultiblockMachineDefinition, BlockPattern> pattern;
     private final List<Function<MultiblockMachineDefinition, List<MultiblockShapeInfo>>> shapeInfos = new ArrayList<>();
@@ -357,6 +358,7 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
     @Override
     public MultiblockMachineDefinition register() {
         var definition = super.register();
+        definition.setCheckPriority(checkPriority);
         definition.setGenerator(generator);
         if (pattern == null) {
             throw new IllegalStateException("missing pattern while creating multiblock " + name);
@@ -375,11 +377,17 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
         return value = definition;
     }
 
+    public MultiblockMachineBuilder checkPriority(final int checkPriority) {
+        this.checkPriority = checkPriority;
+        return this;
+    }
+
     /**
      * @return {@code this}.
      */
     public MultiblockMachineBuilder generator(final boolean generator) {
         this.generator = generator;
+        this.checkPriority = 1;
         return this;
     }
 

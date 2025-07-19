@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
+import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldSavedData;
 
@@ -59,6 +60,12 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @Persisted
     @DescSynced
     protected boolean isFlipped;
+
+    private boolean simpleLock;
+
+    private boolean checking;
+
+    private int waitingTime;
 
     public MultiblockControllerMachine(IMachineBlockEntity holder) {
         super(holder);
@@ -141,23 +148,51 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     private final Lock patternLock = new ReentrantLock();
 
     @Override
-    public void asyncCheckPattern(long periodID) {
-        if ((getMultiblockState().hasError() || !isFormed) && (getHolder().getOffset() + periodID) % 4 == 0 && checkPatternWithTryLock()) {
-            // per second
-            if (getLevel() instanceof ServerLevel serverLevel) {
-                serverLevel.getServer().execute(() -> {
-                    patternLock.lock();
-                    if (checkPatternWithLock()) {
-                        // formed
-                        setFlipped(getMultiblockState().isNeededFlip());
-                        onStructureFormed();
-                        var mwsd = MultiblockWorldSavedData.getOrCreate(serverLevel);
-                        mwsd.addMapping(getMultiblockState());
-                        mwsd.removeAsyncLogic(this);
-                    }
-                    patternLock.unlock();
-                });
+    public boolean checkPattern() {
+        if (waitingTime < 1) {
+            checking = true;
+            BlockPattern pattern = getPattern();
+            if (pattern != null && pattern.checkPatternAt(getMultiblockState(), false)) {
+                waitingTime = 0;
+                checking = false;
+                return true;
+            } else if (hasCheckButton()) {
+                waitingTime = 10;
+            } else {
+                waitingTime = 1;
             }
+            checking = false;
+        } else {
+            waitingTime--;
+        }
+        return false;
+    }
+
+    @Override
+    public void asyncCheckPattern(MultiblockWorldSavedData data) {
+        if (simpleLock) return;
+        if (getMultiblockState().error == null && isFormed) {
+            data.addMapping(getMultiblockState());
+            data.removeAsyncLogic(this);
+            return;
+        }
+        if ((getHolder().getOffset() + data.periodID) % 4 == 0 && getLevel() instanceof ServerLevel serverLevel && checkPatternWithTryLock()) {
+            simpleLock = true;
+            serverLevel.getServer().execute(() -> {
+                if (requiresServerExecution()) {
+                    if (!checkPatternWithLock()) {
+                        simpleLock = false;
+                        return;
+                    }
+                }
+                setFlipped(getMultiblockState().isNeededFlip());
+                onStructureFormed();
+                requestSync();
+                var mwsd = MultiblockWorldSavedData.getOrCreate(serverLevel);
+                mwsd.addMapping(getMultiblockState());
+                mwsd.removeAsyncLogic(this);
+                simpleLock = false;
+            });
         }
     }
 
@@ -213,12 +248,8 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
 
     @Override
     public void onRotated(Direction oldFacing, Direction newFacing) {
-        if (oldFacing != newFacing && getLevel() instanceof ServerLevel serverLevel) {
-            // invalid structure
-            this.onStructureInvalid();
-            var mwsd = MultiblockWorldSavedData.getOrCreate(serverLevel);
-            mwsd.removeMapping(getMultiblockState());
-            mwsd.addAsyncLogic(this);
+        if (oldFacing != newFacing) {
+            requestCheck();
         }
     }
 
@@ -241,7 +272,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             if (getLevel() != null && !getLevel().isClientSide) {
                 notifyBlockUpdate();
                 markDirty();
-                checkPattern();
+                requestCheck();
             }
         }
     }
@@ -268,12 +299,54 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     public void setFrontFacing(Direction facing) {
         super.setFrontFacing(facing);
         if (getLevel() != null && !getLevel().isClientSide) {
-            checkPattern();
+            requestCheck();
         }
     }
 
     public BlockPos[] getPartPositions() {
         return this.partPositions;
+    }
+
+    @Override
+    public void requestCheck() {
+        if (!simpleLock && isFormed && getLevel() instanceof ServerLevel serverLevel) {
+            patternLock.lock();
+            try {
+                if (isFormed) {
+                    if (requiresServerExecution()) {
+                        if (checkPatternWithLock()) {
+                            setFlipped(getMultiblockState().isNeededFlip());
+                            onStructureFormed();
+                            requestSync();
+                            return;
+                        }
+                    }
+                    setFlipped(false);
+                    onStructureInvalid();
+                    requestSync();
+                    var mwsd = MultiblockWorldSavedData.getOrCreate(serverLevel);
+                    mwsd.removeMapping(getMultiblockState());
+                    mwsd.addAsyncLogic(this);
+                }
+            } finally {
+                patternLock.unlock();
+            }
+        }
+    }
+
+    @Override
+    public void setWaitingTime(int time) {
+        waitingTime = time;
+    }
+
+    @Override
+    public int getWaitingTime() {
+        return waitingTime;
+    }
+
+    @Override
+    public boolean checking() {
+        return checking;
     }
 
     public boolean isFormed() {

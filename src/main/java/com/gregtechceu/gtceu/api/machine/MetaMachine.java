@@ -106,6 +106,8 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     private final List<TickableSubscription> serverTicks;
     private final List<TickableSubscription> waitingToAdd;
 
+    private boolean sync = true;
+
     public MetaMachine(IMachineBlockEntity holder) {
         this.holder = holder;
         this.coverContainer = new MachineCoverContainer(this);
@@ -736,6 +738,18 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     @Override
     public int getDefaultPaintingColor() {
         return getDefinition().getDefaultPaintingColor();
+    }
+
+    public boolean needSync() {
+        if (sync) {
+            sync = false;
+            return true;
+        }
+        return false;
+    }
+
+    public void requestSync() {
+        sync = true;
     }
 
     public FieldManagedStorage getSyncStorage() {

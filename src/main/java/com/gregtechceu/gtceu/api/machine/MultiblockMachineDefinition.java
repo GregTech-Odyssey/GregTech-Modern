@@ -22,6 +22,7 @@ import java.util.function.Supplier;
 
 public class MultiblockMachineDefinition extends MachineDefinition {
 
+    private int checkPriority;
     private boolean generator;
 
     private Supplier<BlockPattern> patternFactory;
@@ -67,6 +68,16 @@ public class MultiblockMachineDefinition extends MachineDefinition {
             }
         }
         return pages;
+    }
+
+    public int checkPriority() {
+        return checkPriority;
+    }
+
+    public void setCheckPriority(final int checkPriority) {
+        if (this.checkPriority == 0) {
+            this.checkPriority = checkPriority;
+        }
     }
 
     public boolean isGenerator() {

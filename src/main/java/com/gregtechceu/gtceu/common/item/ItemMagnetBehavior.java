@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.common.item;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
@@ -47,6 +48,7 @@ import com.tterrag.registrate.util.entry.ItemEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import oshi.util.tuples.Triplet;
+import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.*;
 
@@ -246,7 +248,10 @@ public class ItemMagnetBehavior implements IInteractionItem, IItemLifeCycle, IAd
             }
         }
 
-        return false;
+        if (!GTCEu.Mods.isCuriosLoaded()) {
+            return false;
+        }
+        return CuriosUtils.hasMagnetCurios(player);
     }
 
     private static boolean isMagnet(@NotNull ItemStack stack) {
@@ -273,6 +278,15 @@ public class ItemMagnetBehavior implements IInteractionItem, IItemLifeCycle, IAd
                                 TooltipFlag isAdvanced) {
         lines.add(Component
                 .translatable(isActive(itemStack) ? "behavior.item_magnet.enabled" : "behavior.item_magnet.disabled"));
+    }
+
+    private static class CuriosUtils {
+
+        public static boolean hasMagnetCurios(Player player) {
+            return CuriosApi.getCuriosInventory(player)
+                    .map(curios -> curios.findFirstCurio(i -> isMagnet(i) && isActive(i)).isPresent())
+                    .orElse(false);
+        }
     }
 
     public enum Filter implements EnumSelectorWidget.SelectableEnum {

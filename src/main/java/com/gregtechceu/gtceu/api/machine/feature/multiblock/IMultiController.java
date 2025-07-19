@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IMachineFeature;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
+import com.gregtechceu.gtceu.api.pattern.MultiblockWorldSavedData;
 import com.gregtechceu.gtceu.client.renderer.MultiblockInWorldPreviewRenderer;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
@@ -33,6 +34,26 @@ public interface IMultiController extends IMachineFeature, IInteractedMachine {
         return (MultiblockControllerMachine) this;
     }
 
+    void requestCheck();
+
+    void setWaitingTime(int time);
+
+    int getWaitingTime();
+
+    boolean checking();
+
+    default boolean requiresServerExecution() {
+        return false;
+    }
+
+    default boolean hasCheckButton() {
+        return false;
+    }
+
+    default int checkPriority() {
+        return self().getDefinition().checkPriority();
+    }
+
     /**
      * Check MultiBlock Pattern. Just checking pattern without any other logic.
      * You can override it but it's unsafe for calling. because it will also be called in an async thread.
@@ -42,10 +63,7 @@ public interface IMultiController extends IMachineFeature, IInteractedMachine {
      *
      * @return whether it can be formed.
      */
-    default boolean checkPattern() {
-        BlockPattern pattern = getPattern();
-        return pattern != null && pattern.checkPatternAt(getMultiblockState(), false);
-    }
+    boolean checkPattern();
 
     /**
      * Check pattern with a lock.
@@ -102,11 +120,10 @@ public interface IMultiController extends IMachineFeature, IInteractedMachine {
 
     /**
      * Called in an async thread. It's unsafe, Don't modify anything of world but checking information.
-     * It will be called per 5 tick.
+     * It will be called per 10 tick.
      *
-     * @param periodID period Tick
      */
-    void asyncCheckPattern(long periodID);
+    void asyncCheckPattern(MultiblockWorldSavedData data);
 
     /**
      * Called when structure is formed, have to be called after {@link #checkPattern()}. (server-side / fake scene only)

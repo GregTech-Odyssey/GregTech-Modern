@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.machine;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.block.IMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.IPaintable;
 import com.gregtechceu.gtceu.api.item.tool.IToolGridHighlight;
 
@@ -62,14 +61,7 @@ public interface IMachineBlockEntity extends IToolGridHighlight, IAsyncAutoSyncB
         return getOffset();
     }
 
-    default MachineDefinition getDefinition() {
-        if (self().getBlockState().getBlock() instanceof IMachineBlock machineBlock) {
-            return machineBlock.getDefinition();
-        } else {
-            throw new IllegalStateException("MetaMachineBlockEntity is created for an un available block: " +
-                    self().getBlockState().getBlock());
-        }
-    }
+    MachineDefinition getDefinition();
 
     MetaMachine getMetaMachine();
 

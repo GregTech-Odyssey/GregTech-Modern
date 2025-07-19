@@ -34,8 +34,8 @@ import java.util.stream.Collectors;
 public class SimplePredicate {
 
     public static SimplePredicate ANY = new SimplePredicate("any", x -> true, null);
-    public static SimplePredicate AIR = new SimplePredicate("air",
-            blockWorldState -> blockWorldState.getWorld().isEmptyBlock(blockWorldState.getPos()), null);
+    public static SimplePredicate AIR = new SimplePredicate("air", blockWorldState -> blockWorldState.getBlockState().isAir(), null);
+
     @Nullable
     public Supplier<BlockInfo[]> candidates;
     public Predicate<MultiblockState> predicate;

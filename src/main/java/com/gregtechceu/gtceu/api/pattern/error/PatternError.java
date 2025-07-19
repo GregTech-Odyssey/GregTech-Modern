@@ -25,6 +25,7 @@ public class PatternError {
     }
 
     public BlockPos getPos() {
+        if (worldState == null) return null;
         return worldState.getPos();
     }
 
