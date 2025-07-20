@@ -1,0 +1,162 @@
+package com.gregtechceu.gtceu.common.pipelike.fluid;
+
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
+import com.gregtechceu.gtceu.api.capability.ICoverable;
+import com.gregtechceu.gtceu.api.cover.CoverBehavior;
+import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
+import com.gregtechceu.gtceu.common.blockentity.FluidPipeBlockEntity;
+import com.gregtechceu.gtceu.common.cover.*;
+import com.gregtechceu.gtceu.common.cover.data.FilterMode;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+
+import org.jetbrains.annotations.NotNull;
+
+public class FluidNetHandler implements IFluidHandlerModifiable {
+
+    private FluidPipeNet net;
+    private final FluidPipeBlockEntity pipe;
+    private final Direction facing;
+    private int simulatedTransfers = 0;
+
+    public FluidNetHandler(FluidPipeNet net, FluidPipeBlockEntity pipe, Direction facing) {
+        this.net = net;
+        this.pipe = pipe;
+        this.facing = facing;
+    }
+
+    public void updateNetwork(FluidPipeNet net) {
+        this.net = net;
+    }
+
+    private void copyTransferred() {
+        simulatedTransfers = pipe.getTransferredFluids();
+    }
+
+    public static boolean checkImportCover(CoverBehavior cover, boolean onPipe, FluidStack stack) {
+        if (cover == null) return true;
+        if (cover instanceof FluidFilterCover filter) {
+            return (filter.getFilterMode() != FilterMode.FILTER_BOTH && (filter.getFilterMode() != FilterMode.FILTER_INSERT || !onPipe) && (filter.getFilterMode() != FilterMode.FILTER_EXTRACT || onPipe)) || filter.getFluidFilter().test(stack);
+        }
+        return true;
+    }
+
+    public int fillFirst(FluidStack stack, boolean simulate) {
+        int amount = stack.getAmount();
+        int total = 0;
+        for (FluidRoutePath inv : net.getNetData(pipe.getPipePosLong(), pipe.getPipePos(), facing)) {
+            int fill = insert(inv, stack, amount, simulate, false);
+            amount -= fill;
+            total += fill;
+            if (amount <= 0) break;
+        }
+        return total;
+    }
+
+    public int insert(FluidRoutePath routePath, FluidStack stack, int amount, boolean simulate, boolean ignoreLimit) {
+        int allowed = ignoreLimit ? amount : checkTransferable(routePath.getProperties().getThroughput(), amount, simulate);
+        if (allowed == 0 || !routePath.matchesFilters(stack)) {
+            return 0;
+        }
+        IFluidHandler neighbourHandler = routePath.getHandler(net.getLevel());
+        if (neighbourHandler == null) return 0;
+        return insert(neighbourHandler, stack.copy(), amount, simulate, allowed, ignoreLimit);
+    }
+
+    private int insert(IFluidHandler handler, FluidStack stack, int amount, boolean simulate, int allowed, boolean ignoreLimit) {
+        if (amount == allowed) {
+            stack.setAmount(amount);
+            int r = handler.fill(stack, simulate ? FluidAction.SIMULATE : FluidAction.EXECUTE);
+            if (!ignoreLimit) transfer(simulate, r);
+            return r;
+        }
+        stack.setAmount(Math.min(allowed, amount));
+        int r = handler.fill(stack, simulate ? FluidAction.SIMULATE : FluidAction.EXECUTE);
+        if (!ignoreLimit) transfer(simulate, r);
+        return r;
+    }
+
+    public CoverBehavior getCoverOnNeighbour(BlockPos pos, Direction handlerFacing) {
+        BlockEntity tile = pipe.getNeighbor(handlerFacing);
+        if (tile != null) {
+            ICoverable coverable = GTCapabilityHelper.getCoverable(pipe.getLevel(), pos.relative(handlerFacing), handlerFacing.getOpposite());
+            if (coverable == null) return null;
+            return coverable.getCoverAtSide(handlerFacing.getOpposite());
+        }
+        return null;
+    }
+
+    private int checkTransferable(int rate, int amount, boolean simulate) {
+        int max = rate * 20;
+        if (simulate) return Math.max(0, Math.min(max - simulatedTransfers, amount));
+        else return Math.max(0, Math.min(max - pipe.getTransferredFluids(), amount));
+    }
+
+    private void transfer(boolean simulate, int amount) {
+        if (simulate) simulatedTransfers += amount;
+        else pipe.addTransferredFluids(amount);
+    }
+
+    @Override
+    public void setFluidInTank(int tank, FluidStack stack) {}
+
+    @Override
+    public int getTanks() {
+        return 1;
+    }
+
+    @Override
+    public @NotNull FluidStack getFluidInTank(int i) {
+        return FluidStack.EMPTY;
+    }
+
+    @Override
+    public int getTankCapacity(int i) {
+        return Integer.MAX_VALUE;
+    }
+
+    @Override
+    public boolean isFluidValid(int i, @NotNull FluidStack fluidStack) {
+        return true;
+    }
+
+    @Override
+    public int fill(FluidStack stack, FluidAction fluidAction) {
+        if (stack.isEmpty()) return 0;
+        if (net == null || pipe == null || pipe.isInValid() || pipe.isBlocked(facing)) {
+            return 0;
+        }
+        copyTransferred();
+        CoverBehavior pipeCover = pipe.getCoverContainer().getCoverAtSide(facing);
+        CoverBehavior tileCover = getCoverOnNeighbour(pipe.getPipePos(), facing);
+        boolean pipePump = pipeCover instanceof PumpCover;
+        boolean tilePump = tileCover instanceof PumpCover;
+        // abort if there are two pump
+        if (pipePump && tilePump) return 0;
+        if (tileCover != null && !checkImportCover(tileCover, false, stack)) return 0;
+        boolean simulate = fluidAction.simulate();
+        return fillFirst(stack, simulate);
+    }
+
+    @Override
+    public @NotNull FluidStack drain(FluidStack fluidStack, FluidAction fluidAction) {
+        return FluidStack.EMPTY;
+    }
+
+    @Override
+    public @NotNull FluidStack drain(int i, FluidAction fluidAction) {
+        return FluidStack.EMPTY;
+    }
+
+    public FluidPipeNet getNet() {
+        return this.net;
+    }
+
+    public Direction getFacing() {
+        return this.facing;
+    }
+}

@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.api.data.chemical.material.info;
 
+import net.minecraft.client.renderer.RenderType;
+
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -7,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class MaterialIconSet {
 
@@ -22,7 +25,7 @@ public class MaterialIconSet {
     public static final MaterialIconSet GEM_VERTICAL = new MaterialIconSet("gem_vertical", EMERALD);
     public static final MaterialIconSet RUBY = new MaterialIconSet("ruby", EMERALD);
     public static final MaterialIconSet OPAL = new MaterialIconSet("opal", RUBY);
-    public static final MaterialIconSet GLASS = new MaterialIconSet("glass", RUBY);
+    public static final MaterialIconSet GLASS = new MaterialIconSet("glass", RUBY).setRenderType(() -> RenderType::cutoutMipped).setGlass(true);
     public static final MaterialIconSet NETHERSTAR = new MaterialIconSet("netherstar", GLASS);
     public static final MaterialIconSet FINE = new MaterialIconSet("fine");
     public static final MaterialIconSet SAND = new MaterialIconSet("sand", FINE);
@@ -42,6 +45,8 @@ public class MaterialIconSet {
     public final String name;
     public final int id;
     public final boolean isRootIconset;
+    private Supplier<Supplier<RenderType>> renderType;
+    private boolean isGlass;
 
     /**
      * This can be null if {@link MaterialIconSet#isRootIconset} is true,
@@ -87,6 +92,25 @@ public class MaterialIconSet {
 
     public static MaterialIconSet getByName(@NotNull String name) {
         return ICON_SETS.get(name.toLowerCase(Locale.ENGLISH));
+    }
+
+    public boolean isGlass() {
+        return isGlass;
+    }
+
+    public MaterialIconSet setGlass(boolean isGlass) {
+        this.isGlass = isGlass;
+        return this;
+    }
+
+    @Nullable
+    public Supplier<Supplier<RenderType>> renderType() {
+        return renderType;
+    }
+
+    public MaterialIconSet setRenderType(Supplier<Supplier<RenderType>> renderType) {
+        this.renderType = renderType;
+        return this;
     }
 
     @Override

@@ -26,12 +26,12 @@ import com.google.common.base.Preconditions;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -73,8 +73,8 @@ public class ClassicVeinGenerator extends VeinGenerator {
     }
 
     @Override
-    public Map<BlockPos, OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
-        Map<BlockPos, OreBlockPlacer> generatedBlocks = new Object2ObjectOpenHashMap<>();
+    public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
+        Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
         int radius = entry.clusterSize().sample(random) / 2;
         int ySize = radius / 2;
         int xy2 = radius * radius * ySize * ySize;
@@ -99,7 +99,7 @@ public class ClassicVeinGenerator extends VeinGenerator {
                     if (zr > xyz2) continue;
                     final var randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
                     BlockPos currentPos = new BlockPos(xOffset + xPos, yOffset + yPos, zOffset + zPos);
-                    generatedBlocks.put(currentPos, (access, section) -> placeBlock(access, section, randomSeed, entry, currentPos, minPos));
+                    generatedBlocks.put(currentPos.asLong(), (access, section) -> placeBlock(access, section, randomSeed, entry, currentPos, minPos));
                 }
             }
         }

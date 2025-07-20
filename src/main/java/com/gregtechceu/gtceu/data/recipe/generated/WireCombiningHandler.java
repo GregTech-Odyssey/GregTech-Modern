@@ -13,6 +13,7 @@ import net.minecraft.data.recipes.FinishedRecipe;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -58,21 +59,21 @@ public final class WireCombiningHandler {
         var wireStack = new MaterialEntry(prefix, material);
         if (index < WIRE_DOUBLING_ORDER.length - 1) {
             VanillaRecipeHelper.addShapelessRecipe(provider,
-                    String.format("%s_wire_%s_doubling", material.getName(), prefix),
+                    String.format("%s_wire_%s_doubling", material.getName(), prefix.name.toLowerCase(Locale.ROOT)),
                     ChemicalHelper.get(WIRE_DOUBLING_ORDER[index + 1], material),
                     wireStack, wireStack);
         }
 
         if (index > 0) {
             VanillaRecipeHelper.addShapelessRecipe(provider,
-                    String.format("%s_wire_%s_splitting", material.getName(), prefix),
+                    String.format("%s_wire_%s_splitting", material.getName(), prefix.name.toLowerCase(Locale.ROOT)),
                     ChemicalHelper.get(WIRE_DOUBLING_ORDER[index - 1], material, 2),
                     wireStack);
         }
 
         if (index < WIRE_DOUBLING_ORDER.length - 2) {
             VanillaRecipeHelper.addShapelessRecipe(provider,
-                    String.format("%s_wire_%s_quadrupling", material.getName(), prefix),
+                    String.format("%s_wire_%s_quadrupling", material.getName(), prefix.name.toLowerCase(Locale.ROOT)),
                     ChemicalHelper.get(WIRE_DOUBLING_ORDER[index + 2], material),
                     wireStack, wireStack, wireStack, wireStack);
         }
@@ -108,7 +109,7 @@ public final class WireCombiningHandler {
             return;
         }
 
-        PACKER_RECIPES.recipeBuilder("strip_" + material.getName() + "_" + prefix.name)
+        PACKER_RECIPES.recipeBuilder("strip_" + material.getName() + "_" + prefix.name.toLowerCase(Locale.ROOT))
                 .inputItems(prefix, material)
                 .outputItems(cableToWireMap.get(prefix), material)
                 .outputItems(plate, GTMaterials.Rubber,

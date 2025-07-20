@@ -31,11 +31,11 @@ import net.minecraft.world.level.levelgen.synth.NormalNoise;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class DikeVeinGenerator extends VeinGenerator {
 
@@ -58,8 +58,8 @@ public class DikeVeinGenerator extends VeinGenerator {
     }
 
     @Override
-    public Map<BlockPos, OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
-        Map<BlockPos, OreBlockPlacer> generatedBlocks = new Object2ObjectOpenHashMap<>();
+    public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
+        Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
         WorldgenRandom worldgenRandom = new WorldgenRandom(new LegacyRandomSource(level.getSeed()));
         NormalNoise normalNoise = NormalNoise.create(worldgenRandom, -2, 4.0);
         ChunkPos chunkPos = new ChunkPos(origin);
@@ -81,7 +81,7 @@ public class DikeVeinGenerator extends VeinGenerator {
                     BlockPos pos = new BlockPos(basePos.getX() + dX, dY, basePos.getZ() + dZ);
                     if (normalNoise.getValue(dX, dY, dZ) >= 0.5 && random.nextFloat() <= density) {
                         final var randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
-                        generatedBlocks.put(pos, (access, section) -> placeBlock(access, section, randomSeed, pos, entry));
+                        generatedBlocks.put(pos.asLong(), (access, section) -> placeBlock(access, section, randomSeed, pos, entry));
                     }
                 }
             }

@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.common.blockentity;
 
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
-import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ILaserContainer;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
@@ -50,8 +49,6 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
     public static LaserPipeBlockEntity create(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         return new LaserPipeBlockEntity(type, pos, blockState);
     }
-
-    public static void onBlockEntityRegister(BlockEntityType<LaserPipeBlockEntity> cableBlockEntityBlockEntityType) {}
 
     @Override
     @NotNull
@@ -102,11 +99,11 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
             return null;
         }
         LaserPipeNet currentPipeNet = this.currentPipeNet.get();
-        if (currentPipeNet != null && currentPipeNet.isValid() && currentPipeNet.containsNode(getPipePos())) {
+        if (currentPipeNet != null && currentPipeNet.isValid() && currentPipeNet.containsNode(getPipePosLong())) {
             return currentPipeNet;
         }
         LevelLaserPipeNet worldNet = (LevelLaserPipeNet) getPipeBlock().getWorldPipeNet((ServerLevel) getPipeLevel());
-        currentPipeNet = worldNet.getNetFromPos(getPipePos());
+        currentPipeNet = worldNet.getNetFromPos(getPipePos(), getPipePosLong());
         if (currentPipeNet != null) {
             this.currentPipeNet = new WeakReference<>(currentPipeNet);
         }
@@ -142,17 +139,6 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
     }
 
     @Override
-    public boolean canAttachTo(Direction side) {
-        if (level != null) {
-            if (level.getBlockEntity(getBlockPos().relative(side)) instanceof LaserPipeBlockEntity) {
-                return false;
-            }
-            return GTCapabilityHelper.getLaser(level, getBlockPos().relative(side), side.getOpposite()) != null;
-        }
-        return false;
-    }
-
-    @Override
     public void setConnection(Direction side, boolean connected, boolean fromNeighbor) {
         if (!getLevel().isClientSide && connected) {
             int connections = getConnections();
@@ -161,7 +147,7 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
             connections &= ~(1 << side.getOpposite().ordinal());
             if (connections != 0) return;
             // check the same for the targeted pipe
-            BlockEntity tile = getLevel().getBlockEntity(getBlockPos().relative(side));
+            BlockEntity tile = getNeighbor(side);
             if (tile instanceof IPipeNode<?, ?> pipeTile && pipeTile.getPipeType().getClass() == this.getPipeType().getClass()) {
                 connections = pipeTile.getConnections();
                 connections &= ~(1 << side.ordinal());
@@ -222,10 +208,6 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
 
     public EnumMap<Direction, LaserNetHandler> getHandlers() {
         return this.handlers;
-    }
-
-    public LaserNetHandler getDefaultHandler() {
-        return this.defaultHandler;
     }
 
     public boolean isActive() {

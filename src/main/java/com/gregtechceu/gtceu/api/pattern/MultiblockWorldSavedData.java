@@ -2,8 +2,8 @@ package com.gregtechceu.gtceu.api.pattern;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
+import com.gregtechceu.gtceu.utils.PosUtils;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
@@ -54,7 +54,7 @@ public class MultiblockWorldSavedData extends SavedData {
     public void addMapping(MultiblockState state) {
         this.mapping.put(state.controllerPos.asLong(), state);
         for (var blockPos : state.cache) {
-            chunkPosMapping.computeIfAbsent(ChunkPos.asLong(BlockPos.getX(blockPos) >> 4, BlockPos.getZ(blockPos) >> 4), c -> new ReferenceOpenHashSet<>()).add(state);
+            chunkPosMapping.computeIfAbsent(PosUtils.getChunkLong(blockPos), c -> new ReferenceOpenHashSet<>()).add(state);
         }
     }
 

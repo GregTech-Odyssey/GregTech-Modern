@@ -29,11 +29,11 @@ public class LaserNetHandler implements ILaserContainer {
     }
 
     private void setPipesActive() {
-        for (BlockPos pos : net.getAllNodes().keySet()) {
-            if (world.getBlockEntity(pos) instanceof LaserPipeBlockEntity laserPipe) {
+        net.getAllNodes().keySet().forEach(pos -> {
+            if (world.getBlockEntity(BlockPos.of(pos)) instanceof LaserPipeBlockEntity laserPipe) {
                 laserPipe.setActive(true, 100);
             }
-        }
+        });
     }
 
     @Nullable
@@ -42,7 +42,7 @@ public class LaserNetHandler implements ILaserContainer {
             return null;
         }
 
-        LaserRoutePath data = net.getNetData(pipe.getPipePos(), facing);
+        LaserRoutePath data = net.getNetData(pipe.getPipePosLong(), pipe.getPipePos(), facing);
         if (data == null) {
             return null;
         }

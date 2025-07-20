@@ -61,6 +61,7 @@ public class MaterialBlock extends AppearanceBlock {
 
     public final TagPrefix tagPrefix;
     public final Material material;
+    public boolean isGlass;
 
     public MaterialBlock(Properties properties, TagPrefix tagPrefix, Material material, boolean registerModel) {
         super(properties);
@@ -86,6 +87,26 @@ public class MaterialBlock extends AppearanceBlock {
     }
 
     public static VoxelShape FRAME_COLLISION_BOX = Shapes.box(0.05, 0.0, 0.05, 0.95, 1.0, 0.95);
+
+    @Override
+    public boolean skipRendering(BlockState state, BlockState adjacentBlockState, Direction side) {
+        return isGlass && adjacentBlockState.is(this) || super.skipRendering(state, adjacentBlockState, side);
+    }
+
+    @Override
+    public VoxelShape getVisualShape(BlockState state, BlockGetter reader, BlockPos pos, CollisionContext context) {
+        return isGlass ? Shapes.empty() : super.getVisualShape(state, reader, pos, context);
+    }
+
+    @Override
+    public float getShadeBrightness(BlockState state, BlockGetter level, BlockPos pos) {
+        return isGlass ? 1.0F : super.getShadeBrightness(state, level, pos);
+    }
+
+    @Override
+    public boolean propagatesSkylightDown(BlockState state, BlockGetter reader, BlockPos pos) {
+        return isGlass || super.propagatesSkylightDown(state, reader, pos);
+    }
 
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {

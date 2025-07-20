@@ -68,11 +68,11 @@ public class OpticalNetHandler implements IDataAccessHatch, IOpticalComputationP
     }
 
     private void setPipesActive() {
-        for (BlockPos pos : net.getAllNodes().keySet()) {
-            if (world.getBlockEntity(pos) instanceof OpticalPipeBlockEntity opticalPipe) {
+        net.getAllNodes().keySet().forEach(pos -> {
+            if (world.getBlockEntity(BlockPos.of(pos)) instanceof OpticalPipeBlockEntity opticalPipe) {
                 opticalPipe.setActive(true, 100);
             }
-        }
+        });
     }
 
     private boolean isNetInvalidForTraversal() {
@@ -82,7 +82,7 @@ public class OpticalNetHandler implements IDataAccessHatch, IOpticalComputationP
     private boolean traverseRecipeAvailable(@NotNull GTRecipe recipe, @NotNull Collection<IDataAccessHatch> seen) {
         if (isNetInvalidForTraversal()) return false;
 
-        OpticalRoutePath inv = net.getNetData(pipe.getPipePos(), facing);
+        OpticalRoutePath inv = net.getNetData(pipe.getPipePosLong(), pipe.getPipePos(), facing);
         if (inv == null) return false;
 
         IOpticalDataAccessHatch hatch = inv.getDataHatch();
@@ -116,7 +116,7 @@ public class OpticalNetHandler implements IDataAccessHatch, IOpticalComputationP
     private IOpticalComputationProvider getComputationProvider(@NotNull Collection<IOpticalComputationProvider> seen) {
         if (isNetInvalidForTraversal()) return null;
 
-        OpticalRoutePath inv = net.getNetData(pipe.getPipePos(), facing);
+        OpticalRoutePath inv = net.getNetData(pipe.getPipePosLong(), pipe.getPipePos(), facing);
         if (inv == null) return null;
 
         IOpticalComputationProvider hatch = inv.getComputationHatch();

@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.common.blockentity;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
-import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.WireProperties;
@@ -88,31 +87,13 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
         return super.getCapability(cap, side);
     }
 
-    @Override
-    public boolean canAttachTo(Direction side) {
-        if (level != null) {
-            if (level.getBlockEntity(getBlockPos().relative(side)) instanceof CableBlockEntity) {
-                return false;
-            }
-            return GTCapabilityHelper.getEnergyContainer(level, getBlockPos().relative(side), side.getOpposite()) != null;
-        }
-        return false;
-    }
-
     @Nullable
     private EnergyNet getEnergyNet() {
         if (!(level instanceof ServerLevel serverLevel)) return null;
         EnergyNet currentEnergyNet = this.currentEnergyNet.get();
-        if (currentEnergyNet != null && currentEnergyNet.isValid() && currentEnergyNet.containsNode(getBlockPos())) return currentEnergyNet; // return
-                                                                                                                                             // current
-                                                                                                                                             // net
-                                                                                                                                             // if
-                                                                                                                                             // it
-                                                                                                                                             // is
-                                                                                                                                             // still
-                                                                                                                                             // valid
+        if (currentEnergyNet != null && currentEnergyNet.isValid() && currentEnergyNet.containsNode(getPipePosLong())) return currentEnergyNet;
         LevelEnergyNet worldENet = LevelEnergyNet.getOrCreate(serverLevel);
-        currentEnergyNet = worldENet.getNetFromPos(getBlockPos());
+        currentEnergyNet = worldENet.getNetFromPos(getBlockPos(), getPipePosLong());
         if (currentEnergyNet != null) {
             this.currentEnergyNet = new WeakReference<>(currentEnergyNet);
         }
@@ -304,8 +285,6 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
             ((ServerLevel) level).sendParticles(ParticleTypes.SMOKE, xPos + GTValues.RNG.nextFloat() * 0.5F, yPos + GTValues.RNG.nextFloat() * 0.5F, zPos + GTValues.RNG.nextFloat() * 0.5F, 0, xSpd, ySpd, zSpd, 1);
         }
     }
-
-    public static void onBlockEntityRegister(BlockEntityType<CableBlockEntity> cableBlockEntityBlockEntityType) {}
 
     //////////////////////////////////////
     // ******* Interaction *******//

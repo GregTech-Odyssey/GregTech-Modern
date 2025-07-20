@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.common.pipelike.fluidpipe.longdistance;
+package com.gregtechceu.gtceu.common.pipelike.fluid.longdistance;
 
 import com.gregtechceu.gtceu.api.pipenet.longdistance.LongDistancePipeType;
 import com.gregtechceu.gtceu.config.ConfigHolder;

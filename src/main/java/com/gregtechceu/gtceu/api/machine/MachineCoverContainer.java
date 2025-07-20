@@ -189,6 +189,7 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
             case EAST -> east = coverBehavior;
             case NORTH -> north = coverBehavior;
         }
+        machine.onCoverUpdate(coverBehavior, side);
         if (coverBehavior != null) {
             coverBehavior.getSyncStorage().markAllDirty();
         }

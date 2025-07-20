@@ -29,6 +29,9 @@ import com.gregtechceu.gtceu.common.cover.ItemFilterCover;
 import com.gregtechceu.gtceu.common.item.tool.behavior.ToolModeSwitchBehavior;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 import com.gregtechceu.gtceu.common.machine.owner.PlayerOwner;
+import com.gregtechceu.gtceu.utils.cache.DirectionCache;
+import com.gregtechceu.gtceu.utils.cache.FluidHandlerDirectionCache;
+import com.gregtechceu.gtceu.utils.cache.ItemHandlerDirectionCache;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -105,6 +108,14 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     protected final List<MachineTrait> traits;
     private final List<TickableSubscription> serverTicks;
     private final List<TickableSubscription> waitingToAdd;
+
+    protected final DirectionCache<IItemHandlerModifiable> itemHandlerModifiableCache = new DirectionCache<>();
+    protected final DirectionCache<IFluidHandlerModifiable> fluidHandlerModifiableCache = new DirectionCache<>();
+    protected final DirectionCache<IItemHandlerModifiable> itemHandlerModifiableCoverCache = new DirectionCache<>();
+    protected final DirectionCache<IFluidHandlerModifiable> fluidHandlerModifiableCoverCache = new DirectionCache<>();
+
+    public final ItemHandlerDirectionCache itemHandlerDirectionCache = new ItemHandlerDirectionCache();
+    public final FluidHandlerDirectionCache fluidHandlerDirectionCache = new FluidHandlerDirectionCache();
 
     private boolean sync = true;
 
@@ -448,6 +459,10 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
      */
     public void attachTraits(MachineTrait trait) {
         traits.add(trait);
+        itemHandlerModifiableCache.clearCache();
+        itemHandlerModifiableCoverCache.clearCache();
+        fluidHandlerModifiableCache.clearCache();
+        fluidHandlerModifiableCoverCache.clearCache();
     }
 
     public void clearInventory(IItemHandlerModifiable inventory) {
@@ -609,6 +624,8 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     public void onNeighborChanged(Block block, BlockPos fromPos, boolean isMoving) {
         coverContainer.onNeighborChanged(block, fromPos, isMoving);
+        itemHandlerDirectionCache.clearCache();
+        fluidHandlerDirectionCache.clearCache();
     }
 
     public void animateTick(RandomSource random) {}
@@ -679,32 +696,52 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         return fluid -> true;
     }
 
-    @Nullable
-    public IItemHandlerModifiable getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
-        var list = getTraits().stream().filter(IItemHandlerModifiable.class::isInstance).filter(t -> t.hasCapability(side)).map(IItemHandlerModifiable.class::cast).toList();
-        if (list.isEmpty()) return null;
-        var io = IO.BOTH;
-        if (side != null && this instanceof IAutoOutputItem autoOutput && autoOutput.getOutputFacingItems() == side && !autoOutput.isAllowInputFromOutputSideItems()) {
-            io = IO.OUT;
-        }
-        IOFilteredInvWrapper handlerList = new IOFilteredInvWrapper(list, io, getItemCapFilter(side, IO.IN), getItemCapFilter(side, IO.OUT));
-        if (!useCoverCapability || side == null) return handlerList;
-        CoverBehavior cover = getCoverContainer().getCoverAtSide(side);
-        return cover != null ? cover.getItemHandlerCap(handlerList) : handlerList;
+    public @Nullable IItemHandlerModifiable getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
+        var cache = useCoverCapability ? itemHandlerModifiableCoverCache : itemHandlerModifiableCache;
+        return cache.getOrSet(side, () -> {
+            var ts = getTraits();
+            List<IItemHandlerModifiable> filteredTraits = new ArrayList<>(ts.size());
+            for (var t : ts) {
+                if (t instanceof IItemHandlerModifiable && t.hasCapability(side)) {
+                    filteredTraits.add((IItemHandlerModifiable) t);
+                }
+            }
+            if (filteredTraits.isEmpty()) {
+                return null;
+            }
+            IO io = IO.BOTH;
+            if (side != null && this instanceof IAutoOutputItem autoOutput && autoOutput.getOutputFacingItems() == side && !autoOutput.isAllowInputFromOutputSideItems()) {
+                io = IO.OUT;
+            }
+            var handlerList = new IOFilteredInvWrapper(filteredTraits, io, getItemCapFilter(side, IO.IN), getItemCapFilter(side, IO.OUT));
+            if (!useCoverCapability || side == null) return handlerList;
+            CoverBehavior cover = getCoverContainer().getCoverAtSide(side);
+            return cover != null ? cover.getItemHandlerCap(handlerList) : handlerList;
+        });
     }
 
-    @Nullable
-    public IFluidHandlerModifiable getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
-        var list = getTraits().stream().filter(IFluidHandler.class::isInstance).filter(t -> t.hasCapability(side)).map(IFluidHandler.class::cast).toList();
-        if (list.isEmpty()) return null;
-        var io = IO.BOTH;
-        if (side != null && this instanceof IAutoOutputFluid autoOutput && autoOutput.getOutputFacingFluids() == side && !autoOutput.isAllowInputFromOutputSideFluids()) {
-            io = IO.OUT;
-        }
-        IOFluidHandlerList handlerList = new IOFluidHandlerList(list, io, getFluidCapFilter(side, IO.IN), getFluidCapFilter(side, IO.OUT));
-        if (!useCoverCapability || side == null) return handlerList;
-        CoverBehavior cover = getCoverContainer().getCoverAtSide(side);
-        return cover != null ? cover.getFluidHandlerCap(handlerList) : handlerList;
+    public @Nullable IFluidHandlerModifiable getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
+        var cache = useCoverCapability ? fluidHandlerModifiableCoverCache : fluidHandlerModifiableCache;
+        return cache.getOrSet(side, () -> {
+            var ts = getTraits();
+            List<IFluidHandler> filteredTraits = new ArrayList<>(ts.size());
+            for (var t : ts) {
+                if (t instanceof IFluidHandler && t.hasCapability(side)) {
+                    filteredTraits.add((IFluidHandler) t);
+                }
+            }
+            if (filteredTraits.isEmpty()) {
+                return null;
+            }
+            IO io = IO.BOTH;
+            if (side != null && this instanceof IAutoOutputFluid autoOutput && autoOutput.getOutputFacingFluids() == side && !autoOutput.isAllowInputFromOutputSideFluids()) {
+                io = IO.OUT;
+            }
+            var handlerList = new IOFluidHandlerList(filteredTraits, io, getFluidCapFilter(side, IO.IN), getFluidCapFilter(side, IO.OUT));
+            if (!useCoverCapability || side == null) return handlerList;
+            CoverBehavior cover = getCoverContainer().getCoverAtSide(side);
+            return cover != null ? cover.getFluidHandlerCap(handlerList) : handlerList;
+        });
     }
 
     //////////////////////////////////////
@@ -750,6 +787,13 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     public void requestSync() {
         sync = true;
+    }
+
+    public void onCoverUpdate(@Nullable CoverBehavior coverBehavior, Direction side) {
+        itemHandlerModifiableCache.remove(side);
+        itemHandlerModifiableCoverCache.remove(side);
+        fluidHandlerModifiableCache.remove(side);
+        fluidHandlerModifiableCoverCache.remove(side);
     }
 
     public FieldManagedStorage getSyncStorage() {

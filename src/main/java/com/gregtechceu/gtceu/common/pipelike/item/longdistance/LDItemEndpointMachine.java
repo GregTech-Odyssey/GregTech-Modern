@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.common.pipelike.item.longdistance;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.common.machine.storage.LongDistanceEndpointMachine;
-import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -28,7 +27,7 @@ public class LDItemEndpointMachine extends LongDistanceEndpointMachine {
         if (endpoint == null) {
             return null;
         }
-        return GTTransferUtils.getAdjacentItemHandler(getLevel(), endpoint.getPos(), endpoint.getOutputFacing())
+        return itemHandlerDirectionCache.getAdjacentItemHandler(getLevel(), endpoint.getPos(), endpoint.getOutputFacing())
                 .map(ItemHandlerWrapper::new)
                 .orElse(null);
     }

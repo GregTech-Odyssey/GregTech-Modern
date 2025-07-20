@@ -9,16 +9,15 @@ import com.gregtechceu.gtceu.api.data.worldgen.ores.OreIndicatorPlacer;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -55,8 +54,8 @@ public abstract class IndicatorGenerator {
      * their respective ore placers are invoked at a later time, when the chunk containing them is actually generated.
      */
 
-    public abstract Map<ChunkPos, OreIndicatorPlacer> generate(WorldGenLevel level, RandomSource random,
-                                                               GeneratedVeinMetadata metadata);
+    public abstract Long2ObjectMap<OreIndicatorPlacer> generate(WorldGenLevel level, RandomSource random,
+                                                                GeneratedVeinMetadata metadata);
 
     public GTOreDefinition parent() {
         return entry;

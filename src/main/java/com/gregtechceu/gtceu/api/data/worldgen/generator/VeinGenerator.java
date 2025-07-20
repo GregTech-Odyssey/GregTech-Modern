@@ -19,6 +19,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 
 import java.util.*;
@@ -83,8 +84,8 @@ public abstract class VeinGenerator {
      * respective ore placers are invoked at a later time, when the chunk containing them is actually generated.
      */
 
-    public abstract Map<BlockPos, OreBlockPlacer> generate(WorldGenLevel level, RandomSource random,
-                                                           GTOreDefinition entry, BlockPos origin);
+    public abstract Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random,
+                                                            GTOreDefinition entry, BlockPos origin);
 
     public abstract VeinGenerator build();
 

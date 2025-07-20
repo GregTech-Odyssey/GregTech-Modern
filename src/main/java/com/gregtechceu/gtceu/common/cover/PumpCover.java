@@ -20,6 +20,7 @@ import com.gregtechceu.gtceu.api.transfer.fluid.ModifiableFluidHandlerWrapper;
 import com.gregtechceu.gtceu.common.cover.data.BucketMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
+import com.gregtechceu.gtceu.utils.cache.FluidHandlerDirectionCache;
 
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -55,7 +56,7 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
 
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(PumpCover.class, CoverBehavior.MANAGED_FIELD_HOLDER);
     // .5b 2b 8b
-    public static final Int2IntFunction PUMP_SCALING = tier -> 64 * (int) Math.pow(4, Math.min(tier - 1, GTValues.IV));
+    public static final Int2IntFunction PUMP_SCALING = tier -> (int) (64D * Math.pow(4, Math.min(tier - 1, GTValues.IV)));
     public final int tier;
     public final int maxFluidTransferRate;
     @Persisted
@@ -74,19 +75,19 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
     @Persisted
     @DescSynced
     protected boolean isWorkingEnabled = true;
-    protected int mBLeftToTransferLastSecond;
     @Persisted
     @DescSynced
     protected final FilterHandler<FluidStack, FluidFilter> filterHandler;
     protected final ConditionalSubscriptionHandler subscriptionHandler;
     private NumberInputWidget<Integer> transferRateWidget;
 
+    protected final FluidHandlerDirectionCache fluidHandlerDirectionCache = new FluidHandlerDirectionCache();
+
     public PumpCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide, int tier, int maxTransferRate) {
         super(definition, coverHolder, attachedSide);
         this.tier = tier;
         this.maxFluidTransferRate = maxTransferRate;
         this.transferRate = maxFluidTransferRate;
-        this.mBLeftToTransferLastSecond = transferRate * 20;
         subscriptionHandler = new ConditionalSubscriptionHandler(coverHolder, this::update, this::isSubscriptionActive);
         filterHandler = FilterHandlers.fluid(this).onFilterLoaded(f -> configureFilter()).onFilterUpdated(f -> configureFilter()).onFilterRemoved(f -> configureFilter());
     }
@@ -106,7 +107,7 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
 
     @Nullable
     protected IFluidHandler getAdjacentFluidHandler() {
-        return GTTransferUtils.getAdjacentFluidHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide).resolve().orElse(null);
+        return fluidHandlerDirectionCache.getAdjacentFluidHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide).resolve().orElse(null);
     }
 
     //////////////////////////////////////
@@ -189,16 +190,10 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
     }
 
     protected void update() {
-        long timer = coverHolder.getOffsetTimer();
-        if (timer % 5 != 0) return;
-        if (mBLeftToTransferLastSecond > 0) {
-            int platformTransferredFluid = doTransferFluids(mBLeftToTransferLastSecond);
-            this.mBLeftToTransferLastSecond -= platformTransferredFluid;
+        if (this.coverHolder.getOffsetTimer() % 20 == 0) {
+            doTransferFluids(transferRate * 20);
+            subscriptionHandler.updateSubscription();
         }
-        if (timer % 20 == 0) {
-            this.mBLeftToTransferLastSecond = transferRate * 20;
-        }
-        subscriptionHandler.updateSubscription();
     }
 
     private int doTransferFluids(int platformTransferLimit) {

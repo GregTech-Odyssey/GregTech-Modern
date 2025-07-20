@@ -6,7 +6,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -29,7 +28,7 @@ public class NetworkBuilder extends Thread {
     private final LongDistanceNetwork.WorldData worldData;
     private final LongDistanceNetwork originalNetwork;
     private LongDistanceNetwork network;
-    private final LevelAccessor world;
+    private final ServerLevel world;
     private final ObjectList<BlockPos> currentPoints = new ObjectArrayList<>();
     private final ObjectOpenHashSet<BlockPos> walked = new ObjectOpenHashSet<>();
     private final List<BlockPos> pipes = new ArrayList<>();
@@ -68,13 +67,11 @@ public class NetworkBuilder extends Thread {
             this.endpoints.clear();
             checkNetwork(start);
         }
-        if (this.world instanceof ServerLevel serverLevel) {
-            this.loadedChunks.forEach(pos -> {
-                int chunkX = ChunkPos.getX(pos);
-                int chunkZ = ChunkPos.getZ(pos);
-                serverLevel.setChunkForced(chunkX, chunkZ, false);
-            });
-        }
+        this.loadedChunks.forEach(pos -> {
+            int chunkX = ChunkPos.getX(pos);
+            int chunkZ = ChunkPos.getZ(pos);
+            world.setChunkForced(chunkX, chunkZ, false);
+        });
     }
 
     private void checkNetwork(BlockPos start) {
@@ -132,11 +129,9 @@ public class NetworkBuilder extends Thread {
             if (!chunkProvider.hasChunk(x, z)) {
                 return Blocks.AIR.defaultBlockState();
             }
-            if (this.world instanceof ServerLevel serverLevel) {
-                serverLevel.setChunkForced(x, z, true);
-                // add loaded chunk to list to unload it later
-                this.loadedChunks.add(ChunkPos.asLong(x, z));
-            }
+            world.setChunkForced(x, z, true);
+            // add loaded chunk to list to unload it later
+            this.loadedChunks.add(ChunkPos.asLong(x, z));
             chunk = chunkProvider.getChunk(x, z, ChunkStatus.FULL, true);
         }
         return chunk.getBlockState(pos);

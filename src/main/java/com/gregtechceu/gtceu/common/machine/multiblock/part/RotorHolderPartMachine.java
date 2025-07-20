@@ -62,7 +62,7 @@ public class RotorHolderPartMachine extends TieredPartMachine implements IMachin
 
     public RotorHolderPartMachine(IMachineBlockEntity holder, int tier) {
         super(holder, tier);
-        this.inventory = new NotifiableItemStackHandler(this, 1, IO.NONE, IO.BOTH);
+        this.inventory = new NotifiableItemStackHandler(this, 1, IO.NONE, IO.BOTH).setFilter(i -> TurbineRotorBehaviour.getBehaviour(i) != null);
         this.maxRotorHolderSpeed = 2000 + 1000 * tier;
     }
 

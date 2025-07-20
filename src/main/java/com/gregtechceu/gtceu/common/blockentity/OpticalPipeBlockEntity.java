@@ -103,28 +103,13 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
     public OpticalPipeNet getOpticalPipeNet() {
         if (level == null || level.isClientSide) return null;
         OpticalPipeNet currentPipeNet = this.currentPipeNet.get();
-        if (currentPipeNet != null && currentPipeNet.isValid() && currentPipeNet.containsNode(getPipePos())) return currentPipeNet; // if
-                                                                                                                                    // current
-                                                                                                                                    // net
-                                                                                                                                    // is
-                                                                                                                                    // valid
-                                                                                                                                    // and
-                                                                                                                                    // does
-                                                                                                                                    // contain
-                                                                                                                                    // position,
-                                                                                                                                    // return
-                                                                                                                                    // it
+        if (currentPipeNet != null && currentPipeNet.isValid() && currentPipeNet.containsNode(getPipePosLong())) return currentPipeNet;
         LevelOpticalPipeNet worldNet = (LevelOpticalPipeNet) getPipeBlock().getWorldPipeNet((ServerLevel) getPipeLevel());
-        currentPipeNet = worldNet.getNetFromPos(getPipePos());
+        currentPipeNet = worldNet.getNetFromPos(getPipePos(), getPipePosLong());
         if (currentPipeNet != null) {
             this.currentPipeNet = new WeakReference<>(currentPipeNet);
         }
         return currentPipeNet;
-    }
-
-    @Override
-    public boolean canAttachTo(Direction side) {
-        return false;
     }
 
     @Override

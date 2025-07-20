@@ -212,7 +212,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
         getDefinition().getAdditionalDisplay().accept(this, textList);
     }
 
-    private static MutableComponent getTimeToFillDrainText(BigInteger timeToFillSeconds) {
+    public static MutableComponent getTimeToFillDrainText(BigInteger timeToFillSeconds) {
         if (timeToFillSeconds.compareTo(BIG_INTEGER_MAX_LONG) > 0) {
             // too large to represent in a java Duration
             timeToFillSeconds = BIG_INTEGER_MAX_LONG;

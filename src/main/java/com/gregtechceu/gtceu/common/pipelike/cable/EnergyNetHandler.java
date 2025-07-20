@@ -5,11 +5,7 @@ import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.common.blockentity.CableBlockEntity;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.block.Blocks;
 
 import java.util.Objects;
 
@@ -48,7 +44,7 @@ public class EnergyNetHandler implements IEnergyContainer {
         }
 
         long amperesUsed = 0L;
-        for (EnergyRoutePath path : net.getNetData(cable.getPipePos())) {
+        for (EnergyRoutePath path : net.getNetData(cable.getPipePosLong(), cable.getPipePos())) {
             if (path.getMaxLoss() >= voltage) {
                 // Will lose all the energy with this path, so don't use it
                 continue;
@@ -105,18 +101,7 @@ public class EnergyNetHandler implements IEnergyContainer {
 
             if (amperage == amperesUsed) break;
         }
-
-        net.addEnergyFluxPerSec(amperesUsed * voltage);
         return amperesUsed;
-    }
-
-    private void burnCable(ServerLevel serverLevel, BlockPos pos) {
-        serverLevel.setBlockAndUpdate(pos, Blocks.FIRE.defaultBlockState());
-        if (!getNet().getLevel().isClientSide) {
-            getNet().getLevel().sendParticles(ParticleTypes.LARGE_SMOKE,
-                    pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
-                    5 + getNet().getLevel().random.nextInt(3), 0.0, 0.0, 0.0, 0.1);
-        }
     }
 
     @Override

@@ -56,12 +56,6 @@ public interface IPipeNode<PipeType extends Enum<PipeType> & IPipeType<NodeDataT
     void setBlocked(Direction side, boolean isBlocked);
 
     /**
-     * Whether pipe can attach to specific side.
-     * e.g. check if there is an energyContainer nearby.
-     */
-    boolean canAttachTo(Direction side);
-
-    /**
      * get connections for rendering and collision.
      */
     int getVisualConnections();
@@ -92,9 +86,9 @@ public interface IPipeNode<PipeType extends Enum<PipeType> & IPipeType<NodeDataT
         return self().getLevel();
     }
 
-    default BlockPos getPipePos() {
-        return self().getBlockPos();
-    }
+    BlockPos getPipePos();
+
+    long getPipePosLong();
 
     default void markAsDirty() {
         self().setChanged();
@@ -120,7 +114,7 @@ public interface IPipeNode<PipeType extends Enum<PipeType> & IPipeType<NodeDataT
     @Nullable
     default PipeNet<NodeDataType> getPipeNet() {
         if (getPipeLevel() instanceof ServerLevel serverLevel) {
-            return getPipeBlock().getWorldPipeNet(serverLevel).getNetFromPos(getPipePos());
+            return getPipeBlock().getWorldPipeNet(serverLevel).getNetFromPos(getPipePos(), getPipePosLong());
         }
         return null;
     }
@@ -133,12 +127,17 @@ public interface IPipeNode<PipeType extends Enum<PipeType> & IPipeType<NodeDataT
     default NodeDataType getNodeData() {
         var net = getPipeNet();
         if (net != null) {
-            return net.getNodeAt(getPipePos()).data;
+            return net.getNodeAt(getPipePosLong()).data;
         }
         return null;
     }
 
     void notifyBlockUpdate();
+
+    void onNeighborChanged(Block block, BlockPos fromPos, boolean isMoving);
+
+    @Nullable
+    BlockEntity getNeighbor(Direction direction);
 
     default void scheduleRenderUpdate() {
         var pos = getPipePos();
@@ -163,10 +162,6 @@ public interface IPipeNode<PipeType extends Enum<PipeType> & IPipeType<NodeDataT
             return;
 
         level.getBlockState(pos).updateNeighbourShapes(level, pos, Block.UPDATE_ALL);
-    }
-
-    default BlockEntity getNeighbor(Direction direction) {
-        return getPipeLevel().getBlockEntity(getPipePos().relative(direction));
     }
 
     @Override

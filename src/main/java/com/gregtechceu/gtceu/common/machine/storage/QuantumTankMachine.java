@@ -206,7 +206,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
 
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingFluids();
-        if ((isAutoOutputFluids() && !stored.isEmpty()) && outputFacing != null && GTTransferUtils.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacing)) {
+        if ((isAutoOutputFluids() && !stored.isEmpty()) && outputFacing != null && fluidHandlerDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacing)) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, this::checkAutoOutput);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
@@ -215,7 +215,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     }
 
     protected void checkAutoOutput() {
-        if (getOffsetTimer() % 5 == 0) {
+        if (getOffsetTimer() % 20 == 0) {
             if (isAutoOutputFluids() && getOutputFacingFluids() != null) {
                 cache.exportToNearby(getOutputFacingFluids());
             }
@@ -400,7 +400,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
             var pos = getMachine().getPos();
             for (Direction facing : facings) {
                 var filter = getMachine().getFluidCapFilter(facing, IO.OUT);
-                GTTransferUtils.getAdjacentFluidHandler(level, pos, facing).ifPresent(adj -> GTTransferUtils.transferFluidsFiltered(this, adj, filter));
+                fluidHandlerDirectionCache.getAdjacentFluidHandler(level, pos, facing).ifPresent(adj -> GTTransferUtils.transferFluidsFiltered(this, adj, filter));
             }
         }
 

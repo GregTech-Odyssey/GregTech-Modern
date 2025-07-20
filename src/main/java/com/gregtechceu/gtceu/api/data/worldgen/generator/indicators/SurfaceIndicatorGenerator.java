@@ -30,6 +30,8 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +41,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -109,14 +110,21 @@ public class SurfaceIndicatorGenerator extends IndicatorGenerator {
     }
 
     @Override
-    public Map<ChunkPos, OreIndicatorPlacer> generate(WorldGenLevel level, RandomSource random, GeneratedVeinMetadata metadata) {
+    public Long2ObjectMap<OreIndicatorPlacer> generate(WorldGenLevel level, RandomSource random, GeneratedVeinMetadata metadata) {
         BlockState blockState = placement.stateTransformer.apply(block);
         int radius = this.radius.sample(random);
         float density = this.density.sample(random);
         BlockPos center = metadata.center();
         Stream<BlockPos> positionStream = BlockPos.betweenClosedStream(center.getX() - radius, center.getY(), center.getZ() - radius, center.getX() + radius, center.getY(), center.getZ() + radius).map(BlockPos::immutable);
         var positions = positionStream.filter(pos -> pos.equals(center) || random.nextFloat() <= density).filter(pos -> Math.sqrt(pos.distSqr(center)) <= radius).toList();
-        return WorldGeneratorUtils.groupByChunks(positions).entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> createPlacer(level, entry.getValue(), blockState)));
+        var groupedPositions = WorldGeneratorUtils.groupByChunks(positions);
+        Long2ObjectOpenHashMap<OreIndicatorPlacer> result = new Long2ObjectOpenHashMap<>(groupedPositions.size());
+        for (Map.Entry<ChunkPos, List<BlockPos>> entry : groupedPositions.entrySet()) {
+            List<BlockPos> blockPositions = entry.getValue();
+            OreIndicatorPlacer placer = createPlacer(level, blockPositions, blockState);
+            result.put(entry.getKey().toLong(), placer);
+        }
+        return result;
     }
 
     private OreIndicatorPlacer createPlacer(WorldGenLevel level, List<BlockPos> positionsWithoutY, BlockState blockState) {

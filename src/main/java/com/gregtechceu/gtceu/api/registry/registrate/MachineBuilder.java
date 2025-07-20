@@ -22,6 +22,7 @@ import com.gregtechceu.gtceu.client.renderer.GTRendererProvider;
 import com.gregtechceu.gtceu.client.renderer.machine.*;
 import com.gregtechceu.gtceu.common.data.GTRecipeModifiers;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
 
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 
@@ -319,7 +320,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
         if (editableUI != null) {
             definition.setEditableUI(editableUI);
         }
-        definition.setAppearance(appearance);
+        definition.setAppearance(GTMemoizer.memoize(appearance));
         definition.setAllowExtendedFacing(allowExtendedFacing);
         definition.setRenderer(GTCEu.isClientSide() ? renderer.get() : IRenderer.EMPTY);
         definition.setShape(shape);

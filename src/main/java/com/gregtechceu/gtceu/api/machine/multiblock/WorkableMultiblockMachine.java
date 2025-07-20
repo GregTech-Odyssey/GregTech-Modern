@@ -213,7 +213,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Override
     public boolean isRecipeLogicAvailable() {
-        return isFormed && !getMultiblockState().hasError();
+        return isFormed;
     }
 
     @Override
@@ -264,7 +264,13 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @NotNull
     public GTRecipeType getRecipeType() {
-        return recipeTypes[activeRecipeType];
+        return recipeTypes[Math.min(recipeTypes.length - 1, activeRecipeType)];
+    }
+
+    @Override
+    public void setActiveRecipeType(final int activeRecipeType) {
+        this.activeRecipeType = activeRecipeType;
+        getRecipeLogic().markLastRecipeDirty();
     }
 
     @Nullable
@@ -288,10 +294,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         return this.activeRecipeType;
     }
 
-    public void setActiveRecipeType(final int activeRecipeType) {
-        this.activeRecipeType = activeRecipeType;
-    }
-
     public Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {
         return this.capabilitiesProxy;
     }
@@ -311,5 +313,10 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Nullable
     public LongSet getActiveBlocks() {
         return this.activeBlocks;
+    }
+
+    @Override
+    public boolean regressWhenWaiting() {
+        return !getDefinition().isGenerator();
     }
 }

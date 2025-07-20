@@ -7,6 +7,8 @@ import com.gregtechceu.gtceu.client.model.PipeModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringRepresentable;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Locale;
 
 public enum DuctPipeType implements IPipeType<DuctPipeProperties>, StringRepresentable {
@@ -34,17 +36,12 @@ public enum DuctPipeType implements IPipeType<DuctPipeProperties>, StringReprese
     }
 
     @Override
-    public boolean isPaintable() {
-        return true;
-    }
-
-    @Override
     public ResourceLocation type() {
         return TYPE_ID;
     }
 
     @Override
-    public String getSerializedName() {
+    public @NotNull String getSerializedName() {
         return name().toLowerCase(Locale.ROOT);
     }
 

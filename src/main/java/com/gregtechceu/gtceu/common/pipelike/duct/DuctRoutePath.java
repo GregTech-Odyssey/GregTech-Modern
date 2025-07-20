@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IHazardParticleContainer;
 import com.gregtechceu.gtceu.api.pipenet.IRoutePath;
 import com.gregtechceu.gtceu.common.blockentity.DuctPipeBlockEntity;
-import com.gregtechceu.gtceu.utils.FacingPos;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -38,10 +37,6 @@ public class DuctRoutePath implements IRoutePath<IHazardParticleContainer> {
     @Nullable
     public IHazardParticleContainer getHandler(Level world) {
         return GTCapabilityHelper.getHazardContainer(world, getTargetPipePos().relative(targetFacing), targetFacing.getOpposite());
-    }
-
-    public FacingPos toFacingPos() {
-        return new FacingPos(getTargetPipePos(), targetFacing);
     }
 
     public DuctPipeBlockEntity getTargetPipe() {

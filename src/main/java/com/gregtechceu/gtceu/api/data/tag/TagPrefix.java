@@ -246,7 +246,7 @@ public class TagPrefix {
     private boolean generateBlock;
     private BlockConstructor blockConstructor = MaterialBlock::new;
     private BlockItemConstructor blockItemConstructor = MaterialBlockItem::new;
-    private BlockProperties blockProperties = new BlockProperties(() -> RenderType::translucent, UnaryOperator.identity());
+    private BlockProperties blockProperties = new BlockProperties(() -> RenderType::solid, UnaryOperator.identity());
     @Nullable
     private Predicate<Material> generationCondition;
     @Nullable
@@ -524,7 +524,7 @@ public class TagPrefix {
     @FunctionalInterface
     public interface BlockConstructor {
 
-        Block create(Block.Properties properties, TagPrefix prefix, Material material);
+        MaterialBlock create(Block.Properties properties, TagPrefix prefix, Material material);
     }
 
     @FunctionalInterface

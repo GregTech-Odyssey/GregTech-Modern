@@ -41,12 +41,13 @@ import net.minecraft.world.level.material.FluidState;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 
 public class GeodeVeinGenerator extends VeinGenerator {
@@ -79,7 +80,7 @@ public class GeodeVeinGenerator extends VeinGenerator {
     }
 
     @Override
-    public Map<BlockPos, OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
+    public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
         // TODO refactor geode sizes for the new ore generation system. For now, geode veins are still generated in
         // place.
         BulkSectionAccess access = new BulkSectionAccess(level);
@@ -106,7 +107,7 @@ public class GeodeVeinGenerator extends VeinGenerator {
             BlockPos origin2 = origin.offset(offset, this.outerWallDistance.sample(random), this.outerWallDistance.sample(random));
             blockState = access.getBlockState(origin2);
             if ((blockState.isAir() || blockState.is(BlockTags.GEODE_INVALID_BLOCKS)) && ++invalidBlocksCount > this.invalidBlocksThreshold) {
-                return Map.of();
+                return Long2ObjectMaps.emptyMap();
             }
             points.add(ObjectIntPair.of(origin2, this.pointOffset.sample(random)));
         }
@@ -201,7 +202,7 @@ public class GeodeVeinGenerator extends VeinGenerator {
             }
         }
         access.close();
-        return Map.of();
+        return Long2ObjectMaps.emptyMap();
     }
 
     protected void safeSetBlock(BulkSectionAccess level, LevelChunkSection section, BlockPos pos, BlockState state, Predicate<BlockState> oldState) {

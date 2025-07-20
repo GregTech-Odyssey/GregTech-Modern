@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.api.pipenet.longdistance;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 
 import org.jetbrains.annotations.NotNull;
@@ -19,12 +19,7 @@ public interface ILDNetworkPart {
     LongDistancePipeType getPipeType();
 
     @Nullable
-    static ILDNetworkPart tryGet(LevelAccessor world, BlockPos pos) {
-        return tryGet(world, pos, world.getBlockState(pos));
-    }
-
-    @Nullable
-    static ILDNetworkPart tryGet(LevelAccessor world, BlockPos pos, BlockState blockState) {
+    static ILDNetworkPart tryGet(ServerLevel world, BlockPos pos, BlockState blockState) {
         return blockState.getBlock() instanceof ILDNetworkPart part ? part : ILDEndpoint.tryGet(world, pos);
     }
 }

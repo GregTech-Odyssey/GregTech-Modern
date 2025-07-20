@@ -18,8 +18,8 @@ import com.gregtechceu.gtceu.api.transfer.item.ItemHandlerDelegate;
 import com.gregtechceu.gtceu.common.blockentity.ItemPipeBlockEntity;
 import com.gregtechceu.gtceu.common.cover.data.DistributionMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
-import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
+import com.gregtechceu.gtceu.utils.cache.ItemHandlerDirectionCache;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
@@ -78,19 +78,19 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     @Persisted
     @DescSynced
     protected boolean isWorkingEnabled = true;
-    protected int itemsLeftToTransferLastSecond;
     private Widget ioModeSwitch;
     @Persisted
     @DescSynced
     protected final FilterHandler<ItemStack, ItemFilter> filterHandler;
     protected final ConditionalSubscriptionHandler subscriptionHandler;
 
+    protected final ItemHandlerDirectionCache itemHandlerDirectionCache = new ItemHandlerDirectionCache();
+
     public ConveyorCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide, int tier, int maxTransferRate) {
         super(definition, coverHolder, attachedSide);
         this.tier = tier;
         this.maxItemTransferRate = maxTransferRate;
         this.transferRate = maxItemTransferRate;
-        this.itemsLeftToTransferLastSecond = transferRate;
         this.io = IO.OUT;
         this.distributionMode = DistributionMode.INSERT_FIRST;
         subscriptionHandler = new ConditionalSubscriptionHandler(coverHolder, this::update, this::isSubscriptionActive);
@@ -112,7 +112,7 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
 
     @Nullable
     protected IItemHandler getAdjacentItemHandler() {
-        return GTTransferUtils.getAdjacentItemHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide).resolve().orElse(null);
+        return itemHandlerDirectionCache.getAdjacentItemHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide).resolve().orElse(null);
     }
 
     //////////////////////////////////////
@@ -190,24 +190,16 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     }
 
     protected void update() {
-        long timer = coverHolder.getOffsetTimer();
-        if (timer % 5 == 0) {
-            if (itemsLeftToTransferLastSecond > 0) {
-                var adjacent = getAdjacentItemHandler();
-                var self = getOwnItemHandler();
-                if (adjacent != null && self != null) {
-                    int totalTransferred = switch (io) {
-                        case IN -> doTransferItems(adjacent, self, itemsLeftToTransferLastSecond);
-                        case OUT -> doTransferItems(self, adjacent, itemsLeftToTransferLastSecond);
-                        default -> 0;
-                    };
-                    this.itemsLeftToTransferLastSecond -= totalTransferred;
+        if (this.coverHolder.getOffsetTimer() % 20 == 0) {
+            IItemHandler adjacent = this.getAdjacentItemHandler();
+            IItemHandlerModifiable self = this.getOwnItemHandler();
+            if (adjacent != null && self != null) {
+                switch (this.io) {
+                    case IN -> this.doTransferItems(adjacent, self, this.transferRate);
+                    case OUT -> this.doTransferItems(self, adjacent, this.transferRate);
                 }
             }
-            if (timer % 20 == 0) {
-                this.itemsLeftToTransferLastSecond = transferRate;
-            }
-            subscriptionHandler.updateSubscription();
+            this.subscriptionHandler.updateSubscription();
         }
     }
 

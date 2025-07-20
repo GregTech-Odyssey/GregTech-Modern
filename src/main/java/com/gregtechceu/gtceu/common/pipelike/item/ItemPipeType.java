@@ -41,19 +41,9 @@ public enum ItemPipeType implements IMaterialPipeType<ItemPipeProperties> {
         return ordinal() > 3;
     }
 
-    public String getSizeForTexture() {
-        if (!isRestrictive()) return name;
-        else return name.substring(0, name.length() - 12);
-    }
-
     @Override
     public ItemPipeProperties modifyProperties(ItemPipeProperties baseProperties) {
         return new ItemPipeProperties((int) ((baseProperties.getPriority() * resistanceMultiplier) + 0.5), baseProperties.getTransferRate() * rateMultiplier);
-    }
-
-    @Override
-    public boolean isPaintable() {
-        return true;
     }
 
     @Override
@@ -66,58 +56,7 @@ public enum ItemPipeType implements IMaterialPipeType<ItemPipeProperties> {
         if (material.hasProperty(PropertyKey.WOOD)) {
             model = new PipeModel(thickness, () -> GTCEu.id("block/pipe/pipe_side_wood"), () -> GTCEu.id("block/pipe/pipe_%s_in_wood".formatted(this.isRestrictive() ? values()[this.ordinal() - 4].name : name)), null, null);
         } else {
-            model = new PipeModel(thickness, () -> GTCEu.id("block/pipe/pipe_side"), () -> GTCEu.id("block/pipe/pipe_%s_in".formatted(this.isRestrictive() ? values()[this.ordinal() - 4].name : name)), null, null/*
-                                                                                                                                                                                                                    * ()
-                                                                                                                                                                                                                    * ->
-                                                                                                                                                                                                                    * GTCEu
-                                                                                                                                                                                                                    * .
-                                                                                                                                                                                                                    * id
-                                                                                                                                                                                                                    * (
-                                                                                                                                                                                                                    * "block/pipe/pipe_side_secondary"
-                                                                                                                                                                                                                    * )
-                                                                                                                                                                                                                    * ,
-                                                                                                                                                                                                                    * ()
-                                                                                                                                                                                                                    * ->
-                                                                                                                                                                                                                    * GTCEu
-                                                                                                                                                                                                                    * .
-                                                                                                                                                                                                                    * id
-                                                                                                                                                                                                                    * (
-                                                                                                                                                                                                                    * "block/pipe/pipe_%s_in_secondary"
-                                                                                                                                                                                                                    * .
-                                                                                                                                                                                                                    * formatted
-                                                                                                                                                                                                                    * (
-                                                                                                                                                                                                                    * this
-                                                                                                                                                                                                                    * .
-                                                                                                                                                                                                                    * isRestrictive
-                                                                                                                                                                                                                    * (
-                                                                                                                                                                                                                    * )
-                                                                                                                                                                                                                    * ?
-                                                                                                                                                                                                                    * values
-                                                                                                                                                                                                                    * (
-                                                                                                                                                                                                                    * )
-                                                                                                                                                                                                                    * [
-                                                                                                                                                                                                                    * this
-                                                                                                                                                                                                                    * .
-                                                                                                                                                                                                                    * ordinal
-                                                                                                                                                                                                                    * (
-                                                                                                                                                                                                                    * )
-                                                                                                                                                                                                                    * -
-                                                                                                                                                                                                                    * 4
-                                                                                                                                                                                                                    * ]
-                                                                                                                                                                                                                    * .
-                                                                                                                                                                                                                    * name
-                                                                                                                                                                                                                    * :
-                                                                                                                                                                                                                    * name
-                                                                                                                                                                                                                    * )
-                                                                                                                                                                                                                    * )
-                                                                                                                                                                                                                    * TODO
-                                                                                                                                                                                                                    * enable
-                                                                                                                                                                                                                    * once
-                                                                                                                                                                                                                    * the
-                                                                                                                                                                                                                    * textures
-                                                                                                                                                                                                                    * are
-                                                                                                                                                                                                                    * added
-                                                                                                                                                                                                                    */);
+            model = new PipeModel(thickness, () -> GTCEu.id("block/pipe/pipe_side"), () -> GTCEu.id("block/pipe/pipe_%s_in".formatted(this.isRestrictive() ? values()[this.ordinal() - 4].name : name)), null, null);
         }
         if (isRestrictive()) {
             model.setSideOverlayTexture(GTCEu.id("block/pipe/pipe_restrictive"));
@@ -131,10 +70,6 @@ public enum ItemPipeType implements IMaterialPipeType<ItemPipeProperties> {
 
     public float getThickness() {
         return this.thickness;
-    }
-
-    public float getRateMultiplier() {
-        return this.rateMultiplier;
     }
 
     public TagPrefix getTagPrefix() {

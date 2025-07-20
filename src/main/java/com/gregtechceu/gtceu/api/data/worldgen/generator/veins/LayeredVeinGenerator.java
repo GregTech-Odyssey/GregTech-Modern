@@ -26,11 +26,12 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.tterrag.registrate.util.nullness.NonNullSupplier;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.floats.FloatList;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -67,13 +68,13 @@ public class LayeredVeinGenerator extends VeinGenerator {
     }
 
     @Override
-    public Map<BlockPos, OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
-                                                  BlockPos origin) {
-        Map<BlockPos, OreBlockPlacer> generatedBlocks = new Object2ObjectOpenHashMap<>();
+    public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
+                                                   BlockPos origin) {
+        Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
         var patternPool = this.getLayerPatterns();
 
         if (patternPool.isEmpty())
-            return Map.of();
+            return Long2ObjectMaps.emptyMap();
 
         GTLayerPattern layerPattern = patternPool.get(random.nextInt(patternPool.size()));
 
@@ -90,7 +91,7 @@ public class LayeredVeinGenerator extends VeinGenerator {
         int height = (radius * 2) + 1;
 
         if (origin.getY() >= level.getMaxBuildHeight())
-            return Map.of();
+            return Long2ObjectMaps.emptyMap();
 
         List<GTLayerPattern.Layer> resolvedLayers = new ArrayList<>();
         FloatList layerDiameterOffsets = new FloatArrayList();
@@ -144,7 +145,7 @@ public class LayeredVeinGenerator extends VeinGenerator {
                     final var randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
 
                     BlockPos currentPos = new BlockPos(currentX, currentY, currentZ);
-                    generatedBlocks.put(currentPos, (access, section) -> placeBlock(access, section, randomSeed, entry,
+                    generatedBlocks.put(currentPos.asLong(), (access, section) -> placeBlock(access, section, randomSeed, entry,
                             density, state, currentPos));
                 }
             }

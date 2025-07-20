@@ -13,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
 import java.util.function.Consumer;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
@@ -51,7 +52,7 @@ public final class PolarizingRecipeHandler {
         if (!magneticMaterial.isNull() && (prefix.doGenerateBlock(magneticMaterial) ||
                 prefix.doGenerateItem(magneticMaterial))) {
             ItemStack magneticStack = ChemicalHelper.get(prefix, magneticMaterial);
-            POLARIZER_RECIPES.recipeBuilder("polarize_" + material.getName() + "_" + prefix.name) // polarizing
+            POLARIZER_RECIPES.recipeBuilder("polarize_" + material.getName() + "_" + prefix.name.toLowerCase(Locale.ROOT)) // polarizing
                     .inputItems(prefix, material)
                     .outputItems(magneticStack)
                     .duration((int) ((int) material.getMass() * prefix.getMaterialAmount(material) / M))
@@ -59,7 +60,7 @@ public final class PolarizingRecipeHandler {
                     .save(provider);
 
             VanillaRecipeHelper.addSmeltingRecipe(provider,
-                    "demagnetize_" + magneticMaterial.getName() + "_" + prefix,
+                    "demagnetize_" + magneticMaterial.getName() + "_" + prefix.name.toLowerCase(Locale.ROOT),
                     ChemicalHelper.getTag(prefix, magneticMaterial),
                     ChemicalHelper.get(prefix, material)); // de-magnetizing
         }

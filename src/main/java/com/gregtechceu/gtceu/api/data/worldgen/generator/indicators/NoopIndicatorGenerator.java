@@ -7,16 +7,14 @@ import com.gregtechceu.gtceu.api.data.worldgen.ores.OreIndicatorPlacer;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.Map;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -28,10 +26,10 @@ public class NoopIndicatorGenerator extends IndicatorGenerator {
     public static final Codec<NoopIndicatorGenerator> CODEC = Codec.unit(() -> INSTANCE);
 
     @Override
-    public Map<ChunkPos, OreIndicatorPlacer> generate(WorldGenLevel level, RandomSource random,
-                                                      GeneratedVeinMetadata metadata) {
+    public Long2ObjectMap<OreIndicatorPlacer> generate(WorldGenLevel level, RandomSource random,
+                                                       GeneratedVeinMetadata metadata) {
         // Nothing to do here
-        return Collections.emptyMap();
+        return Long2ObjectMaps.emptyMap();
     }
 
     @Override

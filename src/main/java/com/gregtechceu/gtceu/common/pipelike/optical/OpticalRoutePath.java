@@ -50,11 +50,7 @@ public class OpticalRoutePath implements IRoutePath<IOpticalComputationProvider>
         return GTCapabilityHelper.getOpticalComputationProvider(world, getTargetPipePos().relative(targetFacing), targetFacing.getOpposite());
     }
 
-    public OpticalPipeBlockEntity getTargetPipe() {
-        return this.targetPipe;
-    }
-
-    public Direction getTargetFacing() {
+    public @NotNull Direction getTargetFacing() {
         return this.targetFacing;
     }
 

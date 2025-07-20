@@ -9,20 +9,20 @@ import com.gregtechceu.gtceu.common.pipelike.item.ItemNetHandler;
 import com.gregtechceu.gtceu.common.pipelike.item.ItemPipeNet;
 import com.gregtechceu.gtceu.common.pipelike.item.ItemPipeType;
 import com.gregtechceu.gtceu.utils.FacingPos;
-import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.cache.ItemHandlerDirectionCache;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemStackHandler;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -38,10 +38,10 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
     private final EnumMap<Direction, ItemNetHandler> handlers = new EnumMap<>(Direction.class);
     private final Object2IntMap<FacingPos> transferred = new Object2IntOpenHashMap<>();
     private ItemNetHandler defaultHandler;
-    // the ItemNetHandler can only be created on the server so we have a empty placeholder for the client
-    private final IItemHandlerModifiable clientCapability = new ItemStackHandler(0);
     private int transferredItems = 0;
     private long timer = 0;
+
+    public final ItemHandlerDirectionCache itemHandlerDirectionCache = new ItemHandlerDirectionCache();
 
     public ItemPipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
@@ -55,7 +55,11 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
         return hasLevel() ? getLevel().getGameTime() : 0L;
     }
 
-    public static void onBlockEntityRegister(BlockEntityType<ItemPipeBlockEntity> itemPipeBlockEntityBlockEntityType) {}
+    @Override
+    public void onNeighborChanged(Block block, BlockPos fromPos, boolean isMoving) {
+        super.onNeighborChanged(block, fromPos, isMoving);
+        itemHandlerDirectionCache.clearCache();
+    }
 
     @Override
     @NotNull
@@ -104,37 +108,17 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
         }
     }
 
-    @Override
-    public boolean canAttachTo(Direction side) {
-        if (level == null) return false;
-        if (level.getBlockEntity(getBlockPos().relative(side)) instanceof ItemPipeBlockEntity) {
-            return false;
-        }
-        return GTTransferUtils.hasAdjacentItemHandler(level, getBlockPos(), side);
-    }
-
     @Nullable
     public ItemPipeNet getItemPipeNet() {
         if (level instanceof ServerLevel serverLevel && getBlockState().getBlock() instanceof ItemPipeBlock itemPipeBlock) {
             ItemPipeNet currentItemPipeNet = this.currentItemPipeNet.get();
-            if (currentItemPipeNet != null && currentItemPipeNet.isValid() && currentItemPipeNet.containsNode(getBlockPos())) return currentItemPipeNet; // return
-                                                                                                                                                         // current
-                                                                                                                                                         // net
-                                                                                                                                                         // if
-                                                                                                                                                         // it
-                                                                                                                                                         // is
-                                                                                                                                                         // still
-                                                                                                                                                         // valid
-            currentItemPipeNet = itemPipeBlock.getWorldPipeNet(serverLevel).getNetFromPos(getBlockPos());
+            if (currentItemPipeNet != null && currentItemPipeNet.isValid() && currentItemPipeNet.containsNode(getPipePosLong())) return currentItemPipeNet;
+            currentItemPipeNet = itemPipeBlock.getWorldPipeNet(serverLevel).getNetFromPos(getBlockPos(), getPipePosLong());
             if (currentItemPipeNet != null) {
                 this.currentItemPipeNet = new WeakReference<>(currentItemPipeNet);
             }
         }
         return this.currentItemPipeNet.get();
-    }
-
-    public void resetTransferred() {
-        transferred.clear();
     }
 
     /**

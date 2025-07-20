@@ -70,26 +70,28 @@ public abstract class LongDistanceEndpointMachine extends MetaMachine implements
         if (isRemote()) {
             return;
         }
-        LongDistanceNetwork network = LongDistanceNetwork.get(getLevel(), getPos());
-        if (network != null) {
-            // manually remove this endpoint from the network
-            network.onRemoveEndpoint(this);
+        if (getLevel() instanceof ServerLevel serverLevel) {
+            LongDistanceNetwork network = LongDistanceNetwork.get(serverLevel, getPos());
+            if (network != null) {
+                // manually remove this endpoint from the network
+                network.onRemoveEndpoint(this);
+            }
+            // find networks on input and output face
+            List<LongDistanceNetwork> networks = findNetworks(serverLevel);
+            if (networks.isEmpty()) {
+                // no neighbours found, create new network
+                network = this.pipeType.createNetwork(serverLevel);
+                network.onPlaceEndpoint(this);
+                setIoType(IO.NONE);
+            } else if (networks.size() == 1) {
+                // one neighbour network found, attach self to neighbour network
+                networks.get(0).onPlaceEndpoint(this);
+            } else {
+                // two neighbour networks found, configuration invalid
+                setIoType(IO.NONE);
+            }
+            updateRefreshNetSubscription();
         }
-        // find networks on input and output face
-        List<LongDistanceNetwork> networks = findNetworks();
-        if (networks.isEmpty()) {
-            // no neighbours found, create new network
-            network = this.pipeType.createNetwork(getLevel());
-            network.onPlaceEndpoint(this);
-            setIoType(IO.NONE);
-        } else if (networks.size() == 1) {
-            // one neighbour network found, attach self to neighbour network
-            networks.get(0).onPlaceEndpoint(this);
-        } else {
-            // two neighbour networks found, configuration invalid
-            setIoType(IO.NONE);
-        }
-        updateRefreshNetSubscription();
     }
 
     @Override
@@ -113,41 +115,45 @@ public abstract class LongDistanceEndpointMachine extends MetaMachine implements
     public void onUnload() {
         super.onUnload();
         if (isRemote()) return;
-        if (link != null) {
-            // invalidate linked endpoint
-            link.invalidateLink();
-            invalidateLink();
+        if (getLevel() instanceof ServerLevel serverLevel) {
+            if (link != null) {
+                // invalidate linked endpoint
+                link.invalidateLink();
+                invalidateLink();
+            }
+            setIoType(IO.NONE);
+            LongDistanceNetwork network = LongDistanceNetwork.get(serverLevel, getPos());
+            // remove endpoint from network
+            if (network != null) network.onRemoveEndpoint(this);
         }
-        setIoType(IO.NONE);
-        LongDistanceNetwork network = LongDistanceNetwork.get(getLevel(), getPos());
-        // remove endpoint from network
-        if (network != null) network.onRemoveEndpoint(this);
     }
 
     @Override
     public void onNeighborChanged(Block block, BlockPos fromPos, boolean isMoving) {
         if (!placed || isRemote()) return;
-        List<LongDistanceNetwork> networks = findNetworks();
-        this.updateNetwork();
-        LongDistanceNetwork network = LongDistanceNetwork.get(getLevel(), getPos());
-        if (network == null) {
-            // shouldn't happen
-            if (networks.isEmpty()) {
-                // create new network since there are no neighbouring networks
-                network = this.pipeType.createNetwork(getLevel());
-                network.onPlaceEndpoint(this);
-            } else if (networks.size() == 1) {
-                // add to neighbour network
-                networks.get(0).onPlaceEndpoint(this);
+        if (getLevel() instanceof ServerLevel serverLevel) {
+            List<LongDistanceNetwork> networks = findNetworks(serverLevel);
+            this.updateNetwork();
+            LongDistanceNetwork network = LongDistanceNetwork.get(serverLevel, getPos());
+            if (network == null) {
+                // shouldn't happen
+                if (networks.isEmpty()) {
+                    // create new network since there are no neighbouring networks
+                    network = this.pipeType.createNetwork(serverLevel);
+                    network.onPlaceEndpoint(this);
+                } else if (networks.size() == 1) {
+                    // add to neighbour network
+                    networks.get(0).onPlaceEndpoint(this);
+                }
+            } else {
+                if (networks.size() > 1) {
+                    // suddenly there are more than one neighbouring networks, invalidate
+                    onUnload();
+                }
             }
-        } else {
-            if (networks.size() > 1) {
-                // suddenly there are more than one neighbouring networks, invalidate
-                onUnload();
+            if (networks.size() != 1) {
+                setIoType(IO.NONE);
             }
-        }
-        if (networks.size() != 1) {
-            setIoType(IO.NONE);
         }
     }
 
@@ -157,17 +163,17 @@ public abstract class LongDistanceEndpointMachine extends MetaMachine implements
         updateNetwork();
     }
 
-    private List<LongDistanceNetwork> findNetworks() {
+    private List<LongDistanceNetwork> findNetworks(ServerLevel level) {
         List<LongDistanceNetwork> networks = new ArrayList<>();
         LongDistanceNetwork network;
         // only check input and output side
-        network = LongDistanceNetwork.get(getLevel(), getPos().relative(getFrontFacing()));
+        network = LongDistanceNetwork.get(level, getPos().relative(getFrontFacing()));
         if (network != null && pipeType == network.getPipeType()) {
             // found a network on the input face, therefore this is an output of the network
             networks.add(network);
             setIoType(IO.OUT);
         }
-        network = LongDistanceNetwork.get(getLevel(), getPos().relative(getOutputFacing()));
+        network = LongDistanceNetwork.get(level, getPos().relative(getOutputFacing()));
         if (network != null && pipeType == network.getPipeType()) {
             // found a network on the output face, therefore this is an input of the network
             networks.add(network);
@@ -177,20 +183,23 @@ public abstract class LongDistanceEndpointMachine extends MetaMachine implements
     }
 
     @Override
+    @Nullable
     public ILDEndpoint getLink() {
-        if (link == null) {
-            LongDistanceNetwork network = LongDistanceNetwork.get(getLevel(), getPos());
-            if (network != null && network.isValid()) {
-                this.link = network.getOtherEndpoint(this);
-            }
-        } else if (this.link.isInValid()) {
-            this.link.invalidateLink();
-            this.link = null;
-            LongDistanceNetwork network = LongDistanceNetwork.get(getLevel(), getPos());
-            if (network != null) {
-                network.invalidateEndpoints();
-                if (network.isValid()) {
+        if (getLevel() instanceof ServerLevel serverLevel) {
+            if (link == null) {
+                LongDistanceNetwork network = LongDistanceNetwork.get(serverLevel, getPos());
+                if (network != null && network.isValid()) {
                     this.link = network.getOtherEndpoint(this);
+                }
+            } else if (this.link.isInValid()) {
+                this.link.invalidateLink();
+                this.link = null;
+                LongDistanceNetwork network = LongDistanceNetwork.get(serverLevel, getPos());
+                if (network != null) {
+                    network.invalidateEndpoints();
+                    if (network.isValid()) {
+                        this.link = network.getOtherEndpoint(this);
+                    }
                 }
             }
         }
@@ -221,22 +230,24 @@ public abstract class LongDistanceEndpointMachine extends MetaMachine implements
     public List<Component> getDataInfo(PortableScannerBehavior.DisplayMode mode) {
         List<Component> textComponents = new ArrayList<>();
         if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_MACHINE_INFO) {
-            LongDistanceNetwork network = LongDistanceNetwork.get(getLevel(), getPos());
-            if (network == null) {
-                textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_no_network"));
-            } else {
-                textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_network_header"));
-                textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_pipe_count", FormattingUtil.formatNumbers(network.getTotalSize())));
-                ILDEndpoint in = network.getActiveInputIndex();
-                ILDEndpoint out = network.getActiveOutputIndex();
-                textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_input_pos", Component.literal(in == null ? "none" : in.getPos().toString())));
-                textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_output_pos", Component.literal(out == null ? "none" : out.getPos().toString())));
-            }
-            if (isInput()) {
-                textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_input_endpoint"));
-            }
-            if (isOutput()) {
-                textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_output_endpoint"));
+            if (getLevel() instanceof ServerLevel serverLevel) {
+                LongDistanceNetwork network = LongDistanceNetwork.get(serverLevel, getPos());
+                if (network == null) {
+                    textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_no_network"));
+                } else {
+                    textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_network_header"));
+                    textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_pipe_count", FormattingUtil.formatNumbers(network.getTotalSize())));
+                    ILDEndpoint in = network.getActiveInputIndex();
+                    ILDEndpoint out = network.getActiveOutputIndex();
+                    textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_input_pos", Component.literal(in == null ? "none" : in.getPos().toString())));
+                    textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_output_pos", Component.literal(out == null ? "none" : out.getPos().toString())));
+                }
+                if (isInput()) {
+                    textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_input_endpoint"));
+                }
+                if (isOutput()) {
+                    textComponents.add(Component.translatable("block.gtceu.long_distance_item_pipeline_output_endpoint"));
+                }
             }
         }
         return textComponents;

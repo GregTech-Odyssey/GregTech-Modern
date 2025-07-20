@@ -24,12 +24,12 @@ import com.google.common.base.Preconditions;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 @SuppressWarnings({ "UnusedReturnValue", "BooleanMethodIsAlwaysInverted" })
@@ -73,8 +73,8 @@ public class CuboidVeinGenerator extends VeinGenerator {
     }
 
     @Override
-    public Map<BlockPos, OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
-        Map<BlockPos, OreBlockPlacer> generatedBlocks = new Object2ObjectOpenHashMap<>();
+    public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
+        Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
         int size = entry.clusterSize().sample(random) / 2;
         int westBound = origin.getX() - random.nextInt(size);
         int eastBound = origin.getX() + 16 + random.nextInt(size);
@@ -149,10 +149,10 @@ public class CuboidVeinGenerator extends VeinGenerator {
      *
      * @return if the ore was placed
      */
-    private boolean placeTop(Map<BlockPos, OreBlockPlacer> generatedBlocks, GTOreDefinition entry, long randomSeed, BlockPos pos, RandomSource random, int weightX, int weightZ) {
+    private boolean placeTop(Long2ObjectMap<OreBlockPlacer> generatedBlocks, GTOreDefinition entry, long randomSeed, BlockPos pos, RandomSource random, int weightX, int weightZ) {
         var top = this.top.target;
         if (shouldPlaceOre(random, weightX, weightZ)) {
-            generatedBlocks.put(pos, (access, section) -> placeOre(access, section, pos, randomSeed, top, entry));
+            generatedBlocks.put(pos.asLong(), (access, section) -> placeOre(access, section, pos, randomSeed, top, entry));
             return true;
         }
         return false;
@@ -163,10 +163,10 @@ public class CuboidVeinGenerator extends VeinGenerator {
      *
      * @return if the ore was placed
      */
-    private boolean placeMiddle(Map<BlockPos, OreBlockPlacer> generatedBlocks, GTOreDefinition entry, long randomSeed, BlockPos pos, RandomSource random, int weightX, int weightZ) {
+    private boolean placeMiddle(Long2ObjectMap<OreBlockPlacer> generatedBlocks, GTOreDefinition entry, long randomSeed, BlockPos pos, RandomSource random, int weightX, int weightZ) {
         var middle = this.middle.target;
         if (random.nextInt(2) == 0 && shouldPlaceOre(random, weightX, weightZ)) {
-            generatedBlocks.put(pos, (access, section) -> placeOre(access, section, pos, randomSeed, middle, entry));
+            generatedBlocks.put(pos.asLong(), (access, section) -> placeOre(access, section, pos, randomSeed, middle, entry));
             return true;
         }
         return false;
@@ -177,10 +177,10 @@ public class CuboidVeinGenerator extends VeinGenerator {
      *
      * @return if the ore was placed
      */
-    private boolean placeBottom(Map<BlockPos, OreBlockPlacer> generatedBlocks, GTOreDefinition entry, long randomSeed, BlockPos pos, RandomSource random, int weightX, int weightZ) {
+    private boolean placeBottom(Long2ObjectMap<OreBlockPlacer> generatedBlocks, GTOreDefinition entry, long randomSeed, BlockPos pos, RandomSource random, int weightX, int weightZ) {
         var bottom = this.bottom.target;
         if (shouldPlaceOre(random, weightX, weightZ)) {
-            generatedBlocks.put(pos, (access, section) -> placeOre(access, section, pos, randomSeed, bottom, entry));
+            generatedBlocks.put(pos.asLong(), (access, section) -> placeOre(access, section, pos, randomSeed, bottom, entry));
             return true;
         }
         return false;
@@ -191,10 +191,10 @@ public class CuboidVeinGenerator extends VeinGenerator {
      *
      * @return if the ore was placed
      */
-    private boolean placeSpread(Map<BlockPos, OreBlockPlacer> generatedBlocks, GTOreDefinition entry, long randomSeed, BlockPos pos, RandomSource random, int weightX, int weightZ) {
+    private boolean placeSpread(Long2ObjectMap<OreBlockPlacer> generatedBlocks, GTOreDefinition entry, long randomSeed, BlockPos pos, RandomSource random, int weightX, int weightZ) {
         var spread = this.spread.target;
         if (random.nextFloat() <= entry.density() * spreadDivisor && shouldPlaceOre(random, weightX, weightZ)) {
-            generatedBlocks.put(pos, (access, section) -> placeOre(access, section, pos, randomSeed, spread, entry));
+            generatedBlocks.put(pos.asLong(), (access, section) -> placeOre(access, section, pos, randomSeed, spread, entry));
             return true;
         }
         return false;

@@ -9,20 +9,22 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+
 import java.util.*;
 
 public class ItemPipeNet extends PipeNet<ItemPipeProperties> {
 
-    private final Map<BlockPos, List<ItemRoutePath>> NET_DATA = new HashMap<>();
+    private final Long2ObjectOpenHashMap<List<ItemRoutePath>> NET_DATA = new Long2ObjectOpenHashMap<>();
 
     public ItemPipeNet(LevelPipeNet<ItemPipeProperties, ? extends PipeNet<ItemPipeProperties>> world) {
         super(world);
     }
 
-    public List<ItemRoutePath> getNetData(BlockPos pipePos, Direction facing) {
+    public List<ItemRoutePath> getNetData(long pipePos, BlockPos pos, Direction facing) {
         List<ItemRoutePath> data = NET_DATA.get(pipePos);
         if (data == null) {
-            data = ItemNetWalker.createNetData(this, pipePos, facing);
+            data = ItemNetWalker.createNetData(this, pos, facing);
             if (data == null) {
                 // walker failed, don't cache so it tries again on next insertion
                 return Collections.emptyList();
@@ -44,7 +46,7 @@ public class ItemPipeNet extends PipeNet<ItemPipeProperties> {
     }
 
     @Override
-    protected void transferNodeData(Map<BlockPos, Node<ItemPipeProperties>> transferredNodes,
+    protected void transferNodeData(Long2ObjectOpenHashMap<Node<ItemPipeProperties>> transferredNodes,
                                     PipeNet<ItemPipeProperties> parentNet) {
         super.transferNodeData(transferredNodes, parentNet);
         NET_DATA.clear();

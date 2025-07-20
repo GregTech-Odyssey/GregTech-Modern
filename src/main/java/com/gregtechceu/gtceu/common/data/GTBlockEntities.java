@@ -14,27 +14,23 @@ public class GTBlockEntities {
     @SuppressWarnings("unchecked")
     public static final BlockEntityEntry<CableBlockEntity> CABLE = REGISTRATE
             .blockEntity("cable", CableBlockEntity::create)
-            .onRegister(CableBlockEntity::onBlockEntityRegister)
             .validBlocks(GTMaterialBlocks.CABLE_BLOCKS.values().toArray(BlockEntry[]::new))
             .register();
 
     @SuppressWarnings("unchecked")
     public static final BlockEntityEntry<FluidPipeBlockEntity> FLUID_PIPE = REGISTRATE
             .blockEntity("fluid_pipe", FluidPipeBlockEntity::new)
-            .onRegister(FluidPipeBlockEntity::onBlockEntityRegister)
             .validBlocks(GTMaterialBlocks.FLUID_PIPE_BLOCKS.values().toArray(BlockEntry[]::new))
             .register();
 
     @SuppressWarnings("unchecked")
     public static final BlockEntityEntry<ItemPipeBlockEntity> ITEM_PIPE = REGISTRATE
             .blockEntity("item_pipe", ItemPipeBlockEntity::create)
-            .onRegister(ItemPipeBlockEntity::onBlockEntityRegister)
             .validBlocks(GTMaterialBlocks.ITEM_PIPE_BLOCKS.values().toArray(BlockEntry[]::new))
             .register();
 
     public static final BlockEntityEntry<LaserPipeBlockEntity> LASER_PIPE = REGISTRATE
             .blockEntity("laser_pipe", LaserPipeBlockEntity::create)
-            .onRegister(LaserPipeBlockEntity::onBlockEntityRegister)
             .validBlocks(GTBlocks.LASER_PIPES)
             .register();
 
@@ -45,7 +41,6 @@ public class GTBlockEntities {
 
     public static final BlockEntityEntry<DuctPipeBlockEntity> DUCT_PIPE = REGISTRATE
             .blockEntity("duct_pipe", DuctPipeBlockEntity::create)
-            .onRegister(DuctPipeBlockEntity::onBlockEntityRegister)
             .validBlocks(GTBlocks.DUCT_PIPES)
             .register();
 

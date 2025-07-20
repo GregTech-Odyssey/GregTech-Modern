@@ -367,7 +367,7 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
         definition.setShapes(() -> shapeInfos.stream().map(factory -> factory.apply(definition)).flatMap(Collection::stream).toList());
         definition.setAllowFlip(allowFlip);
         if (recoveryItems != null) {
-            definition.setRecoveryItems(GTMemoizer.memoize(() -> recoveryItems.get()));
+            definition.setRecoveryItems(GTMemoizer.memoize(recoveryItems));
         }
         if (partAppearance == null) {
             partAppearance = (controller, part, side) -> definition.getAppearance().get();

@@ -24,6 +24,7 @@ import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Consumer;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
@@ -65,7 +66,7 @@ public final class OreRecipeHandler {
 
             if (!ingotStack.isEmpty() && doesMaterialUseNormalFurnace(smeltingResult) && !prefix.isIgnored(material)) {
                 VanillaRecipeHelper.addSmeltingRecipe(provider,
-                        "smelt_" + prefix.name + "_" + material.getName() + "_to_ingot",
+                        "smelt_" + prefix.name.toLowerCase(Locale.ROOT) + "_" + material.getName() + "_to_ingot",
                         ChemicalHelper.getTag(prefix, material), ingotStack, 0.5f);
             }
         }
@@ -100,7 +101,7 @@ public final class OreRecipeHandler {
         ItemStack crushedStack = ChemicalHelper.get(crushed, material);
         crushedStack.setCount(crushedStack.getCount() * property.getOreMultiplier());
 
-        String prefixString = orePrefix == ore ? "" : orePrefix.name + "_";
+        String prefixString = orePrefix == ore ? "" : orePrefix.name.toLowerCase(Locale.ROOT) + "_";
         if (!crushedStack.isEmpty()) {
             GTRecipeBuilder builder = FORGE_HAMMER_RECIPES
                     .recipeBuilder("hammer_" + prefixString + material.getName() + "_ore_to_crushed_ore")

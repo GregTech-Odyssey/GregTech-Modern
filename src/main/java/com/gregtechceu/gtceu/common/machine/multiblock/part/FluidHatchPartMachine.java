@@ -20,7 +20,6 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.config.ConfigHolder;
-import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
@@ -80,6 +79,7 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
         this.tank = createTank(initialCapacity, slots, args);
         this.circuitSlotEnabled = true;
         this.circuitInventory = createCircuitItemHandler(io).shouldSearchContent(false);
+        this.workingEnabled = false;
     }
 
     //////////////////////////////////////
@@ -95,7 +95,7 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
     }
 
     public static int getTankCapacity(int initialCapacity, int tier) {
-        return initialCapacity * (1 << Math.min(9, tier));
+        return initialCapacity * (1 << tier);
     }
 
     protected NotifiableItemStackHandler createCircuitItemHandler(Object... args) {
@@ -187,7 +187,7 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
     }
 
     protected void updateTankSubscription(Direction newFacing) {
-        if (isWorkingEnabled() && ((io == IO.OUT && !tank.isEmpty()) || io == IO.IN) && GTTransferUtils.hasAdjacentFluidHandler(getLevel(), getPos(), newFacing)) {
+        if (isWorkingEnabled() && ((io == IO.OUT && !tank.isEmpty()) || io == IO.IN) && fluidHandlerDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), newFacing)) {
             autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO);
         } else if (autoIOSubs != null) {
             autoIOSubs.unsubscribe();
@@ -196,7 +196,7 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
     }
 
     protected void autoIO() {
-        if (getOffsetTimer() % 5 == 0) {
+        if (getOffsetTimer() % 20 == 0) {
             if (isWorkingEnabled()) {
                 if (io == IO.OUT) {
                     tank.exportToNearby(getFrontFacing());

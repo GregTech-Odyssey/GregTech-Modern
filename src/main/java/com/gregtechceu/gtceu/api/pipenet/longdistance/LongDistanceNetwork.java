@@ -10,7 +10,6 @@ import net.minecraft.nbt.LongTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.saveddata.SavedData;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -47,7 +46,7 @@ public class LongDistanceNetwork {
     }
 
     @Nullable
-    public static LongDistanceNetwork get(LevelAccessor world, BlockPos pos) {
+    public static LongDistanceNetwork get(ServerLevel world, BlockPos pos) {
         return WorldData.get(world).getNetwork(pos);
     }
 
@@ -152,7 +151,7 @@ public class LongDistanceNetwork {
      */
     protected void mergePipeNet(LongDistanceNetwork network) {
         if (getPipeType() != network.getPipeType()) {
-            throw new IllegalStateException("Can\'t merge unequal pipe types, " + getPipeType().getName() + " and " + network.getPipeType().getName() + " !");
+            throw new IllegalStateException("Can't merge unequal pipe types, " + getPipeType().getName() + " and " + network.getPipeType().getName() + " !");
         }
         for (BlockPos pos : network.longDistancePipeBlocks) {
             this.world.putNetwork(pos, this);
@@ -284,13 +283,6 @@ public class LongDistanceNetwork {
     }
 
     /**
-     * @return the total amount of connected and valid ld pipe blocks
-     */
-    public int getPipeAmount() {
-        return getTotalSize() - getEndpointAmount();
-    }
-
-    /**
      * @return if this network has more than one valid endpoint
      */
     public boolean isValid() {
@@ -306,7 +298,7 @@ public class LongDistanceNetwork {
         private final Long2ObjectMap<Object2ObjectMap<BlockPos, LongDistanceNetwork>> networks = new Long2ObjectOpenHashMap<>();
         // All existing networks in this world
         private final ObjectOpenHashSet<LongDistanceNetwork> networkList = new ObjectOpenHashSet<>();
-        private WeakReference<LevelAccessor> worldRef = new WeakReference<>(null);
+        private WeakReference<ServerLevel> worldRef = new WeakReference<>(null);
 
         public WorldData() {
             super();
@@ -318,11 +310,8 @@ public class LongDistanceNetwork {
             return data;
         }
 
-        public static WorldData get(LevelAccessor level) {
-            if (level instanceof ServerLevel serverLevel) {
-                return serverLevel.getDataStorage().computeIfAbsent(tag -> WorldData.load(tag, serverLevel), () -> WorldData.create(serverLevel), "gtceu_long_dist_pipe");
-            }
-            return null;
+        public static WorldData get(ServerLevel level) {
+            return level.getDataStorage().computeIfAbsent(tag -> WorldData.load(tag, level), () -> WorldData.create(level), "gtceu_long_dist_pipe");
         }
 
         private static long getChunkPos(BlockPos pos) {
@@ -332,7 +321,7 @@ public class LongDistanceNetwork {
         /**
          * set world and load all endpoints
          */
-        protected void setWorldAndInit(LevelAccessor world) {
+        protected void setWorldAndInit(ServerLevel world) {
             if (this.worldRef.get() != world) {
                 for (LongDistanceNetwork ld : this.networkList) {
                     if (!ld.endpointPoss.isEmpty()) {
@@ -434,7 +423,7 @@ public class LongDistanceNetwork {
             return nbtTagCompound;
         }
 
-        public LevelAccessor getWorld() {
+        public ServerLevel getWorld() {
             return this.worldRef.get();
         }
     }

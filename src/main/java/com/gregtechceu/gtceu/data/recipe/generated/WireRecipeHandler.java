@@ -19,6 +19,7 @@ import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
 import java.util.function.Consumer;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
@@ -155,7 +156,7 @@ public final class WireRecipeHandler {
         // Rubber Recipe (ULV-EV cables)
         if (voltageTier <= EV) {
             GTRecipeBuilder builder = ASSEMBLER_RECIPES
-                    .recipeBuilder("cover_" + material.getName() + "_" + prefix + "_rubber")
+                    .recipeBuilder("cover_" + material.getName() + "_" + prefix.name.toLowerCase(Locale.ROOT) + "_rubber")
                     .EUt(VA[ULV]).duration(100)
                     .inputItems(prefix, material)
                     .outputItems(cablePrefix, material)
@@ -169,7 +170,7 @@ public final class WireRecipeHandler {
 
         // Silicone Rubber Recipe (all cables)
         GTRecipeBuilder builder = ASSEMBLER_RECIPES
-                .recipeBuilder("cover_" + material.getName() + "_" + prefix + "_silicone")
+                .recipeBuilder("cover_" + material.getName() + "_" + prefix.name.toLowerCase(Locale.ROOT) + "_silicone")
                 .EUt(VA[ULV]).duration(100)
                 .inputItems(prefix, material)
                 .outputItems(cablePrefix, material);
@@ -189,7 +190,7 @@ public final class WireRecipeHandler {
 
         // Styrene Butadiene Rubber Recipe (all cables)
         builder = ASSEMBLER_RECIPES
-                .recipeBuilder("cover_" + material.getName() + "_" + prefix + "_styrene_butadiene")
+                .recipeBuilder("cover_" + material.getName() + "_" + prefix.name.toLowerCase(Locale.ROOT) + "_styrene_butadiene")
                 .EUt(VA[ULV]).duration(100)
                 .inputItems(prefix, material)
                 .outputItems(cablePrefix, material);
@@ -221,7 +222,7 @@ public final class WireRecipeHandler {
                 ChemicalHelper.get(cablePrefix, material),
                 ingredients);
 
-        PACKER_RECIPES.recipeBuilder("cover_" + material.getName() + "_" + wirePrefix)
+        PACKER_RECIPES.recipeBuilder("cover_" + material.getName() + "_" + wirePrefix.name.toLowerCase(Locale.ROOT))
                 .inputItems(wirePrefix, material)
                 .inputItems(plate, Rubber, insulationAmount)
                 .outputItems(cablePrefix, material)

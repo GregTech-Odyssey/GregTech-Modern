@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.common.pipelike.fluidpipe;
+package com.gregtechceu.gtceu.common.pipelike.fluid;
 
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidPipeProperties;
 import com.gregtechceu.gtceu.api.pipenet.LevelPipeNet;
@@ -10,7 +10,7 @@ public class LevelFluidPipeNet extends LevelPipeNet<FluidPipeProperties, FluidPi
 
     public static LevelFluidPipeNet getOrCreate(ServerLevel serverLevel) {
         return serverLevel.getDataStorage().computeIfAbsent(tag -> new LevelFluidPipeNet(serverLevel, tag),
-                () -> new LevelFluidPipeNet(serverLevel), "gtcue_fluid_pipe_net");
+                () -> new LevelFluidPipeNet(serverLevel), "gtceu_fluid_pipe_net");
     }
 
     public LevelFluidPipeNet(ServerLevel serverLevel) {

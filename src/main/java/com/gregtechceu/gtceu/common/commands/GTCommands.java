@@ -145,9 +145,9 @@ public class GTCommands {
                 throw new CommandRuntimeException(Component.translatable("command.gtceu.place_vein.failure",
                         id.toString(), sourcePos.toString()));
             }
-            for (ChunkPos pos : generated.get().getGeneratedChunks()) {
+            for (long pos : generated.get().getGeneratedChunks()) {
                 placer.placeVein(pos, random, access, generated.get(), AlwaysTrueTest.INSTANCE);
-                level.getChunk(pos.x, pos.z).setUnsaved(true);
+                level.getChunk(ChunkPos.getX(pos), ChunkPos.getZ(pos)).setUnsaved(true);
             }
             context.getSource().sendSuccess(() -> Component.translatable("command.gtceu.place_vein.success",
                     id.toString(), sourcePos.toString()), true);

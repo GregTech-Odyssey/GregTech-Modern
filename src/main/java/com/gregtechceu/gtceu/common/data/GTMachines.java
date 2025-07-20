@@ -24,7 +24,7 @@ import com.gregtechceu.gtceu.common.machine.steam.SteamMinerMachine;
 import com.gregtechceu.gtceu.common.machine.steam.SteamSolarBoiler;
 import com.gregtechceu.gtceu.common.machine.steam.SteamSolidBoilerMachine;
 import com.gregtechceu.gtceu.common.machine.storage.*;
-import com.gregtechceu.gtceu.common.pipelike.fluidpipe.longdistance.LDFluidEndpointMachine;
+import com.gregtechceu.gtceu.common.pipelike.fluid.longdistance.LDFluidEndpointMachine;
 import com.gregtechceu.gtceu.common.pipelike.item.longdistance.LDItemEndpointMachine;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
@@ -482,7 +482,8 @@ public class GTMachines {
                                     BufferMachine.getInventorySize(tier)),
                             Component.translatable(
                                     "gtceu.universal.tooltip.fluid_storage_capacity_mult",
-                                    BufferMachine.getTankSize(tier), BufferMachine.TANK_SIZE))
+                                    BufferMachine.getTankSize(tier), FluidHatchPartMachine.getTankCapacity(
+                                            DualHatchPartMachine.INITIAL_TANK_CAPACITY, tier)))
                     .register(),
             LV, MV, HV);
 

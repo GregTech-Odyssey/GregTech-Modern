@@ -1,10 +1,10 @@
 package com.gregtechceu.gtceu.api.pipenet.longdistance;
 
-import com.gregtechceu.gtceu.common.pipelike.fluidpipe.longdistance.LDFluidPipeType;
+import com.gregtechceu.gtceu.common.pipelike.fluid.longdistance.LDFluidPipeType;
 import com.gregtechceu.gtceu.common.pipelike.item.longdistance.LDItemPipeType;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -45,10 +45,6 @@ public abstract class LongDistancePipeType {
         return PIPE_TYPES.get(name);
     }
 
-    public boolean isValidPart(ILDNetworkPart networkPart) {
-        return networkPart != null && networkPart.getPipeType() == this;
-    }
-
     /**
      * @return The minimum required distance (not pipe count) between two endpoints to work.
      */
@@ -67,7 +63,7 @@ public abstract class LongDistancePipeType {
         return new LongDistanceNetwork(this, worldData);
     }
 
-    public final LongDistanceNetwork createNetwork(Level world) {
+    public final LongDistanceNetwork createNetwork(ServerLevel world) {
         return createNetwork(LongDistanceNetwork.WorldData.get(world));
     }
 

@@ -27,13 +27,13 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.tterrag.registrate.util.nullness.NonNullSupplier;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 public class StandardVeinGenerator extends VeinGenerator {
@@ -145,9 +145,9 @@ public class StandardVeinGenerator extends VeinGenerator {
     }
 
     @Override
-    public Map<BlockPos, OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
-                                                  BlockPos origin) {
-        Map<BlockPos, OreBlockPlacer> generatedBlocks = new Object2ObjectOpenHashMap<>();
+    public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
+                                                   BlockPos origin) {
+        Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
 
         int size = entry.clusterSize().sample(random);
         float f = random.nextFloat() * (float) Math.PI;
@@ -179,7 +179,7 @@ public class StandardVeinGenerator extends VeinGenerator {
         return generatedBlocks;
     }
 
-    protected void doPlaceNormal(Map<BlockPos, OreBlockPlacer> generatedBlocks, RandomSource random,
+    protected void doPlaceNormal(Long2ObjectMap<OreBlockPlacer> generatedBlocks, RandomSource random,
                                  GTOreDefinition entry, BlockPos origin,
                                  Either<List<OreConfiguration.TargetBlockState>, Material> targets,
                                  double pMinX, double pMaxX, double pMinZ, double pMaxZ, double pMinY, double pMaxY,
@@ -243,7 +243,7 @@ public class StandardVeinGenerator extends VeinGenerator {
         }
     }
 
-    private static void generateShape(Map<BlockPos, OreBlockPlacer> generatedBlocks, RandomSource random,
+    private static void generateShape(Long2ObjectMap<OreBlockPlacer> generatedBlocks, RandomSource random,
                                       GTOreDefinition entry, BlockPos origin,
                                       Either<List<OreConfiguration.TargetBlockState>, Material> targets,
                                       int pX, int pY, int pZ, int pWidth, int pHeight, double[] shape,
@@ -291,7 +291,7 @@ public class StandardVeinGenerator extends VeinGenerator {
                     BlockPos pos = posCursor.immutable();
 
                     final var randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
-                    generatedBlocks.put(pos, (access, section) -> placeBlock(access, randomSeed, entry, targets, pos,
+                    generatedBlocks.put(pos.asLong(), (access, section) -> placeBlock(access, randomSeed, entry, targets, pos,
                             density, placedAmount));
                 }
             }

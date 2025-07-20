@@ -3,45 +3,26 @@ package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 import com.gregtechceu.gtceu.api.capability.IPropertyFluidFilter;
 import com.gregtechceu.gtceu.api.fluids.FluidState;
 import com.gregtechceu.gtceu.api.fluids.attribute.FluidAttribute;
-import com.gregtechceu.gtceu.api.fluids.attribute.FluidAttributes;
-import com.gregtechceu.gtceu.utils.GTMath;
 
-import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
-import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.Collection;
+import java.util.Collections;
 
 public class FluidPipeProperties implements IMaterialProperty, IPropertyFluidFilter {
 
-    /**
-     * The maximum number of channels any fluid pipe can have
-     */
-    public static final int MAX_PIPE_CHANNELS = 9;
-    private int throughput;
-    private int channels;
-    private int maxFluidTemperature;
-    private boolean gasProof;
-    private boolean cryoProof;
-    private boolean plasmaProof;
-    private final Object2BooleanMap<FluidAttribute> containmentPredicate = new Object2BooleanOpenHashMap<>();
+    private final int throughput;
 
-    public FluidPipeProperties(int maxFluidTemperature, int throughput, boolean gasProof, boolean acidProof, boolean cryoProof, boolean plasmaProof, int channels) {
-        this.maxFluidTemperature = maxFluidTemperature;
+    public FluidPipeProperties(int throughput) {
         this.throughput = throughput;
-        this.gasProof = gasProof;
-        if (acidProof) setCanContain(FluidAttributes.ACID, true);
-        this.cryoProof = cryoProof;
-        this.plasmaProof = plasmaProof;
-        this.channels = channels;
     }
 
     /**
      * Default property constructor.
      */
     public FluidPipeProperties(int maxFluidTemperature, int throughput, boolean gasProof, boolean acidProof, boolean cryoProof, boolean plasmaProof) {
-        this(maxFluidTemperature, throughput, gasProof, acidProof, cryoProof, plasmaProof, 1);
+        this(throughput);
     }
 
     @Override
@@ -58,94 +39,60 @@ public class FluidPipeProperties implements IMaterialProperty, IPropertyFluidFil
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof FluidPipeProperties that)) return false;
-        return maxFluidTemperature == that.maxFluidTemperature && throughput == that.throughput && gasProof == that.gasProof && channels == that.channels;
+        return throughput == that.throughput;
     }
 
     @Override
     public int hashCode() {
-        return GTMath.hashInts(maxFluidTemperature, throughput, Boolean.hashCode(gasProof), channels);
+        return throughput;
     }
 
     @Override
     public String toString() {
-        return "FluidPipeProperties{" + "maxFluidTemperature=" + maxFluidTemperature + ", throughput=" + throughput + ", gasProof=" + gasProof + ", acidProof=" + isAcidProof() + ", cryoProof=" + cryoProof + ", plasmaProof=" + plasmaProof + ", channels=" + channels + '}';
+        return "FluidPipeProperties{" + "throughput=" + throughput + '}';
     }
 
     @Override
     public boolean canContain(@NotNull FluidState state) {
-        return switch (state) {
-            case LIQUID -> true;
-            case GAS -> gasProof;
-            case PLASMA -> plasmaProof;
-        };
+        return true;
     }
 
     public boolean isAcidProof() {
-        return canContain(FluidAttributes.ACID);
+        return true;
     }
 
     @Override
     public boolean canContain(@NotNull FluidAttribute attribute) {
-        return containmentPredicate.getBoolean(attribute);
+        return true;
     }
 
     @Override
-    public void setCanContain(@NotNull FluidAttribute attribute, boolean canContain) {
-        containmentPredicate.put(attribute, canContain);
-    }
+    public void setCanContain(@NotNull FluidAttribute attribute, boolean canContain) {}
 
     @Override
     @NotNull
     @UnmodifiableView
     public Collection<@NotNull FluidAttribute> getContainedAttributes() {
-        return containmentPredicate.keySet();
+        return Collections.emptyList();
     }
 
     public int getThroughput() {
         return this.throughput;
     }
 
-    public void setThroughput(final int throughput) {
-        this.throughput = throughput;
-    }
-
-    public int getChannels() {
-        return this.channels;
-    }
-
-    public void setChannels(final int channels) {
-        this.channels = channels;
-    }
-
     public int getMaxFluidTemperature() {
-        return this.maxFluidTemperature;
-    }
-
-    public void setMaxFluidTemperature(final int maxFluidTemperature) {
-        this.maxFluidTemperature = maxFluidTemperature;
+        return Integer.MAX_VALUE;
     }
 
     public boolean isGasProof() {
-        return this.gasProof;
-    }
-
-    public void setGasProof(final boolean gasProof) {
-        this.gasProof = gasProof;
+        return true;
     }
 
     public boolean isCryoProof() {
-        return this.cryoProof;
-    }
-
-    public void setCryoProof(final boolean cryoProof) {
-        this.cryoProof = cryoProof;
+        return true;
     }
 
     public boolean isPlasmaProof() {
-        return this.plasmaProof;
-    }
-
-    public void setPlasmaProof(final boolean plasmaProof) {
-        this.plasmaProof = plasmaProof;
+        return true;
     }
 }

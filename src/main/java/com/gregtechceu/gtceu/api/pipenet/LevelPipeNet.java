@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.pipenet;
 
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.PosUtils;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -8,16 +9,18 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.saveddata.SavedData;
+
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public abstract class LevelPipeNet<NodeDataType, T extends PipeNet<NodeDataType>> extends SavedData {
 
-    private final ServerLevel serverLevel;
+    public final ServerLevel serverLevel;
     protected List<T> pipeNets = new ArrayList<>();
-    protected final Map<ChunkPos, List<T>> pipeNetsByChunk = new HashMap<>();
+    protected final Long2ObjectOpenHashMap<List<T>> pipeNetsByChunk = new Long2ObjectOpenHashMap<>();
 
     public LevelPipeNet(ServerLevel serverLevel) {
         this.serverLevel = serverLevel;
@@ -33,29 +36,22 @@ public abstract class LevelPipeNet<NodeDataType, T extends PipeNet<NodeDataType>
             pipeNet.deserializeNBT(pNetTag);
             addPipeNetSilently(pipeNet);
         }
-        init();
-    }
-
-    public ServerLevel getWorld() {
-        return serverLevel;
-    }
-
-    protected void init() {
-        this.pipeNets.forEach(PipeNet::onNodeConnectionsUpdate);
     }
 
     public void addNode(BlockPos nodePos, NodeDataType nodeData, int mark, int openConnections, boolean isActive) {
         T myPipeNet = null;
+        long pos = nodePos.asLong();
         Node<NodeDataType> node = new Node<>(nodeData, openConnections, mark, isActive);
         for (Direction facing : GTUtil.DIRECTIONS) {
             BlockPos offsetPos = nodePos.relative(facing);
-            T pipeNet = getNetFromPos(offsetPos);
-            Node<NodeDataType> secondNode = pipeNet == null ? null : pipeNet.getAllNodes().get(offsetPos);
-            if (pipeNet != null && pipeNet.canAttachNode(nodeData) &&
-                    pipeNet.canNodesConnect(secondNode, facing.getOpposite(), node, null)) {
+            long offsetPosLong = offsetPos.asLong();
+            T pipeNet = getNetFromPos(offsetPos, offsetPosLong);
+            Node<NodeDataType> secondNode = pipeNet == null ? null : pipeNet.getNodeAt(offsetPosLong);
+            if (pipeNet != null &&
+                    pipeNet.canNodesConnect(secondNode, facing.getOpposite(), node)) {
                 if (myPipeNet == null) {
                     myPipeNet = pipeNet;
-                    myPipeNet.addNode(nodePos, node);
+                    myPipeNet.addNode(pos, node);
                 } else if (myPipeNet != pipeNet) {
                     myPipeNet.uniteNetworks(pipeNet);
                 }
@@ -64,55 +60,44 @@ public abstract class LevelPipeNet<NodeDataType, T extends PipeNet<NodeDataType>
         }
         if (myPipeNet == null) {
             myPipeNet = createNetInstance();
-            myPipeNet.addNode(nodePos, node);
+            myPipeNet.addNode(pos, node);
             addPipeNet(myPipeNet);
             setDirty();
         }
     }
 
-    protected void addPipeNetToChunk(ChunkPos chunkPos, T pipeNet) {
+    protected void addPipeNetToChunk(long chunkPos, T pipeNet) {
         this.pipeNetsByChunk.computeIfAbsent(chunkPos, any -> new ArrayList<>()).add(pipeNet);
     }
 
-    protected void removePipeNetFromChunk(ChunkPos chunkPos, T pipeNet) {
+    protected void removePipeNetFromChunk(long chunkPos, T pipeNet) {
         List<T> list = this.pipeNetsByChunk.get(chunkPos);
-        if (list != null) list.remove(pipeNet);
-        if (list.isEmpty()) this.pipeNetsByChunk.remove(chunkPos);
-    }
-
-    public void removeNode(BlockPos nodePos) {
-        T pipeNet = getNetFromPos(nodePos);
-        if (pipeNet != null) {
-            pipeNet.removeNode(nodePos);
+        if (list != null) {
+            list.remove(pipeNet);
+            if (list.isEmpty()) this.pipeNetsByChunk.remove(chunkPos);
         }
     }
 
-    public void updateBlockedConnections(BlockPos nodePos, Direction side, boolean isBlocked) {
-        T pipeNet = getNetFromPos(nodePos);
+    public void removeNode(BlockPos nodePos) {
+        long posLong = nodePos.asLong();
+        T pipeNet = getNetFromPos(nodePos, posLong);
         if (pipeNet != null) {
-            pipeNet.updateBlockedConnections(nodePos, side, isBlocked);
+            pipeNet.removeNode(nodePos, posLong);
+        }
+    }
+
+    public void updateBlockedConnections(BlockPos nodePos, long posLong, Direction side, boolean isBlocked) {
+        T pipeNet = getNetFromPos(nodePos, posLong);
+        if (pipeNet != null) {
+            pipeNet.updateBlockedConnections(nodePos, posLong, side, isBlocked);
             pipeNet.onPipeConnectionsUpdate();
         }
     }
 
-    public void updateData(BlockPos nodePos, NodeDataType data) {
-        T pipeNet = getNetFromPos(nodePos);
-        if (pipeNet != null) {
-            pipeNet.updateNodeData(nodePos, data);
-        }
-    }
-
-    public void updateMark(BlockPos nodePos, int newMark) {
-        T pipeNet = getNetFromPos(nodePos);
-        if (pipeNet != null) {
-            pipeNet.updateMark(nodePos, newMark);
-        }
-    }
-
-    public T getNetFromPos(BlockPos blockPos) {
-        List<T> pipeNetsInChunk = pipeNetsByChunk.getOrDefault(new ChunkPos(blockPos), Collections.emptyList());
+    public T getNetFromPos(BlockPos blockPos, long posLong) {
+        List<T> pipeNetsInChunk = pipeNetsByChunk.getOrDefault(PosUtils.getChunkLong(blockPos), Collections.emptyList());
         for (T pipeNet : pipeNetsInChunk) {
-            if (pipeNet.containsNode(blockPos))
+            if (pipeNet.containsNode(posLong))
                 return pipeNet;
         }
         return null;
@@ -138,7 +123,7 @@ public abstract class LevelPipeNet<NodeDataType, T extends PipeNet<NodeDataType>
     protected abstract T createNetInstance();
 
     @Override
-    public CompoundTag save(CompoundTag compound) {
+    public @NotNull CompoundTag save(@NotNull CompoundTag compound) {
         ListTag allPipeNets = new ListTag();
         for (T pipeNet : pipeNets) {
             CompoundTag pNetTag = pipeNet.serializeNBT();

@@ -5,8 +5,8 @@ import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import org.jetbrains.annotations.NotNull;
@@ -79,7 +79,7 @@ public interface ILDEndpoint extends ILDNetworkPart {
     boolean isInValid();
 
     @Nullable
-    static ILDEndpoint tryGet(LevelAccessor world, BlockPos pos) {
+    static ILDEndpoint tryGet(ServerLevel world, BlockPos pos) {
         BlockEntity te = world.getBlockEntity(pos);
         if (te instanceof IMachineBlockEntity gte && gte.getMetaMachine() instanceof ILDEndpoint endpoint) {
             return endpoint;

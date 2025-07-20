@@ -18,6 +18,8 @@ import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.sound.ExistingSoundEntry;
 import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.FusionReactorMachine;
+import com.gregtechceu.gtceu.common.machine.steam.SteamLiquidBoilerMachine;
+import com.gregtechceu.gtceu.common.machine.steam.SteamSolidBoilerMachine;
 import com.gregtechceu.gtceu.common.machine.trait.customlogic.*;
 import com.gregtechceu.gtceu.common.recipe.condition.RockBreakerCondition;
 import com.gregtechceu.gtceu.data.recipe.RecipeUtil;
@@ -39,6 +41,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.ModLoader;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -68,6 +71,14 @@ public class GTRecipeTypes {
                 var duration = (builder.duration / 12 / 80); // copied for large boiler
                 if (duration > 0) {
                     GTRecipeTypes.LARGE_BOILER_RECIPES.copyFrom(builder).duration(duration).save(provider);
+                }
+                var list = builder.input.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList());
+                if (!list.isEmpty()) {
+                    Arrays.stream(FluidRecipeCapability.CAP.of(list.get(0).content).getStacks()).forEach(stack -> SteamLiquidBoilerMachine.FUEL_CACHE.add(stack.getFluid()));
+                }
+                list = builder.input.getOrDefault(ItemRecipeCapability.CAP, Collections.emptyList());
+                if (!list.isEmpty()) {
+                    Arrays.stream(ItemRecipeCapability.CAP.of(list.get(0).content).getItems()).forEach(stack -> SteamSolidBoilerMachine.FUEL_CACHE.add(stack.getItem()));
                 }
             })
             .setMaxTooltips(1)

@@ -7,26 +7,23 @@ import com.gregtechceu.gtceu.api.pipenet.PipeNet;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.level.Level;
+
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import java.util.*;
 
 public class EnergyNet extends PipeNet<WireProperties> {
 
-    private final Map<BlockPos, List<EnergyRoutePath>> NET_DATA = new HashMap<>();
-
-    private long lastEnergyFluxPerSec;
-    private long energyFluxPerSec;
-    private long lastTime;
+    private final Long2ObjectOpenHashMap<List<EnergyRoutePath>> NET_DATA = new Long2ObjectOpenHashMap<>();
 
     protected EnergyNet(LevelPipeNet<WireProperties, ? extends EnergyNet> world) {
         super(world);
     }
 
-    public List<EnergyRoutePath> getNetData(BlockPos pipePos) {
+    public List<EnergyRoutePath> getNetData(long pipePos, BlockPos pos) {
         List<EnergyRoutePath> data = NET_DATA.get(pipePos);
         if (data == null) {
-            data = EnergyNetWalker.createNetData(this, pipePos);
+            data = EnergyNetWalker.createNetData(this, pos);
             if (data == null) {
                 // walker failed, don't cache so it tries again on next insertion
                 return Collections.emptyList();
@@ -48,7 +45,7 @@ public class EnergyNet extends PipeNet<WireProperties> {
     }
 
     @Override
-    protected void transferNodeData(Map<BlockPos, Node<WireProperties>> transferredNodes,
+    protected void transferNodeData(Long2ObjectOpenHashMap<Node<WireProperties>> transferredNodes,
                                     PipeNet<WireProperties> parentNet) {
         super.transferNodeData(transferredNodes, parentNet);
         NET_DATA.clear();
@@ -68,27 +65,5 @@ public class EnergyNet extends PipeNet<WireProperties> {
         int amperage = tagCompound.getInt("amperage");
         int lossPerBlock = tagCompound.getInt("loss");
         return new WireProperties(voltage, amperage, lossPerBlock);
-    }
-
-    //////////////////////////////////////
-    // ******* Pipe Status *******//
-    //////////////////////////////////////
-
-    public long getEnergyFluxPerSec() {
-        Level world = getLevel();
-        if (world != null && !world.isClientSide && (world.getGameTime() - lastTime) >= 20) {
-            lastTime = world.getGameTime();
-            clearCache();
-        }
-        return lastEnergyFluxPerSec;
-    }
-
-    public void addEnergyFluxPerSec(long energy) {
-        energyFluxPerSec += energy;
-    }
-
-    public void clearCache() {
-        lastEnergyFluxPerSec = energyFluxPerSec;
-        energyFluxPerSec = 0;
     }
 }

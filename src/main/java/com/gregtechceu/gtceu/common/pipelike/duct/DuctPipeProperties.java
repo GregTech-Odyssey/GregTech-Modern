@@ -5,17 +5,10 @@ public class DuctPipeProperties {
     /**
      * rate in stacks per sec
      */
-    private float transferRate;
+    private final float transferRate;
 
     public DuctPipeProperties(float transferRate) {
         this.transferRate = transferRate;
-    }
-
-    /**
-     * Default property constructor.
-     */
-    public DuctPipeProperties() {
-        this(0.25F);
     }
 
     @Override
@@ -41,12 +34,5 @@ public class DuctPipeProperties {
      */
     public float getTransferRate() {
         return this.transferRate;
-    }
-
-    /**
-     * rate in stacks per sec
-     */
-    public void setTransferRate(final float transferRate) {
-        this.transferRate = transferRate;
     }
 }

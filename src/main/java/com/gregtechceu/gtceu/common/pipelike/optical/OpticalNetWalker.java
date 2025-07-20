@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OpticalNetWalker extends PipeNetWalker<OpticalPipeBlockEntity, OpticalPipeProperties, OpticalPipeNet> {
@@ -33,10 +34,10 @@ public class OpticalNetWalker extends PipeNetWalker<OpticalPipeBlockEntity, Opti
     }
 
     @Override
-    protected PipeNetWalker<OpticalPipeBlockEntity, OpticalPipeProperties, OpticalPipeNet> createSubWalker(OpticalPipeNet world,
-                                                                                                           Direction facingToNextPos,
-                                                                                                           BlockPos nextPos,
-                                                                                                           int walkedBlocks) {
+    protected @NotNull PipeNetWalker<OpticalPipeBlockEntity, OpticalPipeProperties, OpticalPipeNet> createSubWalker(OpticalPipeNet world,
+                                                                                                                    Direction facingToNextPos,
+                                                                                                                    BlockPos nextPos,
+                                                                                                                    int walkedBlocks) {
         OpticalNetWalker walker = new OpticalNetWalker(world, nextPos, walkedBlocks);
         walker.facingToHandler = facingToHandler;
         walker.sourcePipe = sourcePipe;

@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -12,6 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -32,28 +34,29 @@ public class LongDistancePipeBlock extends Block implements ILDNetworkPart {
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
-        if (level.isClientSide) return;
-        // first find all neighbouring networks
-        List<LongDistanceNetwork> networks = findNetworks(level, pos);
-        if (networks.isEmpty()) {
-            // create network
-            LongDistanceNetwork network = this.pipeType.createNetwork(level);
-            network.onPlacePipe(pos);
-        } else if (networks.size() == 1) {
-            // add to connected network
-            networks.get(0).onPlacePipe(pos);
-        } else {
-            // merge all connected networks together
-            LongDistanceNetwork main = networks.get(0);
-            main.onPlacePipe(pos);
-            networks.remove(0);
-            for (LongDistanceNetwork network : networks) {
-                main.mergePipeNet(network);
+        if (level instanceof ServerLevel serverLevel) {
+            // first find all neighbouring networks
+            List<LongDistanceNetwork> networks = findNetworks(serverLevel, pos);
+            if (networks.isEmpty()) {
+                // create network
+                LongDistanceNetwork network = this.pipeType.createNetwork(serverLevel);
+                network.onPlacePipe(pos);
+            } else if (networks.size() == 1) {
+                // add to connected network
+                networks.get(0).onPlacePipe(pos);
+            } else {
+                // merge all connected networks together
+                LongDistanceNetwork main = networks.get(0);
+                main.onPlacePipe(pos);
+                networks.remove(0);
+                for (LongDistanceNetwork network : networks) {
+                    main.mergePipeNet(network);
+                }
             }
         }
     }
 
-    public List<LongDistanceNetwork> findNetworks(Level level, BlockPos pos) {
+    public List<LongDistanceNetwork> findNetworks(ServerLevel level, BlockPos pos) {
         List<LongDistanceNetwork> networks = new ArrayList<>();
         BlockPos.MutableBlockPos offsetPos = new BlockPos.MutableBlockPos();
         for (Direction facing : GTUtil.DIRECTIONS) {
@@ -74,14 +77,15 @@ public class LongDistancePipeBlock extends Block implements ILDNetworkPart {
     @Override
     public void destroy(LevelAccessor level, BlockPos pos, BlockState state) {
         super.destroy(level, pos, state);
-        if (level.isClientSide()) return;
-        LongDistanceNetwork network = LongDistanceNetwork.get(level, pos);
-        if (network != null) {
-            network.onRemovePipe(pos);
+        if (level instanceof ServerLevel serverLevel) {
+            LongDistanceNetwork network = LongDistanceNetwork.get(serverLevel, pos);
+            if (network != null) {
+                network.onRemovePipe(pos);
+            }
         }
     }
 
-    public LongDistancePipeType getPipeType() {
+    public @NotNull LongDistancePipeType getPipeType() {
         return this.pipeType;
     }
 }

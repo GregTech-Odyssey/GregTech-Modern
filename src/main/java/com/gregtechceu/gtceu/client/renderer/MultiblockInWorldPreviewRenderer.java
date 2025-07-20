@@ -36,6 +36,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
 
@@ -61,7 +62,7 @@ public class MultiblockInWorldPreviewRenderer {
     @Nullable
     private static Thread THREAD = null;
     @Nullable
-    private static Set<BlockPos> BLOCK_ENTITIES;
+    private static LongOpenHashSet BLOCK_ENTITIES;
     private static final AtomicInteger LEFT_TICK = new AtomicInteger(-1);
 
     /**
@@ -249,7 +250,8 @@ public class MultiblockInWorldPreviewRenderer {
                 if (layer == RenderType.translucent() && BLOCK_ENTITIES != null) {
                     // render tesr before translucent
                     var buffers = Minecraft.getInstance().renderBuffers().bufferSource();
-                    for (BlockPos pos : BLOCK_ENTITIES) {
+                    for (var p : BLOCK_ENTITIES) {
+                        var pos = BlockPos.of(p);
                         BlockEntity tile = LEVEL.getBlockEntity(pos);
                         if (tile != null) {
                             poseStack.pushPose();
@@ -359,13 +361,13 @@ public class MultiblockInWorldPreviewRenderer {
             }
             ModelBlockRenderer.clearCache();
             // record all BlockEntities having TESR.
-            Set<BlockPos> poses = new HashSet<>();
+            LongOpenHashSet poses = new LongOpenHashSet();
             for (BlockPos pos : renderedBlocks) {
                 if (Thread.interrupted()) return;
                 BlockEntity tile = level.getBlockEntity(pos);
                 if (tile != null) {
                     if (Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(tile) != null) {
-                        poses.add(pos);
+                        poses.add(pos.asLong());
                     }
                 }
             }

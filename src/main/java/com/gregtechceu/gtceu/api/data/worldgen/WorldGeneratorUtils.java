@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.data.worldgen.generator.IndicatorGenerator;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
+import com.gregtechceu.gtceu.utils.PosUtils;
 import com.gregtechceu.gtceu.utils.WeightedEntry;
 
 import net.minecraft.core.BlockPos;
@@ -21,6 +22,8 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
 
 import com.google.common.collect.HashBiMap;
 import com.mojang.serialization.Codec;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -91,11 +94,11 @@ public class WorldGeneratorUtils {
         return first == second;
     }
 
-    public static <T> Map<ChunkPos, Map<BlockPos, T>> groupByChunks(Map<BlockPos, T> input) {
-        return input.entrySet().stream().collect(Collectors.groupingBy(
-                entry -> new ChunkPos(entry.getKey()),
-                Object2ObjectOpenHashMap::new,
-                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, Object2ObjectOpenHashMap::new)));
+    public static <T> Long2ObjectOpenHashMap<Long2ObjectMap<T>> groupByChunks(Long2ObjectMap<T> input) {
+        return input.long2ObjectEntrySet().stream().collect(Collectors.groupingBy(
+                entry -> PosUtils.getChunkLong(entry.getLongKey()),
+                Long2ObjectOpenHashMap::new,
+                Collectors.toMap(Long2ObjectMap.Entry::getLongKey, Long2ObjectMap.Entry::getValue, (a, b) -> a, Long2ObjectOpenHashMap::new)));
     }
 
     public static <T> Map<ChunkPos, List<BlockPos>> groupByChunks(Collection<BlockPos> positions) {

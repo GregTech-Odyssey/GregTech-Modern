@@ -16,6 +16,7 @@ import net.minecraft.world.item.ItemStack;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
 import java.util.function.Consumer;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
@@ -59,7 +60,7 @@ public final class PipeRecipeHandler {
             return;
         }
 
-        ASSEMBLER_RECIPES.recipeBuilder("assemble_" + material.getName() + "_" + prefix.name)
+        ASSEMBLER_RECIPES.recipeBuilder("assemble_" + material.getName() + "_" + prefix.name.toLowerCase(Locale.ROOT))
                 .inputItems(unrestrictive, material)
                 .inputItems(ring, Iron, 2)
                 .outputItems(prefix, material)

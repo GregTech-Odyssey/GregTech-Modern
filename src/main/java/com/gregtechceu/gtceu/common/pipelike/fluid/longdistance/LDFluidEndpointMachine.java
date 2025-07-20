@@ -1,10 +1,9 @@
-package com.gregtechceu.gtceu.common.pipelike.fluidpipe.longdistance;
+package com.gregtechceu.gtceu.common.pipelike.fluid.longdistance;
 
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import com.gregtechceu.gtceu.common.machine.storage.LongDistanceEndpointMachine;
-import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
 import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
@@ -28,7 +27,7 @@ public class LDFluidEndpointMachine extends LongDistanceEndpointMachine {
         if (endpoint == null) {
             return null;
         }
-        return GTTransferUtils.getAdjacentFluidHandler(getLevel(), endpoint.getPos(), endpoint.getOutputFacing())
+        return fluidHandlerDirectionCache.getAdjacentFluidHandler(getLevel(), endpoint.getPos(), endpoint.getOutputFacing())
                 .map(LDFluidEndpointMachine.FluidHandlerWrapper::new)
                 .orElse(null);
     }

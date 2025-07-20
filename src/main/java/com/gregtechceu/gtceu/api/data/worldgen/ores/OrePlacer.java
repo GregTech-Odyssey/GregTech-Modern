@@ -6,7 +6,6 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.chunk.BulkSectionAccess;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -48,25 +47,25 @@ public class OrePlacer {
         var generatedVeins = oreGenCache.consumeChunkVeins(level, chunkGenerator, chunk);
         var generatedIndicators = oreGenCache.consumeChunkIndicators(level, chunkGenerator, chunk);
         try (BulkSectionAccess access = new BulkSectionAccess(level)) {
-            generatedVeins.forEach(generatedVein -> placeVein(chunk.getPos(), random, access, generatedVein, null));
+            generatedVeins.forEach(generatedVein -> placeVein(chunk.getPos().toLong(), random, access, generatedVein, null));
             generatedIndicators.forEach(generatedIndicator -> placeIndicators(chunk, access, generatedIndicator));
         }
     }
 
-    public void placeVein(ChunkPos chunk, RandomSource random, BulkSectionAccess access, GeneratedVein generatedVein, @Nullable RuleTest targetOverride) {
+    public void placeVein(long chunk, RandomSource random, BulkSectionAccess access, GeneratedVein generatedVein, @Nullable RuleTest targetOverride) {
         RuleTest layerTarget = targetOverride != null ? targetOverride : generatedVein.getLayer().getTarget();
         resolvePlacerLists(chunk, generatedVein).forEach(((sectionPos, placers) -> {
             LevelChunkSection section = access.getSection(sectionPos.origin());
             if (section == null) return;
             placers.forEach((pos, placer) -> {
-                var blockState = section.getBlockState(SectionPos.sectionRelative(pos.getX()), SectionPos.sectionRelative(pos.getY()), SectionPos.sectionRelative(pos.getZ()));
+                var blockState = section.getBlockState(SectionPos.sectionRelative(BlockPos.getX(pos)), SectionPos.sectionRelative(BlockPos.getY(pos)), SectionPos.sectionRelative(BlockPos.getZ(pos)));
                 if (layerTarget.test(blockState, random)) placer.placeBlock(access, section);
             });
         }));
     }
 
-    private Map<SectionPos, Map<BlockPos, OreBlockPlacer>> resolvePlacerLists(ChunkPos chunk, GeneratedVein vein) {
-        return vein.consumeOres(chunk).entrySet().stream().collect(Collectors.groupingBy(entry -> SectionPos.of(entry.getKey()), Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+    private Map<SectionPos, Map<Long, OreBlockPlacer>> resolvePlacerLists(long chunk, GeneratedVein vein) {
+        return vein.consumeOres(chunk).long2ObjectEntrySet().stream().collect(Collectors.groupingBy(entry -> SectionPos.of(entry.getLongKey()), Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 
     private void placeIndicators(ChunkAccess chunk, BulkSectionAccess access, GeneratedIndicators generatedVein) {

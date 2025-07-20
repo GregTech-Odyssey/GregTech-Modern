@@ -162,7 +162,7 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
                 }
             } else if (lastRecipe != null) {
                 findAndHandleRecipe();
-            } else if (!machine.keepSubscribing() || getMachine().getOffsetTimer() % 5 == 0) {
+            } else if (!machine.keepSubscribing() || getMachine().getOffsetTimer() % 20 == 0) {
                 findAndHandleRecipe();
             }
         }

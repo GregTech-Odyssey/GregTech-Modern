@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.IWorldGenLayer;
 import com.gregtechceu.gtceu.api.data.worldgen.WorldGeneratorUtils;
+import com.gregtechceu.gtceu.api.data.worldgen.generator.IndicatorGenerator;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.integration.map.cache.server.ServerCache;
@@ -20,14 +21,12 @@ import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.level.levelgen.placement.PlacementContext;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 import java.util.stream.Stream;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -71,12 +70,12 @@ public class OreGenerator {
 
     private GeneratedIndicators generateIndicators(VeinConfiguration config, WorldGenLevel level, ChunkPos chunkPos) {
         GTOreDefinition definition = config.data.definition();
-
-        Map<ChunkPos, List<OreIndicatorPlacer>> generatedIndicators = definition.indicatorGenerators().stream()
-                .flatMap(gen -> gen.generate(level, config.newRandom(), config.data).entrySet().stream())
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey, entry -> List.of(entry.getValue()),
-                        (a, b) -> Stream.of(a, b).flatMap(List::stream).toList()));
+        Long2ObjectOpenHashMap<List<OreIndicatorPlacer>> generatedIndicators = new Long2ObjectOpenHashMap<>();
+        for (IndicatorGenerator gen : definition.indicatorGenerators()) {
+            for (var entry : gen.generate(level, config.newRandom(), config.data).long2ObjectEntrySet()) {
+                generatedIndicators.computeIfAbsent(entry.getLongKey(), k -> new ArrayList<>()).add(entry.getValue());
+            }
+        }
 
         return new GeneratedIndicators(chunkPos, generatedIndicators);
     }
@@ -104,8 +103,7 @@ public class OreGenerator {
 
     public Optional<GeneratedVein> generateOres(VeinConfiguration config, WorldGenLevel level, ChunkPos chunkPos) {
         GTOreDefinition definition = config.data.definition();
-        Map<BlockPos, OreBlockPlacer> generatedVeins = definition.veinGenerator()
-                .generate(level, config.newRandom(), definition, config.data.center());
+        Long2ObjectMap<OreBlockPlacer> generatedVeins = definition.veinGenerator().generate(level, config.newRandom(), definition, config.data.center());
 
         if (generatedVeins.isEmpty()) {
             logEmptyVein(config);

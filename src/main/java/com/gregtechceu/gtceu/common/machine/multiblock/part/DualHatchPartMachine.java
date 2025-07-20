@@ -8,7 +8,6 @@ import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.common.data.GTMachines;
-import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
@@ -46,6 +45,7 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
     public DualHatchPartMachine(IMachineBlockEntity holder, int tier, IO io, Object... args) {
         super(holder, tier, io);
         this.tank = createTank(INITIAL_TANK_CAPACITY, (int) Math.sqrt(getInventorySize()), args);
+        setDistinct(true);
     }
 
     ////////////////////////////////
@@ -53,12 +53,12 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
     ////////////////////////////////
 
     public static int getTankCapacity(int initialCapacity, int tier) {
-        return initialCapacity * (1 << (tier - 6));
+        return 4 * FluidType.BUCKET_VOLUME * (1 << tier);
     }
 
     @Override
     public int getInventorySize() {
-        return (int) Math.pow((getTier() - 4), 2);
+        return getTier() * getTier();
     }
 
     protected NotifiableFluidTank createTank(int initialCapacity, int slots, Object... args) {
@@ -86,17 +86,17 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
 
     @Override
     protected void updateInventorySubscription() {
-        boolean canOutput = io == IO.OUT && (!tank.isEmpty() || !getInventory().isEmpty());
         var level = getLevel();
-        if (level != null) {
-            this.hasItemHandler = GTTransferUtils.hasAdjacentItemHandler(level, getPos(), getFrontFacing());
-            this.hasFluidHandler = GTTransferUtils.hasAdjacentFluidHandler(level, getPos(), getFrontFacing());
+        boolean canIO = isWorkingEnabled() && (io == IO.OUT && (!tank.isEmpty() || !getInventory().isEmpty()) || io == IO.IN);
+        if (canIO && level != null) {
+            this.hasItemHandler = itemHandlerDirectionCache.hasAdjacentItemHandler(level, getPos(), getFrontFacing());
+            this.hasFluidHandler = fluidHandlerDirectionCache.hasAdjacentFluidHandler(level, getPos(), getFrontFacing());
         } else {
             this.hasItemHandler = false;
             this.hasFluidHandler = false;
         }
 
-        if (isWorkingEnabled() && (canOutput || io == IO.IN) && (hasItemHandler || hasFluidHandler)) {
+        if (canIO && (hasItemHandler || hasFluidHandler)) {
             autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO);
         } else if (autoIOSubs != null) {
             autoIOSubs.unsubscribe();
@@ -106,7 +106,7 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
 
     @Override
     protected void autoIO() {
-        if (getOffsetTimer() % 5 == 0) {
+        if (getOffsetTimer() % 20 == 0) {
             if (isWorkingEnabled()) {
                 if (io == IO.OUT) {
                     if (hasItemHandler) {

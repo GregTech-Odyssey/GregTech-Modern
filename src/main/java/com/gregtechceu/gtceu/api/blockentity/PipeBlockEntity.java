@@ -15,8 +15,12 @@ import com.gregtechceu.gtceu.api.pipenet.*;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 
+import com.lowdragmc.lowdraglib.Platform;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
+import com.lowdragmc.lowdraglib.networking.LDLNetworking;
+import com.lowdragmc.lowdraglib.networking.s2c.SPacketManagedPayload;
 import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
 import com.lowdragmc.lowdraglib.syncdata.IManagedStorage;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
@@ -26,6 +30,7 @@ import com.lowdragmc.lowdraglib.syncdata.blockentity.IAsyncAutoSyncBlockEntity;
 import com.lowdragmc.lowdraglib.syncdata.blockentity.IAutoPersistBlockEntity;
 import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
+import com.lowdragmc.lowdraglib.syncdata.managed.IRef;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -55,7 +60,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDataType>, NodeDataType> extends BlockEntity implements IPipeNode<PipeType, NodeDataType>, IEnhancedManaged, IAsyncAutoSyncBlockEntity, IAutoPersistBlockEntity, IToolGridHighlight, IToolable {
+public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDataType>, NodeDataType> extends BlockEntity implements IPipeNode<PipeType, NodeDataType>, IEnhancedManaged, IAsyncAutoSyncBlockEntity, IAutoPersistBlockEntity, IToolGridHighlight, IToolable {
 
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(PipeBlockEntity.class);
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
@@ -84,11 +89,18 @@ public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeTyp
     private final List<TickableSubscription> serverTicks;
     private final List<TickableSubscription> waitingToAdd;
 
+    private boolean sync = true;
+
+    private final long posLong;
+
+    private final DirectionCache<BlockEntity> blockEntityDirectionCache = new DirectionCache<>();
+
     public PipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
         this.coverContainer = new PipeCoverContainer(this);
         this.serverTicks = new ArrayList<>();
         this.waitingToAdd = new ArrayList<>();
+        posLong = worldPosition.asLong();
     }
 
     //////////////////////////////////////
@@ -161,6 +173,30 @@ public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeTyp
     }
 
     @Override
+    public void onNeighborChanged(Block block, BlockPos fromPos, boolean isMoving) {
+        blockEntityDirectionCache.clearCache();
+        sync = true;
+    }
+
+    @Override
+    public @Nullable BlockEntity getNeighbor(Direction facing) {
+        if (getLevel() instanceof ServerLevel serverLevel) {
+            return blockEntityDirectionCache.getOrSet(facing, () -> serverLevel.getBlockEntity(getBlockPos().relative(facing)));
+        }
+        return null;
+    }
+
+    @Override
+    public BlockPos getPipePos() {
+        return worldPosition;
+    }
+
+    @Override
+    public long getPipePosLong() {
+        return posLong;
+    }
+
+    @Override
     public NodeDataType getNodeData() {
         if (cachedNodeData == null) {
             this.cachedNodeData = getPipeBlock().createProperties(this);
@@ -209,7 +245,7 @@ public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeTyp
             blockedConnections = withSideConnection(blockedConnections, side, isBlocked);
             setChanged();
             LevelPipeNet<?, ?> worldPipeNet = getPipeBlock().getWorldPipeNet(serverLevel);
-            PipeNet<?> net = worldPipeNet.getNetFromPos(getBlockPos());
+            PipeNet<?> net = worldPipeNet.getNetFromPos(getBlockPos(), getPipePosLong());
             if (net != null) {
                 net.onPipeConnectionsUpdate();
             }
@@ -269,7 +305,7 @@ public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeTyp
 
     private void updateNetworkConnection(Direction side, boolean connected) {
         LevelPipeNet<?, ?> worldPipeNet = getPipeBlock().getWorldPipeNet((ServerLevel) getLevel());
-        worldPipeNet.updateBlockedConnections(getPipePos(), side, !connected);
+        worldPipeNet.updateBlockedConnections(getPipePos(), getPipePosLong(), side, !connected);
     }
 
     protected int withSideConnection(int blockedConnections, Direction side, boolean connected) {
@@ -284,7 +320,7 @@ public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeTyp
     @Override
     public void notifyBlockUpdate() {
         getLevel().updateNeighborsAt(getBlockPos(), getPipeBlock());
-        getPipeBlock().updateActiveNodeStatus(getLevel(), getBlockPos(), this);
+        sync = true;
     }
 
     @Override
@@ -370,17 +406,20 @@ public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeTyp
                 boolean isOpen = this.isConnected(gridSide);
                 this.setConnection(gridSide, !isOpen, false);
             }
+            sync = true;
             return Pair.of(getPipeTuneTool(), InteractionResult.sidedSuccess(playerIn.level().isClientSide));
         } else if (toolTypes.contains(GTToolType.CROWBAR)) {
             if (coverBehavior != null) {
                 if (!isRemote()) {
                     getCoverContainer().removeCover(gridSide, playerIn);
+                    sync = true;
                     return Pair.of(GTToolType.CROWBAR, InteractionResult.sidedSuccess(playerIn.level().isClientSide));
                 }
             } else {
                 if (!frameMaterial.isNull()) {
                     Block.popResource(getLevel(), getPipePos(), GTMaterialBlocks.MATERIAL_BLOCKS.get(TagPrefix.frameGt, frameMaterial).asStack());
                     frameMaterial = GTMaterials.NULL;
+                    sync = true;
                     return Pair.of(GTToolType.CROWBAR, InteractionResult.sidedSuccess(playerIn.level().isClientSide));
                 }
             }
@@ -429,10 +468,6 @@ public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeTyp
         this.connections = connections;
     }
 
-    public void setBlockedConnections(final int blockedConnections) {
-        this.blockedConnections = blockedConnections;
-    }
-
     public int getPaintingColor() {
         return this.paintingColor;
     }
@@ -446,5 +481,35 @@ public abstract class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeTyp
             throw new NullPointerException("frameMaterial is marked non-null but is null");
         }
         this.frameMaterial = frameMaterial;
+        sync = true;
+    }
+
+    private boolean needSync() {
+        if (sync) {
+            sync = false;
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void asyncTick(long periodID) {
+        if (Platform.isServerNotSafe()) return;
+        if (needSync() || periodID + offset % 20 == 0) {
+            if (useAsyncThread() && !getSelf().isRemoved()) {
+                for (IRef field : getNonLazyFields()) {
+                    field.update();
+                }
+                if (getRootStorage().hasDirtySyncFields() && !isAsyncSyncing()) {
+                    setAsyncSyncing(true);
+                    Platform.getMinecraftServer().execute(() -> {
+                        if (Platform.isServerNotSafe()) return;
+                        var packet = SPacketManagedPayload.of(this, false);
+                        LDLNetworking.NETWORK.sendToTrackingChunk(packet, this.getSelf().getLevel().getChunkAt(this.getCurrentPos()));
+                        setAsyncSyncing(false);
+                    });
+                }
+            }
+        }
     }
 }

@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.ItemPipePrope
 import com.gregtechceu.gtceu.api.pipenet.IRoutePath;
 import com.gregtechceu.gtceu.common.blockentity.ItemPipeBlockEntity;
 import com.gregtechceu.gtceu.utils.FacingPos;
-import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -47,7 +46,7 @@ public class ItemRoutePath implements IRoutePath<IItemHandler> {
     @Override
     @Nullable
     public IItemHandler getHandler(Level world) {
-        return GTTransferUtils.getAdjacentItemHandler(world, getTargetPipePos(), targetFacing).resolve().orElse(null);
+        return targetPipe.itemHandlerDirectionCache.getAdjacentItemHandler(world, getTargetPipePos(), targetFacing).resolve().orElse(null);
     }
 
     public boolean matchesFilters(ItemStack stack) {

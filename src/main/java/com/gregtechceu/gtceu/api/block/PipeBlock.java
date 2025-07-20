@@ -60,7 +60,6 @@ import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -135,21 +134,6 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
 
     protected abstract PipeModel getPipeModel();
 
-    public void updateActiveNodeStatus(@NotNull Level worldIn, BlockPos pos,
-                                       IPipeNode<PipeType, NodeDataType> pipeTile) {
-        if (worldIn.isClientSide) return;
-
-        PipeNet<NodeDataType> pipeNet = getWorldPipeNet((ServerLevel) worldIn).getNetFromPos(pos);
-        if (pipeNet != null && pipeTile != null) {
-            int activeConnections = pipeTile.getConnections(); // remove blocked connections
-            boolean isActiveNodeNow = activeConnections != 0;
-            boolean modeChanged = pipeNet.markNodeAsActive(pos, isActiveNodeNow);
-            if (modeChanged) {
-                onActiveModeChange(worldIn, pos, isActiveNodeNow, false);
-            }
-        }
-    }
-
     @Override
     public void onNeighborChange(BlockState state, LevelReader level, BlockPos pos, BlockPos neighbor) {
         if (level.isClientSide()) return;
@@ -167,7 +151,6 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
                     pipeTile.setConnection(facing, true, false);
                 if (open && !canConnect)
                     pipeTile.setConnection(facing, false, false);
-                updateActiveNodeStatus(pipeTile.getPipeLevel(), pos, pipeTile);
             }
             PipeNet<NodeDataType> net = pipeTile.getPipeNet();
             if (net != null) {
@@ -189,12 +172,6 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
         }
         return null;
     }
-
-    /**
-     * Can be used to update tile entity to tickable when node becomes active
-     * usable for fluid pipes, as example
-     */
-    protected void onActiveModeChange(Level world, BlockPos pos, boolean isActiveNow, boolean isInitialChange) {}
 
     public boolean canConnect(IPipeNode<PipeType, NodeDataType> selfTile, Direction facing) {
         if (selfTile.getPipeLevel().getBlockState(selfTile.getPipePos().relative(facing)).getBlock() == Blocks.AIR)
@@ -251,6 +228,7 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
         if (level.isClientSide) return;
         IPipeNode<PipeType, NodeDataType> pipeTile = getPipeTile(level, pos);
         if (pipeTile != null) {
+            pipeTile.onNeighborChanged(block, fromPos, isMoving);
             Direction facing = GTUtil.getFacingToNeighbor(pos, fromPos);
             if (facing == null) return;
             if (!ConfigHolder.INSTANCE.machines.gt6StylePipesCables) {
@@ -261,7 +239,6 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
                     pipeTile.setConnection(facing, true, false);
                 if (open && !canConnect)
                     pipeTile.setConnection(facing, false, false);
-                updateActiveNodeStatus(level, pos, pipeTile);
             }
         }
     }
@@ -295,7 +272,6 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
             int activeConnections = pipeTile.getConnections();
             boolean isActiveNode = activeConnections != 0;
             getWorldPipeNet(level).addNode(pos, createRawData(state, null), 0, activeConnections, isActiveNode);
-            onActiveModeChange(level, pos, isActiveNode, true);
         }
     }
 
@@ -375,10 +351,6 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
 
     @Override
     public boolean isCollisionShapeFullBlock(BlockState state, BlockGetter level, BlockPos pos) {
-        var pipeNode = getPipeTile(level, pos);
-        if (pipeNode != null && !pipeNode.getFrameMaterial().isNull()) {
-            return false;
-        }
         return false;
     }
 

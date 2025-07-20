@@ -178,7 +178,7 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
     @Override
     public IFluidHandlerModifiable getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
         if (pipeTile instanceof FluidPipeBlockEntity fluidPipe) {
-            return fluidPipe.getTankList(side);
+            return getLevel() instanceof ServerLevel ? fluidPipe.getHandler(side, useCoverCapability) : null;
         } else {
             return null;
         }
@@ -237,7 +237,7 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
         if (definition != null) {
             return definition.createCoverBehavior(this, side);
         }
-        GTCEu.LOGGER.error("couldn\'t find cover definition {}", definitionId);
+        GTCEu.LOGGER.error("couldn't find cover definition {}", definitionId);
         throw new RuntimeException();
     }
 

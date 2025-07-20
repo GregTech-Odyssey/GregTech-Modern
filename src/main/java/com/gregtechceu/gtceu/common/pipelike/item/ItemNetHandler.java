@@ -17,7 +17,6 @@ import com.gregtechceu.gtceu.utils.FacingPos;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
@@ -34,8 +33,7 @@ import java.util.*;
 public class ItemNetHandler implements IItemHandlerModifiable {
 
     private ItemPipeNet net;
-    private ItemPipeBlockEntity pipe;
-    private final Level world;
+    private final ItemPipeBlockEntity pipe;
     private final Direction facing;
     private final Object2IntOpenHashMap<FacingPos> simulatedTransfersGlobalRoundRobin = new Object2IntOpenHashMap<>();
     private int simulatedTransfers = 0;
@@ -45,19 +43,10 @@ public class ItemNetHandler implements IItemHandlerModifiable {
         this.net = net;
         this.pipe = pipe;
         this.facing = facing;
-        this.world = pipe.getPipeLevel();
-    }
-
-    private long getLevelTime() {
-        return net.getLevel().getGameTime();
     }
 
     public void updateNetwork(ItemPipeNet net) {
         this.net = net;
-    }
-
-    public void updatePipe(ItemPipeBlockEntity pipe) {
-        this.pipe = pipe;
     }
 
     private void copyTransferred() {
@@ -99,7 +88,7 @@ public class ItemNetHandler implements IItemHandlerModifiable {
     }
 
     public ItemStack insertFirst(ItemStack stack, boolean simulate) {
-        for (ItemRoutePath inv : net.getNetData(pipe.getPipePos(), facing)) {
+        for (ItemRoutePath inv : net.getNetData(pipe.getPipePosLong(), pipe.getPipePos(), facing)) {
             stack = insert(inv, stack, simulate);
             if (stack.isEmpty()) return ItemStack.EMPTY;
         }
@@ -107,12 +96,12 @@ public class ItemNetHandler implements IItemHandlerModifiable {
     }
 
     public ItemStack insertRoundRobin(ItemStack stack, boolean simulate, boolean global) {
-        List<ItemRoutePath> routePaths = net.getNetData(pipe.getPipePos(), facing);
+        List<ItemRoutePath> routePaths = net.getNetData(pipe.getPipePosLong(), pipe.getPipePos(), facing);
         if (routePaths.isEmpty()) return stack;
         if (routePaths.size() == 1) return insert(routePaths.get(0), stack, simulate);
         List<ItemRoutePath> routePathsCopy = new ArrayList<>(routePaths);
         if (global) {
-            stack = insertToHandlersEnhanced(routePathsCopy, stack, routePaths.size(), simulate);
+            stack = insertToHandlersEnhanced(routePathsCopy, stack, simulate);
         } else {
             stack = insertToHandlers(routePathsCopy, stack, simulate);
             if (!stack.isEmpty() && !routePathsCopy.isEmpty()) stack = insertToHandlers(routePathsCopy, stack, simulate);
@@ -160,7 +149,7 @@ public class ItemNetHandler implements IItemHandlerModifiable {
         return remainder;
     }
 
-    private ItemStack insertToHandlersEnhanced(List<ItemRoutePath> copy, ItemStack stack, int dest, boolean simulate) {
+    private ItemStack insertToHandlersEnhanced(List<ItemRoutePath> copy, ItemStack stack, boolean simulate) {
         List<EnhancedRoundRobinData> transferred = new ArrayList<>();
         IntList steps = new IntArrayList();
         int min = Integer.MAX_VALUE;
@@ -199,7 +188,6 @@ public class ItemNetHandler implements IItemHandlerModifiable {
         outer:
         while (amount > 0 && !transferredCopy.isEmpty()) {
             Iterator<EnhancedRoundRobinData> iterator = transferredCopy.iterator();
-            int i = 0;
             while (iterator.hasNext()) {
                 EnhancedRoundRobinData data = iterator.next();
                 if (nextStep >= 0 && data.transferred >= nextStep) break;
@@ -224,7 +212,6 @@ public class ItemNetHandler implements IItemHandlerModifiable {
                 if ((amount -= toInsert) == 0) {
                     break outer;
                 }
-                i++;
             }
             for (EnhancedRoundRobinData data : transferredCopy) {
                 if (data.transferred < nextStep) continue outer;
@@ -299,7 +286,7 @@ public class ItemNetHandler implements IItemHandlerModifiable {
     }
 
     public CoverBehavior getCoverOnNeighbour(BlockPos pos, Direction handlerFacing) {
-        BlockEntity tile = pipe.getLevel().getBlockEntity(pos.relative(handlerFacing));
+        BlockEntity tile = pipe.getNeighbor(handlerFacing);
         if (tile != null) {
             ICoverable coverable = GTCapabilityHelper.getCoverable(pipe.getLevel(), pos.relative(handlerFacing), handlerFacing.getOpposite());
             if (coverable == null) return null;
@@ -403,27 +390,11 @@ public class ItemNetHandler implements IItemHandlerModifiable {
         }
     }
 
-    private boolean contains(ItemRoutePath handler, boolean simulate) {
-        if (simulate) {
-            return simulatedTransfersGlobalRoundRobin.containsKey(handler.toFacingPos());
-        } else {
-            return pipe.getTransferred().containsKey(handler.toFacingPos());
-        }
-    }
-
     private int didTransferTo(ItemRoutePath handler, boolean simulate) {
         if (simulate) {
             return simulatedTransfersGlobalRoundRobin.getOrDefault(handler.toFacingPos(), 0);
         } else {
             return pipe.getTransferred().getOrDefault(handler.toFacingPos(), 0);
-        }
-    }
-
-    private void resetTransferred(boolean simulated) {
-        if (simulated) {
-            simulatedTransfersGlobalRoundRobin.clear();
-        } else {
-            pipe.resetTransferred();
         }
     }
 

@@ -8,25 +8,23 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Map;
 
 public class OpticalPipeNet extends PipeNet<OpticalPipeProperties> {
 
-    private final Map<BlockPos, OpticalRoutePath> NET_DATA = new Object2ObjectOpenHashMap<>();
+    private final Long2ObjectOpenHashMap<OpticalRoutePath> NET_DATA = new Long2ObjectOpenHashMap<>();
 
     public OpticalPipeNet(LevelPipeNet<OpticalPipeProperties, ? extends PipeNet<OpticalPipeProperties>> world) {
         super(world);
     }
 
     @Nullable
-    public OpticalRoutePath getNetData(BlockPos pipePos, Direction facing) {
+    public OpticalRoutePath getNetData(long pipePos, BlockPos pos, Direction facing) {
         if (NET_DATA.containsKey(pipePos)) {
             return NET_DATA.get(pipePos);
         }
-        OpticalRoutePath data = OpticalNetWalker.createNetData(this, pipePos, facing);
+        OpticalRoutePath data = OpticalNetWalker.createNetData(this, pos, facing);
         if (data == OpticalNetWalker.FAILED_MARKER) {
             // walker failed, don't cache, so it tries again on next insertion
             return null;
@@ -47,7 +45,7 @@ public class OpticalPipeNet extends PipeNet<OpticalPipeProperties> {
     }
 
     @Override
-    protected void transferNodeData(Map<BlockPos, Node<OpticalPipeProperties>> transferredNodes,
+    protected void transferNodeData(Long2ObjectOpenHashMap<Node<OpticalPipeProperties>> transferredNodes,
                                     PipeNet<OpticalPipeProperties> parentNet) {
         super.transferNodeData(transferredNodes, parentNet);
         NET_DATA.clear();

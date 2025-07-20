@@ -18,6 +18,7 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +42,7 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
     @DescSynced
     @RequireRerender
     @UpdateListener(methodName = "onControllersUpdated")
-    protected final Set<BlockPos> controllerPositions = new ObjectOpenHashSet<>(8);
+    protected final Set<Long> controllerPositions = new LongOpenHashSet(8);
     protected final SortedSet<IMultiController> controllers = new ReferenceLinkedOpenHashSet<>(8);
 
     private @Nullable RecipeHandlerList handlerList;
@@ -61,7 +62,7 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
 
     @Override
     public boolean hasController(BlockPos controllerPos) {
-        return controllerPositions.contains(controllerPos);
+        return controllerPositions.contains(controllerPos.asLong());
     }
 
     @Override
@@ -71,10 +72,10 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
 
     // Not sure if necessary, but added to match the Controller class
     @SuppressWarnings("unused")
-    public void onControllersUpdated(Set<BlockPos> newPositions, Set<BlockPos> old) {
+    public void onControllersUpdated(Set<Long> newPositions, Set<BlockPos> old) {
         controllers.clear();
-        for (BlockPos blockPos : newPositions) {
-            if (MetaMachine.getMachine(getLevel(), blockPos) instanceof IMultiController controller) {
+        for (var pos : newPositions) {
+            if (MetaMachine.getMachine(getLevel(), BlockPos.of(pos)) instanceof IMultiController controller) {
                 controllers.add(controller);
             }
         }
@@ -137,14 +138,14 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
 
     @Override
     public void removedFromController(IMultiController controller) {
-        controllerPositions.remove(controller.self().getPos());
+        controllerPositions.remove(controller.self().getPos().asLong());
         controllers.remove(controller);
         requestSync();
     }
 
     @Override
     public void addedToController(IMultiController controller) {
-        controllerPositions.add(controller.self().getPos());
+        controllerPositions.add(controller.self().getPos().asLong());
         controllers.add(controller);
         requestSync();
     }

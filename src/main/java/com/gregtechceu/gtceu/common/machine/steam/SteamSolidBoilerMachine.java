@@ -27,10 +27,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidUtil;
 
-import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
-import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
-import java.util.Arrays;
 import java.util.Collections;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -41,7 +39,7 @@ public class SteamSolidBoilerMachine extends SteamBoilerMachine implements IMach
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
             SteamSolidBoilerMachine.class, SteamBoilerMachine.MANAGED_FIELD_HOLDER);
-    public static final Object2BooleanMap<Item> FUEL_CACHE = new Object2BooleanOpenHashMap<>();
+    public static final ObjectOpenHashSet<Item> FUEL_CACHE = new ObjectOpenHashSet<>();
 
     @Persisted
     public final NotifiableItemStackHandler fuelHandler, ashHandler;
@@ -52,17 +50,7 @@ public class SteamSolidBoilerMachine extends SteamBoilerMachine implements IMach
             if (FluidUtil.getFluidContained(itemStack).isPresent()) {
                 return false;
             }
-            return FUEL_CACHE.computeIfAbsent(itemStack.getItem(), item -> {
-                if (isRemote()) return true;
-                return recipeLogic.getRecipeManager().getAllRecipesFor(getRecipeType()).stream().anyMatch(recipe -> {
-                    var list = recipe.inputs.getOrDefault(ItemRecipeCapability.CAP, Collections.emptyList());
-                    if (!list.isEmpty()) {
-                        return Arrays.stream(ItemRecipeCapability.CAP.of(list.get(0).content).getItems())
-                                .map(ItemStack::getItem).anyMatch(i -> i == item);
-                    }
-                    return false;
-                });
-            });
+            return FUEL_CACHE.contains(itemStack.getItem());
         });
         this.ashHandler = createAshHandler(args);
     }
