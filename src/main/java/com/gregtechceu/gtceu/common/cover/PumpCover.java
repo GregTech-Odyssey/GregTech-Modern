@@ -20,7 +20,6 @@ import com.gregtechceu.gtceu.api.transfer.fluid.ModifiableFluidHandlerWrapper;
 import com.gregtechceu.gtceu.common.cover.data.BucketMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
-import com.gregtechceu.gtceu.utils.cache.FluidHandlerDirectionCache;
 
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -81,8 +80,6 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
     protected final ConditionalSubscriptionHandler subscriptionHandler;
     private NumberInputWidget<Integer> transferRateWidget;
 
-    protected final FluidHandlerDirectionCache fluidHandlerDirectionCache = new FluidHandlerDirectionCache();
-
     public PumpCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide, int tier, int maxTransferRate) {
         super(definition, coverHolder, attachedSide);
         this.tier = tier;
@@ -107,7 +104,7 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
 
     @Nullable
     protected IFluidHandler getAdjacentFluidHandler() {
-        return fluidHandlerDirectionCache.getAdjacentFluidHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide).resolve().orElse(null);
+        return coverHolder.getBlockEntityDirectionCache().getAdjacentFluidHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide).resolve().orElse(null);
     }
 
     //////////////////////////////////////

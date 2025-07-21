@@ -182,7 +182,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, ICont
     //////////////////////////////////////
     protected void updateAutoOutputSubscription() {
         var outputFace = getOutputFacingItems();
-        if (isAutoOutputItems() && outputFace != null && !exportItems.isEmpty() && itemHandlerDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFace)) {
+        if (isAutoOutputItems() && outputFace != null && !exportItems.isEmpty() && blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFace)) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();

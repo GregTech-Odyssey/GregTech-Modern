@@ -27,7 +27,7 @@ public class LDFluidEndpointMachine extends LongDistanceEndpointMachine {
         if (endpoint == null) {
             return null;
         }
-        return fluidHandlerDirectionCache.getAdjacentFluidHandler(getLevel(), endpoint.getPos(), endpoint.getOutputFacing())
+        return blockEntityDirectionCache.getAdjacentFluidHandler(getLevel(), endpoint.getPos(), endpoint.getOutputFacing())
                 .map(LDFluidEndpointMachine.FluidHandlerWrapper::new)
                 .orElse(null);
     }

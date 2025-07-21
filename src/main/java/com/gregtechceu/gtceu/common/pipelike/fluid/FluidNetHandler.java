@@ -2,13 +2,13 @@ package com.gregtechceu.gtceu.common.pipelike.fluid;
 
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
+import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import com.gregtechceu.gtceu.common.blockentity.FluidPipeBlockEntity;
 import com.gregtechceu.gtceu.common.cover.*;
 import com.gregtechceu.gtceu.common.cover.data.FilterMode;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.fluids.FluidStack;
@@ -80,10 +80,10 @@ public class FluidNetHandler implements IFluidHandlerModifiable {
         return r;
     }
 
-    public CoverBehavior getCoverOnNeighbour(BlockPos pos, Direction handlerFacing) {
+    public CoverBehavior getCoverOnNeighbour(Direction handlerFacing) {
         BlockEntity tile = pipe.getNeighbor(handlerFacing);
         if (tile != null) {
-            ICoverable coverable = GTCapabilityHelper.getCoverable(pipe.getLevel(), pos.relative(handlerFacing), handlerFacing.getOpposite());
+            ICoverable coverable = GTCapabilityHelper.getBlockEntityCapability(GTCapability.CAPABILITY_COVERABLE, pipe.getNeighbor(handlerFacing), handlerFacing.getOpposite());
             if (coverable == null) return null;
             return coverable.getCoverAtSide(handlerFacing.getOpposite());
         }
@@ -132,7 +132,7 @@ public class FluidNetHandler implements IFluidHandlerModifiable {
         }
         copyTransferred();
         CoverBehavior pipeCover = pipe.getCoverContainer().getCoverAtSide(facing);
-        CoverBehavior tileCover = getCoverOnNeighbour(pipe.getPipePos(), facing);
+        CoverBehavior tileCover = getCoverOnNeighbour(facing);
         boolean pipePump = pipeCover instanceof PumpCover;
         boolean tilePump = tileCover instanceof PumpCover;
         // abort if there are two pump

@@ -210,7 +210,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
 
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingItems();
-        if ((isAutoOutputItems() && !stored.isEmpty()) && outputFacing != null && itemHandlerDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) {
+        if ((isAutoOutputItems() && !stored.isEmpty()) && outputFacing != null && blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, this::checkAutoOutput);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
@@ -461,7 +461,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
             var pos = getMachine().getPos();
             for (Direction facing : facings) {
                 var filter = getMachine().getItemCapFilter(facing, IO.OUT);
-                itemHandlerDirectionCache.getAdjacentItemHandler(level, pos, facing).ifPresent(adj -> GTTransferUtils.transferItemsFiltered(this, adj, filter));
+                blockEntityDirectionCache.getAdjacentItemHandler(level, pos, facing).ifPresent(adj -> GTTransferUtils.transferItemsFiltered(this, adj, filter));
             }
         }
 

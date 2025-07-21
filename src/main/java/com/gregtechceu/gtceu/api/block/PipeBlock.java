@@ -174,13 +174,12 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
     }
 
     public boolean canConnect(IPipeNode<PipeType, NodeDataType> selfTile, Direction facing) {
-        if (selfTile.getPipeLevel().getBlockState(selfTile.getPipePos().relative(facing)).getBlock() == Blocks.AIR)
-            return false;
+        BlockEntity other = selfTile.getNeighbor(facing);
+        if (other == null) return false;
         CoverBehavior cover = selfTile.getCoverContainer().getCoverAtSide(facing);
         if (cover != null && !cover.canPipePassThrough()) {
             return false;
         }
-        BlockEntity other = selfTile.getNeighbor(facing);
         if (other instanceof IPipeNode<?, ?> node) {
             cover = node.getCoverContainer().getCoverAtSide(facing.getOpposite());
             if (cover != null && !cover.canPipePassThrough())

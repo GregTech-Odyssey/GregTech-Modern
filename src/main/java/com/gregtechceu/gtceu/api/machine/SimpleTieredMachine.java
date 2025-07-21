@@ -235,7 +235,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     protected void updateAutoOutputSubscription() {
         var outputFacingItems = getOutputFacingItems();
         var outputFacingFluids = getOutputFacingFluids();
-        if ((isAutoOutputItems() && !exportItems.isEmpty() && outputFacingItems != null && itemHandlerDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacingItems)) || (isAutoOutputFluids() && !exportFluids.isEmpty() && outputFacingFluids != null && fluidHandlerDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacingFluids))) {
+        if ((isAutoOutputItems() && !exportItems.isEmpty() && outputFacingItems != null && blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacingItems)) || (isAutoOutputFluids() && !exportFluids.isEmpty() && outputFacingFluids != null && blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacingFluids))) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();

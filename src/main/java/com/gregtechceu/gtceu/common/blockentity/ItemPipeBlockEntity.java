@@ -10,13 +10,11 @@ import com.gregtechceu.gtceu.common.pipelike.item.ItemPipeNet;
 import com.gregtechceu.gtceu.common.pipelike.item.ItemPipeType;
 import com.gregtechceu.gtceu.utils.FacingPos;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.cache.ItemHandlerDirectionCache;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
@@ -41,8 +39,6 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
     private int transferredItems = 0;
     private long timer = 0;
 
-    public final ItemHandlerDirectionCache itemHandlerDirectionCache = new ItemHandlerDirectionCache();
-
     public ItemPipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
     }
@@ -53,12 +49,6 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
 
     public long getLevelTime() {
         return hasLevel() ? getLevel().getGameTime() : 0L;
-    }
-
-    @Override
-    public void onNeighborChanged(Block block, BlockPos fromPos, boolean isMoving) {
-        super.onNeighborChanged(block, fromPos, isMoving);
-        itemHandlerDirectionCache.clearCache();
     }
 
     @Override

@@ -13,8 +13,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class OpticalNetWalker extends PipeNetWalker<OpticalPipeBlockEntity, OpticalPipeProperties, OpticalPipeNet> {
 
-    public static final OpticalRoutePath FAILED_MARKER = new OpticalRoutePath(null, null, 0);
-
     @Nullable
     public static OpticalRoutePath createNetData(OpticalPipeNet world, BlockPos sourcePipe,
                                                  Direction faceToSourceHandler) {
@@ -22,7 +20,7 @@ public class OpticalNetWalker extends PipeNetWalker<OpticalPipeBlockEntity, Opti
         walker.sourcePipe = sourcePipe;
         walker.facingToHandler = faceToSourceHandler;
         walker.traversePipeNet();
-        return walker.isFailed() ? FAILED_MARKER : walker.routePath;
+        return walker.isFailed() ? null : walker.routePath;
     }
 
     private OpticalRoutePath routePath;

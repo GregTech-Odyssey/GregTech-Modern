@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.compat.FeCompat;
+import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
@@ -161,7 +162,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
             for (Direction side : GTUtil.DIRECTIONS) {
                 if (!outputsEnergy(side)) continue;
                 var oppositeSide = side.getOpposite();
-                var energyContainer = GTCapabilityHelper.getEnergyContainer(machine.getLevel(), machine.getPos().relative(side), oppositeSide);
+                var energyContainer = GTCapabilityHelper.getBlockEntityCapability(GTCapability.CAPABILITY_ENERGY_CONTAINER, machine.getNeighbor(side), oppositeSide);
                 if (energyContainer != null && energyContainer.inputsEnergy(oppositeSide)) {
                     amperesUsed += energyContainer.acceptEnergyFromNetwork(oppositeSide, outputVoltage, outputAmperes - amperesUsed);
                     if (amperesUsed == outputAmperes) break;

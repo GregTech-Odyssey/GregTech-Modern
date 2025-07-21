@@ -176,23 +176,27 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             data.removeAsyncLogic(this);
             return;
         }
-        if ((getHolder().getOffset() + data.periodID) % 4 == 0 && getLevel() instanceof ServerLevel serverLevel && checkPatternWithTryLock()) {
+        if ((getHolder().getOffset() + data.periodID) % 4 == 0 && getLevel() instanceof ServerLevel serverLevel) {
             simpleLock = true;
-            serverLevel.getServer().execute(() -> {
-                if (requiresServerExecution()) {
-                    if (!checkPatternWithLock()) {
-                        simpleLock = false;
-                        return;
+            if (checkPatternWithTryLock()) {
+                serverLevel.getServer().execute(() -> {
+                    if (requiresServerExecution()) {
+                        if (!checkPatternWithLock()) {
+                            simpleLock = false;
+                            return;
+                        }
                     }
-                }
-                setFlipped(getMultiblockState().isNeededFlip());
-                onStructureFormed();
-                requestSync();
-                var mwsd = MultiblockWorldSavedData.getOrCreate(serverLevel);
-                mwsd.addMapping(getMultiblockState());
-                mwsd.removeAsyncLogic(this);
+                    setFlipped(getMultiblockState().isNeededFlip());
+                    onStructureFormed();
+                    requestSync();
+                    var mwsd = MultiblockWorldSavedData.getOrCreate(serverLevel);
+                    mwsd.addMapping(getMultiblockState());
+                    mwsd.removeAsyncLogic(this);
+                    simpleLock = false;
+                });
+            } else {
                 simpleLock = false;
-            });
+            }
         }
     }
 
@@ -248,6 +252,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
 
     @Override
     public void onRotated(Direction oldFacing, Direction newFacing) {
+        super.onRotated(oldFacing, newFacing);
         if (oldFacing != newFacing) {
             requestCheck();
         }

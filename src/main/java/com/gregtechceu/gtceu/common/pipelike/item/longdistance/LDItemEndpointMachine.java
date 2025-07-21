@@ -27,7 +27,7 @@ public class LDItemEndpointMachine extends LongDistanceEndpointMachine {
         if (endpoint == null) {
             return null;
         }
-        return itemHandlerDirectionCache.getAdjacentItemHandler(getLevel(), endpoint.getPos(), endpoint.getOutputFacing())
+        return blockEntityDirectionCache.getAdjacentItemHandler(getLevel(), endpoint.getPos(), endpoint.getOutputFacing())
                 .map(ItemHandlerWrapper::new)
                 .orElse(null);
     }

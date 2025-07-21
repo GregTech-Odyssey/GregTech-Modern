@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,6 +34,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public interface ICoverable extends ITickSubscription, IAppearance {
+
+    BlockEntityDirectionCache getBlockEntityDirectionCache();
 
     Level getLevel();
 

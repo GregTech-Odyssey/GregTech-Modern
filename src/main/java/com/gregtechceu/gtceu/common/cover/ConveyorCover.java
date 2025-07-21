@@ -19,7 +19,6 @@ import com.gregtechceu.gtceu.common.blockentity.ItemPipeBlockEntity;
 import com.gregtechceu.gtceu.common.cover.data.DistributionMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
 import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
-import com.gregtechceu.gtceu.utils.cache.ItemHandlerDirectionCache;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
@@ -84,8 +83,6 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     protected final FilterHandler<ItemStack, ItemFilter> filterHandler;
     protected final ConditionalSubscriptionHandler subscriptionHandler;
 
-    protected final ItemHandlerDirectionCache itemHandlerDirectionCache = new ItemHandlerDirectionCache();
-
     public ConveyorCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide, int tier, int maxTransferRate) {
         super(definition, coverHolder, attachedSide);
         this.tier = tier;
@@ -112,7 +109,7 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
 
     @Nullable
     protected IItemHandler getAdjacentItemHandler() {
-        return itemHandlerDirectionCache.getAdjacentItemHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide).resolve().orElse(null);
+        return coverHolder.getBlockEntityDirectionCache().getAdjacentItemHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide).resolve().orElse(null);
     }
 
     //////////////////////////////////////

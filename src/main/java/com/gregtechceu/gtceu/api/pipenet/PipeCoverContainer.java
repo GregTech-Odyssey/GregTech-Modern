@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.pipenet;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
@@ -10,6 +11,7 @@ import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import com.gregtechceu.gtceu.common.blockentity.FluidPipeBlockEntity;
 import com.gregtechceu.gtceu.common.blockentity.ItemPipeBlockEntity;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 
 import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
@@ -34,7 +36,7 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
 
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(PipeCoverContainer.class);
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
-    private final IPipeNode<?, ?> pipeTile;
+    private final PipeBlockEntity<?, ?> pipeTile;
     @DescSynced
     @Persisted
     @UpdateListener(methodName = "onCoverSet")
@@ -66,7 +68,7 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
     @ReadOnlyManaged(onDirtyMethod = "onCoverDirty", serializeMethod = "serializeCoverUid", deserializeMethod = "deserializeCoverUid")
     private CoverBehavior east;
 
-    public PipeCoverContainer(IPipeNode<?, ?> pipeTile) {
+    public PipeCoverContainer(PipeBlockEntity<?, ?> pipeTile) {
         this.pipeTile = pipeTile;
     }
 
@@ -88,6 +90,11 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
         if (level != null && !level.isClientSide && level.getServer() != null) {
             level.getServer().execute(this::markDirty);
         }
+    }
+
+    @Override
+    public BlockEntityDirectionCache getBlockEntityDirectionCache() {
+        return pipeTile.blockEntityDirectionCache;
     }
 
     @Override

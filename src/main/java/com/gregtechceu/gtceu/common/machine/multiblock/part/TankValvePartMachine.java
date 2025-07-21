@@ -90,7 +90,7 @@ public class TankValvePartMachine extends MultiblockPartMachine {
 
     @Nullable
     private IFluidHandler getTargetTank() {
-        return fluidHandlerDirectionCache.getAdjacentFluidHandler(getLevel(), getPos(), getFrontFacing()).resolve().orElse(null);
+        return blockEntityDirectionCache.getAdjacentFluidHandler(getLevel(), getPos(), getFrontFacing()).resolve().orElse(null);
     }
 
     private void autoIO() {

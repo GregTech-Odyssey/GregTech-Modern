@@ -167,7 +167,7 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
     protected void updateAutoOutputSubscription() {
         var outputFacingItems = getOutputFacingItems();
         var outputFacingFluids = getOutputFacingFluids();
-        if ((isAutoOutputItems() && !inventory.isEmpty() && outputFacingItems != null && itemHandlerDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacingItems)) || (isAutoOutputFluids() && !tank.isEmpty() && outputFacingFluids != null && fluidHandlerDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacingFluids))) {
+        if ((isAutoOutputItems() && !inventory.isEmpty() && outputFacingItems != null && blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacingItems)) || (isAutoOutputFluids() && !tank.isEmpty() && outputFacingFluids != null && blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacingFluids))) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();

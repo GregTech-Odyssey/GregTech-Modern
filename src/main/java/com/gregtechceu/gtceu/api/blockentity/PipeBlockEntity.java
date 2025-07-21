@@ -15,7 +15,7 @@ import com.gregtechceu.gtceu.api.pipenet.*;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.cache.DirectionCache;
+import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 
 import com.lowdragmc.lowdraglib.Platform;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -93,7 +93,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
 
     private final long posLong;
 
-    private final DirectionCache<BlockEntity> blockEntityDirectionCache = new DirectionCache<>();
+    public final BlockEntityDirectionCache blockEntityDirectionCache = BlockEntityDirectionCache.create();
 
     public PipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
@@ -180,10 +180,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
 
     @Override
     public @Nullable BlockEntity getNeighbor(Direction facing) {
-        if (getLevel() instanceof ServerLevel serverLevel) {
-            return blockEntityDirectionCache.getOrSet(facing, () -> serverLevel.getBlockEntity(getBlockPos().relative(facing)));
-        }
-        return null;
+        return blockEntityDirectionCache.getAdjacentBlockEntity(getLevel(), getBlockPos(), facing);
     }
 
     @Override

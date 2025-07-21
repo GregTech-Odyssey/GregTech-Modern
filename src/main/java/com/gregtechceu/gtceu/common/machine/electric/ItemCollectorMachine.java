@@ -302,7 +302,7 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
 
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingItems();
-        if ((isAutoOutputItems() && !output.isEmpty()) && outputFacing != null && itemHandlerDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput);
+        if ((isAutoOutputItems() && !output.isEmpty()) && outputFacing != null && blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput);
         else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;

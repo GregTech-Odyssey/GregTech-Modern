@@ -11,13 +11,11 @@ import com.gregtechceu.gtceu.common.pipelike.fluid.FluidPipeNet;
 import com.gregtechceu.gtceu.common.pipelike.fluid.FluidPipeType;
 import com.gregtechceu.gtceu.utils.FacingPos;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.cache.FluidHandlerDirectionCache;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
@@ -41,8 +39,6 @@ public class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, FluidPi
     private int transferredFluids = 0;
     private long timer = 0;
 
-    public final FluidHandlerDirectionCache fluidHandlerDirectionCache = new FluidHandlerDirectionCache();
-
     public FluidPipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
     }
@@ -53,12 +49,6 @@ public class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, FluidPi
 
     public long getLevelTime() {
         return hasLevel() ? getLevel().getGameTime() : 0L;
-    }
-
-    @Override
-    public void onNeighborChanged(Block block, BlockPos fromPos, boolean isMoving) {
-        super.onNeighborChanged(block, fromPos, isMoving);
-        fluidHandlerDirectionCache.clearCache();
     }
 
     @Override

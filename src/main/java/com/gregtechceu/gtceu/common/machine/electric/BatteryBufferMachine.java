@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
 import com.gregtechceu.gtceu.api.capability.compat.FeCompat;
+import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
@@ -205,7 +206,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
         @Override
         public void serverTick() {
             var outFacing = getFrontFacing();
-            var energyContainer = GTCapabilityHelper.getEnergyContainer(getLevel(), getPos().relative(outFacing), outFacing.getOpposite());
+            var energyContainer = GTCapabilityHelper.getBlockEntityCapability(GTCapability.CAPABILITY_ENERGY_CONTAINER, getNeighbor(outFacing), outFacing.getOpposite());
             if (energyContainer == null) {
                 return;
             }

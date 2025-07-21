@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.common.pipelike.item;
 
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
+import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.filter.ItemFilter;
@@ -14,7 +15,6 @@ import com.gregtechceu.gtceu.common.cover.data.DistributionMode;
 import com.gregtechceu.gtceu.common.cover.data.FilterMode;
 import com.gregtechceu.gtceu.utils.FacingPos;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -64,7 +64,7 @@ public class ItemNetHandler implements IItemHandlerModifiable {
         }
         copyTransferred();
         CoverBehavior pipeCover = pipe.getCoverContainer().getCoverAtSide(facing);
-        CoverBehavior tileCover = getCoverOnNeighbour(pipe.getPipePos(), facing);
+        CoverBehavior tileCover = getCoverOnNeighbour(facing);
         boolean pipeConveyor = pipeCover instanceof ConveyorCover;
         boolean tileConveyor = tileCover instanceof ConveyorCover;
         // abort if there are two conveyors
@@ -250,7 +250,7 @@ public class ItemNetHandler implements IItemHandlerModifiable {
             return stack;
         }
         CoverBehavior pipeCover = routePath.getTargetPipe().getCoverContainer().getCoverAtSide(routePath.getTargetFacing());
-        CoverBehavior tileCover = getCoverOnNeighbour(routePath.getTargetPipe().getPipePos(), routePath.getTargetFacing());
+        CoverBehavior tileCover = getCoverOnNeighbour(routePath.getTargetFacing());
         if (pipeCover != null) {
             testHandler.setStackInSlot(0, stack.copy());
             IItemHandlerModifiable itemHandler = pipeCover.getItemHandlerCap(testHandler);
@@ -285,10 +285,10 @@ public class ItemNetHandler implements IItemHandlerModifiable {
         return remainder;
     }
 
-    public CoverBehavior getCoverOnNeighbour(BlockPos pos, Direction handlerFacing) {
+    public CoverBehavior getCoverOnNeighbour(Direction handlerFacing) {
         BlockEntity tile = pipe.getNeighbor(handlerFacing);
         if (tile != null) {
-            ICoverable coverable = GTCapabilityHelper.getCoverable(pipe.getLevel(), pos.relative(handlerFacing), handlerFacing.getOpposite());
+            ICoverable coverable = GTCapabilityHelper.getBlockEntityCapability(GTCapability.CAPABILITY_COVERABLE, pipe.getNeighbor(handlerFacing), handlerFacing.getOpposite());
             if (coverable == null) return null;
             return coverable.getCoverAtSide(handlerFacing.getOpposite());
         }

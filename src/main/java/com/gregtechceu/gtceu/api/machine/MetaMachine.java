@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.block.IMachineBlock;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.IPaintable;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
@@ -29,9 +30,8 @@ import com.gregtechceu.gtceu.common.cover.ItemFilterCover;
 import com.gregtechceu.gtceu.common.item.tool.behavior.ToolModeSwitchBehavior;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 import com.gregtechceu.gtceu.common.machine.owner.PlayerOwner;
+import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 import com.gregtechceu.gtceu.utils.cache.DirectionCache;
-import com.gregtechceu.gtceu.utils.cache.FluidHandlerDirectionCache;
-import com.gregtechceu.gtceu.utils.cache.ItemHandlerDirectionCache;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -59,6 +59,7 @@ import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -109,13 +110,12 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     private final List<TickableSubscription> serverTicks;
     private final List<TickableSubscription> waitingToAdd;
 
-    protected final DirectionCache<IItemHandlerModifiable> itemHandlerModifiableCache = new DirectionCache<>();
-    protected final DirectionCache<IFluidHandlerModifiable> fluidHandlerModifiableCache = new DirectionCache<>();
-    protected final DirectionCache<IItemHandlerModifiable> itemHandlerModifiableCoverCache = new DirectionCache<>();
-    protected final DirectionCache<IFluidHandlerModifiable> fluidHandlerModifiableCoverCache = new DirectionCache<>();
+    protected final DirectionCache<IItemHandlerModifiable> itemHandlerModifiableCache = DirectionCache.create();
+    protected final DirectionCache<IFluidHandlerModifiable> fluidHandlerModifiableCache = DirectionCache.create();
+    protected final DirectionCache<IItemHandlerModifiable> itemHandlerModifiableCoverCache = DirectionCache.create();
+    protected final DirectionCache<IFluidHandlerModifiable> fluidHandlerModifiableCoverCache = DirectionCache.create();
 
-    public final ItemHandlerDirectionCache itemHandlerDirectionCache = new ItemHandlerDirectionCache();
-    public final FluidHandlerDirectionCache fluidHandlerDirectionCache = new FluidHandlerDirectionCache();
+    public final BlockEntityDirectionCache blockEntityDirectionCache = BlockEntityDirectionCache.create();
 
     private boolean sync = true;
 
@@ -459,6 +459,10 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
      */
     public void attachTraits(MachineTrait trait) {
         traits.add(trait);
+        clearDirectionCache();
+    }
+
+    public void clearDirectionCache() {
         itemHandlerModifiableCache.clearCache();
         itemHandlerModifiableCoverCache.clearCache();
         fluidHandlerModifiableCache.clearCache();
@@ -608,7 +612,18 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         }
     }
 
-    public void onRotated(Direction oldFacing, Direction newFacing) {}
+    public void onRotated(Direction oldFacing, Direction newFacing) {
+        if (oldFacing != newFacing) {
+            itemHandlerModifiableCache.remove(oldFacing);
+            itemHandlerModifiableCoverCache.remove(oldFacing);
+            fluidHandlerModifiableCache.remove(oldFacing);
+            fluidHandlerModifiableCoverCache.remove(oldFacing);
+            itemHandlerModifiableCache.remove(newFacing);
+            itemHandlerModifiableCoverCache.remove(newFacing);
+            fluidHandlerModifiableCache.remove(newFacing);
+            fluidHandlerModifiableCoverCache.remove(newFacing);
+        }
+    }
 
     public boolean allowExtendedFacing() {
         return getDefinition().isAllowExtendedFacing();
@@ -622,10 +637,20 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         return -1;
     }
 
+    public @Nullable MetaMachine getNeighborMachine(Direction facing) {
+        if (blockEntityDirectionCache.getAdjacentBlockEntity(getLevel(), getPos(), facing) instanceof MetaMachineBlockEntity entity) {
+            return entity.metaMachine;
+        }
+        return null;
+    }
+
+    public @Nullable BlockEntity getNeighbor(Direction facing) {
+        return blockEntityDirectionCache.getAdjacentBlockEntity(getLevel(), getPos(), facing);
+    }
+
     public void onNeighborChanged(Block block, BlockPos fromPos, boolean isMoving) {
         coverContainer.onNeighborChanged(block, fromPos, isMoving);
-        itemHandlerDirectionCache.clearCache();
-        fluidHandlerDirectionCache.clearCache();
+        blockEntityDirectionCache.clearCache();
     }
 
     public void animateTick(RandomSource random) {}

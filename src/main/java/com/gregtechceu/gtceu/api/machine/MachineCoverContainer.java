@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 
 import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
@@ -87,6 +88,11 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
         if (level != null && !level.isClientSide && level.getServer() != null) {
             level.getServer().execute(this::markDirty);
         }
+    }
+
+    @Override
+    public BlockEntityDirectionCache getBlockEntityDirectionCache() {
+        return machine.blockEntityDirectionCache;
     }
 
     @Override

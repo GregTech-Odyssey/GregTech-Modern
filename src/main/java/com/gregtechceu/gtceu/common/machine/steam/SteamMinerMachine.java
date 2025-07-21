@@ -140,7 +140,7 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     //////////////////////////////////////
     protected void updateAutoOutputSubscription() {
         var outputFacingItems = getFrontFacing();
-        if (!exportItems.isEmpty() && itemHandlerDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacingItems)) {
+        if (!exportItems.isEmpty() && blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacingItems)) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();

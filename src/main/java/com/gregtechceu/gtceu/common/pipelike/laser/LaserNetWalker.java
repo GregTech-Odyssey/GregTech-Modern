@@ -14,8 +14,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class LaserNetWalker extends PipeNetWalker<LaserPipeBlockEntity, LaserPipeProperties, LaserPipeNet> {
 
-    public static final LaserRoutePath FAILED_MARKER = new LaserRoutePath(null, null, 0);
-
     @Nullable
     public static LaserRoutePath createNetData(LaserPipeNet world, BlockPos sourcePipe, Direction faceToSourceHandler) {
         try {
@@ -26,7 +24,7 @@ public class LaserNetWalker extends PipeNetWalker<LaserPipeBlockEntity, LaserPip
             walker.traversePipeNet();
             return walker.routePath;
         } catch (Exception e) {
-            return FAILED_MARKER;
+            return null;
         }
     }
 
@@ -84,7 +82,7 @@ public class LaserNetWalker extends PipeNetWalker<LaserPipeBlockEntity, LaserPip
             ILaserContainer handler = neighbourTile
                     .getCapability(GTCapability.CAPABILITY_LASER, faceToNeighbour.getOpposite()).resolve().orElse(null);
             if (handler != null) {
-                ((LaserNetWalker) root).routePath = new LaserRoutePath(pipePos.immutable(), faceToNeighbour,
+                ((LaserNetWalker) root).routePath = new LaserRoutePath(pipeNode, pipePos.immutable(), faceToNeighbour,
                         getWalkedBlocks());
                 stop();
             }

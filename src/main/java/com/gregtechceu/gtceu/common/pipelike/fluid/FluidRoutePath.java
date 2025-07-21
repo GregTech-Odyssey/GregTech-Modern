@@ -46,7 +46,7 @@ public class FluidRoutePath implements IRoutePath<IFluidHandler> {
     @Override
     @Nullable
     public IFluidHandler getHandler(Level world) {
-        return targetPipe.fluidHandlerDirectionCache.getAdjacentFluidHandler(world, getTargetPipePos(), targetFacing).resolve().orElse(null);
+        return targetPipe.blockEntityDirectionCache.getAdjacentFluidHandler(world, getTargetPipePos(), targetFacing).resolve().orElse(null);
     }
 
     public boolean matchesFilters(FluidStack stack) {

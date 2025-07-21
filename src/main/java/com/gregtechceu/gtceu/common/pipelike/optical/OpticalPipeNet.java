@@ -25,7 +25,7 @@ public class OpticalPipeNet extends PipeNet<OpticalPipeProperties> {
             return NET_DATA.get(pipePos);
         }
         OpticalRoutePath data = OpticalNetWalker.createNetData(this, pos, facing);
-        if (data == OpticalNetWalker.FAILED_MARKER) {
+        if (data == null) {
             // walker failed, don't cache, so it tries again on next insertion
             return null;
         }

@@ -9,6 +9,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.energy.IEnergyStorage;
@@ -113,6 +114,14 @@ public class GTCapabilityHelper {
             if (blockEntity != null) {
                 return blockEntity.getCapability(capability, side).resolve().orElse(null);
             }
+        }
+        return null;
+    }
+
+    @Nullable
+    public static <T> T getBlockEntityCapability(Capability<T> capability, @Nullable BlockEntity blockEntity, @Nullable Direction side) {
+        if (blockEntity != null) {
+            return blockEntity.getCapability(capability, side).resolve().orElse(null);
         }
         return null;
     }

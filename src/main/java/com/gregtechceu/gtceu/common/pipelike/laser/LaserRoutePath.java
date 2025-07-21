@@ -1,18 +1,21 @@
 package com.gregtechceu.gtceu.common.pipelike.laser;
 
-import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ILaserContainer;
+import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.pipenet.IRoutePath;
+import com.gregtechceu.gtceu.common.blockentity.LaserPipeBlockEntity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class LaserRoutePath implements IRoutePath<ILaserContainer> {
 
+    private final LaserPipeBlockEntity targetPipe;
     private final BlockPos targetPipePos;
     /**
      * the current face to handler
@@ -25,7 +28,8 @@ public class LaserRoutePath implements IRoutePath<ILaserContainer> {
     private final int distance;
     byte connections;
 
-    public LaserRoutePath(BlockPos targetPipePos, Direction targetFacing, int distance) {
+    public LaserRoutePath(LaserPipeBlockEntity targetPipe, BlockPos targetPipePos, @NotNull Direction targetFacing, int distance) {
+        this.targetPipe = targetPipe;
         this.targetPipePos = targetPipePos;
         this.targetFacing = targetFacing;
         this.distance = distance;
@@ -38,7 +42,11 @@ public class LaserRoutePath implements IRoutePath<ILaserContainer> {
      */
     @Nullable
     public ILaserContainer getHandler(Level level) {
-        return GTCapabilityHelper.getLaser(level, getTargetPipePos().relative(targetFacing), targetFacing.getOpposite());
+        BlockEntity blockEntity = targetPipe.getNeighbor(targetFacing);
+        if (blockEntity != null) {
+            return blockEntity.getCapability(GTCapability.CAPABILITY_LASER, targetFacing.getOpposite()).resolve().orElse(null);
+        }
+        return null;
     }
 
     public @NotNull BlockPos getTargetPipePos() {

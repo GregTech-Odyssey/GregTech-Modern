@@ -140,6 +140,7 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
     public void removedFromController(IMultiController controller) {
         controllerPositions.remove(controller.self().getPos().asLong());
         controllers.remove(controller);
+        clearDirectionCache();
         requestSync();
     }
 
@@ -147,6 +148,7 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
     public void addedToController(IMultiController controller) {
         controllerPositions.add(controller.self().getPos().asLong());
         controllers.add(controller);
+        clearDirectionCache();
         requestSync();
     }
 }

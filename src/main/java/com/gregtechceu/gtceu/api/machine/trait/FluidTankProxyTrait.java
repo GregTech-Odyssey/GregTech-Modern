@@ -123,7 +123,7 @@ public class FluidTankProxyTrait extends MachineTrait implements IFluidHandlerMo
         var pos = getMachine().getPos();
         for (Direction facing : facings) {
             var filter = getMachine().getFluidCapFilter(facing, IO.OUT);
-            machine.fluidHandlerDirectionCache.getAdjacentFluidHandler(level, pos, facing).ifPresent(adj -> GTTransferUtils.transferFluidsFiltered(this, adj, filter));
+            machine.blockEntityDirectionCache.getAdjacentFluidHandler(level, pos, facing).ifPresent(adj -> GTTransferUtils.transferFluidsFiltered(this, adj, filter));
         }
     }
 
