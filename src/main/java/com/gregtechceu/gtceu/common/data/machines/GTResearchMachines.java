@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.common.data.machines;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.data.RotationState;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
@@ -59,7 +58,7 @@ public class GTResearchMachines {
 
     public static final MultiblockMachineDefinition RESEARCH_STATION = REGISTRATE
             .multiblock("research_station", ResearchStationMachine::new)
-            .rotationState(RotationState.NON_Y_AXIS)
+            .nonYAxisRotation()
             .recipeType(GTRecipeTypes.RESEARCH_STATION_RECIPES)
             .appearanceBlock(ADVANCED_COMPUTER_CASING)
             .tooltipBuilder((s, l) -> l.addAll(LangHandler.getMultiLang("gtceu.machine.research_station.tooltip")))
@@ -112,7 +111,7 @@ public class GTResearchMachines {
     public static final MachineDefinition OBJECT_HOLDER = REGISTRATE.machine("object_holder", ObjectHolderMachine::new)
             .langValue("Object Holder")
             .tier(ZPM)
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .abilities(PartAbility.OBJECT_HOLDER)
             .renderer(() -> new OverlayTieredActiveMachineRenderer(ZPM, GTCEu.id("block/machine/part/object_holder"),
                     GTCEu.id("block/machine/part/object_holder_active")))
@@ -121,7 +120,7 @@ public class GTResearchMachines {
     public static final MachineDefinition DATA_BANK = REGISTRATE.multiblock("data_bank", DataBankMachine::new)
             .langValue("Data Bank")
             .checkPriority(2)
-            .rotationState(RotationState.NON_Y_AXIS)
+            .nonYAxisRotation()
             .appearanceBlock(COMPUTER_CASING)
             .recipeType(GTRecipeTypes.DUMMY_RECIPES)
             .tooltips(Component.translatable("gtceu.machine.data_bank.tooltip.0"),
@@ -154,7 +153,7 @@ public class GTResearchMachines {
             .multiblock("network_switch", NetworkSwitchMachine::new)
             .checkPriority(2)
             .langValue("Network Switch")
-            .rotationState(RotationState.NON_Y_AXIS)
+            .nonYAxisRotation()
             .appearanceBlock(COMPUTER_CASING)
             .recipeType(GTRecipeTypes.DUMMY_RECIPES)
             .tooltips(Component.translatable("gtceu.machine.network_switch.tooltip.0"),
@@ -194,7 +193,7 @@ public class GTResearchMachines {
             .multiblock("high_performance_computation_array", HPCAMachine::new)
             .langValue("High Performance Computation Array (HPCA)")
             .checkPriority(2)
-            .rotationState(RotationState.NON_Y_AXIS)
+            .nonYAxisRotation()
             // TODO : Make a controllerAppearanceBlock() so the controller CTM's to the correct casings - Also just a
             // good API addition for packdevs
             .appearanceBlock(COMPUTER_CASING)
@@ -329,7 +328,7 @@ public class GTResearchMachines {
             .machine("data_access_hatch", (holder) -> new DataAccessHatchMachine(holder, EV, false))
             .langValue("Data Access Hatch")
             .tier(EV)
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .abilities(PartAbility.DATA_ACCESS)
             .tooltips(Component.translatable("gtceu.machine.data_access_hatch.tooltip.0"),
                     Component.translatable("gtceu.machine.data_access_hatch.tooltip.1", 9),
@@ -341,7 +340,7 @@ public class GTResearchMachines {
             .machine("advanced_data_access_hatch", (holder) -> new DataAccessHatchMachine(holder, LuV, false))
             .langValue("Advanced Data Access Hatch")
             .tier(LuV)
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .abilities(PartAbility.DATA_ACCESS)
             .tooltips(Component.translatable("gtceu.machine.data_access_hatch.tooltip.0"),
                     Component.translatable("gtceu.machine.data_access_hatch.tooltip.1", 16),
@@ -353,7 +352,7 @@ public class GTResearchMachines {
             .machine("creative_data_access_hatch", (holder) -> new DataAccessHatchMachine(holder, MAX, true))
             .langValue("Creative Data Access Hatch")
             .tier(MAX)
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .abilities(PartAbility.DATA_ACCESS)
             .tooltipBuilder((s, list) -> {
                 list.add(Component.translatable("gtceu.machine.data_access_hatch.tooltip.0"));
@@ -429,7 +428,7 @@ public class GTResearchMachines {
         return REGISTRATE.machine(name, constructor)
                 .langValue(displayName)
                 .tier(tier)
-                .rotationState(RotationState.ALL)
+                .allRotation()
                 .abilities(abilities)
                 .overlayTieredHullRenderer(model);
     }
@@ -439,7 +438,7 @@ public class GTResearchMachines {
                                                                       String texture, boolean isAdvanced) {
         return REGISTRATE.machine(name, constructor)
                 .langValue(displayName)
-                .rotationState(RotationState.ALL)
+                .allRotation()
                 .abilities(PartAbility.HPCA_COMPONENT)
                 .renderer(() -> new HPCAPartRenderer(
                         isAdvanced,
@@ -457,7 +456,7 @@ public class GTResearchMachines {
                                                                       boolean isAdvanced) {
         return REGISTRATE.machine(name, constructor)
                 .langValue(displayName)
-                .rotationState(RotationState.ALL)
+                .allRotation()
                 .abilities(PartAbility.HPCA_COMPONENT)
                 .renderer(() -> new HPCAPartRenderer(
                         isAdvanced,

@@ -127,7 +127,7 @@ class RecipeRunner {
         var handlers = capabilityProxies.get(capIO);
         // Only sort for non-tick outputs
         if (!isTick && capIO == IO.OUT) {
-            handlers.sort(RecipeHandlerList.COMPARATOR.reversed());
+            handlers.sort(RecipeHandlerList.COMPARATOR);
         }
 
         Map<RecipeHandlerGroup, List<RecipeHandlerList>> handlerGroups = new HashMap<>();

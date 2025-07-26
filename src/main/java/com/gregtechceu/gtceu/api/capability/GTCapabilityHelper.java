@@ -45,11 +45,6 @@ public class GTCapabilityHelper {
     }
 
     @Nullable
-    public static IToolable getToolable(Level level, BlockPos pos, @Nullable Direction side) {
-        return getBlockEntityCapability(GTCapability.CAPABILITY_TOOLABLE, level, pos, side);
-    }
-
-    @Nullable
     public static IWorkable getWorkable(Level level, BlockPos pos, @Nullable Direction side) {
         return getBlockEntityCapability(GTCapability.CAPABILITY_WORKABLE, level, pos, side);
     }
@@ -73,11 +68,6 @@ public class GTCapabilityHelper {
             }
         }
         return null;
-    }
-
-    @Nullable
-    public static ICleanroomReceiver getCleanroomReceiver(Level level, BlockPos pos, @Nullable Direction side) {
-        return getBlockEntityCapability(GTCapability.CAPABILITY_CLEANROOM_RECEIVER, level, pos, side);
     }
 
     @Nullable

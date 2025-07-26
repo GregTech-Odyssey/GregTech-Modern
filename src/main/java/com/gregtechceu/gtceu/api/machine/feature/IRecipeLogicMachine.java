@@ -111,16 +111,8 @@ public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IMachineFe
         return self().getDefinition().isRegressWhenWaiting();
     }
 
-    /**
-     * Always try {@link IRecipeLogicMachine#fullModifyRecipe(GTRecipe)} before setting up recipe.
-     * 
-     * @return true - will map {@link RecipeLogic#lastOriginRecipe} to the latest recipe for next round when finishing.
-     *         false - keep using the {@link RecipeLogic#lastRecipe}, which is already modified.
-     */
-    default boolean alwaysTryModifyRecipe() {
-        // make it *always* do overclock and parallel so that the machine doesn't get stuck running a lower-tier recipe
-        // in any possible scenario.
-        return true;
+    default boolean alwaysSearchRecipe() {
+        return false;
     }
 
     default boolean shouldWorkingPlaySound() {

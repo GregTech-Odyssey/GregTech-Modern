@@ -152,6 +152,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
 
     @Override
     public void setOutputFacingFluids(@Nullable Direction outputFacing) {
+        clearDirectionCache();
         updateAutoOutputSubscription();
     }
 

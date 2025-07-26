@@ -288,6 +288,7 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
 
     @Override
     public void setOutputFacingItems(@Nullable Direction outputFacing) {
+        clearDirectionCache();
         this.outputFacingItems = outputFacing;
         updateAutoOutputSubscription();
     }

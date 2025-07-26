@@ -108,6 +108,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
 
     @Override
     public void setOutputFacingFluids(Direction outputFacing) {
+        clearDirectionCache();
         setFrontFacing(outputFacing);
     }
 

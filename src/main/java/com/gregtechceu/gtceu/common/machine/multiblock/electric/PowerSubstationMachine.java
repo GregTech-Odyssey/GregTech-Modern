@@ -36,8 +36,6 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.player.Player;
 
 import com.google.common.annotations.VisibleForTesting;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigInteger;
@@ -83,23 +81,19 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
         super.onStructureFormed();
         List<IEnergyContainer> inputs = new ArrayList<>();
         List<IEnergyContainer> outputs = new ArrayList<>();
-        Long2ObjectMap<IO> ioMap = getMultiblockState().getMatchContext().getOrCreate("ioMap", Long2ObjectMaps::emptyMap);
         for (IMultiPart part : getParts()) {
-            IO io = ioMap.getOrDefault(part.self().getPos().asLong(), IO.BOTH);
-            if (io == IO.NONE) continue;
             if (part instanceof IMaintenanceMachine maintenanceMachine) {
                 this.maintenance = maintenanceMachine;
-            }
-            var handlerLists = part.getRecipeHandlers();
-            for (var handlerList : handlerLists) {
-                if (!handlerList.isValid(io)) continue;
-                var containers = handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).toList();
-                if (handlerList.getHandlerIO() == IO.IN) {
-                    inputs.addAll(containers);
-                } else if (handlerList.getHandlerIO() == IO.OUT) {
-                    outputs.addAll(containers);
+            } else {
+                for (var handlerList : part.getRecipeHandlers()) {
+                    var containers = handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).toList();
+                    if (handlerList.getHandlerIO() == IO.IN) {
+                        inputs.addAll(containers);
+                    } else if (handlerList.getHandlerIO() == IO.OUT) {
+                        outputs.addAll(containers);
+                    }
+                    traitSubscriptions.add(handlerList.subscribe(tickSubscription::updateSubscription, EURecipeCapability.CAP));
                 }
-                traitSubscriptions.add(handlerList.subscribe(tickSubscription::updateSubscription, EURecipeCapability.CAP));
             }
         }
         this.inputHatches = new EnergyContainerList(inputs);

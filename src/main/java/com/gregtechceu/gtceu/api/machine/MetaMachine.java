@@ -205,9 +205,13 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
             serverTick.unsubscribe();
         }
         serverTicks.clear();
+        blockEntityDirectionCache.clearCache();
+        clearDirectionCache();
     }
 
     public void onLoad() {
+        blockEntityDirectionCache.clearCache();
+        clearDirectionCache();
         traits.forEach(MachineTrait::onMachineLoad);
         coverContainer.onLoad();
     }
@@ -322,8 +326,10 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
             } else return Pair.of(GTToolType.SCREWDRIVER, onScrewdriverClick(playerIn, hand, gridSide, hitResult));
         } else if (toolType.contains(GTToolType.SOFT_MALLET)) {
             if (coverBehavior != null) {
-                return Pair.of(GTToolType.SOFT_MALLET, coverBehavior.onSoftMalletClick(playerIn, hand, hitResult));
-            } else return Pair.of(GTToolType.SOFT_MALLET, onSoftMalletClick(playerIn, hand, gridSide, hitResult));
+                var result = coverBehavior.onSoftMalletClick(playerIn, hand, hitResult);
+                if (result != InteractionResult.PASS) return Pair.of(GTToolType.SOFT_MALLET, result);
+            }
+            return Pair.of(GTToolType.SOFT_MALLET, onSoftMalletClick(playerIn, hand, gridSide, hitResult));
         } else if (toolType.contains(GTToolType.WRENCH)) {
             return Pair.of(GTToolType.WRENCH, onWrenchClick(playerIn, hand, gridSide, hitResult));
         } else if (toolType.contains(GTToolType.CROWBAR)) {

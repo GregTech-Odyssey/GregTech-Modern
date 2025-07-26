@@ -279,6 +279,7 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
 
     @Override
     public void setOutputFacingItems(@Nullable Direction outputFacing) {
+        clearDirectionCache();
         this.outputFacingItems = outputFacing;
         updateAutoOutputSubscription();
     }

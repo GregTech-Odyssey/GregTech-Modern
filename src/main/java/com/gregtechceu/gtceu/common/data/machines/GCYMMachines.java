@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.common.data.machines;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.data.RotationState;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
@@ -66,7 +65,7 @@ public class GCYMMachines {
                         case 8 -> "Super";
                         default -> "Simple"; // Should never be hit.
                     } + " Parallel Control Hatch")
-                    .rotationState(RotationState.ALL)
+                    .allRotation()
                     .abilities(PartAbility.PARALLEL_HATCH)
                     .workableTieredHullRenderer(GTCEu.id("block/machines/parallel_hatch_mk" + (tier - 4)))
                     .tooltips(Component.translatable("gtceu.machine.parallel_hatch_mk" + tier + ".tooltip"),
@@ -80,7 +79,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.multiblock.parallelizable.tooltip"))
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_1.tooltip",
                     Component.translatable("gtceu.macerator")))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(MACERATOR_RECIPES)
             .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH, OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_SECURE_MACERATION)
@@ -107,7 +106,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.multiblock.parallelizable.tooltip"))
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_2.tooltip",
                     Component.translatable("gtceu.ore_washer"), Component.translatable("gtceu.chemical_bath")))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeTypes(CHEMICAL_BATH_RECIPES, ORE_WASHER_RECIPES)
             .renderer(() -> new LargeChemicalBathRenderer(GTCEu.id("block/casings/gcym/watertight_casing"),
                     GTCEu.id("block/multiblock/gcym/large_chemical_bath")))
@@ -137,7 +136,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.multiblock.parallelizable.tooltip"))
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_2.tooltip",
                     Component.translatable("gtceu.centrifuge"), Component.translatable("gtceu.thermal_centrifuge")))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeTypes(CENTRIFUGE_RECIPES, THERMAL_CENTRIFUGE_RECIPES)
             .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH, OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_VIBRATION_SAFE)
@@ -165,7 +164,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.multiblock.parallelizable.tooltip"))
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_1.tooltip",
                     Component.translatable("gtceu.mixer")))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(MIXER_RECIPES)
             .renderer(() -> new LargeMixerRenderer(GTCEu.id("block/casings/gcym/reaction_safe_mixing_casing"),
                     GTCEu.id("block/multiblock/gcym/large_mixer")))
@@ -196,7 +195,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.multiblock.parallelizable.tooltip"))
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_1.tooltip",
                     Component.translatable("gtceu.electrolyzer")))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(ELECTROLYZER_RECIPES)
             .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH, OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_NONCONDUCTING)
@@ -222,7 +221,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_2.tooltip",
                     Component.translatable("gtceu.electromagnetic_separator"),
                     Component.translatable("gtceu.polarizer")))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeTypes(ELECTROMAGNETIC_SEPARATOR_RECIPES, POLARIZER_RECIPES)
             .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH, OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_NONCONDUCTING)
@@ -247,7 +246,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.multiblock.parallelizable.tooltip"))
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_1.tooltip",
                     Component.translatable("gtceu.packer")))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(GTRecipeTypes.PACKER_RECIPES)
             .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH, OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_TUNGSTENSTEEL_ROBUST)
@@ -277,7 +276,7 @@ public class GCYMMachines {
                     Component.translatable("gtceu.assembler")))
             .conditionalTooltip(GTMachineUtils.defaultEnvironmentRequirement(),
                     ConfigHolder.INSTANCE.gameplay.environmentalHazards)
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(ASSEMBLER_RECIPES)
             .recipeModifiers(DEFAULT_ENVIRONMENT_REQUIREMENT, GTRecipeModifiers.PARALLEL_HATCH,
                     OC_NON_PERFECT_SUBTICK, BATCH_MODE)
@@ -309,7 +308,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.multiblock.exact_hatch_1.tooltip"))
             .conditionalTooltip(GTMachineUtils.defaultEnvironmentRequirement(),
                     ConfigHolder.INSTANCE.gameplay.environmentalHazards)
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(CIRCUIT_ASSEMBLER_RECIPES)
             .recipeModifiers(DEFAULT_ENVIRONMENT_REQUIREMENT, GTRecipeModifiers.PARALLEL_HATCH,
                     OC_NON_PERFECT_SUBTICK, BATCH_MODE)
@@ -342,7 +341,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.multiblock.parallelizable.tooltip"))
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_1.tooltip",
                     Component.translatable("gtceu.arc_furnace")))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(ARC_FURNACE_RECIPES)
             .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH, OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_HIGH_TEMPERATURE_SMELTING)
@@ -373,7 +372,7 @@ public class GCYMMachines {
                     Component.translatable("gtceu.laser_engraver")))
             .conditionalTooltip(GTMachineUtils.defaultEnvironmentRequirement(),
                     ConfigHolder.INSTANCE.gameplay.environmentalHazards)
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(LASER_ENGRAVER_RECIPES)
             .recipeModifiers(DEFAULT_ENVIRONMENT_REQUIREMENT, GTRecipeModifiers.PARALLEL_HATCH,
                     OC_NON_PERFECT_SUBTICK, BATCH_MODE)
@@ -403,7 +402,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.multiblock.parallelizable.tooltip"))
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_1.tooltip",
                     Component.translatable("gtceu.sifter")))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(SIFTER_RECIPES)
             .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH, OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_VIBRATION_SAFE)
@@ -433,7 +432,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.machine.electric_blast_furnace.tooltip.0"),
                     Component.translatable("gtceu.machine.electric_blast_furnace.tooltip.1"),
                     Component.translatable("gtceu.machine.electric_blast_furnace.tooltip.2"))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(ALLOY_BLAST_RECIPES)
             .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH, GTRecipeModifiers::ebfOverclock)
             .appearanceBlock(CASING_HIGH_TEMPERATURE_SMELTING)
@@ -499,7 +498,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.multiblock.parallelizable.tooltip"))
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_1.tooltip",
                     Component.translatable("gtceu.autoclave")))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(AUTOCLAVE_RECIPES)
             .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH, OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_WATERTIGHT)
@@ -527,7 +526,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_4.tooltip",
                     Component.translatable("gtceu.bender"), Component.translatable("gtceu.compressor"),
                     Component.translatable("gtceu.forge_hammer"), Component.translatable("gtceu.forming_press")))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeTypes(BENDER_RECIPES, COMPRESSOR_RECIPES, FORGE_HAMMER_RECIPES, FORMING_PRESS_RECIPES)
             .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH, OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_STRESS_PROOF)
@@ -554,7 +553,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_3.tooltip",
                     Component.translatable("gtceu.brewery"), Component.translatable("gtceu.fermenter"),
                     Component.translatable("gtceu.fluid_heater")))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeTypes(BREWING_RECIPES, FERMENTING_RECIPES, FLUID_HEATER_RECIPES)
             .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH, OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_CORROSION_PROOF)
@@ -583,7 +582,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.multiblock.parallelizable.tooltip"))
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_2.tooltip",
                     Component.translatable("gtceu.cutter"), Component.translatable("gtceu.lathe")))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeTypes(CUTTER_RECIPES, LATHE_RECIPES)
             .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH, OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_SHOCK_PROOF)
@@ -611,7 +610,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.multiblock.parallelizable.tooltip"))
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_2.tooltip",
                     Component.translatable("gtceu.distillation_tower"), Component.translatable("gtceu.distillery")))
-            .rotationState(RotationState.NON_Y_AXIS)
+            .nonYAxisRotation()
             .recipeTypes(DISTILLATION_RECIPES, DISTILLERY_RECIPES)
             .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH, OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_WATERTIGHT)
@@ -701,7 +700,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.multiblock.parallelizable.tooltip"))
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_2.tooltip",
                     Component.translatable("gtceu.extractor"), Component.translatable("gtceu.canner")))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeTypes(EXTRACTOR_RECIPES, CANNER_RECIPES)
             .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH, OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_WATERTIGHT)
@@ -726,7 +725,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.multiblock.parallelizable.tooltip"))
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_1.tooltip",
                     Component.translatable("gtceu.extruder")))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(EXTRUDER_RECIPES)
             .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH, OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_STRESS_PROOF)
@@ -755,7 +754,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.multiblock.parallelizable.tooltip"))
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_1.tooltip",
                     Component.translatable("gtceu.fluid_solidifier")))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(FLUID_SOLIDFICATION_RECIPES)
             .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH, OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_WATERTIGHT)
@@ -783,7 +782,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.multiblock.parallelizable.tooltip"))
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_1.tooltip",
                     Component.translatable("gtceu.wiremill")))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(WIREMILL_RECIPES)
             .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH, OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_STRESS_PROOF)
@@ -811,7 +810,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.machine.electric_blast_furnace.tooltip.0"),
                     Component.translatable("gtceu.machine.electric_blast_furnace.tooltip.1"),
                     Component.translatable("gtceu.machine.electric_blast_furnace.tooltip.2"))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(BLAST_RECIPES)
             .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH,
                     GTRecipeModifiers::ebfOverclock, BATCH_MODE)
@@ -986,7 +985,7 @@ public class GCYMMachines {
             .tooltips(Component.translatable("gtceu.multiblock.parallelizable.tooltip"))
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_1.tooltip",
                     Component.translatable("gtceu.vacuum_freezer")))
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(VACUUM_RECIPES)
             .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH, OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_ALUMINIUM_FROSTPROOF)

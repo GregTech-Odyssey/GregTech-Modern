@@ -139,8 +139,8 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
     }
 
     @Override
-    public void inValid() {
-        super.inValid();
+    public void onMachineUnLoad() {
+        super.onMachineUnLoad();
         this.cachedItemHandler = null;
         this.pipeLength = 0;
     }

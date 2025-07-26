@@ -25,10 +25,7 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Block;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.LongSet;
-import it.unimi.dsi.fastutil.longs.LongSets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,7 +79,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         super.onUnload();
         traitSubscriptions.forEach(ISubscription::unsubscribe);
         traitSubscriptions.clear();
-        recipeLogic.inValid();
     }
 
     protected RecipeLogic createRecipeLogic(Object... args) {
@@ -96,18 +92,13 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     public void onStructureFormed() {
         super.onStructureFormed();
         // attach parts' traits
-        activeBlocks = getMultiblockState().getMatchContext().getOrDefault("vaBlocks", LongSets.emptySet());
+        activeBlocks = getMultiblockState().getMatchContext().vaBlocks;
         capabilitiesProxy.clear();
         capabilitiesFlat.clear();
         traitSubscriptions.forEach(ISubscription::unsubscribe);
         traitSubscriptions.clear();
-        Long2ObjectMap<IO> ioMap = getMultiblockState().getMatchContext().getOrCreate("ioMap", Long2ObjectMaps::emptyMap);
         for (IMultiPart part : getParts()) {
-            IO io = ioMap.getOrDefault(part.self().getPos().asLong(), IO.BOTH);
-            if (io == IO.NONE) continue;
-            var handlerLists = part.getRecipeHandlers();
-            for (var handlerList : handlerLists) {
-                if (!handlerList.isValid(io)) continue;
+            for (var handlerList : part.getRecipeHandlers()) {
                 this.addHandlerList(handlerList);
                 traitSubscriptions.add(handlerList.subscribe(recipeLogic::updateTickSubscription));
             }

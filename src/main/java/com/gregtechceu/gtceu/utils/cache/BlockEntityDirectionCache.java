@@ -30,8 +30,14 @@ public class BlockEntityDirectionCache extends DirectionCache<WeakReference<Bloc
         if (ref == null) return null;
         var be = ref.get();
         if (be == null) {
-            remove(facing);
-            return null;
+            BlockEntity blockEntity = level.getBlockEntity(pos.relative(facing));
+            if (blockEntity != null) {
+                setCache(facing, new WeakReference<>(blockEntity));
+                return blockEntity;
+            } else {
+                setNull(facing);
+                return null;
+            }
         }
         return be;
     }

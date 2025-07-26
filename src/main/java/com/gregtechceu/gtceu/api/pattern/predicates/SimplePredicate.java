@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.pattern.predicates;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.error.SinglePredicateError;
@@ -40,7 +39,6 @@ public class SimplePredicate {
     public int maxLayerCount = -1;
     public int previewCount = -1;
     public boolean disableRenderFormed = false;
-    public IO io = IO.BOTH;
 
     public final String type;
 
@@ -115,13 +113,6 @@ public class SimplePredicate {
         if (disableRenderFormed) {
             blockWorldState.getMatchContext().getOrCreate("renderMask", LongOpenHashSet::new)
                     .add(blockWorldState.getPos().asLong());
-        }
-        if (io != IO.BOTH) {
-            if (blockWorldState.io == IO.BOTH) {
-                blockWorldState.io = io;
-            } else if (blockWorldState.io != io) {
-                blockWorldState.io = null;
-            }
         }
         return true;
     }

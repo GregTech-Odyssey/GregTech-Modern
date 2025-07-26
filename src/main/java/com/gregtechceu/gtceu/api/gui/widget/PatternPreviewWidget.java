@@ -46,6 +46,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.emi.emi.screen.RecipeScreen;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.longs.LongSets;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -212,7 +213,7 @@ public class PatternPreviewWidget extends WidgetGroup {
         if (pattern.controllerBase.isFormed()) {
             LongSet set = pattern.controllerBase.getMultiblockState().getMatchContext().getOrDefault("renderMask",
                     LongSets.EMPTY_SET);
-            Set<BlockPos> modelDisabled = set.stream().map(BlockPos::of).collect(Collectors.toSet());
+            Set<BlockPos> modelDisabled = set.longStream().mapToObj(BlockPos::of).collect(Collectors.toSet());
             if (!modelDisabled.isEmpty()) {
                 sceneWidget.setRenderedCore(
                         stream.filter(pos -> !modelDisabled.contains(pos)).collect(Collectors.toList()), null);
@@ -270,7 +271,7 @@ public class PatternPreviewWidget extends WidgetGroup {
 
     private void onPosSelected(BlockPos pos, Direction facing) {
         if (index >= patterns.length || index < 0) return;
-        TraceabilityPredicate predicate = patterns[index].predicateMap.get(pos);
+        TraceabilityPredicate predicate = patterns[index].predicateMap.get(pos.asLong());
         if (predicate != null) {
             predicates.clear();
             predicates.addAll(predicate.common);
@@ -338,14 +339,17 @@ public class PatternPreviewWidget extends WidgetGroup {
             for (int y = 0; y < aisle.length; y++) {
                 BlockInfo[] column = aisle[y];
                 for (int z = 0; z < column.length; z++) {
-                    BlockState blockState = column[z].getBlockState();
-                    BlockPos pos = multiPos.offset(x, y, z);
-                    if (column[z].getBlockEntity(pos) instanceof IMachineBlockEntity holder &&
-                            holder.getMetaMachine() instanceof IMultiController controller) {
-                        holder.getSelf().setLevel(LEVEL);
-                        controllerBase = controller;
+                    var info = column[z];
+                    if (info != null) {
+                        BlockState blockState = info.getBlockState();
+                        BlockPos pos = multiPos.offset(x, y, z);
+                        if (info.getBlockEntity(pos) instanceof IMachineBlockEntity holder &&
+                                holder.getMetaMachine() instanceof IMultiController controller) {
+                            holder.getSelf().setLevel(LEVEL);
+                            controllerBase = controller;
+                        }
+                        blockMap.put(pos, BlockInfo.fromBlockState(blockState));
                     }
-                    blockMap.put(pos, BlockInfo.fromBlockState(blockState));
                 }
             }
         }
@@ -358,10 +362,10 @@ public class PatternPreviewWidget extends WidgetGroup {
         Map<ItemStackKey, PartInfo> parts = gatherBlockDrops(blockMap);
         blockDrops.addAll(parts.keySet());
 
-        Map<BlockPos, TraceabilityPredicate> predicateMap = new HashMap<>();
+        Long2ObjectOpenHashMap<TraceabilityPredicate> predicateMap = new Long2ObjectOpenHashMap<>();
         if (controllerBase != null) {
-            loadControllerFormed(predicateMap.keySet(), controllerBase);
-            predicateMap = controllerBase.getMultiblockState().getMatchContext().get("predicates");
+            loadControllerFormed(predicateMap.keySet().longStream().mapToObj(BlockPos::of).toList(), controllerBase);
+            predicateMap = controllerBase.getMultiblockState().getMatchContext().getPredicates();
         }
         return controllerBase == null ? null : new MBPattern(blockMap, parts.values().stream().sorted((one, two) -> {
             if (one.isController) return -1;
@@ -376,13 +380,20 @@ public class PatternPreviewWidget extends WidgetGroup {
 
     private void loadControllerFormed(Collection<BlockPos> poses, IMultiController controllerBase) {
         BlockPattern pattern = controllerBase.getPattern();
-        if (pattern != null && pattern.checkPatternAt(controllerBase.getMultiblockState(), true)) {
+        boolean result = false;
+        if (pattern != null) {
+            var state = controllerBase.getMultiblockState();
+            state.cleanCache();
+            result = pattern.checkPatternAt(state, true);
+            state.cleanCache();
+        }
+        if (result) {
             controllerBase.onStructureFormed();
         }
         if (controllerBase.isFormed()) {
             LongSet set = controllerBase.getMultiblockState().getMatchContext().getOrDefault("renderMask",
                     LongSets.EMPTY_SET);
-            Set<BlockPos> modelDisabled = set.stream().map(BlockPos::of).collect(Collectors.toSet());
+            Set<BlockPos> modelDisabled = set.longStream().mapToObj(BlockPos::of).collect(Collectors.toSet());
             if (!modelDisabled.isEmpty()) {
                 sceneWidget.setRenderedCore(
                         poses.stream().filter(pos -> !modelDisabled.contains(pos)).collect(Collectors.toList()), null);
@@ -398,7 +409,7 @@ public class PatternPreviewWidget extends WidgetGroup {
         Map<ItemStackKey, PartInfo> partsMap = new Object2ObjectOpenHashMap<>();
         for (Map.Entry<BlockPos, BlockInfo> entry : blocks.entrySet()) {
             BlockPos pos = entry.getKey();
-            BlockState blockState = ((Level) PatternPreviewWidget.LEVEL).getBlockState(pos);
+            BlockState blockState = PatternPreviewWidget.LEVEL.getBlockState(pos);
             ItemStack itemStack = blockState.getBlock().getCloneItemStack(PatternPreviewWidget.LEVEL, pos, blockState);
 
             if (itemStack.isEmpty() && !blockState.getFluidState().isEmpty()) {
@@ -446,7 +457,7 @@ public class PatternPreviewWidget extends WidgetGroup {
         @NotNull
         final List<List<ItemStack>> parts;
         @NotNull
-        final Map<BlockPos, TraceabilityPredicate> predicateMap;
+        final Long2ObjectOpenHashMap<TraceabilityPredicate> predicateMap;
         @NotNull
         final Map<BlockPos, BlockInfo> blockMap;
         @NotNull
@@ -454,7 +465,7 @@ public class PatternPreviewWidget extends WidgetGroup {
         final int maxY, minY;
 
         public MBPattern(@NotNull Map<BlockPos, BlockInfo> blockMap, @NotNull List<List<ItemStack>> parts,
-                         @NotNull Map<BlockPos, TraceabilityPredicate> predicateMap,
+                         @NotNull Long2ObjectOpenHashMap<TraceabilityPredicate> predicateMap,
                          @NotNull IMultiController controllerBase) {
             this.parts = parts;
             this.blockMap = blockMap;

@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.api.gui.widget;
 
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
-import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -144,14 +143,12 @@ public class GhostCircuitSlotWidget extends SlotWidget {
     public Widget createConfigurator() {
         var group = new WidgetGroup(0, 0, 174, 132);
         group.addWidget(new LabelWidget(9, 8, "Programmed Circuit Configuration"));
-        group.addWidget(new SlotWidget(this.circuitInventory, 0, (group.getSize().width - 18) / 2, 20, !ConfigHolder.INSTANCE.machines.ghostCircuit, !ConfigHolder.INSTANCE.machines.ghostCircuit).setBackground(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.INT_CIRCUIT_OVERLAY)));
-        if (ConfigHolder.INSTANCE.machines.ghostCircuit) {
-            group.addWidget(new ButtonWidget((group.getSize().width - 18) / 2, 20, 18, 18, IGuiTexture.EMPTY, clickData -> {
-                if (!clickData.isRemote) {
-                    circuitInventory.setStackInSlot(0, ItemStack.EMPTY);
-                }
-            }));
-        }
+        group.addWidget(new SlotWidget(this.circuitInventory, 0, (group.getSize().width - 18) / 2, 20, false, false).setBackground(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.INT_CIRCUIT_OVERLAY)));
+        group.addWidget(new ButtonWidget((group.getSize().width - 18) / 2, 20, 18, 18, IGuiTexture.EMPTY, clickData -> {
+            if (!clickData.isRemote) {
+                circuitInventory.setStackInSlot(0, ItemStack.EMPTY);
+            }
+        }));
         int idx = 0;
         for (int x = 0; x <= 2; x++) {
             for (int y = 0; y <= 8; y++) {
@@ -162,7 +159,7 @@ public class GhostCircuitSlotWidget extends SlotWidget {
                         if (IntCircuitBehaviour.isIntegratedCircuit(stack)) {
                             IntCircuitBehaviour.setCircuitConfiguration(stack, finalIdx);
                             circuitInventory.setStackInSlot(0, stack);
-                        } else if (ConfigHolder.INSTANCE.machines.ghostCircuit) {
+                        } else {
                             circuitInventory.setStackInSlot(0, IntCircuitBehaviour.stack(finalIdx));
                         }
                     }
@@ -178,7 +175,7 @@ public class GhostCircuitSlotWidget extends SlotWidget {
                     if (IntCircuitBehaviour.isIntegratedCircuit(stack)) {
                         IntCircuitBehaviour.setCircuitConfiguration(stack, finalIdx);
                         circuitInventory.setStackInSlot(0, stack);
-                    } else if (ConfigHolder.INSTANCE.machines.ghostCircuit) {
+                    } else {
                         circuitInventory.setStackInSlot(0, IntCircuitBehaviour.stack(finalIdx));
                     }
                 }

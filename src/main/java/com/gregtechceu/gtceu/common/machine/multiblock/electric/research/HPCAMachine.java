@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.*;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.util.TimedProgressSupplier;
 import com.gregtechceu.gtceu.api.gui.widget.ExtendedProgressWidget;
@@ -51,8 +50,6 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
@@ -95,21 +92,16 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         List<IEnergyContainer> energyContainers = new ArrayList<>();
         List<IFluidHandler> coolantContainers = new ArrayList<>();
         List<IHPCAComponentHatch> componentHatches = new ArrayList<>();
-        Long2ObjectMap<IO> ioMap = getMultiblockState().getMatchContext().getOrCreate("ioMap", Long2ObjectMaps::emptyMap);
         for (IMultiPart part : getParts()) {
-            IO io = ioMap.getOrDefault(part.self().getPos().asLong(), IO.BOTH);
             if (part instanceof IHPCAComponentHatch componentHatch) {
                 componentHatches.add(componentHatch);
-            }
-            if (part instanceof IMaintenanceMachine maintenanceMachine) {
+            } else if (part instanceof IMaintenanceMachine maintenanceMachine) {
                 this.maintenance = maintenanceMachine;
-            }
-            if (io == IO.NONE || io == IO.OUT) continue;
-            var handlerLists = part.getRecipeHandlers();
-            for (var handlerList : handlerLists) {
-                if (!handlerList.isValid(io)) continue;
-                handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).forEach(energyContainers::add);
-                handlerList.getCapability(FluidRecipeCapability.CAP).stream().filter(IFluidHandler.class::isInstance).map(IFluidHandler.class::cast).forEach(coolantContainers::add);
+            } else {
+                for (var handlerList : part.getRecipeHandlers()) {
+                    handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).forEach(energyContainers::add);
+                    handlerList.getCapability(FluidRecipeCapability.CAP).stream().filter(IFluidHandler.class::isInstance).map(IFluidHandler.class::cast).forEach(coolantContainers::add);
+                }
             }
         }
         this.energyContainer = new EnergyContainerList(energyContainers);

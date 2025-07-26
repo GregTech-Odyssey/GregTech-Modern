@@ -279,7 +279,8 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
     @Override
     public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         var machine = getMachine(world, pos);
-        ItemStack itemStack = player.getItemInHand(hand);
+        ItemStack itemStack = player.getItemInHand(InteractionHand.MAIN_HAND);
+        if (itemStack.isEmpty()) itemStack = player.getItemInHand(InteractionHand.OFF_HAND);
         boolean shouldOpenUi = true;
         if (machine != null && machine.getOwnerUUID() == null && player instanceof ServerPlayer sPlayer) {
             machine.setOwnerUUID(sPlayer.getUUID());

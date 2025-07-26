@@ -112,8 +112,10 @@ public class FactoryBlockPattern {
         if (blockMatcher.isAny()) return this;
         if (blockMatcher.isAir()) {
             this.symbolMap.put(symbol, TraceabilityPredicate.AIR);
-        } else {
+        } else if (!blockMatcher.isController && blockMatcher.getClass() == TraceabilityPredicate.class) {
             this.symbolMap.put(symbol, new TraceabilityPredicate(blockMatcher).sort());
+        } else {
+            this.symbolMap.put(symbol, blockMatcher);
         }
         return this;
     }

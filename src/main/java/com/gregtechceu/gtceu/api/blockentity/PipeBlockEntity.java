@@ -93,6 +93,8 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
 
     private final long posLong;
 
+    private boolean wait;
+
     public final BlockEntityDirectionCache blockEntityDirectionCache = BlockEntityDirectionCache.create();
 
     public PipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
@@ -137,10 +139,12 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     public void setRemoved() {
         super.setRemoved();
         coverContainer.onUnload();
+        blockEntityDirectionCache.clearCache();
     }
 
     @Override
     public void clearRemoved() {
+        blockEntityDirectionCache.clearCache();
         super.clearRemoved();
         coverContainer.onLoad();
     }
@@ -204,6 +208,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     @Nullable
     public TickableSubscription subscribeServerTick(Runnable runnable) {
         if (!isRemote()) {
+            wait = false;
             var subscription = new TickableSubscription(runnable);
             waitingToAdd.add(subscription);
             return subscription;
@@ -218,17 +223,24 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     }
 
     public final void serverTick() {
+        if (wait) return;
         if (!waitingToAdd.isEmpty()) {
             serverTicks.addAll(waitingToAdd);
             waitingToAdd.clear();
         }
-        for (var iter = serverTicks.iterator(); iter.hasNext();) {
-            var tickable = iter.next();
-            if (tickable.isStillSubscribed()) {
-                tickable.run();
+        if (serverTicks.isEmpty()) {
+            if (!isRemoved()) {
+                wait = true;
             }
-            if (!tickable.isStillSubscribed()) {
-                iter.remove();
+        } else {
+            for (var iter = serverTicks.iterator(); iter.hasNext();) {
+                var tickable = iter.next();
+                if (tickable.isStillSubscribed()) {
+                    tickable.run();
+                }
+                if (!tickable.isStillSubscribed()) {
+                    iter.remove();
+                }
             }
         }
     }

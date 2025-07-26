@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -16,20 +17,26 @@ import java.util.*;
 public class RecipeHandlerList {
 
     public static final RecipeHandlerList NO_DATA = new RecipeHandlerList(IO.NONE);
-    public static final Comparator<RecipeHandlerList> COMPARATOR = (h1, h2) -> {
-        int cmp = Long.compare(h1.getPriority(), h2.getPriority());
-        if (cmp != 0) return cmp;
-        boolean b1 = h1.getTotalContentAmount() > 0;
-        boolean b2 = h2.getTotalContentAmount() > 0;
-        return Boolean.compare(b1, b2);
-    };
-    private final Map<RecipeCapability<?>, List<IRecipeHandler<?>>> handlerMap = new Reference2ObjectOpenHashMap<>();
-    private final List<IRecipeHandler<?>> allHandlers = new ArrayList<>();
-    private final List<NotifiableRecipeHandlerTrait<?>> allHandlerTraits = new ArrayList<>();
-    private final IO handlerIO;
-    private int color = -1;
+    public static final Comparator<RecipeHandlerList> COMPARATOR;
+
+    static {
+        Comparator<RecipeHandlerList> comparator = (h1, h2) -> {
+            int cmp = Long.compare(h1.getPriority(), h2.getPriority());
+            if (cmp != 0) return cmp;
+            boolean b1 = h1.getTotalContentAmount() > 0;
+            boolean b2 = h2.getTotalContentAmount() > 0;
+            return Boolean.compare(b1, b2);
+        };
+        COMPARATOR = comparator.reversed();
+    }
+
+    public final Map<RecipeCapability<?>, List<IRecipeHandler<?>>> handlerMap = new Object2ObjectOpenHashMap<>();
+    public final List<IRecipeHandler<?>> allHandlers = new ArrayList<>();
+    public final List<NotifiableRecipeHandlerTrait<?>> allHandlerTraits = new ArrayList<>();
+    public final IO handlerIO;
+    public int color = -1;
     @NotNull
-    private RecipeHandlerGroup group = RecipeHandlerGroupColor.UNDYED;
+    public RecipeHandlerGroup group = RecipeHandlerGroupColor.UNDYED;
 
     protected RecipeHandlerList(IO handlerIO) {
         this.handlerIO = handlerIO;

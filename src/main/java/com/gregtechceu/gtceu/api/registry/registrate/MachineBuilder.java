@@ -105,7 +105,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     private final List<Component> tooltips = new ArrayList<>();
     private BiConsumer<ItemStack, List<Component>> tooltipBuilder;
     private RecipeModifier recipeModifier = new RecipeModifierList(GTRecipeModifiers.OC_NON_PERFECT);
-    private boolean alwaysTryModifyRecipe;
+
     @NotNull
     private BiPredicate<IRecipeLogicMachine, GTRecipe> beforeWorking = (machine, recipe) -> true;
     @NotNull
@@ -229,23 +229,13 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
         return this;
     }
 
-    public MachineBuilder<DEFINITION> recipeModifier(RecipeModifier recipeModifier, boolean alwaysTryModifyRecipe) {
-        this.alwaysTryModifyRecipe = alwaysTryModifyRecipe;
-        return this.recipeModifier(recipeModifier);
-    }
-
     public MachineBuilder<DEFINITION> recipeModifiers(RecipeModifier... recipeModifiers) {
         this.recipeModifier = new RecipeModifierList(recipeModifiers);
         return this;
     }
 
-    public MachineBuilder<DEFINITION> recipeModifiers(boolean alwaysTryModifyRecipe, RecipeModifier... recipeModifiers) {
-        return this.recipeModifier(new RecipeModifierList(recipeModifiers), alwaysTryModifyRecipe);
-    }
-
     public MachineBuilder<DEFINITION> noRecipeModifier() {
         this.recipeModifier = new RecipeModifierList(RecipeModifier.NO_MODIFIER);
-        this.alwaysTryModifyRecipe = false;
         return this;
     }
 
@@ -297,7 +287,6 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
             if (tooltipBuilder != null) tooltipBuilder.accept(itemStack, components);
         });
         definition.setRecipeModifier(recipeModifier);
-        definition.setAlwaysTryModifyRecipe(alwaysTryModifyRecipe);
         definition.setBeforeWorking(this.beforeWorking);
         definition.setOnWorking(this.onWorking);
         definition.setOnWaiting(this.onWaiting);
@@ -356,6 +345,18 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
         }
     }
 
+    public MachineBuilder<DEFINITION> nonYAxisRotation() {
+        return rotationState(RotationState.NON_Y_AXIS).allowExtendedFacing(false);
+    }
+
+    public MachineBuilder<DEFINITION> allRotation() {
+        return rotationState(RotationState.ALL);
+    }
+
+    public MachineBuilder<DEFINITION> noneRotation() {
+        return rotationState(RotationState.NONE).allowExtendedFacing(false);
+    }
+
     /**
      * @return {@code this}.
      */
@@ -398,7 +399,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
 
     /**
      * Whether this machine can be rotated or face upwards.
-     * 
+     *
      * @return {@code this}.
      */
     public MachineBuilder<DEFINITION> allowExtendedFacing(final boolean allowExtendedFacing) {
@@ -515,14 +516,6 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
      */
     public MachineBuilder<DEFINITION> tooltipBuilder(final BiConsumer<ItemStack, List<Component>> tooltipBuilder) {
         this.tooltipBuilder = tooltipBuilder;
-        return this;
-    }
-
-    /**
-     * @return {@code this}.
-     */
-    public MachineBuilder<DEFINITION> alwaysTryModifyRecipe(final boolean alwaysTryModifyRecipe) {
-        this.alwaysTryModifyRecipe = alwaysTryModifyRecipe;
         return this;
     }
 

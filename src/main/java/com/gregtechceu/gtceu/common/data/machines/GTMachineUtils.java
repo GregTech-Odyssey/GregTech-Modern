@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.api.capability.compat.FeCompat;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
-import com.gregtechceu.gtceu.api.data.RotationState;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidPipeProperties;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
@@ -154,7 +153,7 @@ public class GTMachineUtils {
                     return builder
                             .langValue("%s %s %s".formatted(VLVH[tier], toEnglishName(name), VLVT[tier]))
                             .editableUI(SimpleTieredMachine.EDITABLE_UI_CREATOR.apply(GTCEu.id(name), recipeType))
-                            .rotationState(RotationState.NON_Y_AXIS)
+                            .nonYAxisRotation()
                             .recipeType(recipeType)
                             .workableTieredHullRenderer(GTCEu.id("block/machines/" + name))
                             .tooltips(workableTiered(tier, GTValues.V[tier], GTValues.V[tier] * 64, recipeType,
@@ -200,7 +199,7 @@ public class GTMachineUtils {
                 (holder, tier) -> new FluidHatchPartMachine(holder, tier, io, initialCapacity, slots),
                 (tier, builder) -> {
                     builder.langValue(VNF[tier] + ' ' + displayname)
-                            .rotationState(RotationState.ALL)
+                            .allRotation()
                             .overlayTieredHullRenderer(model)
                             .abilities(abilities)
                             .tooltips(Component.translatable("gtceu.machine." + tooltip + ".tooltip"))
@@ -224,7 +223,7 @@ public class GTMachineUtils {
         return registerTieredMachines("transformer_%da".formatted(baseAmp),
                 (holder, tier) -> new TransformerMachine(holder, tier, baseAmp),
                 (tier, builder) -> builder
-                        .rotationState(RotationState.ALL)
+                        .allRotation()
                         .itemColor((itemStack, index) -> index == 2 ? GTValues.VC[tier + 1] :
                                 index == 3 ? GTValues.VC[tier] :
                                         index == 1 ? Long.decode(ConfigHolder.INSTANCE.client.defaultPaintingColor)
@@ -259,9 +258,9 @@ public class GTMachineUtils {
                 (tier, builder) -> builder
                         .langValue("%s %s Generator %s".formatted(VLVH[tier], toEnglishName(name), VLVT[tier]))
                         .editableUI(SimpleGeneratorMachine.EDITABLE_UI_CREATOR.apply(GTCEu.id(name), recipeType))
-                        .rotationState(RotationState.ALL)
+                        .allRotation()
                         .recipeType(recipeType)
-                        .recipeModifier(SimpleGeneratorMachine::recipeModifier, true)
+                        .recipeModifier(SimpleGeneratorMachine::recipeModifier)
                         .addOutputLimit(ItemRecipeCapability.CAP, 0)
                         .addOutputLimit(FluidRecipeCapability.CAP, 0)
                         .renderer(() -> new SimpleGeneratorMachineRenderer(tier, GTCEu.id("block/generators/" + name)))
@@ -274,7 +273,7 @@ public class GTMachineUtils {
     public static Pair<MachineDefinition, MachineDefinition> registerSimpleSteamMachines(String name,
                                                                                          GTRecipeType recipeType) {
         return registerSteamMachines("steam_" + name, SimpleSteamMachine::new, (pressure, builder) -> builder
-                .rotationState(RotationState.ALL)
+                .allRotation()
                 .recipeType(recipeType)
                 .recipeModifier(SimpleSteamMachine::recipeModifier)
                 .renderer(() -> new WorkableSteamMachineRenderer(pressure, GTCEu.id("block/machines/" + name)))
@@ -285,7 +284,7 @@ public class GTMachineUtils {
         return registerTieredMachines("battery_buffer_" + batterySlotSize + "x",
                 (holder, tier) -> new BatteryBufferMachine(holder, tier, batterySlotSize),
                 (tier, builder) -> builder
-                        .rotationState(RotationState.ALL)
+                        .allRotation()
                         .renderer(() -> new BatteryBufferRenderer(tier, batterySlotSize))
                         .langValue("%s %s%s".formatted(VCF[tier] + VOLTAGE_NAMES[tier] + ChatFormatting.RESET,
                                 batterySlotSize, "x Battery Buffer"))
@@ -306,7 +305,7 @@ public class GTMachineUtils {
         return registerTieredMachines("charger_" + itemSlotSize + "x",
                 (holder, tier) -> new ChargerMachine(holder, tier, itemSlotSize),
                 (tier, builder) -> builder
-                        .rotationState(RotationState.ALL)
+                        .allRotation()
                         .renderer(() -> new ChargerRenderer(tier))
                         .langValue("%s %s%s".formatted(VCF[tier] + VOLTAGE_NAMES[tier] + ChatFormatting.RESET,
                                 itemSlotSize, "x Turbo Charger"))
@@ -328,7 +327,7 @@ public class GTMachineUtils {
         MachineDefinition[] converters = registerTieredMachines(amperage + "a_energy_converter",
                 (holder, tier) -> new ConverterMachine(holder, tier, amperage),
                 (tier, builder) -> builder
-                        .rotationState(RotationState.ALL)
+                        .allRotation()
                         .langValue("%s %s§eA§r Energy Converter".formatted(VCF[tier] + VN[tier] + ChatFormatting.RESET,
                                 amperage))
                         .renderer(() -> new ConverterRenderer(tier, amperage))
@@ -357,7 +356,7 @@ public class GTMachineUtils {
                 (holder, tier) -> new LaserHatchPartMachine(holder, io, tier, amperage), (tier, builder) -> builder
                         .langValue(VNF[tier] + "§r " + FormattingUtil.formatNumbers(amperage) + "§eA§r Laser " +
                                 FormattingUtil.toEnglishName(name) + " Hatch")
-                        .rotationState(RotationState.ALL)
+                        .allRotation()
                         .tooltips(Component.translatable("gtceu.machine.laser_hatch." + name + ".tooltip"),
                                 Component.translatable("gtceu.machine.laser_hatch.both.tooltip"),
                                 Component.translatable("gtceu.universal.tooltip.voltage_" + (io == IN ? "in" : "out"),
@@ -379,7 +378,7 @@ public class GTMachineUtils {
 
         return REGISTRATE.machine(material.getName() + "_crate", holder -> new CrateMachine(holder, material, capacity))
                 .langValue(lang)
-                .rotationState(RotationState.NONE)
+                .noneRotation()
                 .tooltips(Component.translatable("gtceu.universal.tooltip.item_storage_capacity", capacity))
                 .renderer(() -> new CrateRenderer(
                         GTCEu.id("block/machine/crate/" + (wooden ? "wooden" : "metal") + "_crate")))
@@ -396,7 +395,7 @@ public class GTMachineUtils {
                         (holder, prop) -> DrumMachineItem.create(holder, prop, material),
                         MetaMachineBlockEntity::createBlockEntity)
                 .langValue(lang)
-                .rotationState(RotationState.NONE)
+                .noneRotation()
                 .renderer(
                         () -> new MachineRenderer(GTCEu.id("block/machine/" + (wooden ? "wooden" : "metal") + "_drum")))
                 .tooltipBuilder((stack, list) -> {
@@ -429,7 +428,7 @@ public class GTMachineUtils {
                     MetaMachineBlockEntity::createBlockEntity)
                     .langValue(toEnglishName(tank_type) + " " + LVT[tier])
                     .blockProp(BlockBehaviour.Properties::dynamicShape)
-                    .rotationState(RotationState.ALL)
+                    .allRotation()
                     .allowExtendedFacing(true)
                     .renderer(() -> new QuantumTankRenderer(tier))
                     .hasTESR(true)
@@ -450,7 +449,7 @@ public class GTMachineUtils {
                         tier == MAX ? Long.MAX_VALUE : 4_000_000 * (long) Math.pow(2, tier - 1)),
                 (tier, builder) -> builder.langValue(toEnglishName(chest_type) + " " + LVT[tier])
                         .blockProp(BlockBehaviour.Properties::dynamicShape)
-                        .rotationState(RotationState.ALL)
+                        .allRotation()
                         .allowExtendedFacing(true)
                         .renderer(() -> new QuantumTankRenderer(tier))
                         .hasTESR(true)
@@ -480,7 +479,7 @@ public class GTMachineUtils {
                 .tooltips(
                         Component.translatable("gtceu.machine.multiblock.tank.tooltip"),
                         Component.translatable("gtceu.universal.tooltip.fluid_storage_capacity", capacity))
-                .rotationState(RotationState.ALL)
+                .allRotation()
                 .recipeType(DUMMY_RECIPES)
                 .pattern(definition -> FactoryBlockPattern.start(definition)
                         .aisle("CCC", "CCC", "CCC")
@@ -503,7 +502,7 @@ public class GTMachineUtils {
                 .langValue(displayName)
                 .tooltips(Component.translatable("gtceu.machine.tank_valve.tooltip"),
                         Component.translatable("gtceu.part_sharing.disabled"))
-                .rotationState(RotationState.ALL);
+                .allRotation();
         rendererSetup.accept(builder, GTCEu.id("block/multiblock/tank_valve"));
         return builder.register();
     }
@@ -535,9 +534,9 @@ public class GTMachineUtils {
                 .langValue("Large %s Boiler".formatted(FormattingUtil.toEnglishName(name)))
                 .checkPriority(1)
                 .allowExtendedFacing(false)
-                .rotationState(RotationState.NON_Y_AXIS)
+                .nonYAxisRotation()
                 .recipeType(GTRecipeTypes.LARGE_BOILER_RECIPES)
-                .recipeModifier(LargeBoilerMachine::recipeModifier, true)
+                .recipeModifier(LargeBoilerMachine::recipeModifier)
                 .appearanceBlock(casing)
                 .partAppearance((controller, part, side) ->
                         controller.self().getPos().below().getY() == part.self().getPos().getY() ?
@@ -587,10 +586,10 @@ public class GTMachineUtils {
                                                                             ResourceLocation casingTexture,
                                                                             ResourceLocation overlayModel) {
         return REGISTRATE.multiblock(name, holder -> new LargeCombustionEngineMachine(holder, tier))
-                .rotationState(RotationState.ALL)
+                .allRotation()
                 .recipeType(GTRecipeTypes.COMBUSTION_GENERATOR_FUELS)
                 .generator(true)
-                .recipeModifier(LargeCombustionEngineMachine::recipeModifier, true)
+                .recipeModifier(LargeCombustionEngineMachine::recipeModifier)
                 .appearanceBlock(casing)
                 .pattern(definition -> FactoryBlockPattern.start(definition)
                         .aisle("XXX", "XDX", "XXX")
@@ -644,10 +643,10 @@ public class GTMachineUtils {
                                                                    ResourceLocation overlayModel,
                                                                    boolean needsMuffler) {
         return REGISTRATE.multiblock(name, holder -> new LargeTurbineMachine(holder, tier))
-                .rotationState(RotationState.ALL)
+                .allRotation()
                 .recipeType(recipeType)
                 .generator(true)
-                .recipeModifier(LargeTurbineMachine::recipeModifier, true)
+                .recipeModifier(LargeTurbineMachine::recipeModifier)
                 .appearanceBlock(casing)
                 .pattern(definition -> FactoryBlockPattern.start(definition)
                         .aisle("CCCC", "CHHC", "CCCC")

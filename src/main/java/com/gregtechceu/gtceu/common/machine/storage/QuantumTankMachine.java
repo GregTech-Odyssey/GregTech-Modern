@@ -184,6 +184,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
 
     @Override
     public void setOutputFacingFluids(@Nullable Direction outputFacing) {
+        clearDirectionCache();
         this.outputFacingFluids = outputFacing;
         updateAutoOutputSubscription();
     }
@@ -423,6 +424,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     }
 
     public void setAllowInputFromOutputSideFluids(final boolean allowInputFromOutputSideFluids) {
+        clearDirectionCache();
         this.allowInputFromOutputSideFluids = allowInputFromOutputSideFluids;
     }
 

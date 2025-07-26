@@ -50,7 +50,6 @@ public class MachineDefinition implements Supplier<IMachineBlock> {
     private int tier;
     private int defaultPaintingColor;
     private RecipeModifier recipeModifier;
-    private boolean alwaysTryModifyRecipe;
     @NotNull
     private BiPredicate<IRecipeLogicMachine, GTRecipe> beforeWorking = (machine, recipe) -> true;
     @NotNull
@@ -221,14 +220,6 @@ public class MachineDefinition implements Supplier<IMachineBlock> {
 
     public void setRecipeModifier(final RecipeModifier recipeModifier) {
         this.recipeModifier = recipeModifier;
-    }
-
-    public boolean isAlwaysTryModifyRecipe() {
-        return this.alwaysTryModifyRecipe;
-    }
-
-    public void setAlwaysTryModifyRecipe(final boolean alwaysTryModifyRecipe) {
-        this.alwaysTryModifyRecipe = alwaysTryModifyRecipe;
     }
 
     @NotNull

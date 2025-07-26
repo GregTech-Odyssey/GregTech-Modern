@@ -250,9 +250,7 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine implements ICra
     @Override
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
         configuratorPanel.attachConfigurators(new ButtonConfigurator(new GuiTextureGroup(GuiTextures.BUTTON, GuiTextures.REFUND_OVERLAY), this::refundAll).setTooltips(List.of(Component.translatable("gui.gtceu.refund_all.desc"))));
-        if (isHasCircuitSlot() && isCircuitSlotEnabled()) {
-            configuratorPanel.attachConfigurators(new CircuitFancyConfigurator(circuitInventory.storage));
-        }
+        configuratorPanel.attachConfigurators(new CircuitFancyConfigurator(circuitInventory.storage));
         configuratorPanel.attachConfigurators(new FancyInvConfigurator(shareInventory.storage, Component.translatable("gui.gtceu.share_inventory.title")).setTooltips(List.of(Component.translatable("gui.gtceu.share_inventory.desc.0"), Component.translatable("gui.gtceu.share_inventory.desc.1"))));
         configuratorPanel.attachConfigurators(new FancyTankConfigurator(shareTank.getStorages(), Component.translatable("gui.gtceu.share_tank.title")).setTooltips(List.of(Component.translatable("gui.gtceu.share_tank.desc.0"), Component.translatable("gui.gtceu.share_inventory.desc.1"))));
     }
@@ -341,7 +339,7 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine implements ICra
             if (!customName.isEmpty()) {
                 return new PatternContainerGroup(AEItemKey.of(controllerDefinition.asStack()), Component.literal(customName), Collections.emptyList());
             } else {
-                ItemStack circuitStack = isHasCircuitSlot() ? circuitInventory.storage.getStackInSlot(0) : ItemStack.EMPTY;
+                ItemStack circuitStack = circuitInventory.storage.getStackInSlot(0);
                 int circuitConfiguration = circuitStack.isEmpty() ? -1 : IntCircuitBehaviour.getCircuitConfiguration(circuitStack);
                 Component groupName = circuitConfiguration != -1 ? Component.translatable(controllerDefinition.getDescriptionId()).append(" - " + circuitConfiguration) : Component.translatable(controllerDefinition.getDescriptionId());
                 return new PatternContainerGroup(AEItemKey.of(controllerDefinition.asStack()), groupName, Collections.emptyList());

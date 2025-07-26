@@ -13,7 +13,6 @@ import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputBoth;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
-import com.gregtechceu.gtceu.api.machine.feature.IHasCircuitSlot;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
@@ -59,7 +58,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoOutputBoth, IFancyUIMachine, IHasCircuitSlot {
+public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoOutputBoth, IFancyUIMachine {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(SimpleTieredMachine.class, WorkableTieredMachine.MANAGED_FIELD_HOLDER);
     @Persisted
@@ -213,6 +212,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     @Override
     public void setOutputFacingFluids(@Nullable Direction outputFacing) {
         if (hasAutoOutputFluid()) {
+            clearDirectionCache();
             this.outputFacingFluids = outputFacing;
             updateAutoOutputSubscription();
         }
@@ -221,6 +221,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     @Override
     public void setOutputFacingItems(@Nullable Direction outputFacing) {
         if (hasAutoOutputItem()) {
+            clearDirectionCache();
             this.outputFacingItems = outputFacing;
             updateAutoOutputSubscription();
         }
@@ -285,9 +286,6 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     public void onMachineRemoved() {
         super.onMachineRemoved();
         clearInventory(chargerInventory);
-        if (!ConfigHolder.INSTANCE.machines.ghostCircuit) {
-            clearInventory(circuitInventory.storage);
-        }
     }
 
     //////////////////////////////////////
@@ -296,9 +294,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     @Override
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
         IFancyUIMachine.super.attachConfigurators(configuratorPanel);
-        if (isCircuitSlotEnabled()) {
-            configuratorPanel.attachConfigurators(new CircuitFancyConfigurator(circuitInventory.storage));
-        }
+        configuratorPanel.attachConfigurators(new CircuitFancyConfigurator(circuitInventory.storage));
     }
 
     @SuppressWarnings("UnstableApiUsage")
@@ -402,6 +398,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     }
 
     public void setAllowInputFromOutputSideItems(final boolean allowInputFromOutputSideItems) {
+        clearDirectionCache();
         this.allowInputFromOutputSideItems = allowInputFromOutputSideItems;
     }
 
@@ -410,6 +407,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     }
 
     public void setAllowInputFromOutputSideFluids(final boolean allowInputFromOutputSideFluids) {
+        clearDirectionCache();
         this.allowInputFromOutputSideFluids = allowInputFromOutputSideFluids;
     }
 

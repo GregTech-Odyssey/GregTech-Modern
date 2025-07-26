@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.IWorkable;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
@@ -31,7 +30,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.VisibleForTesting;
 
 import java.util.*;
 
@@ -98,6 +96,7 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
     }
 
     @OnlyIn(Dist.CLIENT)
+    @SuppressWarnings("unused")
     protected void onActiveSynced(boolean newActive, boolean oldActive) {
         getMachine().scheduleRenderUpdate();
     }
@@ -142,13 +141,6 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
 
     public double getProgressPercent() {
         return duration == 0 ? 0.0 : progress / (duration * 1.0);
-    }
-
-    /**
-     * it should be called on the server side restrictively.
-     */
-    public RecipeManager getRecipeManager() {
-        return GTCEu.getMinecraftServer().getRecipeManager();
     }
 
     public void serverTick() {
@@ -375,17 +367,15 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
         machine.afterWorking();
         if (lastRecipe != null) {
             handleRecipeIO(lastRecipe, IO.OUT);
-            if (machine.alwaysTryModifyRecipe()) {
-                if (lastOriginRecipe != null) {
-                    var modified = machine.fullModifyRecipe(lastOriginRecipe.copy());
-                    if (modified == null) {
-                        markLastRecipeDirty();
-                    } else {
-                        lastRecipe = modified;
-                    }
-                } else {
+            if (lastOriginRecipe != null) {
+                var modified = machine.fullModifyRecipe(lastOriginRecipe.copy());
+                if (modified == null) {
                     markLastRecipeDirty();
+                } else {
+                    lastRecipe = modified;
                 }
+            } else {
+                markLastRecipeDirty();
             }
             // try it again
             var recipeCheck = checkRecipe(lastRecipe);
@@ -425,9 +415,6 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
             duration = 0;
         }
     }
-
-    // Remains for legacy + for subclasses
-    public void inValid() {}
 
     @Override
     public ManagedFieldHolder getFieldHolder() {
@@ -520,7 +507,6 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
         return this.duration;
     }
 
-    @VisibleForTesting
     public boolean isRecipeDirty() {
         return this.recipeDirty;
     }

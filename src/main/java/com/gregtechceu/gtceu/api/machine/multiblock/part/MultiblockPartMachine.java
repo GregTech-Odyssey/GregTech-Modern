@@ -88,7 +88,7 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
         if (controllers.size() != controllerPositions.size()) {
             onControllersUpdated(controllerPositions, Collections.emptySet());
         }
-        return Collections.unmodifiableSortedSet(controllers);
+        return controllers;
     }
 
     public List<RecipeHandlerList> getRecipeHandlers() {

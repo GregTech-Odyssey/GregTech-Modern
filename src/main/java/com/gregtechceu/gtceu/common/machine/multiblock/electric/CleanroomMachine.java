@@ -2,11 +2,9 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.IFilterType;
-import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ICleanroomReceiver;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.SimpleGeneratorMachine;
@@ -22,16 +20,11 @@ import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMa
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
-import com.gregtechceu.gtceu.api.pattern.BlockPattern;
-import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
-import com.gregtechceu.gtceu.api.pattern.Predicates;
-import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
+import com.gregtechceu.gtceu.api.pattern.*;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.electric.HullMachine;
-import com.gregtechceu.gtceu.common.machine.multiblock.generator.LargeCombustionEngineMachine;
-import com.gregtechceu.gtceu.common.machine.multiblock.generator.LargeTurbineMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.DiodePartMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.primitive.CokeOvenMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.primitive.PrimitiveBlastFurnaceMachine;
@@ -56,14 +49,10 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DoorBlock;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,6 +66,36 @@ import static com.gregtechceu.gtceu.api.pattern.util.RelativeDirection.*;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class CleanroomMachine extends WorkableElectricMultiblockMachine implements ICleanroomProvider, IDisplayUIMachine, IDataInfoProvider {
+
+    private static final TraceabilityPredicate INNER_PREDICATE = new TraceabilityPredicate(blockWorldState -> {
+        if (blockWorldState.getTileEntity() instanceof IMachineBlockEntity machineBlockEntity) {
+            var machine = machineBlockEntity.getMetaMachine();
+            if (isMachineBanned(machine)) {
+                blockWorldState.setError(MultiblockState.BANNED_ERROR);
+                return false;
+            }
+            if (machine instanceof ICleanroomReceiver cleanroomReceiver) {
+                blockWorldState.getMatchContext().getOrCreate("cleanroomReceiver", ReferenceOpenHashSet::new).add(cleanroomReceiver);
+            }
+        }
+        return true;
+    }, null) {
+
+        @Override
+        public boolean testOnly() {
+            return true;
+        }
+
+        @Override
+        public boolean isAny() {
+            return false;
+        }
+
+        @Override
+        public boolean isAir() {
+            return false;
+        }
+    };
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(CleanroomMachine.class, WorkableMultiblockMachine.MANAGED_FIELD_HOLDER);
     public static final int CLEAN_AMOUNT_THRESHOLD = 95;
@@ -143,8 +162,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
             this.cleanroomReceivers.forEach(receiver -> receiver.setCleanroom(null));
             this.cleanroomReceivers = null;
         }
-        Set<ICleanroomReceiver> receivers = getMultiblockState().getMatchContext().getOrCreate("cleanroomReceiver", Sets::newHashSet);
-        this.cleanroomReceivers = ImmutableSet.copyOf(receivers);
+        this.cleanroomReceivers = getMultiblockState().getMatchContext().getOrDefault("cleanroomReceiver", Collections.emptyList());
         this.cleanroomReceivers.forEach(receiver -> receiver.setCleanroom(this));
         // max progress is based roughly on the dimensions of the structure: ((w * d) ^ .8 * h)
         // taller cleanrooms take longer than wider ones
@@ -179,14 +197,9 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
 
     protected void initializeAbilities() {
         List<IEnergyContainer> energyContainers = new ArrayList<>();
-        Long2ObjectMap<IO> ioMap = getMultiblockState().getMatchContext().getOrCreate("ioMap", Long2ObjectMaps::emptyMap);
         for (IMultiPart part : getParts()) {
             if (isPartIgnored(part)) continue;
-            IO io = ioMap.getOrDefault(part.self().getPos().asLong(), IO.BOTH);
-            if (io == IO.NONE || io == IO.OUT) continue;
-            var handlerLists = part.getRecipeHandlers();
-            for (var handlerList : handlerLists) {
-                if (!handlerList.isValid(io)) continue;
+            for (var handlerList : part.getRecipeHandlers()) {
                 handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).forEach(energyContainers::add);
             }
             if (part instanceof IMaintenanceMachine maintenanceMachine) {
@@ -285,7 +298,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
     }
 
     @Override
-    public boolean requiresServerExecution() {
+    public boolean requiresServerCheck() {
         return true;
     }
 
@@ -371,7 +384,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         // very center floor, needed for height check
         // walls
         // floor edges
-        FactoryBlockPattern.start(LEFT, FRONT, UP).aisle(f).aisle(m).setRepeatable(wallLayers.size()).aisle(c).where('C', Predicates.controller(Predicates.blocks(this.getDefinition().get()))).where('F', Predicates.cleanroomFilters()).where('D', states(getCasingState())).where(' ', innerPredicate()).where('E', wallPredicate.or(basePredicate).or(getValidFloorBlocks().setMaxGlobalLimited(4))).where('K', wallPredicate.or(getValidFloorBlocks())).where('W', wallPredicate.or(basePredicate).or(doorPredicate().setMaxGlobalLimited(8))).where('A', wallPredicate.or(basePredicate)).build();
+        FactoryBlockPattern.start(LEFT, FRONT, UP).aisle(f).aisle(m).setRepeatable(wallLayers.size()).aisle(c).where('C', Predicates.controller(Predicates.blocks(this.getDefinition().get()))).where('F', Predicates.cleanroomFilters()).where('D', states(getCasingState())).where(' ', INNER_PREDICATE).where('E', wallPredicate.or(basePredicate).or(getValidFloorBlocks().setMaxGlobalLimited(4))).where('K', wallPredicate.or(getValidFloorBlocks())).where('W', wallPredicate.or(basePredicate).or(doorPredicate().setMaxGlobalLimited(8))).where('A', wallPredicate.or(basePredicate)).build();
     }
 
     // protected to allow easy addition of addon "cleanrooms"
@@ -394,41 +407,11 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         return Predicates.blockTag(CustomTags.CLEANROOM_FLOORS);
     }
 
-    @NotNull
-    protected TraceabilityPredicate innerPredicate() {
-        return new TraceabilityPredicate(blockWorldState -> {
-            Set<ICleanroomReceiver> receivers = blockWorldState.getMatchContext().getOrCreate("cleanroomReceiver", Sets::newHashSet);
-            // all non-GTMachines are allowed inside by default
-            BlockEntity blockEntity = blockWorldState.getTileEntity();
-            if (blockEntity instanceof IMachineBlockEntity machineBlockEntity) {
-                var machine = machineBlockEntity.getMetaMachine();
-                if (isMachineBanned(machine)) {
-                    return false;
-                }
-            }
-            if (blockEntity != null) {
-                var receiver = GTCapabilityHelper.getCleanroomReceiver(blockWorldState.getWorld(), blockWorldState.getPos(), null);
-                if (receiver != null) {
-                    receivers.add(receiver);
-                }
-            }
-            return true;
-        }, null) {
-
-            @Override
-            public boolean testParts() {
-                return false;
-            }
-        };
-    }
-
-    protected boolean isMachineBanned(MetaMachine machine) {
+    private static boolean isMachineBanned(MetaMachine machine) {
         // blacklisted machines: mufflers and all generators, miners/drills, primitives
         if (machine instanceof ICleanroomProvider) return true;
         if (machine instanceof IMufflerMachine) return true;
         if (machine instanceof SimpleGeneratorMachine) return true;
-        if (machine instanceof LargeCombustionEngineMachine) return true;
-        if (machine instanceof LargeTurbineMachine) return true;
         if (machine instanceof LargeMinerMachine) return true;
         if (machine instanceof FluidDrillMachine) return true;
         if (machine instanceof BedrockOreMinerMachine) return true;
@@ -516,14 +499,4 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
 
     @Override
     public void setWorkingEnabled(boolean ignored) {}
-
-    @Nullable
-    public EnergyContainerList getInputEnergyContainers() {
-        return this.inputEnergyContainers;
-    }
-
-    @Nullable
-    public Collection<ICleanroomReceiver> getCleanroomReceivers() {
-        return this.cleanroomReceivers;
-    }
 }

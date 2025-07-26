@@ -33,7 +33,7 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(LaserPipeBlockEntity.class, PipeBlockEntity.MANAGED_FIELD_HOLDER);
     protected final EnumMap<Direction, LaserNetHandler> handlers = new EnumMap<>(Direction.class);
     // the LaserNetHandler can only be created on the server, so we have an empty placeholder for the client
-    public final ILaserContainer clientCapability = new DefaultLaserContainer();
+    public static final ILaserContainer clientCapability = new DefaultLaserContainer();
     private WeakReference<LaserPipeNet> currentPipeNet = new WeakReference<>(null);
     protected LaserNetHandler defaultHandler;
     private int ticksActive = 0;
@@ -59,11 +59,13 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
                 initHandlers();
             }
             checkNetwork();
-            return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> handlers.getOrDefault(side, defaultHandler)));
+            var handler = handlers.getOrDefault(side, defaultHandler);
+            if (handler != null) {
+                return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> handler));
+            }
+            return LazyOptional.empty();
         } else if (cap == GTCapability.CAPABILITY_COVERABLE) {
             return GTCapability.CAPABILITY_COVERABLE.orEmpty(cap, LazyOptional.of(this::getCoverContainer));
-        } else if (cap == GTCapability.CAPABILITY_TOOLABLE) {
-            return GTCapability.CAPABILITY_TOOLABLE.orEmpty(cap, LazyOptional.of(() -> this));
         }
         return super.getCapability(cap, side);
     }

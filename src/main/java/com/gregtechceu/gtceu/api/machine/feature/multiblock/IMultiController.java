@@ -22,6 +22,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -42,7 +43,7 @@ public interface IMultiController extends IMachineFeature, IInteractedMachine {
 
     boolean checking();
 
-    default boolean requiresServerExecution() {
+    default boolean requiresServerCheck() {
         return false;
     }
 
@@ -102,6 +103,14 @@ public interface IMultiController extends IMachineFeature, IInteractedMachine {
      */
     default BlockPattern getPattern() {
         return self().getDefinition().getPatternFactory().get();
+    }
+
+    default List<BlockPattern> getSubPattern() {
+        return Collections.emptyList();
+    }
+
+    default List<MultiblockState> getSubMultiblockState() {
+        return Collections.emptyList();
     }
 
     /**
@@ -221,9 +230,5 @@ public interface IMultiController extends IMachineFeature, IInteractedMachine {
             return InteractionResult.SUCCESS;
         }
         return IInteractedMachine.super.onUse(state, world, pos, player, hand, hit);
-    }
-
-    default boolean allowCircuitSlots() {
-        return true;
     }
 }

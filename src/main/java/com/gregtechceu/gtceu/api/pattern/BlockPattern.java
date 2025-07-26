@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.pattern.error.PatternError;
-import com.gregtechceu.gtceu.api.pattern.error.PatternStringError;
 import com.gregtechceu.gtceu.api.pattern.error.SinglePredicateError;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.PatternMatchContext;
@@ -39,7 +38,6 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,15 +78,15 @@ public class BlockPattern {
         Direction[] facings = controller.hasFrontFacing() ? new Direction[] { frontFacing } : new Direction[] { Direction.SOUTH, Direction.NORTH, Direction.EAST, Direction.WEST };
         Direction upwardsFacing = controller.self().getUpwardsFacing();
         boolean allowsFlip = controller.self().allowFlip();
+        worldState.errorRecord.clear();
         for (Direction direction : facings) {
-            boolean result = checkPatternAt(worldState, centerPos, direction, upwardsFacing, false, savePredicate);
-            if (result) {
-                worldState.cleanCache();
+            if (checkPatternAt(worldState, centerPos, direction, upwardsFacing, false, savePredicate)) {
                 return true;
-            } else if (allowsFlip) {
-                result = checkPatternAt(worldState, centerPos, direction, upwardsFacing, true, savePredicate);
-                worldState.cleanCache();
-                return result;
+            } else {
+                if (!savePredicate) worldState.errorRecord.add(worldState.error);
+                if (allowsFlip) {
+                    return checkPatternAt(worldState, centerPos, direction, upwardsFacing, true, savePredicate);
+                }
             }
         }
         return false;
@@ -120,28 +118,26 @@ public class BlockPattern {
                             }
                             long posLong = pos.asLong();
                             worldState.addPosCache(posLong);
-                            if (savePredicate) {
-                                matchContext.getOrCreate("predicates", Long2ObjectOpenHashMap::new).put(posLong, predicate);
-                            }
 
-                            boolean isPart = false;
-                            boolean canPartShared = true;
-                            if (worldState.getBlockState().getBlock() instanceof ActiveBlock) {
-                                matchContext.getOrCreate("vaBlocks", LongOpenHashSet::new).add(posLong);
-                            } else if (worldState.getTileEntity() instanceof IMachineBlockEntity machineBlockEntity && machineBlockEntity.getMetaMachine() instanceof IMultiPart part) {
-                                // add detected parts
-                                if (predicate.testParts()) {
-                                    isPart = true;
+                            boolean error = !predicate.test(worldState);
+                            if (!error && !predicate.testOnly()) {
+                                if (savePredicate) {
+                                    matchContext.getPredicates().put(posLong, predicate);
+                                }
+                                if (worldState.getBlockState().getBlock() instanceof ActiveBlock) {
+                                    matchContext.vaBlocks.add(posLong);
+                                } else if (worldState.getTileEntity() instanceof IMachineBlockEntity machineBlockEntity && machineBlockEntity.getMetaMachine() instanceof IMultiPart part) {
+                                    // add detected parts
                                     if (part.isFormed() && !part.canShared() && !part.hasController(worldState.controllerPos)) {
                                         // check part can be shared
-                                        canPartShared = false;
-                                        worldState.setError(new PatternStringError("multiblocked.pattern.error.share"));
+                                        error = true;
+                                        worldState.setError(MultiblockState.SHARE_ERROR);
                                     } else {
-                                        matchContext.getOrCreate("parts", ObjectOpenHashSet::new).add(part);
+                                        matchContext.parts.add(part);
                                     }
                                 }
                             }
-                            if (!predicate.test(worldState) || !canPartShared) {
+                            if (error) {
                                 // matching failed
                                 if (findFirstAisle) {
                                     if (r < aisleRepetitions[c][0]) {
@@ -155,9 +151,6 @@ public class BlockPattern {
                                     z++;// continue searching for the first aisle
                                 }
                                 continue loop;
-                            }
-                            if (isPart) {
-                                matchContext.getOrCreate("ioMap", Long2ObjectOpenHashMap::new).put(posLong, worldState.io);
                             }
                         }
                     }
@@ -200,6 +193,7 @@ public class BlockPattern {
     public void autoBuild(Player player, MultiblockState worldState) {
         Level world = player.level();
         int minZ = -centerOffset[4];
+        worldState.cleanCache();
         worldState.clean();
         IMultiController controller = worldState.controller;
         BlockPos centerPos = worldState.controllerPos;
@@ -525,23 +519,24 @@ public class BlockPattern {
     private BlockPos setActualRelativeOffset(int x, int y, int z, Direction facing, Direction upwardsFacing, boolean isFlipped) {
         int[] c0 = new int[] { x, y, z };
         int[] c1 = new int[3];
-        if (facing == Direction.UP || facing == Direction.DOWN) {
-            Direction of = facing == Direction.DOWN ? upwardsFacing : upwardsFacing.getOpposite();
+        boolean down = facing == Direction.DOWN;
+        if (down || facing == Direction.UP) {
+            Direction of = down ? upwardsFacing : upwardsFacing.getOpposite();
             for (int i = 0; i < 3; i++) {
-                switch (structureDir[i].getActualDirection(of)) {
-                    case UP -> c1[1] = c0[i];
-                    case DOWN -> c1[1] = -c0[i];
-                    case WEST -> c1[0] = -c0[i];
-                    case EAST -> c1[0] = c0[i];
-                    case NORTH -> c1[2] = -c0[i];
-                    case SOUTH -> c1[2] = c0[i];
+                switch (structureDir[i].getActualDirection(of).ordinal()) {
+                    case 1 -> c1[1] = c0[i];
+                    case 0 -> c1[1] = -c0[i];
+                    case 4 -> c1[0] = -c0[i];
+                    case 5 -> c1[0] = c0[i];
+                    case 2 -> c1[2] = -c0[i];
+                    case 3 -> c1[2] = c0[i];
                 }
             }
             int xOffset = upwardsFacing.getStepX();
-            int zOffset = upwardsFacing.getStepZ();
             int tmp;
             if (xOffset == 0) {
                 tmp = c1[2];
+                int zOffset = upwardsFacing.getStepZ();
                 c1[2] = zOffset > 0 ? c1[1] : -c1[1];
                 c1[1] = zOffset > 0 ? -tmp : tmp;
             } else {
@@ -558,21 +553,22 @@ public class BlockPattern {
             }
         } else {
             for (int i = 0; i < 3; i++) {
-                switch (structureDir[i].getActualDirection(facing)) {
-                    case UP -> c1[1] = c0[i];
-                    case DOWN -> c1[1] = -c0[i];
-                    case WEST -> c1[0] = -c0[i];
-                    case EAST -> c1[0] = c0[i];
-                    case NORTH -> c1[2] = -c0[i];
-                    case SOUTH -> c1[2] = c0[i];
+                switch (structureDir[i].getActualDirection(facing).ordinal()) {
+                    case 1 -> c1[1] = c0[i];
+                    case 0 -> c1[1] = -c0[i];
+                    case 4 -> c1[0] = -c0[i];
+                    case 5 -> c1[0] = c0[i];
+                    case 2 -> c1[2] = -c0[i];
+                    case 3 -> c1[2] = c0[i];
                 }
             }
-            if (upwardsFacing == Direction.WEST || upwardsFacing == Direction.EAST) {
-                int xOffset = upwardsFacing == Direction.EAST ? facing.getClockWise().getStepX() : facing.getClockWise().getOpposite().getStepX();
-                int zOffset = upwardsFacing == Direction.EAST ? facing.getClockWise().getStepZ() : facing.getClockWise().getOpposite().getStepZ();
+            boolean east = upwardsFacing == Direction.EAST;
+            if (east || upwardsFacing == Direction.WEST) {
+                int xOffset = east ? facing.getClockWise().getStepX() : facing.getClockWise().getOpposite().getStepX();
                 int tmp;
                 if (xOffset == 0) {
                     tmp = c1[2];
+                    int zOffset = east ? facing.getClockWise().getStepZ() : facing.getClockWise().getOpposite().getStepZ();
                     c1[2] = zOffset > 0 ? -c1[1] : c1[1];
                     c1[1] = zOffset > 0 ? tmp : -tmp;
                 } else {
@@ -625,9 +621,5 @@ public class BlockPattern {
             }
         }
         return null;
-    }
-
-    public int[] getFormedRepetitionCount() {
-        return this.formedRepetitionCount;
     }
 }

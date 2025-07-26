@@ -111,7 +111,6 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
         traitSubscriptions.clear();
         capabilitiesProxy.clear();
         capabilitiesFlat.clear();
-        recipeLogic.inValid();
     }
 
     /**

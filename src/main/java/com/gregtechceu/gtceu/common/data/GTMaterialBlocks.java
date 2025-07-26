@@ -78,7 +78,7 @@ public class GTMaterialBlocks {
         MATERIAL_BLOCKS_BUILDER.put(tagPrefix, material, registrate
                 .block(tagPrefix.idPattern().formatted(material.getName()),
                         properties -> tagPrefix.blockConstructor().create(properties, tagPrefix, material))
-                .initialProperties(() -> Blocks.IRON_BLOCK)
+                .initialProperties(material.getMaterialIconSet().isGlass() ? () -> Blocks.GLASS : () -> Blocks.IRON_BLOCK)
                 .properties(p -> tagPrefix.blockProperties().properties().apply(p).noLootTable())
                 .transform(GTBlocks.unificationBlock(tagPrefix, material))
                 .addLayer(renderType)

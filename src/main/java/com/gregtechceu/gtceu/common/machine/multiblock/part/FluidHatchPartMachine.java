@@ -11,22 +11,18 @@ import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
-import com.gregtechceu.gtceu.api.machine.feature.IHasCircuitSlot;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
-import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
@@ -39,7 +35,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -52,7 +47,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachineLife, IHasCircuitSlot, IPaintable {
+public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachineLife, IPaintable {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(FluidHatchPartMachine.class, TieredIOPartMachine.MANAGED_FIELD_HOLDER);
     public static final int INITIAL_TANK_CAPACITY_1X = 8 * FluidType.BUCKET_VOLUME;
@@ -66,9 +61,6 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
     @Nullable
     protected ISubscription tankSubs;
     @Persisted
-    @DescSynced
-    protected boolean circuitSlotEnabled;
-    @Persisted
     protected final NotifiableItemStackHandler circuitInventory;
 
     // The `Object... args` parameter is necessary in case a superclass needs to pass any args along to createTank().
@@ -77,9 +69,8 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
         super(holder, tier, io);
         this.slots = slots;
         this.tank = createTank(initialCapacity, slots, args);
-        this.circuitSlotEnabled = true;
         this.circuitInventory = createCircuitItemHandler(io).shouldSearchContent(false);
-        this.workingEnabled = false;
+        if (io == IO.IN) this.workingEnabled = false;
     }
 
     //////////////////////////////////////
@@ -107,13 +98,6 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
     }
 
     @Override
-    public void onMachineRemoved() {
-        if (!ConfigHolder.INSTANCE.machines.ghostCircuit) {
-            clearInventory(circuitInventory.storage);
-        }
-    }
-
-    @Override
     public void onLoad() {
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
@@ -135,30 +119,6 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
     @Override
     public void onPaintingColorChanged(int color) {
         getHandlerList().setColor(color, true);
-    }
-
-    @Override
-    public void addedToController(IMultiController controller) {
-        if (!controller.allowCircuitSlots()) {
-            if (!ConfigHolder.INSTANCE.machines.ghostCircuit) {
-                clearInventory(circuitInventory.storage);
-            } else {
-                circuitInventory.setStackInSlot(0, ItemStack.EMPTY);
-            }
-            setCircuitSlotEnabled(false);
-        }
-        super.addedToController(controller);
-    }
-
-    @Override
-    public void removedFromController(IMultiController controller) {
-        super.removedFromController(controller);
-        for (var c : controllers) {
-            if (!c.allowCircuitSlots()) {
-                return;
-            }
-        }
-        setCircuitSlotEnabled(true);
     }
 
     @Override
@@ -261,7 +221,7 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
     @Override
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
         super.attachConfigurators(configuratorPanel);
-        if (isCircuitSlotEnabled() && this.io == IO.IN) {
+        if (this.io == IO.IN) {
             configuratorPanel.attachConfigurators(new CircuitFancyConfigurator(circuitInventory.storage));
         }
     }
@@ -350,14 +310,6 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
         container.setBackground(GuiTextures.BACKGROUND_INVERSE);
         group.addWidget(container);
         return group;
-    }
-
-    public boolean isCircuitSlotEnabled() {
-        return this.circuitSlotEnabled;
-    }
-
-    public void setCircuitSlotEnabled(final boolean circuitSlotEnabled) {
-        this.circuitSlotEnabled = circuitSlotEnabled;
     }
 
     public NotifiableItemStackHandler getCircuitInventory() {

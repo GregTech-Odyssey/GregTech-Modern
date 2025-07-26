@@ -97,6 +97,18 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
         return this;
     }
 
+    public MultiblockMachineBuilder nonYAxisRotation() {
+        return rotationState(RotationState.NON_Y_AXIS).allowExtendedFacing(false);
+    }
+
+    public MultiblockMachineBuilder allRotation() {
+        return rotationState(RotationState.ALL);
+    }
+
+    public MultiblockMachineBuilder noneRotation() {
+        return rotationState(RotationState.NONE).allowExtendedFacing(false).allowFlip(false);
+    }
+
     @Override
     public MultiblockMachineBuilder definition(Function<ResourceLocation, MultiblockMachineDefinition> definition) {
         return (MultiblockMachineBuilder) super.definition(definition);
@@ -287,27 +299,12 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
     }
 
     @Override
-    public MultiblockMachineBuilder recipeModifier(RecipeModifier recipeModifier, boolean alwaysTryModifyRecipe) {
-        return (MultiblockMachineBuilder) super.recipeModifier(recipeModifier, alwaysTryModifyRecipe);
-    }
-
-    @Override
     public MultiblockMachineBuilder recipeModifiers(RecipeModifier... recipeModifiers) {
         return (MultiblockMachineBuilder) super.recipeModifiers(recipeModifiers);
     }
 
-    @Override
-    public MultiblockMachineBuilder recipeModifiers(boolean alwaysTryModifyRecipe, RecipeModifier... recipeModifiers) {
-        return (MultiblockMachineBuilder) super.recipeModifiers(alwaysTryModifyRecipe, recipeModifiers);
-    }
-
     public MultiblockMachineBuilder noRecipeModifier() {
         return (MultiblockMachineBuilder) super.noRecipeModifier();
-    }
-
-    @Override
-    public MultiblockMachineBuilder alwaysTryModifyRecipe(boolean alwaysTryModifyRecipe) {
-        return (MultiblockMachineBuilder) super.alwaysTryModifyRecipe(alwaysTryModifyRecipe);
     }
 
     @Override

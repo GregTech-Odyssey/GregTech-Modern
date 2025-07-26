@@ -217,6 +217,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, ICont
     @Override
     public void setOutputFacingItems(@Nullable Direction outputFacing) {
         if (outputFacing != Direction.DOWN) {
+            clearDirectionCache();
             this.outputFacingItems = outputFacing;
             updateAutoOutputSubscription();
         }
@@ -373,6 +374,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, ICont
     }
 
     public void setAllowInputFromOutputSideItems(final boolean allowInputFromOutputSideItems) {
+        clearDirectionCache();
         this.allowInputFromOutputSideItems = allowInputFromOutputSideItems;
     }
 

@@ -277,7 +277,8 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
                                  BlockHitResult hit) {
-        ItemStack itemStack = player.getItemInHand(hand);
+        ItemStack itemStack = player.getItemInHand(InteractionHand.MAIN_HAND);
+        if (itemStack.isEmpty()) itemStack = player.getItemInHand(InteractionHand.OFF_HAND);
         BlockEntity entity = level.getBlockEntity(pos);
 
         PipeBlockEntity<?, ?> pipeBlockEntity = null;

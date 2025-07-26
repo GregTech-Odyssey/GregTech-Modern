@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
@@ -24,8 +23,6 @@ import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -54,17 +51,13 @@ public class DataBankMachine extends WorkableElectricMultiblockMachine implement
     public void onStructureFormed() {
         super.onStructureFormed();
         List<IEnergyContainer> energyContainers = new ArrayList<>();
-        Long2ObjectMap<IO> ioMap = getMultiblockState().getMatchContext().getOrCreate("ioMap", Long2ObjectMaps::emptyMap);
         for (IMultiPart part : getParts()) {
-            IO io = ioMap.getOrDefault(part.self().getPos().asLong(), IO.BOTH);
             if (part instanceof IMaintenanceMachine maintenanceMachine) {
                 this.maintenance = maintenanceMachine;
-            }
-            if (io == IO.NONE || io == IO.OUT) continue;
-            var handlerLists = part.getRecipeHandlers();
-            for (var handlerList : handlerLists) {
-                if (!handlerList.isValid(io)) continue;
-                handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).forEach(energyContainers::add);
+            } else {
+                for (var handlerList : part.getRecipeHandlers()) {
+                    handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).forEach(energyContainers::add);
+                }
             }
         }
         this.energyContainer = new EnergyContainerList(energyContainers);

@@ -283,6 +283,7 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
 
     @Override
     public void setOutputFacingItems(@Nullable Direction outputFacing) {
+        clearDirectionCache();
         this.outputFacingItems = outputFacing;
         updateAutoOutputSubscription();
     }
@@ -482,6 +483,7 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
     }
 
     public void setAllowInputFromOutputSideItems(final boolean allowInputFromOutputSideItems) {
+        clearDirectionCache();
         this.allowInputFromOutputSideItems = allowInputFromOutputSideItems;
     }
 

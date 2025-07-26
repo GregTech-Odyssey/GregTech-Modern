@@ -1,15 +1,11 @@
 package com.gregtechceu.gtceu.common.item;
 
-import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IItemUIFactory;
-import com.gregtechceu.gtceu.api.machine.feature.IHasCircuitSlot;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.common.data.GTItems;
-import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -21,13 +17,10 @@ import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -134,26 +127,5 @@ public class IntCircuitBehaviour implements IItemUIFactory, IAddInformation {
         }
         modular.mainGroup.setBackground(GuiTextures.BACKGROUND);
         return modular;
-    }
-
-    @Override
-    public InteractionResult useOn(UseOnContext context) {
-        var stack = context.getItemInHand();
-        int circuitSetting = getCircuitConfiguration(stack);
-        BlockEntity entity = context.getLevel().getBlockEntity(context.getClickedPos());
-        if (entity instanceof MetaMachineBlockEntity machineEntity && context.isSecondaryUseActive()) {
-            if (machineEntity.metaMachine instanceof IHasCircuitSlot circuitMachine &&
-                    circuitMachine.getCircuitInventory().getSlots() > 0) {
-                setCircuitConfig(circuitMachine.getCircuitInventory(), circuitSetting);
-            }
-            if (!ConfigHolder.INSTANCE.machines.ghostCircuit)
-                stack.shrink(1);
-            return InteractionResult.SUCCESS;
-        }
-        return IItemUIFactory.super.useOn(context);
-    }
-
-    void setCircuitConfig(NotifiableItemStackHandler circuit, int value) {
-        circuit.setStackInSlot(0, IntCircuitBehaviour.stack(value));
     }
 }

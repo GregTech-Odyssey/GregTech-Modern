@@ -28,8 +28,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -84,16 +82,8 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
         // capture all energy containers
         List<IEnergyContainer> powerInput = new ArrayList<>();
         List<IEnergyContainer> powerOutput = new ArrayList<>();
-        Long2ObjectMap<IO> ioMap = getMultiblockState().getMatchContext().getOrCreate("ioMap",
-                Long2ObjectMaps::emptyMap);
-
         for (IMultiPart part : getPrioritySortedParts()) {
-            IO io = ioMap.getOrDefault(part.self().getPos().asLong(), IO.BOTH);
-            if (io == IO.NONE) continue;
-            var handlerLists = part.getRecipeHandlers();
-            for (var handlerList : handlerLists) {
-                if (!handlerList.isValid(io)) continue;
-
+            for (var handlerList : part.getRecipeHandlers()) {
                 var containers = handlerList.getCapability(EURecipeCapability.CAP).stream()
                         .filter(IEnergyContainer.class::isInstance)
                         .map(IEnergyContainer.class::cast)

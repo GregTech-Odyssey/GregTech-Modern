@@ -33,10 +33,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -150,18 +148,37 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @Override
     public boolean checkPattern() {
         if (waitingTime < 1) {
-            checking = true;
             BlockPattern pattern = getPattern();
-            if (pattern != null && pattern.checkPatternAt(getMultiblockState(), false)) {
-                waitingTime = 0;
+            boolean result = false;
+            if (pattern != null) {
+                checking = true;
+                var state = getMultiblockState();
+                state.cleanCache();
+                result = pattern.checkPatternAt(state, false);
+                if (result) {
+                    var subPattern = getSubPattern();
+                    if (!subPattern.isEmpty()) {
+                        for (int i = 0; i < subPattern.size(); i++) {
+                            var subState = MultiblockState.copy(state);
+                            if (subPattern.get(i).checkPatternAt(subState, false)) {
+                                state.merge(subState);
+                            }
+                            getSubMultiblockState().set(i, subState);
+                        }
+                        getSubMultiblockState().forEach(MultiblockState::cleanCache);
+                    }
+                }
+                state.cleanCache();
                 checking = false;
+            }
+            if (result) {
+                waitingTime = 0;
                 return true;
             } else if (hasCheckButton()) {
                 waitingTime = 10;
             } else {
                 waitingTime = 1;
             }
-            checking = false;
         } else {
             waitingTime--;
         }
@@ -180,12 +197,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             simpleLock = true;
             if (checkPatternWithTryLock()) {
                 serverLevel.getServer().execute(() -> {
-                    if (requiresServerExecution()) {
-                        if (!checkPatternWithLock()) {
-                            simpleLock = false;
-                            return;
-                        }
-                    }
                     setFlipped(getMultiblockState().isNeededFlip());
                     onStructureFormed();
                     requestSync();
@@ -204,8 +215,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     public void onStructureFormed() {
         isFormed = true;
         this.parts.clear();
-        Set<IMultiPart> set = getMultiblockState().getMatchContext().getOrCreate("parts", Collections::emptySet);
-        for (IMultiPart part : set) {
+        for (IMultiPart part : getMultiblockState().getMatchContext().parts) {
             if (shouldAddPartToController(part)) {
                 this.parts.add(part);
             }
@@ -318,7 +328,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             patternLock.lock();
             try {
                 if (isFormed) {
-                    if (requiresServerExecution()) {
+                    if (requiresServerCheck()) {
                         if (checkPatternWithLock()) {
                             setFlipped(getMultiblockState().isNeededFlip());
                             onStructureFormed();

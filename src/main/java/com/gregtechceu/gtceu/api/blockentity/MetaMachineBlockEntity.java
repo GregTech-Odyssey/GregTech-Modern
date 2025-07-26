@@ -129,8 +129,6 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
     public static <T> LazyOptional<T> getCapability(MetaMachine machine, @NotNull Capability<T> cap, @Nullable Direction side) {
         if (cap == GTCapability.CAPABILITY_COVERABLE) {
             return GTCapability.CAPABILITY_COVERABLE.orEmpty(cap, LazyOptional.of(machine::getCoverContainer));
-        } else if (cap == GTCapability.CAPABILITY_TOOLABLE) {
-            return GTCapability.CAPABILITY_TOOLABLE.orEmpty(cap, LazyOptional.of(() -> machine));
         } else if (cap == GTCapability.CAPABILITY_WORKABLE) {
             if (machine instanceof IWorkable workable) {
                 return GTCapability.CAPABILITY_WORKABLE.orEmpty(cap, LazyOptional.of(() -> workable));
@@ -170,10 +168,6 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
             var list = getCapabilitiesFromTraits(machine.getTraits(), side, IEnergyInfoProvider.class);
             if (!list.isEmpty()) {
                 return GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER.orEmpty(cap, LazyOptional.of(() -> list.size() == 1 ? list.get(0) : new EnergyInfoProviderList(list)));
-            }
-        } else if (cap == GTCapability.CAPABILITY_CLEANROOM_RECEIVER) {
-            if (machine instanceof ICleanroomReceiver cleanroomReceiver) {
-                return GTCapability.CAPABILITY_CLEANROOM_RECEIVER.orEmpty(cap, LazyOptional.of(() -> cleanroomReceiver));
             }
         } else if (cap == GTCapability.CAPABILITY_MAINTENANCE_MACHINE) {
             if (machine instanceof IMaintenanceMachine maintenanceMachine) {

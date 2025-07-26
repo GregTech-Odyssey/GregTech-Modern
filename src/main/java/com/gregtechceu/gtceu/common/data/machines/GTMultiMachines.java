@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
-import com.gregtechceu.gtceu.api.data.RotationState;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.fluids.PropertyFluidFilter;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
@@ -87,7 +86,7 @@ public class GTMultiMachines {
             ConfigHolder.INSTANCE.machines.largeBoilers.tungstensteelBoilerHeatSpeed);
 
     public static final MultiblockMachineDefinition COKE_OVEN = REGISTRATE.multiblock("coke_oven", CokeOvenMachine::new)
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(GTRecipeTypes.COKE_OVEN_RECIPES)
             .appearanceBlock(CASING_COKE_BRICKS)
             .pattern(definition -> FactoryBlockPattern.start(definition)
@@ -105,7 +104,7 @@ public class GTMultiMachines {
 
     public static final MultiblockMachineDefinition PRIMITIVE_BLAST_FURNACE = REGISTRATE
             .multiblock("primitive_blast_furnace", PrimitiveBlastFurnaceMachine::new)
-            .rotationState(RotationState.ALL)
+            .nonYAxisRotation()
             .recipeType(GTRecipeTypes.PRIMITIVE_BLAST_FURNACE_RECIPES)
             .renderer(() -> new PrimitiveBlastFurnaceRenderer(GTCEu.id("block/casings/solid/machine_primitive_bricks"),
                     GTCEu.id("block/multiblock/primitive_blast_furnace")))
@@ -123,7 +122,7 @@ public class GTMultiMachines {
 
     public static final MultiblockMachineDefinition ELECTRIC_BLAST_FURNACE = REGISTRATE
             .multiblock("electric_blast_furnace", CoilWorkableElectricMultiblockMachine::new)
-            .rotationState(RotationState.ALL)
+            .nonYAxisRotation()
             .recipeType(GTRecipeTypes.BLAST_RECIPES)
             .recipeModifiers(GTRecipeModifiers::ebfOverclock, BATCH_MODE)
             .appearanceBlock(CASING_INVAR_HEATPROOF)
@@ -139,28 +138,6 @@ public class GTMultiMachines {
                     .where('C', heatingCoils())
                     .where('#', air())
                     .build())
-            .shapeInfos(definition -> {
-                List<MultiblockShapeInfo> shapeInfo = new ArrayList<>();
-                var builder = MultiblockShapeInfo.builder()
-                        .aisle("ISO", "CCC", "CCC", "XMX")
-                        .aisle("FXD", "C#C", "C#C", "XHX")
-                        .aisle("EEX", "CCC", "CCC", "XXX")
-                        .where('X', CASING_INVAR_HEATPROOF.getDefaultState())
-                        .where('S', definition, Direction.NORTH)
-                        .where('#', Blocks.AIR.defaultBlockState())
-                        .where('E', ENERGY_INPUT_HATCH[GTValues.LV], Direction.SOUTH)
-                        .where('I', ITEM_IMPORT_BUS[GTValues.LV], Direction.NORTH)
-                        .where('O', ITEM_EXPORT_BUS[GTValues.LV], Direction.NORTH)
-                        .where('F', FLUID_IMPORT_HATCH[GTValues.LV], Direction.WEST)
-                        .where('D', FLUID_EXPORT_HATCH[GTValues.LV], Direction.EAST)
-                        .where('H', MUFFLER_HATCH[GTValues.LV], Direction.UP)
-                        .where('M', MAINTENANCE_HATCH, Direction.NORTH);
-                GTCEuAPI.HEATING_COILS.entrySet().stream()
-                        .sorted(Comparator.comparingInt(entry -> entry.getKey().getTier()))
-                        .forEach(
-                                coil -> shapeInfo.add(builder.shallowCopy().where('C', coil.getValue().get()).build()));
-                return shapeInfo;
-            })
             .recoveryItems(() -> GTMaterialItems.MATERIAL_ITEMS.get(TagPrefix.dustTiny, GTMaterials.Ash).get())
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_heatproof"),
                     GTCEu.id("block/multiblock/electric_blast_furnace"))
@@ -185,7 +162,7 @@ public class GTMultiMachines {
             .multiblock("large_chemical_reactor", WorkableElectricMultiblockMachine::new)
             .conditionalTooltip(defaultEnvironmentRequirement(),
                     ConfigHolder.INSTANCE.gameplay.environmentalHazards)
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(GTRecipeTypes.LARGE_CHEMICAL_RECIPES)
             .recipeModifiers(DEFAULT_ENVIRONMENT_REQUIREMENT, OC_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_PTFE_INERT)
@@ -251,7 +228,7 @@ public class GTMultiMachines {
 
     public static final MultiblockMachineDefinition IMPLOSION_COMPRESSOR = REGISTRATE
             .multiblock("implosion_compressor", WorkableElectricMultiblockMachine::new)
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(GTRecipeTypes.IMPLOSION_RECIPES)
             .recipeModifiers(OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_STEEL_SOLID)
@@ -271,7 +248,7 @@ public class GTMultiMachines {
 
     public static final MultiblockMachineDefinition PYROLYSE_OVEN = REGISTRATE
             .multiblock("pyrolyse_oven", CoilWorkableElectricMultiblockMachine::new)
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(GTRecipeTypes.PYROLYSE_RECIPES)
             .recipeModifiers(GTRecipeModifiers::pyrolyseOvenOverclock, BATCH_MODE)
             .appearanceBlock(MACHINE_CASING_ULV)
@@ -288,29 +265,6 @@ public class GTMultiMachines {
                     .where('C', Predicates.heatingCoils())
                     .where('#', Predicates.air())
                     .build())
-            .shapeInfos(definition -> {
-                List<MultiblockShapeInfo> shapeInfo = new ArrayList<>();
-                var builder = MultiblockShapeInfo.builder()
-                        .aisle("IXO", "XSX", "FMD")
-                        .aisle("CCC", "C#C", "CCC")
-                        .aisle("CCC", "C#C", "CCC")
-                        .aisle("EEX", "XHX", "XXX")
-                        .where('S', definition, Direction.NORTH)
-                        .where('X', MACHINE_CASING_ULV.getDefaultState())
-                        .where('E', ENERGY_INPUT_HATCH[GTValues.LV], Direction.SOUTH)
-                        .where('I', ITEM_IMPORT_BUS[GTValues.LV], Direction.NORTH)
-                        .where('O', ITEM_EXPORT_BUS[GTValues.LV], Direction.NORTH)
-                        .where('F', FLUID_IMPORT_HATCH[GTValues.LV], Direction.NORTH)
-                        .where('D', FLUID_EXPORT_HATCH[GTValues.LV], Direction.NORTH)
-                        .where('H', MUFFLER_HATCH[GTValues.LV], Direction.SOUTH)
-                        .where('M', MAINTENANCE_HATCH, Direction.NORTH)
-                        .where('#', Blocks.AIR.defaultBlockState());
-                GTCEuAPI.HEATING_COILS.entrySet().stream()
-                        .sorted(Comparator.comparingInt(entry -> entry.getKey().getTier()))
-                        .forEach(
-                                coil -> shapeInfo.add(builder.shallowCopy().where('C', coil.getValue().get()).build()));
-                return shapeInfo;
-            })
             .workableCasingRenderer(GTCEu.id("block/casings/voltage/ulv/side"),
                     GTCEu.id("block/multiblock/pyrolyse_oven"))
             .tooltips(Component.translatable("gtceu.machine.pyrolyse_oven.tooltip.1"))
@@ -324,7 +278,7 @@ public class GTMultiMachines {
 
     public static final MultiblockMachineDefinition MULTI_SMELTER = REGISTRATE
             .multiblock("multi_smelter", CoilWorkableElectricMultiblockMachine::new)
-            .rotationState(RotationState.ALL)
+            .nonYAxisRotation()
             .recipeTypes(GTRecipeTypes.FURNACE_RECIPES, GTRecipeTypes.ALLOY_SMELTER_RECIPES)
             .recipeModifiers(GTRecipeModifiers::multiSmelterParallel, BATCH_MODE)
             .appearanceBlock(CASING_INVAR_HEATPROOF)
@@ -342,26 +296,6 @@ public class GTMultiMachines {
                     .where('C', heatingCoils())
                     .where('#', air())
                     .build())
-            .shapeInfos(definition -> {
-                List<MultiblockShapeInfo> shapeInfo = new ArrayList<>();
-                var builder = MultiblockShapeInfo.builder()
-                        .aisle("ISO", "CCC", "XMX")
-                        .aisle("XXX", "C#C", "XHX")
-                        .aisle("EEX", "CCC", "XXX")
-                        .where('S', definition, Direction.NORTH)
-                        .where('X', CASING_INVAR_HEATPROOF.getDefaultState())
-                        .where('E', ENERGY_INPUT_HATCH[GTValues.LV], Direction.SOUTH)
-                        .where('I', ITEM_IMPORT_BUS[GTValues.LV], Direction.NORTH)
-                        .where('O', ITEM_EXPORT_BUS[GTValues.LV], Direction.NORTH)
-                        .where('H', MUFFLER_HATCH[GTValues.LV], Direction.SOUTH)
-                        .where('M', MAINTENANCE_HATCH, Direction.NORTH)
-                        .where('#', Blocks.AIR.defaultBlockState());
-                GTCEuAPI.HEATING_COILS.entrySet().stream()
-                        .sorted(Comparator.comparingInt(entry -> entry.getKey().getTier()))
-                        .forEach(
-                                coil -> shapeInfo.add(builder.shallowCopy().where('C', coil.getValue().get()).build()));
-                return shapeInfo;
-            })
             .recoveryItems(
                     () -> GTMaterialItems.MATERIAL_ITEMS.get(TagPrefix.dustTiny, GTMaterials.Ash).get())
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_heatproof"),
@@ -378,7 +312,7 @@ public class GTMultiMachines {
 
     public static final MultiblockMachineDefinition CRACKER = REGISTRATE
             .multiblock("cracker", CoilWorkableElectricMultiblockMachine::new)
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(GTRecipeTypes.CRACKING_RECIPES)
             .recipeModifiers(GTRecipeModifiers::crackerOverclock, BATCH_MODE)
             .appearanceBlock(CASING_STAINLESS_CLEAN)
@@ -393,27 +327,6 @@ public class GTMultiMachines {
                     .where('#', Predicates.air())
                     .where('C', Predicates.heatingCoils())
                     .build())
-            .shapeInfos(definition -> {
-                List<MultiblockShapeInfo> shapeInfo = new ArrayList<>();
-                var builder = MultiblockShapeInfo.builder()
-                        .aisle("FCICD", "HCSCH", "HCMCH")
-                        .aisle("ECHCH", "H###H", "HCHCH")
-                        .aisle("ECHCH", "HCXCH", "HCHCH")
-                        .where('S', definition, Direction.NORTH)
-                        .where('H', CASING_STAINLESS_CLEAN.getDefaultState())
-                        .where('E', ENERGY_INPUT_HATCH[GTValues.LV], Direction.WEST)
-                        .where('I', ITEM_IMPORT_BUS[GTValues.LV], Direction.NORTH)
-                        .where('F', FLUID_IMPORT_HATCH[GTValues.LV], Direction.NORTH)
-                        .where('D', FLUID_EXPORT_HATCH[GTValues.LV], Direction.NORTH)
-                        .where('M', MAINTENANCE_HATCH, Direction.NORTH)
-                        .where('X', MUFFLER_HATCH[GTValues.LV], Direction.SOUTH)
-                        .where('#', Blocks.AIR.defaultBlockState());
-                GTCEuAPI.HEATING_COILS.entrySet().stream()
-                        .sorted(Comparator.comparingInt(entry -> entry.getKey().getTier()))
-                        .forEach(
-                                coil -> shapeInfo.add(builder.shallowCopy().where('C', coil.getValue().get()).build()));
-                return shapeInfo;
-            })
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_clean_stainless_steel"),
                     GTCEu.id("block/multiblock/cracking_unit"))
             .tooltips(Component.translatable("gtceu.machine.cracker.tooltip.1"))
@@ -427,7 +340,7 @@ public class GTMultiMachines {
 
     public static final MultiblockMachineDefinition DISTILLATION_TOWER = REGISTRATE
             .multiblock("distillation_tower", DistillationTowerMachine::new)
-            .rotationState(RotationState.NON_Y_AXIS)
+            .nonYAxisRotation()
             .recipeType(GTRecipeTypes.DISTILLATION_RECIPES)
             .recipeModifiers(OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_STAINLESS_CLEAN)
@@ -497,7 +410,7 @@ public class GTMultiMachines {
 
     public static final MultiblockMachineDefinition VACUUM_FREEZER = REGISTRATE
             .multiblock("vacuum_freezer", WorkableElectricMultiblockMachine::new)
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(GTRecipeTypes.VACUUM_RECIPES)
             .recipeModifiers(GTRecipeModifiers.OC_NON_PERFECT_SUBTICK, BATCH_MODE)
             .appearanceBlock(CASING_ALUMINIUM_FROSTPROOF)
@@ -517,9 +430,8 @@ public class GTMultiMachines {
 
     public static final MultiblockMachineDefinition ASSEMBLY_LINE = REGISTRATE
             .multiblock("assembly_line", AssemblyLineMachine::new)
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(GTRecipeTypes.ASSEMBLY_LINE_RECIPES)
-            .alwaysTryModifyRecipe(true)
             .recipeModifiers(DEFAULT_ENVIRONMENT_REQUIREMENT, OC_NON_PERFECT)
             .appearanceBlock(CASING_STEEL_SOLID)
             .pattern(definition -> FactoryBlockPattern.start(definition, BACK, UP, RIGHT)
@@ -552,7 +464,7 @@ public class GTMultiMachines {
 
     public static final MultiblockMachineDefinition PRIMITIVE_PUMP = REGISTRATE
             .multiblock("primitive_pump", PrimitivePumpMachine::new)
-            .rotationState(RotationState.NON_Y_AXIS)
+            .nonYAxisRotation()
             .appearanceBlock(CASING_PUMP_DECK)
             .pattern(definition -> FactoryBlockPattern.start(definition)
                     .aisle("XXXX", "##F#", "##F#")
@@ -572,10 +484,10 @@ public class GTMultiMachines {
 
     public static final MultiblockMachineDefinition STEAM_GRINDER = REGISTRATE
             .multiblock("steam_grinder", SteamParallelMultiblockMachine::new)
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .appearanceBlock(CASING_BRONZE_BRICKS)
             .recipeType(GTRecipeTypes.MACERATOR_RECIPES)
-            .recipeModifier(SteamParallelMultiblockMachine::recipeModifier, true)
+            .recipeModifier(SteamParallelMultiblockMachine::recipeModifier)
             .addOutputLimit(ItemRecipeCapability.CAP, 1)
             .pattern(definition -> FactoryBlockPattern.start(definition)
                     .aisle("XXX", "XXX", "XXX")
@@ -594,10 +506,10 @@ public class GTMultiMachines {
 
     public static final MultiblockMachineDefinition STEAM_OVEN = REGISTRATE
             .multiblock("steam_oven", SteamParallelMultiblockMachine::new)
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .appearanceBlock(CASING_BRONZE_BRICKS)
             .recipeType(GTRecipeTypes.FURNACE_RECIPES)
-            .recipeModifier(SteamParallelMultiblockMachine::recipeModifier, true)
+            .recipeModifier(SteamParallelMultiblockMachine::recipeModifier)
             .addOutputLimit(ItemRecipeCapability.CAP, 1)
             .pattern(definition -> FactoryBlockPattern.start(definition)
                     .aisle("FFF", "XXX", " X ")
@@ -619,7 +531,7 @@ public class GTMultiMachines {
 
     public static final MultiblockMachineDefinition[] FUSION_REACTOR = registerTieredMultis("fusion_reactor",
             FusionReactorMachine::new, (tier, builder) -> builder
-                    .rotationState(RotationState.ALL)
+                    .allRotation()
                     .langValue("Fusion Reactor Computer MK %s".formatted(toRomanNumeral(tier - 5)))
                     .recipeType(GTRecipeTypes.FUSION_RECIPES)
                     .recipeModifiers(DEFAULT_ENVIRONMENT_REQUIREMENT,
@@ -711,7 +623,7 @@ public class GTMultiMachines {
 
     public static final MultiblockMachineDefinition[] FLUID_DRILLING_RIG = registerTieredMultis(
             "fluid_drilling_rig", FluidDrillMachine::new, (tier, builder) -> builder
-                    .rotationState(RotationState.ALL)
+                    .nonYAxisRotation()
                     .langValue("%s Fluid Drilling Rig %s".formatted(VLVH[tier], VLVT[tier]))
                     .recipeType(DUMMY_RECIPES)
                     .tooltips(
@@ -745,7 +657,7 @@ public class GTMultiMachines {
     public static final MultiblockMachineDefinition[] LARGE_MINER = registerTieredMultis("large_miner",
             (holder, tier) -> new LargeMinerMachine(holder, tier, 64 / tier, 2 * tier - 5, tier, 8 - (tier - 5)),
             (tier, builder) -> builder
-                    .rotationState(RotationState.NON_Y_AXIS)
+                    .nonYAxisRotation()
                     .langValue("%s Large Miner %s".formatted(VLVH[tier], VLVT[tier]))
                     .recipeType(GTRecipeTypes.MACERATOR_RECIPES)
                     .appearanceBlock(() -> LargeMinerMachine.getCasingState(tier))
@@ -787,7 +699,7 @@ public class GTMultiMachines {
 
     public static final MultiblockMachineDefinition CLEANROOM = REGISTRATE
             .multiblock("cleanroom", CleanroomMachine::new)
-            .rotationState(RotationState.NONE)
+            .noneRotation()
             .recipeType(DUMMY_RECIPES)
             .appearanceBlock(PLASTCRETE)
             .tooltips(Component.translatable("gtceu.machine.cleanroom.tooltip.0"),
@@ -863,8 +775,6 @@ public class GTMultiMachines {
                         .forEach(block -> shapeInfo.add(builder.where('F', block.get()).build()));
                 return shapeInfo;
             })
-            .allowExtendedFacing(false)
-            .allowFlip(false)
             .workableCasingRenderer(GTCEu.id("block/casings/cleanroom/plascrete"),
                     GTCEu.id("block/multiblock/cleanroom"))
             .register();
@@ -906,7 +816,7 @@ public class GTMultiMachines {
 
     public static final MultiblockMachineDefinition ACTIVE_TRANSFORMER = REGISTRATE
             .multiblock("active_transformer", ActiveTransformerMachine::new)
-            .rotationState(RotationState.ALL)
+            .allRotation()
             .recipeType(GTRecipeTypes.DUMMY_RECIPES)
             .appearanceBlock(HIGH_POWER_CASING)
             .tooltips(Component.translatable("gtceu.machine.active_transformer.tooltip.0"),
@@ -932,7 +842,7 @@ public class GTMultiMachines {
     public static final MultiblockMachineDefinition POWER_SUBSTATION = REGISTRATE
             .multiblock("power_substation", PowerSubstationMachine::new)
             .checkPriority(3)
-            .rotationState(RotationState.ALL)
+            .nonYAxisRotation()
             .recipeType(GTRecipeTypes.DUMMY_RECIPES)
             .tooltips(Component.translatable("gtceu.machine.power_substation.tooltip.0"),
                     Component.translatable("gtceu.machine.power_substation.tooltip.1"),
@@ -1003,7 +913,7 @@ public class GTMultiMachines {
 
     public static final MultiblockMachineDefinition CHARCOAL_PILE_IGNITER = REGISTRATE
             .multiblock("charcoal_pile_igniter", CharcoalPileIgniterMachine::new)
-            .rotationState(RotationState.NONE)
+            .noneRotation()
             .recipeType(DUMMY_RECIPES)
             .appearanceBlock(BRONZE_HULL)
             .pattern(definition -> FactoryBlockPattern.start(definition)
@@ -1018,15 +928,13 @@ public class GTMultiMachines {
                     .where('D', blocks(Blocks.DIRT))
                     .where('C', blocks(Blocks.OAK_LOG))
                     .build())
-            .allowFlip(false)
-            .allowExtendedFacing(false)
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_bronze_plated_bricks"),
                     GTCEu.id("block/multiblock/charcoal_pile_igniter"))
             .register();
 
     public static MultiblockMachineDefinition[] BEDROCK_ORE_MINER = registerTieredMultis(
             "bedrock_ore_miner", BedrockOreMinerMachine::new, (tier, builder) -> builder
-                    .rotationState(RotationState.NON_Y_AXIS)
+                    .nonYAxisRotation()
                     .langValue("%s Bedrock Ore Miner %s".formatted(VLVH[tier], VLVT[tier]))
                     .recipeType(DUMMY_RECIPES)
                     .tooltips(

@@ -11,6 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.common.capabilities.Capability;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,13 +30,20 @@ public class OpticalRoutePath implements IRoutePath<IOpticalComputationProvider>
 
     @Nullable
     public IOpticalDataAccessHatch getDataHatch() {
-        IDataAccessHatch dataAccessHatch = getTargetCapability(GTCapability.CAPABILITY_DATA_ACCESS, targetPipe.getPipeLevel());
+        IDataAccessHatch dataAccessHatch = getTargetCapability(GTCapability.CAPABILITY_DATA_ACCESS);
         return dataAccessHatch instanceof IOpticalDataAccessHatch opticalHatch ? opticalHatch : null;
     }
 
     @Nullable
     public IOpticalComputationProvider getComputationHatch() {
-        return getTargetCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER, targetPipe.getPipeLevel());
+        return getTargetCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER);
+    }
+
+    @Nullable
+    public <I> I getTargetCapability(Capability<I> capability) {
+        BlockEntity blockEntity = targetPipe.getNeighbor(targetFacing);
+        return blockEntity == null ? null :
+                blockEntity.getCapability(capability, targetFacing.getOpposite()).resolve().orElse(null);
     }
 
     @Override

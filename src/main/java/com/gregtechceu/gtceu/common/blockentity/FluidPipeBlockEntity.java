@@ -65,8 +65,6 @@ public class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, FluidPi
             }
         } else if (cap == GTCapability.CAPABILITY_COVERABLE) {
             return GTCapability.CAPABILITY_COVERABLE.orEmpty(cap, LazyOptional.of(this::getCoverContainer));
-        } else if (cap == GTCapability.CAPABILITY_TOOLABLE) {
-            return GTCapability.CAPABILITY_TOOLABLE.orEmpty(cap, LazyOptional.of(() -> this));
         }
         return super.getCapability(cap, side);
     }

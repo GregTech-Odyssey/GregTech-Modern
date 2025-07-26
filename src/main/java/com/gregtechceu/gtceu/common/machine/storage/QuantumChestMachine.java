@@ -188,6 +188,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
 
     @Override
     public void setOutputFacingItems(@Nullable Direction outputFacing) {
+        clearDirectionCache();
         this.outputFacingItems = outputFacing;
         updateAutoOutputSubscription();
     }
@@ -488,6 +489,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     }
 
     public void setAllowInputFromOutputSideItems(final boolean allowInputFromOutputSideItems) {
+        clearDirectionCache();
         this.allowInputFromOutputSideItems = allowInputFromOutputSideItems;
     }
 

@@ -321,10 +321,6 @@ public abstract class PipeNet<NodeDataType> implements ITagSerializable<Compound
         for (int i = 0; i < allNodesList.size(); i++) {
             CompoundTag nodeTag = allNodesList.getCompound(i);
             long pos = nodeTag.getLong("pos");
-            // todo 以后删除
-            if (pos == 0) {
-                pos = BlockPos.asLong(nodeTag.getInt("x"), nodeTag.getInt("y"), nodeTag.getInt("z"));
-            }
             int wirePropertiesIndex = nodeTag.getInt("index");
             NodeDataType nodeData = readProperties.get(wirePropertiesIndex);
             int openConnections = nodeTag.getInt("open");

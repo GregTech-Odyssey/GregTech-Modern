@@ -142,6 +142,7 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
 
     @Override
     public void setOutputFacingFluids(@Nullable Direction outputFacing) {
+        clearDirectionCache();
         this.outputFacingFluids = outputFacing;
         updateAutoOutputSubscription();
     }
@@ -154,6 +155,7 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
 
     @Override
     public void setOutputFacingItems(@Nullable Direction outputFacing) {
+        clearDirectionCache();
         this.outputFacingItems = outputFacing;
         updateAutoOutputSubscription();
     }
@@ -252,6 +254,7 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
     }
 
     public void setAllowInputFromOutputSideItems(final boolean allowInputFromOutputSideItems) {
+        clearDirectionCache();
         this.allowInputFromOutputSideItems = allowInputFromOutputSideItems;
     }
 
@@ -260,6 +263,7 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
     }
 
     public void setAllowInputFromOutputSideFluids(final boolean allowInputFromOutputSideFluids) {
+        clearDirectionCache();
         this.allowInputFromOutputSideFluids = allowInputFromOutputSideFluids;
     }
 

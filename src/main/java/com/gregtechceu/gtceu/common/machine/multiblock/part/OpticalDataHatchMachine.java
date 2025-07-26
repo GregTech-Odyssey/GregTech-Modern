@@ -15,7 +15,6 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.BlockHitResult;
 
 import org.jetbrains.annotations.NotNull;
@@ -59,12 +58,8 @@ public class OpticalDataHatchMachine extends MultiblockPartMachine implements IO
             }
             return isRecipeAvailable(dataAccesses, seen, recipe) || isRecipeAvailable(transmitters, seen, recipe);
         } else {
-            BlockEntity tileEntity = getLevel().getBlockEntity(getPos().relative(getFrontFacing()));
-            if (tileEntity == null) return false;
-            if (tileEntity instanceof OpticalPipeBlockEntity) {
-                // noinspection DataFlowIssue
-                IDataAccessHatch cap = tileEntity.getCapability(GTCapability.CAPABILITY_DATA_ACCESS, getFrontFacing().getOpposite()).orElse(null);
-                // noinspection ConstantValue
+            if (getNeighbor(getFrontFacing()) instanceof OpticalPipeBlockEntity blockEntity) {
+                IDataAccessHatch cap = blockEntity.getCapability(GTCapability.CAPABILITY_DATA_ACCESS, getFrontFacing().getOpposite()).resolve().orElse(null);
                 return cap != null && cap.isRecipeAvailable(recipe, seen);
             }
         }

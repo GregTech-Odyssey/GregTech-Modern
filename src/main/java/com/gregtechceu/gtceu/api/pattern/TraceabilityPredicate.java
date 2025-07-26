@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.pattern;
 
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
@@ -193,17 +192,7 @@ public class TraceabilityPredicate {
         return this;
     }
 
-    /**
-     * Set io.
-     */
-    public TraceabilityPredicate setIO(IO io) {
-        common.forEach(predicate -> predicate.io = io);
-        limited.forEach(predicate -> predicate.io = io);
-        return this;
-    }
-
     public boolean test(MultiblockState blockWorldState) {
-        blockWorldState.io = IO.BOTH;
         boolean flag = false;
 
         for (SimplePredicate predicate : limited) {
@@ -237,8 +226,8 @@ public class TraceabilityPredicate {
         return this;
     }
 
-    public boolean testParts() {
-        return true;
+    public boolean testOnly() {
+        return false;
     }
 
     public boolean isAny() {
