@@ -191,6 +191,24 @@ public class PatternPreviewWidget extends WidgetGroup {
         setPage(0);
     }
 
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (button == 1/* right button */) {
+            dragX *= 0.1;
+            dragY *= 0.1;
+            double rotationPitch = Math.toRadians(sceneWidget.getRotationPitch());
+            double rotationYaw = Math.toRadians(sceneWidget.getRotationYaw());
+            float moveX = -(float) (dragY * Math.sin(rotationYaw) * Math.cos(rotationPitch) + dragX * Math.sin(rotationPitch));
+            float moveY = (float) (dragY * Math.cos(rotationYaw));
+            float moveZ = (float) (-dragY * Math.sin(rotationYaw) * Math.sin(rotationPitch) + dragX * Math.cos(rotationPitch));
+            sceneWidget.setCenter(sceneWidget.getCenter().add(moveX, moveY, moveZ));
+            return true;
+        }
+
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
     private void updateLayer() {
         MBPattern pattern = patterns[index];
         if (layer + 1 >= -1 && layer + 1 <= pattern.maxY - pattern.minY) {
@@ -223,6 +241,7 @@ public class PatternPreviewWidget extends WidgetGroup {
         } else {
             sceneWidget.setRenderedCore(stream.toList(), null);
         }
+        sceneWidget.setCenter(pattern.center.getCenter().toVector3f());
     }
 
     public static PatternPreviewWidget getPatternWidget(MultiblockMachineDefinition controllerDefinition) {
@@ -332,6 +351,7 @@ public class PatternPreviewWidget extends WidgetGroup {
         Map<BlockPos, BlockInfo> blockMap = new HashMap<>();
         IMultiController controllerBase = null;
         BlockPos multiPos = locateNextRegion(500);
+        BlockPos center = BlockPos.ZERO;
 
         BlockInfo[][][] blocks = shapeInfo.getBlocks();
         for (int x = 0; x < blocks.length; x++) {
@@ -347,6 +367,7 @@ public class PatternPreviewWidget extends WidgetGroup {
                                 holder.getMetaMachine() instanceof IMultiController controller) {
                             holder.getSelf().setLevel(LEVEL);
                             controllerBase = controller;
+                            center = pos;
                         }
                         blockMap.put(pos, BlockInfo.fromBlockState(blockState));
                     }
@@ -367,7 +388,7 @@ public class PatternPreviewWidget extends WidgetGroup {
             loadControllerFormed(predicateMap.keySet().longStream().mapToObj(BlockPos::of).toList(), controllerBase);
             predicateMap = controllerBase.getMultiblockState().getMatchContext().getPredicates();
         }
-        return controllerBase == null ? null : new MBPattern(blockMap, parts.values().stream().sorted((one, two) -> {
+        var pattern = new MBPattern(blockMap, parts.values().stream().sorted((one, two) -> {
             if (one.isController) return -1;
             if (two.isController) return +1;
             if (one.isTile && !two.isTile) return -1;
@@ -376,6 +397,8 @@ public class PatternPreviewWidget extends WidgetGroup {
             return two.amount - one.amount;
         }).map(PartInfo::getItemStack).filter(list -> !list.isEmpty()).collect(Collectors.toList()), predicateMap,
                 controllerBase);
+        pattern.center = center;
+        return controllerBase == null ? null : pattern;
     }
 
     private void loadControllerFormed(Collection<BlockPos> poses, IMultiController controllerBase) {
@@ -462,6 +485,7 @@ public class PatternPreviewWidget extends WidgetGroup {
         final Map<BlockPos, BlockInfo> blockMap;
         @NotNull
         final IMultiController controllerBase;
+        BlockPos center;
         final int maxY, minY;
 
         public MBPattern(@NotNull Map<BlockPos, BlockInfo> blockMap, @NotNull List<List<ItemStack>> parts,
