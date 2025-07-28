@@ -5427,7 +5427,7 @@
     "recipe.condition.quest.not_completed.tooltip": "未完成任务：%s",
     "recipe.condition.rain.tooltip": "雨量：%d",
     "recipe.condition.rock_breaker.tooltip": "水平相邻方块需要为流体源",
-    "recipe.condition.steam_vent.tooltip": "清洁蒸汽排气口",
+    "recipe.condition.steam_vent.tooltip": "排气口堵塞",
     "recipe.condition.thunder.tooltip": "雷级：%d",
     "tagprefix.andesite": "安山岩%s矿石",
     "tagprefix.basalt": "玄武岩%s矿石",
