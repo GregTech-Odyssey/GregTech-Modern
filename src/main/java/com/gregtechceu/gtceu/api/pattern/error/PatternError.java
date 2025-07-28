@@ -7,30 +7,25 @@ import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class PatternError {
 
-    protected MultiblockState worldState;
+    protected BlockPos pos;
+    protected TraceabilityPredicate predicate;
 
     public void setWorldState(MultiblockState worldState) {
-        this.worldState = worldState;
-    }
-
-    public Level getWorld() {
-        return worldState.getWorld();
+        pos = worldState.pos;
+        predicate = worldState.predicate;
     }
 
     public BlockPos getPos() {
-        if (worldState == null) return null;
-        return worldState.getPos();
+        return pos;
     }
 
     public List<List<ItemStack>> getCandidates() {
-        TraceabilityPredicate predicate = worldState.predicate;
         List<List<ItemStack>> candidates = new ArrayList<>();
         for (SimplePredicate common : predicate.common) {
             candidates.add(common.getCandidates());
@@ -51,6 +46,6 @@ public class PatternError {
             }
         }
         builder.append("...");
-        return Component.translatable("gtceu.multiblock.pattern.error", builder.toString(), worldState.getPos());
+        return Component.translatable("gtceu.multiblock.pattern.error", builder.toString(), pos);
     }
 }

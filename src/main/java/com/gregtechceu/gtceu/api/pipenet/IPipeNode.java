@@ -134,7 +134,7 @@ public interface IPipeNode<PipeType extends Enum<PipeType> & IPipeType<NodeDataT
 
     void notifyBlockUpdate();
 
-    void onNeighborChanged(Block block, BlockPos fromPos, boolean isMoving);
+    void onNeighborChanged();
 
     @Nullable
     BlockEntity getNeighbor(Direction direction);

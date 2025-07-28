@@ -140,6 +140,7 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
         IPipeNode<PipeType, NodeDataType> pipeTile = getPipeTile(level, pos);
 
         if (pipeTile != null) {
+            pipeTile.onNeighborChanged();
             Direction facing = GTUtil.getFacingToNeighbor(pos, neighbor);
             if (facing == null) return;
             CoverBehavior cover = pipeTile.getCoverContainer().getCoverAtSide(facing);
@@ -227,7 +228,7 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
         if (level.isClientSide) return;
         IPipeNode<PipeType, NodeDataType> pipeTile = getPipeTile(level, pos);
         if (pipeTile != null) {
-            pipeTile.onNeighborChanged(block, fromPos, isMoving);
+            pipeTile.onNeighborChanged();
             Direction facing = GTUtil.getFacingToNeighbor(pos, fromPos);
             if (facing == null) return;
             if (!ConfigHolder.INSTANCE.machines.gt6StylePipesCables) {

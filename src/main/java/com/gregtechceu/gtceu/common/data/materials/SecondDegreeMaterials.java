@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.HazardPropert
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.ToolProperty;
 import com.gregtechceu.gtceu.api.fluids.FluidBuilder;
-import com.gregtechceu.gtceu.api.fluids.attribute.FluidAttributes;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.common.data.GTMedicalConditions;
 
@@ -306,7 +305,7 @@ public class SecondDegreeMaterials {
                 .toolStats(ToolProperty.Builder.of(3.0F, 3.0F, 1536, 3)
                         .attackSpeed(-0.2F).enchantability(5).build())
                 .rotorStats(130, 115, 3.0f, 1920)
-                .fluidPipeProperties(2073, 50, true, true, false, false)
+                .fluidPipeProperties(2073, 50, true, true, false)
                 .blast(1453, GasTier.LOW)
                 .buildAndRegister();
 
@@ -351,13 +350,13 @@ public class SecondDegreeMaterials {
                 .buildAndRegister();
 
         SulfuricNickelSolution = new Material.Builder(GTCEu.id("sulfuric_nickel_solution"))
-                .liquid(new FluidBuilder().attribute(FluidAttributes.ACID))
+                .liquid()
                 .color(0x3EB640)
                 .components(Nickel, 1, Oxygen, 1, SulfuricAcid, 1)
                 .buildAndRegister();
 
         SulfuricCopperSolution = new Material.Builder(GTCEu.id("sulfuric_copper_solution"))
-                .liquid(new FluidBuilder().attribute(FluidAttributes.ACID))
+                .liquid()
                 .color(0x48A5C0)
                 .components(Copper, 1, Oxygen, 1, SulfuricAcid, 1)
                 .buildAndRegister();
@@ -369,21 +368,21 @@ public class SecondDegreeMaterials {
                 .buildAndRegister();
 
         NitrationMixture = new Material.Builder(GTCEu.id("nitration_mixture"))
-                .liquid(new FluidBuilder().attribute(FluidAttributes.ACID))
+                .liquid()
                 .color(0xE6E2AB)
                 .flags(DISABLE_DECOMPOSITION)
                 .components(NitricAcid, 1, SulfuricAcid, 1)
                 .buildAndRegister();
 
         DilutedSulfuricAcid = new Material.Builder(GTCEu.id("diluted_sulfuric_acid"))
-                .liquid(new FluidBuilder().attribute(FluidAttributes.ACID))
+                .liquid()
                 .color(0xC07820)
                 .flags(DISABLE_DECOMPOSITION)
                 .components(SulfuricAcid, 2, Water, 1)
                 .buildAndRegister();
 
         DilutedHydrochloricAcid = new Material.Builder(GTCEu.id("diluted_hydrochloric_acid"))
-                .liquid(new FluidBuilder().attribute(FluidAttributes.ACID))
+                .liquid()
                 .color(0x99A7A3)
                 .flags(DISABLE_DECOMPOSITION)
                 .components(HydrochloricAcid, 1, Water, 1)
@@ -447,7 +446,7 @@ public class SecondDegreeMaterials {
                 .buildAndRegister();
 
         AquaRegia = new Material.Builder(GTCEu.id("aqua_regia"))
-                .liquid(new FluidBuilder().attribute(FluidAttributes.ACID))
+                .liquid()
                 .color(0xFFB132)
                 .flags(DISABLE_DECOMPOSITION)
                 .components(NitricAcid, 1, HydrochloricAcid, 2)
@@ -482,7 +481,7 @@ public class SecondDegreeMaterials {
                 .setFormula("NH4Cl", true);
 
         AcidicOsmiumSolution = new Material.Builder(GTCEu.id("acidic_osmium_solution"))
-                .liquid(new FluidBuilder().attribute(FluidAttributes.ACID))
+                .liquid()
                 .color(0xDAC5C5)
                 .flags(DISABLE_DECOMPOSITION)
                 .components(Osmium, 1, Oxygen, 4, Water, 1, HydrochloricAcid, 1)

@@ -89,6 +89,12 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     // *** Multiblock LifeCycle ***//
     //////////////////////////////////////
     @Override
+    protected void onStructureFormedAfter() {
+        super.onStructureFormedAfter();
+        recipeLogic.updateTickSubscription();
+    }
+
+    @Override
     public void onStructureFormed() {
         super.onStructureFormed();
         // attach parts' traits
@@ -115,8 +121,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
             this.addHandlerList(handlerList);
             traitSubscriptions.add(handlerList.subscribe(recipeLogic::updateTickSubscription));
         }
-        // schedule recipe logic
-        recipeLogic.updateTickSubscription();
     }
 
     @Override

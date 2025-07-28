@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.HazardProperty;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.ToolProperty;
 import com.gregtechceu.gtceu.api.fluids.FluidBuilder;
-import com.gregtechceu.gtceu.api.fluids.attribute.FluidAttributes;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.common.data.GTMedicalConditions;
 
@@ -67,7 +66,7 @@ public class UnknownCompositionMaterials {
                 .liquid(new FluidBuilder().customStill()).buildAndRegister();
 
         IndiumConcentrate = new Material.Builder(GTCEu.id("indium_concentrate"))
-                .liquid(new FluidBuilder().attribute(FluidAttributes.ACID))
+                .liquid()
                 .color(0x0E2950).buildAndRegister();
 
         SeedOil = new Material.Builder(GTCEu.id("seed_oil"))
@@ -519,7 +518,7 @@ public class UnknownCompositionMaterials {
                 .fluid().color(0x3AAD3A).buildAndRegister();
 
         AcidicEnrichedNaquadahSolution = new Material.Builder(GTCEu.id("acidic_enriched_naquadah_solution"))
-                .liquid(new FluidBuilder().attribute(FluidAttributes.ACID))
+                .liquid()
                 .color(0x3DD63D).buildAndRegister();
 
         EnrichedNaquadahWaste = new Material.Builder(GTCEu.id("enriched_naquadah_waste"))
@@ -532,7 +531,7 @@ public class UnknownCompositionMaterials {
                 .fluid().color(0x61AD61).buildAndRegister();
 
         AcidicNaquadriaSolution = new Material.Builder(GTCEu.id("acidic_naquadria_solution"))
-                .liquid(new FluidBuilder().attribute(FluidAttributes.ACID))
+                .liquid()
                 .color(0x70D670).buildAndRegister();
 
         NaquadriaWaste = new Material.Builder(GTCEu.id("naquadria_waste"))

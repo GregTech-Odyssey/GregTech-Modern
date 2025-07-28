@@ -79,6 +79,7 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
             if (container != null) {
                 return GTCapability.CAPABILITY_ENERGY_CONTAINER.orEmpty(cap, LazyOptional.of(() -> container));
             }
+            return LazyOptional.empty();
         } else if (cap == GTCapability.CAPABILITY_COVERABLE) {
             return GTCapability.CAPABILITY_COVERABLE.orEmpty(cap, LazyOptional.of(this::getCoverContainer));
         }

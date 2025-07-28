@@ -975,7 +975,7 @@ public class GTMultiMachines {
     public static final MultiblockMachineDefinition WOODEN_MULTIBLOCK_TANK = registerMultiblockTank(
             "wooden_multiblock_tank", "Wooden Multiblock Tank", 250 * 1000,
             CASING_WOOD_WALL, WOODEN_TANK_VALVE::getBlock,
-            new PropertyFluidFilter(340, false, false, false, false),
+            new PropertyFluidFilter(false, false),
             (builder, overlay) -> builder.sidedWorkableCasingRenderer("block/casings/wood_wall", overlay));
 
     public static final MachineDefinition STEEL_TANK_VALVE = GTMachineUtils.registerTankValve(

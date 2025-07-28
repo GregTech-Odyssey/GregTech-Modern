@@ -80,7 +80,7 @@ public class LaserNetWalker extends PipeNetWalker<LaserPipeBlockEntity, LaserPip
 
         if (((LaserNetWalker) root).routePath == null) {
             ILaserContainer handler = neighbourTile
-                    .getCapability(GTCapability.CAPABILITY_LASER, faceToNeighbour.getOpposite()).resolve().orElse(null);
+                    .getCapability(GTCapability.CAPABILITY_LASER, faceToNeighbour.getOpposite()).orElse(null);
             if (handler != null) {
                 ((LaserNetWalker) root).routePath = new LaserRoutePath(pipeNode, pipePos.immutable(), faceToNeighbour,
                         getWalkedBlocks());

@@ -601,7 +601,7 @@ public class BlockPattern {
 
     @Nullable
     private static IntObjectPair<IItemHandler> getMatchStackWithHandler(List<ItemStack> candidates, LazyOptional<IItemHandler> cap) {
-        IItemHandler handler = cap.resolve().orElse(null);
+        IItemHandler handler = cap.orElse(null);
         if (handler == null) {
             return null;
         }

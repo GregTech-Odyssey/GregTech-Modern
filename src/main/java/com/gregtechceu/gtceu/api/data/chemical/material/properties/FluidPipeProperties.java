@@ -2,13 +2,8 @@ package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 
 import com.gregtechceu.gtceu.api.capability.IPropertyFluidFilter;
 import com.gregtechceu.gtceu.api.fluids.FluidState;
-import com.gregtechceu.gtceu.api.fluids.attribute.FluidAttribute;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.UnmodifiableView;
-
-import java.util.Collection;
-import java.util.Collections;
 
 public class FluidPipeProperties implements IMaterialProperty, IPropertyFluidFilter {
 
@@ -16,13 +11,6 @@ public class FluidPipeProperties implements IMaterialProperty, IPropertyFluidFil
 
     public FluidPipeProperties(int throughput) {
         this.throughput = throughput;
-    }
-
-    /**
-     * Default property constructor.
-     */
-    public FluidPipeProperties(int maxFluidTemperature, int throughput, boolean gasProof, boolean acidProof, boolean cryoProof, boolean plasmaProof) {
-        this(throughput);
     }
 
     @Override
@@ -57,38 +45,11 @@ public class FluidPipeProperties implements IMaterialProperty, IPropertyFluidFil
         return true;
     }
 
-    public boolean isAcidProof() {
-        return true;
-    }
-
-    @Override
-    public boolean canContain(@NotNull FluidAttribute attribute) {
-        return true;
-    }
-
-    @Override
-    public void setCanContain(@NotNull FluidAttribute attribute, boolean canContain) {}
-
-    @Override
-    @NotNull
-    @UnmodifiableView
-    public Collection<@NotNull FluidAttribute> getContainedAttributes() {
-        return Collections.emptyList();
-    }
-
     public int getThroughput() {
         return this.throughput;
     }
 
-    public int getMaxFluidTemperature() {
-        return Integer.MAX_VALUE;
-    }
-
     public boolean isGasProof() {
-        return true;
-    }
-
-    public boolean isCryoProof() {
         return true;
     }
 

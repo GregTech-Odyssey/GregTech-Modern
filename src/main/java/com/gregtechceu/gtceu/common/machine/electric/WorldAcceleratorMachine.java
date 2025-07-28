@@ -120,7 +120,7 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
         } else {
             // else handle block entity mode
             for (Direction dir : GTUtil.DIRECTIONS) {
-                BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPos().relative(dir));
+                BlockEntity blockEntity = getNeighbor(dir);
                 if (blockEntity != null && canAccelerate(blockEntity)) {
                     tickBlockEntity(blockEntity);
                 }

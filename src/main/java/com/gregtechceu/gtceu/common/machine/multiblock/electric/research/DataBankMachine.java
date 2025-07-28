@@ -44,7 +44,7 @@ public class DataBankMachine extends WorkableElectricMultiblockMachine implement
 
     public DataBankMachine(IMachineBlockEntity holder) {
         super(holder);
-        this.energyContainer = new EnergyContainerList(new ArrayList<>());
+        this.energyContainer = EnergyContainerList.EMPTY;
     }
 
     @Override
@@ -95,7 +95,7 @@ public class DataBankMachine extends WorkableElectricMultiblockMachine implement
     @Override
     public void onStructureInvalid() {
         super.onStructureInvalid();
-        this.energyContainer = new EnergyContainerList(new ArrayList<>());
+        this.energyContainer = EnergyContainerList.EMPTY;
         this.energyUsage = 0;
     }
 

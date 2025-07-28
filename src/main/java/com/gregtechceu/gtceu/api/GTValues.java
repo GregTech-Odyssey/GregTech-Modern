@@ -104,7 +104,6 @@ public class GTValues {
     }
 
     public static final String MODID_TOP = "theoneprobe",
-            MODID_JEI = "jei",
             MODID_EMI = "emi",
             MODID_APPENG = "ae2",
             MODID_AE2WTLIB = "ae2wtlib",

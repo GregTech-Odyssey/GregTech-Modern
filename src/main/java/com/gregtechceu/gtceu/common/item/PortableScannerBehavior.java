@@ -16,8 +16,6 @@ import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.common.blockentity.FluidPipeBlockEntity;
 import com.gregtechceu.gtceu.common.capability.EnvironmentalHazardSavedData;
 import com.gregtechceu.gtceu.common.capability.LocalizedHazardSavedData;
@@ -236,28 +234,6 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
                     if (workableMachine.getMaxProgress() > 0) {
                         list.add(Component.translatable("behavior.portable_scanner.divider"));
                         list.add(Component.translatable("behavior.portable_scanner.machine_progress", Component.translatable(FormattingUtil.formatNumbers(workableMachine.getProgress())).withStyle(ChatFormatting.GREEN), Component.translatable(FormattingUtil.formatNumbers(workableMachine.getMaxProgress())).withStyle(ChatFormatting.YELLOW)));
-                    }
-                }
-                // Recipe logic for EU production/consumption
-                Optional<RecipeLogic> recipeLogicCap = tileEntity.getCapability(GTCapability.CAPABILITY_RECIPE_LOGIC).resolve();
-                if (recipeLogicCap.isPresent()) {
-                    RecipeLogic recipeLogic = recipeLogicCap.get();
-                    GTRecipe recipe = recipeLogic.getLastRecipe();
-                    if (recipeLogic.getStatus().equals(RecipeLogic.Status.WAITING)) {
-                        list.add(Component.translatable("behavior.portable_scanner.divider"));
-                        list.add(Component.translatable("gtceu.multiblock.waiting"));
-                        list.addAll(recipeLogic.getFancyTooltip());
-                    } else if (recipe != null) {
-                        list.add(Component.translatable("behavior.portable_scanner.divider"));
-                        long EUt = recipe.getInputEUt();
-                        boolean isInput = true;
-                        if (EUt == 0) {
-                            isInput = false;
-                            EUt = recipe.getOutputEUt();
-                        }
-                        list.add(Component.translatable(isInput ? "behavior.portable_scanner.workable_consumption" : "behavior.portable_scanner.workable_production", Component.translatable(FormattingUtil.formatNumbers(EUt)).withStyle(ChatFormatting.RED),
-                                // TODO: Change number once there is multi amp behavior
-                                Component.translatable(FormattingUtil.formatNumbers(1)).withStyle(ChatFormatting.RED)));
                     }
                 }
             }

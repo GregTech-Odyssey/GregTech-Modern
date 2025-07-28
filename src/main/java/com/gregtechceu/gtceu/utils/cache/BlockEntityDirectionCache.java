@@ -11,35 +11,33 @@ import net.minecraftforge.items.IItemHandler;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.ref.WeakReference;
-
-public class BlockEntityDirectionCache extends DirectionCache<WeakReference<BlockEntity>> {
+public class BlockEntityDirectionCache extends DirectionCache<BlockEntity> {
 
     public static BlockEntityDirectionCache create() {
         return new BlockEntityDirectionCache();
     }
 
-    public BlockEntity getAdjacentBlockEntity(Level level, BlockPos pos, Direction facing) {
-        var ref = getOrSet(facing, () -> {
-            BlockEntity blockEntity = level.getBlockEntity(pos.relative(facing));
-            if (blockEntity != null) {
-                return new WeakReference<>(blockEntity);
+    public BlockEntity getAdjacentBlockEntity(Level level, BlockPos pos, Direction direction) {
+        var cache = getCache(direction);
+        if (cache == null) {
+            var blockEntity = level.getBlockEntity(pos.relative(direction));
+            setCache(direction, blockEntity == null ? NULL : blockEntity);
+            return blockEntity;
+        } else {
+            if (cache == NULL) return null;
+            var blockEntity = (BlockEntity) cache;
+            if (blockEntity.isRemoved()) {
+                blockEntity = level.getBlockEntity(pos.relative(direction));
+                if (blockEntity != null) {
+                    setCache(direction, blockEntity);
+                    return blockEntity;
+                } else {
+                    setCache(direction, NULL);
+                    return null;
+                }
             }
-            return null;
-        });
-        if (ref == null) return null;
-        var be = ref.get();
-        if (be == null) {
-            BlockEntity blockEntity = level.getBlockEntity(pos.relative(facing));
-            if (blockEntity != null) {
-                setCache(facing, new WeakReference<>(blockEntity));
-                return blockEntity;
-            } else {
-                setNull(facing);
-                return null;
-            }
+            return blockEntity;
         }
-        return be;
     }
 
     public @NotNull LazyOptional<IItemHandler> getAdjacentItemHandler(Level level, BlockPos pos, Direction facing) {

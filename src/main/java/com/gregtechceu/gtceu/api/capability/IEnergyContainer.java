@@ -126,41 +126,5 @@ public interface IEnergyContainer extends IEnergyInfoProvider {
         return 0L;
     }
 
-    IEnergyContainer DEFAULT = new IEnergyContainer() {
-
-        @Override
-        public long acceptEnergyFromNetwork(Direction Direction, long l, long l1) {
-            return 0;
-        }
-
-        @Override
-        public boolean inputsEnergy(Direction Direction) {
-            return false;
-        }
-
-        @Override
-        public long changeEnergy(long l) {
-            return 0;
-        }
-
-        @Override
-        public long getEnergyStored() {
-            return 0;
-        }
-
-        @Override
-        public long getEnergyCapacity() {
-            return 0;
-        }
-
-        @Override
-        public long getInputAmperage() {
-            return 0;
-        }
-
-        @Override
-        public long getInputVoltage() {
-            return 0;
-        }
-    };
+    IEnergyContainer DEFAULT = ILaserContainer.DEFAULT;
 }

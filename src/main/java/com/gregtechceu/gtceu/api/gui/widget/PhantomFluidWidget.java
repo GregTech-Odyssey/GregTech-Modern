@@ -33,7 +33,6 @@ import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.emi.emi.api.stack.EmiStack;
-import mezz.jei.api.ingredients.ITypedIngredient;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -110,8 +109,6 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
             } else {
                 ingredient = null;
             }
-        } else if (GTCEu.Mods.isJEILoaded() && ingredient instanceof ITypedIngredient<?> jeiStack) {
-            ingredient = jeiStack.getIngredient();
         }
         if (!(ingredient instanceof FluidStack) && drainFrom(ingredient).isEmpty()) {
             return Collections.emptyList();

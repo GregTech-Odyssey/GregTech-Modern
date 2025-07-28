@@ -60,7 +60,7 @@ public enum CannerLogic implements GTRecipeType.ICustomRecipeLogic {
             for (var itemStack : itemStacks) {
                 var single = itemStack.copyWithCount(1);
                 var copy = itemStack.copyWithCount(1);
-                var fluidHandler = FluidUtil.getFluidHandler(copy).resolve().orElse(null);
+                var fluidHandler = FluidUtil.getFluidHandler(copy).orElse(null);
                 if (fluidHandler == null) continue;
                 // Try to drain first
                 var fluid = fluidHandler.drain(Integer.MAX_VALUE, FluidAction.EXECUTE);
@@ -103,7 +103,7 @@ public enum CannerLogic implements GTRecipeType.ICustomRecipeLogic {
         for (var itemStack : itemStacks) {
             var single = itemStack.copyWithCount(1);
             var copy = itemStack.copyWithCount(1);
-            var fluidHandler = FluidUtil.getFluidHandler(copy).resolve().orElse(null);
+            var fluidHandler = FluidUtil.getFluidHandler(copy).orElse(null);
             if (fluidHandler == null) continue;
             // Try to drain first
             var fluid = fluidHandler.drain(Integer.MAX_VALUE, FluidAction.EXECUTE);

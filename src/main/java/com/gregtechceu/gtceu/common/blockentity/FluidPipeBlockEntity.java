@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidPipeProperties;
-import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import com.gregtechceu.gtceu.common.block.FluidPipeBlock;
 import com.gregtechceu.gtceu.common.pipelike.fluid.FluidNetHandler;
 import com.gregtechceu.gtceu.common.pipelike.fluid.FluidPipeNet;
@@ -15,12 +14,13 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.templates.EmptyFluidHandler;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -55,14 +55,10 @@ public class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, FluidPi
     @NotNull
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         if (cap == ForgeCapabilities.FLUID_HANDLER) {
-            Level world = getLevel();
-            if (world.isClientSide()) return LazyOptional.empty();
             if (side != null && isConnected(side)) {
-                ensureHandlersInitialized();
-                checkNetwork();
-                if (this.currentFluidPipeNet.get() == null) return LazyOptional.empty();
                 return ForgeCapabilities.FLUID_HANDLER.orEmpty(cap, LazyOptional.of(() -> getHandler(side, true)));
             }
+            return LazyOptional.empty();
         } else if (cap == GTCapability.CAPABILITY_COVERABLE) {
             return GTCapability.CAPABILITY_COVERABLE.orEmpty(cap, LazyOptional.of(this::getCoverContainer));
         }
@@ -147,10 +143,11 @@ public class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, FluidPi
         this.handlers.clear();
     }
 
-    public IFluidHandlerModifiable getHandler(@Nullable Direction side, boolean useCoverCapability) {
+    public IFluidHandler getHandler(@Nullable Direction side, boolean useCoverCapability) {
+        if (isRemote()) return EmptyFluidHandler.INSTANCE;
         ensureHandlersInitialized();
         checkNetwork();
-        if (this.currentFluidPipeNet.get() == null) return null;
+        if (this.currentFluidPipeNet.get() == null) return EmptyFluidHandler.INSTANCE;
         FluidNetHandler handler = getHandlers().getOrDefault(side, getDefaultHandler());
         if (!useCoverCapability || side == null) return handler;
         CoverBehavior cover = getCoverContainer().getCoverAtSide(side);

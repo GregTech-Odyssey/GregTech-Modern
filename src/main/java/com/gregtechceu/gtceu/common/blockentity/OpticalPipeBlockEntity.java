@@ -37,8 +37,8 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(OpticalPipeBlockEntity.class, PipeBlockEntity.MANAGED_FIELD_HOLDER);
     private final EnumMap<Direction, OpticalNetHandler> handlers = new EnumMap<>(Direction.class);
     // the OpticalNetHandler can only be created on the server, so we have an empty placeholder for the client
-    private static final IDataAccessHatch clientDataHandler = new DefaultDataHandler();
-    private static final IOpticalComputationProvider clientComputationHandler = new DefaultComputationHandler();
+    private static final IDataAccessHatch defaultDataHandler = new DefaultDataHandler();
+    private static final IOpticalComputationProvider defaultComputationHandler = new DefaultComputationHandler();
     private WeakReference<OpticalPipeNet> currentPipeNet = new WeakReference<>(null);
     private OpticalNetHandler defaultHandler;
     @Persisted
@@ -68,27 +68,21 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
     public <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable Direction facing) {
         if (capability == GTCapability.CAPABILITY_DATA_ACCESS) {
             if (level.isClientSide) {
-                return GTCapability.CAPABILITY_DATA_ACCESS.orEmpty(capability, LazyOptional.of(() -> clientDataHandler));
+                return GTCapability.CAPABILITY_DATA_ACCESS.orEmpty(capability, LazyOptional.of(() -> defaultDataHandler));
             }
             if (handlers.isEmpty()) initHandlers();
             checkNetwork();
             var handler = handlers.getOrDefault(facing, defaultHandler);
-            if (handler != null) {
-                return GTCapability.CAPABILITY_DATA_ACCESS.orEmpty(capability, LazyOptional.of(() -> handlers.getOrDefault(facing, defaultHandler)));
-            }
-            return LazyOptional.empty();
+            return GTCapability.CAPABILITY_DATA_ACCESS.orEmpty(capability, LazyOptional.of(() -> handler == null ? defaultDataHandler : handler));
         }
         if (capability == GTCapability.CAPABILITY_COMPUTATION_PROVIDER) {
             if (level.isClientSide) {
-                return GTCapability.CAPABILITY_COMPUTATION_PROVIDER.orEmpty(capability, LazyOptional.of(() -> clientComputationHandler));
+                return GTCapability.CAPABILITY_COMPUTATION_PROVIDER.orEmpty(capability, LazyOptional.of(() -> defaultComputationHandler));
             }
             if (handlers.isEmpty()) initHandlers();
             checkNetwork();
             var handler = handlers.getOrDefault(facing, defaultHandler);
-            if (handler != null) {
-                return GTCapability.CAPABILITY_COMPUTATION_PROVIDER.orEmpty(capability, LazyOptional.of(() -> handlers.getOrDefault(facing, defaultHandler)));
-            }
-            return LazyOptional.empty();
+            return GTCapability.CAPABILITY_COMPUTATION_PROVIDER.orEmpty(capability, LazyOptional.of(() -> handler == null ? defaultHandler : handler));
         }
         if (capability == GTCapability.CAPABILITY_COVERABLE) {
             return GTCapability.CAPABILITY_COVERABLE.orEmpty(capability, LazyOptional.of(this::getCoverContainer));

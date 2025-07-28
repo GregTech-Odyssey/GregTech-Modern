@@ -14,13 +14,13 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.wrapper.EmptyHandler;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -55,14 +55,10 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
     @NotNull
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         if (cap == ForgeCapabilities.ITEM_HANDLER) {
-            Level world = getLevel();
-            if (world.isClientSide()) return LazyOptional.empty();
             if (side != null && isConnected(side)) {
-                ensureHandlersInitialized();
-                checkNetwork();
-                if (this.currentItemPipeNet.get() == null) return LazyOptional.empty();
                 return ForgeCapabilities.ITEM_HANDLER.orEmpty(cap, LazyOptional.of(() -> getHandler(side, true)));
             }
+            return LazyOptional.empty();
         } else if (cap == GTCapability.CAPABILITY_COVERABLE) {
             return GTCapability.CAPABILITY_COVERABLE.orEmpty(cap, LazyOptional.of(this::getCoverContainer));
         }
@@ -147,10 +143,11 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
         this.handlers.clear();
     }
 
-    public IItemHandlerModifiable getHandler(@Nullable Direction side, boolean useCoverCapability) {
+    public IItemHandler getHandler(@Nullable Direction side, boolean useCoverCapability) {
+        if (isRemote()) return EmptyHandler.INSTANCE;
         ensureHandlersInitialized();
         checkNetwork();
-        if (this.currentItemPipeNet.get() == null) return null;
+        if (this.currentItemPipeNet.get() == null) return EmptyHandler.INSTANCE;
         ItemNetHandler handler = getHandlers().getOrDefault(side, getDefaultHandler());
         if (!useCoverCapability || side == null) return handler;
         CoverBehavior cover = getCoverContainer().getCoverAtSide(side);

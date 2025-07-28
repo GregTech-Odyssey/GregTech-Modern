@@ -337,7 +337,7 @@ public class GTItems {
             .setData(ProviderType.ITEM_MODEL, NonNullBiConsumer.noop())
             .color(() -> GTItems::cellColor)
             .onRegister(attach(
-                    ThermalFluidStats.create(FluidType.BUCKET_VOLUME, 1800, true, false, false, false, false),
+                    ThermalFluidStats.create(FluidType.BUCKET_VOLUME, true, false, false),
                     new ItemFluidContainer(), cellName()))
             .register();
     public static ItemEntry<ComponentItem> FLUID_CELL_UNIVERSAL = REGISTRATE
@@ -346,7 +346,7 @@ public class GTItems {
             .color(() -> GTItems::cellColor)
             .setData(ProviderType.ITEM_MODEL, NonNullBiConsumer.noop())
             .onRegister(attach(cellName(),
-                    ThermalFluidStats.create(FluidType.BUCKET_VOLUME, 1800, true, false, false, false, true),
+                    ThermalFluidStats.create(FluidType.BUCKET_VOLUME, true, false, true),
                     new ItemFluidContainer()))
             .register();
     public static ItemEntry<ComponentItem> FLUID_CELL_LARGE_STEEL = createFluidCell(GTMaterials.Steel, 8, 4, 64);
@@ -365,8 +365,7 @@ public class GTItems {
             .setData(ProviderType.ITEM_MODEL, NonNullBiConsumer.noop())
             .onRegister(
                     attach(cellName(),
-                            ThermalFluidStats.create(FluidType.BUCKET_VOLUME, 1200, false, true, false, false,
-                                    true),
+                            ThermalFluidStats.create(FluidType.BUCKET_VOLUME, false, false, true),
                             new ItemFluidContainer()))
             .register();
 
