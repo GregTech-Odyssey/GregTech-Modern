@@ -43,7 +43,7 @@ public class OpticalRoutePath implements IRoutePath<IOpticalComputationProvider>
     public <I> I getTargetCapability(Capability<I> capability) {
         BlockEntity blockEntity = targetPipe.getNeighbor(targetFacing);
         return blockEntity == null ? null :
-                blockEntity.getCapability(capability, targetFacing.getOpposite()).resolve().orElse(null);
+                blockEntity.getCapability(capability, targetFacing.getOpposite()).orElse(null);
     }
 
     @Override
@@ -57,7 +57,7 @@ public class OpticalRoutePath implements IRoutePath<IOpticalComputationProvider>
     public IOpticalComputationProvider getHandler(Level world) {
         BlockEntity blockEntity = targetPipe.getNeighbor(targetFacing);
         if (blockEntity != null) {
-            return blockEntity.getCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER, targetFacing.getOpposite()).resolve().orElse(null);
+            return blockEntity.getCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER, targetFacing.getOpposite()).orElse(null);
         }
         return null;
     }

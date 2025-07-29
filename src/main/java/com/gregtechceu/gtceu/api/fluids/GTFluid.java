@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.fluids;
 
-import com.gregtechceu.gtceu.api.fluids.attribute.FluidAttribute;
-import com.gregtechceu.gtceu.api.fluids.attribute.IAttributedFluid;
+import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -21,39 +20,31 @@ import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
-import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.function.Supplier;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public abstract class GTFluid extends FlowingFluid implements IAttributedFluid {
+public abstract class GTFluid extends FlowingFluid {
 
-    private final Collection<FluidAttribute> attributes = new ObjectLinkedOpenHashSet<>();
     private final FluidState state;
-    private final Supplier<? extends Item> bucketItem;
-    private final Supplier<? extends Fluid> stillFluid;
-    private final Supplier<? extends Fluid> flowingFluid;
-    private final Supplier<? extends LiquidBlock> block;
+    private final Supplier<Item> bucketItem;
+    private final Supplier<Fluid> stillFluid;
+    private final Supplier<Fluid> flowingFluid;
+    private final Supplier<Block> block;
     private final int burnTime;
 
-    public GTFluid(@NotNull FluidState state, Supplier<? extends Fluid> stillFluid, Supplier<? extends Fluid> flowingFluid, Supplier<? extends LiquidBlock> block, Supplier<? extends Item> bucket, int burnTime) {
+    public GTFluid(@NotNull FluidState state, Supplier<? extends Fluid> still, Supplier<? extends Fluid> flowing, Supplier<? extends LiquidBlock> block, Supplier<? extends Item> bucket, int burnTime) {
         super();
         this.state = state;
-        this.stillFluid = stillFluid;
-        this.flowingFluid = flowingFluid;
-        this.block = block;
-        this.bucketItem = bucket;
+        this.stillFluid = GTMemoizer.memoize(() -> still.get() != null ? still.get() : Fluids.EMPTY);
+        this.flowingFluid = GTMemoizer.memoize(() -> flowing.get() != null ? flowing.get() : Fluids.EMPTY);
+        this.block = GTMemoizer.memoize(block::get);
+        this.bucketItem = GTMemoizer.memoize(() -> bucket.get() != null ? bucket.get() : Items.AIR);
         this.burnTime = burnTime;
-    }
-
-    @Override
-    public void addAttribute(@NotNull FluidAttribute attribute) {
-        attributes.add(attribute);
     }
 
     @Override
@@ -83,18 +74,19 @@ public abstract class GTFluid extends FlowingFluid implements IAttributedFluid {
 
     @Override
     protected BlockState createLegacyBlock(net.minecraft.world.level.material.FluidState state) {
-        if (block != null && block.get() != null) return block.get().defaultBlockState().setValue(LiquidBlock.LEVEL, getLegacyLevel(state));
+        var block = this.block.get();
+        if (block != null) return block.defaultBlockState().setValue(LiquidBlock.LEVEL, getLegacyLevel(state));
         return Blocks.AIR.defaultBlockState();
     }
 
     @Override
     public Fluid getFlowing() {
-        return flowingFluid != null && flowingFluid.get() != null ? flowingFluid.get() : Fluids.EMPTY;
+        return flowingFluid.get();
     }
 
     @Override
     public Fluid getSource() {
-        return stillFluid != null && stillFluid.get() != null ? stillFluid.get() : Fluids.EMPTY;
+        return stillFluid.get();
     }
 
     @Override
@@ -118,10 +110,6 @@ public abstract class GTFluid extends FlowingFluid implements IAttributedFluid {
         boolean still = this.getSource() == fluid;
         boolean flowing = this.getFlowing() == fluid;
         return still || flowing;
-    }
-
-    public Collection<FluidAttribute> getAttributes() {
-        return this.attributes;
     }
 
     public FluidState getState() {

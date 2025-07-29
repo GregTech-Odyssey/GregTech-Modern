@@ -44,7 +44,7 @@ public class LaserRoutePath implements IRoutePath<ILaserContainer> {
     public ILaserContainer getHandler(Level level) {
         BlockEntity blockEntity = targetPipe.getNeighbor(targetFacing);
         if (blockEntity != null) {
-            return blockEntity.getCapability(GTCapability.CAPABILITY_LASER, targetFacing.getOpposite()).resolve().orElse(null);
+            return blockEntity.getCapability(GTCapability.CAPABILITY_LASER, targetFacing.getOpposite()).orElse(null);
         }
         return null;
     }

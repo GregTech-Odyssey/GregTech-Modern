@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.BlastProperty;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
-import com.gregtechceu.gtceu.api.fluids.attribute.FluidAttribute;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKey;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
@@ -12,7 +11,6 @@ import com.gregtechceu.gtceu.api.registry.registrate.IGTFluidBuilder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 
 import com.google.common.base.Preconditions;
@@ -20,9 +18,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.function.Supplier;
 
 import static com.gregtechceu.gtceu.api.fluids.FluidConstants.*;
@@ -36,7 +31,6 @@ public class FluidBuilder {
     private static final int INFER_VISCOSITY = -1;
     private String name = null;
     private String translation = null;
-    private final Collection<FluidAttribute> attributes = new ArrayList<>();
     private FluidState state = FluidState.LIQUID;
     private int temperature = INFER_TEMPERATURE;
     private int color = INFER_COLOR;
@@ -159,26 +153,6 @@ public class FluidBuilder {
     }
 
     /**
-     * @param attribute the attribute to add
-     * @return this
-     */
-    @NotNull
-    public FluidBuilder attribute(@NotNull FluidAttribute attribute) {
-        this.attributes.add(attribute);
-        return this;
-    }
-
-    /**
-     * @param attributes the attributes to add
-     * @return this
-     */
-    @NotNull
-    public FluidBuilder attributes(@NotNull FluidAttribute @NotNull... attributes) {
-        Collections.addAll(this.attributes, attributes);
-        return this;
-    }
-
-    /**
      * Mark this fluid as having a custom still texture
      * 
      * @return this
@@ -257,12 +231,6 @@ public class FluidBuilder {
         if (isColorEnabled) {
             builder.color(this.color);
         }
-        builder.onFluidRegister(fluid -> {
-            if (fluid instanceof FlowingFluid flowingFluid) {
-                if (flowingFluid.getSource() instanceof GTFluid gtSource) attributes.forEach(gtSource::addAttribute);
-                if (flowingFluid.getFlowing() instanceof GTFluid gtFlowing) attributes.forEach(gtFlowing::addAttribute);
-            }
-        });
         return builder.registerFluid();
     }
 

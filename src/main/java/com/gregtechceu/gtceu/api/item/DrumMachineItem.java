@@ -35,9 +35,6 @@ public class DrumMachineItem extends MetaMachineItem {
         if (property == null) {
             return null;
         }
-        return new ThermalFluidHandlerItemStack(stack,
-                GTMachineUtils.DRUM_CAPACITY.getInt(getDefinition()),
-                property.getMaxFluidTemperature(), property.isGasProof(), property.isAcidProof(),
-                property.isCryoProof(), property.isPlasmaProof());
+        return new ThermalFluidHandlerItemStack(stack, GTMachineUtils.DRUM_CAPACITY.getInt(getDefinition()), property.isGasProof(), property.isPlasmaProof());
     }
 }

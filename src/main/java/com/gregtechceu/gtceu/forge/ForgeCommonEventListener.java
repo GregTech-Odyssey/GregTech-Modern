@@ -151,7 +151,7 @@ public class ForgeCommonEventListener {
             return;
         }
 
-        IItemHandler inventory = player.getCapability(ForgeCapabilities.ITEM_HANDLER, null).resolve().orElse(null);
+        IItemHandler inventory = player.getCapability(ForgeCapabilities.ITEM_HANDLER, null).orElse(null);
         if (inventory == null) {
             return;
         }

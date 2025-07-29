@@ -12,6 +12,7 @@ import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDistinctPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
@@ -23,6 +24,7 @@ import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
@@ -47,7 +49,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachineLife, IPaintable {
+public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachineLife, IPaintable, IDistinctPart {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(FluidHatchPartMachine.class, TieredIOPartMachine.MANAGED_FIELD_HOLDER);
     public static final int INITIAL_TANK_CAPACITY_1X = 8 * FluidType.BUCKET_VOLUME;
@@ -62,6 +64,9 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
     protected ISubscription tankSubs;
     @Persisted
     protected final NotifiableItemStackHandler circuitInventory;
+    @Persisted
+    @DescSynced
+    private boolean isDistinct = false;
 
     // The `Object... args` parameter is necessary in case a superclass needs to pass any args along to createTank().
     // We can't use fields here because those won't be available while createTank() is called.
@@ -103,6 +108,7 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
         if (getLevel() instanceof ServerLevel serverLevel) {
             serverLevel.getServer().tell(new TickTask(0, this::updateTankSubscription));
         }
+        getHandlerList().setDistinct(isDistinct);
         getHandlerList().setColor(getPaintingColor());
         tankSubs = tank.addChangedListener(this::updateTankSubscription);
     }
@@ -114,6 +120,12 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
             tankSubs.unsubscribe();
             tankSubs = null;
         }
+    }
+
+    @Override
+    public void setDistinct(boolean distinct) {
+        isDistinct = (io != IO.OUT && distinct);
+        getHandlerList().setDistinctAndNotify(isDistinct);
     }
 
     @Override
@@ -220,8 +232,10 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
     //////////////////////////////////////
     @Override
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
-        super.attachConfigurators(configuratorPanel);
-        if (this.io == IO.IN) {
+        if (this.io == IO.OUT) {
+            IDistinctPart.super.superAttachConfigurators(configuratorPanel);
+        } else if (this.io == IO.IN) {
+            IDistinctPart.super.attachConfigurators(configuratorPanel);
             configuratorPanel.attachConfigurators(new CircuitFancyConfigurator(circuitInventory.storage));
         }
     }
@@ -314,5 +328,9 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
 
     public NotifiableItemStackHandler getCircuitInventory() {
         return this.circuitInventory;
+    }
+
+    public boolean isDistinct() {
+        return this.isDistinct;
     }
 }

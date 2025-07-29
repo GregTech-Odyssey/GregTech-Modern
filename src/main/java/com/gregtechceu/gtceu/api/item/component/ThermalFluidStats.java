@@ -25,34 +25,25 @@ import java.util.List;
 public class ThermalFluidStats implements IItemComponent, IComponentCapability, IAddInformation {
 
     public final int capacity;
-    public final int maxFluidTemperature;
     public final boolean gasProof;
-    public final boolean acidProof;
-    public final boolean cryoProof;
     public final boolean plasmaProof;
     public final boolean allowPartialFill;
 
-    protected ThermalFluidStats(int capacity, int maxFluidTemperature, boolean gasProof, boolean acidProof,
-                                boolean cryoProof, boolean plasmaProof, boolean allowPartialFill) {
+    protected ThermalFluidStats(int capacity, boolean gasProof, boolean plasmaProof, boolean allowPartialFill) {
         this.capacity = capacity;
-        this.maxFluidTemperature = maxFluidTemperature;
         this.gasProof = gasProof;
-        this.acidProof = acidProof;
-        this.cryoProof = cryoProof;
         this.plasmaProof = plasmaProof;
         this.allowPartialFill = allowPartialFill;
     }
 
-    public static ThermalFluidStats create(int capacity, int maxFluidTemperature, boolean gasProof, boolean acidProof,
-                                           boolean cryoProof, boolean plasmaProof, boolean allowPartialFill) {
-        return new ThermalFluidStats(capacity, maxFluidTemperature, gasProof, acidProof, cryoProof, plasmaProof,
+    public static ThermalFluidStats create(int capacity, boolean gasProof, boolean plasmaProof, boolean allowPartialFill) {
+        return new ThermalFluidStats(capacity, gasProof, plasmaProof,
                 allowPartialFill);
     }
 
     public static ThermalFluidStats create(int capacity, @NotNull FluidPipeProperties properties,
                                            boolean allowPartialFill) {
-        return new ThermalFluidStats(capacity, properties.getMaxFluidTemperature(), properties.isGasProof(),
-                properties.isAcidProof(), properties.isCryoProof(), properties.isPlasmaProof(), allowPartialFill);
+        return new ThermalFluidStats(capacity, properties.isGasProof(), properties.isPlasmaProof(), allowPartialFill);
     }
 
     @Override
@@ -60,11 +51,11 @@ public class ThermalFluidStats implements IItemComponent, IComponentCapability, 
         if (cap == ForgeCapabilities.FLUID_HANDLER_ITEM) {
             return ForgeCapabilities.FLUID_HANDLER_ITEM.orEmpty(cap, LazyOptional.of(() -> {
                 if (allowPartialFill) {
-                    return new ThermalFluidHandlerItemStack(itemStack, capacity, maxFluidTemperature, gasProof,
-                            acidProof, cryoProof, plasmaProof);
+                    return new ThermalFluidHandlerItemStack(itemStack, capacity, gasProof,
+                            plasmaProof);
                 }
-                return new SimpleThermalFluidHandlerItemStack(itemStack, capacity, maxFluidTemperature, gasProof,
-                        acidProof, cryoProof, plasmaProof);
+                return new SimpleThermalFluidHandlerItemStack(itemStack, capacity, gasProof,
+                        plasmaProof);
             }));
         }
         return LazyOptional.empty();
@@ -85,14 +76,10 @@ public class ThermalFluidStats implements IItemComponent, IComponentCapability, 
                     FormattingUtil.formatNumbers(capacity)));
         }
         if (GTUtil.isShiftDown()) {
-            tooltipComponents.add(Component.translatable("gtceu.fluid_pipe.max_temperature",
-                    FormattingUtil.formatNumbers(maxFluidTemperature)));
             if (gasProof) tooltipComponents.add(Component.translatable("gtceu.fluid_pipe.gas_proof"));
             else tooltipComponents.add(Component.translatable("gtceu.fluid_pipe.not_gas_proof"));
             if (plasmaProof) tooltipComponents.add(Component.translatable("gtceu.fluid_pipe.plasma_proof"));
-            if (cryoProof) tooltipComponents.add(Component.translatable("gtceu.fluid_pipe.cryo_proof"));
-            if (acidProof) tooltipComponents.add(Component.translatable("gtceu.fluid_pipe.acid_proof"));
-        } else if (gasProof || cryoProof || plasmaProof || acidProof) {
+        } else if (gasProof || plasmaProof) {
             tooltipComponents.add(Component.translatable("gtceu.tooltip.fluid_pipe_hold_shift"));
         }
     }

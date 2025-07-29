@@ -8,7 +8,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.ToolProperty;
 import com.gregtechceu.gtceu.api.fluids.FluidBuilder;
 import com.gregtechceu.gtceu.api.fluids.FluidState;
-import com.gregtechceu.gtceu.api.fluids.attribute.FluidAttributes;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.common.data.GTElements;
@@ -122,7 +121,7 @@ public class ElementMaterials {
                 .buildAndRegister();
 
         Bromine = new Material.Builder(GTCEu.id("bromine"))
-                .liquid(new FluidBuilder().attribute(FluidAttributes.ACID))
+                .liquid()
                 .color(0x912200).secondaryColor(0x080101).iconSet(SHINY)
                 .element(GTElements.Br)
                 .buildAndRegister();
@@ -178,7 +177,7 @@ public class ElementMaterials {
                 .appendFlags(EXT_METAL, GENERATE_ROTOR)
                 .element(GTElements.Cr)
                 .rotorStats(130, 155, 3.0f, 512)
-                .fluidPipeProperties(2180, 35, true, true, false, false)
+                .fluidPipeProperties(2180, 35, true, true, false)
                 .blast(1700, GasTier.LOW)
                 .hazard(HazardProperty.HazardTrigger.SKIN_CONTACT, GTMedicalConditions.CARCINOGEN)
                 .buildAndRegister();
@@ -316,7 +315,7 @@ public class ElementMaterials {
                         GENERATE_SPRING, GENERATE_SPRING_SMALL, GENERATE_FINE_WIRE, GENERATE_FOIL)
                 .element(GTElements.Au)
                 .cableProperties(V[HV], 3, 2)
-                .fluidPipeProperties(1671, 25, true, true, false, false)
+                .fluidPipeProperties(1671, 25, true, true, false)
                 .buildAndRegister();
 
         Hafnium = new Material.Builder(GTCEu.id("hafnium"))
@@ -381,7 +380,7 @@ public class ElementMaterials {
                 .appendFlags(EXT2_METAL, GENERATE_FINE_WIRE, GENERATE_GEAR, GENERATE_FRAME)
                 .element(GTElements.Ir)
                 .rotorStats(130, 115, 3.0f, 2560)
-                .fluidPipeProperties(3398, 250, true, false, true, false)
+                .fluidPipeProperties(3398, 250, true, true, false)
                 .blast(b -> b.temp(4500, GasTier.HIGH)
                         .blastStats(VA[IV], 1100)
                         .vacuumStats(VA[EV], 250))
@@ -885,7 +884,7 @@ public class ElementMaterials {
                 .element(GTElements.W)
                 .rotorStats(130, 115, 3.0f, 2560)
                 .cableProperties(V[IV], 2, 2)
-                .fluidPipeProperties(4618, 50, true, true, false, true)
+                .fluidPipeProperties(4618, 50, true, true, false)
                 .blast(b -> b.temp(3600, GasTier.MID)
                         .blastStats(VA[EV], 1800)
                         .vacuumStats(VA[HV], 300))
@@ -956,7 +955,7 @@ public class ElementMaterials {
                 .element(GTElements.Nq)
                 .rotorStats(160, 105, 4.0f, 1280)
                 .cableProperties(V[ZPM], 2, 2)
-                .fluidPipeProperties(3776, 200, true, false, true, true)
+                .fluidPipeProperties(3776, 200, true, true, true)
                 .blast(b -> b.temp(5000, GasTier.HIGH)
                         .blastStats(VA[IV], 600)
                         .vacuumStats(VA[EV], 150))
@@ -994,7 +993,7 @@ public class ElementMaterials {
                 .toolStats(ToolProperty.Builder.of(180.0F, 100.0F, 65535, 6)
                         .attackSpeed(0.5F).enchantability(33).magnetic().unbreakable().build())
                 .rotorStats(400, 250, 12.0f, 655360)
-                .fluidPipeProperties(100_000, 5000, true, true, true, true)
+                .fluidPipeProperties(100_000, 5000, true, true, true)
                 .radioactiveHazard(10)
                 .buildAndRegister();
 
@@ -1017,7 +1016,7 @@ public class ElementMaterials {
                 .element(GTElements.Dr)
                 .toolStats(ToolProperty.Builder.of(14.0F, 12.0F, 8192, 5)
                         .attackSpeed(0.3F).enchantability(33).magnetic().build())
-                .fluidPipeProperties(9625, 500, true, true, true, true)
+                .fluidPipeProperties(9625, 500, true, true, true)
                 .buildAndRegister();
 
         Trinium = new Material.Builder(GTCEu.id("trinium"))

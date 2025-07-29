@@ -14,7 +14,7 @@ public class DirectionCache<T> {
         return new DirectionCache<>();
     }
 
-    private static final Object NULL = new Object();
+    static final Object NULL = new Object();
 
     private Object any;
     private Object down;
@@ -45,14 +45,9 @@ public class DirectionCache<T> {
                 case 2 -> north;
                 case 3 -> south;
                 case 4 -> west;
-                case 5 -> east;
-                default -> throw new IllegalArgumentException("Invalid direction: " + direction);
+                default -> east;
             };
         }
-    }
-
-    public void setNull(@Nullable Direction direction) {
-        setCache(direction, NULL);
     }
 
     public void setCache(@Nullable Direction direction, @Nullable Object value) {

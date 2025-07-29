@@ -46,7 +46,7 @@ public class ItemRoutePath implements IRoutePath<IItemHandler> {
     @Override
     @Nullable
     public IItemHandler getHandler(Level world) {
-        return targetPipe.blockEntityDirectionCache.getAdjacentItemHandler(world, getTargetPipePos(), targetFacing).resolve().orElse(null);
+        return targetPipe.blockEntityDirectionCache.getAdjacentItemHandler(world, getTargetPipePos(), targetFacing).orElse(null);
     }
 
     public boolean matchesFilters(ItemStack stack) {

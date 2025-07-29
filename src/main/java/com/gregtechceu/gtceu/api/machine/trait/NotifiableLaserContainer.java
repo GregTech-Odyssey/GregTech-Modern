@@ -46,7 +46,7 @@ public class NotifiableLaserContainer extends NotifiableEnergyContainer implemen
             BlockEntity tileEntity = getMachine().getNeighbor(side);
             if (tileEntity == null) continue;
             Direction oppositeSide = side.getOpposite();
-            ILaserContainer laserContainer = tileEntity.getCapability(GTCapability.CAPABILITY_LASER, oppositeSide).resolve().orElse(null);
+            ILaserContainer laserContainer = tileEntity.getCapability(GTCapability.CAPABILITY_LASER, oppositeSide).orElse(null);
             if (laserContainer != null) {
                 if (!laserContainer.inputsEnergy(oppositeSide)) continue;
                 amperesUsed += laserContainer.acceptEnergyFromNetwork(oppositeSide, outputVoltage,

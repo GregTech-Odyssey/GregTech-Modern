@@ -27,7 +27,6 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -37,7 +36,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -132,19 +130,6 @@ public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinct
     public int tintColor(int index) {
         if (index == 9) return getRealColor();
         return -1;
-    }
-
-    @Override
-    public void loadCustomPersistedData(@NotNull CompoundTag tag) {
-        super.loadCustomPersistedData(tag);
-        // todo: delete for 1.8
-        // fix to preserve distinctness from pre 1.7 versions
-        if (tag.contains("inventory")) {
-            var invTag = tag.getCompound("inventory");
-            if (invTag.contains("isDistinct")) {
-                this.isDistinct = invTag.getBoolean("isDistinct");
-            }
-        }
     }
 
     //////////////////////////////////////

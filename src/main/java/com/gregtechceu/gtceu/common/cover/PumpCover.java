@@ -104,7 +104,7 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
 
     @Nullable
     protected IFluidHandler getAdjacentFluidHandler() {
-        return coverHolder.getBlockEntityDirectionCache().getAdjacentFluidHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide).resolve().orElse(null);
+        return coverHolder.getBlockEntityDirectionCache().getAdjacentFluidHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide).orElse(null);
     }
 
     //////////////////////////////////////

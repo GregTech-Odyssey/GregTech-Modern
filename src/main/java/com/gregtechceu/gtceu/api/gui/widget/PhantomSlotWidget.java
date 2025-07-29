@@ -25,7 +25,6 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.emi.emi.api.stack.EmiStack;
-import mezz.jei.api.ingredients.ITypedIngredient;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.Collections;
@@ -132,8 +131,6 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
                 ingredient = new ItemStack(item, (int) emiStack.getAmount());
                 ((ItemStack) ingredient).setTag(emiStack.getNbt());
             }
-        } else if (GTCEu.Mods.isJEILoaded() && ingredient instanceof ITypedIngredient<?> jeiStack) {
-            ingredient = jeiStack.getItemStack().orElse(null);
         }
         if (!(ingredient instanceof ItemStack)) {
             return Collections.emptyList();
@@ -156,8 +153,6 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
                         ingredient = new ItemStack(item, (int) emiStack.getAmount());
                         ((ItemStack) ingredient).setTag(emiStack.getNbt());
                     }
-                } else if (GTCEu.Mods.isJEILoaded() && ingredient instanceof ITypedIngredient<?> jeiStack) {
-                    ingredient = jeiStack.getItemStack().orElse(null);
                 }
                 if (slotReference != null && ingredient instanceof ItemStack stack) {
                     long id = Minecraft.getInstance().getWindow().getWindow();

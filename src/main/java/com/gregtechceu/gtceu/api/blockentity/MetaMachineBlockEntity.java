@@ -9,9 +9,7 @@ import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.misc.EnergyInfoProviderList;
 import com.gregtechceu.gtceu.api.misc.LaserContainerList;
@@ -147,12 +145,6 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
                     return GTCapability.CAPABILITY_CONTROLLABLE.orEmpty(cap, LazyOptional.of(() -> controllable));
                 }
             }
-        } else if (cap == GTCapability.CAPABILITY_RECIPE_LOGIC) {
-            for (MachineTrait trait : machine.getTraits()) {
-                if (trait instanceof RecipeLogic recipeLogic) {
-                    return GTCapability.CAPABILITY_RECIPE_LOGIC.orEmpty(cap, LazyOptional.of(() -> recipeLogic));
-                }
-            }
         } else if (cap == GTCapability.CAPABILITY_ENERGY_CONTAINER) {
             if (machine instanceof IEnergyContainer energyContainer) {
                 return GTCapability.CAPABILITY_ENERGY_CONTAINER.orEmpty(cap, LazyOptional.of(() -> energyContainer));
@@ -168,10 +160,6 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
             var list = getCapabilitiesFromTraits(machine.getTraits(), side, IEnergyInfoProvider.class);
             if (!list.isEmpty()) {
                 return GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER.orEmpty(cap, LazyOptional.of(() -> list.size() == 1 ? list.get(0) : new EnergyInfoProviderList(list)));
-            }
-        } else if (cap == GTCapability.CAPABILITY_MAINTENANCE_MACHINE) {
-            if (machine instanceof IMaintenanceMachine maintenanceMachine) {
-                return GTCapability.CAPABILITY_MAINTENANCE_MACHINE.orEmpty(cap, LazyOptional.of(() -> maintenanceMachine));
             }
         } else if (cap == ForgeCapabilities.ITEM_HANDLER) {
             var handler = machine.getItemHandlerCap(side, true);

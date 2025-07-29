@@ -23,9 +23,7 @@ import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.gui.util.TextFormattingUtil;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.jei.ClickableIngredient;
 import com.lowdragmc.lowdraglib.jei.IngredientIO;
-import com.lowdragmc.lowdraglib.jei.JEIPlugin;
 import com.lowdragmc.lowdraglib.side.fluid.forge.FluidHelperImpl;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
@@ -54,7 +52,6 @@ import net.minecraftforge.fluids.capability.templates.FluidTank;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.emi.emi.api.forge.ForgeEmiStack;
 import dev.emi.emi.api.stack.EmiIngredient;
-import mezz.jei.api.helpers.IPlatformFluidHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -196,9 +193,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
             } else if (fluidTank instanceof CycleFluidEntryHandler entryHandler) {
                 return getXEIIngredientsClickable(entryHandler, tank).get(0);
             }
-            if (GTCEu.Mods.isJEILoaded()) {
-                return JEICallWrapper.getJEIFluidClickable(lastFluidInTank, getPosition(), getSize());
-            } else if (GTCEu.Mods.isEMILoaded()) {
+            if (GTCEu.Mods.isEMILoaded()) {
                 return ForgeEmiStack.of(lastFluidInTank).setChance(XEIChance);
             }
         }
@@ -213,9 +208,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
         } else if (fluidTank instanceof CycleFluidEntryHandler entryHandler) {
             return getXEIIngredientsClickable(entryHandler, tank);
         }
-        if (GTCEu.Mods.isJEILoaded()) {
-            return List.of(JEICallWrapper.getJEIFluidClickable(lastFluidInTank, getPosition(), getSize()));
-        } else if (GTCEu.Mods.isEMILoaded()) {
+        if (GTCEu.Mods.isEMILoaded()) {
             return List.of(ForgeEmiStack.of(lastFluidInTank).setChance(XEIChance));
         }
         return List.of(lastFluidInTank);
@@ -223,9 +216,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
 
     private List<Object> getXEIIngredients(CycleFluidStackHandler handler, int index) {
         FluidStackList stackList = handler.getStackList(index);
-        if (GTCEu.Mods.isJEILoaded()) {
-            return JEICallWrapper.getJEIIngredients(stackList);
-        } else if (GTCEu.Mods.isEMILoaded()) {
+        if (GTCEu.Mods.isEMILoaded()) {
             return EMICallWrapper.getEMIIngredients(stackList, getXEIChance());
         }
         return Collections.emptyList();
@@ -233,9 +224,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
 
     private List<Object> getXEIIngredientsClickable(CycleFluidStackHandler handler, int index) {
         FluidStackList stackList = handler.getStackList(index);
-        if (GTCEu.Mods.isJEILoaded()) {
-            return JEICallWrapper.getJEIIngredientsClickable(stackList, getPosition(), getSize());
-        } else if (GTCEu.Mods.isEMILoaded()) {
+        if (GTCEu.Mods.isEMILoaded()) {
             return EMICallWrapper.getEMIIngredients(stackList, getXEIChance());
         }
         return Collections.emptyList();
@@ -243,9 +232,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
 
     private List<Object> getXEIIngredients(CycleFluidEntryHandler handler, int index) {
         FluidEntryList entryList = handler.getEntry(index);
-        if (GTCEu.Mods.isJEILoaded()) {
-            return JEICallWrapper.getJEIIngredients(entryList);
-        } else if (GTCEu.Mods.isEMILoaded()) {
+        if (GTCEu.Mods.isEMILoaded()) {
             return EMICallWrapper.getEMIIngredients(entryList, getXEIChance());
         }
         return Collections.emptyList();
@@ -253,9 +240,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
 
     private List<Object> getXEIIngredientsClickable(CycleFluidEntryHandler handler, int index) {
         FluidEntryList entryList = handler.getEntry(index);
-        if (GTCEu.Mods.isJEILoaded()) {
-            return JEICallWrapper.getJEIIngredientsClickable(entryList, getPosition(), getSize());
-        } else if (GTCEu.Mods.isEMILoaded()) {
+        if (GTCEu.Mods.isEMILoaded()) {
             return EMICallWrapper.getEMIIngredients(entryList, getXEIChance());
         }
         return Collections.emptyList();
@@ -298,10 +283,6 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
 
     @Override
     public Object getXEICurrentIngredient() {
-        if (lastFluidInTank == null || lastFluidInTank.isEmpty()) return null;
-        if (GTCEu.Mods.isJEILoaded()) {
-            return JEICallWrapper.getJEIFluidClickable(lastFluidInTank, getPosition(), getSize());
-        }
         return null;
     }
 
@@ -458,7 +439,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
         if (fluidTank == null) return -1;
         Player player = gui.entityPlayer;
         ItemStack currentStack = gui.getModularUIContainer().getCarried();
-        var handler = FluidUtil.getFluidHandler(currentStack).resolve().orElse(null);
+        var handler = FluidUtil.getFluidHandler(currentStack).orElse(null);
         if (handler == null) return -1;
         int maxAttempts = isShiftKeyDown ? currentStack.getCount() : 1;
         FluidStack initialFluid = fluidTank.getFluidInTank(tank).copy();
@@ -565,37 +546,6 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
             }
         }.setAllowClickDrained(false).setAllowClickFilled(false).setFluidTank(handler)));
         IConfigurableWidget.super.buildConfigurator(father);
-    }
-
-    /**
-     * Wrapper for methods that use JEI classes so that classloading doesn't brick itself.
-     */
-    public static final class JEICallWrapper {
-
-        public static List<Object> getJEIIngredients(FluidEntryList list) {
-            return list.getStacks().stream().filter(stack -> !stack.isEmpty()).map(JEICallWrapper::getJEIFluid).toList();
-        }
-
-        public static List<Object> getJEIIngredientsClickable(FluidEntryList list, Position pos, Size size) {
-            return list.getStacks().stream().filter(stack -> !stack.isEmpty()).map(stack -> getJEIFluidClickable(stack, pos, size)).toList();
-        }
-
-        public static Object getJEIFluid(FluidStack fluidStack) {
-            return _getJEIFluid(JEIPlugin.jeiHelpers.getPlatformFluidHelper(), fluidStack);
-        }
-
-        private static <T> Object _getJEIFluid(IPlatformFluidHelper<T> helper, FluidStack fluidStack) {
-            return helper.create(fluidStack.getFluid(), fluidStack.getAmount(), fluidStack.getTag());
-        }
-
-        public static Object getJEIFluidClickable(FluidStack fluidStack, Position pos, Size size) {
-            return _getJEIFluidClickable(JEIPlugin.jeiHelpers.getPlatformFluidHelper(), fluidStack, pos, size);
-        }
-
-        private static <T> Object _getJEIFluidClickable(IPlatformFluidHelper<T> helper, FluidStack fluidStack, Position pos, Size size) {
-            T ingredient = helper.create(fluidStack.getFluid(), fluidStack.getAmount(), fluidStack.getTag());
-            return JEIPlugin.jeiHelpers.getIngredientManager().createTypedIngredient(ingredient).map(typedIngredient -> new ClickableIngredient<>(typedIngredient, pos.x, pos.y, size.width, size.height)).orElse(null);
-        }
     }
 
     public static final class EMICallWrapper {

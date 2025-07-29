@@ -81,7 +81,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
 
     public HPCAMachine(IMachineBlockEntity holder, Object... args) {
         super(holder, args);
-        this.energyContainer = new EnergyContainerList(new ArrayList<>());
+        this.energyContainer = EnergyContainerList.EMPTY;
         this.progressSupplier = new TimedProgressSupplier(200, 47, false);
         this.hpcaHandler = new HPCAGridHandler(this);
     }
@@ -141,7 +141,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     @Override
     public void onStructureInvalid() {
         super.onStructureInvalid();
-        this.energyContainer = new EnergyContainerList(new ArrayList<>());
+        this.energyContainer = EnergyContainerList.EMPTY;
         this.hpcaHandler.onStructureInvalidate();
     }
 

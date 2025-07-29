@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.HazardProperty;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.ToolProperty;
 import com.gregtechceu.gtceu.api.fluids.FluidBuilder;
-import com.gregtechceu.gtceu.api.fluids.attribute.FluidAttributes;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.common.data.GTMedicalConditions;
 
@@ -155,7 +154,7 @@ public class OrganicChemistryMaterials {
                 .toolStats(
                         ToolProperty.Builder.of(1.0F, 1.0F, 512, 1, GTToolType.SOFT_MALLET, GTToolType.PLUNGER).build())
                 .components(Carbon, 2, Fluorine, 4)
-                .fluidPipeProperties(600, 100, true, true, false, false)
+                .fluidPipeProperties(600, 100, true, true, false)
                 .buildAndRegister();
 
         Sugar = new Material.Builder(GTCEu.id("sugar"))
@@ -344,7 +343,7 @@ public class OrganicChemistryMaterials {
                 .buildAndRegister();
 
         AceticAcid = new Material.Builder(GTCEu.id("acetic_acid"))
-                .liquid(new FluidBuilder().attribute(FluidAttributes.ACID))
+                .liquid()
                 .color(0xC8B4A0)
                 .flags(DISABLE_DECOMPOSITION)
                 .components(Carbon, 2, Hydrogen, 4, Oxygen, 2)
@@ -429,7 +428,7 @@ public class OrganicChemistryMaterials {
                 .buildAndRegister();
 
         PhthalicAcid = new Material.Builder(GTCEu.id("phthalic_acid"))
-                .liquid(new FluidBuilder().attribute(FluidAttributes.ACID))
+                .liquid()
                 .color(0xD1D1D1)
                 .flags(DISABLE_DECOMPOSITION)
                 .components(Carbon, 8, Hydrogen, 6, Oxygen, 4)

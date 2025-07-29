@@ -45,8 +45,8 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
 
     public ActiveTransformerMachine(IMachineBlockEntity holder) {
         super(holder);
-        this.powerOutput = new EnergyContainerList(new ArrayList<>());
-        this.powerInput = new EnergyContainerList(new ArrayList<>());
+        this.powerOutput = EnergyContainerList.EMPTY;
+        this.powerInput = EnergyContainerList.EMPTY;
 
         this.converterSubscription = new ConditionalSubscriptionHandler(this, this::convertEnergyTick,
                 this::isSubscriptionActive);
@@ -138,8 +138,8 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
             doExplosion(6f + getTier());
         }
         super.onStructureInvalid();
-        this.powerOutput = new EnergyContainerList(new ArrayList<>());
-        this.powerInput = new EnergyContainerList(new ArrayList<>());
+        this.powerOutput = EnergyContainerList.EMPTY;
+        this.powerInput = EnergyContainerList.EMPTY;
         getRecipeLogic().setStatus(RecipeLogic.Status.SUSPEND);
         converterSubscription.unsubscribe();
     }

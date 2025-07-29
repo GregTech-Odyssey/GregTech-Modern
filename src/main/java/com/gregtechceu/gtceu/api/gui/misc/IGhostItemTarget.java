@@ -13,7 +13,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.google.common.collect.Lists;
 import dev.emi.emi.api.stack.EmiStack;
-import mezz.jei.api.ingredients.ITypedIngredient;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -60,10 +59,6 @@ public interface IGhostItemTarget extends IGhostIngredientTarget {
                 itemStack.setTag(itemEmiStack.getNbt());
             }
             ingredient = itemStack;
-        }
-
-        if (GTCEu.Mods.isJEILoaded() && ingredient instanceof ITypedIngredient<?> itemJeiStack) {
-            return itemJeiStack.getItemStack().orElse(ItemStack.EMPTY);
         }
         return ingredient;
     }

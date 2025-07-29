@@ -109,7 +109,7 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
 
     @Nullable
     protected IItemHandler getAdjacentItemHandler() {
-        return coverHolder.getBlockEntityDirectionCache().getAdjacentItemHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide).resolve().orElse(null);
+        return coverHolder.getBlockEntityDirectionCache().getAdjacentItemHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide).orElse(null);
     }
 
     //////////////////////////////////////

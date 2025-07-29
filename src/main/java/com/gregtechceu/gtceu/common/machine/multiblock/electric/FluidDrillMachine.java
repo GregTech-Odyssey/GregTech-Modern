@@ -57,7 +57,6 @@ public class FluidDrillMachine extends WorkableElectricMultiblockMachine impleme
 
     public int getEnergyTier() {
         var energyContainer = this.getCapabilitiesFlat(IO.IN, EURecipeCapability.CAP);
-        if (energyContainer == null) return this.tier;
         var energyCont = new EnergyContainerList(energyContainer.stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).toList());
         return Math.min(this.tier + 1, Math.max(this.tier, GTUtil.getFloorTierByVoltage(energyCont.getInputVoltage())));
     }

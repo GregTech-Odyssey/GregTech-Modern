@@ -41,8 +41,10 @@ public class PatternMatchContext {
     }
 
     public void reset() {
-        if (data == null) return;
-        this.data.clear();
+        vaBlocks.clear();
+        parts.clear();
+        if (predicates != null) this.predicates.clear();
+        if (data != null) this.data.clear();
     }
 
     public void set(Object key, Object value) {

@@ -222,7 +222,7 @@ public class QuarkTechSuite extends ArmorLogicSuite implements IStepAssist {
     public boolean supplyFood(@NotNull IElectricItem item, Player player) {
         if (item.canUse(energyPerUse / 10) && player.getFoodData().needsFood()) {
             int slotId = -1;
-            IItemHandler playerInv = player.getCapability(ForgeCapabilities.ITEM_HANDLER).resolve().orElse(null);
+            IItemHandler playerInv = player.getCapability(ForgeCapabilities.ITEM_HANDLER).orElse(null);
             if (playerInv instanceof IItemHandlerModifiable items) {
                 for (int i = 0; i < items.getSlots(); i++) {
                     ItemStack current = items.getStackInSlot(i);

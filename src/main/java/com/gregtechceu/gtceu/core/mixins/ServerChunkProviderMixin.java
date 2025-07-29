@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -30,31 +31,34 @@ public abstract class ServerChunkProviderMixin {
     @Final
     Thread mainThread;
 
-    private final long[] mbdLastChunkPos = new long[4];
+    @Unique
+    private final long[] gtceu$mbdLastChunkPos = new long[4];
 
-    private final LevelChunk[] mbdLastChunk = new LevelChunk[4];
+    @Unique
+    private final LevelChunk[] gtceu$mbdLastChunk = new LevelChunk[4];
 
     @Shadow
     @Nullable
     protected abstract ChunkHolder getVisibleChunkIfPresent(long p_217213_1_);
 
-    private void storeInCache(long pos, LevelChunk chunkAccess) {
-        synchronized (this.mbdLastChunkPos) {
+    @Unique
+    private void gtceu$storeInCache(long pos, LevelChunk chunkAccess) {
+        synchronized (this.gtceu$mbdLastChunkPos) {
             for (int i = 3; i > 0; --i) {
-                this.mbdLastChunkPos[i] = this.mbdLastChunkPos[i - 1];
-                this.mbdLastChunk[i] = this.mbdLastChunk[i - 1];
+                this.gtceu$mbdLastChunkPos[i] = this.gtceu$mbdLastChunkPos[i - 1];
+                this.gtceu$mbdLastChunk[i] = this.gtceu$mbdLastChunk[i - 1];
             }
 
-            this.mbdLastChunkPos[0] = pos;
-            this.mbdLastChunk[0] = chunkAccess;
+            this.gtceu$mbdLastChunkPos[0] = pos;
+            this.gtceu$mbdLastChunk[0] = chunkAccess;
         }
     }
 
     @Inject(method = "clearCache", at = @At(value = "TAIL"))
     private void injectClearCache(CallbackInfo ci) {
-        synchronized (this.mbdLastChunkPos) {
-            Arrays.fill(this.mbdLastChunkPos, ChunkPos.INVALID_CHUNK_POS);
-            Arrays.fill(this.mbdLastChunk, null);
+        synchronized (this.gtceu$mbdLastChunkPos) {
+            Arrays.fill(this.gtceu$mbdLastChunkPos, ChunkPos.INVALID_CHUNK_POS);
+            Arrays.fill(this.gtceu$mbdLastChunk, null);
         }
     }
 
@@ -65,8 +69,8 @@ public abstract class ServerChunkProviderMixin {
             long i = ChunkPos.asLong(pChunkX, pChunkZ);
 
             for (int j = 0; j < 4; ++j) {
-                if (i == this.mbdLastChunkPos[j]) {
-                    cir.setReturnValue(this.mbdLastChunk[j]);
+                if (i == this.gtceu$mbdLastChunkPos[j]) {
+                    cir.setReturnValue(this.gtceu$mbdLastChunk[j]);
                     return;
                 }
             }
@@ -78,7 +82,7 @@ public abstract class ServerChunkProviderMixin {
                 if (either != null) {
                     ChunkAccess chunk = either.left().orElse(null);
                     if (chunk instanceof LevelChunk levelChunk) {
-                        storeInCache(i, levelChunk);
+                        gtceu$storeInCache(i, levelChunk);
                         cir.setReturnValue(levelChunk);
                         return;
                     }

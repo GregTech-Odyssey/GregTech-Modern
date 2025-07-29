@@ -126,7 +126,7 @@ public class PowerlessJetpack implements IArmorLogic, IJetpack, IItemHUDProvider
     @OnlyIn(Dist.CLIENT)
     @Override
     public void drawHUD(@NotNull ItemStack item, GuiGraphics guiGraphics) {
-        IFluidHandler tank = FluidUtil.getFluidHandler(item).resolve().orElse(null);
+        IFluidHandler tank = FluidUtil.getFluidHandler(item).orElse(null);
         if (tank != null) {
             if (tank.getFluidInTank(0).getAmount() == 0) return;
             String formated = String.format("%.1f",
@@ -273,7 +273,7 @@ public class PowerlessJetpack implements IArmorLogic, IJetpack, IItemHUDProvider
         @Override
         public void fillItemCategory(Item item, CreativeModeTab category, NonNullList<ItemStack> items) {
             ItemStack copy = item.getDefaultInstance();
-            IFluidHandler fluidHandlerItem = FluidUtil.getFluidHandler(copy).resolve().orElse(null);
+            IFluidHandler fluidHandlerItem = FluidUtil.getFluidHandler(copy).orElse(null);
             if (fluidHandlerItem != null) {
                 fluidHandlerItem.fill(GTMaterials.Diesel.getFluid(tankCapacity), IFluidHandler.FluidAction.SIMULATE);
                 items.add(copy);

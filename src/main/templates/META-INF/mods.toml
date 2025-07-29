@@ -44,13 +44,6 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
-modId = "jei"
-mandatory = false
-versionRange = "[${jei_version},)"
-ordering = "AFTER"
-side = "BOTH"
-
-[[dependencies.${mod_id}]]
 modId = "emi"
 mandatory = false
 versionRange = "[${emi_version},)"

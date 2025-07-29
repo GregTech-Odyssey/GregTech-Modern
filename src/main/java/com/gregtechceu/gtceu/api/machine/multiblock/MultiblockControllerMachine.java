@@ -22,6 +22,7 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -29,6 +30,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -211,8 +213,17 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         }
     }
 
+    @MustBeInvokedByOverriders
+    protected void onStructureFormedAfter() {
+        this.notifyBlockUpdate();
+    }
+
     @Override
+    @MustBeInvokedByOverriders
     public void onStructureFormed() {
+        if (getLevel() instanceof ServerLevel serverLevel) {
+            serverLevel.getServer().tell(new TickTask(1, this::onStructureFormedAfter));
+        }
         isFormed = true;
         this.parts.clear();
         for (IMultiPart part : getMultiblockState().getMatchContext().parts) {
@@ -234,7 +245,9 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     }
 
     @Override
+    @MustBeInvokedByOverriders
     public void onStructureInvalid() {
+        this.notifyBlockUpdate();
         isFormed = false;
         for (IMultiPart part : parts) {
             part.removedFromController(this);

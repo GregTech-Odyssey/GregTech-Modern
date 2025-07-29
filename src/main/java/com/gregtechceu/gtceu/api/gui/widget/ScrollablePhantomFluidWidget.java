@@ -50,9 +50,10 @@ public class ScrollablePhantomFluidWidget extends PhantomFluidWidget {
 
     @Override
     public void handleClientAction(int id, FriendlyByteBuf buffer) {
-        switch (id) {
-            case SCROLL_ACTION_ID -> handleScrollAction(buffer.readInt());
-            default -> super.handleClientAction(id, buffer);
+        if (id == SCROLL_ACTION_ID) {
+            handleScrollAction(buffer.readInt());
+        } else {
+            super.handleClientAction(id, buffer);
         }
 
         detectAndSendChanges();
@@ -64,11 +65,7 @@ public class ScrollablePhantomFluidWidget extends PhantomFluidWidget {
             return;
 
         FluidStack fluid = fluidTank.getFluidInTank(tank);
-        if (fluid.isEmpty())
-            return;
-
-        if (fluid.isEmpty())
-            return;
+        if (fluid.isEmpty()) return;
 
         fluid.setAmount(Math.min(Math.max(fluid.getAmount() + delta, 0), fluidTank.getTankCapacity(tank)));
         if (fluid.getAmount() <= 0L) {

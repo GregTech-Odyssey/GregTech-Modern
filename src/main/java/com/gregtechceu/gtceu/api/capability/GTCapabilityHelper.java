@@ -1,8 +1,11 @@
 package com.gregtechceu.gtceu.api.capability;
 
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.utils.LazyOptionalUtil;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -21,12 +24,12 @@ public class GTCapabilityHelper {
 
     @Nullable
     public static IElectricItem getElectricItem(ItemStack itemStack) {
-        return itemStack.getCapability(GTCapability.CAPABILITY_ELECTRIC_ITEM).resolve().orElse(null);
+        return LazyOptionalUtil.get(itemStack.getCapability(GTCapability.CAPABILITY_ELECTRIC_ITEM));
     }
 
     @Nullable
     public static IEnergyStorage getForgeEnergyItem(ItemStack itemStack) {
-        return itemStack.getCapability(ForgeCapabilities.ENERGY).resolve().orElse(null);
+        return LazyOptionalUtil.get(itemStack.getCapability(ForgeCapabilities.ENERGY));
     }
 
     @Nullable
@@ -56,23 +59,23 @@ public class GTCapabilityHelper {
 
     @Nullable
     public static RecipeLogic getRecipeLogic(Level level, BlockPos pos, @Nullable Direction side) {
-        return getBlockEntityCapability(GTCapability.CAPABILITY_RECIPE_LOGIC, level, pos, side);
-    }
-
-    @Nullable
-    public static IEnergyStorage getForgeEnergy(Level level, BlockPos pos, @Nullable Direction side) {
-        if (level.getBlockState(pos).hasBlockEntity()) {
-            var blockEntity = level.getBlockEntity(pos);
-            if (blockEntity != null) {
-                return blockEntity.getCapability(ForgeCapabilities.ENERGY, side).orElse(null);
-            }
+        if (MetaMachine.getMachine(level, pos) instanceof IRecipeLogicMachine recipeLogicMachine) {
+            return recipeLogicMachine.getRecipeLogic();
         }
         return null;
     }
 
     @Nullable
+    public static IEnergyStorage getForgeEnergy(Level level, BlockPos pos, @Nullable Direction side) {
+        return getBlockEntityCapability(ForgeCapabilities.ENERGY, level, pos, side);
+    }
+
+    @Nullable
     public static IMaintenanceMachine getMaintenanceMachine(Level level, BlockPos pos, @Nullable Direction side) {
-        return getBlockEntityCapability(GTCapability.CAPABILITY_MAINTENANCE_MACHINE, level, pos, side);
+        if (MetaMachine.getMachine(level, pos) instanceof IMaintenanceMachine maintenanceMachine) {
+            return maintenanceMachine;
+        }
+        return null;
     }
 
     @Nullable
@@ -99,11 +102,9 @@ public class GTCapabilityHelper {
     @Nullable
     private static <T> T getBlockEntityCapability(Capability<T> capability, Level level, BlockPos pos,
                                                   @Nullable Direction side) {
-        if (level.getBlockState(pos).hasBlockEntity()) {
-            var blockEntity = level.getBlockEntity(pos);
-            if (blockEntity != null) {
-                return blockEntity.getCapability(capability, side).resolve().orElse(null);
-            }
+        var blockEntity = level.getBlockEntity(pos);
+        if (blockEntity != null) {
+            return LazyOptionalUtil.get(blockEntity.getCapability(capability, side));
         }
         return null;
     }
@@ -111,13 +112,13 @@ public class GTCapabilityHelper {
     @Nullable
     public static <T> T getBlockEntityCapability(Capability<T> capability, @Nullable BlockEntity blockEntity, @Nullable Direction side) {
         if (blockEntity != null) {
-            return blockEntity.getCapability(capability, side).resolve().orElse(null);
+            return LazyOptionalUtil.get(blockEntity.getCapability(capability, side));
         }
         return null;
     }
 
     @Nullable
     public static IMedicalConditionTracker getMedicalConditionTracker(@NotNull Entity entity) {
-        return entity.getCapability(GTCapability.CAPABILITY_MEDICAL_CONDITION_TRACKER, null).resolve().orElse(null);
+        return LazyOptionalUtil.get(entity.getCapability(GTCapability.CAPABILITY_MEDICAL_CONDITION_TRACKER, null));
     }
 }

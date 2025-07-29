@@ -32,8 +32,6 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
 
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(LaserPipeBlockEntity.class, PipeBlockEntity.MANAGED_FIELD_HOLDER);
     protected final EnumMap<Direction, LaserNetHandler> handlers = new EnumMap<>(Direction.class);
-    // the LaserNetHandler can only be created on the server, so we have an empty placeholder for the client
-    public static final ILaserContainer clientCapability = new DefaultLaserContainer();
     private WeakReference<LaserPipeNet> currentPipeNet = new WeakReference<>(null);
     protected LaserNetHandler defaultHandler;
     private int ticksActive = 0;
@@ -54,16 +52,13 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
     @NotNull
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         if (cap == GTCapability.CAPABILITY_LASER) {
-            if (getLevel().isClientSide()) return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> clientCapability));
+            if (getLevel().isClientSide()) return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> ILaserContainer.DEFAULT));
             if (handlers.isEmpty()) {
                 initHandlers();
             }
             checkNetwork();
             var handler = handlers.getOrDefault(side, defaultHandler);
-            if (handler != null) {
-                return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> handler));
-            }
-            return LazyOptional.empty();
+            return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> handler == null ? ILaserContainer.DEFAULT : handler));
         } else if (cap == GTCapability.CAPABILITY_COVERABLE) {
             return GTCapability.CAPABILITY_COVERABLE.orEmpty(cap, LazyOptional.of(this::getCoverContainer));
         }
@@ -168,44 +163,6 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
     @Override
     public ManagedFieldHolder getFieldHolder() {
         return MANAGED_FIELD_HOLDER;
-    }
-
-    private static class DefaultLaserContainer implements ILaserContainer {
-
-        @Override
-        public long acceptEnergyFromNetwork(Direction side, long voltage, long amperage) {
-            return 0;
-        }
-
-        @Override
-        public boolean inputsEnergy(Direction side) {
-            return false;
-        }
-
-        @Override
-        public long changeEnergy(long differenceAmount) {
-            return 0;
-        }
-
-        @Override
-        public long getEnergyStored() {
-            return 0;
-        }
-
-        @Override
-        public long getEnergyCapacity() {
-            return 0;
-        }
-
-        @Override
-        public long getInputAmperage() {
-            return 0;
-        }
-
-        @Override
-        public long getInputVoltage() {
-            return 0;
-        }
     }
 
     public EnumMap<Direction, LaserNetHandler> getHandlers() {
