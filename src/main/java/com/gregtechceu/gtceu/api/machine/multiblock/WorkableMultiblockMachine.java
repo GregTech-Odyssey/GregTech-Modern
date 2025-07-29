@@ -90,7 +90,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     //////////////////////////////////////
     @Override
     protected void onStructureFormedAfter() {
-        super.onStructureFormedAfter();
         recipeLogic.updateTickSubscription();
     }
 

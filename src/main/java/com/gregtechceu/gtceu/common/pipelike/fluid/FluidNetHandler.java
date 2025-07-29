@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.common.cover.*;
 import com.gregtechceu.gtceu.common.cover.data.FilterMode;
 
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
@@ -49,7 +48,7 @@ public class FluidNetHandler implements IFluidHandlerModifiable {
         int amount = stack.getAmount();
         int total = 0;
         for (FluidRoutePath inv : net.getNetData(pipe.getPipePosLong(), pipe.getPipePos(), facing)) {
-            int fill = insert(inv, stack, amount, simulate, false);
+            int fill = fill(inv, stack, amount, simulate, false);
             amount -= fill;
             total += fill;
             if (amount <= 0) break;
@@ -57,17 +56,17 @@ public class FluidNetHandler implements IFluidHandlerModifiable {
         return total;
     }
 
-    public int insert(FluidRoutePath routePath, FluidStack stack, int amount, boolean simulate, boolean ignoreLimit) {
+    public int fill(FluidRoutePath routePath, FluidStack stack, int amount, boolean simulate, boolean ignoreLimit) {
         int allowed = ignoreLimit ? amount : checkTransferable(routePath.getProperties().getThroughput(), amount, simulate);
         if (allowed == 0 || !routePath.matchesFilters(stack)) {
             return 0;
         }
         IFluidHandler neighbourHandler = routePath.getHandler(net.getLevel());
         if (neighbourHandler == null) return 0;
-        return insert(neighbourHandler, stack.copy(), amount, simulate, allowed, ignoreLimit);
+        return fill(neighbourHandler, stack.copy(), amount, simulate, allowed, ignoreLimit);
     }
 
-    private int insert(IFluidHandler handler, FluidStack stack, int amount, boolean simulate, int allowed, boolean ignoreLimit) {
+    private int fill(IFluidHandler handler, FluidStack stack, int amount, boolean simulate, int allowed, boolean ignoreLimit) {
         if (amount == allowed) {
             stack.setAmount(amount);
             int r = handler.fill(stack, simulate ? FluidAction.SIMULATE : FluidAction.EXECUTE);
@@ -81,13 +80,9 @@ public class FluidNetHandler implements IFluidHandlerModifiable {
     }
 
     public CoverBehavior getCoverOnNeighbour(Direction handlerFacing) {
-        BlockEntity tile = pipe.getNeighbor(handlerFacing);
-        if (tile != null) {
-            ICoverable coverable = GTCapabilityHelper.getBlockEntityCapability(GTCapability.CAPABILITY_COVERABLE, pipe.getNeighbor(handlerFacing), handlerFacing.getOpposite());
-            if (coverable == null) return null;
-            return coverable.getCoverAtSide(handlerFacing.getOpposite());
-        }
-        return null;
+        ICoverable coverable = GTCapabilityHelper.getBlockEntityCapability(GTCapability.CAPABILITY_COVERABLE, pipe.getNeighbor(handlerFacing), handlerFacing.getOpposite());
+        if (coverable == null) return null;
+        return coverable.getCoverAtSide(handlerFacing.getOpposite());
     }
 
     private int checkTransferable(int rate, int amount, boolean simulate) {

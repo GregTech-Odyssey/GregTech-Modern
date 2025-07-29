@@ -71,6 +71,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import com.mojang.datafixers.util.Pair;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -198,6 +199,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         return holder.getSelf().isRemoved();
     }
 
+    @MustBeInvokedByOverriders
     public void onUnload() {
         traits.forEach(MachineTrait::onMachineUnLoad);
         coverContainer.onUnload();
@@ -209,6 +211,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         clearDirectionCache();
     }
 
+    @MustBeInvokedByOverriders
     public void onLoad() {
         blockEntityDirectionCache.clearCache();
         clearDirectionCache();

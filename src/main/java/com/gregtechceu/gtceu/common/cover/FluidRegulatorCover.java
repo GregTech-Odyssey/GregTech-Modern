@@ -84,7 +84,10 @@ public class FluidRegulatorCover extends PumpCover {
                 break;
             }
             if (sourceFluid.isEmpty() || supplyAmount <= 0) continue;
-            sourceFluid.setAmount(supplyAmount);
+            if (supplyAmount != sourceFluid.getAmount()) {
+                sourceFluid = sourceFluid.copy();
+                sourceFluid.setAmount(supplyAmount);
+            }
             FluidStack drained = source.drain(sourceFluid, FluidAction.SIMULATE);
             if (drained.isEmpty() || drained.getAmount() < supplyAmount) continue;
             int insertableAmount = destination.fill(drained.copy(), FluidAction.SIMULATE);

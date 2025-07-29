@@ -140,6 +140,7 @@ public class FactoryBlockPattern {
 
         var pattern = new BlockPattern(predicate, structureDir, aisleRepetitions, centerOffset);
         if (definition != null) {
+            pattern.predicates = symbolMap.values();
             definition.setCheckPriority(-(pattern.fingerLength * pattern.thumbLength * pattern.palmLength));
         }
         return pattern;

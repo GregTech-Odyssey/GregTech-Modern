@@ -59,6 +59,7 @@ public class BlockPattern {
     public final int palmLength; // x size
     public final int[] centerOffset; // x, y, z, minZ, maxZ
     public int[] formedRepetitionCount;
+    public Collection<TraceabilityPredicate> predicates;
 
     public BlockPattern(TraceabilityPredicate[][][] predicatesIn, RelativeDirection[] structureDir, int[][] aisleRepetitions, int[] centerOffset) {
         this.blockMatches = predicatesIn;

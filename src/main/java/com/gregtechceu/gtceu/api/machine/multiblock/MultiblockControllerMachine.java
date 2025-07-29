@@ -213,10 +213,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         }
     }
 
-    @MustBeInvokedByOverriders
-    protected void onStructureFormedAfter() {
-        this.notifyBlockUpdate();
-    }
+    protected void onStructureFormedAfter() {}
 
     @Override
     @MustBeInvokedByOverriders
@@ -247,7 +244,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @Override
     @MustBeInvokedByOverriders
     public void onStructureInvalid() {
-        this.notifyBlockUpdate();
         isFormed = false;
         for (IMultiPart part : parts) {
             part.removedFromController(this);
@@ -264,6 +260,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
      * {@link MultiblockState#onBlockStateChanged(BlockPos, BlockState)}
      */
     @Override
+    @MustBeInvokedByOverriders
     public void onPartUnload() {
         parts.removeIf(part -> part.self().isInValid());
         getMultiblockState().setError(MultiblockState.UNLOAD_ERROR);

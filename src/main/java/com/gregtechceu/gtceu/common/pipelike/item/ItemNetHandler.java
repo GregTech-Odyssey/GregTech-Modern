@@ -17,7 +17,6 @@ import com.gregtechceu.gtceu.utils.FacingPos;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
@@ -286,13 +285,9 @@ public class ItemNetHandler implements IItemHandlerModifiable {
     }
 
     public CoverBehavior getCoverOnNeighbour(Direction handlerFacing) {
-        BlockEntity tile = pipe.getNeighbor(handlerFacing);
-        if (tile != null) {
-            ICoverable coverable = GTCapabilityHelper.getBlockEntityCapability(GTCapability.CAPABILITY_COVERABLE, pipe.getNeighbor(handlerFacing), handlerFacing.getOpposite());
-            if (coverable == null) return null;
-            return coverable.getCoverAtSide(handlerFacing.getOpposite());
-        }
-        return null;
+        ICoverable coverable = GTCapabilityHelper.getBlockEntityCapability(GTCapability.CAPABILITY_COVERABLE, pipe.getNeighbor(handlerFacing), handlerFacing.getOpposite());
+        if (coverable == null) return null;
+        return coverable.getCoverAtSide(handlerFacing.getOpposite());
     }
 
     public ItemStack insertOverRobotArm(IItemHandler handler, RobotArmCover arm, ItemStack stack, boolean simulate, int allowed, boolean ignoreLimit) {

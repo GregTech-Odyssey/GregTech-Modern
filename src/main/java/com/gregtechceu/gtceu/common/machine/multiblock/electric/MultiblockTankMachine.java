@@ -72,7 +72,7 @@ public class MultiblockTankMachine extends MultiblockControllerMachine implement
         if (isFormed) {
             return super.getFluidHandlerCap(side, useCoverCapability);
         }
-        return null;
+        return IFluidHandlerModifiable.EMPTY;
     }
 
     /////////////////////////////////////

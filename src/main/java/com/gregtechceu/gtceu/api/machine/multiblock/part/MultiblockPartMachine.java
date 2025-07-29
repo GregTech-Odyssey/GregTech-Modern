@@ -21,6 +21,7 @@ import net.minecraft.server.level.ServerLevel;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
 
@@ -137,6 +138,7 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
     //////////////////////////////////////
 
     @Override
+    @MustBeInvokedByOverriders
     public void removedFromController(IMultiController controller) {
         controllerPositions.remove(controller.self().getPos().asLong());
         controllers.remove(controller);
@@ -145,6 +147,7 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
     }
 
     @Override
+    @MustBeInvokedByOverriders
     public void addedToController(IMultiController controller) {
         controllerPositions.add(controller.self().getPos().asLong());
         controllers.add(controller);
