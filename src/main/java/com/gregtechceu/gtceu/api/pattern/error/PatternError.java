@@ -13,8 +13,8 @@ import java.util.List;
 
 public class PatternError {
 
-    protected BlockPos pos;
-    protected TraceabilityPredicate predicate;
+    public BlockPos pos;
+    public TraceabilityPredicate predicate;
 
     public void setWorldState(MultiblockState worldState) {
         pos = worldState.pos;

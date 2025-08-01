@@ -88,6 +88,7 @@ public class ItemNetHandler implements IItemHandlerModifiable {
 
     public ItemStack insertFirst(ItemStack stack, boolean simulate) {
         for (ItemRoutePath inv : net.getNetData(pipe.getPipePosLong(), pipe.getPipePos(), facing)) {
+            if (pipe.autoTransfer && inv.getTargetPipe() == pipe && inv.getTargetFacing() != pipe.blockedSide) continue;
             stack = insert(inv, stack, simulate);
             if (stack.isEmpty()) return ItemStack.EMPTY;
         }

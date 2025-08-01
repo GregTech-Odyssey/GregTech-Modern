@@ -5,9 +5,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
-import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTItems;
-import com.gregtechceu.gtceu.common.pipelike.duct.DuctPipeType;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
@@ -46,10 +44,6 @@ public final class PipeRecipeHandler {
         processRestrictivePipe(provider, PropertyKey.ITEM_PIPE, pipeNormalRestrictive, pipeNormalItem, material);
         processRestrictivePipe(provider, PropertyKey.ITEM_PIPE, pipeLargeRestrictive, pipeLargeItem, material);
         processRestrictivePipe(provider, PropertyKey.ITEM_PIPE, pipeHugeRestrictive, pipeHugeItem, material);
-
-        addDuctRecipes(provider, Steel, 2);
-        addDuctRecipes(provider, StainlessSteel, 4);
-        addDuctRecipes(provider, TungstenSteel, 8);
     }
 
     private static void processRestrictivePipe(@NotNull Consumer<FinishedRecipe> provider,
@@ -276,21 +270,6 @@ public final class PipeRecipeHandler {
                 .duration(40)
                 .EUt(VA[ULV])
                 .save(provider);
-    }
-
-    private static void addDuctRecipes(Consumer<FinishedRecipe> provider, Material material, int outputAmount) {
-        VanillaRecipeHelper.addShapedRecipe(provider, "small_duct_%s".formatted(material.getName()),
-                GTBlocks.DUCT_PIPES[DuctPipeType.SMALL.ordinal()].asStack(outputAmount * 2), "w", "X", "h",
-                'X', new MaterialEntry(plate, material));
-        VanillaRecipeHelper.addShapedRecipe(provider, "medium_duct_%s".formatted(material.getName()),
-                GTBlocks.DUCT_PIPES[DuctPipeType.NORMAL.ordinal()].asStack(outputAmount), " X ", "wXh", " X ",
-                'X', new MaterialEntry(plate, material));
-        VanillaRecipeHelper.addShapedRecipe(provider, "large_duct_%s".formatted(material.getName()),
-                GTBlocks.DUCT_PIPES[DuctPipeType.LARGE.ordinal()].asStack(outputAmount), "XwX", "X X", "XhX",
-                'X', new MaterialEntry(plate, material));
-        VanillaRecipeHelper.addShapedRecipe(provider, "huge_duct_%s".formatted(material.getName()),
-                GTBlocks.DUCT_PIPES[DuctPipeType.HUGE.ordinal()].asStack(outputAmount), "XwX", "X X", "XhX",
-                'X', new MaterialEntry(plateDouble, material));
     }
 
     private static int getVoltageMultiplier(Material material) {

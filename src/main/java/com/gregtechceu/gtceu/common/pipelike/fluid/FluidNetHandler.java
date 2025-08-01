@@ -48,6 +48,7 @@ public class FluidNetHandler implements IFluidHandlerModifiable {
         int amount = stack.getAmount();
         int total = 0;
         for (FluidRoutePath inv : net.getNetData(pipe.getPipePosLong(), pipe.getPipePos(), facing)) {
+            if (pipe.autoTransfer && inv.getTargetPipe() == pipe && inv.getTargetFacing() != pipe.blockedSide) continue;
             int fill = fill(inv, stack, amount, simulate, false);
             amount -= fill;
             total += fill;

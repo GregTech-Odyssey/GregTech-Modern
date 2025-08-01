@@ -29,7 +29,7 @@ public class ItemPipeNet extends PipeNet<ItemPipeProperties> {
                 // walker failed, don't cache so it tries again on next insertion
                 return Collections.emptyList();
             }
-            data.sort(Comparator.comparingInt(inv -> inv.getProperties().getPriority()));
+            data.sort(Comparator.comparingInt(inv -> inv.getTargetPipe().isBlocked(inv.getTargetFacing()) ? 0 : inv.getProperties().getPriority()));
             NET_DATA.put(pipePos, data);
         }
         return data;

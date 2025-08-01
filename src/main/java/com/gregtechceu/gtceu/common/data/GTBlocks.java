@@ -18,7 +18,6 @@ import com.gregtechceu.gtceu.api.pipenet.longdistance.LongDistancePipeBlock;
 import com.gregtechceu.gtceu.common.block.*;
 import com.gregtechceu.gtceu.common.block.explosive.IndustrialTNTBlock;
 import com.gregtechceu.gtceu.common.block.explosive.PowderbarrelBlock;
-import com.gregtechceu.gtceu.common.pipelike.duct.DuctPipeType;
 import com.gregtechceu.gtceu.common.pipelike.fluid.longdistance.LDFluidPipeType;
 import com.gregtechceu.gtceu.common.pipelike.item.longdistance.LDItemPipeType;
 import com.gregtechceu.gtceu.common.pipelike.laser.LaserPipeType;
@@ -90,7 +89,6 @@ public class GTBlocks {
 
     public static final BlockEntry<LaserPipeBlock>[] LASER_PIPES = new BlockEntry[LaserPipeType.values().length];
     public static final BlockEntry<OpticalPipeBlock>[] OPTICAL_PIPES = new BlockEntry[OpticalPipeType.values().length];
-    public static final BlockEntry<DuctPipeBlock>[] DUCT_PIPES = new BlockEntry[DuctPipeType.VALUES.length];
 
     //////////////////////////////////////
     // Pipes Blocks //
@@ -153,32 +151,6 @@ public class GTBlocks {
                 .build()
                 .register();
         OPTICAL_PIPES[index] = entry;
-    }
-
-    // Duct Pipe Blocks
-    private static void generateDuctPipeBlocks() {
-        GTCEu.LOGGER.debug("Generating GTCEu Duct Pipe Blocks...");
-        for (int i = 0; i < DuctPipeType.VALUES.length; ++i) {
-            registerDuctPipeBlock(i);
-        }
-        GTCEu.LOGGER.debug("Generating GTCEu Duct Pipe Blocks... Complete!");
-    }
-
-    private static void registerDuctPipeBlock(int index) {
-        var type = DuctPipeType.VALUES[index];
-        var entry = REGISTRATE
-                .block("%s_duct_pipe".formatted(type.getSerializedName()), (p) -> new DuctPipeBlock(p, type))
-                .initialProperties(() -> Blocks.IRON_BLOCK)
-                .properties(p -> p.dynamicShape().noOcclusion().forceSolidOn())
-                .blockstate(NonNullBiConsumer.noop())
-                .defaultLoot()
-                .tag(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WRENCH)
-                .addLayer(() -> RenderType::cutoutMipped)
-                .item(DuctPipeBlockItem::new)
-                .model(NonNullBiConsumer.noop())
-                .build()
-                .register();
-        DUCT_PIPES[index] = entry;
     }
 
     // Long Distance Item Pipe Blocks
@@ -1415,7 +1387,6 @@ public class GTBlocks {
         GTMaterialBlocks.generateItemPipeBlocks();     // Item Pipe Blocks
         generateLaserPipeBlocks();    // Laser Pipe Blocks
         generateOpticalPipeBlocks();  // Optical Pipe Blocks
-        generateDuctPipeBlocks();     // Duct Pipe Blocks
 
         // Remove Builder Tables
         GTMaterialBlocks.MATERIAL_BLOCKS_BUILDER = null;

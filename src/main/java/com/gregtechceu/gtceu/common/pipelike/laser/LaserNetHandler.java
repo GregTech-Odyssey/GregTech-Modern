@@ -38,7 +38,7 @@ public class LaserNetHandler implements ILaserContainer {
 
     @Nullable
     private ILaserContainer getInnerContainer() {
-        if (net == null || pipe == null || pipe.isInValid() || (facing == null || pipe.isBlocked(facing))) {
+        if (net == null || pipe == null || pipe.isInValid() || (facing == null)) {
             return null;
         }
 

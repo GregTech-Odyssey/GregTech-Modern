@@ -5,11 +5,13 @@ import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidPipeProperties;
 import com.gregtechceu.gtceu.common.block.FluidPipeBlock;
+import com.gregtechceu.gtceu.common.cover.FluidFilterCover;
 import com.gregtechceu.gtceu.common.pipelike.fluid.FluidNetHandler;
 import com.gregtechceu.gtceu.common.pipelike.fluid.FluidPipeNet;
 import com.gregtechceu.gtceu.common.pipelike.fluid.FluidPipeType;
-import com.gregtechceu.gtceu.utils.FacingPos;
+import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.LazyOptionalUtil;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -22,8 +24,6 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.EmptyFluidHandler;
 
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +34,6 @@ public class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, FluidPi
 
     protected WeakReference<FluidPipeNet> currentFluidPipeNet = new WeakReference<>(null);
     private final EnumMap<Direction, FluidNetHandler> handlers = new EnumMap<>(Direction.class);
-    private final Object2IntMap<FacingPos> transferred = new Object2IntOpenHashMap<>();
     private FluidNetHandler defaultHandler;
     private int transferredFluids = 0;
     private long timer = 0;
@@ -66,7 +65,7 @@ public class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, FluidPi
     }
 
     private void ensureHandlersInitialized() {
-        if (getHandlers().isEmpty()) initHandlers();
+        if (handlers.isEmpty()) initHandlers();
     }
 
     public void initHandlers() {
@@ -143,26 +142,54 @@ public class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, FluidPi
         this.handlers.clear();
     }
 
+    @Override
+    public void clearRemoved() {
+        super.clearRemoved();
+        if (blockedSide != null && isBlocked(blockedSide)) {
+            updateTransferTick(true, this::autoTransfer);
+        }
+    }
+
+    @Override
+    protected void blockedChanged(boolean isBlocked) {
+        updateTransferTick(isBlocked && blockedSide != null, this::autoTransfer);
+    }
+
+    private void autoTransfer() {
+        if (getOffsetTimer() % 20 == 0) {
+            ensureHandlersInitialized();
+            checkNetwork();
+            if (this.currentFluidPipeNet.get() == null) return;
+            boolean hasHandler = false;
+            int throughput = 20 * getNodeData().getThroughput();
+            autoTransfer = true;
+            for (Direction facing : GTUtil.DIRECTIONS) {
+                if (facing != blockedSide && isConnected(facing)) {
+                    var be = getNeighbor(facing);
+                    if (be == null || be instanceof PipeBlockEntity<?, ?>) continue;
+                    var handler = LazyOptionalUtil.get(be.getCapability(ForgeCapabilities.FLUID_HANDLER, facing.getOpposite()));
+                    if (handler != null) {
+                        hasHandler = true;
+                        throughput -= GTTransferUtils.transferFluidsFiltered(handler, handlers.getOrDefault(facing, defaultHandler), getCoverContainer().getCoverAtSide(facing) instanceof FluidFilterCover filterCover ? filterCover.getFluidFilter() : f -> true, throughput);
+                        if (throughput <= 0) break;
+                    }
+                }
+            }
+            autoTransfer = false;
+            if (!hasHandler) {
+                setBlocked(blockedSide, false);
+            }
+        }
+    }
+
     public IFluidHandler getHandler(@Nullable Direction side, boolean useCoverCapability) {
         if (isRemote()) return EmptyFluidHandler.INSTANCE;
         ensureHandlersInitialized();
         checkNetwork();
         if (this.currentFluidPipeNet.get() == null) return EmptyFluidHandler.INSTANCE;
-        FluidNetHandler handler = getHandlers().getOrDefault(side, getDefaultHandler());
+        FluidNetHandler handler = handlers.getOrDefault(side, defaultHandler);
         if (!useCoverCapability || side == null) return handler;
         CoverBehavior cover = getCoverContainer().getCoverAtSide(side);
         return cover != null ? cover.getFluidHandlerCap(handler) : handler;
-    }
-
-    public EnumMap<Direction, FluidNetHandler> getHandlers() {
-        return this.handlers;
-    }
-
-    public Object2IntMap<FacingPos> getTransferred() {
-        return this.transferred;
-    }
-
-    public FluidNetHandler getDefaultHandler() {
-        return this.defaultHandler;
     }
 }

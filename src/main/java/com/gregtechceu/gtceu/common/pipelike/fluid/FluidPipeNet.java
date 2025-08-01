@@ -29,6 +29,7 @@ public class FluidPipeNet extends PipeNet<FluidPipeProperties> {
                 // walker failed, don't cache so it tries again on next insertion
                 return Collections.emptyList();
             }
+            data.sort(Comparator.comparingInt(inv -> inv.getTargetPipe().isBlocked(inv.getTargetFacing()) ? 0 : 1));
             NET_DATA.put(pipePos, data);
         }
         return data;

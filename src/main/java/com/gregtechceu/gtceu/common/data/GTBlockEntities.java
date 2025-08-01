@@ -39,11 +39,6 @@ public class GTBlockEntities {
             .validBlocks(GTBlocks.OPTICAL_PIPES)
             .register();
 
-    public static final BlockEntityEntry<DuctPipeBlockEntity> DUCT_PIPE = REGISTRATE
-            .blockEntity("duct_pipe", DuctPipeBlockEntity::create)
-            .validBlocks(GTBlocks.DUCT_PIPES)
-            .register();
-
     public static final BlockEntityEntry<SignBlockEntity> GT_SIGN = REGISTRATE
             .<SignBlockEntity>blockEntity("sign", SignBlockEntity::new)
             .validBlocks(GTBlocks.RUBBER_SIGN,

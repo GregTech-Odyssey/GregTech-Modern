@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.SimpleTieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IEnvironmentalHazardCleaner;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.common.blockentity.DuctPipeBlockEntity;
 import com.gregtechceu.gtceu.common.capability.EnvironmentalHazardSavedData;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.common.data.machines.GTMachineUtils;
@@ -82,9 +81,6 @@ public class AirScrubberMachine extends SimpleTieredMachine implements IEnvironm
             for (Direction dir : GTUtil.DIRECTIONS) {
                 BlockPos offset = getPos().relative(dir);
                 if (GTCapabilityHelper.getHazardContainer(getLevel(), offset, dir.getOpposite()) != null) {
-                    if (getLevel().getBlockEntity(offset) instanceof DuctPipeBlockEntity duct && !duct.isConnected(dir.getOpposite())) {
-                        continue;
-                    }
                     return true;
                 }
             }

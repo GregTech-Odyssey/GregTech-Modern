@@ -5,11 +5,14 @@ import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.ItemPipeProperties;
 import com.gregtechceu.gtceu.common.block.ItemPipeBlock;
+import com.gregtechceu.gtceu.common.cover.ItemFilterCover;
 import com.gregtechceu.gtceu.common.pipelike.item.ItemNetHandler;
 import com.gregtechceu.gtceu.common.pipelike.item.ItemPipeNet;
 import com.gregtechceu.gtceu.common.pipelike.item.ItemPipeType;
 import com.gregtechceu.gtceu.utils.FacingPos;
+import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.LazyOptionalUtil;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -66,7 +69,7 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
     }
 
     private void ensureHandlersInitialized() {
-        if (getHandlers().isEmpty()) initHandlers();
+        if (handlers.isEmpty()) initHandlers();
     }
 
     public void initHandlers() {
@@ -143,26 +146,58 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
         this.handlers.clear();
     }
 
+    @Override
+    public void clearRemoved() {
+        super.clearRemoved();
+        if (blockedSide != null && isBlocked(blockedSide)) {
+            updateTransferTick(true, this::autoTransfer);
+        }
+    }
+
+    @Override
+    protected void blockedChanged(boolean isBlocked) {
+        updateTransferTick(isBlocked && blockedSide != null, this::autoTransfer);
+    }
+
+    private void autoTransfer() {
+        if (getOffsetTimer() % 20 == 0) {
+            ensureHandlersInitialized();
+            checkNetwork();
+            if (this.currentItemPipeNet.get() == null) return;
+            boolean hasHandler = false;
+            int throughput = (int) ((getNodeData().getTransferRate() * 64) + 0.5);
+            autoTransfer = true;
+            for (Direction facing : GTUtil.DIRECTIONS) {
+                if (facing != blockedSide && isConnected(facing)) {
+                    var be = getNeighbor(facing);
+                    if (be == null || be instanceof PipeBlockEntity<?, ?>) continue;
+                    var handler = LazyOptionalUtil.get(be.getCapability(ForgeCapabilities.ITEM_HANDLER, facing.getOpposite()));
+                    if (handler != null) {
+                        hasHandler = true;
+                        throughput -= GTTransferUtils.transferItemsFiltered(handler, handlers.getOrDefault(facing, defaultHandler), getCoverContainer().getCoverAtSide(facing) instanceof ItemFilterCover filterCover ? filterCover.getItemFilter() : i -> true, throughput);
+                        if (throughput <= 0) break;
+                    }
+                }
+            }
+            autoTransfer = false;
+            if (!hasHandler) {
+                setBlocked(blockedSide, false);
+            }
+        }
+    }
+
     public IItemHandler getHandler(@Nullable Direction side, boolean useCoverCapability) {
         if (isRemote()) return EmptyHandler.INSTANCE;
         ensureHandlersInitialized();
         checkNetwork();
         if (this.currentItemPipeNet.get() == null) return EmptyHandler.INSTANCE;
-        ItemNetHandler handler = getHandlers().getOrDefault(side, getDefaultHandler());
+        ItemNetHandler handler = handlers.getOrDefault(side, defaultHandler);
         if (!useCoverCapability || side == null) return handler;
         CoverBehavior cover = getCoverContainer().getCoverAtSide(side);
         return cover != null ? cover.getItemHandlerCap(handler) : handler;
     }
 
-    public EnumMap<Direction, ItemNetHandler> getHandlers() {
-        return this.handlers;
-    }
-
     public Object2IntMap<FacingPos> getTransferred() {
         return this.transferred;
-    }
-
-    public ItemNetHandler getDefaultHandler() {
-        return this.defaultHandler;
     }
 }

@@ -91,7 +91,7 @@ public class ItemNetWalker extends PipeNetWalker<ItemPipeBlockEntity, ItemPipePr
         if (minProperties == null) {
             minProperties = pipeProperties;
         } else {
-            minProperties = new ItemPipeProperties(minProperties.getPriority() + pipeProperties.getPriority(),
+            minProperties = new ItemPipeProperties((minProperties.getPriority() + pipeProperties.getPriority()) / 2,
                     Math.min(minProperties.getTransferRate(), pipeProperties.getTransferRate()));
         }
     }

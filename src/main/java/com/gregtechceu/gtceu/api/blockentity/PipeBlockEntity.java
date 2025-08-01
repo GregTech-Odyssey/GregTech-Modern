@@ -76,6 +76,8 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     @Persisted
     @RequireRerender
     private int blockedConnections = Node.ALL_CLOSED;
+    @Persisted
+    public Direction blockedSide;
     private NodeDataType cachedNodeData;
     @Persisted
     @DescSynced
@@ -96,6 +98,11 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     private boolean wait;
 
     public final BlockEntityDirectionCache blockEntityDirectionCache = BlockEntityDirectionCache.create();
+
+    @Nullable
+    protected TickableSubscription transferSubs;
+
+    public boolean autoTransfer;
 
     public PipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
@@ -140,6 +147,10 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
         super.setRemoved();
         coverContainer.onUnload();
         blockEntityDirectionCache.clearCache();
+        if (transferSubs != null) {
+            transferSubs.unsubscribe();
+            transferSubs = null;
+        }
     }
 
     @Override
@@ -245,19 +256,40 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
         }
     }
 
+    protected void updateTransferTick(boolean tick, Runnable runnable) {
+        if (tick) {
+            transferSubs = subscribeServerTick(transferSubs, runnable);
+        } else if (transferSubs != null) {
+            transferSubs.unsubscribe();
+            transferSubs = null;
+        }
+    }
+
+    protected void blockedChanged(boolean isBlocked) {}
+
     //////////////////////////////////////
     // ******* Pipe Status *******//
     //////////////////////////////////////
     @Override
     public void setBlocked(Direction side, boolean isBlocked) {
         if (level instanceof ServerLevel serverLevel && canHaveBlockedFaces()) {
+            if (blockedSide != null && blockedSide != side) {
+                setBlocked(blockedSide, false);
+            }
             blockedConnections = withSideConnection(blockedConnections, side, isBlocked);
             setChanged();
+            if (isBlocked) {
+                blockedSide = side;
+            } else {
+                blockedSide = null;
+            }
+            blockedChanged(isBlocked);
             LevelPipeNet<?, ?> worldPipeNet = getPipeBlock().getWorldPipeNet(serverLevel);
             PipeNet<?> net = worldPipeNet.getNetFromPos(getBlockPos(), getPipePosLong());
             if (net != null) {
                 net.onPipeConnectionsUpdate();
             }
+            sync = true;
         }
     }
 
@@ -408,14 +440,16 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
                 return Pair.of(GTToolType.SOFT_MALLET, coverBehavior.onSoftMalletClick(playerIn, hand, hitResult));
             }
         } else if (toolTypes.contains(getPipeTuneTool())) {
+            boolean isOpen = this.isConnected(gridSide);
             if (playerIn.isShiftKeyDown() && this.canHaveBlockedFaces()) {
-                boolean isBlocked = this.isBlocked(gridSide);
-                this.setBlocked(gridSide, !isBlocked);
+                if (isOpen) {
+                    boolean isBlocked = this.isBlocked(gridSide);
+                    this.setBlocked(gridSide, !isBlocked);
+                }
             } else {
-                boolean isOpen = this.isConnected(gridSide);
                 this.setConnection(gridSide, !isOpen, false);
+                sync = true;
             }
-            sync = true;
             return Pair.of(getPipeTuneTool(), InteractionResult.sidedSuccess(playerIn.level().isClientSide));
         } else if (toolTypes.contains(GTToolType.CROWBAR)) {
             if (coverBehavior != null) {
