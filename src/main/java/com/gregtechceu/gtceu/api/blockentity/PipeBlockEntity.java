@@ -49,10 +49,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
 import com.mojang.datafixers.util.Pair;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -88,8 +88,8 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     @Persisted
     @NotNull
     private Material frameMaterial = GTMaterials.NULL;
-    private final List<TickableSubscription> serverTicks;
-    private final List<TickableSubscription> waitingToAdd;
+    private final List<TickableSubscription> serverTicks = new ObjectArrayList<>();
+    private final List<TickableSubscription> waitingToAdd = new ObjectArrayList<>();
 
     private boolean sync = true;
 
@@ -107,8 +107,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     public PipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
         this.coverContainer = new PipeCoverContainer(this);
-        this.serverTicks = new ArrayList<>();
-        this.waitingToAdd = new ArrayList<>();
         posLong = worldPosition.asLong();
     }
 
@@ -244,12 +242,11 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
                 wait = true;
             }
         } else {
-            for (var iter = serverTicks.iterator(); iter.hasNext();) {
+            for (var iter = serverTicks.listIterator(); iter.hasNext();) {
                 var tickable = iter.next();
                 if (tickable.isStillSubscribed()) {
                     tickable.run();
-                }
-                if (!tickable.isStillSubscribed()) {
+                } else {
                     iter.remove();
                 }
             }
@@ -548,7 +545,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
                     Platform.getMinecraftServer().execute(() -> {
                         if (Platform.isServerNotSafe()) return;
                         var packet = SPacketManagedPayload.of(this, false);
-                        LDLNetworking.NETWORK.sendToTrackingChunk(packet, this.getSelf().getLevel().getChunkAt(this.getCurrentPos()));
+                        LDLNetworking.NETWORK.sendToTrackingChunk(packet, this.self().getLevel().getChunkAt(this.getCurrentPos()));
                         setAsyncSyncing(false);
                     });
                 }

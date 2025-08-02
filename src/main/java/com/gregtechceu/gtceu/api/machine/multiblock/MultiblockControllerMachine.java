@@ -389,4 +389,9 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     public Lock getPatternLock() {
         return this.patternLock;
     }
+
+    @Override
+    public MultiblockControllerMachine self() {
+        return this;
+    }
 }

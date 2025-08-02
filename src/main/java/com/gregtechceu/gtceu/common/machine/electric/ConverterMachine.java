@@ -21,6 +21,12 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.common.util.LazyOptional;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
@@ -123,5 +129,13 @@ public class ConverterMachine extends TieredEnergyMachine {
     @Override
     protected boolean isEnergyEmitter() {
         return getConverterTrait().isFeToEu();
+    }
+
+    @Override
+    public @Nullable <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+        if (cap == ForgeCapabilities.ENERGY) {
+            return ForgeCapabilities.ENERGY.orEmpty(cap, LazyOptional.of(() -> getConverterTrait().getFeContainer()));
+        }
+        return null;
     }
 }

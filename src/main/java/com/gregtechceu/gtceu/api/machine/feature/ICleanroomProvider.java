@@ -7,7 +7,7 @@ import java.util.Set;
 /**
  * Implement this interface in order to make a Machine into a block that provides a Cleanroom to other blocks
  */
-public interface ICleanroomProvider extends IMachineFeature {
+public interface ICleanroomProvider {
 
     /**
      * @return a {@link Set} of {@link CleanroomType} which the cleanroom provides

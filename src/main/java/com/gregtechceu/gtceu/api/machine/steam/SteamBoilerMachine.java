@@ -106,9 +106,9 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
             serverLevel.getServer().tell(new TickTask(0, this::updateAutoOutputSubscription));
+            updateSteamSubscription();
+            steamTankSubs = steamTank.addChangedListener(this::updateAutoOutputSubscription);
         }
-        updateSteamSubscription();
-        steamTankSubs = steamTank.addChangedListener(this::updateAutoOutputSubscription);
     }
 
     @Override

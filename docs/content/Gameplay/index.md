@@ -1,6 +1,0 @@
----
-title: Gameplay
----
-
-
-# Gameplay Docs

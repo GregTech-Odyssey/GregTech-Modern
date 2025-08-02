@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.blockentity;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.capability.*;
@@ -14,7 +13,6 @@ import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.misc.EnergyInfoProviderList;
 import com.gregtechceu.gtceu.api.misc.LaserContainerList;
 import com.gregtechceu.gtceu.client.renderer.GTRendererProvider;
-import com.gregtechceu.gtceu.common.machine.electric.ConverterMachine;
 
 import com.lowdragmc.lowdraglib.Platform;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
@@ -28,6 +26,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -38,8 +37,6 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 
-import appeng.api.networking.IInWorldGridNodeHost;
-import appeng.capabilities.Capabilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,8 +59,6 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
     public static MetaMachineBlockEntity createBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         return new MetaMachineBlockEntity(type, pos, blockState);
     }
-
-    public static void onBlockEntityRegister(BlockEntityType<BlockEntity> metaMachineBlockEntityBlockEntityType) {}
 
     @Override
     public MultiManagedStorage getRootStorage() {
@@ -125,7 +120,19 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
 
     @Nullable
     public static <T> LazyOptional<T> getCapability(MetaMachine machine, @NotNull Capability<T> cap, @Nullable Direction side) {
-        if (cap == GTCapability.CAPABILITY_COVERABLE) {
+        if (cap == ForgeCapabilities.ITEM_HANDLER) {
+            var handler = machine.getItemHandlerCap(side, true);
+            if (handler != null) {
+                return ForgeCapabilities.ITEM_HANDLER.orEmpty(cap, LazyOptional.of(() -> handler));
+            }
+            return LazyOptional.empty();
+        } else if (cap == ForgeCapabilities.FLUID_HANDLER) {
+            var handler = machine.getFluidHandlerCap(side, true);
+            if (handler != null) {
+                return ForgeCapabilities.FLUID_HANDLER.orEmpty(cap, LazyOptional.of(() -> handler));
+            }
+            return LazyOptional.empty();
+        } else if (cap == GTCapability.CAPABILITY_COVERABLE) {
             return GTCapability.CAPABILITY_COVERABLE.orEmpty(cap, LazyOptional.of(machine::getCoverContainer));
         } else if (cap == GTCapability.CAPABILITY_WORKABLE) {
             if (machine instanceof IWorkable workable) {
@@ -136,6 +143,7 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
                     return GTCapability.CAPABILITY_WORKABLE.orEmpty(cap, LazyOptional.of(() -> workable));
                 }
             }
+            return LazyOptional.empty();
         } else if (cap == GTCapability.CAPABILITY_CONTROLLABLE) {
             if (machine instanceof IControllable controllable) {
                 return GTCapability.CAPABILITY_CONTROLLABLE.orEmpty(cap, LazyOptional.of(() -> controllable));
@@ -145,6 +153,7 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
                     return GTCapability.CAPABILITY_CONTROLLABLE.orEmpty(cap, LazyOptional.of(() -> controllable));
                 }
             }
+            return LazyOptional.empty();
         } else if (cap == GTCapability.CAPABILITY_ENERGY_CONTAINER) {
             if (machine instanceof IEnergyContainer energyContainer) {
                 return GTCapability.CAPABILITY_ENERGY_CONTAINER.orEmpty(cap, LazyOptional.of(() -> energyContainer));
@@ -153,6 +162,7 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
             if (!list.isEmpty()) {
                 return GTCapability.CAPABILITY_ENERGY_CONTAINER.orEmpty(cap, LazyOptional.of(() -> list.size() == 1 ? list.get(0) : new EnergyContainerList(list)));
             }
+            return LazyOptional.empty();
         } else if (cap == GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER) {
             if (machine instanceof IEnergyInfoProvider energyInfoProvider) {
                 return GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER.orEmpty(cap, LazyOptional.of(() -> energyInfoProvider));
@@ -161,20 +171,7 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
             if (!list.isEmpty()) {
                 return GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER.orEmpty(cap, LazyOptional.of(() -> list.size() == 1 ? list.get(0) : new EnergyInfoProviderList(list)));
             }
-        } else if (cap == ForgeCapabilities.ITEM_HANDLER) {
-            var handler = machine.getItemHandlerCap(side, true);
-            if (handler != null) {
-                return ForgeCapabilities.ITEM_HANDLER.orEmpty(cap, LazyOptional.of(() -> handler));
-            }
-        } else if (cap == ForgeCapabilities.FLUID_HANDLER) {
-            var handler = machine.getFluidHandlerCap(side, true);
-            if (handler != null) {
-                return ForgeCapabilities.FLUID_HANDLER.orEmpty(cap, LazyOptional.of(() -> handler));
-            }
-        } else if (cap == ForgeCapabilities.ENERGY) {
-            if (machine instanceof ConverterMachine energyStorage) {
-                return ForgeCapabilities.ENERGY.orEmpty(cap, LazyOptional.of(() -> energyStorage.getConverterTrait().getFeContainer()));
-            }
+            return LazyOptional.empty();
         } else if (cap == GTCapability.CAPABILITY_LASER) {
             if (machine instanceof ILaserContainer energyContainer) {
                 return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> energyContainer));
@@ -183,6 +180,7 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
             if (!list.isEmpty()) {
                 return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> list.size() == 1 ? list.get(0) : new LaserContainerList(list)));
             }
+            return LazyOptional.empty();
         } else if (cap == GTCapability.CAPABILITY_COMPUTATION_PROVIDER) {
             if (machine instanceof IOpticalComputationProvider computationProvider) {
                 return GTCapability.CAPABILITY_COMPUTATION_PROVIDER.orEmpty(cap, LazyOptional.of(() -> computationProvider));
@@ -191,28 +189,9 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
             if (!list.isEmpty()) {
                 return GTCapability.CAPABILITY_COMPUTATION_PROVIDER.orEmpty(cap, LazyOptional.of(() -> list.get(0)));
             }
-        } else if (cap == GTCapability.CAPABILITY_DATA_ACCESS) {
-            if (machine instanceof IDataAccessHatch computationProvider) {
-                return GTCapability.CAPABILITY_DATA_ACCESS.orEmpty(cap, LazyOptional.of(() -> computationProvider));
-            }
-            var list = getCapabilitiesFromTraits(machine.getTraits(), side, IDataAccessHatch.class);
-            if (!list.isEmpty()) {
-                return GTCapability.CAPABILITY_DATA_ACCESS.orEmpty(cap, LazyOptional.of(() -> list.get(0)));
-            }
+            return LazyOptional.empty();
         }
-        if (GTCEu.Mods.isAE2Loaded()) {
-            if (cap == Capabilities.IN_WORLD_GRID_NODE_HOST) {
-                if (machine instanceof IInWorldGridNodeHost nodeHost) {
-                    return Capabilities.IN_WORLD_GRID_NODE_HOST.orEmpty(cap, LazyOptional.of(() -> nodeHost));
-                }
-                var list = getCapabilitiesFromTraits(machine.getTraits(), side, IInWorldGridNodeHost.class);
-                if (!list.isEmpty()) {
-                    // TODO wrap list in the future (or not.)
-                    return Capabilities.IN_WORLD_GRID_NODE_HOST.orEmpty(cap, LazyOptional.of(() -> list.get(0)));
-                }
-            }
-        }
-        return null;
+        return machine.getCapability(cap, side);
     }
 
     public static <T> List<T> getCapabilitiesFromTraits(List<MachineTrait> traits, Direction accessSide, Class<T> capability) {
@@ -260,12 +239,27 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
                     Platform.getMinecraftServer().execute(() -> {
                         if (Platform.isServerNotSafe()) return;
                         var packet = SPacketManagedPayload.of(this, false);
-                        LDLNetworking.NETWORK.sendToTrackingChunk(packet, this.getSelf().getLevel().getChunkAt(this.getCurrentPos()));
+                        LDLNetworking.NETWORK.sendToTrackingChunk(packet, this.self().getLevel().getChunkAt(this.getCurrentPos()));
                         setAsyncSyncing(false);
                     });
                 }
             }
         }
+    }
+
+    @Override
+    public MetaMachineBlockEntity self() {
+        return this;
+    }
+
+    @Override
+    public Level level() {
+        return level;
+    }
+
+    @Override
+    public BlockPos pos() {
+        return worldPosition;
     }
 
     @Override

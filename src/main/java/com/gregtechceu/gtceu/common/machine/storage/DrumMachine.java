@@ -92,8 +92,8 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
         updateStoredFluidFromCache();
         if (getLevel() instanceof ServerLevel serverLevel) {
             serverLevel.getServer().tell(new TickTask(0, this::updateAutoOutputSubscription));
+            this.exportFluidSubs = cache.addChangedListener(this::onFluidChanged);
         }
-        this.exportFluidSubs = cache.addChangedListener(this::onFluidChanged);
     }
 
     private void onFluidChanged() {

@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.machine;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.IPaintable;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.item.tool.IToolGridHighlight;
 
 import com.lowdragmc.lowdraglib.syncdata.blockentity.IAsyncAutoSyncBlockEntity;
@@ -12,27 +13,19 @@ import com.lowdragmc.lowdraglib.syncdata.managed.MultiManagedStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 
 /**
  * A simple compound Interface for all my TileEntities.
  * <p/>
  * Also delivers most of the Information about TileEntities.
  */
-public interface IMachineBlockEntity extends IToolGridHighlight, IAsyncAutoSyncBlockEntity, IRPCBlockEntity,
-                                     IAutoPersistBlockEntity, IPaintable {
+public interface IMachineBlockEntity extends IToolGridHighlight, IAsyncAutoSyncBlockEntity, IRPCBlockEntity, IAutoPersistBlockEntity, IPaintable {
 
-    default BlockEntity self() {
-        return (BlockEntity) this;
-    }
+    MetaMachineBlockEntity self();
 
-    default Level level() {
-        return self().getLevel();
-    }
+    Level level();
 
-    default BlockPos pos() {
-        return self().getBlockPos();
-    }
+    BlockPos pos();
 
     default void notifyBlockUpdate() {
         if (level() != null) {

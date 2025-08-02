@@ -4,7 +4,7 @@ forge = "47.4.3"
 minecraftForge = "1.20.1-47.4.3"
 parchment = "2023.09.03" # https://parchmentmc.org/docs/getting-started
 spotless = "7.1.0"
-modDevGradle = "2.0.99"
+modDevGradle = "2.0.105"
 jetbrains-annotations = "26.0.1"
 mixin = "0.8.7"
 

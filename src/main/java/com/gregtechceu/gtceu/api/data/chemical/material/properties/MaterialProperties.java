@@ -7,18 +7,13 @@ import java.util.*;
 
 public class MaterialProperties {
 
-    private static final Set<PropertyKey<?>> baseTypes = new HashSet<>(Arrays.asList(PropertyKey.FLUID, PropertyKey.DUST, PropertyKey.INGOT, PropertyKey.GEM, PropertyKey.EMPTY));
-
-    @SuppressWarnings("unused")
-    public static void addBaseType(PropertyKey<?> baseTypeKey) {
-        baseTypes.add(baseTypeKey);
-    }
+    private static final Set<PropertyKey<?>> baseTypes = Set.of(PropertyKey.FLUID, PropertyKey.DUST, PropertyKey.INGOT, PropertyKey.GEM, PropertyKey.EMPTY);
 
     private final Map<PropertyKey<? extends IMaterialProperty>, IMaterialProperty> propertyMap;
     private Material material;
 
     public MaterialProperties() {
-        propertyMap = new HashMap<>();
+        propertyMap = new IdentityHashMap<>();
     }
 
     public boolean isEmpty() {
@@ -30,7 +25,7 @@ public class MaterialProperties {
     }
 
     public <T extends IMaterialProperty> boolean hasProperty(PropertyKey<T> key) {
-        return propertyMap.get(key) != null;
+        return propertyMap.containsKey(key);
     }
 
     public <T extends IMaterialProperty> void setProperty(PropertyKey<T> key, IMaterialProperty value) {

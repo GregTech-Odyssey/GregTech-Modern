@@ -118,10 +118,8 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     @Override
     public void onLoad() {
         super.onLoad();
-        if (!isRemote()) {
-            if (getLevel() instanceof ServerLevel serverLevel) {
-                serverLevel.getServer().tell(new TickTask(0, this::updateAutoOutputSubscription));
-            }
+        if (getLevel() instanceof ServerLevel serverLevel) {
+            serverLevel.getServer().tell(new TickTask(0, this::updateAutoOutputSubscription));
             exportItemSubs = exportItems.addChangedListener(this::updateAutoOutputSubscription);
         }
     }

@@ -748,7 +748,7 @@ public class MachineLang {
         provider.add("block.gtceu.pattern_buffer_proxy.desc.2",
                 "§fLet the factory grow!");
         provider.add("gtceu.tooltip.proxy_bind",
-                "§fBinding to a Pattern Buffer at %s %s %s");
+                "§fBinding to a block at %s %s %s");
 
         provider.add("gui.gtceu.share_inventory.title", "Shared Item Inventory");
         provider.add("gui.gtceu.share_inventory.desc.0", "Shares inserted items with all patterns within buffer!");

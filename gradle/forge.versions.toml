@@ -20,8 +20,6 @@ shimmer = "5685940"
 xaerosWorldMap = "5658224"
 xaerosMinimap = "5773012"
 ae2wtlib = "5217955"
-spark = "4738952"
-
 
 [libraries]
 ldlib               = { module = "curse.maven:ldlib-626676", version.ref = "ldlib" }
@@ -44,5 +42,3 @@ embeddium           = { module = "maven.modrinth:embeddium", version.ref = "embe
 xaerosworldmap      = { module = "curse.maven:xaeros-world-map-317780", version.ref = "xaerosWorldMap" }
 xaerosminimap       = { module = "curse.maven:xaeros-minimap-263420", version.ref = "xaerosMinimap" }
 ae2wtlib            = { module = "curse.maven:ae2wtlib-459929", version.ref = "ae2wtlib" }
-spark               = { module = "curse.maven:spark-361579", version.ref = "spark" }
-

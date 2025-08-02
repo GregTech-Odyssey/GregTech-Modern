@@ -11,9 +11,7 @@ public class TickableSubscription {
     }
 
     public void run() {
-        if (stillSubscribed) {
-            runnable.run();
-        }
+        runnable.run();
     }
 
     public void unsubscribe() {

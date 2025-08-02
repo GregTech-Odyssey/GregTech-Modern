@@ -4,10 +4,15 @@ import com.gregtechceu.gtceu.api.machine.feature.IMachineFeature;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import net.minecraft.core.Direction;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 
 import appeng.api.networking.IGridNodeListener;
 import appeng.api.util.AECableType;
+import appeng.capabilities.Capabilities;
 import appeng.me.helpers.IGridConnectedBlockEntity;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A machine that can connect to ME network.
@@ -53,5 +58,13 @@ public interface IGridConnectedMachine extends IMachineFeature, IGridConnectedBl
     @Override
     default void onMainNodeStateChanged(IGridNodeListener.State reason) {
         this.updateMEStatus();
+    }
+
+    @Override
+    default @Nullable <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+        if (cap == Capabilities.IN_WORLD_GRID_NODE_HOST) {
+            return Capabilities.IN_WORLD_GRID_NODE_HOST.orEmpty(cap, LazyOptional.of(() -> this));
+        }
+        return null;
     }
 }

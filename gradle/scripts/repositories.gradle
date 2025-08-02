@@ -2,11 +2,6 @@ repositories {
     mavenLocal()
     mavenCentral()
 
-    maven { // JEI
-        name = "Jared's Maven"
-        url = "https://maven.blamejared.com/"
-    }
-
     maven { // JEI mirror, AE2
         name = "ModMaven"
         url = "https://modmaven.dev"
@@ -28,13 +23,6 @@ repositories {
     exclusiveContent { // terraformers - EMI
         forRepository { maven { url = "https://maven.terraformersmc.com/releases/" } }
         filter { includeGroup("dev.emi") }
-    }
-    exclusiveContent { // shedaniel - REI, architectury, cloth-config
-        forRepository { maven { url = "https://maven.shedaniel.me/" } }
-        filter {
-            includeGroupAndSubgroups("me.shedaniel")
-            includeGroup("dev.architectury")
-        }
     }
     exclusiveContent { // tterrag - registrate
         forRepository { maven { url = "https://maven.tterrag.com/" } }

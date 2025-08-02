@@ -24,7 +24,7 @@ public class DirectionCache<T> {
     private Object west;
     private Object east;
 
-    public @Nullable T getOrSet(@Nullable Direction direction, @NotNull Supplier<T> supplier) {
+    public T getOrSet(@Nullable Direction direction, @NotNull Supplier<T> supplier) {
         var cache = getCache(direction);
         if (cache == null) {
             var value = supplier.get();

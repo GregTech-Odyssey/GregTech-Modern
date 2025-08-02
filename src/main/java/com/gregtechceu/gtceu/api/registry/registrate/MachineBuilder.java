@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.api.registry.registrate;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.IMachineBlock;
-import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.data.RotationState;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
@@ -35,7 +34,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -48,7 +46,6 @@ import com.tterrag.registrate.builders.ItemBuilder;
 import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
-import com.tterrag.registrate.util.nullness.NonNullConsumer;
 import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -93,7 +90,6 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     private NonNullUnaryOperator<Item.Properties> itemProp = p -> p;
     private Consumer<BlockBuilder<? extends Block, ?>> blockBuilder;
     private Consumer<ItemBuilder<? extends MetaMachineItem, ?>> itemBuilder;
-    private NonNullConsumer<BlockEntityType<BlockEntity>> onBlockEntityRegister = MetaMachineBlockEntity::onBlockEntityRegister;
     // getter for KJS
     private GTRecipeType[] recipeTypes;
     // getter for KJS
@@ -270,7 +266,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
             this.itemBuilder.accept(itemBuilder);
         }
         var item = itemBuilder.register();
-        var blockEntityBuilder = registrate.blockEntity(name, (type, pos, state) -> blockEntityFactory.apply(type, pos, state).self()).onRegister(onBlockEntityRegister).validBlock(block);
+        var blockEntityBuilder = registrate.blockEntity(name, (type, pos, state) -> blockEntityFactory.apply(type, pos, state).self()).validBlock(block);
         if (hasTESR) {
             blockEntityBuilder = blockEntityBuilder.renderer(() -> GTRendererProvider::getOrCreate);
         }
@@ -460,14 +456,6 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
      */
     public MachineBuilder<DEFINITION> itemBuilder(final Consumer<ItemBuilder<? extends MetaMachineItem, ?>> itemBuilder) {
         this.itemBuilder = itemBuilder;
-        return this;
-    }
-
-    /**
-     * @return {@code this}.
-     */
-    public MachineBuilder<DEFINITION> onBlockEntityRegister(final NonNullConsumer<BlockEntityType<BlockEntity>> onBlockEntityRegister) {
-        this.onBlockEntityRegister = onBlockEntityRegister;
         return this;
     }
 

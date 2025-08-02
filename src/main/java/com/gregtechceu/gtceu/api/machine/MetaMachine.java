@@ -61,6 +61,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -71,6 +72,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import com.mojang.datafixers.util.Pair;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -88,10 +90,13 @@ import static com.gregtechceu.gtceu.api.item.tool.ToolHelper.getBehaviorsTag;
  * All fundamental features will be implemented here.
  * To add additional features, you can see {@link IMachineFeature}
  */
-@SuppressWarnings("removal")
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscription, IAppearance, IToolGridHighlight, IFancyTooltip, IPaintable, IRedstoneSignalMachine {
+
+    public static boolean OBSERVE = false;
+
+    protected static final Map<MetaMachine, Integer> PERFORMANCE_MAP = new WeakHashMap<>();
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MetaMachine.class);
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
@@ -107,25 +112,39 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     @DescSynced
     @RequireRerender
     private int paintingColor = -1;
-    protected final List<MachineTrait> traits;
-    private final List<TickableSubscription> serverTicks;
-    private final List<TickableSubscription> waitingToAdd;
+    protected final List<MachineTrait> traits = new ObjectArrayList<>();
+    private final List<TickableSubscription> serverTicks = new ObjectArrayList<>();
+    private final List<TickableSubscription> waitingToAdd = new ObjectArrayList<>();
 
     protected final DirectionCache<IItemHandlerModifiable> itemHandlerModifiableCache = DirectionCache.create();
     protected final DirectionCache<IFluidHandlerModifiable> fluidHandlerModifiableCache = DirectionCache.create();
     protected final DirectionCache<IItemHandlerModifiable> itemHandlerModifiableCoverCache = DirectionCache.create();
     protected final DirectionCache<IFluidHandlerModifiable> fluidHandlerModifiableCoverCache = DirectionCache.create();
 
+    protected final DirectionCache<BlockState> blockStateDirectionCache = DirectionCache.create();
+    protected final DirectionCache<FluidState> fluidStateDirectionCache = DirectionCache.create();
+
     public final BlockEntityDirectionCache blockEntityDirectionCache = BlockEntityDirectionCache.create();
 
+    private boolean dirty;
+
     private boolean sync = true;
+
+    private long offsetTimer;
+
+    private long lastExecutionTime;
+
+    private int averageTickTime;
+
+    private long totaTickCount;
+
+    private boolean observe;
+
+    private boolean wait;
 
     public MetaMachine(IMachineBlockEntity holder) {
         this.holder = holder;
         this.coverContainer = new MachineCoverContainer(this);
-        this.traits = new ArrayList<>();
-        this.serverTicks = new ArrayList<>();
-        this.waitingToAdd = new ArrayList<>();
         // bind sync storage
         if (holder.getRootStorage() != null) {
             this.holder.getRootStorage().attach(getSyncStorage());
@@ -142,10 +161,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     @Override
     public void onChanged() {
-        var level = getLevel();
-        if (level != null && !level.isClientSide && level.getServer() != null) {
-            level.getServer().execute(this::markDirty);
-        }
+        dirty = true;
     }
 
     @Nullable
@@ -158,7 +174,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     }
 
     public BlockState getBlockState() {
-        return holder.getSelf().getBlockState();
+        return holder.self().getBlockState();
     }
 
     public boolean isRemote() {
@@ -188,15 +204,15 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     public void onPaintingColorChanged(int color) {}
 
     public long getOffsetTimer() {
-        return holder.getOffsetTimer();
+        return offsetTimer;
     }
 
     public void markDirty() {
-        holder.getSelf().setChanged();
+        dirty = true;
     }
 
     public boolean isInValid() {
-        return holder.getSelf().isRemoved();
+        return holder.self().isRemoved();
     }
 
     @MustBeInvokedByOverriders
@@ -247,6 +263,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     @Nullable
     public TickableSubscription subscribeServerTick(Runnable runnable) {
         if (!isRemote()) {
+            wait = false;
             var subscription = new TickableSubscription(runnable);
             waitingToAdd.add(subscription);
             return subscription;
@@ -265,35 +282,71 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     }
 
     public final void serverTick() {
-        executeTick();
+        if (dirty) {
+            dirty = false;
+            holder.self().setChanged();
+        }
+        if (wait) return;
+        if (!waitingToAdd.isEmpty()) {
+            serverTicks.addAll(waitingToAdd);
+            waitingToAdd.clear();
+        }
+        if (serverTicks.isEmpty()) {
+            if (!this.isInValid() && !OBSERVE) {
+                wait = true;
+            }
+            averageTickTime = 0;
+        } else {
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastExecutionTime < 40) {
+                return;
+            }
+            offsetTimer = holder.getOffsetTimer();
+            lastExecutionTime = currentTime;
+            boolean observe = OBSERVE || this.observe;
+            if (observe) currentTime = System.nanoTime();
+            for (var iter = serverTicks.listIterator(); iter.hasNext();) {
+                var tickable = iter.next();
+                if (tickable.isStillSubscribed()) {
+                    tickable.run();
+                } else {
+                    iter.remove();
+                }
+            }
+            if (observe) {
+                totaTickCount += System.nanoTime() - currentTime;
+                if (offsetTimer % 40 == 0) {
+                    this.observe = false;
+                    averageTickTime = (int) (totaTickCount / 40000);
+                    totaTickCount = 0;
+                }
+                if (OBSERVE) PERFORMANCE_MAP.put(this, averageTickTime);
+            }
+        }
     }
 
     public boolean isFirstDummyWorldTick = true;
 
     @OnlyIn(Dist.CLIENT)
     public void clientTick() {
+        offsetTimer = holder.getOffsetTimer();
         if (getLevel() instanceof DummyWorld) {
             if (isFirstDummyWorldTick) {
                 isFirstDummyWorldTick = false;
                 onLoad();
             }
-            executeTick();
-        }
-    }
-
-    private void executeTick() {
-        if (!waitingToAdd.isEmpty()) {
-            serverTicks.addAll(waitingToAdd);
-            waitingToAdd.clear();
-        }
-        for (var iter = serverTicks.iterator(); iter.hasNext();) {
-            var tickable = iter.next();
-            if (tickable.isStillSubscribed()) {
-                tickable.run();
+            if (!waitingToAdd.isEmpty()) {
+                serverTicks.addAll(waitingToAdd);
+                waitingToAdd.clear();
             }
-            if (isInValid()) break;
-            if (!tickable.isStillSubscribed()) {
-                iter.remove();
+            for (var iter = serverTicks.iterator(); iter.hasNext();) {
+                var tickable = iter.next();
+                if (tickable.isStillSubscribed()) {
+                    tickable.run();
+                } else {
+                    iter.remove();
+                }
+                if (isInValid()) break;
             }
         }
     }
@@ -646,6 +699,14 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         return -1;
     }
 
+    public @NotNull BlockState getNeighborBlockState(Direction facing) {
+        return blockStateDirectionCache.getOrSet(facing, () -> getLevel().getBlockState(getPos().relative(facing)));
+    }
+
+    public @NotNull FluidState getNeighborFluidState(Direction facing) {
+        return fluidStateDirectionCache.getOrSet(facing, () -> getLevel().getFluidState(getPos().relative(facing)));
+    }
+
     public @Nullable MetaMachine getNeighborMachine(Direction facing) {
         if (blockEntityDirectionCache.getAdjacentBlockEntity(getLevel(), getPos(), facing) instanceof MetaMachineBlockEntity entity) {
             return entity.metaMachine;
@@ -660,6 +721,8 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     public void onNeighborChanged(Block block, BlockPos fromPos, boolean isMoving) {
         coverContainer.onNeighborChanged(block, fromPos, isMoving);
         blockEntityDirectionCache.clearCache();
+        blockStateDirectionCache.clearCache();
+        fluidStateDirectionCache.clearCache();
     }
 
     public void animateTick(RandomSource random) {}
@@ -811,6 +874,15 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         return getDefinition().getDefaultPaintingColor();
     }
 
+    public int getTickTime() {
+        return averageTickTime;
+    }
+
+    public void observe() {
+        observe = true;
+        sync = true;
+    }
+
     public boolean needSync() {
         if (sync) {
             sync = false;
@@ -857,5 +929,10 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     public List<MachineTrait> getTraits() {
         return this.traits;
+    }
+
+    @Override
+    public MetaMachine self() {
+        return this;
     }
 }

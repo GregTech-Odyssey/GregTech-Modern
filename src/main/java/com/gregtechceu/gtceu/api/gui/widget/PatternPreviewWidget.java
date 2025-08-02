@@ -365,7 +365,7 @@ public class PatternPreviewWidget extends WidgetGroup {
                         BlockPos pos = multiPos.offset(x, y, z);
                         if (info.getBlockEntity(pos) instanceof IMachineBlockEntity holder &&
                                 holder.getMetaMachine() instanceof IMultiController controller) {
-                            holder.getSelf().setLevel(LEVEL);
+                            holder.self().setLevel(LEVEL);
                             controllerBase = controller;
                             center = pos;
                         }
@@ -377,7 +377,7 @@ public class PatternPreviewWidget extends WidgetGroup {
 
         LEVEL.addBlocks(blockMap);
         if (controllerBase != null) {
-            LEVEL.setInnerBlockEntity(controllerBase.self().holder.getSelf());
+            LEVEL.setInnerBlockEntity(controllerBase.self().holder.self());
         }
 
         Map<ItemStackKey, PartInfo> parts = gatherBlockDrops(blockMap);

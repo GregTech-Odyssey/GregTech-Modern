@@ -46,10 +46,8 @@ dependencies {
     // Standard runtime mods //
     modRuntimeOnly(forge.jade)
     modRuntimeOnly(forge.ae2)
-    modRuntimeOnly(forge.spark)
 
     // Runtime Recipe Viewers - uncomment whichever one you want to use //
     modRuntimeOnly(forge.emi)
-//    modRuntimeOnly(forge.jei.forge.impl)
 
 }

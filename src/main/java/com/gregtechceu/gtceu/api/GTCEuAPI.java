@@ -19,7 +19,7 @@ import net.minecraftforge.fml.event.IModBusEvent;
 
 import org.jetbrains.annotations.ApiStatus;
 
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -38,9 +38,9 @@ public class GTCEuAPI {
      */
     private static boolean highTier;
     private static boolean highTierInitialized;
-    public static final Map<ICoilType, Supplier<CoilBlock>> HEATING_COILS = new HashMap<>();
-    public static final Map<IFilterType, Supplier<Block>> CLEANROOM_FILTERS = new HashMap<>();
-    public static final Map<IBatteryData, Supplier<BatteryBlock>> PSS_BATTERIES = new HashMap<>();
+    public static final Map<ICoilType, Supplier<CoilBlock>> HEATING_COILS = new IdentityHashMap<>();
+    public static final Map<IFilterType, Supplier<Block>> CLEANROOM_FILTERS = new IdentityHashMap<>();
+    public static final Map<IBatteryData, Supplier<BatteryBlock>> PSS_BATTERIES = new IdentityHashMap<>();
 
     /**
      * Initializes High-Tier. Internal use only, do not attempt to call this.

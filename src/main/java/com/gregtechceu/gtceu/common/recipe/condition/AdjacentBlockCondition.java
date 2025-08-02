@@ -11,6 +11,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Block;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -20,6 +21,9 @@ public class AdjacentBlockCondition extends RecipeCondition {
 
     public static final Codec<AdjacentBlockCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).apply(instance, AdjacentBlockCondition::new));
     public static final AdjacentBlockCondition INSTANCE = new AdjacentBlockCondition();
+
+    private Block A;
+    private Block B;
 
     public AdjacentBlockCondition(boolean isReverse) {
         super(isReverse);
@@ -37,17 +41,20 @@ public class AdjacentBlockCondition extends RecipeCondition {
 
     @Override
     public boolean testCondition(@NotNull GTRecipe recipe, @NotNull RecipeLogic recipeLogic) {
-        var blockA = BuiltInRegistries.BLOCK.get(new ResourceLocation(recipe.data.getString("blockA")));
-        var blockB = BuiltInRegistries.BLOCK.get(new ResourceLocation(recipe.data.getString("blockB")));
+        if (A == null || B == null) {
+            A = BuiltInRegistries.BLOCK.get(new ResourceLocation(recipe.data.getString("blockA")));
+            B = BuiltInRegistries.BLOCK.get(new ResourceLocation(recipe.data.getString("blockB")));
+        }
         boolean hasBlockA = false;
         boolean hasBlockB = false;
-        var level = recipeLogic.machine.self().getLevel();
-        var pos = recipeLogic.machine.self().getPos();
         for (Direction side : GTUtil.DIRECTIONS) {
             if (side.getAxis() != Direction.Axis.Y) {
-                var block = level.getBlockState(pos.relative(side));
-                if (block.getBlock() == blockA) hasBlockA = true;
-                if (block.getBlock() == blockA) hasBlockB = true;
+                var block = recipeLogic.machine.self().getNeighborBlockState(side).getBlock();
+                if (block == A) {
+                    hasBlockA = true;
+                } else if (block == B) {
+                    hasBlockB = true;
+                }
                 if (hasBlockA && hasBlockB) return true;
             }
         }

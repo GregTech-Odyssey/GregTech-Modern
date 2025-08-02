@@ -68,6 +68,7 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
     @Override
     public void onLoad() {
         super.onLoad();
+        if (isRemote()) return;
         tankSubs = tank.addChangedListener(this::updateInventorySubscription);
     }
 

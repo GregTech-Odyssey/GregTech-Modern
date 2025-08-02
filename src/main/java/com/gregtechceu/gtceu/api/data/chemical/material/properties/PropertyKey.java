@@ -22,12 +22,12 @@ public class PropertyKey<T extends IMaterialProperty> {
     private final String key;
     private final Class<T> type;
 
-    public PropertyKey(String key, Class<T> type) {
+    protected PropertyKey(String key, Class<T> type) {
         this.key = key;
         this.type = type;
     }
 
-    protected T constructDefault() {
+    T constructDefault() {
         try {
             return type.newInstance();
         } catch (Exception e) {
@@ -37,19 +37,6 @@ public class PropertyKey<T extends IMaterialProperty> {
 
     public T cast(IMaterialProperty property) {
         return this.type.cast(property);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o instanceof PropertyKey) {
-            return ((PropertyKey<?>) o).getKey().equals(key);
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return key.hashCode();
     }
 
     @Override

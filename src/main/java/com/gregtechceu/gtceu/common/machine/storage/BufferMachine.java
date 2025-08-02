@@ -113,9 +113,9 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
             serverLevel.getServer().tell(new TickTask(0, this::updateAutoOutputSubscription));
+            this.invSubs = inventory.addChangedListener(this::updateAutoOutputSubscription);
+            this.tankSubs = tank.addChangedListener(this::updateAutoOutputSubscription);
         }
-        this.invSubs = inventory.addChangedListener(this::updateAutoOutputSubscription);
-        this.tankSubs = tank.addChangedListener(this::updateAutoOutputSubscription);
     }
 
     @Override

@@ -472,7 +472,7 @@ public class Material implements Comparable<Material> {
     }
 
     public <T extends IMaterialProperty> boolean hasProperty(PropertyKey<T> key) {
-        return getProperty(key) != null;
+        return properties.hasProperty(key);
     }
 
     public <T extends IMaterialProperty> T getProperty(PropertyKey<T> key) {

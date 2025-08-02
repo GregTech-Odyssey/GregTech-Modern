@@ -1,12 +1,16 @@
 package com.gregtechceu.gtceu.utils;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 
 import com.lowdragmc.lowdraglib.syncdata.managed.MultiManagedStorage;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 
@@ -40,6 +44,21 @@ public class DummyMachineBlockEntity implements IMachineBlockEntity {
 
     public DummyRecipeLogicMachine getMetaMachine() {
         return this.metaMachine;
+    }
+
+    @Override
+    public MetaMachineBlockEntity self() {
+        return null;
+    }
+
+    @Override
+    public Level level() {
+        return null;
+    }
+
+    @Override
+    public BlockPos pos() {
+        return null;
     }
 
     public MachineDefinition getDefinition() {

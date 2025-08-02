@@ -71,7 +71,7 @@ public class EnergyHatchPartMachine extends TieredIOPartMachine implements IExpl
     public void onLoad() {
         super.onLoad();
         // if machine need do check explosion conditions
-        if (ConfigHolder.INSTANCE.machines.shouldWeatherOrTerrainExplosion && shouldWeatherOrTerrainExplosion()) {
+        if (!isRemote() && ConfigHolder.INSTANCE.machines.shouldWeatherOrTerrainExplosion && shouldWeatherOrTerrainExplosion()) {
             energyListener = energyContainer.addChangedListener(this::updateExplosionSubscription);
             updateExplosionSubscription();
         }

@@ -31,9 +31,7 @@ import java.util.concurrent.locks.Lock;
 public interface IMultiController extends IMachineFeature, IInteractedMachine {
 
     @Override
-    default MultiblockControllerMachine self() {
-        return (MultiblockControllerMachine) this;
-    }
+    MultiblockControllerMachine self();
 
     void requestCheck();
 

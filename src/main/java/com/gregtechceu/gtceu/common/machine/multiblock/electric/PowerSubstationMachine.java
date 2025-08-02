@@ -30,7 +30,6 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.player.Player;
@@ -182,25 +181,12 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
                 BigInteger energyCapacity = energyBank.getCapacity();
                 var STYLE_GOLD = Style.EMPTY.withColor(ChatFormatting.GOLD);
                 var STYLE_DARK_RED = Style.EMPTY.withColor(ChatFormatting.DARK_RED);
-                var STYLE_GREEN = Style.EMPTY.withColor(ChatFormatting.GREEN);
-                var STYLE_RED = Style.EMPTY.withColor(ChatFormatting.RED);
                 var storedComponent = Component.literal(FormattingUtil.formatNumbers(energyStored));
                 textList.add(Component.translatable("gtceu.multiblock.power_substation.stored", storedComponent.setStyle(STYLE_GOLD)));
                 var capacityComponent = Component.literal(FormattingUtil.formatNumbers(energyCapacity));
                 textList.add(Component.translatable("gtceu.multiblock.power_substation.capacity", capacityComponent.setStyle(STYLE_GOLD)));
                 var passiveDrainComponent = Component.literal(FormattingUtil.formatNumbers(getPassiveDrain()));
                 textList.add(Component.translatable("gtceu.multiblock.power_substation.passive_drain", passiveDrainComponent.setStyle(STYLE_DARK_RED)));
-                var avgInComponent = Component.literal(FormattingUtil.formatNumbers(inputPerSec / 20));
-                textList.add(Component.translatable("gtceu.multiblock.power_substation.average_in", avgInComponent.setStyle(STYLE_GREEN)).withStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("gtceu.multiblock.power_substation.average_in_hover")))));
-                var avgOutComponent = Component.literal(FormattingUtil.formatNumbers(Math.abs(outputPerSec / 20)));
-                textList.add(Component.translatable("gtceu.multiblock.power_substation.average_out", avgOutComponent.setStyle(STYLE_RED)).withStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("gtceu.multiblock.power_substation.average_out_hover")))));
-                if (inputPerSec > outputPerSec) {
-                    BigInteger timeToFillSeconds = energyCapacity.subtract(energyStored).divide(BigInteger.valueOf(inputPerSec - outputPerSec));
-                    textList.add(Component.translatable("gtceu.multiblock.power_substation.time_to_fill", getTimeToFillDrainText(timeToFillSeconds).setStyle(STYLE_GREEN)));
-                } else if (inputPerSec < outputPerSec) {
-                    BigInteger timeToDrainSeconds = energyStored.divide(BigInteger.valueOf(outputPerSec - inputPerSec));
-                    textList.add(Component.translatable("gtceu.multiblock.power_substation.time_to_drain", getTimeToFillDrainText(timeToDrainSeconds).setStyle(STYLE_RED)));
-                }
             }
         }
         getDefinition().getAdditionalDisplay().accept(this, textList);

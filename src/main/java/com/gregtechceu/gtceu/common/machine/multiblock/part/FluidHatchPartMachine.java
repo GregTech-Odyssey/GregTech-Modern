@@ -107,10 +107,10 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
             serverLevel.getServer().tell(new TickTask(0, this::updateTankSubscription));
+            getHandlerList().setDistinct(isDistinct);
+            getHandlerList().setColor(getPaintingColor());
+            tankSubs = tank.addChangedListener(this::updateTankSubscription);
         }
-        getHandlerList().setDistinct(isDistinct);
-        getHandlerList().setColor(getPaintingColor());
-        tankSubs = tank.addChangedListener(this::updateTankSubscription);
     }
 
     @Override
