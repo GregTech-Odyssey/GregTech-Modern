@@ -26,6 +26,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.IItemHandlerModifiable;
@@ -93,7 +94,7 @@ public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighli
      */
     @MustBeInvokedByOverriders
     public boolean canAttach() {
-        var machine = MetaMachine.getMachine(coverHolder.getLevel(), coverHolder.getPos());
+        var machine = MetaMachine.getMachine(coverHolder.holder());
         return machine == null || (machine.getDefinition().isAllowCoverOnFront() || !machine.hasFrontFacing() || coverHolder.getFrontFacing() != attachedSide);
     }
 
@@ -232,5 +233,9 @@ public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighli
 
     public int getRedstoneSignalOutput() {
         return this.redstoneSignalOutput;
+    }
+
+    public BlockEntity getNeighbor() {
+        return coverHolder.getNeighbor(attachedSide);
     }
 }

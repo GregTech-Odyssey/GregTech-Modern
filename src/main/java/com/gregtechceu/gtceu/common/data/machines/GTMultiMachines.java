@@ -346,9 +346,7 @@ public class GTMultiMachines {
             .appearanceBlock(CASING_STAINLESS_CLEAN)
             .pattern(definition -> {
                 TraceabilityPredicate exportPredicate = abilities(PartAbility.EXPORT_FLUIDS_1X);
-                if (GTCEu.Mods.isAE2Loaded()) {
-                    exportPredicate = exportPredicate.or(blocks(GTAEMachines.FLUID_EXPORT_HATCH_ME.get()));
-                }
+                exportPredicate = exportPredicate.or(blocks(GTAEMachines.FLUID_EXPORT_HATCH_ME.get()));
                 exportPredicate.setMaxLayerLimited(1);
                 TraceabilityPredicate maint = autoAbilities(true, false, false)
                         .setMaxGlobalLimited(1);
@@ -714,12 +712,7 @@ public class GTMultiMachines {
                     tooltip.add(Component.translatable("gtceu.machine.cleanroom.tooltip.6"));
                     tooltip.add(Component.translatable("gtceu.machine.cleanroom.tooltip.7"));
                     // tooltip.add(Component.translatable("gtceu.machine.cleanroom.tooltip.8"));
-                    if (GTCEu.Mods.isAE2Loaded()) {
-                        tooltip.add(
-                                Component.translatable(AEConfig.instance().getChannelMode() == ChannelMode.INFINITE ?
-                                        "gtceu.machine.cleanroom.tooltip.ae2.no_channels" :
-                                        "gtceu.machine.cleanroom.tooltip.ae2.channels"));
-                    }
+                    tooltip.add(Component.translatable(AEConfig.instance().getChannelMode() == ChannelMode.INFINITE ? "gtceu.machine.cleanroom.tooltip.ae2.no_channels" : "gtceu.machine.cleanroom.tooltip.ae2.channels"));
                     tooltip.add(Component.empty());
                 } else {
                     tooltip.add(Component.translatable("gtceu.machine.cleanroom.tooltip.hold_ctrl"));
@@ -747,7 +740,7 @@ public class GTMultiMachines {
             .shapeInfos((controller) -> {
                 ArrayList<MultiblockShapeInfo> shapeInfo = new ArrayList<>();
                 MultiblockShapeInfo.ShapeInfoBuilder builder = MultiblockShapeInfo.builder()
-                        .aisle("XXXXX", "XIHLX", "XXDXX", "XXXXX", "XXXXX")
+                        .aisle("XXXXX", "XXHXX", "XXDXX", "XXXXX", "XXXXX")
                         .aisle("XXXXX", "X   X", "G   G", "X   X", "XFFFX")
                         .aisle("XXXXX", "X   X", "G   G", "X   X", "XFSFX")
                         .aisle("XXXXX", "X   X", "G   G", "X   X", "XFFFX")
@@ -757,8 +750,6 @@ public class GTMultiMachines {
                         .where('S', GTMultiMachines.CLEANROOM.getBlock())
                         .where(' ', Blocks.AIR)
                         .where('E', GTMachines.ENERGY_INPUT_HATCH[GTValues.LV], Direction.SOUTH)
-                        .where('I', GTMachines.ITEM_PASSTHROUGH_HATCH[GTValues.LV], Direction.NORTH)
-                        .where('L', GTMachines.FLUID_PASSTHROUGH_HATCH[GTValues.LV], Direction.NORTH)
                         .where('H', GTMachines.HULL[GTValues.HV], Direction.NORTH)
                         .where('D', GTMachines.DIODE[GTValues.HV], Direction.NORTH)
                         .where('O',

@@ -850,17 +850,6 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
     @Nullable
     default ICapabilityProvider definition$initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
         List<ICapabilityProvider> providers = new ArrayList<>();
-        if (isElectric()) {
-            ElectricStats item = ElectricStats.createElectricItem(0L, getElectricTier());
-            providers.add(new ICapabilityProvider() {
-
-                @Override
-                public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> capability,
-                                                                  @Nullable Direction arg) {
-                    return item.getCapability(stack, capability);
-                }
-            });
-        }
         for (IToolBehavior behavior : getToolStats().getBehaviors()) {
             if (behavior instanceof IComponentCapability componentCapability) {
                 providers.add(new ICapabilityProvider() {

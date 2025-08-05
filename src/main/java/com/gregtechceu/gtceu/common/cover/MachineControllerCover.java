@@ -124,7 +124,7 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
     @Nullable
     private IControllable getControllable(@Nullable Direction side) {
         if (side == null) {
-            return GTCapabilityHelper.getControllable(coverHolder.getLevel(), coverHolder.getPos(), null);
+            return GTCapabilityHelper.getControllable(coverHolder.holder(), null);
         }
         if (coverHolder.getCoverAtSide(side) instanceof IControllable cover) {
             return cover;

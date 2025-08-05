@@ -78,6 +78,8 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     @Nullable
     protected ISubscription steamTankSubs;
 
+    public int fillAmount;
+
     public SteamBoilerMachine(IMachineBlockEntity holder, boolean isHighPressure, Object... args) {
         super(holder, isHighPressure, args);
         this.waterTank = createWaterTank(args);
@@ -178,8 +180,9 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
             }
         } else--timeBeforeCoolingDown;
         if (getOffsetTimer() % 10 == 0) {
+            fillAmount = 0;
             if (currentTemperature >= 100) {
-                int fillAmount = (int) (getBaseSteamOutput() * ((float) currentTemperature / getMaxTemperature()) / 2);
+                fillAmount = (int) (getBaseSteamOutput() * ((float) currentTemperature / getMaxTemperature()) / 2);
                 boolean hasDrainedWater = !waterTank.drainInternal(1, FluidAction.EXECUTE).isEmpty();
                 var filledSteam = 0L;
                 if (hasDrainedWater) {

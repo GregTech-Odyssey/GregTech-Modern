@@ -31,8 +31,8 @@ public class MaintenanceBlockProvider extends CapabilityBlockProvider<IMaintenan
 
     @Nullable
     @Override
-    protected IMaintenanceMachine getCapability(Level level, BlockPos blockPos, @Nullable Direction direction) {
-        var cap = GTCapabilityHelper.getMaintenanceMachine(level, blockPos, direction);
+    protected IMaintenanceMachine getCapability(Level level, BlockPos blockPos, BlockEntity blockEntity, @Nullable Direction direction) {
+        var cap = GTCapabilityHelper.getMaintenanceMachine(blockEntity);
         if (cap != null) {
             return cap;
         }

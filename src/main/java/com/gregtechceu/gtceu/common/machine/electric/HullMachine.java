@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.common.machine.electric;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
@@ -16,9 +15,12 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 
-import appeng.me.helpers.IGridConnectedBlockEntity;
+import appeng.capabilities.Capabilities;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -29,17 +31,13 @@ public class HullMachine extends TieredPartMachine {
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(HullMachine.class,
             MultiblockPartMachine.MANAGED_FIELD_HOLDER);
 
-    private final Object gridNodeHost;
+    private final GridNodeHostTrait gridNodeHost;
     @Persisted
     protected NotifiableEnergyContainer energyContainer;
 
     public HullMachine(IMachineBlockEntity holder, int tier) {
         super(holder, tier);
-        if (GTCEu.Mods.isAE2Loaded()) {
-            this.gridNodeHost = new GridNodeHostTrait(this);
-        } else {
-            this.gridNodeHost = null;
-        }
+        this.gridNodeHost = new GridNodeHostTrait(this);
         reinitializeEnergyContainer();
     }
 
@@ -50,29 +48,32 @@ public class HullMachine extends TieredPartMachine {
     }
 
     @Override
+    public @Nullable <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+        if (cap == Capabilities.IN_WORLD_GRID_NODE_HOST) {
+            return Capabilities.IN_WORLD_GRID_NODE_HOST.orEmpty(cap, LazyOptional.of(() -> gridNodeHost));
+        }
+        return null;
+    }
+
+    @Override
     public void onLoad() {
         super.onLoad();
-        if (GTCEu.Mods.isAE2Loaded() && gridNodeHost instanceof GridNodeHostTrait connectedBlockEntity &&
-                getLevel() instanceof ServerLevel level) {
-            level.getServer().tell(new TickTask(0, connectedBlockEntity::init));
+        if (getLevel() instanceof ServerLevel level) {
+            level.getServer().tell(new TickTask(0, gridNodeHost::init));
         }
     }
 
     @Override
     public void onUnload() {
         super.onUnload();
-        if (GTCEu.Mods.isAE2Loaded() && gridNodeHost instanceof GridNodeHostTrait connectedBlockEntity) {
-            connectedBlockEntity.getMainNode().destroy();
-        }
+        gridNodeHost.getMainNode().destroy();
     }
 
     @Override
     public void setFrontFacing(Direction facing) {
         super.setFrontFacing(facing);
         if (isFacingValid(facing)) {
-            if (GTCEu.Mods.isAE2Loaded() && gridNodeHost instanceof GridNodeHostTrait connectedBlockEntity) {
-                connectedBlockEntity.init();
-            }
+            gridNodeHost.init();
         }
     }
 
@@ -84,19 +85,15 @@ public class HullMachine extends TieredPartMachine {
     @Override
     public void saveCustomPersistedData(@NotNull CompoundTag tag, boolean forDrop) {
         super.saveCustomPersistedData(tag, forDrop);
-        if (GTCEu.Mods.isAE2Loaded() && gridNodeHost instanceof IGridConnectedBlockEntity connectedBlockEntity) {
-            CompoundTag nbt = new CompoundTag();
-            connectedBlockEntity.getMainNode().saveToNBT(nbt);
-            tag.put("grid_node", nbt);
-        }
+        CompoundTag nbt = new CompoundTag();
+        gridNodeHost.getMainNode().saveToNBT(nbt);
+        tag.put("grid_node", nbt);
     }
 
     @Override
     public void loadCustomPersistedData(@NotNull CompoundTag tag) {
         super.loadCustomPersistedData(tag);
-        if (GTCEu.Mods.isAE2Loaded() && gridNodeHost instanceof IGridConnectedBlockEntity connectedBlockEntity) {
-            connectedBlockEntity.getMainNode().loadFromNBT(tag.getCompound("grid_node"));
-        }
+        gridNodeHost.getMainNode().loadFromNBT(tag.getCompound("grid_node"));
     }
 
     //////////////////////////////////////

@@ -10,8 +10,8 @@ public class WireProperties implements IMaterialProperty {
 
     private long voltage;
     private int amperage;
-    private int lossPerBlock;
-    private int superconductorCriticalTemperature;
+    private final int lossPerBlock;
+    private final int superconductorCriticalTemperature;
     private boolean isSuperconductor;
 
     public WireProperties(long voltage, int baseAmperage, int lossPerBlock) {
@@ -88,15 +88,6 @@ public class WireProperties implements IMaterialProperty {
     }
 
     /**
-     * Sets the current wire loss per block
-     *
-     * @param lossPerBlock The new wire loss per block
-     */
-    public void setLossPerBlock(int lossPerBlock) {
-        this.lossPerBlock = lossPerBlock;
-    }
-
-    /**
      * If the current wire is a Superconductor wire
      *
      * @return {@code true} if the current wire is a Superconductor
@@ -112,25 +103,6 @@ public class WireProperties implements IMaterialProperty {
      */
     public void setSuperconductor(boolean isSuperconductor) {
         this.isSuperconductor = isSuperconductor;
-    }
-
-    /**
-     * Retrieves the critical temperature of the superconductor (the temperature at which the superconductive phase
-     * transition happens)
-     *
-     * @return Critical temperature of the material
-     */
-    public int getSuperconductorCriticalTemperature() {
-        return superconductorCriticalTemperature;
-    }
-
-    /**
-     * Sets the material's critical temperature
-     *
-     * @param criticalTemperature The new critical temperature
-     */
-    public void setSuperconductorCriticalTemperature(int criticalTemperature) {
-        this.superconductorCriticalTemperature = this.isSuperconductor ? criticalTemperature : 0;
     }
 
     @Override

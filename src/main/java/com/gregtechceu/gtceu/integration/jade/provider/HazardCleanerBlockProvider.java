@@ -24,8 +24,8 @@ public class HazardCleanerBlockProvider extends CapabilityBlockProvider<IEnviron
     }
 
     @Override
-    protected @Nullable IEnvironmentalHazardCleaner getCapability(Level level, BlockPos pos, @Nullable Direction side) {
-        return level.getBlockEntity(pos) instanceof MetaMachineBlockEntity mte &&
+    protected @Nullable IEnvironmentalHazardCleaner getCapability(Level level, BlockPos pos, BlockEntity blockEntity, @Nullable Direction side) {
+        return blockEntity instanceof MetaMachineBlockEntity mte &&
                 mte.getMetaMachine() instanceof IEnvironmentalHazardCleaner cleaner ? cleaner : null;
     }
 

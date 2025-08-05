@@ -65,15 +65,15 @@ public class EnergyContainerList implements IEnergyContainer {
     }
 
     @Override
-    public long acceptEnergyFromNetwork(Direction side, long voltage, long amperage) {
-        long amperesUsed = 0L;
+    public long acceptEnergyFromNetwork(Direction side, long voltage, long energyToAdd) {
+        long energyAdded = 0L;
         for (IEnergyContainer iEnergyContainer : energyContainerList) {
-            amperesUsed += iEnergyContainer.acceptEnergyFromNetwork(null, voltage, amperage);
-            if (amperage == amperesUsed) {
-                return amperesUsed;
+            energyAdded += iEnergyContainer.acceptEnergyFromNetwork(null, voltage, energyToAdd - energyAdded);
+            if (energyAdded == energyToAdd) {
+                return energyAdded;
             }
         }
-        return amperesUsed;
+        return energyAdded;
     }
 
     @Override

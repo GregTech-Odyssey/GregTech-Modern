@@ -122,7 +122,7 @@ public class BlockHighlightRenderer {
             }
 
             // draw cover grid highlight
-            ICoverable coverable = GTCapabilityHelper.getCoverable(level, blockPos, target.getDirection());
+            ICoverable coverable = GTCapabilityHelper.getCoverable(blockEntity, target.getDirection());
             if (coverable != null && CoverPlaceBehavior.isCoverBehaviorItem(held, coverable::hasAnyCover,
                     coverDef -> ICoverable.canPlaceCover(coverDef, coverable))) {
                 Vec3 pos = camera.getPosition();

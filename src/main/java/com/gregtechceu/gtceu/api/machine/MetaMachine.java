@@ -178,7 +178,8 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     }
 
     public boolean isRemote() {
-        return getLevel() == null ? GTCEu.isClientThread() : getLevel().isClientSide;
+        var level = getLevel();
+        return level == null ? GTCEu.isClientThread() : level.isClientSide;
     }
 
     public void notifyBlockUpdate() {
@@ -192,7 +193,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     public void scheduleNeighborShapeUpdate() {
         Level level = getLevel();
         BlockPos pos = getPos();
-        if (level == null || pos == null) return;
+        if (level == null) return;
         level.getBlockState(pos).updateNeighbourShapes(level, pos, Block.UPDATE_ALL);
     }
 
@@ -281,7 +282,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         }
     }
 
-    public final void serverTick() {
+    public void serverTick() {
         if (dirty) {
             dirty = false;
             holder.self().setChanged();
@@ -361,7 +362,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
      *         animations will be played
      */
     @Override
-    public final Pair<GTToolType, InteractionResult> onToolClick(Set<@NotNull GTToolType> toolType, ItemStack itemStack, UseOnContext context) {
+    public Pair<GTToolType, InteractionResult> onToolClick(Set<@NotNull GTToolType> toolType, ItemStack itemStack, UseOnContext context) {
         // the side hit from the machine grid
         var playerIn = context.getPlayer();
         if (playerIn == null) return Pair.of(null, InteractionResult.PASS);
@@ -449,7 +450,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     }
 
     protected InteractionResult onSoftMalletClick(Player playerIn, InteractionHand hand, Direction gridSide, BlockHitResult hitResult) {
-        var controllable = GTCapabilityHelper.getControllable(getLevel(), getPos(), gridSide);
+        var controllable = GTCapabilityHelper.getControllable(holder.self(), gridSide);
         if (controllable == null) return InteractionResult.PASS;
         if (!isRemote()) {
             if (!playerIn.isShiftKeyDown() || !controllable.isWorkingEnabled()) {
@@ -510,8 +511,16 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     //////////////////////////////////////
     @Nullable
     public static MetaMachine getMachine(BlockGetter level, BlockPos pos) {
-        if (level.getBlockEntity(pos) instanceof IMachineBlockEntity machineBlockEntity) {
-            return machineBlockEntity.getMetaMachine();
+        if (level.getBlockEntity(pos) instanceof MetaMachineBlockEntity machineBlockEntity) {
+            return machineBlockEntity.metaMachine;
+        }
+        return null;
+    }
+
+    @Nullable
+    public static MetaMachine getMachine(@Nullable BlockEntity blockEntity) {
+        if (blockEntity instanceof MetaMachineBlockEntity machineBlockEntity) {
+            return machineBlockEntity.metaMachine;
         }
         return null;
     }
@@ -750,8 +759,6 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     @Override
     public boolean canConnectRedstone(Direction side) {
-        if (side == null) return false;
-        // For some reason, Minecraft requests the output signal from the opposite side...
         CoverBehavior cover = getCoverContainer().getCoverAtSide(side);
         if (cover == null) return false;
         return cover.canConnectRedstone();

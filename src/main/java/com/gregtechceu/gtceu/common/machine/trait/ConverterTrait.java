@@ -13,6 +13,7 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.energy.IEnergyStorage;
 
 public class ConverterTrait extends NotifiableEnergyContainer {
@@ -56,6 +57,7 @@ public class ConverterTrait extends NotifiableEnergyContainer {
     // ********* logic *********//
     //////////////////////////////
     public void checkOutputSubscription() {
+        if (machine.getLevel().isClientSide) return;
         outputSubs = getMachine().subscribeServerTick(outputSubs, this::serverTick);
     }
 
@@ -67,7 +69,7 @@ public class ConverterTrait extends NotifiableEnergyContainer {
         } else {
             // output fe
             var fontFacing = machine.getFrontFacing();
-            var energyContainer = GTCapabilityHelper.getForgeEnergy(machine.getLevel(), machine.getPos().relative(fontFacing), fontFacing.getOpposite());
+            var energyContainer = GTCapabilityHelper.getBlockEntityCapability(ForgeCapabilities.ENERGY, machine.getNeighbor(fontFacing), fontFacing.getOpposite());
             if (energyContainer != null && energyContainer.canReceive()) {
                 var energyUsed = FeCompat.insertEu(energyContainer, Math.min(getEnergyStored(), voltage * amps), false);
                 if (energyUsed > 0) {

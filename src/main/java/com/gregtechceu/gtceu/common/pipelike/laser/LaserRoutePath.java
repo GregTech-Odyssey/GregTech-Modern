@@ -1,14 +1,13 @@
 package com.gregtechceu.gtceu.common.pipelike.laser;
 
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ILaserContainer;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.pipenet.IRoutePath;
 import com.gregtechceu.gtceu.common.blockentity.LaserPipeBlockEntity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,11 +41,7 @@ public class LaserRoutePath implements IRoutePath<ILaserContainer> {
      */
     @Nullable
     public ILaserContainer getHandler(Level level) {
-        BlockEntity blockEntity = targetPipe.getNeighbor(targetFacing);
-        if (blockEntity != null) {
-            return blockEntity.getCapability(GTCapability.CAPABILITY_LASER, targetFacing.getOpposite()).orElse(null);
-        }
-        return null;
+        return GTCapabilityHelper.getLaser(targetPipe.getNeighbor(targetFacing), targetFacing.getOpposite());
     }
 
     public @NotNull BlockPos getTargetPipePos() {

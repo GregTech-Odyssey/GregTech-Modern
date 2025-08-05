@@ -29,8 +29,8 @@ public class WorkableBlockProvider extends CapabilityBlockProvider<IWorkable> {
 
     @Nullable
     @Override
-    protected IWorkable getCapability(Level level, BlockPos pos, @Nullable Direction side) {
-        return GTCapabilityHelper.getWorkable(level, pos, side);
+    protected IWorkable getCapability(Level level, BlockPos pos, BlockEntity blockEntity, @Nullable Direction side) {
+        return GTCapabilityHelper.getWorkable(blockEntity, side);
     }
 
     @Override

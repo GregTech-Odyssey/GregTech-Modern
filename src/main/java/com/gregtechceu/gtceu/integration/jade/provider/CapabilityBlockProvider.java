@@ -26,7 +26,7 @@ public abstract class CapabilityBlockProvider<C> implements IBlockComponentProvi
     }
 
     @Nullable
-    protected abstract C getCapability(Level level, BlockPos pos, @Nullable Direction side);
+    protected abstract C getCapability(Level level, BlockPos pos, @Nullable BlockEntity blockEntity, @Nullable Direction side);
 
     protected abstract void write(CompoundTag data, C capability);
 
@@ -55,14 +55,14 @@ public abstract class CapabilityBlockProvider<C> implements IBlockComponentProvi
     public void appendServerData(CompoundTag data, BlockAccessor blockAccessor) {
         // use uid as key for capability data
         var capData = data.getCompound(uid.toString());
-        var capability = getCapability(blockAccessor.getLevel(), blockAccessor.getPosition(), null);
+        var capability = getCapability(blockAccessor.getLevel(), blockAccessor.getPosition(), blockAccessor.getBlockEntity(), null);
         if (capability != null && allowDisplaying(capability)) {
             var tag = new CompoundTag();
             write(tag, capability);
             capData.put("null", tag);
         }
         for (Direction value : GTUtil.DIRECTIONS) {
-            capability = getCapability(blockAccessor.getLevel(), blockAccessor.getPosition(), value);
+            capability = getCapability(blockAccessor.getLevel(), blockAccessor.getPosition(), blockAccessor.getBlockEntity(), value);
             if (capability != null && allowDisplaying(capability)) {
                 var tag = new CompoundTag();
                 write(tag, capability);

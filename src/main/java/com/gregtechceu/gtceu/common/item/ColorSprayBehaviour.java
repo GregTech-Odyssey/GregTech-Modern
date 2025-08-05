@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.common.item;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.blockentity.IPaintable;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IDurabilityBar;
@@ -204,7 +203,7 @@ public class ColorSprayBehaviour implements IDurabilityBar, IInteractionItem, IA
         if (player == null) {
             return false;
         }
-        if (GTCEu.Mods.isAE2Loaded() && AE2CallWrapper.isAE2Cable(first)) {
+        if (AE2CallWrapper.isAE2Cable(first)) {
             var collected = AE2CallWrapper.collect(first, limit);
             var ae2Color = color == null ? AEColor.TRANSPARENT : AEColor.values()[color.ordinal()];
             for (var c : collected) {

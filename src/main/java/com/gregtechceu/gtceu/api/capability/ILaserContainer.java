@@ -10,7 +10,7 @@ public interface ILaserContainer extends IEnergyContainer {
     ILaserContainer DEFAULT = new ILaserContainer() {
 
         @Override
-        public long acceptEnergyFromNetwork(Direction Direction, long l, long l1) {
+        public long acceptEnergyFromNetwork(Direction Direction, long voltage, long l) {
             return 0;
         }
 

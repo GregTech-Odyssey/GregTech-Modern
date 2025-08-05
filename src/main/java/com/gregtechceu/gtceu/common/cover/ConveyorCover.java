@@ -391,7 +391,7 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     }
 
     private boolean shouldDisplayDistributionMode() {
-        return coverHolder.getLevel().getBlockEntity(coverHolder.getPos()) instanceof ItemPipeBlockEntity || coverHolder.getLevel().getBlockEntity(coverHolder.getPos().relative(attachedSide)) instanceof ItemPipeBlockEntity;
+        return coverHolder.holder() instanceof ItemPipeBlockEntity || getNeighbor() instanceof ItemPipeBlockEntity;
     }
 
     @NotNull

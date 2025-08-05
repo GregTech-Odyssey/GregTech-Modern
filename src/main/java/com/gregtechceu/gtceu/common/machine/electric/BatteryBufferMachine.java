@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
 import com.gregtechceu.gtceu.api.capability.compat.FeCompat;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
@@ -76,7 +75,11 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                 return 1;
             }
         };
-        handler.setFilter(item -> GTCapabilityHelper.getElectricItem(item) != null || (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE && GTCapabilityHelper.getForgeEnergyItem(item) != null));
+        handler.setFilter(item -> {
+            var electric = GTCapabilityHelper.getElectricItem(item);
+            if (electric != null) return electric.getTier() <= getTier();
+            return ConfigHolder.INSTANCE.compat.energy.nativeEUToFE && GTCapabilityHelper.getForgeEnergyItem(item) != null;
+        });
         return handler;
     }
 
@@ -206,64 +209,49 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
         @Override
         public void serverTick() {
             var outFacing = getFrontFacing();
-            var energyContainer = GTCapabilityHelper.getBlockEntityCapability(GTCapability.CAPABILITY_ENERGY_CONTAINER, getNeighbor(outFacing), outFacing.getOpposite());
+            var energyContainer = GTCapabilityHelper.getEnergyContainer(getNeighbor(outFacing), outFacing.getOpposite());
             if (energyContainer == null) {
                 return;
             }
-            var voltage = getOutputVoltage();
             var batteries = getNonEmptyBatteries();
             if (!batteries.isEmpty()) {
-                // Prioritize as many packets as available of energy created
-                long internalAmps = Math.abs(Math.min(0, getInternalStorage() / voltage));
-                long genAmps = Math.max(0, batteries.size() - internalAmps);
-                long outAmps = 0L;
-                if (genAmps > 0) {
-                    outAmps = energyContainer.acceptEnergyFromNetwork(outFacing.getOpposite(), voltage, genAmps);
-                    if (outAmps == 0 && internalAmps == 0) return;
+                long out = 0;
+                long stored = getEnergyStored();
+                if (stored > 0) {
+                    var voltage = getOutputVoltage();
+                    var canOutput = Math.min(stored, getOutputAmperage() * voltage);
+                    out = energyContainer.acceptEnergyFromNetwork(outFacing.getOpposite(), voltage, canOutput);
+                    if (out == 0) return;
+
                 }
-                long energy = (outAmps + internalAmps) * voltage;
-                long distributed = energy / batteries.size();
+                long distributed = out / batteries.size();
                 boolean changed = false;
                 for (IElectricItem electricItem : batteries) {
                     var charged = electricItem.discharge(distributed, getTier(), false, true, false);
                     if (charged > 0) {
                         changed = true;
                     }
-                    energy -= charged;
                     energyOutputPerSec += charged;
                 }
                 if (changed) {
                     BatteryBufferMachine.this.markDirty();
-                    checkOutputSubscription();
+                    notifyOutputSubscription();
                 }
-                // Subtract energy created out of thin air from the buffer
-                setEnergyStored(getInternalStorage() + internalAmps * voltage - energy);
             }
         }
 
         @Override
-        public long acceptEnergyFromNetwork(@Nullable Direction side, long voltage, long amperage) {
-            var latestTimeStamp = getMachine().getOffsetTimer();
-            if (lastTimeStamp < latestTimeStamp) {
-                amps = 0;
-                lastTimeStamp = latestTimeStamp;
-            }
-            if (amperage <= 0 || voltage <= 0) return 0;
-            var batteries = getNonFullBatteries();
-            var leftAmps = batteries.size() * AMPS_PER_BATTERY - amps;
-            var usedAmps = Math.min(leftAmps, amperage);
-            if (leftAmps <= 0) return 0;
+        public long acceptEnergyFromNetwork(@Nullable Direction side, long voltage, long energyToAdd) {
             if (side == null || inputsEnergy(side)) {
+                long canAccept = Math.min(energyToAdd, getEnergyCapacity() - getEnergyStored());
+                if (canAccept == 0) return 0;
                 if (voltage > getInputVoltage()) {
                     doExplosion(GTUtil.getExplosionPower(voltage));
-                    return usedAmps;
+                    return 0;
                 }
-                // Prioritizes as many packets as available from the buffer
-                long internalAmps = Math.min(leftAmps, Math.max(0, getInternalStorage() / voltage));
-                usedAmps = Math.min(usedAmps, leftAmps - internalAmps);
-                amps += usedAmps;
-                long energy = (usedAmps + internalAmps) * voltage;
-                long distributed = energy / batteries.size();
+                var batteries = getNonFullBatteries();
+                long energyAdded = 0;
+                long distributed = canAccept / batteries.size();
                 boolean changed = false;
                 for (Object item : batteries) {
                     long charged = 0;
@@ -275,16 +263,15 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                     if (charged > 0) {
                         changed = true;
                     }
-                    energy -= charged;
+                    energyAdded += charged;
                     energyInputPerSec += charged;
+                    if (energyAdded == canAccept) break;
                 }
                 if (changed) {
                     BatteryBufferMachine.this.markDirty();
-                    checkOutputSubscription();
+                    notifyOutputSubscription();
                 }
-                // Remove energy used and then transfer overflow energy into the internal buffer
-                setEnergyStored(getInternalStorage() - internalAmps * voltage + energy);
-                return usedAmps;
+                return energyAdded;
             }
             return 0;
         }
@@ -312,10 +299,6 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                     energyStored += FeCompat.toEu(energyStorage.getEnergyStored(), FeCompat.ratio(false));
                 }
             }
-            return energyStored;
-        }
-
-        private long getInternalStorage() {
             return energyStored;
         }
     }

@@ -27,7 +27,7 @@ public record CoverPlaceBehavior(CoverDefinition coverDefinition) implements IIn
         var pos = context.getClickedPos();
         var face = context.getClickedFace();
         var player = context.getPlayer();
-        ICoverable coverable = GTCapabilityHelper.getCoverable(level, pos, face);
+        ICoverable coverable = GTCapabilityHelper.getCoverable(level.getBlockEntity(pos), face);
         if (coverable != null) {
             var coverSide = ICoverable.rayTraceCoverableSide(coverable, player);
             if (coverSide != null && coverable.getCoverAtSide(coverSide) == null &&

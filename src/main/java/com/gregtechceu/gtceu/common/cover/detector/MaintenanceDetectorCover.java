@@ -21,7 +21,7 @@ public class MaintenanceDetectorCover extends DetectorCover {
         }
 
         return super.canAttach() &&
-                GTCapabilityHelper.getMaintenanceMachine(coverHolder.getLevel(), coverHolder.getPos(), attachedSide) !=
+                GTCapabilityHelper.getMaintenanceMachine(coverHolder.holder()) !=
                         null;
     }
 
@@ -31,8 +31,7 @@ public class MaintenanceDetectorCover extends DetectorCover {
             return;
         }
 
-        IMaintenanceMachine maintenance = GTCapabilityHelper.getMaintenanceMachine(coverHolder.getLevel(),
-                coverHolder.getPos(), attachedSide);
+        IMaintenanceMachine maintenance = GTCapabilityHelper.getMaintenanceMachine(coverHolder.holder());
 
         int signal = getRedstoneSignalOutput();
         boolean shouldSignal = isInverted() != maintenance.hasMaintenanceProblems();

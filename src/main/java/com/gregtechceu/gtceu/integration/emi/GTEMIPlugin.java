@@ -56,9 +56,7 @@ public class GTEMIPlugin implements EmiPlugin {
             }
         }
         registry.addRecipeHandler(ModularUIContainer.MENUTYPE, new GTEmiRecipeHandler());
-        if (GTCEu.Mods.isAE2Loaded()) {
-            registry.addRecipeHandler(PatternEncodingTermMenu.TYPE, new Ae2PatternTerminalHandler<>());
-        }
+        registry.addRecipeHandler(PatternEncodingTermMenu.TYPE, new Ae2PatternTerminalHandler<>());
         if (GTCEu.isModLoaded(GTValues.MODID_AE2WTLIB)) {
             registry.addRecipeHandler(WETMenu.TYPE, new Ae2PatternTerminalHandler<>());
         }

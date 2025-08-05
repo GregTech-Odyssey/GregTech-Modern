@@ -31,8 +31,8 @@ public class ElectricContainerBlockProvider extends CapabilityBlockProvider<IEne
     }
 
     @Override
-    protected @Nullable IEnergyInfoProvider getCapability(Level level, BlockPos pos, @Nullable Direction side) {
-        return GTCapabilityHelper.getEnergyInfoProvider(level, pos, side);
+    protected @Nullable IEnergyInfoProvider getCapability(Level level, BlockPos pos, BlockEntity blockEntity, @Nullable Direction side) {
+        return GTCapabilityHelper.getEnergyInfoProvider(blockEntity, side);
     }
 
     @Override

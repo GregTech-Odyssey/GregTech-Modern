@@ -51,7 +51,6 @@ public class CreativeEnergyContainerMachine extends TieredMachine implements ILa
     @Persisted
     private long energyIOPerSec = 0;
     private long lastAverageEnergyIOPerTick = 0;
-    private long ampsReceived = 0;
     private boolean doExplosion = false;
 
     public CreativeEnergyContainerMachine(IMachineBlockEntity holder) {
@@ -86,44 +85,28 @@ public class CreativeEnergyContainerMachine extends TieredMachine implements ILa
                 doExplosion = false;
             }
         }
-        ampsReceived = 0;
         if (!active || !source || voltage <= 0 || amps <= 0) return;
-        int ampsUsed = 0;
+        long energyUsed = 0;
+        long energy = voltage * amps;
         for (var facing : GTUtil.DIRECTIONS) {
             var opposite = facing.getOpposite();
-            IEnergyContainer container = GTCapabilityHelper.getEnergyContainer(getLevel(), getPos().relative(facing),
-                    opposite);
+            IEnergyContainer container = GTCapabilityHelper.getEnergyContainer(getNeighbor(facing), opposite);
             // Try to get laser capability
             if (container == null)
-                container = GTCapabilityHelper.getLaser(getLevel(), getPos().relative(facing), opposite);
+                container = GTCapabilityHelper.getLaser(getNeighbor(facing), opposite);
 
             if (container != null && container.inputsEnergy(opposite) && container.getEnergyCanBeInserted() > 0) {
-                ampsUsed += container.acceptEnergyFromNetwork(opposite, voltage, amps - ampsUsed);
-                if (ampsUsed >= amps) {
+                energyUsed += container.acceptEnergyFromNetwork(opposite, voltage, energy);
+                if (energyUsed >= energy) {
                     break;
                 }
             }
         }
-        energyIOPerSec += ampsUsed * voltage;
+        energyIOPerSec += energyUsed;
     }
 
     @Override
-    public long acceptEnergyFromNetwork(Direction side, long voltage, long amperage) {
-        if (source || !active || ampsReceived >= amps) {
-            return 0;
-        }
-        if (voltage > this.voltage) {
-            if (doExplosion)
-                return 0;
-            doExplosion = true;
-            return Math.min(amperage, getInputAmperage() - ampsReceived);
-        }
-        long amperesAccepted = Math.min(amperage, getInputAmperage() - ampsReceived);
-        if (amperesAccepted > 0) {
-            ampsReceived += amperesAccepted;
-            energyIOPerSec += amperesAccepted * voltage;
-            return amperesAccepted;
-        }
+    public long acceptEnergyFromNetwork(Direction side, long v, long e) {
         return 0;
     }
 

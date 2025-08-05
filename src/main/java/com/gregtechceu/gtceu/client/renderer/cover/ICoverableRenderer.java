@@ -34,7 +34,7 @@ public interface ICoverableRenderer extends IRenderer {
                                         RandomSource rand) {
         var blockEntity = level == null ? null : level.getBlockEntity(pos);
         if (blockEntity != null) {
-            var coverable = GTCapabilityHelper.getCoverable(blockEntity.getLevel(), blockEntity.getBlockPos(), null);
+            var coverable = GTCapabilityHelper.getCoverable(blockEntity, null);
             if (coverable != null) {
                 var quads = new LinkedList<BakedQuad>();
                 var modelState = ModelFactory.getRotation(coverable.getFrontFacing());

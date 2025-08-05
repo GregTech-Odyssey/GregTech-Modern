@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.IMiner;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.SimpleTieredMachine;
@@ -879,35 +878,6 @@ public class GTMachines {
             .renderer(() -> new MaintenanceHatchPartRenderer(3, GTCEu.id("block/machine/part/maintenance.full_auto")))
             .register();
 
-    public static final MachineDefinition[] ITEM_PASSTHROUGH_HATCH = registerTieredMachines("item_passthrough_hatch",
-            (holder, tier) -> new ItemBusPartMachine(holder, tier, IO.BOTH),
-            (tier, builder) -> builder
-                    .langValue("%s Item Passthrough Hatch".formatted(VNF[tier]))
-                    .allRotation()
-                    .abilities(PartAbility.PASSTHROUGH_HATCH)
-                    .overlayTieredHullRenderer("item_passthrough_hatch")
-                    .tooltips(
-                            Component.translatable("gtceu.universal.tooltip.item_storage_capacity",
-                                    (1 + Math.min(9, tier)) * (1 + Math.min(9, tier))),
-                            Component.translatable("gtceu.part_sharing.enabled"))
-                    .register(),
-            ELECTRIC_TIERS);
-
-    public static final MachineDefinition[] FLUID_PASSTHROUGH_HATCH = registerTieredMachines("fluid_passthrough_hatch",
-            (holder, tier) -> new FluidHatchPartMachine(holder, tier, IO.BOTH,
-                    FluidHatchPartMachine.INITIAL_TANK_CAPACITY_1X, 1),
-            (tier, builder) -> builder
-                    .langValue("%s Fluid Passthrough Hatch".formatted(VNF[tier]))
-                    .allRotation()
-                    .abilities(PartAbility.PASSTHROUGH_HATCH)
-                    .overlayTieredHullRenderer("fluid_passthrough_hatch")
-                    .tooltips(
-                            Component.translatable("gtceu.universal.tooltip.fluid_storage_capacity_mult", tier + 1,
-                                    16 * FluidType.BUCKET_VOLUME),
-                            Component.translatable("gtceu.part_sharing.enabled"))
-                    .register(),
-            ELECTRIC_TIERS);
-
     public static final MachineDefinition RESERVOIR_HATCH = REGISTRATE
             .machine("reservoir_hatch", ReservoirHatchPartMachine::new)
             .langValue("Reservoir Hatch")
@@ -1013,9 +983,7 @@ public class GTMachines {
         GCYMMachines.init();
         GTResearchMachines.init();
 
-        if (GTCEu.Mods.isAE2Loaded()) {
-            GTAEMachines.init();
-        }
+        GTAEMachines.init();
 
         ModLoader.get().postEvent(new GTCEuAPI.RegisterEvent<>(GTRegistries.MACHINES, MachineDefinition.class));
         GTRegistries.MACHINES.freeze();

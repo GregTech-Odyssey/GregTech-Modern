@@ -124,7 +124,6 @@ public class GTCEu {
     public static class Mods {
 
         private static final boolean EMI_LOADED = isModLoaded(GTValues.MODID_EMI);
-        private static final boolean AE2_LOADED = isModLoaded(GTValues.MODID_APPENG);
         private static final boolean CURIOS_LOADED = isModLoaded(GTValues.MODID_CURIOS);
         private static final boolean SHIMMER_LOADED = isModLoaded(GTValues.MODID_SHIMMER);
         private static final boolean FTB_TEAMS_LOADED = isModLoaded(GTValues.MODID_FTB_TEAMS);
@@ -132,10 +131,6 @@ public class GTCEu {
 
         public static boolean isEMILoaded() {
             return EMI_LOADED;
-        }
-
-        public static boolean isAE2Loaded() {
-            return AE2_LOADED;
         }
 
         public static boolean isCuriosLoaded() {

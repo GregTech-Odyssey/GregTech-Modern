@@ -26,8 +26,8 @@ public class ControllableBlockProvider extends CapabilityBlockProvider<IControll
 
     @Nullable
     @Override
-    protected IControllable getCapability(Level level, BlockPos pos, @Nullable Direction side) {
-        return GTCapabilityHelper.getControllable(level, pos, side);
+    protected IControllable getCapability(Level level, BlockPos pos, BlockEntity blockEntity, @Nullable Direction side) {
+        return GTCapabilityHelper.getControllable(blockEntity, side);
     }
 
     @Override

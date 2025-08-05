@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.common.pipelike.cable;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.common.blockentity.CableBlockEntity;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -36,21 +35,23 @@ public class EnergyNetHandler implements IEnergyContainer {
     }
 
     @Override
-    public long acceptEnergyFromNetwork(Direction side, long voltage, long amperage) {
+    public long acceptEnergyFromNetwork(Direction side, long voltage, long energyToAdd) {
         if (transfer) return 0;
         if (side == null) {
             if (facing == null) return 0;
             side = facing;
         }
 
-        long amperesUsed = 0L;
-        for (EnergyRoutePath path : net.getNetData(cable.getPipePosLong(), cable.getPipePos())) {
-            if (path.getMaxLoss() >= voltage) {
+        long energyUsed = 0;
+        var pos = cable.getPipePos();
+        for (EnergyRoutePath path : net.getNetData(cable.getPipePosLong(), pos)) {
+            long energy = energyToAdd - path.getMaxLoss();
+            if (energy <= 0) {
                 // Will lose all the energy with this path, so don't use it
                 continue;
             }
 
-            if (cable.getPipePos().equals(path.getTargetPipePos()) && side == path.getTargetFacing()) {
+            if (pos.equals(path.getTargetPipePos()) && side == path.getTargetFacing()) {
                 // Do not insert into source handler
                 continue;
             }
@@ -60,48 +61,22 @@ public class EnergyNetHandler implements IEnergyContainer {
 
             Direction facing = path.getTargetFacing().getOpposite();
             if (!dest.inputsEnergy(facing) || dest.getEnergyCanBeInserted() <= 0) continue;
-
-            long pathVoltage = voltage - path.getMaxLoss();
-            boolean cableBroken = false;
-            for (CableBlockEntity cable : path.getPath()) {
-                if (cable.getMaxVoltage() < voltage) {
-                    int heat = (int) (Math.log(
-                            GTUtil.getTierByVoltage(voltage) - GTUtil.getTierByVoltage(cable.getMaxVoltage())) *
-                            45 + 36.5);
-                    cable.applyHeat(heat);
-
-                    cableBroken = cable.isInValid();
-                    if (cableBroken) {
-                        // a cable burned away (or insulation melted)
-                        break;
-                    }
-
-                    // limit transfer to cables max and void rest
-                    pathVoltage = Math.min(cable.getMaxVoltage(), pathVoltage);
-                }
-            }
-
-            if (cableBroken) continue;
-
             transfer = true;
-            long amps = dest.acceptEnergyFromNetwork(facing, pathVoltage, amperage - amperesUsed);
+            long accept = dest.acceptEnergyFromNetwork(facing, voltage - path.getMaxLoss(), energy - energyUsed);
             transfer = false;
-            if (amps == 0) continue;
-
-            amperesUsed += amps;
-            long voltageTraveled = voltage;
-            for (CableBlockEntity cable : path.getPath()) {
-                voltageTraveled -= cable.getNodeData().getLossPerBlock();
-                if (voltageTraveled <= 0) break;
-
-                if (!cable.isInValid()) {
-                    cable.incrementAmperage(amps, voltageTraveled);
+            if (accept == 0) continue;
+            for (var c : path.getPath()) {
+                c.incrementAmperage(voltage, accept / voltage);
+                if (voltage > c.getMaxVoltage()) {
+                    int heat = (int) (Math.log(GTUtil.getTierByVoltage(voltage) - GTUtil.getTierByVoltage(cable.getMaxVoltage())) * 45 + 36.5);
+                    c.applyHeat(heat);
                 }
             }
-
-            if (amperage == amperesUsed) break;
+            energyToAdd = energy;
+            energyUsed += accept;
+            if (energyUsed == energyToAdd) break;
         }
-        return amperesUsed;
+        return energyUsed;
     }
 
     @Override
@@ -121,10 +96,7 @@ public class EnergyNetHandler implements IEnergyContainer {
 
     @Override
     public long changeEnergy(long energyToAdd) {
-        GTCEu.LOGGER.warn("Do not use changeEnergy() for cables! Use acceptEnergyFromNetwork()");
-        return acceptEnergyFromNetwork(null,
-                energyToAdd / getInputAmperage(),
-                energyToAdd / getInputVoltage()) * getInputVoltage();
+        throw new UnsupportedOperationException("Do not use changeEnergy() for cables! Use acceptEnergyFromNetwork()");
     }
 
     @Override

@@ -25,7 +25,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -135,15 +134,10 @@ public class CableBlock extends MaterialPipeBlock<Insulation, WireProperties, Le
             CableBlockEntity cable = (CableBlockEntity) getPipeTile(level, pos);
             if (cable != null && cable.getFrameMaterial().isNull() &&
                     cable.getNodeData().getLossPerBlock() > 0) {
-                long voltage = cable.getCurrentMaxVoltage();
-                double amperage = cable.getAverageAmperage();
-                if (voltage > 0L && amperage > 0L) {
-                    float damageAmount = (float) ((GTUtil.getTierByVoltage(voltage) + 1) * amperage * 4);
+                long voltage = cable.getCurrentVoltage();
+                if (voltage > 0L) {
+                    float damageAmount = (float) ((GTUtil.getTierByVoltage(voltage) + 1));
                     entityLiving.hurt(GTDamageTypes.ELECTRIC.source(level), damageAmount);
-                    if (entityLiving instanceof ServerPlayer) {
-                        // TODO advancments
-                        // AdvancementTriggers.ELECTROCUTION_DEATH.trigger((ServerPlayer) entityLiving);
-                    }
                 }
             }
         }

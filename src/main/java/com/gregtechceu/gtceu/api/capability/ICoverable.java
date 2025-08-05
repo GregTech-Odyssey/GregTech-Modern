@@ -17,6 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -36,6 +37,10 @@ import java.util.stream.Collectors;
 public interface ICoverable extends ITickSubscription, IAppearance {
 
     BlockEntityDirectionCache getBlockEntityDirectionCache();
+
+    BlockEntity getNeighbor(Direction facing);
+
+    BlockEntity holder();
 
     Level getLevel();
 

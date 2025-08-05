@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.common.cover.detector;
 
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
-import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.RedstoneUtil;
 
 import net.minecraft.core.Direction;
@@ -42,7 +42,6 @@ public class ItemDetectorCover extends DetectorCover {
     }
 
     protected IItemHandler getItemHandler() {
-        return GTTransferUtils.getItemHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide).resolve()
-                .orElse(null);
+        return GTCapabilityHelper.getItemHandler(coverHolder.holder(), attachedSide);
     }
 }

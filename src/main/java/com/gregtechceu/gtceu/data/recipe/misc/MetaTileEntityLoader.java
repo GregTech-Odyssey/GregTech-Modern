@@ -404,21 +404,6 @@ public class MetaTileEntityLoader {
                 ROBOT_ARM.get(GTValues.UV), 'H', GTMachines.HULL[GTValues.UV].asStack(), 'W',
                 new MaterialEntry(TagPrefix.cableGtSingle, GTMaterials.YttriumBariumCuprate));
 
-        // TODO Access Interface
-        // VanillaRecipeHelper.addShapedRecipe(provider, true, "machine_access_interface",
-        // GTMachines.MACHINE_HATCH.getStackForm(), "CHS", 'C', CustomTags.IV), 'H',
-        // GTMachines.HULL[GTValues.IV].getStackForm(), 'S', MetaItems.SENSOR_IV.getStackForm());
-
-        VanillaRecipeHelper.addShapedRecipe(provider, true, "passthrough_hatch_item",
-                GTMachines.ITEM_PASSTHROUGH_HATCH[HV].asStack(), " C ", "GHG", " S ", 'C',
-                GTItems.CONVEYOR_MODULE_HV.asStack(), 'G', new MaterialEntry(TagPrefix.gearSmall, GTMaterials.Steel),
-                'H', GTMachines.HULL[HV].asStack(), 'S', Tags.Items.CHESTS_WOODEN);
-        VanillaRecipeHelper.addShapedRecipe(provider, true, "passthrough_hatch_fluid",
-                GTMachines.FLUID_PASSTHROUGH_HATCH[HV].asStack(), " C ", "GHG", " S ", 'C',
-                GTItems.ELECTRIC_PUMP_HV.asStack(), 'G',
-                new MaterialEntry(TagPrefix.pipeSmallFluid, GTMaterials.Steel), 'H', GTMachines.HULL[HV].asStack(),
-                'S', GTBlocks.CASING_TEMPERED_GLASS);
-
         // STEAM MACHINES
         VanillaRecipeHelper.addShapedRecipe(provider, true, "bronze_hull", GTBlocks.BRONZE_HULL.asStack(), "PPP", "PhP",
                 "PPP", 'P', new MaterialEntry(TagPrefix.plate, GTMaterials.Bronze));

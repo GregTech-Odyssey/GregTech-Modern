@@ -1,14 +1,13 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ILaserContainer;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class NotifiableLaserContainer extends NotifiableEnergyContainer implements ILaserContainer {
 
@@ -32,30 +31,23 @@ public class NotifiableLaserContainer extends NotifiableEnergyContainer implemen
 
     @Override
     public void serverTick() {
-        amps = 0;
-        if (getMachine().getLevel().isClientSide)
-            return;
-        if (getEnergyStored() < getOutputVoltage() || getOutputVoltage() <= 0 || getOutputAmperage() <= 0)
-            return;
-        long outputVoltage = getOutputVoltage();
-        long outputAmperes = Math.min(getEnergyStored() / outputVoltage, getOutputAmperage());
-        if (outputAmperes == 0) return;
-        long amperesUsed = 0;
-        for (Direction side : GTUtil.DIRECTIONS) {
-            if (!outputsEnergy(side)) continue;
-            BlockEntity tileEntity = getMachine().getNeighbor(side);
-            if (tileEntity == null) continue;
-            Direction oppositeSide = side.getOpposite();
-            ILaserContainer laserContainer = tileEntity.getCapability(GTCapability.CAPABILITY_LASER, oppositeSide).orElse(null);
-            if (laserContainer != null) {
-                if (!laserContainer.inputsEnergy(oppositeSide)) continue;
-                amperesUsed += laserContainer.acceptEnergyFromNetwork(oppositeSide, outputVoltage,
-                        outputAmperes - amperesUsed);
-                if (amperesUsed == outputAmperes) break;
+        long stored = getEnergyStored();
+        if (stored >= 0) {
+            long voltage = getOutputVoltage();
+            long canOutput = Math.min(stored, getOutputAmperage() * voltage);
+            long energyUsed = 0;
+            for (Direction side : GTUtil.DIRECTIONS) {
+                if (!outputsEnergy(side)) continue;
+                var oppositeSide = side.getOpposite();
+                var energyContainer = GTCapabilityHelper.getLaser(machine.getNeighbor(side), oppositeSide);
+                if (energyContainer != null && canOutput >= energyContainer.getInputVoltage() && energyContainer.inputsEnergy(oppositeSide)) {
+                    energyUsed += energyContainer.acceptEnergyFromNetwork(oppositeSide, voltage, canOutput - energyUsed);
+                    if (energyUsed == canOutput) break;
+                }
             }
-        }
-        if (amperesUsed > 0) {
-            setEnergyStored(getEnergyStored() - amperesUsed * outputVoltage);
+            if (energyUsed > 0) {
+                setEnergyStored(stored - energyUsed);
+            }
         }
     }
 }

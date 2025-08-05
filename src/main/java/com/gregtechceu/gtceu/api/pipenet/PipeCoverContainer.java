@@ -27,6 +27,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import org.jetbrains.annotations.Nullable;
@@ -94,6 +95,16 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
     @Override
     public BlockEntityDirectionCache getBlockEntityDirectionCache() {
         return pipeTile.blockEntityDirectionCache;
+    }
+
+    @Override
+    public BlockEntity getNeighbor(Direction facing) {
+        return pipeTile.getNeighbor(facing);
+    }
+
+    @Override
+    public BlockEntity holder() {
+        return pipeTile;
     }
 
     @Override

@@ -444,15 +444,11 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
 
     @Override
     protected InteractionResult onSoftMalletClick(Player playerIn, InteractionHand hand, Direction gridSide, BlockHitResult hitResult) {
-        var controllable = GTCapabilityHelper.getControllable(getLevel(), getPos(), gridSide);
-        if (controllable != null) {
-            if (!isRemote()) {
-                controllable.setWorkingEnabled(!controllable.isWorkingEnabled());
-                playerIn.sendSystemMessage(Component.translatable(controllable.isWorkingEnabled() ? "behaviour.soft_hammer.enabled" : "behaviour.soft_hammer.disabled"));
-            }
-            return InteractionResult.CONSUME;
+        if (!isRemote()) {
+            this.setWorkingEnabled(!this.isWorkingEnabled());
+            playerIn.sendSystemMessage(Component.translatable(this.isWorkingEnabled() ? "behaviour.soft_hammer.enabled" : "behaviour.soft_hammer.disabled"));
         }
-        return InteractionResult.PASS;
+        return InteractionResult.CONSUME;
     }
 
     public Direction getOutputFacingItems() {

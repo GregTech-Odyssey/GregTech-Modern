@@ -7,14 +7,12 @@ import java.math.BigInteger;
 public interface IEnergyContainer extends IEnergyInfoProvider {
 
     /**
-     * This method is basically {@link #changeEnergy(long)}, but it also handles amperes.
+     * This method is basically {@link #changeEnergy(long)}.
      * This method should always be used when energy is passed between blocks.
-     *
-     * @param voltage  amount of energy packets (energy to add / input voltage)
-     * @param amperage packet size (energy to add / input amperage)
-     * @return amount of used amperes. 0 if not accepted anything.
+     * 
+     * @return amount of energy added
      */
-    long acceptEnergyFromNetwork(Direction side, long voltage, long amperage);
+    long acceptEnergyFromNetwork(Direction side, long voltage, long energyToAdd);
 
     /**
      * @return if this container accepts energy from the given side

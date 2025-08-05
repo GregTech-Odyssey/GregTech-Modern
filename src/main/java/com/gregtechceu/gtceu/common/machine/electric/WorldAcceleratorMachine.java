@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.common.machine.electric;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
-import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
@@ -200,15 +199,11 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
     }
 
     protected InteractionResult onSoftMalletClick(Player playerIn, InteractionHand hand, Direction gridSide, BlockHitResult hitResult) {
-        var controllable = GTCapabilityHelper.getControllable(getLevel(), getPos(), gridSide);
-        if (controllable != null) {
-            if (!isRemote()) {
-                controllable.setWorkingEnabled(!controllable.isWorkingEnabled());
-                playerIn.sendSystemMessage(Component.translatable(controllable.isWorkingEnabled() ? "behaviour.soft_hammer.enabled" : "behaviour.soft_hammer.disabled"));
-            }
-            return InteractionResult.CONSUME;
+        if (!isRemote()) {
+            this.setWorkingEnabled(!this.isWorkingEnabled());
+            playerIn.sendSystemMessage(Component.translatable(this.isWorkingEnabled() ? "behaviour.soft_hammer.enabled" : "behaviour.soft_hammer.disabled"));
         }
-        return InteractionResult.PASS;
+        return InteractionResult.CONSUME;
     }
 
     @Override

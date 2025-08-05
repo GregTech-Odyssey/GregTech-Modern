@@ -12,7 +12,6 @@ import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.config.ConfigHolder;
-import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -79,7 +78,11 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
 
     protected CustomItemStackHandler createChargerInventory(Object... args) {
         var handler = new CustomItemStackHandler(this.inventorySize);
-        handler.setFilter(item -> GTCapabilityHelper.getElectricItem(item) != null || (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE && GTCapabilityHelper.getForgeEnergyItem(item) != null));
+        handler.setFilter(item -> {
+            var electric = GTCapabilityHelper.getElectricItem(item);
+            if (electric != null) return electric.getTier() <= getTier();
+            return ConfigHolder.INSTANCE.compat.energy.nativeEUToFE && GTCapabilityHelper.getForgeEnergyItem(item) != null;
+        });
         return handler;
     }
 
@@ -166,33 +169,13 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
         }
 
         @Override
-        public long acceptEnergyFromNetwork(@Nullable Direction side, long voltage, long amperage) {
-            var latestTimeStamp = getMachine().getOffsetTimer();
-            if (lastTimeStamp < latestTimeStamp) {
-                amps = 0;
-                lastTimeStamp = latestTimeStamp;
-            }
-            if (amperage <= 0 || voltage <= 0) {
-                changeState(State.IDLE);
-                return 0;
-            }
-            var electricItems = getNonFullElectricItem();
-            var maxAmps = electricItems.size() * AMPS_PER_ITEM - amps;
-            var usedAmps = Math.min(maxAmps, amperage);
-            if (maxAmps <= 0) {
-                return 0;
-            }
+        public long acceptEnergyFromNetwork(@Nullable Direction side, long voltage, long energyToAdd) {
             if (side == null || inputsEnergy(side)) {
-                if (voltage > getInputVoltage()) {
-                    doExplosion(GTUtil.getExplosionPower(voltage));
-                    return usedAmps;
-                }
-                // Prioritizes as many packets as available from the buffer
-                long internalAmps = Math.min(maxAmps, Math.max(0, getInternalStorage() / voltage));
-                usedAmps = Math.min(usedAmps, maxAmps - internalAmps);
-                amps += usedAmps;
-                long energy = (usedAmps + internalAmps) * voltage;
-                long distributed = energy / electricItems.size();
+                long canAccept = Math.min(energyToAdd, getEnergyCapacity() - getEnergyStored());
+                if (canAccept == 0) return 0;
+                var electricItems = getNonFullElectricItem();
+                long energyAdded = 0;
+                long distributed = canAccept / electricItems.size();
                 boolean changed = false;
                 for (var electricItem : electricItems) {
                     long charged = 0;
@@ -204,16 +187,14 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
                     if (charged > 0) {
                         changed = true;
                     }
-                    energy -= charged;
+                    energyAdded += charged;
                     energyInputPerSec += charged;
                 }
                 if (changed) {
                     ChargerMachine.this.markDirty();
                     changeState(State.RUNNING);
                 }
-                // Remove energy used and then transfer overflow energy into the internal buffer
-                setEnergyStored(getInternalStorage() - internalAmps * voltage + energy);
-                return usedAmps;
+                return energyAdded;
             }
             return 0;
         }
@@ -258,10 +239,6 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
             if (capacity != 0 && capacity == energyStored) {
                 changeState(State.FINISHED);
             }
-            return energyStored;
-        }
-
-        private long getInternalStorage() {
             return energyStored;
         }
     }

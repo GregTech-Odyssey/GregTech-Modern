@@ -55,13 +55,13 @@ public class CoverSolarPanel extends CoverBehavior {
         if (GTUtil.canSeeSunClearly(level, blockPos)) {
             IEnergyContainer energyContainer = getEnergyContainer();
             if (energyContainer != null) {
-                energyContainer.acceptEnergyFromNetwork(null, EUt, 1);
+                energyContainer.acceptEnergyFromNetwork(null, EUt, EUt);
             }
         }
     }
 
     @Nullable
     protected IEnergyContainer getEnergyContainer() {
-        return GTCapabilityHelper.getEnergyContainer(coverHolder.getLevel(), coverHolder.getPos(), attachedSide);
+        return GTCapabilityHelper.getEnergyContainer(coverHolder.holder(), attachedSide);
     }
 }

@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.common.pipelike.fluid;
 
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import com.gregtechceu.gtceu.common.blockentity.FluidPipeBlockEntity;
@@ -81,7 +80,7 @@ public class FluidNetHandler implements IFluidHandlerModifiable {
     }
 
     public CoverBehavior getCoverOnNeighbour(Direction handlerFacing) {
-        ICoverable coverable = GTCapabilityHelper.getBlockEntityCapability(GTCapability.CAPABILITY_COVERABLE, pipe.getNeighbor(handlerFacing), handlerFacing.getOpposite());
+        ICoverable coverable = GTCapabilityHelper.getCoverable(pipe.getNeighbor(handlerFacing), handlerFacing.getOpposite());
         if (coverable == null) return null;
         return coverable.getCoverAtSide(handlerFacing.getOpposite());
     }

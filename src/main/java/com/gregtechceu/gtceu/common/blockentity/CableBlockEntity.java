@@ -14,7 +14,6 @@ import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.pipelike.cable.*;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
-import com.gregtechceu.gtceu.utils.GTMath;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -53,9 +52,8 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
     protected WeakReference<EnergyNet> currentEnergyNet = new WeakReference<>(null);
     private static final int meltTemp = 3000;
     private final EnumMap<Direction, EnergyNetHandler> handlers = new EnumMap<>(Direction.class);
-    private final PerTickLongCounter maxVoltageCounter = new PerTickLongCounter();
-    private final AveragingPerTickCounter averageVoltageCounter = new AveragingPerTickCounter();
-    private final AveragingPerTickCounter averageAmperageCounter = new AveragingPerTickCounter();
+    private final PerTickLongCounter voltageCounter = new PerTickLongCounter();
+    private final PerTickLongCounter amperageCounter = new PerTickLongCounter();
     private EnergyNetHandler defaultHandler;
     private int heatQueue;
     @Persisted
@@ -165,16 +163,12 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
         return (CableBlock) super.getPipeBlock();
     }
 
-    public double getAverageAmperage() {
-        return averageAmperageCounter.getAverage(getLevel());
+    public long getCurrentVoltage() {
+        return voltageCounter.get(getLevel());
     }
 
-    public long getCurrentMaxVoltage() {
-        return maxVoltageCounter.get(getLevel());
-    }
-
-    public double getAverageVoltage() {
-        return averageVoltageCounter.getAverage(getLevel());
+    public double getCurrentAmperage() {
+        return amperageCounter.get(getLevel());
     }
 
     public long getMaxAmperage() {
@@ -189,27 +183,12 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
         return 293;
     }
 
-    public static int getMeltTemp() {
-        return meltTemp;
-    }
-
     /**
      * Should only be called internally
-     *
-     * @return if the cable should be destroyed
      */
-    public boolean incrementAmperage(long amps, long voltage) {
-        if (voltage > maxVoltageCounter.get(getLevel())) {
-            maxVoltageCounter.set(getLevel(), voltage);
-        }
-        averageVoltageCounter.increment(getLevel(), voltage * amps);
-        averageAmperageCounter.increment(getLevel(), amps);
-        int dif = GTMath.saturatedCast(averageAmperageCounter.getLast(getLevel()) - getMaxAmperage());
-        if (dif > 0) {
-            applyHeat(dif * 40);
-            return true;
-        }
-        return false;
+    public void incrementAmperage(long voltage, long amperage) {
+        voltageCounter.set(level, voltage);
+        amperageCounter.set(level, amperage);
     }
 
     public void applyHeat(int amount) {
@@ -308,8 +287,7 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
     public List<Component> getDataInfo(PortableScannerBehavior.DisplayMode mode) {
         List<Component> list = new ArrayList<>();
         if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_ELECTRICAL_INFO) {
-            list.add(Component.translatable("behavior.portable_scanner.eu_per_sec", Component.translatable(FormattingUtil.formatNumbers(getAverageVoltage())).withStyle(ChatFormatting.RED)));
-            list.add(Component.translatable("behavior.portable_scanner.amp_per_sec", Component.translatable(FormattingUtil.formatNumbers(getAverageAmperage())).withStyle(ChatFormatting.RED)));
+            list.add(Component.translatable("behavior.portable_scanner.eu_per_sec", Component.translatable(FormattingUtil.formatNumbers(getCurrentVoltage())).withStyle(ChatFormatting.RED)));
         }
         return list;
     }

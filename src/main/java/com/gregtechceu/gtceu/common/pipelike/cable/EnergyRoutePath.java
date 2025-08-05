@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.common.pipelike.cable;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.pipenet.IRoutePath;
 import com.gregtechceu.gtceu.common.blockentity.CableBlockEntity;
 
@@ -36,9 +35,9 @@ public class EnergyRoutePath implements IRoutePath<IEnergyContainer> {
         if (pipeBlockEntity == null) {
             pipeBlockEntity = world.getBlockEntity(getTargetPipePos()) instanceof PipeBlockEntity<?, ?> entity ? entity : null;
         } else {
-            return GTCapabilityHelper.getBlockEntityCapability(GTCapability.CAPABILITY_ENERGY_CONTAINER, pipeBlockEntity.getNeighbor(targetFacing), targetFacing.getOpposite());
+            return GTCapabilityHelper.getEnergyContainer(pipeBlockEntity.getNeighbor(targetFacing), targetFacing.getOpposite());
         }
-        return GTCapabilityHelper.getEnergyContainer(world, getTargetPipePos().relative(targetFacing), targetFacing.getOpposite());
+        return GTCapabilityHelper.getEnergyContainer(world.getBlockEntity(getTargetPipePos().relative(targetFacing)), targetFacing.getOpposite());
     }
 
     public @NotNull BlockPos getTargetPipePos() {

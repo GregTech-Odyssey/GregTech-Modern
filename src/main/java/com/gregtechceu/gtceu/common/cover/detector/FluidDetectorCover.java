@@ -1,12 +1,12 @@
 package com.gregtechceu.gtceu.common.cover.detector;
 
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.utils.RedstoneUtil;
 
 import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
 public class FluidDetectorCover extends DetectorCover {
@@ -47,7 +47,6 @@ public class FluidDetectorCover extends DetectorCover {
     }
 
     protected IFluidHandler getFluidHandler() {
-        return FluidUtil.getFluidHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide).resolve()
-                .orElse(null);
+        return GTCapabilityHelper.getFluidHandler(coverHolder.holder(), attachedSide);
     }
 }

@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.compat.FeCompat;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
@@ -21,6 +20,7 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
@@ -45,8 +45,6 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
     private long outputAmperage;
     private Predicate<Direction> sideInputCondition;
     private Predicate<Direction> sideOutputCondition;
-    protected long amps;
-    protected long lastTimeStamp;
     @Nullable
     protected TickableSubscription outputSubs;
     @Nullable
@@ -55,10 +53,10 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
     protected long lastEnergyOutputPerSec = 0;
     protected long energyInputPerSec = 0;
     protected long energyOutputPerSec = 0;
+    protected boolean checkOutput;
 
     public NotifiableEnergyContainer(MetaMachine machine, long maxCapacity, long maxInputVoltage, long maxInputAmperage, long maxOutputVoltage, long maxOutputAmperage) {
         super(machine);
-        this.lastTimeStamp = Long.MIN_VALUE;
         this.energyCapacity = maxCapacity;
         this.inputVoltage = maxInputVoltage;
         this.inputAmperage = maxInputAmperage;
@@ -95,8 +93,14 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
     }
 
     @Override
+    public void notifyListeners() {
+        notify = true;
+    }
+
+    @Override
     public void onMachineLoad() {
         super.onMachineLoad();
+        if (machine.isRemote()) return;
         checkOutputSubscription();
         updateSubs = getMachine().subscribeServerTick(updateSubs, this::updateTick);
     }
@@ -110,13 +114,20 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
         }
     }
 
+    protected void notifyOutputSubscription() {
+        checkOutput = true;
+    }
+
     public void checkOutputSubscription() {
-        if (getOutputVoltage() > 0 && getOutputAmperage() > 0) {
-            if (getEnergyStored() >= getOutputVoltage()) {
-                outputSubs = getMachine().subscribeServerTick(outputSubs, this::serverTick);
-            } else if (outputSubs != null) {
-                outputSubs.unsubscribe();
-                outputSubs = null;
+        checkOutput = false;
+        if (machine.getLevel() instanceof ServerLevel) {
+            if (getOutputVoltage() > 0 && getOutputAmperage() > 0) {
+                if (getEnergyStored() >= 0) {
+                    outputSubs = machine.subscribeServerTick(outputSubs, this::serverTick);
+                } else if (outputSubs != null) {
+                    outputSubs.unsubscribe();
+                    outputSubs = null;
+                }
             }
         }
     }
@@ -139,12 +150,19 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
             energyOutputPerSec += this.energyStored - energyStored;
         }
         this.energyStored = energyStored;
-        checkOutputSubscription();
+        notifyOutputSubscription();
         notifyListeners();
     }
 
     public void updateTick() {
+        if (checkOutput) {
+            checkOutputSubscription();
+        }
         if (getMachine().getOffsetTimer() % 20 == 0) {
+            if (notify) {
+                notify = false;
+                runListeners();
+            }
             lastEnergyOutputPerSec = energyOutputPerSec;
             lastEnergyInputPerSec = energyInputPerSec;
             energyOutputPerSec = 0;
@@ -153,23 +171,22 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
     }
 
     public void serverTick() {
-        if (getMachine().getLevel().isClientSide) return;
-        if (getEnergyStored() >= getOutputVoltage() && getOutputVoltage() > 0 && getOutputAmperage() > 0) {
-            long outputVoltage = getOutputVoltage();
-            long outputAmperes = Math.min(getEnergyStored() / outputVoltage, getOutputAmperage());
-            if (outputAmperes == 0) return;
-            long amperesUsed = 0;
+        long stored = getEnergyStored();
+        if (stored >= 0) {
+            long voltage = getOutputVoltage();
+            long canOutput = Math.min(stored, getOutputAmperage() * voltage);
+            long energyUsed = 0;
             for (Direction side : GTUtil.DIRECTIONS) {
                 if (!outputsEnergy(side)) continue;
                 var oppositeSide = side.getOpposite();
-                var energyContainer = GTCapabilityHelper.getBlockEntityCapability(GTCapability.CAPABILITY_ENERGY_CONTAINER, machine.getNeighbor(side), oppositeSide);
+                var energyContainer = GTCapabilityHelper.getEnergyContainer(machine.getNeighbor(side), oppositeSide);
                 if (energyContainer != null && energyContainer.inputsEnergy(oppositeSide)) {
-                    amperesUsed += energyContainer.acceptEnergyFromNetwork(oppositeSide, outputVoltage, outputAmperes - amperesUsed);
-                    if (amperesUsed == outputAmperes) break;
+                    energyUsed += energyContainer.acceptEnergyFromNetwork(oppositeSide, voltage, canOutput - energyUsed);
+                    if (energyUsed == canOutput) break;
                 }
             }
-            if (amperesUsed > 0) {
-                setEnergyStored(getEnergyStored() - amperesUsed * outputVoltage);
+            if (energyUsed > 0) {
+                setEnergyStored(stored - energyUsed);
             }
         }
     }
@@ -241,26 +258,18 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
     }
 
     @Override
-    public long acceptEnergyFromNetwork(Direction side, long voltage, long amperage) {
-        var latestTimeStamp = getMachine().getOffsetTimer();
-        if (lastTimeStamp < latestTimeStamp) {
-            amps = 0;
-            lastTimeStamp = latestTimeStamp;
-        }
-        if (amps >= getInputAmperage()) return 0;
-        long canAccept = getEnergyCapacity() - getEnergyStored();
-        if (voltage > 0L && (side == null || inputsEnergy(side))) {
-            if (voltage > getInputVoltage() && machine instanceof IExplosionMachine explosionMachine) {
-                explosionMachine.doExplosion(GTUtil.getExplosionPower(voltage));
-                return Math.min(amperage, getInputAmperage() - amps);
+    public long acceptEnergyFromNetwork(Direction side, long voltage, long energyAdded) {
+        if (side == null || inputsEnergy(side)) {
+            long inputVoltage = getInputVoltage();
+            if (voltage > inputVoltage && machine instanceof IExplosionMachine explosionMachine) {
+                explosionMachine.doExplosion(GTUtil.getTierByVoltage(voltage));
+                return 0;
             }
-            if (canAccept >= voltage) {
-                long amperesAccepted = Math.min(canAccept / voltage, Math.min(amperage, getInputAmperage() - amps));
-                if (amperesAccepted > 0) {
-                    setEnergyStored(getEnergyStored() + voltage * amperesAccepted);
-                    amps += amperesAccepted;
-                    return amperesAccepted;
-                }
+            long stored = getEnergyStored();
+            energyAdded = Math.min(getEnergyCapacity() - stored, Math.min(energyAdded, inputVoltage * getInputAmperage()));
+            if (energyAdded > 0) {
+                setEnergyStored(stored + energyAdded);
+                return energyAdded;
             }
         }
         return 0;
