@@ -100,10 +100,6 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
         }
     }
 
-    protected RecipeLogic createRecipeLogic(@SuppressWarnings("unused") Object... args) {
-        return new RecipeLogic(this);
-    }
-
     @Override
     public void onUnload() {
         super.onUnload();
@@ -176,7 +172,7 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
         this.cleanroom = cleanroom;
     }
 
-    public RecipeLogic getRecipeLogic() {
+    public @NotNull RecipeLogic getRecipeLogic() {
         return this.recipeLogic;
     }
 

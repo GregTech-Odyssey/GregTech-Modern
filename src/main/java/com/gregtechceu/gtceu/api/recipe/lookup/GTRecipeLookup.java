@@ -42,7 +42,7 @@ public class GTRecipeLookup {
      */
     @Nullable
     public GTRecipe findRecipe(final IRecipeCapabilityHolder holder) {
-        return find(holder, recipe -> RecipeHelper.matchRecipe(holder, recipe).isSuccess());
+        return find(holder, recipe -> RecipeHelper.matchRecipe(holder, recipe));
     }
 
     /**

@@ -16,6 +16,7 @@ import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Used to store {@link appeng.api.stacks.GenericStack } in a way that associates key and amount.
@@ -24,7 +25,10 @@ import java.util.Iterator;
 @MethodsReturnNonnullByDefault
 public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAware, Iterable<Object2LongMap.Entry<AEKey>> {
 
-    public final Object2LongOpenHashMap<AEKey> storage = new Object2LongOpenHashMap<>(); // TODO trim periodically or
+    public final ReentrantLock lock = new ReentrantLock();
+
+    public final Object2LongOpenHashMap<AEKey> storage = new Object2LongOpenHashMap<>();
+
     // not
     @Nullable
     private Runnable onContentsChanged;
@@ -66,11 +70,16 @@ public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAwar
     @Override
     public ListTag serializeNBT() {
         var list = new ListTag();
-        for (var entry : storage.object2LongEntrySet()) {
-            var tag = new CompoundTag();
-            tag.put("key", entry.getKey().toTagGeneric());
-            tag.putLong("value", entry.getLongValue());
-            list.add(tag);
+        lock.lock();
+        try {
+            for (Object2LongMap.Entry<AEKey> entry : this) {
+                var tag = new CompoundTag();
+                tag.put("key", entry.getKey().toTagGeneric());
+                tag.putLong("value", entry.getLongValue());
+                list.add(tag);
+            }
+        } finally {
+            lock.unlock();
         }
         return list;
     }
@@ -81,13 +90,18 @@ public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAwar
             var tag = tags.getCompound(i);
             var key = AEKey.fromTagGeneric(tag.getCompound("key"));
             long value = tag.getLong("value");
-            storage.put(key, value);
+            lock.lock();
+            try {
+                storage.put(key, value);
+            } finally {
+                lock.unlock();
+            }
         }
     }
 
     @Override
     public Iterator<Object2LongMap.Entry<AEKey>> iterator() {
-        return storage.object2LongEntrySet().iterator();
+        return storage.object2LongEntrySet().fastIterator();
     }
 
     public boolean isEmpty() {

@@ -77,7 +77,7 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     //////////////////////////////////////
     @Override
     @NotNull
-    protected RecipeLogic createRecipeLogic(Object... args) {
+    public RecipeLogic createRecipeLogic(Object... args) {
         if (args.length > 2 && args[args.length - 3] instanceof Integer fortune && args[args.length - 2] instanceof Integer speed && args[args.length - 1] instanceof Integer maxRadius) {
             return new SteamMinerLogic(this, fortune, speed, maxRadius);
         }
@@ -85,7 +85,7 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     }
 
     @Override
-    public SteamMinerLogic getRecipeLogic() {
+    public @NotNull SteamMinerLogic getRecipeLogic() {
         return (SteamMinerLogic) super.getRecipeLogic();
     }
 

@@ -74,7 +74,7 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
     //////////////////////////////////////
     @Override
     @NotNull
-    protected RecipeLogic createRecipeLogic(Object... args) {
+    public RecipeLogic createRecipeLogic(Object... args) {
         if (args[args.length - 3] instanceof Integer fortune && args[args.length - 2] instanceof Integer speed && args[args.length - 1] instanceof Integer maxRadius) {
             return new LargeMinerLogic(this, fortune, speed, maxRadius * CHUNK_LENGTH / 2);
         }
@@ -88,7 +88,7 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
     }
 
     @Override
-    public LargeMinerLogic getRecipeLogic() {
+    public @NotNull LargeMinerLogic getRecipeLogic() {
         return (LargeMinerLogic) super.getRecipeLogic();
     }
 

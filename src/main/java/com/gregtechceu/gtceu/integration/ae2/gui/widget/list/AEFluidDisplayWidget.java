@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.gregtechceu.gtceu.integration.ae2.gui.widget.slot.AEConfigSlotWidget.drawSelectionOverlay;
 import static com.lowdragmc.lowdraglib.gui.util.DrawerHelper.drawText;
 
 /**
@@ -60,7 +59,7 @@ public class AEFluidDisplayWidget extends Widget {
             drawText(graphics, amountStr, stackX + 20, stackY + 5, 1, 0xFFFFFFFF);
         }
         if (isMouseOverElement(mouseX, mouseY)) {
-            drawSelectionOverlay(graphics, stackX, stackY, 16, 16);
+            AEListGridWidget.drawSelectionOverlay(graphics, stackX, stackY, 16, 16);
         }
     }
 

@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfigurator;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyCustomMiddleClickAction;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyCustomMouseWheelAction;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
+import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
 
@@ -21,7 +22,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,9 +38,9 @@ public class CircuitFancyConfigurator implements IFancyConfigurator, IFancyCusto
 
     private static final int NO_CONFIG = -1;
 
-    final ItemStackHandler circuitSlot;
+    final CustomItemStackHandler circuitSlot;
 
-    public CircuitFancyConfigurator(ItemStackHandler circuitSlot) {
+    public CircuitFancyConfigurator(CustomItemStackHandler circuitSlot) {
         this.circuitSlot = circuitSlot;
     }
 

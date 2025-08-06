@@ -197,7 +197,7 @@ public class RotorHolderPartMachine extends TieredPartMachine implements IMachin
     @Override
     public void setRotorStack(ItemStack rotorStack) {
         inventory.setStackInSlot(0, rotorStack);
-        inventory.onContentsChanged();
+        inventory.notifyListeners();
     }
 
     public InteractionResult onUse(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {

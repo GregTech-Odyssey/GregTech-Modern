@@ -14,7 +14,6 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.GenericStack;
 import org.jetbrains.annotations.NotNull;
 
-import static com.gregtechceu.gtceu.integration.ae2.gui.widget.slot.AEConfigSlotWidget.drawSelectionOverlay;
 import static com.lowdragmc.lowdraglib.gui.util.DrawerHelper.drawItemStack;
 import static com.lowdragmc.lowdraglib.gui.util.DrawerHelper.drawText;
 
@@ -48,7 +47,7 @@ public class AEItemDisplayWidget extends Widget {
             drawText(graphics, amountStr, stackX + 20, stackY + 5, 1, 0xFFFFFFFF);
         }
         if (isMouseOverElement(mouseX, mouseY)) {
-            drawSelectionOverlay(graphics, stackX, stackY, 16, 16);
+            AEListGridWidget.drawSelectionOverlay(graphics, stackX, stackY, 16, 16);
         }
     }
 

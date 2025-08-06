@@ -40,16 +40,13 @@ public class FluidDrillLogic extends RecipeLogic {
             if (veinFluid == null) {
                 this.veinFluid = data.getFluidInChunk(getChunkX(), getChunkZ());
                 if (this.veinFluid == null) {
-                    if (subscription != null) {
-                        subscription.unsubscribe();
-                        subscription = null;
-                    }
+                    unsubscribe();
                     return;
                 }
             }
             var match = getFluidDrillRecipe();
             if (match != null) {
-                if (RecipeHelper.matchContents(this.machine, match).isSuccess()) {
+                if (RecipeHelper.matchContents(this.machine, match)) {
                     setupRecipe(match);
                 }
             }
@@ -61,7 +58,7 @@ public class FluidDrillLogic extends RecipeLogic {
         if (getMachine().getLevel() instanceof ServerLevel serverLevel && veinFluid != null) {
             var data = BedrockFluidVeinSavedData.getOrCreate(serverLevel);
             var recipe = GTRecipeBuilder.ofRaw().duration(MAX_PROGRESS).EUt(GTValues.VA[getMachine().getEnergyTier()]).outputFluids(new FluidStack(veinFluid, getFluidToProduce(data.getFluidVeinWorldEntry(getChunkX(), getChunkZ())))).buildRawRecipe();
-            if (RecipeHelper.matchContents(getMachine(), recipe).isSuccess()) {
+            if (RecipeHelper.matchContents(getMachine(), recipe)) {
                 return recipe;
             }
         }
@@ -103,7 +100,7 @@ public class FluidDrillLogic extends RecipeLogic {
         // try it again
         var match = getFluidDrillRecipe();
         if (match != null) {
-            if (RecipeHelper.matchContents(this.machine, match).isSuccess()) {
+            if (RecipeHelper.matchContents(this.machine, match)) {
                 setupRecipe(match);
                 return;
             }

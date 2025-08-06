@@ -41,6 +41,7 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
     @DescSynced
     protected FilterMode filterMode = FilterMode.FILTER_INSERT;
     private FilteredItemHandlerWrapper itemFilterWrapper;
+    @Persisted
     protected ManualIOMode allowFlow = ManualIOMode.DISABLED;
 
     public ItemFilterCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {

@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.api.transfer.fluid;
 
+import com.gregtechceu.gtceu.utils.GTUtil;
+
 import com.lowdragmc.lowdraglib.syncdata.IContentChangeAware;
 import com.lowdragmc.lowdraglib.syncdata.ITagSerializable;
 
@@ -14,7 +16,7 @@ import java.util.function.Predicate;
 public class CustomFluidTank extends FluidTank implements IFluidHandlerModifiable, ITagSerializable<CompoundTag>, IContentChangeAware {
 
     @NotNull
-    protected Runnable onContentsChanged = () -> {};
+    protected Runnable onContentsChanged = GTUtil.NOOP;
 
     public CustomFluidTank(int capacity) {
         super(capacity, e -> true);
@@ -27,11 +29,6 @@ public class CustomFluidTank extends FluidTank implements IFluidHandlerModifiabl
     public CustomFluidTank(FluidStack stack) {
         super(stack.getAmount());
         setFluid(stack);
-    }
-
-    @Override
-    protected void onContentsChanged() {
-        onContentsChanged.run();
     }
 
     @Override
@@ -55,15 +52,19 @@ public class CustomFluidTank extends FluidTank implements IFluidHandlerModifiabl
         readFromNBT(nbt);
     }
 
+    @Override
+    public void onContentsChanged() {
+        onContentsChanged.run();
+    }
+
     @NotNull
+    @Override
     public Runnable getOnContentsChanged() {
         return this.onContentsChanged;
     }
 
+    @Override
     public void setOnContentsChanged(@NotNull final Runnable onContentsChanged) {
-        if (onContentsChanged == null) {
-            throw new NullPointerException("onContentsChanged is marked non-null but is null");
-        }
         this.onContentsChanged = onContentsChanged;
     }
 }

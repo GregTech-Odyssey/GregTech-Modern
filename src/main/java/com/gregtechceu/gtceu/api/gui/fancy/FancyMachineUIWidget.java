@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.gui.fancy;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
@@ -83,7 +84,7 @@ public class FancyMachineUIWidget extends WidgetGroup {
                 // In case the user manually navigates back one step, just remove it from the navigation stack
                 this.previousPages.pop();
             } else if (this.currentPage != null) {
-                this.previousPages.push(new NavigationEntry(this.currentPage, this.currentHomePage, () -> {}));
+                this.previousPages.push(new NavigationEntry(this.currentPage, this.currentHomePage, GTUtil.NOOP));
             }
         } else {
             this.previousPages.clear();

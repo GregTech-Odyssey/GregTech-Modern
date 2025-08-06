@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.integration.ae2.utils.KeyStorage;
 import com.lowdragmc.lowdraglib.gui.widget.DraggableScrollableWidgetGroup;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -13,11 +14,14 @@ import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.GenericStack;
+import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.lowdragmc.lowdraglib.gui.util.DrawerHelper.drawGradientRect;
 
 /**
  * A display only widget for {@link KeyStorage}
@@ -71,7 +75,7 @@ public abstract class AEListGridWidget extends DraggableScrollableWidgetGroup {
         this.changeMap.clear();
 
         // Remove
-        var cachedIt = cached.storage.object2LongEntrySet().iterator();
+        var cachedIt = cached.iterator();
         while (cachedIt.hasNext()) {
             var entry = cachedIt.next();
             var cachedKey = entry.getKey();
@@ -82,7 +86,7 @@ public abstract class AEListGridWidget extends DraggableScrollableWidgetGroup {
         }
 
         // Change/Add
-        for (var entry : list.storage.object2LongEntrySet()) {
+        for (var entry : list) {
             var key = entry.getKey();
             long value = entry.getLongValue();
             long cacheValue = cached.storage.getOrDefault(key, 0);
@@ -185,6 +189,16 @@ public abstract class AEListGridWidget extends DraggableScrollableWidgetGroup {
         if (this.list == null) return;
         this.modifySlotRows(buffer.readVarInt());
         this.readListChange(buffer);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static void drawSelectionOverlay(GuiGraphics graphics, int x, int y, int width, int height) {
+        RenderSystem.disableDepthTest();
+        RenderSystem.colorMask(true, true, true, false);
+        drawGradientRect(graphics, x, y, width, height, -2130706433, -2130706433);
+        RenderSystem.colorMask(true, true, true, true);
+        RenderSystem.enableDepthTest();
+        RenderSystem.enableBlend();
     }
 
     public static class Item extends AEListGridWidget {

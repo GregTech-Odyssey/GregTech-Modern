@@ -132,11 +132,15 @@ public class ProspectingMapWidget extends WidgetGroup implements SearchComponent
     public void detectAndSendChanges() {
         var player = gui.entityPlayer;
         var world = player.level();
-        if (gui.getTickCount() % scanTick == 0 && chunkIndex < (chunkRadius * 2 - 1) * (chunkRadius * 2 - 1)) {
-            int row = chunkIndex / (chunkRadius * 2 - 1);
-            int column = chunkIndex % (chunkRadius * 2 - 1);
+        var held = player.getItemInHand(InteractionHand.MAIN_HAND);
+        while (chunkIndex < ((chunkRadius << 1) - 1) * ((chunkRadius << 1) - 1)) {
+
+            int row = chunkIndex / ((chunkRadius << 1) - 1);
+            int column = chunkIndex % ((chunkRadius << 1) - 1);
+
             int ox = column - chunkRadius + 1;
             int oz = row - chunkRadius + 1;
+
             var chunk = world.getChunk(playerChunkX + ox, playerChunkZ + oz);
             if (mode == ProspectorMode.ORE) {
                 ServerCache.instance.prospectAllInChunk(world.dimension(), chunk.getPos(), (ServerPlayer) player);
@@ -145,13 +149,12 @@ public class ProspectingMapWidget extends WidgetGroup implements SearchComponent
             mode.scan(packet.data, chunk);
             writeUpdateInfo(-1, packet::writePacketData);
             chunkIndex++;
-        }
-        var held = player.getItemInHand(InteractionHand.MAIN_HAND);
-        if (held.getItem() instanceof IComponentItem componentItem) {
-            for (var component : componentItem.getComponents()) {
-                if (component instanceof ProspectorScannerBehavior prospector) {
-                    if (!player.isCreative() && !prospector.drainEnergy(held, false)) {
-                        player.closeContainer();
+            if (held.getItem() instanceof IComponentItem componentItem) {
+                for (var component : componentItem.getComponents()) {
+                    if (component instanceof ProspectorScannerBehavior prospector) {
+                        if (!player.isCreative() && !prospector.drainEnergy(held, false)) {
+                            player.closeContainer();
+                        }
                     }
                 }
             }
@@ -173,8 +176,7 @@ public class ProspectingMapWidget extends WidgetGroup implements SearchComponent
     public void updateScreen() {
         super.updateScreen();
         if (packetQueue != null) {
-            int max = 10;
-            while (max-- > 0 && !packetQueue.isEmpty()) {
+            while (!packetQueue.isEmpty()) {
                 var packet = packetQueue.poll();
                 texture.updateTexture(packet);
                 addOresToList(packet.data);

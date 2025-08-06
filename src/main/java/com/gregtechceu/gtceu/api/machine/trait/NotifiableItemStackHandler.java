@@ -43,7 +43,6 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
         this.handlerIO = handlerIO;
         this.storage = storageFactory.apply(slots);
         this.capabilityIO = capabilityIO;
-        this.storage.setOnContentsChanged(this::onContentsChanged);
     }
 
     public NotifiableItemStackHandler(MetaMachine machine, int slots, @NotNull IO handlerIO, @NotNull IO capabilityIO) {
@@ -59,9 +58,15 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
         return this;
     }
 
-    public void onContentsChanged() {
+    @Override
+    protected void onAddListener() {
+        this.storage.setOnContentsChanged(this::notifyListeners);
+    }
+
+    @Override
+    public void notifyListeners() {
+        super.notifyListeners();
         isEmpty = null;
-        notifyListeners();
     }
 
     @Override
@@ -79,10 +84,6 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     public static List<Ingredient> handleRecipe(IO io, GTRecipe recipe, List<Ingredient> left, boolean simulate, IO handlerIO, CustomItemStackHandler storage) {
         if (io != handlerIO) return left;
         if (io != IO.IN && io != IO.OUT) return left.isEmpty() ? null : left;
-        // Temporarily remove listener so that we can broadcast the entire set of transactions once
-        Runnable listener = storage.getOnContentsChanged();
-        storage.setOnContentsChanged(() -> {});
-        boolean changed = false;
         // Store the ItemStack in each slot after an operation
         // Necessary for simulation since we don't actually modify the slot's contents
         // Doesn't hurt for execution, and definitely cheaper than copying the entire storage
@@ -142,7 +143,6 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
                     if (ingredient.test(current)) {
                         var extracted = storage.extractItem(slot, Math.min(count, amount), simulate);
                         if (!extracted.isEmpty()) {
-                            changed = true;
                             visited[slot] = extracted.copyWithCount(count - extracted.getCount());
                         }
                         amount -= extracted.getCount();
@@ -155,7 +155,6 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
                         if (count < output.getMaxStackSize() && count < storage.getSlotLimit(slot)) {
                             var remainder = storage.insertItem(slot, output, simulate);
                             if (remainder.getCount() < amount) {
-                                changed = true;
                                 visited[slot] = output.copyWithCount(count + amount - remainder.getCount());
                             }
                             amount = remainder.getCount();
@@ -176,8 +175,6 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
                 }
             }
         }
-        storage.setOnContentsChanged(listener);
-        if (changed && !simulate) listener.run();
         return left.isEmpty() ? null : left;
     }
 
@@ -203,14 +200,14 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     @Override
     @NotNull
     public List<Object> getContents() {
-        List<ItemStack> stacks = new ArrayList<>();
+        var stacks = new ArrayList<>();
         for (int i = 0; i < getSlots(); ++i) {
             ItemStack stack = getStackInSlot(i);
             if (!stack.isEmpty()) {
                 stacks.add(stack);
             }
         }
-        return new ArrayList<>(stacks);
+        return stacks;
     }
 
     @Override

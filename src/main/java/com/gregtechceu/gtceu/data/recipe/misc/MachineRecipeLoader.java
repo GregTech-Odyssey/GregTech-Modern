@@ -16,7 +16,6 @@ import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
-import com.gregtechceu.gtceu.common.data.machines.GTAEMachines;
 import com.gregtechceu.gtceu.common.data.machines.GTMachineUtils;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
@@ -1614,18 +1613,5 @@ public class MachineRecipeLoader {
                 "d", "B", 'B', STEAM_IMPORT_BUS.asStack());
         VanillaRecipeHelper.addShapedRecipe(provider, "steam_bus_input_to_output", STEAM_IMPORT_BUS.asStack(),
                 "d", "B", 'B', STEAM_EXPORT_BUS.asStack());
-
-        VanillaRecipeHelper.addShapedRecipe(provider, "me_fluid_hatch_output_to_input",
-                GTAEMachines.FLUID_IMPORT_HATCH_ME.asStack(), "d", "B", 'B',
-                GTAEMachines.FLUID_EXPORT_HATCH_ME.asStack());
-        VanillaRecipeHelper.addShapedRecipe(provider, "me_fluid_hatch_input_to_output",
-                GTAEMachines.FLUID_EXPORT_HATCH_ME.asStack(), "d", "B", 'B',
-                GTAEMachines.FLUID_IMPORT_HATCH_ME.asStack());
-        VanillaRecipeHelper.addShapedRecipe(provider, "me_item_bus_output_to_input",
-                GTAEMachines.ITEM_IMPORT_BUS_ME.asStack(), "d", "B", 'B',
-                GTAEMachines.ITEM_EXPORT_BUS_ME.asStack());
-        VanillaRecipeHelper.addShapedRecipe(provider, "me_item_bus_input_to_output",
-                GTAEMachines.ITEM_EXPORT_BUS_ME.asStack(), "d", "B", 'B',
-                GTAEMachines.ITEM_IMPORT_BUS_ME.asStack());
     }
 }

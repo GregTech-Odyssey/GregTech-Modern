@@ -62,8 +62,8 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
         return new NotifiableItemStackHandler(this, getInventorySize(), IO.BOTH) {
 
             @Override
-            public void onContentsChanged() {
-                super.onContentsChanged();
+            public void notifyListeners() {
+                super.notifyListeners();
                 rebuildData(isFormed() && getControllers().first() instanceof DataBankMachine);
             }
 

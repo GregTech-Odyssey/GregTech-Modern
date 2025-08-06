@@ -120,8 +120,6 @@ public class ToolHelper {
     public static final String HARVEST_ICE_KEY = "HarvestIce";
     public static final String TORCH_PLACING_KEY = "TorchPlacing";
     public static final String TORCH_PLACING_CACHE_SLOT_KEY = "TorchPlacing$Slot";
-    public static final String TREE_FELLING_KEY = "TreeFelling";
-    public static final String DISABLE_TREE_FELLING_KEY = "DisableTreeFelling";
     public static final String DISABLE_SHIELDS_KEY = "DisableShields";
     public static final String RELOCATE_MINED_BLOCKS_KEY = "RelocateMinedBlocks";
     public static final String RELOCATE_MOB_DROPS_KEY = "RelocateMobDrops";
@@ -401,10 +399,10 @@ public class ToolHelper {
                 be.getMetaMachine().reinitializeHandlers(List.of(dummyInputs, dummyOutputs));
 
                 Iterator<GTRecipe> hammerRecipes = GTRecipeTypes.FORGE_HAMMER_RECIPES.searchRecipe(be.metaMachine,
-                        r -> RecipeHelper.matchContents(be.metaMachine, r).isSuccess());
+                        r -> RecipeHelper.matchContents(be.metaMachine, r));
                 GTRecipe hammerRecipe = !hammerRecipes.hasNext() ? null : hammerRecipes.next();
                 if (hammerRecipe != null && RecipeHelper.handleRecipeIO(be.metaMachine, hammerRecipe, IO.IN,
-                        be.getMetaMachine().recipeLogic.getChanceCaches()).isSuccess()) {
+                        be.getMetaMachine().recipeLogic.getChanceCaches())) {
                     drops.clear();
                     TagPrefix prefix = ChemicalHelper.getPrefix(silktouchDrop.getItem());
                     if (prefix.isEmpty()) {

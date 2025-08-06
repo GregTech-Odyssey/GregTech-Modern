@@ -8,12 +8,10 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
-import com.gregtechceu.gtceu.api.recipe.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.sound.AutoReleasedSound;
-import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
@@ -23,6 +21,8 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.UpdateListener;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.TickTask;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -39,15 +39,17 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
         IDLE,
         WORKING,
         WAITING,
-        SUSPEND;
+        SUSPEND
     }
+
+    public static int SEARCH_MAX_INTERVAL = 20;
 
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(RecipeLogic.class);
     public final IRecipeLogicMachine machine;
     @Persisted
     @DescSynced
     @UpdateListener(methodName = "onStatusSynced")
-    private Status status = Status.IDLE;
+    protected Status status = Status.IDLE;
     @Persisted
     @DescSynced
     @UpdateListener(methodName = "onActiveSynced")
@@ -55,7 +57,7 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
     @Nullable
     @Persisted
     @DescSynced
-    private Component waitingReason = null;
+    protected Component waitingReason = null;
     /**
      * unsafe, it may not be found from {@link RecipeManager}. Do not index it.
      */
@@ -71,10 +73,10 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
     @Persisted
     protected GTRecipe lastOriginRecipe;
     @Persisted
-    protected int progress;
+    public int progress;
     @Persisted
     protected int duration;
-    protected boolean recipeDirty;
+    protected boolean recipeDirty = true;
     @Persisted
     protected long totalContinuousRunningTime;
     @Persisted
@@ -82,6 +84,8 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
     protected final Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches = makeChanceCaches();
     protected TickableSubscription subscription;
     protected Object workingSound;
+    protected boolean wait;
+    protected int interval = 5;
 
     public RecipeLogic(IRecipeLogicMachine machine) {
         super(machine.self());
@@ -125,18 +129,35 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
     @Override
     public void onMachineLoad() {
         super.onMachineLoad();
-        updateTickSubscription();
+        if (getMachine().getLevel() instanceof ServerLevel serverLevel) {
+            serverLevel.getServer().tell(new TickTask(1, this::loadTickSubscription));
+        }
+    }
+
+    @Override
+    public void onMachineUnLoad() {
+        super.onMachineUnLoad();
+        unsubscribe();
+    }
+
+    public void unsubscribe() {
+        if (subscription != null) {
+            subscription.unsubscribe();
+            subscription = null;
+        }
+    }
+
+    public void loadTickSubscription() {
+        if (isSuspend() || !machine.isRecipeLogicAvailable()) {
+            unsubscribe();
+        } else {
+            subscription = getMachine().subscribeServerTick(subscription, this::serverTick);
+            this.wait = false;
+        }
     }
 
     public void updateTickSubscription() {
-        if (isSuspend() || !machine.isRecipeLogicAvailable()) {
-            if (subscription != null) {
-                subscription.unsubscribe();
-                subscription = null;
-            }
-        } else {
-            subscription = getMachine().subscribeServerTick(subscription, this::serverTick);
-        }
+        this.wait = false;
     }
 
     public double getProgressPercent() {
@@ -144,52 +165,41 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
     }
 
     public void serverTick() {
-        if (!isSuspend()) {
-            if (!isIdle() && lastRecipe != null) {
-                if (progress < duration) {
-                    handleRecipeWorking();
-                }
-                if (progress >= duration) {
-                    onRecipeFinish();
-                }
-            } else if (lastRecipe != null) {
-                findAndHandleRecipe();
-            } else if (!machine.keepSubscribing() || getMachine().getOffsetTimer() % 20 == 0) {
-                findAndHandleRecipe();
+        if (wait) return;
+        if (!isIdle() && lastRecipe != null) {
+            if (progress < duration) {
+                handleRecipeWorking();
+            } else {
+                machine.onRecipeFinish();
+                onRecipeFinish();
             }
-        }
-        boolean unsubscribe = false;
-        if (isSuspend()) {
-            // Machine is paused and can unsubscribe
-            unsubscribe = true;
-        } else if (lastRecipe == null && isIdle() && !machine.keepSubscribing() && !recipeDirty) {
-            // No recipes available and the machine wants to unsubscribe until notified
-            unsubscribe = true;
-        }
-        if (unsubscribe && subscription != null) {
-            subscription.unsubscribe();
-            subscription = null;
+        } else if (getMachine().getOffsetTimer() % interval == 0) {
+            recipeDirty = false;
+            findAndHandleRecipe();
+            if (lastRecipe == null) {
+                if (interval < SEARCH_MAX_INTERVAL) {
+                    interval <<= 1;
+                }
+                if (!machine.keepSubscribing()) wait = true;
+            }
         }
     }
 
-    protected ActionResult matchRecipe(GTRecipe recipe) {
+    protected boolean matchRecipe(GTRecipe recipe) {
         return RecipeHelper.matchContents(machine, recipe);
     }
 
-    protected ActionResult checkRecipe(GTRecipe recipe) {
-        var conditionResult = RecipeHelper.checkConditions(recipe, this);
-        if (!conditionResult.isSuccess()) return conditionResult;
-        return matchRecipe(recipe);
+    protected boolean checkConditions(GTRecipe recipe) {
+        return RecipeHelper.checkConditions(recipe, this).isSuccess();
     }
 
     public boolean checkMatchedRecipeAvailable(GTRecipe match) {
-        var modified = machine.fullModifyRecipe(match);
+        var modified = machine.fullModifyRecipe(match.copy());
         if (modified != null) {
-            var recipeMatch = checkRecipe(modified);
-            if (recipeMatch.isSuccess()) {
+            if (matchRecipe(modified)) {
                 setupRecipe(modified);
             }
-            if (lastRecipe != null && getStatus() == Status.WORKING) {
+            if (lastRecipe != null && status == RecipeLogic.Status.WORKING) {
                 lastOriginRecipe = match;
                 return true;
             }
@@ -199,97 +209,67 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
 
     public void handleRecipeWorking() {
         assert lastRecipe != null;
-        var conditionResult = RecipeHelper.checkConditions(lastRecipe, this);
-        if (conditionResult.isSuccess()) {
-            var handleTick = handleTickRecipe(lastRecipe);
-            if (handleTick.isSuccess()) {
-                setStatus(Status.WORKING);
-                if (!machine.onWorking()) {
-                    this.interruptRecipe();
-                    return;
-                }
-                progress++;
-                totalContinuousRunningTime++;
-            } else {
-                setWaiting(handleTick.reason());
+        if (handleTickRecipe(lastRecipe)) {
+            if (!machine.onWorking()) {
+                interruptRecipe();
+                return;
             }
+            setStatus(RecipeLogic.Status.WORKING);
+            progress++;
+            totalContinuousRunningTime++;
         } else {
-            setWaiting(conditionResult.reason());
+            setWaiting(null);
         }
         if (isWaiting()) {
-            regressRecipe();
-        }
-    }
-
-    protected void regressRecipe() {
-        if (progress > 0 && machine.regressWhenWaiting()) {
-            if (ConfigHolder.INSTANCE.machines.recipeProgressLowEnergy) {
-                this.progress = 1;
-            } else {
-                this.progress = Math.max(1, progress - 2);
-            }
+            machine.regressRecipe(this);
         }
     }
 
     @NotNull
     public Iterator<GTRecipe> searchRecipe() {
-        return machine.getRecipeType().searchRecipe(machine, r -> matchRecipe(r).isSuccess());
+        return machine.getRecipeType().searchRecipe(machine, this::matchRecipe);
     }
 
     public void findAndHandleRecipe() {
-        // try to execute last recipe if possible
-        if (!recipeDirty && lastRecipe != null && checkRecipe(lastRecipe).isSuccess()) {
-            GTRecipe recipe = lastRecipe;
-            lastRecipe = null;
-            lastOriginRecipe = null;
-            setupRecipe(recipe);
-        } else {
-            // try to find and handle a new recipe
-            lastRecipe = null;
-            lastOriginRecipe = null;
-            handleSearchingRecipes(searchRecipe());
-        }
-        recipeDirty = false;
+        lastRecipe = null;
+        lastOriginRecipe = null;
+        handleSearchingRecipes(searchRecipe());
     }
 
     protected void handleSearchingRecipes(@NotNull Iterator<GTRecipe> matches) {
         while (matches.hasNext()) {
             GTRecipe match = matches.next();
             if (match == null) continue;
-            // If a new recipe was found, cache found recipe.
             if (checkMatchedRecipeAvailable(match)) return;
         }
     }
 
-    public ActionResult handleTickRecipe(GTRecipe recipe) {
-        if (!recipe.hasTick()) return ActionResult.SUCCESS;
+    public boolean handleTickRecipe(GTRecipe recipe) {
+        if (!recipe.hasTick()) return true;
         var result = RecipeHelper.matchTickRecipe(machine, recipe);
-        if (!result.isSuccess()) return result;
+        if (!result) return false;
         result = handleTickRecipeIO(recipe, IO.IN);
-        if (!result.isSuccess()) return result;
+        if (!result) return false;
         result = handleTickRecipeIO(recipe, IO.OUT);
         return result;
     }
 
     public void setupRecipe(GTRecipe recipe) {
-        if (!machine.beforeWorking(recipe)) {
-            setStatus(Status.IDLE);
-            progress = 0;
-            duration = 0;
-            isActive = false;
-            return;
-        }
-        var handledIO = handleRecipeIO(recipe, IO.IN);
-        if (handledIO.isSuccess()) {
+        progress = 0;
+        if (machine.beforeWorking(recipe) && handleRecipeIO(recipe, IO.IN)) {
             if (lastRecipe != null && !recipe.equals(lastRecipe)) {
                 chanceCaches.clear();
             }
-            recipeDirty = false;
+            interval = 5;
             lastRecipe = recipe;
-            setStatus(Status.WORKING);
-            progress = 0;
+            setStatus(RecipeLogic.Status.WORKING);
             duration = recipe.duration;
             isActive = true;
+        } else {
+            setStatus(RecipeLogic.Status.IDLE);
+            duration = 0;
+            isActive = false;
+            if (!machine.keepSubscribing()) wait = true;
         }
     }
 
@@ -297,12 +277,16 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
         if (this.status != status) {
             if (this.status == Status.WORKING) {
                 this.totalContinuousRunningTime = 0;
+            } else if (this.status == Status.SUSPEND) {
+                loadTickSubscription();
             }
             machine.notifyStatusChanged(this.status, status);
             this.status = status;
-            updateTickSubscription();
             if (this.status != Status.WAITING) {
                 waitingReason = null;
+                if (status == Status.SUSPEND) {
+                    unsubscribe();
+                }
             }
         }
     }
@@ -367,40 +351,37 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
         machine.afterWorking();
         if (lastRecipe != null) {
             handleRecipeIO(lastRecipe, IO.OUT);
-            if (lastOriginRecipe != null) {
-                var modified = machine.fullModifyRecipe(lastOriginRecipe.copy());
-                if (modified == null) {
-                    markLastRecipeDirty();
-                } else {
-                    lastRecipe = modified;
-                }
-            } else {
-                markLastRecipeDirty();
-            }
-            // try it again
-            var recipeCheck = checkRecipe(lastRecipe);
-            if (!recipeDirty && !suspendAfterFinish && recipeCheck.isSuccess()) {
-                setupRecipe(lastRecipe);
-            } else {
-                if (suspendAfterFinish) {
-                    setStatus(Status.SUSPEND);
-                    suspendAfterFinish = false;
-                } else {
-                    setStatus(Status.IDLE);
-                    waitingReason = recipeCheck.reason();
-                }
-                progress = 0;
-                duration = 0;
-                isActive = false;
-            }
         }
+        if (suspendAfterFinish) {
+            setStatus(RecipeLogic.Status.SUSPEND);
+            suspendAfterFinish = false;
+        } else {
+            if (!recipeDirty && !machine.alwaysSearchRecipe()) {
+                lastRecipe = null;
+                if (lastOriginRecipe != null && checkConditions(lastOriginRecipe)) {
+                    lastRecipe = machine.fullModifyRecipe(lastOriginRecipe.copy());
+                }
+                if (lastRecipe != null && matchRecipe(lastRecipe)) {
+                    setupRecipe(lastRecipe);
+                    return;
+                }
+            }
+            recipeDirty = false;
+            findAndHandleRecipe();
+            if (lastRecipe != null) return;
+            setStatus(RecipeLogic.Status.IDLE);
+        }
+        progress = 0;
+        duration = 0;
+        isActive = false;
+        if (!machine.keepSubscribing()) wait = true;
     }
 
-    protected ActionResult handleRecipeIO(GTRecipe recipe, IO io) {
+    protected boolean handleRecipeIO(GTRecipe recipe, IO io) {
         return RecipeHelper.handleRecipeIO(machine, recipe, io, this.chanceCaches);
     }
 
-    protected ActionResult handleTickRecipeIO(GTRecipe recipe, IO io) {
+    protected boolean handleTickRecipeIO(GTRecipe recipe, IO io) {
         return RecipeHelper.handleTickRecipeIO(machine, recipe, io, this.chanceCaches);
     }
 
@@ -427,7 +408,8 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
     @OnlyIn(Dist.CLIENT)
     public void updateSound() {
         if (isWorking() && machine.shouldWorkingPlaySound()) {
-            var sound = machine.getRecipeType().getSound();
+            var sound = machine.getSound();
+            if (sound == null) sound = machine.getRecipeType().getSound();
             if (workingSound instanceof AutoReleasedSound soundEntry) {
                 if (soundEntry.soundEntry == sound && !soundEntry.isStopped()) {
                     return;

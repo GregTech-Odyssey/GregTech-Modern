@@ -47,6 +47,11 @@ public class GTShovelItem extends ShovelItem implements IGTTool {
     private final int electricTier;
     private final IGTToolDefinition toolStats;
 
+    private Boolean canApplyAtEnchantingTable;
+    private Boolean hasCraftingRemainingItem;
+    private Integer getEnchantmentValue;
+    private Integer getMaxDamage;
+
     protected GTShovelItem(GTToolType toolType, MaterialToolTier tier, Material material, IGTToolDefinition toolStats, Properties properties) {
         super(tier, 0, 0, properties);
         this.toolType = toolType;
@@ -180,12 +185,16 @@ public class GTShovelItem extends ShovelItem implements IGTTool {
         definition$appendHoverText(stack, level, tooltipComponents, isAdvanced);
     }
 
+    @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return definition$canApplyAtEnchantingTable(stack, enchantment);
+        if (canApplyAtEnchantingTable == null) canApplyAtEnchantingTable = definition$canApplyAtEnchantingTable(stack, enchantment);
+        return canApplyAtEnchantingTable;
     }
 
+    @Override
     public int getEnchantmentValue(ItemStack stack) {
-        return getTotalEnchantability(stack);
+        if (getEnchantmentValue == null) getEnchantmentValue = getTotalEnchantability(stack);
+        return getEnchantmentValue;
     }
 
     @Override
@@ -198,42 +207,54 @@ public class GTShovelItem extends ShovelItem implements IGTTool {
         return definition$getDefaultAttributeModifiers(slot, stack);
     }
 
+    @Override
     public boolean canDisableShield(ItemStack stack, ItemStack shield, LivingEntity entity, LivingEntity attacker) {
         return definition$canDisableShield(shield, shield, entity, attacker);
     }
 
+    @Override
     public boolean doesSneakBypassUse(ItemStack stack, LevelReader level, BlockPos pos, Player player) {
         return definition$doesSneakBypassUse(stack, level, pos, player);
     }
 
+    @Override
     public boolean shouldCauseBlockBreakReset(ItemStack oldStack, ItemStack newStack) {
         return definition$shouldCauseBlockBreakReset(oldStack, newStack);
     }
 
+    @Override
     public boolean hasCraftingRemainingItem(ItemStack stack) {
-        return definition$hasCraftingRemainingItem(stack);
+        if (hasCraftingRemainingItem == null) hasCraftingRemainingItem = definition$hasCraftingRemainingItem(stack);
+        return hasCraftingRemainingItem;
     }
 
+    @Override
     public ItemStack getCraftingRemainingItem(ItemStack itemStack) {
         return definition$getCraftingRemainingItem(itemStack);
     }
 
+    @Override
     public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
         return definition$shouldCauseReequipAnimation(oldStack, newStack, slotChanged);
     }
 
+    @Override
     public boolean isDamaged(ItemStack stack) {
         return definition$isDamaged(stack);
     }
 
+    @Override
     public int getDamage(ItemStack stack) {
         return definition$getDamage(stack);
     }
 
+    @Override
     public int getMaxDamage(ItemStack stack) {
-        return definition$getMaxDamage(stack);
+        if (getMaxDamage == null) getMaxDamage = definition$getMaxDamage(stack);
+        return getMaxDamage;
     }
 
+    @Override
     public void setDamage(ItemStack stack, int damage) {
         definition$setDamage(stack, damage);
     }
@@ -243,18 +264,22 @@ public class GTShovelItem extends ShovelItem implements IGTTool {
         return this.definition$isCorrectToolForDrops(stack, state);
     }
 
+    @Override
     public GTToolType getToolType() {
         return this.toolType;
     }
 
+    @Override
     public Material getMaterial() {
         return this.material;
     }
 
+    @Override
     public int getElectricTier() {
         return this.electricTier;
     }
 
+    @Override
     public IGTToolDefinition getToolStats() {
         return this.toolStats;
     }

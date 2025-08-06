@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.capability.IObjectHolder;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationReceiver;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.CWURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
@@ -14,7 +13,6 @@ import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.recipe.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 
@@ -41,12 +39,12 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine im
     }
 
     @Override
-    protected RecipeLogic createRecipeLogic(Object... args) {
+    public RecipeLogic createRecipeLogic(Object... args) {
         return new ResearchStationRecipeLogic(this);
     }
 
     @Override
-    public ResearchStationRecipeLogic getRecipeLogic() {
+    public @NotNull ResearchStationRecipeLogic getRecipeLogic() {
         return (ResearchStationRecipeLogic) super.getRecipeLogic();
     }
 
@@ -119,62 +117,40 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine im
 
         // skip "can fit" checks, it can always fit
         @Override
-        protected ActionResult matchRecipe(GTRecipe recipe) {
+        protected boolean matchRecipe(GTRecipe recipe) {
             var match = matchRecipeNoOutput(recipe);
-            if (!match.isSuccess()) return match;
+            if (!match) return false;
             return matchTickRecipeNoOutput(recipe);
         }
 
-        @Override
-        public boolean checkMatchedRecipeAvailable(GTRecipe match) {
-            var modified = machine.fullModifyRecipe(match);
-            if (modified != null) {
-                // What is the point of this
-                if (!modified.inputs.containsKey(CWURecipeCapability.CAP) && !modified.tickInputs.containsKey(CWURecipeCapability.CAP)) {
-                    return true;
-                }
-                var recipeMatch = checkRecipe(modified);
-                if (recipeMatch.isSuccess()) {
-                    setupRecipe(modified);
-                } else {
-                    setWaiting(recipeMatch.reason());
-                }
-                if (lastRecipe != null && getStatus() == Status.WORKING) {
-                    lastOriginRecipe = match;
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        protected ActionResult matchRecipeNoOutput(GTRecipe recipe) {
-            if (!machine.hasCapabilityProxies()) return ActionResult.FAIL_NO_CAPABILITIES;
+        protected boolean matchRecipeNoOutput(GTRecipe recipe) {
+            if (!machine.hasCapabilityProxies()) return false;
             return RecipeHelper.handleRecipe(machine, recipe, IO.IN, recipe.inputs, Collections.emptyMap(), false, true);
         }
 
-        protected ActionResult matchTickRecipeNoOutput(GTRecipe recipe) {
+        protected boolean matchTickRecipeNoOutput(GTRecipe recipe) {
             if (recipe.hasTick()) {
-                if (!machine.hasCapabilityProxies()) return ActionResult.FAIL_NO_CAPABILITIES;
+                if (!machine.hasCapabilityProxies()) return false;
                 return RecipeHelper.handleRecipe(machine, recipe, IO.IN, recipe.tickInputs, Collections.emptyMap(), false, true);
             }
-            return ActionResult.SUCCESS;
+            return true;
         }
 
         // Handle RecipeIO manually
         @Override
-        protected ActionResult handleRecipeIO(GTRecipe recipe, IO io) {
+        protected boolean handleRecipeIO(GTRecipe recipe, IO io) {
             if (io == IO.IN) {
                 // lock the object holder on recipe start
                 IObjectHolder holder = getMachine().getObjectHolder();
                 holder.setLocked(true);
-                return ActionResult.SUCCESS;
+                return true;
             }
             // "replace" the items in the slots rather than outputting elsewhere
             // unlock the object holder
             IObjectHolder holder = getMachine().getObjectHolder();
             if (lastRecipe == null) {
                 holder.setLocked(false);
-                return ActionResult.SUCCESS;
+                return true;
             }
             holder.setHeldItem(ItemStack.EMPTY);
             ItemStack outputItem = ItemStack.EMPTY;
@@ -186,15 +162,15 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine im
                 holder.setDataItem(outputItem);
             }
             holder.setLocked(false);
-            return ActionResult.SUCCESS;
+            return true;
         }
 
         @Override
-        protected ActionResult handleTickRecipeIO(GTRecipe recipe, IO io) {
+        protected boolean handleTickRecipeIO(GTRecipe recipe, IO io) {
             if (io != IO.OUT) {
                 return super.handleTickRecipeIO(recipe, io);
             }
-            return ActionResult.SUCCESS;
+            return true;
         }
     }
 

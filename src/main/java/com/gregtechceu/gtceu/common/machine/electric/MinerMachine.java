@@ -124,7 +124,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, ICont
     }
 
     @Override
-    protected RecipeLogic createRecipeLogic(Object... args) {
+    public RecipeLogic createRecipeLogic(Object... args) {
         if (args.length > 2 && args[args.length - 3] instanceof Integer fortune && args[args.length - 2] instanceof Integer speed && args[args.length - 1] instanceof Integer maxRadius) {
             return new MinerLogic(this, fortune, speed, maxRadius);
         }
@@ -140,7 +140,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, ICont
     }
 
     @Override
-    public MinerLogic getRecipeLogic() {
+    public @NotNull MinerLogic getRecipeLogic() {
         return (MinerLogic) super.getRecipeLogic();
     }
 

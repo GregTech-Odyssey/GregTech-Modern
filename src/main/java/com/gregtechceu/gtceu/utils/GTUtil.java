@@ -57,6 +57,8 @@ import static com.gregtechceu.gtceu.api.data.chemical.material.properties.Proper
 
 public class GTUtil {
 
+    public static final Runnable NOOP = () -> {};
+
     public static final Direction[] DIRECTIONS = Direction.values();
 
     @SuppressWarnings("UnstableApiUsage")

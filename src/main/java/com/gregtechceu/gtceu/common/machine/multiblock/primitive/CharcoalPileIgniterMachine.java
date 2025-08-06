@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
-import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.item.tool.behavior.LighterBehavior;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
@@ -95,7 +94,8 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
     }
 
     @Override
-    protected @NotNull CharcoalRecipeLogic createRecipeLogic(Object @NotNull... args) {
+    @NotNull
+    public CharcoalRecipeLogic createRecipeLogic(Object @NotNull... args) {
         return new CharcoalRecipeLogic(this);
     }
 
@@ -230,8 +230,8 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
         if (level == null) return;
         Direction front = getFrontFacing();
         Direction back = front.getOpposite();
-        Direction left = RelativeDirection.LEFT.getRelativeFacing(front, getUpwardsFacing(), false);
-        Direction right = RelativeDirection.RIGHT.getRelativeFacing(front, getUpwardsFacing(), false);
+        Direction left = LEFT.getRelative(front, getUpwardsFacing(), false);
+        Direction right = RIGHT.getRelative(front, getUpwardsFacing(), false);
 
         BlockPos down = getPos().relative(Direction.DOWN);
 

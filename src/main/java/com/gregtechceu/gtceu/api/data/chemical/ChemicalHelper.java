@@ -12,6 +12,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.data.tag.TagUtil;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKey;
+import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -175,52 +176,23 @@ public class ChemicalHelper {
     }
 
     public static MaterialEntry getMaterialEntry(ItemLike itemLike) {
-        // asItem is a bit slow, avoid calling it multiple times
         var itemKey = itemLike.asItem();
-        var materialEntry = ITEM_MATERIAL_ENTRY_COLLECTED.get(itemKey);
-
-        if (materialEntry == null) {
-            // Resolve all the lazy suppliers once, rather than on each request. This avoids O(n) lookup performance
-            // for unification entries.
-            for (var entry : ITEM_MATERIAL_ENTRY) {
-                ITEM_MATERIAL_ENTRY_COLLECTED.put(entry.getFirst().get().asItem(), entry.getSecond());
+        if (itemKey instanceof IGTTool tool) {
+            return new MaterialEntry(TagPrefix.nugget, tool.getMaterial());
+        }
+        var materialEntry = MaterialEntry.NULL_ENTRY;
+        var entry = ITEM_MATERIAL_ENTRY_COLLECTED.get(itemKey);
+        if (entry != null) {
+            materialEntry = entry;
+        } else if (!ITEM_MATERIAL_ENTRY.isEmpty()) {
+            for (var e : ITEM_MATERIAL_ENTRY) {
+                ITEM_MATERIAL_ENTRY_COLLECTED.put(e.getFirst().get().asItem(), e.getSecond());
             }
             ITEM_MATERIAL_ENTRY.clear();
-
-            // guess an entry based on the item's tags if none are pre-registered.
-            materialEntry = ITEM_MATERIAL_ENTRY_COLLECTED.computeIfAbsent(itemKey, item -> {
-                for (TagKey<Item> itemTag : item.asItem().builtInRegistryHolder().tags().toList()) {
-                    MaterialEntry materialEntry1 = getMaterialEntry(itemTag);
-                    // check that it's not the empty marker and that it's not a parent tag
-                    if (!materialEntry1.isEmpty() &&
-                            Arrays.stream(materialEntry1.tagPrefix().getItemParentTags()).noneMatch(itemTag::equals)) {
-                        return materialEntry1;
-                    }
-                }
-                return MaterialEntry.NULL_ENTRY;
-            });
+            entry = ITEM_MATERIAL_ENTRY_COLLECTED.get(itemKey);
+            if (entry != null) return entry;
         }
         return materialEntry;
-    }
-
-    public static MaterialEntry getMaterialEntry(TagKey<Item> tag) {
-        if (TAG_MATERIAL_ENTRY.isEmpty()) {
-            // If the map is empty, resolve all possible tags to their values in an attempt to save time on later
-            // lookups.
-            Set<TagKey<Item>> allItemTags = BuiltInRegistries.ITEM.getTagNames().collect(Collectors.toSet());
-            for (TagPrefix prefix : TagPrefix.values()) {
-                for (Material material : GTCEuAPI.materialManager.getRegisteredMaterials()) {
-                    Arrays.stream(prefix.getItemTags(material))
-                            .filter(allItemTags::contains)
-                            .forEach(tagKey -> {
-                                // remove the tag so that the next iteration is faster.
-                                allItemTags.remove(tagKey);
-                                TAG_MATERIAL_ENTRY.put(tagKey, new MaterialEntry(prefix, material));
-                            });
-                }
-            }
-        }
-        return TAG_MATERIAL_ENTRY.getOrDefault(tag, MaterialEntry.NULL_ENTRY);
     }
 
     public static List<ItemLike> getItems(MaterialEntry materialEntry) {

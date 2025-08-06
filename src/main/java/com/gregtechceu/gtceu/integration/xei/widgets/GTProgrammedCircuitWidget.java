@@ -9,8 +9,6 @@ import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.jei.IngredientIO;
 
-import net.minecraftforge.items.ItemStackHandler;
-
 public class GTProgrammedCircuitWidget extends WidgetGroup {
 
     public GTProgrammedCircuitWidget() {
@@ -22,7 +20,7 @@ public class GTProgrammedCircuitWidget extends WidgetGroup {
     public void setRecipe() {
         addWidget(new ImageWidget(39, 0, 36, 36, GuiTextures.SLOT));
 
-        ItemStackHandler handler = new CustomItemStackHandler(32);
+        CustomItemStackHandler handler = new CustomItemStackHandler(32);
         for (int j = 0; j < 4; j++) {
             for (int i = 0; i < 8; i++) {
                 handler.setStackInSlot((i + j * 8), IntCircuitBehaviour.stack(1 + (i + j * 8)));

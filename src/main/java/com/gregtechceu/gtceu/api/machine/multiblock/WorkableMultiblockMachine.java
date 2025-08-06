@@ -81,16 +81,12 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         traitSubscriptions.clear();
     }
 
-    protected RecipeLogic createRecipeLogic(Object... args) {
-        return new RecipeLogic(this);
-    }
-
     //////////////////////////////////////
     // *** Multiblock LifeCycle ***//
     //////////////////////////////////////
     @Override
     protected void onStructureFormedAfter() {
-        recipeLogic.updateTickSubscription();
+        recipeLogic.loadTickSubscription();
     }
 
     @Override
@@ -147,7 +143,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         // fine some parts invalid now.
         // but we shouldn't reset recipe logic rn.
         // if it's due to chunk unload, we should just wait for it to be valid again.
-        recipeLogic.updateTickSubscription();
+        recipeLogic.loadTickSubscription();
     }
 
     //////////////////////////////////////
@@ -276,7 +272,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         this.cleanroom = cleanroom;
     }
 
-    public RecipeLogic getRecipeLogic() {
+    public @NotNull RecipeLogic getRecipeLogic() {
         return this.recipeLogic;
     }
 

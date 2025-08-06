@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.recipe.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
@@ -22,7 +21,6 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.network.chat.Component;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import net.minecraftforge.fluids.capability.templates.VoidFluidHandler;
@@ -60,12 +58,12 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
     }
 
     @Override
-    protected RecipeLogic createRecipeLogic(Object... args) {
+    public RecipeLogic createRecipeLogic(Object... args) {
         return new DistillationTowerLogic(this);
     }
 
     @Override
-    public DistillationTowerLogic getRecipeLogic() {
+    public @NotNull DistillationTowerLogic getRecipeLogic() {
         return (DistillationTowerLogic) super.getRecipeLogic();
     }
 
@@ -168,9 +166,9 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
         }
 
         @Override
-        protected ActionResult matchRecipe(GTRecipe recipe) {
+        protected boolean matchRecipe(GTRecipe recipe) {
             var match = matchDTRecipe(recipe);
-            if (!match.isSuccess()) return match;
+            if (!match) return false;
             return RecipeHelper.matchTickRecipe(this.machine, recipe);
         }
 
@@ -180,19 +178,16 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
             super.handleSearchingRecipes(matches);
         }
 
-        private ActionResult matchDTRecipe(GTRecipe recipe) {
+        private boolean matchDTRecipe(GTRecipe recipe) {
             var result = RecipeHelper.handleRecipe(machine, recipe, IO.IN, recipe.inputs, Collections.emptyMap(), false, true);
-            if (!result.isSuccess()) return result;
+            if (!result) return false;
             var items = recipe.getOutputContents(ItemRecipeCapability.CAP);
             if (!items.isEmpty()) {
                 Map<RecipeCapability<?>, List<Content>> out = Map.of(ItemRecipeCapability.CAP, items);
                 result = RecipeHelper.handleRecipe(machine, recipe, IO.OUT, out, Collections.emptyMap(), false, true);
-                if (!result.isSuccess()) return result;
+                if (!result) return false;
             }
-            if (!applyFluidOutputs(recipe, FluidAction.SIMULATE)) {
-                return ActionResult.fail(Component.translatable("gtceu.recipe_logic.insufficient_out").append(": ").append(FluidRecipeCapability.CAP.getName()));
-            }
-            return ActionResult.SUCCESS;
+            return applyFluidOutputs(recipe, FluidAction.SIMULATE);
         }
 
         private void updateWorkingRecipe(GTRecipe recipe) {
@@ -211,10 +206,10 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
         }
 
         @Override
-        protected ActionResult handleRecipeIO(GTRecipe recipe, IO io) {
+        protected boolean handleRecipeIO(GTRecipe recipe, IO io) {
             if (io != IO.OUT) {
                 var handleIO = super.handleRecipeIO(recipe, io);
-                if (handleIO.isSuccess()) {
+                if (handleIO) {
                     updateWorkingRecipe(recipe);
                 } else {
                     this.workingRecipe = null;
@@ -228,9 +223,9 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
             }
             if (applyFluidOutputs(recipe, FluidAction.EXECUTE)) {
                 workingRecipe = null;
-                return ActionResult.SUCCESS;
+                return true;
             }
-            return ActionResult.fail(Component.translatable("gtceu.recipe_logic.insufficient_out").append(": ").append(FluidRecipeCapability.CAP.getName()));
+            return false;
         }
 
         private boolean applyFluidOutputs(GTRecipe recipe, FluidAction action) {

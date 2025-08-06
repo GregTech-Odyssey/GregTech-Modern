@@ -123,7 +123,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
         }
         long EUt = recipe.getOutputEUt();
         // has lubricant
-        if (EUt > 0 && !engineMachine.isIntakesObstructed() && RecipeHelper.matchRecipe(engineMachine, engineMachine.getLubricantRecipe()).isSuccess()) {
+        if (EUt > 0 && !engineMachine.isIntakesObstructed() && RecipeHelper.matchRecipe(engineMachine, engineMachine.getLubricantRecipe())) {
             int maxParallel = (int) (engineMachine.getOverclockVoltage() / EUt); // get maximum parallel
             int actualParallel = ParallelLogic.getParallelAmount(engineMachine, recipe, maxParallel);
             double eutMultiplier = actualParallel * engineMachine.getProductionBoost();
@@ -138,7 +138,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
         // check lubricant
         if (runningTimer % 72 == 0) {
             // insufficient lubricant
-            if (!RecipeHelper.handleRecipeIO(this, getLubricantRecipe(), IO.IN, this.recipeLogic.getChanceCaches()).isSuccess()) {
+            if (!RecipeHelper.handleRecipeIO(this, getLubricantRecipe(), IO.IN, this.recipeLogic.getChanceCaches())) {
                 recipeLogic.interruptRecipe();
                 return false;
             }
@@ -146,7 +146,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
         // check boost fluid
         if (isBoostAllowed()) {
             var boosterRecipe = getBoostRecipe();
-            this.isOxygenBoosted = RecipeHelper.matchRecipe(this, boosterRecipe).isSuccess() && RecipeHelper.handleRecipeIO(this, boosterRecipe, IO.IN, this.recipeLogic.getChanceCaches()).isSuccess();
+            this.isOxygenBoosted = RecipeHelper.matchRecipe(this, boosterRecipe) && RecipeHelper.handleRecipeIO(this, boosterRecipe, IO.IN, this.recipeLogic.getChanceCaches());
         }
         runningTimer++;
         if (runningTimer > 72000) runningTimer %= 72000; // reset once every hour of running

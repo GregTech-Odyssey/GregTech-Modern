@@ -36,6 +36,7 @@ public class FluidFilterCover extends CoverBehavior implements IUICover {
     @DescSynced
     protected FilterMode filterMode = FilterMode.FILTER_INSERT;
     private FilteredFluidHandlerWrapper fluidFilterWrapper;
+    @Persisted
     protected ManualIOMode allowFlow = ManualIOMode.DISABLED;
 
     public FluidFilterCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {

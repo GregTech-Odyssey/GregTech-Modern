@@ -7,18 +7,17 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import java.util.List;
 
 public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait implements IRecipeHandlerTrait<T> {
 
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(NotifiableRecipeHandlerTrait.class);
-    protected List<Runnable> listeners = new ArrayList<>();
+    protected List<Runnable> listeners = new ObjectArrayList<>();
     @Persisted
     @DescSynced
     protected boolean isDistinct;
-
-    protected boolean notify;
 
     public NotifiableRecipeHandlerTrait(MetaMachine machine) {
         super(machine);
@@ -30,16 +29,21 @@ public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait imple
     }
 
     @Override
+    public void onMachineUnLoad() {
+        super.onMachineUnLoad();
+        listeners.clear();
+    }
+
+    @Override
     public ISubscription addChangedListener(Runnable listener) {
         listeners.add(listener);
+        onAddListener();
         return () -> listeners.remove(listener);
     }
 
-    public void notifyListeners() {
-        listeners.forEach(Runnable::run);
-    }
+    protected void onAddListener() {}
 
-    protected void runListeners() {
+    public void notifyListeners() {
         listeners.forEach(Runnable::run);
     }
 

@@ -47,16 +47,13 @@ public class BedrockOreMinerLogic extends RecipeLogic {
             if (veinMaterials == null) {
                 this.veinMaterials = data.getOreInChunk(getChunkX(), getChunkZ());
                 if (this.veinMaterials == null) {
-                    if (subscription != null) {
-                        subscription.unsubscribe();
-                        subscription = null;
-                    }
+                    unsubscribe();
                     return;
                 }
             }
             var match = getOreMinerRecipe();
             if (match != null) {
-                if (RecipeHelper.matchContents(this.machine, match).isSuccess()) {
+                if (RecipeHelper.matchContents(this.machine, match)) {
                     setupRecipe(match);
                 }
             }
@@ -94,7 +91,7 @@ public class BedrockOreMinerLogic extends RecipeLogic {
                 return null;
             }
             var recipe = GTRecipeBuilder.ofRaw().duration(MAX_PROGRESS).EUt(GTValues.VA[getMachine().getEnergyTier()]).outputItems(stack).buildRawRecipe();
-            if (RecipeHelper.matchContents(getMachine(), recipe).isSuccess()) {
+            if (RecipeHelper.matchContents(getMachine(), recipe)) {
                 return recipe;
             }
         }
@@ -136,7 +133,7 @@ public class BedrockOreMinerLogic extends RecipeLogic {
         // try it again
         var match = getOreMinerRecipe();
         if (match != null) {
-            if (RecipeHelper.matchContents(this.machine, match).isSuccess()) {
+            if (RecipeHelper.matchContents(this.machine, match)) {
                 setupRecipe(match);
                 return;
             }

@@ -4,9 +4,12 @@ import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.common.machine.trait.miner.MinerLogic;
 
+import org.jetbrains.annotations.NotNull;
+
 public interface IMiner extends IRecipeLogicMachine, IMachineLife {
 
     @Override
+    @NotNull
     MinerLogic getRecipeLogic();
 
     @Override

@@ -158,36 +158,36 @@ public class RecipeHelper {
                 .collect(Collectors.toList());
     }
 
-    public static ActionResult matchRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe) {
+    public static boolean matchRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe) {
         return matchRecipe(holder, recipe, false);
     }
 
-    public static ActionResult matchTickRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe) {
-        return recipe.hasTick() ? matchRecipe(holder, recipe, true) : ActionResult.SUCCESS;
+    public static boolean matchTickRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe) {
+        return !recipe.hasTick() || matchRecipe(holder, recipe, true);
     }
 
-    private static ActionResult matchRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe, boolean tick) {
-        if (!holder.hasCapabilityProxies()) return ActionResult.FAIL_NO_CAPABILITIES;
+    private static boolean matchRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe, boolean tick) {
+        if (!holder.hasCapabilityProxies()) return false;
 
         var result = handleRecipe(holder, recipe, IO.IN, tick ? recipe.tickInputs : recipe.inputs,
                 Collections.emptyMap(), tick, true);
-        if (!result.isSuccess()) return result;
+        if (!result) return result;
 
         result = handleRecipe(holder, recipe, IO.OUT, tick ? recipe.tickOutputs : recipe.outputs,
                 Collections.emptyMap(), tick, true);
         return result;
     }
 
-    public static ActionResult handleRecipeIO(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io,
-                                              Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches) {
-        if (!holder.hasCapabilityProxies() || io == IO.BOTH) return ActionResult.FAIL_NO_CAPABILITIES;
+    public static boolean handleRecipeIO(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io,
+                                         Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches) {
+        if (!holder.hasCapabilityProxies() || io == IO.BOTH) return false;
         return handleRecipe(holder, recipe, io, io == IO.IN ? recipe.inputs : recipe.outputs, chanceCaches, false,
                 false);
     }
 
-    public static ActionResult handleTickRecipeIO(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io,
-                                                  Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches) {
-        if (!holder.hasCapabilityProxies() || io == IO.BOTH) return ActionResult.FAIL_NO_CAPABILITIES;
+    public static boolean handleTickRecipeIO(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io,
+                                             Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches) {
+        if (!holder.hasCapabilityProxies() || io == IO.BOTH) return false;
         return handleRecipe(holder, recipe, io, io == IO.IN ? recipe.tickInputs : recipe.tickOutputs, chanceCaches,
                 true, false);
     }
@@ -198,29 +198,24 @@ public class RecipeHelper {
      * @param simulated checks that the recipe ingredients are in the holder if true,
      *                  process the recipe contents if false
      */
-    public static ActionResult handleRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io,
-                                            Map<RecipeCapability<?>, List<Content>> contents,
-                                            Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches,
-                                            boolean isTick, boolean simulated) {
+    public static boolean handleRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io,
+                                       Map<RecipeCapability<?>, List<Content>> contents,
+                                       Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches,
+                                       boolean isTick, boolean simulated) {
         RecipeRunner runner = new RecipeRunner(recipe, io, isTick, holder, chanceCaches, simulated);
         var result = runner.handle(contents);
 
-        if (result.isSuccess() || result.capability() == null) return result.result();
+        if (result.isSuccess() || result.capability() == null) return true;
 
         if (!simulated) {
             GTCEu.LOGGER.warn("IO {} Error while handling recipe {} outputs for {}",
                     Component.translatable(io.tooltip).getString(), recipe, holder);
         }
-        String key = "gtceu.recipe_logic.insufficient_" + (io == IO.IN ? "in" : "out");
-        return ActionResult.fail(Component.translatable(key)
-                .append(": ").append(result.capability().getName()));
+        return false;
     }
 
-    public static ActionResult matchContents(IRecipeCapabilityHolder holder, GTRecipe recipe) {
-        var match = matchRecipe(holder, recipe);
-        if (!match.isSuccess()) return match;
-
-        return matchTickRecipe(holder, recipe);
+    public static boolean matchContents(IRecipeCapabilityHolder holder, GTRecipe recipe) {
+        return matchRecipe(holder, recipe) && matchTickRecipe(holder, recipe);
     }
 
     /**

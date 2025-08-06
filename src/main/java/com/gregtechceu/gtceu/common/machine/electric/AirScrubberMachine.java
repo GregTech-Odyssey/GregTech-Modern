@@ -56,12 +56,6 @@ public class AirScrubberMachine extends SimpleTieredMachine implements IEnvironm
     }
 
     @Override
-    public boolean isRecipeLogicAvailable() {
-        // Don't run recipes if hazards are off
-        return ConfigHolder.INSTANCE.gameplay.environmentalHazards;
-    }
-
-    @Override
     public boolean beforeWorking(@Nullable GTRecipe recipe) {
         if (super.beforeWorking(recipe) && recipe != null) {
             // Sets the amount of hazard to clean based on the recipe tier, not the machine tier

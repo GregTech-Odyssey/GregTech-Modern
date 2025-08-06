@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
+import com.gregtechceu.gtceu.api.sound.SoundEntry;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +44,10 @@ public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IMachineFe
      */
     @NotNull
     RecipeLogic getRecipeLogic();
+
+    default RecipeLogic createRecipeLogic(Object... args) {
+        return new RecipeLogic(this);
+    }
 
     default GTRecipe fullModifyRecipe(GTRecipe recipe) {
         return doModifyRecipe(RecipeHelper.trimRecipeOutputs(recipe, this.getOutputLimits()));
@@ -102,6 +107,22 @@ public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IMachineFe
      */
     default void afterWorking() {
         self().getDefinition().getAfterWorking().accept(this);
+    }
+
+    default void onRecipeFinish() {}
+
+    default void regressRecipe(RecipeLogic logic) {
+        if (logic.progress > 0 && regressWhenWaiting()) {
+            if (ConfigHolder.INSTANCE.machines.recipeProgressLowEnergy) {
+                logic.progress = 1;
+            } else {
+                logic.progress = Math.max(1, logic.progress - 2);
+            }
+        }
+    }
+
+    default SoundEntry getSound() {
+        return null;
     }
 
     /**

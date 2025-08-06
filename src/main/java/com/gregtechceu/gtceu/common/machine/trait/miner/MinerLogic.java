@@ -236,10 +236,7 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
         } else {
             // machine isn't working enabled
             this.setStatus(Status.IDLE);
-            if (subscription != null) {
-                subscription.unsubscribe();
-                subscription = null;
-            }
+            wait = true;
         }
     }
 
@@ -308,13 +305,13 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
         // create dummy recipe handler
         inputItemHandler.storage.setStackInSlot(0, oreDrop);
         outputItemHandler.storage.clear();
-        var matches = machine.getRecipeType().searchRecipe(this, r -> RecipeHelper.matchContents(this, r).isSuccess());
+        var matches = machine.getRecipeType().searchRecipe(this, r -> RecipeHelper.matchContents(this, r));
         while (matches.hasNext()) {
             GTRecipe match = matches.next();
             if (match == null) continue;
             long eut = match.getInputEUt();
             if (GTUtil.getTierByVoltage(eut) <= getVoltageTier()) {
-                if (RecipeHelper.handleRecipeIO(this, match, IO.OUT, this.chanceCaches).isSuccess()) {
+                if (RecipeHelper.handleRecipeIO(this, match, IO.OUT, this.chanceCaches)) {
                     blockDrops.clear();
                     var result = new ArrayList<ItemStack>();
                     for (int i = 0; i < outputItemHandler.storage.getSlots(); ++i) {

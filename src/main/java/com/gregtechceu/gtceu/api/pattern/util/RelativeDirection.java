@@ -4,8 +4,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 
-import org.jetbrains.annotations.ApiStatus;
-
 import java.util.Comparator;
 import java.util.function.UnaryOperator;
 
@@ -55,15 +53,6 @@ public enum RelativeDirection {
 
     public Vec3i applyVec3i(Direction facing) {
         return getActualDirection(facing).getNormal();
-    }
-
-    /**
-     * @deprecated Renamed to {@link RelativeDirection#getRelative(Direction, Direction, boolean) getRelative}.
-     */
-    @ApiStatus.ScheduledForRemoval(inVersion = "8.0.0")
-    @Deprecated(since = "7.0.0", forRemoval = true)
-    public Direction getRelativeFacing(Direction frontFacing, Direction upwardsFacing, boolean isFlipped) {
-        return getRelative(frontFacing, upwardsFacing, isFlipped);
     }
 
     public Direction getRelative(Direction frontDir, Direction upwardsDir, boolean isFlipped) {

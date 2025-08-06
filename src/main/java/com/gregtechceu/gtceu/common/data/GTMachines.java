@@ -983,8 +983,6 @@ public class GTMachines {
         GCYMMachines.init();
         GTResearchMachines.init();
 
-        GTAEMachines.init();
-
         ModLoader.get().postEvent(new GTCEuAPI.RegisterEvent<>(GTRegistries.MACHINES, MachineDefinition.class));
         GTRegistries.MACHINES.freeze();
     }

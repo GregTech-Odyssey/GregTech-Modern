@@ -54,6 +54,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
     protected long energyInputPerSec = 0;
     protected long energyOutputPerSec = 0;
     protected boolean checkOutput;
+    protected boolean notify;
 
     public NotifiableEnergyContainer(MetaMachine machine, long maxCapacity, long maxInputVoltage, long maxInputAmperage, long maxOutputVoltage, long maxOutputAmperage) {
         super(machine);
@@ -90,11 +91,6 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
     @Override
     public ManagedFieldHolder getFieldHolder() {
         return MANAGED_FIELD_HOLDER;
-    }
-
-    @Override
-    public void notifyListeners() {
-        notify = true;
     }
 
     @Override
@@ -151,7 +147,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
         }
         this.energyStored = energyStored;
         notifyOutputSubscription();
-        notifyListeners();
+        notify = true;
     }
 
     public void updateTick() {
@@ -161,7 +157,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
         if (getMachine().getOffsetTimer() % 20 == 0) {
             if (notify) {
                 notify = false;
-                runListeners();
+                notifyListeners();
             }
             lastEnergyOutputPerSec = energyOutputPerSec;
             lastEnergyInputPerSec = energyInputPerSec;
