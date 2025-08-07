@@ -36,7 +36,7 @@ public class PumpHatchPartRenderer extends CTMModelRenderer {
     @OnlyIn(Dist.CLIENT)
     public List<BakedQuad> renderModel(BlockAndTintGetter level, BlockPos pos, BlockState state, Direction side,
                                        RandomSource rand) {
-        if (state.getBlock() instanceof MetaMachineBlock machineBlock && side == machineBlock.getFrontFacing(state)) {
+        if (state != null && state.getBlock() instanceof MetaMachineBlock machineBlock && side == machineBlock.getFrontFacing(state)) {
             var quads = new ArrayList<>(super.renderModel(level, pos, state, side, rand));
             quads.add(StaticFaceBakery.bakeFace(side, ModelFactory.getBlockSprite(PIPE_OUT)));
             quads.add(StaticFaceBakery.bakeFace(

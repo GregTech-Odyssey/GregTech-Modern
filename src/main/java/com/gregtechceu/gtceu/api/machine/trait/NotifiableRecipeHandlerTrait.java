@@ -37,11 +37,8 @@ public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait imple
     @Override
     public ISubscription addChangedListener(Runnable listener) {
         listeners.add(listener);
-        onAddListener();
         return () -> listeners.remove(listener);
     }
-
-    protected void onAddListener() {}
 
     public void notifyListeners() {
         listeners.forEach(Runnable::run);

@@ -91,6 +91,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     private final List<TickableSubscription> serverTicks = new ObjectArrayList<>();
     private final List<TickableSubscription> waitingToAdd = new ObjectArrayList<>();
 
+    private boolean asyncSyncing;
     private boolean sync = true;
 
     private final long posLong;
@@ -551,5 +552,15 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
                 }
             }
         }
+    }
+
+    @Override
+    public boolean isAsyncSyncing() {
+        return asyncSyncing;
+    }
+
+    @Override
+    public void setAsyncSyncing(boolean syncing) {
+        asyncSyncing = syncing;
     }
 }

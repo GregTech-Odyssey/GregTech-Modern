@@ -11,7 +11,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
 
@@ -21,7 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class CustomItemStackHandler implements IItemHandler, IItemHandlerModifiable, INBTSerializable<CompoundTag>, IContentChangeAware, ITagSerializable<CompoundTag> {
+public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSerializable<CompoundTag>, IContentChangeAware, ITagSerializable<CompoundTag> {
 
     @NotNull
     protected Runnable onContentsChanged = GTUtil.NOOP;

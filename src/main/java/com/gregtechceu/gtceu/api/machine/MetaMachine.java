@@ -890,6 +890,10 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         sync = true;
     }
 
+    public void syncNow() {
+        holder.defaultServerTick();
+    }
+
     public boolean needSync() {
         if (sync) {
             sync = false;

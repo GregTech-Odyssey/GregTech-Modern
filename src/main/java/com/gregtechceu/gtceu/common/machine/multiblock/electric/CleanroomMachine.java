@@ -47,10 +47,8 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.DoorBlock;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
@@ -79,7 +77,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
             }
         }
         return true;
-    }, null) {
+    }, null, null) {
 
         @Override
         public boolean testOnly() {
@@ -278,7 +276,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
      */
     public boolean isBlockEdge(@NotNull Level world, @NotNull BlockPos.MutableBlockPos pos, @NotNull Direction direction) {
         var state = world.getBlockState(pos.move(direction));
-        return state == getCasingState() || state == getGlassState();
+        return state.is(getCasingState()) || state.is(getGlassState());
     }
 
     /**
@@ -289,7 +287,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
      */
     public boolean isBlockFloor(@NotNull Level world, @NotNull BlockPos.MutableBlockPos pos, @NotNull Direction direction) {
         var state = world.getBlockState(pos.move(direction));
-        return state == getCasingState() || state == getGlassState() || state.is(CustomTags.CLEANROOM_FLOORS);
+        return state.is(getCasingState()) || state.is(getGlassState()) || state.is(CustomTags.CLEANROOM_FLOORS);
     }
 
     @Override
@@ -375,7 +373,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
             c[i] = ceilingLayer[i].toString();
         }
         var area = (lDist + rDist + 1) * (bDist + fDist + 1);
-        TraceabilityPredicate wallPredicate = states(getCasingState(), getGlassState());
+        TraceabilityPredicate wallPredicate = blocks(getCasingState(), getGlassState());
         TraceabilityPredicate basePredicate =
                 // limit pass through hatches to a quarter of the floor area
                 Predicates.abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1).setMaxGlobalLimited(2).or(blocks(GTMachines.MAINTENANCE_HATCH.get(), GTMachines.AUTO_MAINTENANCE_HATCH.get()).setMinGlobalLimited(ConfigHolder.INSTANCE.machines.enableMaintenance ? 1 : 0).setMaxGlobalLimited(1)).or(abilities(PartAbility.PASSTHROUGH_HATCH).setMaxGlobalLimited(area / 4));
@@ -384,23 +382,23 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         // very center floor, needed for height check
         // walls
         // floor edges
-        FactoryBlockPattern.start(LEFT, FRONT, UP).aisle(f).aisle(m).setRepeatable(wallLayers.size()).aisle(c).where('C', Predicates.controller(Predicates.blocks(this.getDefinition().get()))).where('F', Predicates.cleanroomFilters()).where('D', states(getCasingState())).where(' ', INNER_PREDICATE).where('E', wallPredicate.or(basePredicate).or(getValidFloorBlocks().setMaxGlobalLimited(4))).where('K', wallPredicate.or(getValidFloorBlocks())).where('W', wallPredicate.or(basePredicate).or(doorPredicate().setMaxGlobalLimited(8))).where('A', wallPredicate.or(basePredicate)).build();
+        FactoryBlockPattern.start(LEFT, FRONT, UP).aisle(f).aisle(m).setRepeatable(wallLayers.size()).aisle(c).where('C', Predicates.controller(Predicates.blocks(this.getDefinition().get()))).where('F', Predicates.cleanroomFilters()).where('D', blocks(getCasingState())).where(' ', INNER_PREDICATE).where('E', wallPredicate.or(basePredicate).or(getValidFloorBlocks().setMaxGlobalLimited(4))).where('K', wallPredicate.or(getValidFloorBlocks())).where('W', wallPredicate.or(basePredicate).or(doorPredicate().setMaxGlobalLimited(8))).where('A', wallPredicate.or(basePredicate)).build();
     }
 
     // protected to allow easy addition of addon "cleanrooms"
     @NotNull
-    protected BlockState getCasingState() {
-        return GTBlocks.PLASTCRETE.getDefaultState();
+    protected Block getCasingState() {
+        return GTBlocks.PLASTCRETE.get();
     }
 
     @NotNull
-    protected BlockState getGlassState() {
-        return GTBlocks.CLEANROOM_GLASS.getDefaultState();
+    protected Block getGlassState() {
+        return GTBlocks.CLEANROOM_GLASS.get();
     }
 
     @NotNull
     protected static TraceabilityPredicate doorPredicate() {
-        return Predicates.custom(blockWorldState -> blockWorldState.getBlockState().is(CustomTags.CLEANROOM_DOORS), () -> new BlockInfo[] { new BlockInfo(Blocks.IRON_DOOR.defaultBlockState()), new BlockInfo(Blocks.IRON_DOOR.defaultBlockState().setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER)) });
+        return Predicates.custom(blockWorldState -> blockWorldState.getBlockState().is(CustomTags.CLEANROOM_DOORS), () -> new BlockInfo(Blocks.IRON_DOOR.defaultBlockState()), () -> new Block[] { Blocks.IRON_DOOR });
     }
 
     private TraceabilityPredicate getValidFloorBlocks() {

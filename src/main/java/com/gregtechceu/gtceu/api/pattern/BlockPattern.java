@@ -23,6 +23,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -223,7 +224,7 @@ public class BlockPattern {
                                 }
                             } else {
                                 boolean find = false;
-                                BlockInfo[] infos = new BlockInfo[0];
+                                Block[] infos = new Block[0];
                                 for (SimplePredicate limit : predicate.limited) {
                                     if (limit.minLayerCount > 0) {
                                         int curr = cacheLayer.getInt(limit);
@@ -275,9 +276,9 @@ public class BlockPattern {
                                 }
                                 List<ItemStack> candidates = new ArrayList<>();
                                 if (infos != null) {
-                                    for (BlockInfo info : infos) {
-                                        if (info.getBlockState().getBlock() != Blocks.AIR) {
-                                            candidates.add(info.getItemStackForm());
+                                    for (Block info : infos) {
+                                        if (info != Blocks.AIR) {
+                                            candidates.add(SimplePredicate.toItem(info).getDefaultInstance());
                                         }
                                     }
                                 }
@@ -364,7 +365,7 @@ public class BlockPattern {
                     for (int z = 0; z < this.palmLength; z++) {
                         TraceabilityPredicate predicate = this.blockMatches[l][y][z];
                         if (predicate != null) {
-                            BlockInfo[] infos = null;
+                            BlockInfo info = null;
                             boolean find = false;
                             for (SimplePredicate limit : predicate.limited) {
                                 // check layer and previewCount
@@ -382,9 +383,11 @@ public class BlockPattern {
                                 } else {
                                     continue;
                                 }
-                                infos = limit.candidates == null ? null : limit.candidates.get();
-                                find = true;
-                                break;
+                                info = limit.blockInfo.get();
+                                if (info != null) {
+                                    find = true;
+                                    break;
+                                }
                             }
                             if (!find) {
                                 // check global and previewCount
@@ -401,9 +404,11 @@ public class BlockPattern {
                                     } else {
                                         continue;
                                     }
-                                    infos = limit.candidates == null ? null : limit.candidates.get();
-                                    find = true;
-                                    break;
+                                    info = limit.blockInfo.get();
+                                    if (info != null) {
+                                        find = true;
+                                        break;
+                                    }
                                 }
                             }
                             if (!find) {
@@ -418,18 +423,22 @@ public class BlockPattern {
                                     } else {
                                         continue;
                                     }
-                                    infos = common.candidates == null ? null : common.candidates.get();
-                                    find = true;
-                                    break;
+                                    info = common.blockInfo.get();
+                                    if (info != null) {
+                                        find = true;
+                                        break;
+                                    }
                                 }
                             }
                             if (!find) {
                                 // check without previewCount
                                 for (SimplePredicate common : predicate.common) {
                                     if (common.previewCount == -1) {
-                                        infos = common.candidates == null ? null : common.candidates.get();
-                                        find = true;
-                                        break;
+                                        info = common.blockInfo.get();
+                                        if (info != null) {
+                                            find = true;
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -446,19 +455,22 @@ public class BlockPattern {
                                             continue;
                                         }
                                     }
-                                    infos = limit.candidates == null ? null : limit.candidates.get();
-                                    break;
+                                    info = limit.blockInfo.get();
+                                    if (info != null) {
+                                        break;
+                                    }
                                 }
                             }
-                            BlockInfo info = infos == null || infos.length == 0 ? BlockInfo.EMPTY : infos[0];
-                            BlockPos pos = setActualRelativeOffset(z, y, x, Direction.NORTH, Direction.UP, false);
-                            blocks.put(pos.asLong(), info);
-                            minX = Math.min(pos.getX(), minX);
-                            minY = Math.min(pos.getY(), minY);
-                            minZ = Math.min(pos.getZ(), minZ);
-                            maxX = Math.max(pos.getX(), maxX);
-                            maxY = Math.max(pos.getY(), maxY);
-                            maxZ = Math.max(pos.getZ(), maxZ);
+                            if (info != null && info.getBlockState().getBlock() != Blocks.AIR) {
+                                BlockPos pos = setActualRelativeOffset(z, y, x, Direction.NORTH, Direction.UP, false);
+                                blocks.put(pos.asLong(), info);
+                                minX = Math.min(pos.getX(), minX);
+                                minY = Math.min(pos.getY(), minY);
+                                minZ = Math.min(pos.getZ(), minZ);
+                                maxX = Math.max(pos.getX(), maxX);
+                                maxY = Math.max(pos.getY(), maxY);
+                                maxZ = Math.max(pos.getZ(), maxZ);
+                            }
                         }
                     }
                 }
@@ -495,7 +507,7 @@ public class BlockPattern {
         return result;
     }
 
-    private void resetFacing(BlockPos pos, BlockState blockState, Direction facing, BiPredicate<BlockPos, Direction> checker, Consumer<BlockState> consumer) {
+    protected void resetFacing(BlockPos pos, BlockState blockState, Direction facing, BiPredicate<BlockPos, Direction> checker, Consumer<BlockState> consumer) {
         if (blockState.hasProperty(BlockStateProperties.FACING)) {
             tryFacings(blockState, pos, checker, consumer, BlockStateProperties.FACING, facing == null ? FACINGS : ArrayUtils.addAll(new Direction[] { facing }, FACINGS));
         } else if (blockState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
@@ -503,7 +515,7 @@ public class BlockPattern {
         }
     }
 
-    private void tryFacings(BlockState blockState, BlockPos pos, BiPredicate<BlockPos, Direction> checker, Consumer<BlockState> consumer, Property<Direction> property, Direction[] facings) {
+    protected void tryFacings(BlockState blockState, BlockPos pos, BiPredicate<BlockPos, Direction> checker, Consumer<BlockState> consumer, Property<Direction> property, Direction[] facings) {
         Direction found = null;
         for (Direction facing : facings) {
             if (checker.test(pos, facing)) {
@@ -517,7 +529,7 @@ public class BlockPattern {
         consumer.accept(blockState.setValue(property, found));
     }
 
-    private BlockPos setActualRelativeOffset(int x, int y, int z, Direction facing, Direction upwardsFacing, boolean isFlipped) {
+    protected BlockPos setActualRelativeOffset(int x, int y, int z, Direction facing, Direction upwardsFacing, boolean isFlipped) {
         int[] c0 = new int[] { x, y, z };
         int[] c1 = new int[3];
         boolean down = facing == Direction.DOWN;
@@ -601,7 +613,7 @@ public class BlockPattern {
     }
 
     @Nullable
-    private static IntObjectPair<IItemHandler> getMatchStackWithHandler(List<ItemStack> candidates, LazyOptional<IItemHandler> cap) {
+    protected static IntObjectPair<IItemHandler> getMatchStackWithHandler(List<ItemStack> candidates, LazyOptional<IItemHandler> cap) {
         IItemHandler handler = cap.orElse(null);
         if (handler == null) {
             return null;

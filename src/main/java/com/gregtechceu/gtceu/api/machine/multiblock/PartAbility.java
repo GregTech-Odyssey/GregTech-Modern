@@ -2,10 +2,14 @@ package com.gregtechceu.gtceu.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.*;
@@ -49,8 +53,17 @@ public class PartAbility {
     /**
      * tier -> available blocks
      */
-    private final Int2ObjectMap<Set<Block>> registry = new Int2ObjectOpenHashMap<>();
-    private final Supplier<Collection<Block>> allBlocks = GTMemoizer.memoize(() -> registry.values().stream().flatMap(Collection::stream).toList());
+    private final Int2ObjectOpenHashMap<Set<Block>> registry = new Int2ObjectOpenHashMap<>();
+    private final Supplier<Collection<Block>> allBlocks = GTMemoizer.memoize(() -> {
+        List<Block> result = new ObjectArrayList<>();
+        List<Int2ObjectMap.Entry<Set<Block>>> entries = new ObjectArrayList<>(registry.int2ObjectEntrySet());
+        entries.sort(Comparator.comparingInt(Int2ObjectMap.Entry::getIntKey));
+        for (var entry : entries) {
+            result.addAll(entry.getValue());
+        }
+        result.sort(Comparator.comparingInt(b -> BuiltInRegistries.BLOCK.getKey(b).getNamespace().length()));
+        return result;
+    });
     private final String name;
 
     public PartAbility(String name) {
@@ -58,7 +71,7 @@ public class PartAbility {
     }
 
     public void register(int tier, Block block) {
-        registry.computeIfAbsent(tier, T -> new HashSet<>()).add(block);
+        registry.computeIfAbsent(tier, T -> new ObjectOpenHashSet<>()).add(block);
     }
 
     public Collection<Block> getAllBlocks() {
@@ -70,14 +83,29 @@ public class PartAbility {
     }
 
     public Collection<Block> getBlocks(int... tiers) {
-        return registry.int2ObjectEntrySet().stream().filter(entry -> ArrayUtils.contains(tiers, entry.getIntKey())).flatMap(entry -> entry.getValue().stream()).toList();
+        List<Block> result = new ArrayList<>();
+        for (ObjectIterator<Int2ObjectMap.Entry<Set<Block>>> it = registry.int2ObjectEntrySet().fastIterator(); it.hasNext();) {
+            var e = it.next();
+            if (ArrayUtils.contains(tiers, e.getIntKey())) {
+                result.addAll(e.getValue());
+            }
+        }
+        return result;
     }
 
     /**
      * [from, to]
      */
     public Collection<Block> getBlockRange(int from, int to) {
-        return registry.int2ObjectEntrySet().stream().filter(entry -> entry.getIntKey() <= to && entry.getIntKey() >= from).flatMap(entry -> entry.getValue().stream()).toList();
+        List<Block> result = new ArrayList<>();
+        for (ObjectIterator<Int2ObjectMap.Entry<Set<Block>>> it = registry.int2ObjectEntrySet().fastIterator(); it.hasNext();) {
+            var e = it.next();
+            var key = e.getIntKey();
+            if (key >= from && key <= to) {
+                result.addAll(e.getValue());
+            }
+        }
+        return result;
     }
 
     public String getName() {

@@ -45,6 +45,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
         this.capabilityIO = capabilityIO;
         for (int i = 0; i < this.storages.length; i++) {
             this.storages[i] = new CustomFluidTank(capacity);
+            this.storages[i].setOnContentsChanged(this::onContentsChanged);
         }
     }
 
@@ -56,6 +57,9 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
         if (io == IO.IN) {
             this.allowSameFluids = true;
         }
+        for (CustomFluidTank storage : this.storages) {
+            storage.setOnContentsChanged(this::onContentsChanged);
+        }
     }
 
     public NotifiableFluidTank(MetaMachine machine, int slots, int capacity, IO io) {
@@ -66,16 +70,8 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
         this(machine, storages, io, io);
     }
 
-    @Override
-    protected void onAddListener() {
-        for (CustomFluidTank storage : this.storages) {
-            storage.setOnContentsChanged(this::notifyListeners);
-        }
-    }
-
-    @Override
-    public void notifyListeners() {
-        super.notifyListeners();
+    public void onContentsChanged() {
+        notifyListeners();
         isEmpty = null;
     }
 

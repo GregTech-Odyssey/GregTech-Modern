@@ -15,9 +15,15 @@ import java.util.function.Supplier;
 public class MultiblockShapeInfo {
 
     private final BlockInfo[][][] blocks; // [z][y][x]
+    public int amount;
 
     public MultiblockShapeInfo(BlockInfo[][][] blocks) {
         this.blocks = blocks;
+        for (BlockInfo[][] blockInfo : blocks) {
+            for (BlockInfo[] blockInfos : blockInfo)
+                for (BlockInfo blockInfo1 : blockInfos)
+                    if (blockInfo1 != null) amount++;
+        }
     }
 
     public BlockInfo[][][] getBlocks() {

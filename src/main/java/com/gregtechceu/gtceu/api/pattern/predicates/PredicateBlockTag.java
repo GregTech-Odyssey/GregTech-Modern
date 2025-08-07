@@ -11,7 +11,8 @@ import net.minecraft.world.level.block.Blocks;
 
 public class PredicateBlockTag extends SimplePredicate {
 
-    public TagKey<Block> tag = null;
+    protected TagKey<Block> tag = null;
+    protected Block[] blocks;
 
     public PredicateBlockTag() {
         super("tags");
@@ -27,16 +28,17 @@ public class PredicateBlockTag extends SimplePredicate {
     public SimplePredicate buildPredicate() {
         if (tag == null) {
             predicate = state -> false;
-            candidates = () -> new BlockInfo[] { BlockInfo.fromBlock(Blocks.BARRIER) };
+            blockInfo = () -> BlockInfo.EMPTY;
+            candidates = () -> new Block[] { Blocks.AIR };
             return this;
         }
         predicate = state -> state.getBlockState().is(tag);
-        candidates = () -> BuiltInRegistries.BLOCK.getTag(tag)
+        candidates = () -> blocks == null ? blocks = BuiltInRegistries.BLOCK.getTag(tag)
                 .stream()
                 .flatMap(HolderSet.Named::stream)
                 .map(Holder::value)
-                .map(BlockInfo::fromBlock)
-                .toArray(BlockInfo[]::new);
+                .toArray(Block[]::new) : blocks;
+        blockInfo = () -> new BlockInfo(candidates.get()[0]);
         return this;
     }
 }

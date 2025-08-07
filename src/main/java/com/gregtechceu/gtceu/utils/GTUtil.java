@@ -52,12 +52,15 @@ import org.lwjgl.glfw.GLFW;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.function.Supplier;
 
 import static com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey.HAZARD;
 
 public class GTUtil {
 
     public static final Runnable NOOP = () -> {};
+
+    public static final Supplier NULL_SUPPLIER = () -> null;
 
     public static final Direction[] DIRECTIONS = Direction.values();
 

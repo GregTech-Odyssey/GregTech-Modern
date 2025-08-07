@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 public class AppearanceBlock extends Block implements IAppearance {
 
     public AppearanceBlock(Properties properties) {
-        super(properties);
+        super(properties.isValidSpawn((a, b, c, d) -> false));
     }
 
     @Override

@@ -5,6 +5,9 @@ import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.block.Block;
+
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -52,8 +55,8 @@ public class TraceabilityPredicate {
         isController = predicate.isController;
     }
 
-    public TraceabilityPredicate(Predicate<MultiblockState> predicate, Supplier<BlockInfo[]> candidates) {
-        common.add(new SimplePredicate(predicate, candidates));
+    public TraceabilityPredicate(Predicate<MultiblockState> predicate, Supplier<BlockInfo> blockInfo, @Nullable Supplier<Block[]> candidates) {
+        common.add(new SimplePredicate(predicate, blockInfo, candidates));
     }
 
     public TraceabilityPredicate(SimplePredicate simplePredicate) {

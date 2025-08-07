@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
+import com.gregtechceu.gtceu.api.transfer.fluid.LockableIFluidHandler;
 
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
@@ -40,10 +41,12 @@ public class MultiblockTankMachine extends MultiblockControllerMachine implement
     @Persisted
     @NotNull
     private final NotifiableFluidTank tank;
+    private final LockableIFluidHandler fluidHandler;
 
     public MultiblockTankMachine(IMachineBlockEntity holder, int capacity, @Nullable PropertyFluidFilter filter, Object... args) {
         super(holder);
         this.tank = createTank(capacity, filter, args);
+        fluidHandler = new LockableIFluidHandler(tank).setLock(true);
     }
 
     protected NotifiableFluidTank createTank(int capacity, @Nullable PropertyFluidFilter filter, Object... args) {
@@ -69,10 +72,19 @@ public class MultiblockTankMachine extends MultiblockControllerMachine implement
     @Override
     @Nullable
     public IFluidHandlerModifiable getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
-        if (isFormed) {
-            return super.getFluidHandlerCap(side, useCoverCapability);
-        }
-        return IFluidHandlerModifiable.EMPTY;
+        return fluidHandler;
+    }
+
+    @Override
+    public void onStructureFormed() {
+        super.onStructureFormed();
+        fluidHandler.setLock(false);
+    }
+
+    @Override
+    public void onStructureInvalid() {
+        super.onStructureInvalid();
+        fluidHandler.setLock(true);
     }
 
     /////////////////////////////////////

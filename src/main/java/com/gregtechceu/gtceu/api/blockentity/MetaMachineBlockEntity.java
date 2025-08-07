@@ -48,6 +48,7 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
     public final MetaMachine metaMachine;
     private final long offset = GTValues.RNG.nextInt(20);
     private final MachineDefinition definition;
+    private boolean asyncSyncing;
 
     protected MetaMachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
@@ -245,6 +246,16 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
                 }
             }
         }
+    }
+
+    @Override
+    public boolean isAsyncSyncing() {
+        return asyncSyncing;
+    }
+
+    @Override
+    public void setAsyncSyncing(boolean syncing) {
+        asyncSyncing = syncing;
     }
 
     @Override

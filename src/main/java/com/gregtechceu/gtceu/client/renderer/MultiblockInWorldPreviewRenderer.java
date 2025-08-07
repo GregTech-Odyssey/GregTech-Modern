@@ -37,6 +37,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
 
@@ -109,7 +110,7 @@ public class MultiblockInWorldPreviewRenderer {
         Direction front = controller.getFrontFacing();
         Direction up = controller.getUpwardsFacing();
         MultiblockShapeInfo shapeInfo = controller.getDefinition().getMatchingShapes().get(0);
-        Map<BlockPos, BlockInfo> blockMap = new HashMap<>();
+        Map<BlockPos, BlockInfo> blockMap = new Object2ObjectOpenHashMap<>(shapeInfo.amount);
         IMultiController controllerBase = null;
         LEVEL = new TrackedDummyWorld();
         var blocks = shapeInfo.getBlocks();

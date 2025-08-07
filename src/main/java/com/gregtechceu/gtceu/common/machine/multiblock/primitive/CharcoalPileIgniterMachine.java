@@ -33,6 +33,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -217,12 +218,11 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
             }
             return false;
             // copied from PredicateBlockTag to display the preview logs properly
-        }, () -> BuiltInRegistries.BLOCK.getTag(BlockTags.LOGS_THAT_BURN)
+        }, () -> BlockInfo.fromBlock(Blocks.OAK_WOOD), () -> BuiltInRegistries.BLOCK.getTag(BlockTags.LOGS_THAT_BURN)
                 .stream()
                 .flatMap(HolderSet.Named::stream)
                 .map(Holder::value)
-                .map(BlockInfo::fromBlock)
-                .toArray(BlockInfo[]::new));
+                .toArray(Block[]::new));
     }
 
     public void updateDimensions() {

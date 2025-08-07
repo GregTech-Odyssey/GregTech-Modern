@@ -1,18 +1,19 @@
 package com.gregtechceu.gtceu.api.pattern.predicates;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.error.SinglePredicateError;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -22,15 +23,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class SimplePredicate {
 
-    public static SimplePredicate ANY = new SimplePredicate("any", x -> true, null);
-    public static SimplePredicate AIR = new SimplePredicate("air", blockWorldState -> blockWorldState.getBlockState().isAir(), null);
+    public static SimplePredicate ANY = new SimplePredicate("any", x -> true, null, null);
+    public static SimplePredicate AIR = new SimplePredicate("air", blockWorldState -> blockWorldState.getBlockState().isAir(), null, null);
 
     @Nullable
-    public Supplier<BlockInfo[]> candidates;
+    public Supplier<Block[]> candidates;
+    public Supplier<BlockInfo> blockInfo;
     public Predicate<MultiblockState> predicate;
     public List<Component> toolTips;
     public int minCount = -1;
@@ -50,16 +51,18 @@ public class SimplePredicate {
         this.type = type;
     }
 
-    public SimplePredicate(Predicate<MultiblockState> predicate, @Nullable Supplier<BlockInfo[]> candidates) {
+    public SimplePredicate(Predicate<MultiblockState> predicate, Supplier<BlockInfo> blockInfo, @Nullable Supplier<Block[]> candidates) {
         this();
         this.predicate = predicate;
+        this.blockInfo = blockInfo == null ? GTUtil.NULL_SUPPLIER : blockInfo;
         this.candidates = candidates;
     }
 
-    public SimplePredicate(String type, Predicate<MultiblockState> predicate,
-                           @Nullable Supplier<BlockInfo[]> candidates) {
+    public SimplePredicate(String type, Predicate<MultiblockState> predicate, Supplier<BlockInfo> blockInfo,
+                           @Nullable Supplier<Block[]> candidates) {
         this(type);
         this.predicate = predicate;
+        this.blockInfo = blockInfo == null ? GTUtil.NULL_SUPPLIER : blockInfo;
         this.candidates = candidates;
     }
 
@@ -136,14 +139,14 @@ public class SimplePredicate {
     }
 
     public List<ItemStack> getCandidates() {
-        if (GTCEu.isClientSide()) {
-            return candidates == null ? Collections.emptyList() :
-                    Arrays.stream(this.candidates.get()).filter(info -> info.getBlockState().getBlock() != Blocks.AIR)
-                            .map(blockInfo -> blockInfo.getItemStackForm(Minecraft.getInstance().level, BlockPos.ZERO))
-                            .collect(Collectors.toList());
+        return candidates == null ? Collections.emptyList() : Arrays.stream(this.candidates.get()).map(SimplePredicate::toItem).filter(i -> i != Items.AIR).map(Item::getDefaultInstance).toList();
+    }
+
+    public static Item toItem(Block block) {
+        if (block instanceof LiquidBlock liquidBlock) {
+            return liquidBlock.getFluid().getBucket();
+        } else {
+            return block.asItem();
         }
-        return candidates == null ? Collections.emptyList() :
-                Arrays.stream(this.candidates.get()).filter(info -> info.getBlockState().getBlock() != Blocks.AIR)
-                        .map(BlockInfo::getItemStackForm).collect(Collectors.toList());
     }
 }
