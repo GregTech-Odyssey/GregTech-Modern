@@ -40,9 +40,7 @@ public class GTSwordItem extends SwordItem implements IGTTool {
     private final int electricTier;
     private final IGTToolDefinition toolStats;
 
-    private Boolean canApplyAtEnchantingTable;
     private Boolean hasCraftingRemainingItem;
-    private Integer getEnchantmentValue;
     private Integer getMaxDamage;
 
     protected GTSwordItem(GTToolType toolType, MaterialToolTier tier, Material material, IGTToolDefinition toolStats, Properties properties) {
@@ -154,14 +152,12 @@ public class GTSwordItem extends SwordItem implements IGTTool {
 
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        if (canApplyAtEnchantingTable == null) canApplyAtEnchantingTable = definition$canApplyAtEnchantingTable(stack, enchantment);
-        return canApplyAtEnchantingTable;
+        return definition$canApplyAtEnchantingTable(stack, enchantment);
     }
 
     @Override
     public int getEnchantmentValue(ItemStack stack) {
-        if (getEnchantmentValue == null) getEnchantmentValue = getTotalEnchantability(stack);
-        return getEnchantmentValue;
+        return getTotalEnchantability(stack);
     }
 
     @Override

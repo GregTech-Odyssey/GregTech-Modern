@@ -32,9 +32,7 @@ public class EnvironmentalHazardClientHandler {
     public static final EnvironmentalHazardClientHandler INSTANCE = new EnvironmentalHazardClientHandler();
 
     private EnvironmentalHazardClientHandler() {
-        if (ConfigHolder.INSTANCE.gameplay.hazardsEnabled) {
-            MinecraftForge.EVENT_BUS.register(this);
-        }
+        MinecraftForge.EVENT_BUS.register(this);
     }
 
     /**

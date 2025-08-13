@@ -4,24 +4,20 @@ import com.gregtechceu.gtceu.api.capability.IDataAccessHatch;
 import com.gregtechceu.gtceu.api.capability.IOpticalDataAccessHatch;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
-import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
+import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.common.blockentity.OpticalPipeBlockEntity;
+import com.gregtechceu.gtceu.common.machine.multiblock.electric.research.DataBankMachine;
+import com.gregtechceu.gtceu.common.recipe.condition.ResearchCondition;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.BlockHitResult;
 
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -30,6 +26,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class OpticalDataHatchMachine extends MultiblockPartMachine implements IOpticalDataAccessHatch {
 
     private final boolean isTransmitter;
+    private boolean call;
 
     public OpticalDataHatchMachine(IMachineBlockEntity holder, boolean isTransmitter) {
         super(holder);
@@ -37,39 +34,47 @@ public class OpticalDataHatchMachine extends MultiblockPartMachine implements IO
     }
 
     @Override
-    public boolean isRecipeAvailable(@NotNull GTRecipe recipe, @NotNull Collection<IDataAccessHatch> seen) {
-        seen.add(this);
+    public void updateRecipeLogic() {
+        if (call) return;
+        call = true;
+        if (isTransmitter) {
+            IDataAccessHatch cap = getAccessHatch();
+            if (cap != null) {
+                cap.updateRecipeLogic();
+            }
+        } else {
+            for (var controller : getControllers()) {
+                if (controller instanceof IRecipeLogicMachine recipeLogicMachine) {
+                    recipeLogicMachine.getRecipeLogic().updateTickSubscription();
+                }
+            }
+        }
+        call = false;
+    }
+
+    @Override
+    public boolean isRecipeAvailable(@NotNull GTRecipe recipe) {
         if (!isFormed()) {
             return false;
         }
-        if (isTransmitter()) {
-            IMultiController controller = getControllers().first();
-            if (!(controller instanceof IWorkableMultiController workable) || !workable.getRecipeLogic().isWorking()) return false;
-            List<IDataAccessHatch> dataAccesses = new ArrayList<>();
-            List<IDataAccessHatch> transmitters = new ArrayList<>();
-            for (var part : controller.getParts()) {
-                Block block = part.self().getBlockState().getBlock();
-                if (part instanceof IDataAccessHatch hatch && PartAbility.DATA_ACCESS.isApplicable(block)) {
-                    dataAccesses.add(hatch);
-                }
-                if (part instanceof IDataAccessHatch hatch && PartAbility.OPTICAL_DATA_RECEPTION.isApplicable(block)) {
-                    transmitters.add(hatch);
-                }
+        if (call) return false;
+        call = true;
+        var result = false;
+        if (isTransmitter) {
+            if (getControllers().first() instanceof DataBankMachine dataBankMachine && dataBankMachine.getRecipeLogic().isWorking()) {
+                result = isRecipeAvailable(dataBankMachine.dataAccesses, recipe) || isRecipeAvailable(dataBankMachine.receptions, recipe);
             }
-            return isRecipeAvailable(dataAccesses, seen, recipe) || isRecipeAvailable(transmitters, seen, recipe);
         } else {
-            if (getNeighbor(getFrontFacing()) instanceof OpticalPipeBlockEntity blockEntity) {
-                IDataAccessHatch cap = blockEntity.getCapability(GTCapability.CAPABILITY_DATA_ACCESS, getFrontFacing().getOpposite()).orElse(null);
-                return cap != null && cap.isRecipeAvailable(recipe, seen);
-            }
+            IDataAccessHatch cap = getAccessHatch();
+            result = cap != null && cap.isRecipeAvailable(recipe);
         }
-        return false;
+        call = false;
+        return result;
     }
 
-    private static boolean isRecipeAvailable(@NotNull Iterable<? extends IDataAccessHatch> hatches, @NotNull Collection<IDataAccessHatch> seen, @NotNull GTRecipe recipe) {
+    private static boolean isRecipeAvailable(@NotNull Iterable<? extends IDataAccessHatch> hatches, @NotNull GTRecipe recipe) {
         for (IDataAccessHatch hatch : hatches) {
-            if (seen.contains(hatch)) continue;
-            if (hatch.isRecipeAvailable(recipe, seen)) {
+            if (hatch.isRecipeAvailable(recipe)) {
                 return true;
             }
         }
@@ -92,8 +97,17 @@ public class OpticalDataHatchMachine extends MultiblockPartMachine implements IO
     }
 
     @Override
-    public GTRecipe modifyRecipe(GTRecipe recipe) {
-        return IOpticalDataAccessHatch.super.modifyRecipe(recipe);
+    public @Nullable GTRecipe modifyRecipe(GTRecipe recipe) {
+        if (recipe.conditions.stream().noneMatch(ResearchCondition.class::isInstance)) return recipe;
+        if (this.isRecipeAvailable(recipe)) return recipe;
+        return null;
+    }
+
+    protected @Nullable IDataAccessHatch getAccessHatch() {
+        if (getNeighbor(getFrontFacing()) instanceof OpticalPipeBlockEntity blockEntity) {
+            return blockEntity.getCapability(GTCapability.CAPABILITY_DATA_ACCESS, getFrontFacing().getOpposite()).orElse(null);
+        }
+        return null;
     }
 
     public boolean isTransmitter() {

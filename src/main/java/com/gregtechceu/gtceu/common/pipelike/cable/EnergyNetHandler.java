@@ -45,7 +45,10 @@ public class EnergyNetHandler implements IEnergyContainer {
         long energyUsed = 0;
         var pos = cable.getPipePos();
         for (EnergyRoutePath path : net.getNetData(cable.getPipePosLong(), pos)) {
-            long energy = energyToAdd - path.getMaxLoss();
+            long add = energyToAdd - energyUsed;
+            if (add <= 0) break;
+            long loss = path.getMaxLoss();
+            long energy = add - loss;
             if (energy <= 0) {
                 // Will lose all the energy with this path, so don't use it
                 continue;
@@ -62,9 +65,10 @@ public class EnergyNetHandler implements IEnergyContainer {
             Direction facing = path.getTargetFacing().getOpposite();
             if (!dest.inputsEnergy(facing) || dest.getEnergyCanBeInserted() <= 0) continue;
             transfer = true;
-            long accept = dest.acceptEnergyFromNetwork(facing, voltage - path.getMaxLoss(), energy - energyUsed);
+            long accept = dest.acceptEnergyFromNetwork(facing, voltage - loss, energy);
             transfer = false;
             if (accept == 0) continue;
+            energyUsed += accept + loss;
             for (var c : path.getPath()) {
                 c.incrementAmperage(voltage, accept / voltage);
                 if (voltage > c.getMaxVoltage()) {
@@ -72,9 +76,6 @@ public class EnergyNetHandler implements IEnergyContainer {
                     c.applyHeat(heat);
                 }
             }
-            energyToAdd = energy;
-            energyUsed += accept;
-            if (energyUsed == energyToAdd) break;
         }
         return energyUsed;
     }

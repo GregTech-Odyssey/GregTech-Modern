@@ -34,7 +34,7 @@ public class SteamBoilerBlockProvider extends BlockInfoProvider<SteamBoilerMachi
 
     @Override
     protected void write(CompoundTag data, SteamBoilerMachine capability, BlockAccessor block) {
-        data.putInt("fillAmount", capability.fillAmount);
+        data.putInt("fillAmount", capability.fillAmount / 10);
         data.putBoolean("heatingUp", capability.getRecipeLogic().isWorking());
         data.putBoolean("coolingDown", capability.getCurrentTemperature() > 0);
         data.putBoolean("producingSteam", !capability.isHasNoWater() && capability.getCurrentTemperature() >= 100);

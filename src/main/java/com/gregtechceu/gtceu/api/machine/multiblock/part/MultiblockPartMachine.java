@@ -16,6 +16,7 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -69,6 +70,16 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
     @Override
     public boolean isFormed() {
         return !controllerPositions.isEmpty();
+    }
+
+    @Override
+    public void onRotated(Direction oldFacing, Direction newFacing) {
+        super.onRotated(oldFacing, newFacing);
+        if (oldFacing != newFacing) {
+            for (var controller : controllers) {
+                controller.requestCheck();
+            }
+        }
     }
 
     // Not sure if necessary, but added to match the Controller class

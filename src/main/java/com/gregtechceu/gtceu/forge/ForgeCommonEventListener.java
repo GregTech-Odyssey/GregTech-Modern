@@ -144,12 +144,6 @@ public class ForgeCommonEventListener {
         if (tracker == null) {
             return;
         }
-        if (!ConfigHolder.INSTANCE.gameplay.hazardsEnabled) {
-            for (MedicalCondition medicalCondition : tracker.getMedicalConditions().keySet()) {
-                tracker.removeMedicalCondition(medicalCondition);
-            }
-            return;
-        }
 
         IItemHandler inventory = player.getCapability(ForgeCapabilities.ITEM_HANDLER, null).orElse(null);
         if (inventory == null) {

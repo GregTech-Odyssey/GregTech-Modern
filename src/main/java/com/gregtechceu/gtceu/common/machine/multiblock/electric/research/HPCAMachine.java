@@ -52,7 +52,6 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -62,7 +61,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class HPCAMachine extends WorkableElectricMultiblockMachine implements IOpticalComputationProvider, IControllable {
+public class HPCAMachine extends WorkableElectricMultiblockMachine implements IOpticalComputationProvider {
 
     private static final double IDLE_TEMPERATURE = 200;
     private static final double DAMAGE_TEMPERATURE = 1000;
@@ -146,21 +145,12 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     }
 
     @Override
-    public int requestCWUt(int cwut, boolean simulate, @NotNull Collection<IOpticalComputationProvider> seen) {
-        seen.add(this);
-        return isActive() && isWorkingEnabled() && !hasNotEnoughEnergy ? hpcaHandler.allocateCWUt(cwut, simulate) : 0;
+    public long requestCWU(long cwu, boolean simulate) {
+        return isActive() && isWorkingEnabled() && !hasNotEnoughEnergy ? hpcaHandler.allocateCWUt(cwu, simulate) : 0;
     }
 
     @Override
-    public int getMaxCWUt(@NotNull Collection<IOpticalComputationProvider> seen) {
-        seen.add(this);
-        return isActive() && isWorkingEnabled() ? hpcaHandler.getMaxCWUt() : 0;
-    }
-
-    @Override
-    public boolean canBridge(@NotNull Collection<IOpticalComputationProvider> seen) {
-        seen.add(this);
-        // don't show a problem if the structure is not yet formed
+    public boolean canBridge() {
         return !isFormed() || hpcaHandler.hasHPCABridge();
     }
 
@@ -199,7 +189,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         if (this.energyContainer.getEnergyStored() >= energyToConsume) {
             if (!hasNotEnoughEnergy) {
                 long consumed = this.energyContainer.removeEnergy(energyToConsume);
-                if (consumed == energyToConsume) {
+                if (consumed >= energyToConsume) {
                     getRecipeLogic().setStatus(RecipeLogic.Status.WORKING);
                 } else {
                     this.hasNotEnoughEnergy = true;
@@ -261,62 +251,6 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         return ChatFormatting.RED;
     }
 
-    /*
-     * @Override
-     * protected void addWarningText(List<Component> textList) {
-     * MultiblockDisplayText.builder(textList, isFormed(), false)
-     * .addLowPowerLine(hasNotEnoughEnergy)
-     * .addCustom(tl -> {
-     * if (isStructureFormed()) {
-     * if (temperature > 500) {
-     * // Temperature warning
-     * tl.add(TextComponentUtil.translationWithColor(
-     * TextFormatting.YELLOW,
-     * "gtceu.multiblock.hpca.warning_temperature"));
-     *
-     * // Active cooler overdrive warning
-     * tl.add(TextComponentUtil.translationWithColor(
-     * TextFormatting.GRAY,
-     * "gtceu.multiblock.hpca.warning_temperature_active_cool"));
-     * }
-     *
-     * // Structure warnings
-     * hpcaHandler.addWarnings(tl);
-     * }
-     * })
-     * .addMaintenanceProblemLines(getMaintenanceProblems());
-     * }
-     *
-     * @Override
-     * protected void addErrorText(List<Component> textList) {
-     * super.addErrorText(textList);
-     * if (isFormed()) {
-     * if (temperature > 1000) {
-     * textList.add(Component.translatable("gtceu.multiblock.hpca.error_temperature").withStyle(ChatFormatting.RED));
-     * }
-     * hpcaHandler.addErrors(textList);
-     * }
-     * }
-     *
-     * @Override
-     * public void addBarHoverText(List<Component> hoverList, int index) {
-     * if (index == 0) {
-     * Component cwutInfo = Component.literal(
-     * hpcaHandler.cachedCWUt + " / " + hpcaHandler.getMaxCWUt() + " CWU/t").withStyle(ChatFormatting.AQUA);
-     * hoverList.add(Component.translatable(
-     * "gtceu.multiblock.hpca.computation",
-     * cwutInfo).withStyle(ChatFormatting.GRAY));
-     * } else {
-     * Component tempInfo = Component.literal(,
-     * Math.round(temperature / 10.0D) + "°C").withStyle(getDisplayTemperatureColor());
-     * hoverList.add(TextComponentUtil.translationWithColor(
-     * TextFormatting.GRAY,
-     * "gtceu.multiblock.hpca.temperature",
-     * tempInfo));
-     * }
-     * }
-     */
-    // Handles the logic of this structure's specific HPCA component grid
     public static class HPCAGridHandler implements IManaged {
 
         public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(HPCAGridHandler.class);
@@ -333,13 +267,13 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         /**
          * How much CWU/t is currently allocated for this tick.
          */
-        private int allocatedCWUt;
+        private long allocatedCWUt;
         // cached gui info
         // holding these values past the computation clear because GUI is too "late" to read the state in time
         @DescSynced
         private long cachedEUt;
         @DescSynced
-        private int cachedCWUt;
+        private long cachedCWUt;
 
         public HPCAGridHandler(@Nullable HPCAMachine controller) {
             this.controller = controller;
@@ -397,7 +331,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
          */
         public double calculateTemperatureChange(IFluidHandler coolantTank, boolean forceCoolWithActive) {
             // calculate temperature increase
-            int maxCWUt = Math.max(1, getMaxCWUt()); // avoids dividing by 0 and the behavior is no different
+            long maxCWUt = Math.max(1, getMaxCWUt()); // avoids dividing by 0 and the behavior is no different
             int maxCoolingDemand = getMaxCoolingDemand();
             // temperature increase is proportional to the amount of actively used computation
             // a * (b / c)
@@ -488,10 +422,10 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         /**
          * Allocate computation on a given request. Allocates for one tick.
          */
-        public int allocateCWUt(int cwut, boolean simulate) {
-            int maxCWUt = getMaxCWUt();
-            int availableCWUt = maxCWUt - this.allocatedCWUt;
-            int toAllocate = Math.min(cwut, availableCWUt);
+        public long allocateCWUt(long cwu, boolean simulate) {
+            long maxCWUt = getMaxCWUt();
+            long availableCWUt = maxCWUt - this.allocatedCWUt;
+            long toAllocate = Math.min(cwu, availableCWUt);
             if (!simulate) {
                 this.allocatedCWUt += toAllocate;
             }
@@ -501,8 +435,8 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         /**
          * The maximum amount of CWUs (Compute Work Units) created per tick.
          */
-        public int getMaxCWUt() {
-            int maxCWUt = 0;
+        public long getMaxCWUt() {
+            long maxCWUt = 0;
             for (var computationProvider : computationProviders) {
                 maxCWUt += computationProvider.getCWUPerTick();
             }
@@ -598,7 +532,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
 
         public void addInfo(List<Component> textList) {
             // Max Computation
-            MutableComponent data = Component.literal(Integer.toString(getMaxCWUt())).withStyle(ChatFormatting.AQUA);
+            MutableComponent data = Component.literal(Long.toString(getMaxCWUt())).withStyle(ChatFormatting.AQUA);
             textList.add(Component.translatable("gtceu.multiblock.hpca.info_max_computation", data).withStyle(ChatFormatting.GRAY));
             // Cooling
             ChatFormatting coolingColor = getMaxCoolingAmount() < getMaxCoolingDemand() ? ChatFormatting.RED : ChatFormatting.GREEN;
@@ -696,7 +630,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         /**
          * How much CWU/t is currently allocated for this tick.
          */
-        public int getAllocatedCWUt() {
+        public long getAllocatedCWUt() {
             return this.allocatedCWUt;
         }
     }

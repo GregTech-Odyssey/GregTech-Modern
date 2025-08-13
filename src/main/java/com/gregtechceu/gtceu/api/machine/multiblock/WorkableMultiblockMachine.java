@@ -86,7 +86,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     //////////////////////////////////////
     @Override
     protected void onStructureFormedAfter() {
-        recipeLogic.loadTickSubscription();
+        recipeLogic.updateTickSubscription();
     }
 
     @Override
@@ -143,7 +143,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         // fine some parts invalid now.
         // but we shouldn't reset recipe logic rn.
         // if it's due to chunk unload, we should just wait for it to be valid again.
-        recipeLogic.loadTickSubscription();
+        recipeLogic.updateTickSubscription();
     }
 
     //////////////////////////////////////

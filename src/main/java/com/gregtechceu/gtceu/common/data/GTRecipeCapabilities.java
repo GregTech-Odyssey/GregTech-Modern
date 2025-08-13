@@ -15,7 +15,7 @@ public class GTRecipeCapabilities {
     public final static RecipeCapability<Ingredient> ITEM = ItemRecipeCapability.CAP;
     public final static RecipeCapability<FluidIngredient> FLUID = FluidRecipeCapability.CAP;
     public final static RecipeCapability<Long> EU = EURecipeCapability.CAP;
-    public final static RecipeCapability<Integer> CWU = CWURecipeCapability.CAP;
+    public final static RecipeCapability<Long> CWU = CWURecipeCapability.CAP;
 
     public static void init() {
         GTRegistries.RECIPE_CAPABILITIES.unfreeze();

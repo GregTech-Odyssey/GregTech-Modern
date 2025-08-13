@@ -19,6 +19,8 @@ public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait imple
     @DescSynced
     protected boolean isDistinct;
 
+    protected Runnable notify;
+
     public NotifiableRecipeHandlerTrait(MetaMachine machine) {
         super(machine);
     }
@@ -41,7 +43,13 @@ public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait imple
     }
 
     public void notifyListeners() {
-        listeners.forEach(Runnable::run);
+        if (notify == null) {
+            notify = () -> {
+                listeners.forEach(Runnable::run);
+                notify = null;
+            };
+            machine.tell(notify);
+        }
     }
 
     public boolean isDistinct() {

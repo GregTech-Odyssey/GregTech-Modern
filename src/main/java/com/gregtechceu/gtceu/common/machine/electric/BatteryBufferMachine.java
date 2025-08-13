@@ -215,7 +215,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
             }
             var batteries = getNonEmptyBatteries();
             if (!batteries.isEmpty()) {
-                long out = 0;
+                double out = 0;
                 long stored = getEnergyStored();
                 if (stored > 0) {
                     var voltage = getOutputVoltage();
@@ -224,7 +224,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                     if (out == 0) return;
 
                 }
-                long distributed = out / batteries.size();
+                long distributed = (long) (out / batteries.size() + 0.5);
                 boolean changed = false;
                 for (IElectricItem electricItem : batteries) {
                     var charged = electricItem.discharge(distributed, getTier(), false, true, false);

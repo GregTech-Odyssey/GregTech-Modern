@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.common.pipelike.optical;
 
 import com.gregtechceu.gtceu.api.capability.IDataAccessHatch;
+import com.gregtechceu.gtceu.api.capability.IOpticalComputationHatch;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
 import com.gregtechceu.gtceu.api.capability.IOpticalDataAccessHatch;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
@@ -35,8 +36,9 @@ public class OpticalRoutePath implements IRoutePath<IOpticalComputationProvider>
     }
 
     @Nullable
-    public IOpticalComputationProvider getComputationHatch() {
-        return getTargetCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER);
+    public IOpticalComputationHatch getComputationHatch() {
+        IOpticalComputationProvider provider = getTargetCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER);
+        return provider instanceof IOpticalComputationHatch opticalHatch ? opticalHatch : null;
     }
 
     @Nullable

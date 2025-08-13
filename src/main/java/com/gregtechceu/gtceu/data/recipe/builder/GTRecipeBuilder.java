@@ -209,7 +209,7 @@ public class GTRecipeBuilder {
         return output(EURecipeCapability.CAP, eu);
     }
 
-    public GTRecipeBuilder inputCWU(int cwu) {
+    public GTRecipeBuilder inputCWU(long cwu) {
         return input(CWURecipeCapability.CAP, cwu);
     }
 
@@ -223,8 +223,7 @@ public class GTRecipeBuilder {
             tickInput.remove(CWURecipeCapability.CAP);
             inputCWU(cwu);
         } else if (cwu < 0) {
-            tickOutput.remove(CWURecipeCapability.CAP);
-            outputCWU(-cwu);
+            throw new IllegalArgumentException("CWUt can't be negative");
         }
         perTick = lastPerTick;
         return this;
@@ -235,10 +234,6 @@ public class GTRecipeBuilder {
         this.hideDuration(true);
         this.duration(cwu);
         return this;
-    }
-
-    public GTRecipeBuilder outputCWU(int cwu) {
-        return output(CWURecipeCapability.CAP, cwu);
     }
 
     public GTRecipeBuilder inputItems(Object input) {

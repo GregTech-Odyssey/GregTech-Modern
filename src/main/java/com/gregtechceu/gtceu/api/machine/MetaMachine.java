@@ -115,6 +115,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     protected final List<MachineTrait> traits = new ObjectArrayList<>();
     private final List<TickableSubscription> serverTicks = new ObjectArrayList<>();
     private final List<TickableSubscription> waitingToAdd = new ObjectArrayList<>();
+    private final List<Runnable> ticks = new ObjectArrayList<>();
 
     protected final DirectionCache<IItemHandlerModifiable> itemHandlerModifiableCache = DirectionCache.create();
     protected final DirectionCache<IFluidHandlerModifiable> fluidHandlerModifiableCache = DirectionCache.create();
@@ -141,6 +142,8 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     private boolean observe;
 
     private boolean wait;
+
+    private boolean hasTick;
 
     public MetaMachine(IMachineBlockEntity holder) {
         this.holder = holder;
@@ -282,10 +285,20 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         }
     }
 
+    public void tell(Runnable runnable) {
+        ticks.add(runnable);
+        hasTick = true;
+    }
+
     public void serverTick() {
         if (dirty) {
             dirty = false;
             holder.self().setChanged();
+        }
+        if (hasTick) {
+            ticks.forEach(Runnable::run);
+            ticks.clear();
+            hasTick = false;
         }
         if (wait) return;
         if (!waitingToAdd.isEmpty()) {

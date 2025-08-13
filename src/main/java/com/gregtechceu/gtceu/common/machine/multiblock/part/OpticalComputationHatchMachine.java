@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
+import com.gregtechceu.gtceu.api.capability.IOpticalComputationHatch;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableComputationContainer;
@@ -14,7 +14,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class OpticalComputationHatchMachine extends MultiblockPartMachine {
+public class OpticalComputationHatchMachine extends MultiblockPartMachine implements IOpticalComputationHatch {
 
     private final boolean transmitter;
     protected NotifiableComputationContainer computationContainer;
@@ -26,12 +26,8 @@ public class OpticalComputationHatchMachine extends MultiblockPartMachine {
     }
 
     protected NotifiableComputationContainer createComputationContainer(Object... args) {
-        IO io = IO.IN;
-        if (args.length > 1 && args[args.length - 2] instanceof IO newIo) {
-            io = newIo;
-        }
         if (args.length > 0 && args[args.length - 1] instanceof Boolean transmitter) {
-            return new NotifiableComputationContainer(this, io, transmitter);
+            return new NotifiableComputationContainer(this, transmitter);
         }
         throw new IllegalArgumentException();
     }
@@ -48,5 +44,15 @@ public class OpticalComputationHatchMachine extends MultiblockPartMachine {
 
     public boolean isTransmitter() {
         return this.transmitter;
+    }
+
+    @Override
+    public long requestCWU(long cwu, boolean simulate) {
+        return computationContainer.requestCWU(cwu, simulate);
+    }
+
+    @Override
+    public boolean canBridge() {
+        return computationContainer.canBridge();
     }
 }

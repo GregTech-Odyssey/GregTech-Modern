@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.common.machine.storage;
 
-import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
+import com.gregtechceu.gtceu.api.capability.IOpticalComputationHatch;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
@@ -20,22 +20,19 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.entity.player.Player;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class CreativeComputationProviderMachine extends MetaMachine implements IUIMachine, IOpticalComputationProvider {
+public class CreativeComputationProviderMachine extends MetaMachine implements IUIMachine, IOpticalComputationHatch {
 
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(CreativeComputationProviderMachine.class, MetaMachine.MANAGED_FIELD_HOLDER);
     @Persisted
-    private int maxCWUt;
-    private int lastRequestedCWUt;
-    private int requestedCWUPerSec;
+    private long maxCWUt;
+    private long lastRequestedCWUt;
+    private long requestedCWUPerSec;
     @Persisted
     private boolean active;
     @Nullable
@@ -70,25 +67,12 @@ public class CreativeComputationProviderMachine extends MetaMachine implements I
     }
 
     @Override
-    public int requestCWUt(int cwut, boolean simulate, @NotNull Collection<IOpticalComputationProvider> seen) {
-        seen.add(this);
-        int requestedCWUt = active ? Math.min(cwut, maxCWUt) : 0;
+    public long requestCWU(long cwu, boolean simulate) {
+        long requestedCWUt = active ? Math.min(cwu, maxCWUt) : 0;
         if (!simulate) {
             this.requestedCWUPerSec += requestedCWUt;
         }
         return requestedCWUt;
-    }
-
-    @Override
-    public int getMaxCWUt(@NotNull Collection<IOpticalComputationProvider> seen) {
-        seen.add(this);
-        return active ? maxCWUt : 0;
-    }
-
-    @Override
-    public boolean canBridge(@NotNull Collection<IOpticalComputationProvider> seen) {
-        seen.add(this);
-        return true;
     }
 
     public void setActive(boolean active) {
@@ -98,7 +82,7 @@ public class CreativeComputationProviderMachine extends MetaMachine implements I
 
     @Override
     public ModularUI createUI(Player entityPlayer) {
-        return new ModularUI(140, 95, this, entityPlayer).background(GuiTextures.BACKGROUND).widget(new LabelWidget(7, 7, "CWUt")).widget(new TextFieldWidget(9, 20, 122, 16, () -> String.valueOf(maxCWUt), value -> maxCWUt = Integer.parseInt(value)).setNumbersOnly(0, Integer.MAX_VALUE)).widget(new LabelWidget(7, 42, "gtceu.creative.computation.average")).widget(new LabelWidget(7, 54, () -> String.valueOf(lastRequestedCWUt))).widget(new SwitchWidget(9, 66, 122, 20, (clickData, value) -> setActive(value)).setSupplier(this::isActive).setTexture(new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, new TextTexture("gtceu.creative.activity.off")), new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, new TextTexture("gtceu.creative.activity.on"))));
+        return new ModularUI(140, 95, this, entityPlayer).background(GuiTextures.BACKGROUND).widget(new LabelWidget(7, 7, "CWUt")).widget(new TextFieldWidget(9, 20, 122, 16, () -> String.valueOf(maxCWUt), value -> maxCWUt = Long.parseLong(value)).setNumbersOnly(0, Long.MAX_VALUE)).widget(new LabelWidget(7, 42, "gtceu.creative.computation.average")).widget(new LabelWidget(7, 54, () -> String.valueOf(lastRequestedCWUt))).widget(new SwitchWidget(9, 66, 122, 20, (clickData, value) -> setActive(value)).setSupplier(this::isActive).setTexture(new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, new TextTexture("gtceu.creative.activity.off")), new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, new TextTexture("gtceu.creative.activity.on"))));
     }
 
     @Override
@@ -108,5 +92,10 @@ public class CreativeComputationProviderMachine extends MetaMachine implements I
 
     public boolean isActive() {
         return this.active;
+    }
+
+    @Override
+    public boolean isTransmitter() {
+        return true;
     }
 }
