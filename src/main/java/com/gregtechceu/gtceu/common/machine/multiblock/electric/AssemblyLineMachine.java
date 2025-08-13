@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
-import com.gregtechceu.gtceu.api.recipe.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
@@ -21,7 +20,6 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
-import net.minecraft.network.chat.Component;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 
@@ -29,8 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-
-import javax.swing.*;
 
 public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
 
@@ -53,7 +49,7 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
     }
 
     @Override
-    protected RecipeLogic createRecipeLogic(Object... args) {
+    public RecipeLogic createRecipeLogic(Object... args) {
         return new AssemblyLineLogic(this);
     }
 
@@ -141,48 +137,50 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
         }
 
         @Override
-        protected ActionResult matchRecipe(@NotNull GTRecipe recipe) {
+        protected boolean matchRecipe(@NotNull GTRecipe recipe) {
             if (ConfigHolder.INSTANCE.machines.orderedAssemblyLineItems &&
                     !getMachine().checkItemInputs(recipe)) {
-                return ActionResult.fail(Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(ItemRecipeCapability.CAP.getName()));
+                return false;
             }
 
             if (ConfigHolder.INSTANCE.machines.orderedAssemblyLineFluids &&
                     !getMachine().checkFluidInputs(recipe)) {
-                return ActionResult.fail(Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(FluidRecipeCapability.CAP.getName()));
+                return false;
             }
 
             return RecipeHelper.matchRecipe(this.machine, recipe);
         }
 
         @Override
-        protected ActionResult handleRecipeIO(GTRecipe recipe, IO io) {
+        protected boolean handleRecipeIO(GTRecipe recipe, IO io) {
             if (io == IO.IN) {
                 if (ConfigHolder.INSTANCE.machines.orderedAssemblyLineItems) {
                     if (!consumeOrderedItemInputs(recipe)) {
-                        return ActionResult.fail(Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(FluidRecipeCapability.CAP.getName()));
+                        return false;
                     }
                 } else {
                     var items = recipe.getInputContents(ItemRecipeCapability.CAP);
-                    var result = RecipeHelper.handleRecipe(this.machine, recipe, io, Map.of(ItemRecipeCapability.CAP, items), chanceCaches, false, false);
-                    if (result != ActionResult.SUCCESS) return result;
+                    if (!RecipeHelper.handleRecipe(this.machine, recipe, io, Map.of(ItemRecipeCapability.CAP, items), chanceCaches, false, false)) {
+                        return false;
+                    }
                 }
 
                 if (ConfigHolder.INSTANCE.machines.orderedAssemblyLineFluids) {
                     if (!consumeOrderedFluidInputs(recipe)) {
-                        return ActionResult.fail(Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(FluidRecipeCapability.CAP.getName()));
+                        return false;
                     }
                 } else {
                     var fluids = recipe.getInputContents(FluidRecipeCapability.CAP);
-                    var result = RecipeHelper.handleRecipe(this.machine, recipe, io, Map.of(FluidRecipeCapability.CAP, fluids), chanceCaches, false, false);
-                    if (result != ActionResult.SUCCESS) return result;
+                    if (!RecipeHelper.handleRecipe(this.machine, recipe, io, Map.of(FluidRecipeCapability.CAP, fluids), chanceCaches, false, false)) {
+                        return false;
+                    }
                 }
 
                 workingRecipe = recipe;
-                return ActionResult.SUCCESS;
+                return true;
             } else {
                 var result = super.handleRecipeIO(recipe, io);
-                if (result.isSuccess()) {
+                if (result) {
                     workingRecipe = null;
                 }
                 return result;
