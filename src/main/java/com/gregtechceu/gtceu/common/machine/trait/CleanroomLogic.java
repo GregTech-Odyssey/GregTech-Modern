@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.capability.IWorkable;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.common.capability.EnvironmentalHazardSavedData;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.CleanroomMachine;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
@@ -14,7 +13,6 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 
 import org.jetbrains.annotations.Nullable;
@@ -54,11 +52,7 @@ public class CleanroomLogic extends RecipeLogic implements IWorkable {
     public void serverTick() {
         // always run this logic
         if (duration > 0) {
-            EnvironmentalHazardSavedData environmentalHazards = EnvironmentalHazardSavedData.getOrCreate((ServerLevel) this.getMachine().getLevel());
-            var zone = environmentalHazards.getZoneByContainedPos(getMachine().getPos());
-            // all maintenance problems not being fixed or there are environmental hazards in the area
-            // means the machine does not run
-            if (maintenanceMachine == null || maintenanceMachine.getNumMaintenanceProblems() < 6 || zone != null) {
+            if (maintenanceMachine == null || maintenanceMachine.getNumMaintenanceProblems() < 6) {
                 // drain the energy
                 if (!consumeEnergy()) {
                     if (progress > 0 && machine.regressWhenWaiting()) {

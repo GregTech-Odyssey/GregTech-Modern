@@ -41,6 +41,16 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
     }
 
     @Override
+    public long requestCWU(long cwut, boolean simulate) {
+        long cwu = super.requestCWU(cwut, simulate);
+        if (!simulate && cwu >= cwut) {
+            var progress = getRecipeLogic().getProgress();
+            getRecipeLogic().setProgress(progress + (int) Math.min(getRecipeLogic().getMaxProgress() - progress, cwu));
+        }
+        return cwu;
+    }
+
+    @Override
     public void onStructureFormed() {
         super.onStructureFormed();
         for (IMultiPart part : getParts()) {

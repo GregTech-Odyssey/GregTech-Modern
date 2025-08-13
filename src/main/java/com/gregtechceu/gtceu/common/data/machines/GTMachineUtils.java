@@ -12,7 +12,6 @@ import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidPipeProperties;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
-import com.gregtechceu.gtceu.api.data.medicalcondition.MedicalCondition;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.fluids.PropertyFluidFilter;
 import com.gregtechceu.gtceu.api.item.DrumMachineItem;
@@ -141,15 +140,7 @@ public class GTMachineUtils {
                                                              int... tiers) {
         return registerTieredMachines(name,
                 (holder, tier) -> new SimpleTieredMachine(holder, tier, tankScalingFunction), (tier, builder) -> {
-                    if (hasPollutionDebuff) {
-                        builder.recipeModifiers(GTRecipeModifiers.ENVIRONMENT_REQUIREMENT
-                                .apply(GTMedicalConditions.CARBON_MONOXIDE_POISONING, 100 * tier),
-                                GTRecipeModifiers.OC_NON_PERFECT)
-                                .conditionalTooltip(defaultEnvironmentRequirement(),
-                                        ConfigHolder.INSTANCE.gameplay.environmentalHazards);
-                    } else {
-                        builder.recipeModifier(GTRecipeModifiers.OC_NON_PERFECT);
-                    }
+                    builder.recipeModifier(GTRecipeModifiers.OC_NON_PERFECT);
                     return builder
                             .langValue("%s %s %s".formatted(VLVH[tier], toEnglishName(name), VLVT[tier]))
                             .editableUI(SimpleTieredMachine.EDITABLE_UI_CREATOR.apply(GTCEu.id(name), recipeType))
@@ -690,15 +681,6 @@ public class GTMachineUtils {
         if (ConfigHolder.INSTANCE.machines.shouldWeatherOrTerrainExplosion)
             return Component.translatable("gtceu.universal.tooltip.terrain_resist");
         return null;
-    }
-
-    public static Component environmentRequirement(MedicalCondition condition) {
-        return Component.translatable("gtceu.recipe.environmental_hazard.reverse",
-                Component.translatable("gtceu.medical_condition." + condition.name));
-    }
-
-    public static Component defaultEnvironmentRequirement() {
-        return environmentRequirement(GTMedicalConditions.CARBON_MONOXIDE_POISONING);
     }
 
     public static BiConsumer<ItemStack, List<Component>> TANK_TOOLTIPS = (stack, list) -> {

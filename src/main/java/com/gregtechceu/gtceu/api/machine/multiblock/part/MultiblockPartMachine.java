@@ -95,6 +95,15 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
 
     @Override
     @UnmodifiableView
+    public SortedSet<IMultiController> getUnmodifiableControllers() {
+        // Necessary to rebuild the set of controllers on client-side
+        if (controllers.size() != controllerPositions.size()) {
+            onControllersUpdated(controllerPositions, Collections.emptySet());
+        }
+        return Collections.unmodifiableSortedSet(controllers);
+    }
+
+    @Override
     public SortedSet<IMultiController> getControllers() {
         // Necessary to rebuild the set of controllers on client-side
         if (controllers.size() != controllerPositions.size()) {

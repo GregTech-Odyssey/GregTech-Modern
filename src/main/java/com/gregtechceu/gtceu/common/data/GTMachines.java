@@ -980,7 +980,6 @@ public class GTMachines {
 
     public static void init() {
         GTMultiMachines.init();
-        GCYMMachines.init();
         GTResearchMachines.init();
 
         ModLoader.get().postEvent(new GTCEuAPI.RegisterEvent<>(GTRegistries.MACHINES, MachineDefinition.class));

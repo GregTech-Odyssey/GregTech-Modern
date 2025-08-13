@@ -1,9 +1,7 @@
 package com.gregtechceu.gtceu.api.addon;
 
 import com.gregtechceu.gtceu.api.addon.events.MaterialCasingCollectionEvent;
-import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.BedrockFluidDefinition;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
-import com.gregtechceu.gtceu.common.data.GTOres;
 
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.resources.ResourceLocation;
@@ -83,22 +81,6 @@ public interface IGTAddon {
     default void addRecipes(Consumer<FinishedRecipe> provider) {}
 
     default void removeRecipes(Consumer<ResourceLocation> consumer) {}
-
-    /**
-     * Use {@link GTOres#create(ResourceLocation, Consumer)} to register the veins.
-     */
-    default void registerOreVeins() {}
-
-    /**
-     * Use {@link BedrockFluidDefinition#builder(ResourceLocation)} to register the veins.
-     */
-    default void registerFluidVeins() {}
-
-    /**
-     * Use {@link com.gregtechceu.gtceu.api.data.worldgen.bedrockore.BedrockOreDefinition#builder(ResourceLocation)} to
-     * register the veins.
-     */
-    default void registerBedrockOreVeins() {}
 
     /**
      * Register Material -> Casing block mappings here

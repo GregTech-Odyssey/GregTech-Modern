@@ -17,8 +17,6 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
 import com.gregtechceu.gtceu.common.blockentity.FluidPipeBlockEntity;
-import com.gregtechceu.gtceu.common.capability.EnvironmentalHazardSavedData;
-import com.gregtechceu.gtceu.common.capability.LocalizedHazardSavedData;
 import com.gregtechceu.gtceu.common.data.GTSoundEntries;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.prospecting.SPacketProspectBedrockFluid;
@@ -285,21 +283,6 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
                     }
                 } else {
                     list.add(Component.translatable("behavior.portable_scanner.bedrock_fluid.nothing"));
-                }
-                // Pollution
-                var environmental = EnvironmentalHazardSavedData.getOrCreate(serverLevel);
-                var environmentHazardZone = environmental.getZoneByContainedPos(pos);
-                if (environmentHazardZone != null) {
-                    list.add(Component.translatable("behavior.portable_scanner.environmental_hazard", Component.translatable("gtceu.medical_condition." + environmentHazardZone.condition().name), Component.literal(FormattingUtil.formatNumbers(environmentHazardZone.strength()))));
-                } else {
-                    list.add(Component.translatable("behavior.portable_scanner.environmental_hazard.nothing"));
-                }
-                var local = LocalizedHazardSavedData.getOrCreate(serverLevel);
-                var localHazardZone = local.getZoneByContainedPos(pos);
-                if (localHazardZone != null) {
-                    list.add(Component.translatable("behavior.portable_scanner.local_hazard", Component.translatable("gtceu.medical_condition." + localHazardZone.condition().name), Component.literal(FormattingUtil.formatNumbers(localHazardZone.strength()))));
-                } else {
-                    list.add(Component.translatable("behavior.portable_scanner.local_hazard.nothing"));
                 }
             }
         }

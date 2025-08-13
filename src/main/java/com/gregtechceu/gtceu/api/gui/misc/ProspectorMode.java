@@ -244,14 +244,14 @@ public abstract class ProspectorMode<T> {
 
         @Override
         public void serialize(FluidInfo item, FriendlyByteBuf buf) {
-            buf.writeUtf(BuiltInRegistries.FLUID.getKey(item.fluid).toString());
+            buf.writeResourceLocation(BuiltInRegistries.FLUID.getKey(item.fluid));
             buf.writeVarInt(item.yield);
             buf.writeVarInt(item.left);
         }
 
         @Override
         public FluidInfo deserialize(FriendlyByteBuf buf) {
-            return new FluidInfo(BuiltInRegistries.FLUID.get(new ResourceLocation(buf.readUtf())), buf.readVarInt(), buf.readVarInt());
+            return new FluidInfo(BuiltInRegistries.FLUID.get(buf.readResourceLocation()), buf.readVarInt(), buf.readVarInt());
         }
 
         @Override

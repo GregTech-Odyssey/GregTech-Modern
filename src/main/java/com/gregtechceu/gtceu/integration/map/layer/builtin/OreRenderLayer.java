@@ -4,7 +4,7 @@ import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.GeneratedVeinMetadata;
-import com.gregtechceu.gtceu.client.ClientProxy;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.integration.map.GenericMapRenderer;
@@ -35,7 +35,7 @@ public class OreRenderLayer extends MapRenderLayer {
     public static MutableComponent getName(GeneratedVeinMetadata vein) {
         // noinspection ConstantValue IDK, it crashed
         if (vein == null || vein.definition() == null ||
-                ClientProxy.CLIENT_ORE_VEINS.inverse().get(vein.definition()) == null) {
+                GTRegistries.ORE_VEINS.getKey(vein.definition()) == null) {
             return Component.translatable("gtceu.minimap.ore_vein.depleted");
         }
         return Component.translatable("gtceu.jei.ore_vein." + GTOreVeinWidget.getOreName(vein.definition()));

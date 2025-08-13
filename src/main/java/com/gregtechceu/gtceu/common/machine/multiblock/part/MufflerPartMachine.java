@@ -68,7 +68,7 @@ public class MufflerPartMachine extends TieredPartMachine implements IMufflerMac
     @OnlyIn(Dist.CLIENT)
     public void clientTick() {
         super.clientTick();
-        for (IMultiController controller : getControllers()) {
+        for (IMultiController controller : getUnmodifiableControllers()) {
             if (controller instanceof IRecipeLogicMachine recipeLogicMachine && recipeLogicMachine.getRecipeLogic().isWorking()) {
                 emitPollutionParticles();
                 break;

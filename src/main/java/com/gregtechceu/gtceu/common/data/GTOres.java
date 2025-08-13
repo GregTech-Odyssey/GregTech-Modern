@@ -41,7 +41,6 @@ public class GTOres {
      */
     private static int largestVeinSize = 0;
     private static int largestIndicatorOffset = 0;
-    private static final Map<ResourceLocation, GTOreDefinition> toReRegister = new HashMap<>();
     //////////////////////////////////////
     // ******** End Vein *********//
     //////////////////////////////////////
@@ -110,7 +109,6 @@ public class GTOres {
         GTOreDefinition def = blankOreDefinition();
         config.accept(def);
         def.register(name);
-        toReRegister.put(name, def);
         return def;
     }
 
@@ -130,9 +128,7 @@ public class GTOres {
         return block;
     }
 
-    public static void init() {
-        toReRegister.forEach(GTRegistries.ORE_VEINS::registerOrOverride);
-    }
+    public static void init() {}
 
     public static void updateLargestVeinSize() {
         // map to average of min & max values.

@@ -44,6 +44,13 @@ public interface IMultiPart extends IMachineFeature, IFancyUIMachine {
      * @return An Unmodifiable View of the part's controllers
      */
     @UnmodifiableView
+    SortedSet<IMultiController> getUnmodifiableControllers();
+
+    /**
+     * Get this MultiPart's controllers
+     *
+     * @return An of the part's controllers
+     */
     SortedSet<IMultiController> getControllers();
 
     /**
@@ -73,7 +80,7 @@ public interface IMultiPart extends IMachineFeature, IFancyUIMachine {
      */
     @Nullable
     default BlockState getFormedAppearance(BlockState sourceState, BlockPos sourcePos, Direction side) {
-        for (IMultiController controller : getControllers()) {
+        for (IMultiController controller : getUnmodifiableControllers()) {
             var appearance = controller.getPartAppearance(this, side, sourceState, sourcePos);
             if (appearance != null) return appearance;
         }

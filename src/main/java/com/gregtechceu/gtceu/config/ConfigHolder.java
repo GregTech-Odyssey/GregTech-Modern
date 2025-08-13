@@ -690,14 +690,6 @@ public class ConfigHolder {
         @Configurable
         @Configurable.Comment({ "Enable hazardous materials", "Default: true" })
         public boolean hazardsEnabled = true;
-        @Configurable
-        @Configurable.Comment({ "Whether environmental hazards like pollution or radiation are active",
-                "Default: false" })
-        public boolean environmentalHazards = false;
-        @Configurable
-        @Configurable.Comment({ "How much environmental hazards decay per chunk, per tick.",
-                "Default: 0.001" })
-        public float environmentalHazardDecayRate = 0.001f;
     }
 
     public static class ClientConfigs {

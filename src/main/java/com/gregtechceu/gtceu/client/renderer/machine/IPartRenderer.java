@@ -26,7 +26,7 @@ public interface IPartRenderer {
     default boolean renderReplacedPartMachine(List<BakedQuad> quads, IMultiPart part, Direction frontFacing,
                                               @Nullable Direction side, RandomSource rand, Direction modelFacing,
                                               ModelState modelState) {
-        var controllers = part.getControllers();
+        var controllers = part.getUnmodifiableControllers();
         for (IMultiController controller : controllers) {
             var state = controller.self().getBlockState();
             if (state.getBlock() instanceof MetaMachineBlock block) {

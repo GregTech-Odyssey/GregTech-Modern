@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.integration.emi.orevein;
 
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockore.BedrockOreDefinition;
-import com.gregtechceu.gtceu.client.ClientProxy;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.integration.xei.widgets.GTOreVeinWidget;
 
 import com.lowdragmc.lowdraglib.emi.ModularEmiRecipe;
@@ -28,6 +28,6 @@ public class GTBedrockOre extends ModularEmiRecipe<WidgetGroup> {
 
     @Override
     public @Nullable ResourceLocation getId() {
-        return ClientProxy.CLIENT_BEDROCK_ORE_VEINS.inverse().get(bedrockOre).withPrefix("/bedrock_ore_diagram/");
+        return GTRegistries.BEDROCK_ORE_DEFINITIONS.getKey(bedrockOre).withPrefix("/bedrock_ore_diagram/");
     }
 }

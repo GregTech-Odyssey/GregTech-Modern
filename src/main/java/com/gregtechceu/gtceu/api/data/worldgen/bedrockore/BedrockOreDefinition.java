@@ -11,14 +11,11 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
-import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
@@ -26,7 +23,6 @@ import java.util.*;
 
 public class BedrockOreDefinition {
 
-    public static final Codec<BedrockOreDefinition> FULL_CODEC = RecordCodecBuilder.create(instance -> instance.group(Codec.INT.fieldOf("weight").forGetter(ft -> ft.weight), Codec.INT.fieldOf("size").forGetter(ft -> ft.size), IntProvider.POSITIVE_CODEC.fieldOf("yield").forGetter(ft -> ft.yield), Codec.INT.fieldOf("depletion_amount").forGetter(ft -> ft.depletionAmount), ExtraCodecs.intRange(0, 100).fieldOf("depletion_chance").forGetter(ft -> ft.depletionChance), Codec.INT.fieldOf("depleted_yield").forGetter(ft -> ft.depletedYield), WeightedMaterial.CODEC.listOf().fieldOf("materials").forGetter(ft -> ft.materials), BiomeWeightModifier.CODEC.listOf().optionalFieldOf("weight_modifier", List.of()).forGetter(ft -> ft.originalModifiers), ResourceKey.codec(Registries.DIMENSION).listOf().fieldOf("dimension_filter").forGetter(ft -> new ArrayList<>(ft.dimensionFilter))).apply(instance, (weight, size, yield, depletionAmount, depletionChance, depletedYield, materials, biomeWeightModifier, dimensionFilter) -> new BedrockOreDefinition(weight, size, yield, depletionAmount, depletionChance, depletedYield, materials, biomeWeightModifier, new HashSet<>(dimensionFilter))));
     private int weight; // weight value for determining which vein will appear
     private int size; // size in chunks
     private IntProvider yield;// the [minimum, maximum] yields

@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.api.machine;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
-import com.gregtechceu.gtceu.api.machine.feature.IEnvironmentalHazardEmitter;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -36,7 +35,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class SimpleGeneratorMachine extends WorkableTieredMachine implements IFancyUIMachine, IEnvironmentalHazardEmitter {
+public class SimpleGeneratorMachine extends WorkableTieredMachine implements IFancyUIMachine {
 
     private final float hazardStrengthPerOperation;
 
@@ -109,12 +108,6 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine implements IFa
     @Override
     public boolean canVoidRecipeOutputs(RecipeCapability<?> capability) {
         return capability != EURecipeCapability.CAP;
-    }
-
-    @Override
-    public void afterWorking() {
-        super.afterWorking();
-        spreadEnvironmentalHazard();
     }
 
     //////////////////////////////////////

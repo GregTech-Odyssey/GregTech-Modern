@@ -8,9 +8,7 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.utils.GTUtil;
 
-import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import org.jetbrains.annotations.NotNull;
@@ -108,15 +106,14 @@ public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait
 
     @Nullable
     protected IOpticalComputationProvider getOpticalNetProvider() {
-        for (Direction direction : GTUtil.DIRECTIONS) {
-            BlockEntity blockEntity = machine.getNeighbor(direction);
-            if (blockEntity != null) {
-                var cap = blockEntity.getCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER, direction.getOpposite()).orElse(null);
-                if (cap instanceof IOpticalComputationHatch hatch) {
-                    return hatch.isTransmitter() ? cap : null;
-                } else {
-                    return cap;
-                }
+        var direction = machine.getFrontFacing();
+        BlockEntity blockEntity = machine.getNeighbor(direction);
+        if (blockEntity != null) {
+            var cap = blockEntity.getCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER, direction.getOpposite()).orElse(null);
+            if (cap instanceof IOpticalComputationHatch hatch) {
+                return hatch.isTransmitter() ? cap : null;
+            } else {
+                return cap;
             }
         }
         return null;

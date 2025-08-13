@@ -6,8 +6,6 @@ import com.gregtechceu.gtceu.api.capability.IHazardParticleContainer;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
-import com.gregtechceu.gtceu.api.machine.feature.IEnvironmentalHazardEmitter;
-import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.common.data.GTParticleTypes;
 
@@ -18,7 +16,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 
-public interface IMufflerMachine extends IMultiPart, IEnvironmentalHazardEmitter {
+public interface IMufflerMachine extends IMultiPart {
 
     void recoverItemsTable(ItemStack recoveryItems);
 
@@ -66,14 +64,7 @@ public interface IMufflerMachine extends IMultiPart, IEnvironmentalHazardEmitter
     }
 
     @Override
-    default float getHazardStrengthPerOperation() {
-        float outputAmount = 2.5f;
-        return this instanceof TieredPartMachine tiered ? outputAmount / Math.max(tiered.getTier(), 1) : outputAmount;
-    }
-
-    @Override
     default boolean afterWorking(IWorkableMultiController controller) {
-        spreadEnvironmentalHazard();
         var supplier = controller.self().getDefinition().getRecoveryItems();
         if (supplier != null) {
             recoverItemsTable(supplier.get());

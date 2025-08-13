@@ -11,7 +11,6 @@ import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
-import com.gregtechceu.gtceu.client.ClientProxy;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -199,17 +198,17 @@ public class GTOreVeinWidget extends WidgetGroup {
     }
 
     public static String getOreName(GTOreDefinition oreDefinition) {
-        ResourceLocation id = ClientProxy.CLIENT_ORE_VEINS.inverse().get(oreDefinition);
+        ResourceLocation id = GTRegistries.ORE_VEINS.getKey(oreDefinition);
         return id.getPath();
     }
 
     public static String getFluidName(BedrockFluidDefinition fluid) {
-        ResourceLocation id = ClientProxy.CLIENT_FLUID_VEINS.inverse().get(fluid);
+        ResourceLocation id = GTRegistries.BEDROCK_FLUID_DEFINITIONS.getKey(fluid);
         return id.getPath();
     }
 
     public static String getBedrockOreName(BedrockOreDefinition oreDefinition) {
-        ResourceLocation id = ClientProxy.CLIENT_BEDROCK_ORE_VEINS.inverse().get(oreDefinition);
+        ResourceLocation id = GTRegistries.BEDROCK_ORE_DEFINITIONS.getKey(oreDefinition);
         return id.getPath();
     }
 
