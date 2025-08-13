@@ -1,9 +1,6 @@
 package com.gregtechceu.gtceu.api.recipe.ingredient;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.core.mixins.IngredientAccessor;
-import com.gregtechceu.gtceu.core.mixins.ItemValueAccessor;
-import com.gregtechceu.gtceu.core.mixins.TagValueAccessor;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -41,7 +38,7 @@ public class SizedIngredient extends Ingredient {
         if (isEmpty || inner.getClass() != Ingredient.class) {
             this.value = null;
         } else {
-            var values = ((IngredientAccessor) inner).getValues();
+            var values = inner.values;
             this.value = values.length == 1 ? values[0] : null;
         }
     }
@@ -115,10 +112,10 @@ public class SizedIngredient extends Ingredient {
     public boolean test(@Nullable ItemStack stack) {
         if (stack == null) return false;
         if (this.isEmpty) return stack.isEmpty();
-        if (this.value instanceof TagValueAccessor tagValue) {
-            return stack.is(tagValue.getTag());
-        } else if (this.value instanceof ItemValueAccessor itemValue) {
-            return ItemStack.isSameItem(stack, itemValue.getItem());
+        if (this.value instanceof TagValue tagValue) {
+            return stack.is(tagValue.tag);
+        } else if (this.value instanceof ItemValue itemValue) {
+            return ItemStack.isSameItem(stack, itemValue.item);
         }
         return inner.test(stack);
     }

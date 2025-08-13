@@ -388,11 +388,6 @@ public class FluidRecipeCapability extends RecipeCapability<FluidIngredient> {
         }
     }
 
-    @Override
-    public Object2IntMap<FluidIngredient> makeChanceCache() {
-        return super.makeChanceCache();
-    }
-
     public interface ICustomParallel {
 
         /**

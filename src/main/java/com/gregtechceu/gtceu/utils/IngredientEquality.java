@@ -12,7 +12,6 @@ import net.minecraftforge.common.crafting.PartialNBTIngredient;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
 import com.google.common.collect.Lists;
-import it.unimi.dsi.fastutil.Hash;
 
 import java.util.*;
 
@@ -20,25 +19,21 @@ public class IngredientEquality {
 
     public static final Comparator<Item> ITEM_COMPARATOR = Comparator.comparing(BuiltInRegistries.ITEM::getKey);
 
-    public static final Comparator<Ingredient.Value> INGREDIENT_VALUE_COMPARATOR = new Comparator<>() {
-
-        @Override
-        public int compare(Ingredient.Value value1, Ingredient.Value value2) {
-            if (value1 instanceof TagValueAccessor first) {
-                if (!(value2 instanceof TagValueAccessor second)) {
-                    return 10;
-                }
-                if (first.getTag() != second.getTag()) {
-                    return 1;
-                }
-            } else if (value1 instanceof ItemValueAccessor first) {
-                if (!(value2 instanceof ItemValueAccessor second)) {
-                    return 10;
-                }
-                return ITEM_COMPARATOR.compare(first.getItem().getItem(), second.getItem().getItem());
+    public static final Comparator<Ingredient.Value> INGREDIENT_VALUE_COMPARATOR = (value1, value2) -> {
+        if (value1 instanceof Ingredient.TagValue first) {
+            if (!(value2 instanceof Ingredient.TagValue second)) {
+                return 10;
             }
-            return 0;
+            if (first.tag != second.tag) {
+                return 1;
+            }
+        } else if (value1 instanceof Ingredient.ItemValue first) {
+            if (!(value2 instanceof Ingredient.ItemValue second)) {
+                return 10;
+            }
+            return ITEM_COMPARATOR.compare(first.item.getItem(), second.item.getItem());
         }
+        return 0;
     };
 
     public static final Comparator<Ingredient> INGREDIENT_COMPARATOR = new Comparator<>() {
@@ -89,8 +84,8 @@ public class IngredientEquality {
                 return 1;
             }
 
-            Ingredient.Value[] firstValues = ((IngredientAccessor) first).getValues();
-            Ingredient.Value[] secondValues = ((IngredientAccessor) second).getValues();
+            Ingredient.Value[] firstValues = first.values;
+            Ingredient.Value[] secondValues = second.values;
             if (firstValues.length != secondValues.length) return 1;
 
             firstValues = firstValues.clone();
@@ -121,43 +116,5 @@ public class IngredientEquality {
 
     private static boolean cmp(Ingredient first, Ingredient second) {
         return IngredientEquality.INGREDIENT_COMPARATOR.compare(first, second) == 0;
-    }
-
-    public static final class IngredientHashStrategy implements Hash.Strategy<Ingredient> {
-
-        public static final IngredientHashStrategy INSTANCE = new IngredientHashStrategy();
-        private static final ItemStackHashStrategy ITEM_TAG_STRATEGY = ItemStackHashStrategy.comparingAllButCount();
-        private static final ItemStackHashStrategy ITEM_STRATEGY = ItemStackHashStrategy.comparingItem();
-
-        @Override
-        public int hashCode(Ingredient o) {
-            int hashCode = 537;
-            if (o instanceof StrictNBTIngredientAccessor strict) {
-                hashCode *= 31 * ITEM_TAG_STRATEGY.hashCode(strict.getStack());
-            } else if (o instanceof PartialNBTIngredientAccessor partial) {
-                hashCode *= 31 * partial.getNbt().hashCode();
-                hashCode *= 31 * partial.getItems().hashCode();
-            } else if (o instanceof IntersectionIngredientAccessor intersection) {
-                for (Ingredient ingredient : intersection.getChildren()) {
-                    hashCode *= 31 * this.hashCode(ingredient);
-                }
-            } else if (o instanceof IngredientAccessor ingredient) {
-                for (Ingredient.Value value : ingredient.getValues()) {
-                    if (value instanceof TagValueAccessor tagValue) {
-                        hashCode *= 31 * tagValue.getTag().hashCode();
-                    } else {
-                        for (ItemStack stack : value.getItems()) {
-                            hashCode *= 31 * ITEM_STRATEGY.hashCode(stack);
-                        }
-                    }
-                }
-            }
-            return hashCode;
-        }
-
-        @Override
-        public boolean equals(Ingredient a, Ingredient b) {
-            return IngredientEquality.ingredientEquals(a, b);
-        }
     }
 }
