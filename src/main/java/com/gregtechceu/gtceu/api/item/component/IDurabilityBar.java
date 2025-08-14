@@ -8,7 +8,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 
 import it.unimi.dsi.fastutil.ints.IntIntPair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
 public interface IDurabilityBar extends IItemDecoratorComponent {

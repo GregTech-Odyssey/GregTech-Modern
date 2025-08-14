@@ -15,7 +15,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
-import java.util.HashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+
 import java.util.Set;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -24,7 +25,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class SurfaceRockRenderer {
 
-    private static final Set<SurfaceRockRenderer> MODELS = new HashSet<>();
+    private static final Set<SurfaceRockRenderer> MODELS = new ReferenceOpenHashSet<>();
 
     public static void create(Block block) {
         MODELS.add(new SurfaceRockRenderer(block));

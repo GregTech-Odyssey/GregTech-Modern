@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.capability.IDataAccessHatch;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.misc.ComputationProviderList;
-import com.gregtechceu.gtceu.api.pipenet.IPipeNode;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.common.pipelike.optical.*;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -104,7 +103,7 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
         if (level == null || level.isClientSide) return null;
         OpticalPipeNet currentPipeNet = this.currentPipeNet.get();
         if (currentPipeNet != null && currentPipeNet.isValid() && currentPipeNet.containsNode(getPipePosLong())) return currentPipeNet;
-        LevelOpticalPipeNet worldNet = (LevelOpticalPipeNet) getPipeBlock().getWorldPipeNet((ServerLevel) getPipeLevel());
+        LevelOpticalPipeNet worldNet = (LevelOpticalPipeNet) getPipeBlock().getWorldPipeNet((ServerLevel) getLevel());
         currentPipeNet = worldNet.getNetFromPos(getPipePos(), getPipePosLong());
         if (currentPipeNet != null) {
             this.currentPipeNet = new WeakReference<>(currentPipeNet);
@@ -119,7 +118,7 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
             if (getNumConnections() >= 2) return;
             // also check the other pipe
             BlockEntity tile = getLevel().getBlockEntity(getPipePos().relative(side));
-            if (tile instanceof IPipeNode<?, ?> pipeTile && pipeTile.getPipeType().getClass() == this.getPipeType().getClass()) {
+            if (tile instanceof PipeBlockEntity<?, ?> pipeTile && pipeTile.getPipeType().getClass() == this.getPipeType().getClass()) {
                 if (pipeTile.getNumConnections() >= 2) return;
             }
         }

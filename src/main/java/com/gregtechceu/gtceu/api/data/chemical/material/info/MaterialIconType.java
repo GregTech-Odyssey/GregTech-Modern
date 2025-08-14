@@ -8,18 +8,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 
 import com.google.common.base.CaseFormat;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public record MaterialIconType(String name) {
-
-    public static final Map<String, MaterialIconType> ICON_TYPES = new HashMap<>();
 
     public static final MaterialIconType dustTiny = new MaterialIconType("dustTiny");
     public static final MaterialIconType dustSmall = new MaterialIconType("dustSmall");
@@ -119,16 +113,9 @@ public record MaterialIconType(String name) {
 
     public MaterialIconType(String name) {
         this.name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, name);
-        Preconditions.checkArgument(!ICON_TYPES.containsKey(this.name),
-                "MaterialIconType " + this.name + " already registered!");
-        ICON_TYPES.put(this.name, this);
     }
 
     public static void init() {}
-
-    public static MaterialIconType getByName(String name) {
-        return ICON_TYPES.get(name);
-    }
 
     @Nullable
     public ResourceLocation getBlockTexturePath(@NotNull MaterialIconSet materialIconSet, boolean doReadCache) {

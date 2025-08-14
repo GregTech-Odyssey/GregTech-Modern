@@ -14,8 +14,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.material.Fluid;
 
-import org.jetbrains.annotations.ApiStatus;
-
 import java.util.*;
 import java.util.function.Supplier;
 

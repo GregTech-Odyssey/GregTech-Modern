@@ -2,11 +2,11 @@ package com.gregtechceu.gtceu.common.machine.electric;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
@@ -71,7 +71,7 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
     private boolean active = false;
     private TickableSubscription tickSubs;
 
-    public WorldAcceleratorMachine(IMachineBlockEntity holder, int tier, Object... args) {
+    public WorldAcceleratorMachine(MetaMachineBlockEntity holder, int tier, Object... args) {
         super(holder, tier, GTMachineUtils.defaultTankSizeFunction, args);
         this.speed = (int) Math.pow(2, tier);
         this.successLimit = SUCCESS_LIMITS[tier - 1];
@@ -151,7 +151,7 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
     }
 
     private boolean canAccelerate(BlockEntity blockEntity) {
-        if (blockEntity instanceof PipeBlockEntity || blockEntity instanceof IMachineBlockEntity) return false;
+        if (blockEntity instanceof PipeBlockEntity || blockEntity instanceof MetaMachineBlockEntity) return false;
         generateWorldAcceleratorBlacklist();
         final Class<? extends BlockEntity> blockEntityClass = blockEntity.getClass();
         if (blacklistCache.containsKey(blockEntityClass)) {

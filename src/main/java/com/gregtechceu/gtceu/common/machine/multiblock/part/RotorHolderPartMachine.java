@@ -1,10 +1,10 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.BlockableSlotWidget;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
@@ -60,7 +60,7 @@ public class RotorHolderPartMachine extends TieredPartMachine implements IMachin
     @Nullable
     protected ISubscription rotorInvSubs;
 
-    public RotorHolderPartMachine(IMachineBlockEntity holder, int tier) {
+    public RotorHolderPartMachine(MetaMachineBlockEntity holder, int tier) {
         super(holder, tier);
         this.inventory = new NotifiableItemStackHandler(this, 1, IO.NONE, IO.BOTH).setFilter(i -> TurbineRotorBehaviour.getBehaviour(i) != null);
         this.maxRotorHolderSpeed = 2000 + 1000 * tier;

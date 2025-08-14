@@ -1,9 +1,9 @@
 package com.gregtechceu.gtceu.common.machine.storage;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.PhantomSlotWidget;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
@@ -41,7 +41,7 @@ public class CreativeChestMachine extends QuantumChestMachine {
     @DropSaved
     private int ticksPerCycle = 1;
 
-    public CreativeChestMachine(IMachineBlockEntity holder) {
+    public CreativeChestMachine(MetaMachineBlockEntity holder) {
         super(holder, GTValues.MAX, -1);
     }
 

@@ -125,7 +125,7 @@ public final class ChestGenHooks {
         }
     }
 
-    public static class RandomWeightLootFunction extends LootItemConditionalFunction implements LootItemFunction {
+    public static class RandomWeightLootFunction extends LootItemConditionalFunction {
 
         public static final LootItemFunctionType TYPE = GTRegistries.register(BuiltInRegistries.LOOT_FUNCTION_TYPE, GTCEu.id("random_weight"), new LootItemFunctionType(new Serializer()));
         private final ItemStack stack;

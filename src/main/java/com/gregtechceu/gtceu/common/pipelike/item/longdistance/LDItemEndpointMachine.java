@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.common.pipelike.item.longdistance;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.common.machine.storage.LongDistanceEndpointMachine;
 
 import net.minecraft.core.Direction;
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class LDItemEndpointMachine extends LongDistanceEndpointMachine {
 
-    public LDItemEndpointMachine(IMachineBlockEntity metaTileEntityId) {
+    public LDItemEndpointMachine(MetaMachineBlockEntity metaTileEntityId) {
         super(metaTileEntityId, LDItemPipeType.INSTANCE);
     }
 

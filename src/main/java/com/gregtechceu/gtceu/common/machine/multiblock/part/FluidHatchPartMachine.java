@@ -1,13 +1,12 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
-import com.gregtechceu.gtceu.api.blockentity.IPaintable;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.widget.PhantomFluidWidget;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
@@ -49,7 +48,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachineLife, IPaintable, IDistinctPart {
+public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachineLife, IDistinctPart {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(FluidHatchPartMachine.class, TieredIOPartMachine.MANAGED_FIELD_HOLDER);
     public static final int INITIAL_TANK_CAPACITY_1X = 8 * FluidType.BUCKET_VOLUME;
@@ -70,7 +69,7 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
 
     // The `Object... args` parameter is necessary in case a superclass needs to pass any args along to createTank().
     // We can't use fields here because those won't be available while createTank() is called.
-    public FluidHatchPartMachine(IMachineBlockEntity holder, int tier, IO io, int initialCapacity, int slots, Object... args) {
+    public FluidHatchPartMachine(MetaMachineBlockEntity holder, int tier, IO io, int initialCapacity, int slots, Object... args) {
         super(holder, tier, io);
         this.slots = slots;
         this.tank = createTank(initialCapacity, slots, args);
@@ -214,7 +213,7 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
         if (newDefinition == null) return false;
         BlockState newBlockState = newDefinition.getBlock().defaultBlockState();
         getLevel().setBlockAndUpdate(blockPos, newBlockState);
-        if (getLevel().getBlockEntity(blockPos) instanceof IMachineBlockEntity newHolder) {
+        if (getLevel().getBlockEntity(blockPos) instanceof MetaMachineBlockEntity newHolder) {
             if (newHolder.getMetaMachine() instanceof FluidHatchPartMachine newMachine) {
                 newMachine.setFrontFacing(this.getFrontFacing());
                 newMachine.setUpwardsFacing(this.getUpwardsFacing());

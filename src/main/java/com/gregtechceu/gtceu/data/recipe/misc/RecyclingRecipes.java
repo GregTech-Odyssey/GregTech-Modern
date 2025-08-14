@@ -24,6 +24,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -483,7 +485,7 @@ public class RecyclingRecipes {
         // cut the nuggets out to favor the newer item instead of having 2 slots occupied by Steel.
         //
         // There is probably a better way to do this.
-        Map<MaterialStack, ItemStack> temp = new HashMap<>();
+        Map<MaterialStack, ItemStack> temp = new Object2ObjectOpenHashMap<>();
         for (Tuple<ItemStack, MaterialStack> t : outputs) {
             boolean isInMap = false;
             for (MaterialStack ms : temp.keySet()) {
@@ -544,7 +546,7 @@ public class RecyclingRecipes {
         final List<TagPrefix> chosenList = material.hasProperty(PropertyKey.INGOT) ? INGOT_ORDER : DUST_ORDER;
 
         // Break materialAmount into a maximal stack
-        Map<TagPrefix, MaterialStack> tempList = new HashMap<>();
+        Map<TagPrefix, MaterialStack> tempList = new Reference2ReferenceOpenHashMap<>();
         for (TagPrefix prefix : chosenList) {
 
             // Current prefix too large to "compact" into

@@ -1,9 +1,8 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.primitive;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.capability.IWorkable;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.item.ComponentItem;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
@@ -49,7 +48,7 @@ import java.util.*;
 
 import static com.gregtechceu.gtceu.api.pattern.util.RelativeDirection.*;
 
-public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implements IWorkable {
+public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
             CharcoalPileIgniterMachine.class,
@@ -73,7 +72,7 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
 
     private boolean hasAir = false;
 
-    public CharcoalPileIgniterMachine(IMachineBlockEntity holder) {
+    public CharcoalPileIgniterMachine(MetaMachineBlockEntity holder) {
         super(holder);
     }
 

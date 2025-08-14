@@ -6,16 +6,16 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.apache.commons.lang3.NotImplementedException;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public interface ItemFilter extends Filter<ItemStack, ItemFilter> {
 
-    Map<ItemLike, Function<ItemStack, ItemFilter>> FILTERS = new HashMap<>();
+    Map<ItemLike, Function<ItemStack, ItemFilter>> FILTERS = new Reference2ReferenceOpenHashMap<>();
 
     static ItemFilter loadFilter(ItemStack itemStack) {
         return FILTERS.get(itemStack.getItem()).apply(itemStack);

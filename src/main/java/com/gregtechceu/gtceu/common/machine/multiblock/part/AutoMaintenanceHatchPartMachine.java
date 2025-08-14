@@ -1,12 +1,12 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine;
 
 public class AutoMaintenanceHatchPartMachine extends TieredPartMachine implements IMaintenanceMachine {
 
-    public AutoMaintenanceHatchPartMachine(IMachineBlockEntity blockEntity) {
+    public AutoMaintenanceHatchPartMachine(MetaMachineBlockEntity blockEntity) {
         super(blockEntity, 3);
     }
 

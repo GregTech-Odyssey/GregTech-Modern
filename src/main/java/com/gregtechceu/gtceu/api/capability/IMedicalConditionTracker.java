@@ -7,7 +7,7 @@ import com.gregtechceu.gtceu.api.data.medicalcondition.MedicalCondition;
 
 import net.minecraft.world.effect.MobEffect;
 
-import it.unimi.dsi.fastutil.objects.Object2FloatMap;
+import it.unimi.dsi.fastutil.objects.Reference2FloatMap;
 import org.jetbrains.annotations.NotNull;
 
 public interface IMedicalConditionTracker {
@@ -15,7 +15,7 @@ public interface IMedicalConditionTracker {
     /**
      * @return Map of medical condition to its progression.
      */
-    Object2FloatMap<MedicalCondition> getMedicalConditions();
+    Reference2FloatMap<MedicalCondition> getMedicalConditions();
 
     /**
      * @return the maximum air supply for the entity this is attached to. -1 for default (300).

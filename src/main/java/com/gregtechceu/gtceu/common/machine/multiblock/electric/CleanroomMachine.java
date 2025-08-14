@@ -2,15 +2,14 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.IFilterType;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.ICleanroomReceiver;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.SimpleGeneratorMachine;
 import com.gregtechceu.gtceu.api.machine.feature.ICleanroomProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMufflerMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
@@ -63,10 +62,10 @@ import static com.gregtechceu.gtceu.api.pattern.util.RelativeDirection.*;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class CleanroomMachine extends WorkableElectricMultiblockMachine implements ICleanroomProvider, IDisplayUIMachine, IDataInfoProvider {
+public class CleanroomMachine extends WorkableElectricMultiblockMachine implements ICleanroomProvider, IDataInfoProvider {
 
     private static final TraceabilityPredicate INNER_PREDICATE = new TraceabilityPredicate(blockWorldState -> {
-        if (blockWorldState.getTileEntity() instanceof IMachineBlockEntity machineBlockEntity) {
+        if (blockWorldState.getTileEntity() instanceof MetaMachineBlockEntity machineBlockEntity) {
             var machine = machineBlockEntity.getMetaMachine();
             if (isMachineBanned(machine)) {
                 blockWorldState.setError(MultiblockState.BANNED_ERROR);
@@ -120,7 +119,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
     @Nullable
     private Collection<ICleanroomReceiver> cleanroomReceivers;
 
-    public CleanroomMachine(IMachineBlockEntity metaTileEntityId) {
+    public CleanroomMachine(MetaMachineBlockEntity metaTileEntityId) {
         super(metaTileEntityId);
     }
 

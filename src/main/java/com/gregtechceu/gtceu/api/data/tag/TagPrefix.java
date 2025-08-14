@@ -48,9 +48,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Table;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
-import it.unimi.dsi.fastutil.objects.Object2FloatMap;
-import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,8 +60,8 @@ import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.Conditions.*;
 @SuppressWarnings("unused")
 public class TagPrefix {
 
-    public static final Map<String, TagPrefix> PREFIXES = new HashMap<>();
-    public static final Map<TagPrefix, OreType> ORES = new Object2ObjectLinkedOpenHashMap<>();
+    public static final Map<String, TagPrefix> PREFIXES = new Object2ObjectOpenHashMap<>();
+    public static final Map<TagPrefix, OreType> ORES = new Reference2ObjectLinkedOpenHashMap<>();
     public static final Codec<TagPrefix> CODEC = Codec.STRING.flatXmap(str -> Optional.ofNullable(get(str)).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "invalid TagPrefix: " + str)), prefix -> DataResult.success(prefix.name));
 
     public static void init() {
@@ -254,17 +252,17 @@ public class TagPrefix {
     private Supplier<Table<TagPrefix, Material, ? extends Supplier<? extends ItemLike>>> itemTable;
     @Nullable
     private BiConsumer<Material, List<Component>> tooltip;
-    private final Map<Material, Supplier<? extends ItemLike>[]> ignoredMaterials = new HashMap<>();
-    private final Object2FloatMap<Material> materialAmounts = new Object2FloatOpenHashMap<>();
+    private final Map<Material, Supplier<? extends ItemLike>[]> ignoredMaterials = new Reference2ObjectOpenHashMap<>();
+    private final Reference2FloatMap<Material> materialAmounts = new Reference2FloatOpenHashMap<>();
     private int maxStackSize = 64;
     private final List<MaterialStack> secondaryMaterials = new ArrayList<>();
-    protected final Set<TagKey<Block>> miningToolTag = new HashSet<>();
+    protected final Set<TagKey<Block>> miningToolTag = new ObjectOpenHashSet<>();
 
-    public TagPrefix(String name) {
+    protected TagPrefix(String name) {
         this(name, false);
     }
 
-    public TagPrefix(String name, boolean invertedName) {
+    protected TagPrefix(String name, boolean invertedName) {
         this.name = name;
         this.idPattern = "%s_" + getLowerCaseName();
         this.invertedName = invertedName;
@@ -482,7 +480,7 @@ public class TagPrefix {
     }
 
     public Map<Material, Supplier<? extends ItemLike>[]> getIgnored() {
-        return new HashMap<>(ignoredMaterials);
+        return ignoredMaterials;
     }
 
     public boolean isAmountModified(Material material) {
@@ -491,19 +489,6 @@ public class TagPrefix {
 
     public void modifyMaterialAmount(@NotNull Material material, float amount) {
         materialAmounts.put(material, amount);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TagPrefix tagPrefix = (TagPrefix) o;
-        return name.equals(tagPrefix.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
     }
 
     public static Collection<TagPrefix> values() {

@@ -6,15 +6,16 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class TaskHandler {
 
-    private static final Map<ResourceKey<Level>, List<RunnableEntry>> serverTasks = new HashMap<>();
-    private static final Map<ResourceKey<Level>, List<RunnableEntry>> waitToAddTasks = new HashMap<>();
+    private static final Map<ResourceKey<Level>, List<RunnableEntry>> serverTasks = new Object2ObjectOpenHashMap<>();
+    private static final Map<ResourceKey<Level>, List<RunnableEntry>> waitToAddTasks = new Object2ObjectOpenHashMap<>();
 
     // schedule tick event here
     public static void onTickUpdate(ServerLevel level) {

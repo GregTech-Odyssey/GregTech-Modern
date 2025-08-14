@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.integration.jade.provider;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.common.machine.electric.TransformerMachine;
 
@@ -26,7 +26,7 @@ public class TransformerBlockProvider implements IBlockComponentProvider, IServe
 
     @Override
     public void appendServerData(CompoundTag compoundTag, BlockAccessor blockAccessor) {
-        if (blockAccessor.getBlockEntity() instanceof IMachineBlockEntity blockEntity) {
+        if (blockAccessor.getBlockEntity() instanceof MetaMachineBlockEntity blockEntity) {
             MetaMachine machine = blockEntity.getMetaMachine();
             if (machine instanceof TransformerMachine transformer) {
                 compoundTag.putInt("side", transformer.getFrontFacing().get3DDataValue());
@@ -39,7 +39,7 @@ public class TransformerBlockProvider implements IBlockComponentProvider, IServe
 
     @Override
     public void appendTooltip(ITooltip tooltip, BlockAccessor blockAccessor, IPluginConfig iPluginConfig) {
-        if (blockAccessor.getBlockEntity() instanceof IMachineBlockEntity blockEntity) {
+        if (blockAccessor.getBlockEntity() instanceof MetaMachineBlockEntity blockEntity) {
             MetaMachine machine = blockEntity.getMetaMachine();
             if (machine instanceof TransformerMachine transformer) {
                 boolean transformUp = blockAccessor.getServerData().getBoolean("transformUp");

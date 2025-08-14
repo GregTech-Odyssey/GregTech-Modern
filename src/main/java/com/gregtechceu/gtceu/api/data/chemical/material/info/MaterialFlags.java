@@ -3,15 +3,16 @@ package com.gregtechceu.gtceu.api.data.chemical.material.info;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class MaterialFlags {
 
-    private final Set<MaterialFlag> flags = new HashSet<>();
+    private final Set<MaterialFlag> flags = new ReferenceOpenHashSet<>();
 
     public MaterialFlags addFlags(MaterialFlag... flags) {
         this.flags.addAll(Arrays.asList(flags));

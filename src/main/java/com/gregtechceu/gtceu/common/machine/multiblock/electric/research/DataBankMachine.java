@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.electric.research;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IDataAccessHatch;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 
@@ -21,7 +21,7 @@ public class DataBankMachine extends DataMachine {
     public final List<IDataAccessHatch> receptions = new ArrayList<>();
     public final List<IDataAccessHatch> transmissions = new ArrayList<>();
 
-    public DataBankMachine(IMachineBlockEntity holder) {
+    public DataBankMachine(MetaMachineBlockEntity holder) {
         super(holder);
     }
 

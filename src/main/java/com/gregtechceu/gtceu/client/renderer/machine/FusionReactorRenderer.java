@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.client.renderer.machine;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.client.renderer.GTRenderTypes;
 import com.gregtechceu.gtceu.client.util.BloomUtils;
@@ -37,7 +37,7 @@ public class FusionReactorRenderer extends WorkableCasingMachineRenderer {
     @OnlyIn(Dist.CLIENT)
     public void render(BlockEntity blockEntity, float partialTicks, PoseStack stack, MultiBufferSource buffer,
                        int combinedLight, int combinedOverlay) {
-        if (blockEntity instanceof IMachineBlockEntity machineBlockEntity &&
+        if (blockEntity instanceof MetaMachineBlockEntity machineBlockEntity &&
                 machineBlockEntity.getMetaMachine() instanceof FusionReactorMachine machine) {
             if (!machine.recipeLogic.isWorking() || delta <= 0) {
                 return;

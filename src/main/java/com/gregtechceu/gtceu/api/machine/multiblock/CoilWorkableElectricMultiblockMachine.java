@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.api.block.ICoilType;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.ICoilMachine;
 import com.gregtechceu.gtceu.common.block.CoilBlock;
 
@@ -15,7 +15,7 @@ public class CoilWorkableElectricMultiblockMachine extends WorkableElectricMulti
 
     private ICoilType coilType = CoilBlock.CoilType.CUPRONICKEL;
 
-    public CoilWorkableElectricMultiblockMachine(IMachineBlockEntity holder) {
+    public CoilWorkableElectricMultiblockMachine(MetaMachineBlockEntity holder) {
         super(holder);
     }
 

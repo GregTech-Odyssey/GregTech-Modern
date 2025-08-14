@@ -34,9 +34,9 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -180,7 +180,7 @@ public class GTOreVeinWidget extends WidgetGroup {
 
     public static List<ItemStack> getContainedOresAndBlocks(GTOreDefinition oreDefinition) {
         return oreDefinition.veinGenerator().getAllEntries().stream().flatMap(entry -> entry.map(state -> Stream.of(state.getBlock().asItem().getDefaultInstance()), material -> {
-            Set<ItemStack> ores = new HashSet<>();
+            Set<ItemStack> ores = new ReferenceOpenHashSet<>();
             ores.add(ChemicalHelper.get(TagPrefix.rawOre, material));
             for (TagPrefix prefix : TagPrefix.ORES.keySet()) {
                 ores.add(ChemicalHelper.get(prefix, material));

@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.common.machine.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IControllable;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 
@@ -34,7 +34,7 @@ public class TransformerMachine extends TieredEnergyMachine implements IControll
     private boolean isWorkingEnabled;
     private final int baseAmp;
 
-    public TransformerMachine(IMachineBlockEntity holder, int tier, int baseAmp, Object... args) {
+    public TransformerMachine(MetaMachineBlockEntity holder, int tier, int baseAmp, Object... args) {
         super(holder, tier, baseAmp, args);
         this.isWorkingEnabled = true;
         this.baseAmp = baseAmp;

@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import org.apache.commons.io.FileUtils;
@@ -23,7 +24,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -193,8 +193,8 @@ public class ClientCacheManager {
 
         public ClientCacheInfo(String key) {
             this.key = key;
-            dimFilePrefixes = new HashSet<>();
-            singleFiles = new HashSet<>();
+            dimFilePrefixes = new ObjectOpenHashSet<>();
+            singleFiles = new ObjectOpenHashSet<>();
         }
     }
 

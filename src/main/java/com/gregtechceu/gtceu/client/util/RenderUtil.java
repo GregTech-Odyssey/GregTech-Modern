@@ -85,7 +85,7 @@ public class RenderUtil {
         return new Vector3f(x, y, z);
     }
 
-    private static final Map<Direction, Vector3f[]> DIRECTION_POSITION_MAP = new HashMap<>() {
+    private static final Map<Direction, Vector3f[]> DIRECTION_POSITION_MAP = new EnumMap<>(Direction.class) {
 
         {
             put(Direction.UP, new Vector3f[] { vec3f(0, 1, 1), vec3f(1, 1, 1), vec3f(1, 1, 0), vec3f(0, 1, 0) });
@@ -101,7 +101,7 @@ public class RenderUtil {
         return DIRECTION_POSITION_MAP.get(direction);
     }
 
-    private static final Map<Direction, Vector3f> DIRECTION_NORMAL_MAP = new HashMap<>() {
+    private static final Map<Direction, Vector3f> DIRECTION_NORMAL_MAP = new EnumMap<>(Direction.class) {
 
         {
             put(Direction.UP, vec3f(0, 1, 0));

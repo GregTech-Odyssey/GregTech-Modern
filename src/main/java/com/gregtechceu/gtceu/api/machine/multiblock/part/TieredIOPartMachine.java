@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.api.machine.multiblock.part;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
@@ -29,7 +29,7 @@ public class TieredIOPartMachine extends TieredPartMachine implements IControlla
     @RequireRerender
     protected boolean workingEnabled;
 
-    public TieredIOPartMachine(IMachineBlockEntity holder, int tier, IO io) {
+    public TieredIOPartMachine(MetaMachineBlockEntity holder, int tier, IO io) {
         super(holder, tier);
         this.io = io;
         this.workingEnabled = true;

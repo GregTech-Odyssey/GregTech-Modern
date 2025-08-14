@@ -1,13 +1,13 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.electric.research;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.*;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.util.TimedProgressSupplier;
 import com.gregtechceu.gtceu.api.gui.widget.ExtendedProgressWidget;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
@@ -78,7 +78,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     @Nullable
     protected TickableSubscription tickSubs;
 
-    public HPCAMachine(IMachineBlockEntity holder, Object... args) {
+    public HPCAMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder, args);
         this.energyContainer = EnergyContainerList.EMPTY;
         this.progressSupplier = new TimedProgressSupplier(200, 47, false);
@@ -597,7 +597,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
                         BlockEntity be = world.getBlockEntity(tempPos);
                         if (be instanceof IHPCAComponentHatch hatch) {
                             components.add(hatch);
-                        } else if (be instanceof IMachineBlockEntity machineBE) {
+                        } else if (be instanceof MetaMachineBlockEntity machineBE) {
                             MetaMachine machine = machineBE.getMetaMachine();
                             if (machine instanceof IHPCAComponentHatch hatch) {
                                 components.add(hatch);

@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class IOFluidHandlerList extends FluidHandlerList implements IFluidHandlerModifiable {
+public class IOFluidHandlerList extends FluidHandlerList {
 
     private final IO io;
     private final Predicate<FluidStack> inFilter;

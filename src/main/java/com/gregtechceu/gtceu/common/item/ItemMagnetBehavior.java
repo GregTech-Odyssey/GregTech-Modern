@@ -11,7 +11,6 @@ import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.item.ComponentItem;
 import com.gregtechceu.gtceu.api.item.IComponentItem;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
-import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.item.component.IItemLifeCycle;
 import com.gregtechceu.gtceu.api.item.component.IItemUIFactory;
 import com.gregtechceu.gtceu.common.data.GTItems;
@@ -52,7 +51,7 @@ import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.*;
 
-public class ItemMagnetBehavior implements IInteractionItem, IItemLifeCycle, IAddInformation, IItemUIFactory {
+public class ItemMagnetBehavior implements IItemLifeCycle, IAddInformation, IItemUIFactory {
 
     public static final String FILTER_TAG = "MagnetFilter";
     public static final String FILTER_ORDINAL_TAG = "FilterOrdinal";

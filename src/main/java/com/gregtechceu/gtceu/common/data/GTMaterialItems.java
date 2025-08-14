@@ -22,8 +22,9 @@ import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.util.entry.ItemEntry;
 import com.tterrag.registrate.util.entry.ItemProviderEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -39,8 +40,8 @@ public class GTMaterialItems {
             .builder();
 
     // Reference Maps
-    public static final Map<MaterialEntry, Supplier<? extends ItemLike>> toUnify = new HashMap<>();
-    public static final Map<TagPrefix, TagPrefix> purifyMap = new HashMap<>();
+    public static final Map<MaterialEntry, Supplier<? extends ItemLike>> toUnify = new Object2ObjectOpenHashMap<>();
+    public static final Map<TagPrefix, TagPrefix> purifyMap = new Reference2ReferenceOpenHashMap<>();
 
     static {
         purifyMap.put(TagPrefix.crushed, TagPrefix.crushedPurified);

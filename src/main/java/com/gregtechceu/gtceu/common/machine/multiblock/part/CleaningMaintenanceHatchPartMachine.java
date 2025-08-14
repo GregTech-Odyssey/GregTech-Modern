@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.ICleanroomReceiver;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.ICleanroomProvider;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
@@ -24,7 +24,7 @@ public class CleaningMaintenanceHatchPartMachine extends AutoMaintenanceHatchPar
     private final ICleanroomProvider DUMMY_CLEANROOM;
     private final CleanroomType cleanroomType;
 
-    public CleaningMaintenanceHatchPartMachine(IMachineBlockEntity metaTileEntityId, CleanroomType cleanroomType) {
+    public CleaningMaintenanceHatchPartMachine(MetaMachineBlockEntity metaTileEntityId, CleanroomType cleanroomType) {
         super(metaTileEntityId);
         this.cleanroomType = cleanroomType;
         DUMMY_CLEANROOM = DummyCleanroom.createForTypes(Collections.singletonList(cleanroomType));

@@ -1,10 +1,10 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.fluids.PropertyFluidFilter;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
@@ -43,7 +43,7 @@ public class MultiblockTankMachine extends MultiblockControllerMachine implement
     private final NotifiableFluidTank tank;
     private final LockableIFluidHandler fluidHandler;
 
-    public MultiblockTankMachine(IMachineBlockEntity holder, int capacity, @Nullable PropertyFluidFilter filter, Object... args) {
+    public MultiblockTankMachine(MetaMachineBlockEntity holder, int capacity, @Nullable PropertyFluidFilter filter, Object... args) {
         super(holder);
         this.tank = createTank(capacity, filter, args);
         fluidHandler = new LockableIFluidHandler(tank).setLock(true);

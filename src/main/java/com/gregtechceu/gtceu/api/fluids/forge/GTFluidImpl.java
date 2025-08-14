@@ -8,7 +8,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.common.extensions.IForgeFluid;
 import net.minecraftforge.fluids.FluidType;
 
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +18,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public abstract class GTFluidImpl extends GTFluid implements IForgeFluid {
+public abstract class GTFluidImpl extends GTFluid {
 
     private final Supplier<FluidType> fluidType;
 

@@ -2,13 +2,12 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.IFusionCasingType;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
-import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
@@ -51,7 +50,7 @@ import static com.gregtechceu.gtceu.common.data.GTBlocks.*;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class FusionReactorMachine extends WorkableElectricMultiblockMachine implements ITieredMachine {
+public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(FusionReactorMachine.class, WorkableElectricMultiblockMachine.MANAGED_FIELD_HOLDER);
     // Standard OC used for Fusion
@@ -74,7 +73,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine impl
     @Nullable
     protected TickableSubscription preHeatSubs;
 
-    public FusionReactorMachine(IMachineBlockEntity holder, int tier) {
+    public FusionReactorMachine(MetaMachineBlockEntity holder, int tier) {
         super(holder);
         this.tier = tier;
         this.energyContainer = createEnergyContainer();

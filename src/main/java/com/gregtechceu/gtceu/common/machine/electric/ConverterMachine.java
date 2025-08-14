@@ -1,10 +1,10 @@
 package com.gregtechceu.gtceu.common.machine.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.compat.FeCompat;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.common.machine.trait.ConverterTrait;
@@ -39,7 +39,7 @@ public class ConverterMachine extends TieredEnergyMachine {
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ConverterMachine.class,
             TieredEnergyMachine.MANAGED_FIELD_HOLDER);
 
-    public ConverterMachine(IMachineBlockEntity holder, int tier, int amps, Object... args) {
+    public ConverterMachine(MetaMachineBlockEntity holder, int tier, int amps, Object... args) {
         super(holder, tier, args, amps);
     }
 

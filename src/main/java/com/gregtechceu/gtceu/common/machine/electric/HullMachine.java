@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.common.machine.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
@@ -35,7 +35,7 @@ public class HullMachine extends TieredPartMachine {
     @Persisted
     protected NotifiableEnergyContainer energyContainer;
 
-    public HullMachine(IMachineBlockEntity holder, int tier) {
+    public HullMachine(MetaMachineBlockEntity holder, int tier) {
         super(holder, tier);
         this.gridNodeHost = new GridNodeHostTrait(this);
         reinitializeEnergyContainer();

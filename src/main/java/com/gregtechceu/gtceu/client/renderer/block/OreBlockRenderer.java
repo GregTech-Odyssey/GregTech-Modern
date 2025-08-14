@@ -18,16 +18,16 @@ import net.minecraft.util.GsonHelper;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Set;
 
 @MethodsReturnNonnullByDefault
 public class OreBlockRenderer {
 
-    private static final Set<OreBlockRenderer> MODELS = new HashSet<>();
+    private static final Set<OreBlockRenderer> MODELS = new ReferenceOpenHashSet<>();
 
     private final MaterialBlock block;
 

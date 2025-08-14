@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
@@ -41,7 +41,7 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
     private IFluidHandler firstValid = null;
     private final int yOffset;
 
-    public DistillationTowerMachine(IMachineBlockEntity holder) {
+    public DistillationTowerMachine(MetaMachineBlockEntity holder) {
         this(holder, 1);
     }
 
@@ -51,7 +51,7 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
      * @param holder  BlockEntity holder
      * @param yOffset The Y difference between the controller and the first fluid output
      */
-    public DistillationTowerMachine(IMachineBlockEntity holder, int yOffset) {
+    public DistillationTowerMachine(MetaMachineBlockEntity holder, int yOffset) {
         super(holder);
         this.yOffset = yOffset;
     }

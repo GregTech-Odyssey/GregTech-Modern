@@ -11,7 +11,8 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
-import java.util.HashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+
 import java.util.Map;
 
 /**
@@ -22,7 +23,7 @@ public class GroupingMapRenderer extends GenericMapRenderer {
     private static final GroupingMapRenderer instance;
 
     static {
-        Map<String, GenericMapRenderer> renderers = new HashMap<>();
+        Map<String, GenericMapRenderer> renderers = new Object2ObjectOpenHashMap<>();
         var toggle = ConfigHolder.INSTANCE.compat.minimap.toggle;
         if (toggle.xaerosMapIntegration && GTCEu.isModLoaded(GTValues.MODID_XAEROS_MINIMAP)) {
             renderers.put(GTValues.MODID_XAEROS_MINIMAP, new XaerosRenderer());

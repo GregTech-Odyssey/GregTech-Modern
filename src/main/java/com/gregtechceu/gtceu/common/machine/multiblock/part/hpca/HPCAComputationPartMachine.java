@@ -1,9 +1,9 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part.hpca;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IHPCAComputationProvider;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 
@@ -17,7 +17,7 @@ public class HPCAComputationPartMachine extends HPCAComponentPartMachine impleme
 
     private final boolean advanced;
 
-    public HPCAComputationPartMachine(IMachineBlockEntity holder, boolean advanced) {
+    public HPCAComputationPartMachine(MetaMachineBlockEntity holder, boolean advanced) {
         super(holder);
         this.advanced = advanced;
     }

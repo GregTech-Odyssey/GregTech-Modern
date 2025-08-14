@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.common.machine.storage;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationHatch;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
@@ -38,7 +38,7 @@ public class CreativeComputationProviderMachine extends MetaMachine implements I
     @Nullable
     private TickableSubscription computationSubs;
 
-    public CreativeComputationProviderMachine(IMachineBlockEntity holder) {
+    public CreativeComputationProviderMachine(MetaMachineBlockEntity holder) {
         super(holder);
     }
 

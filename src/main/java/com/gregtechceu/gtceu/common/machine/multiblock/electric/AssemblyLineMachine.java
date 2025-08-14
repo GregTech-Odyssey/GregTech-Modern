@@ -1,9 +1,9 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
@@ -30,7 +30,7 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
     private List<CustomItemStackHandler> itemStackTransfers = new ArrayList<>();
     private List<CustomFluidTank> fluidStackTransfers = new ArrayList<>();
 
-    public AssemblyLineMachine(IMachineBlockEntity holder) {
+    public AssemblyLineMachine(MetaMachineBlockEntity holder) {
         super(holder);
     }
 

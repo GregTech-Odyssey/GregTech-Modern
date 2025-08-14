@@ -21,6 +21,8 @@ import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
@@ -47,15 +49,10 @@ public class HazardProperty implements IMaterialProperty {
 
     public record HazardTrigger(String name, ProtectionType protectionType, Set<TagPrefix> affectedTagPrefixes) implements StringRepresentable {
 
-        public static final Map<String, HazardTrigger> ALL_TRIGGERS = new HashMap<>();
         public static final HazardTrigger INHALATION = new HazardTrigger("inhalation", ProtectionType.MASK, TagPrefix.dust, TagPrefix.dustSmall, TagPrefix.dustTiny, TagPrefix.dustPure, TagPrefix.dustImpure);
         public static final HazardTrigger ANY = new HazardTrigger("any", ProtectionType.FULL);
         public static final HazardTrigger SKIN_CONTACT = new HazardTrigger("skin_contact", ProtectionType.HANDS, TagPrefix.dust, TagPrefix.dustSmall, TagPrefix.dustTiny);
         public static final HazardTrigger NONE = new HazardTrigger("none", ProtectionType.NONE);
-
-        public HazardTrigger {
-            ALL_TRIGGERS.put(name, this);
-        }
 
         public HazardTrigger(String name, ProtectionType protectionType, TagPrefix... tagPrefixes) {
             this(name, protectionType, new HashSet<>());
@@ -99,7 +96,7 @@ public class HazardProperty implements IMaterialProperty {
             if (this == NONE) {
                 return true;
             }
-            Set<ArmorItem.Type> correctArmorItems = new HashSet<>();
+            Set<ArmorItem.Type> correctArmorItems = new ReferenceOpenHashSet<>();
             for (ArmorItem.Type equipmentType : equipmentTypes) {
                 ItemStack armor = livingEntity.getItemBySlot(equipmentType.getSlot());
                 if (!armor.isEmpty() && ((armor.getItem() instanceof ArmorComponentItem armorItem && armorItem.getArmorLogic().isPPE()) || armor.getTags().anyMatch(tag -> tag.equals(CustomTags.PPE_ARMOR)))) {
@@ -109,7 +106,7 @@ public class HazardProperty implements IMaterialProperty {
             if (!GTCEu.Mods.isCuriosLoaded() || this.curioSlots.isEmpty()) {
                 return correctArmorItems.containsAll(equipmentTypes);
             }
-            Set<String> correctCurios = new HashSet<>();
+            Set<String> correctCurios = new ObjectOpenHashSet<>();
             ICuriosItemHandler curiosInventory = CuriosApi.getCuriosInventory(livingEntity)
                     .resolve()
                     .orElse(null);

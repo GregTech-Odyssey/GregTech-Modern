@@ -1,11 +1,10 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
-import com.gregtechceu.gtceu.api.blockentity.IPaintable;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
@@ -42,7 +41,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinctPart, IMachineLife, IPaintable {
+public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinctPart, IMachineLife {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ItemBusPartMachine.class, TieredIOPartMachine.MANAGED_FIELD_HOLDER);
     @Persisted
@@ -58,7 +57,7 @@ public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinct
     @DescSynced
     private boolean isDistinct = false;
 
-    public ItemBusPartMachine(IMachineBlockEntity holder, int tier, IO io, Object... args) {
+    public ItemBusPartMachine(MetaMachineBlockEntity holder, int tier, IO io, Object... args) {
         super(holder, tier, io);
         this.inventory = createInventory(args);
         this.circuitInventory = createCircuitItemHandler(io).shouldSearchContent(false);
@@ -203,7 +202,7 @@ public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinct
         if (newDefinition == null) return false;
         BlockState newBlockState = newDefinition.getBlock().defaultBlockState();
         getLevel().setBlockAndUpdate(blockPos, newBlockState);
-        if (getLevel().getBlockEntity(blockPos) instanceof IMachineBlockEntity newHolder) {
+        if (getLevel().getBlockEntity(blockPos) instanceof MetaMachineBlockEntity newHolder) {
             if (newHolder.getMetaMachine() instanceof ItemBusPartMachine newMachine) {
                 // We don't set the circuit or distinct busses, since
                 // that doesn't make sense on an output bus.

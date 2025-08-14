@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
@@ -44,9 +45,9 @@ public final class OreRecipeHandler {
             return;
         }
 
-        for (TagPrefix ore : ORES.keySet()) {
-            if (ConfigHolder.INSTANCE.worldgen.allUniqueStoneTypes || ORES.get(ore).shouldDropAsItem()) {
-                processOre(provider, ore, property, material);
+        for (Map.Entry<TagPrefix, OreType> entry : ORES.entrySet()) {
+            if (ConfigHolder.INSTANCE.worldgen.allUniqueStoneTypes || entry.getValue().shouldDropAsItem()) {
+                processOre(provider, entry.getKey(), property, material);
             }
         }
 

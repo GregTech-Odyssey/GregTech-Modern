@@ -8,6 +8,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.TriPredicate;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +22,7 @@ import java.util.function.Predicate;
 public class BreadthFirstBlockSearch {
 
     public static Set<BlockPos> search(Predicate<BlockPos> value, BlockPos start, int limit) {
-        Set<BlockPos> alreadyVisited = new HashSet<>();
+        Set<BlockPos> alreadyVisited = new ObjectOpenHashSet<>();
         Set<BlockPos> valid = new LinkedHashSet<>();
         int iteration = 0;
 
@@ -49,11 +50,11 @@ public class BreadthFirstBlockSearch {
     }
 
     public static Collection<BlockPos> getNeighbors(BlockPos pos) {
-        Set<BlockPos> neighbors = new HashSet<>();
-        for (Direction dir : GTUtil.DIRECTIONS) {
-            neighbors.add(pos.relative(dir));
+        BlockPos[] poss = new BlockPos[6];
+        for (int i = 0; i < 6; i++) {
+            poss[i] = pos.relative(GTUtil.DIRECTIONS[i]);
         }
-        return neighbors;
+        return Arrays.asList(poss);
     }
 
     public static <T extends BlockEntity> Set<T> conditionalBlockEntitySearch(Class<T> clazz, T start,

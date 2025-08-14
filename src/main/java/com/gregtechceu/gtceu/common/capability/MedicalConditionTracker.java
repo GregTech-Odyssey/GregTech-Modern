@@ -13,21 +13,18 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.util.INBTSerializable;
 
-import it.unimi.dsi.fastutil.objects.Object2FloatMap;
-import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSerializable<CompoundTag> {
 
-    private final Object2FloatMap<MedicalCondition> medicalConditions = new Object2FloatOpenHashMap<>();
-    private final Set<MedicalCondition> permanentConditions = new HashSet<>();
-    private final Object2IntMap<Symptom.ConfiguredSymptom> activeSymptoms = new Object2IntOpenHashMap<>();
+    private final Reference2FloatMap<MedicalCondition> medicalConditions = new Reference2FloatOpenHashMap<>();
+    private final Set<MedicalCondition> permanentConditions = new ReferenceOpenHashSet<>();
+    private final Reference2IntMap<Symptom.ConfiguredSymptom> activeSymptoms = new Reference2IntOpenHashMap<>();
     private final Object2IntMap<MobEffect> activeMobEffects = new Object2IntOpenHashMap<>();
-    private final Set<MedicalCondition> flaggedForRemoval = new HashSet<>();
+    private final Set<MedicalCondition> flaggedForRemoval = new ReferenceOpenHashSet<>();
     private int maxAirSupply = -1;
     private final Player player;
 
@@ -167,7 +164,7 @@ public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSe
     public CompoundTag serializeNBT() {
         CompoundTag tag = new CompoundTag();
         ListTag effectsTag = new ListTag();
-        for (var entry : medicalConditions.object2FloatEntrySet()) {
+        for (var entry : medicalConditions.reference2FloatEntrySet()) {
             CompoundTag medicalConditionTag = new CompoundTag();
             medicalConditionTag.putString("condition", entry.getKey().name);
             medicalConditionTag.putFloat("progression", entry.getFloatValue());
@@ -197,7 +194,7 @@ public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSe
         }
     }
 
-    public Object2FloatMap<MedicalCondition> getMedicalConditions() {
+    public Reference2FloatMap<MedicalCondition> getMedicalConditions() {
         return this.medicalConditions;
     }
 

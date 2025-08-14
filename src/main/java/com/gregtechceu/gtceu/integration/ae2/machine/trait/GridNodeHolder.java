@@ -47,7 +47,7 @@ public class GridNodeHolder extends MachineTrait {
     @Override
     public void onMachineLoad() {
         super.onMachineLoad();
-        GridHelper.onFirstTick(machine.holder.self(), b -> createMainNode());
+        GridHelper.onFirstTick(machine.holder, b -> createMainNode());
     }
 
     @Override

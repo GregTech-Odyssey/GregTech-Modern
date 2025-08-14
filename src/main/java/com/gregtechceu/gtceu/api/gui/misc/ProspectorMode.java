@@ -39,6 +39,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,8 +49,8 @@ public abstract class ProspectorMode<T> {
 
     public static ProspectorMode<String> ORE = new ProspectorMode<>("metaitem.prospector.mode.ores", 16) {
 
-        private final Map<BlockState, String> BLOCK_CACHE = new HashMap<>();
-        private final Map<String, IGuiTexture> ICON_CACHE = new HashMap<>();
+        private final Map<BlockState, String> BLOCK_CACHE = new Object2ObjectOpenHashMap<>();
+        private final Map<String, IGuiTexture> ICON_CACHE = new Object2ObjectOpenHashMap<>();
 
         @Override
         public void scan(String[][][] storage, LevelChunk chunk) {

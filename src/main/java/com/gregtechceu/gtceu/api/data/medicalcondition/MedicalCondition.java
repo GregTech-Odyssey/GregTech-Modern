@@ -11,6 +11,8 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.level.Level;
 
 import com.mojang.serialization.Codec;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -18,12 +20,12 @@ import java.util.function.Consumer;
 
 public class MedicalCondition {
 
-    public static final Map<String, MedicalCondition> CONDITIONS = new HashMap<>();
+    public static final Map<String, MedicalCondition> CONDITIONS = new Object2ObjectOpenHashMap<>();
     public static final Codec<MedicalCondition> CODEC = Codec.STRING.xmap(MedicalCondition.CONDITIONS::get, MedicalCondition::getName);
     public final String name;
     public final int color;
     public final float maxProgression; // amount of seconds until maximum progression is reached
-    public final Set<Symptom.ConfiguredSymptom> symptoms = new HashSet<>();
+    public final Set<Symptom.ConfiguredSymptom> symptoms;
     private final DamageTypeData damageTypeData;
     public final IdleProgressionType idleProgressionType;
     public final float idleProgressionRate;
@@ -39,15 +41,11 @@ public class MedicalCondition {
         this.color = color;
         this.maxProgression = maxProgression;
         this.damageTypeData = new DamageTypeData.Builder().simpleId("medical_condition/" + name).scaling(DamageScaling.NEVER).tag(DamageTypeTags.BYPASSES_ARMOR).build();
-        this.symptoms.addAll(Arrays.asList(symptoms));
+        this.symptoms = new ReferenceOpenHashSet<>(symptoms);
         this.idleProgressionType = idleProgressionType;
         this.idleProgressionRate = idleProgressionRate;
         this.canBePermanent = canBePermanent;
         CONDITIONS.put(name, this);
-    }
-
-    public MedicalCondition(String name, int color, int maxProgression, IdleProgressionType progressionType, boolean canBePermanent, Symptom.ConfiguredSymptom... symptoms) {
-        this(name, color, maxProgression, progressionType, 1, canBePermanent, symptoms);
     }
 
     public MedicalCondition(String name, int color, int maxProgression, Symptom.ConfiguredSymptom... symptoms) {

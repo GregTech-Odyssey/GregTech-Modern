@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.common.machine.steam;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.steam.SteamBoilerMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.config.ConfigHolder;
@@ -16,7 +16,7 @@ import net.minecraft.world.entity.player.Player;
 
 public class SteamSolarBoiler extends SteamBoilerMachine {
 
-    public SteamSolarBoiler(IMachineBlockEntity holder, boolean isHighPressure, Object... args) {
+    public SteamSolarBoiler(MetaMachineBlockEntity holder, boolean isHighPressure, Object... args) {
         super(holder, isHighPressure, args);
     }
 

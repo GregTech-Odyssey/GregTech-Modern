@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.common.item;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.IMachineBlock;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
@@ -12,7 +13,6 @@ import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.BedrockFluidVeinSave
 import com.gregtechceu.gtceu.api.gui.misc.ProspectorMode;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
@@ -162,7 +162,7 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
                 });
             }
         }
-        if (tileEntity instanceof IMachineBlockEntity machineBlockEntity) {
+        if (tileEntity instanceof MetaMachineBlockEntity machineBlockEntity) {
             MetaMachine machine = machineBlockEntity.getMetaMachine();
             list.add(Component.translatable(state.getBlock().getDescriptionId()).withStyle(ChatFormatting.BLUE));
             // General machine information
@@ -173,7 +173,7 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
                 if (machine.getDefinition().isAllowExtendedFacing()) {
                     list.add(Component.translatable("behavior.portable_scanner.divider"));
                     list.add(Component.translatable("behavior.portable_scanner.machine_front_facing", machine.getFrontFacing().getSerializedName()));
-                    list.add(Component.translatable("behavior.portable_scanner.machine_upwards_facing", machineBlockEntity.self().getBlockState().getValue(IMachineBlock.UPWARDS_FACING_PROPERTY).getSerializedName()));
+                    list.add(Component.translatable("behavior.portable_scanner.machine_upwards_facing", machineBlockEntity.getBlockState().getValue(IMachineBlock.UPWARDS_FACING_PROPERTY).getSerializedName()));
                 }
                 // Fluid tanks
                 Optional<IFluidHandler> fluidCap = tileEntity.getCapability(ForgeCapabilities.FLUID_HANDLER).resolve();

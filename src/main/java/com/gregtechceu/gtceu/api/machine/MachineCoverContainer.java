@@ -103,7 +103,7 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
 
     @Override
     public BlockEntity holder() {
-        return machine.holder.self();
+        return machine.holder;
     }
 
     @Override

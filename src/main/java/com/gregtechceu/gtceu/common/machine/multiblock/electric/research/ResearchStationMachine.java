@@ -1,9 +1,9 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.electric.research;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IObjectHolder;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
@@ -26,7 +26,7 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
 
     private IObjectHolder objectHolder;
 
-    public ResearchStationMachine(IMachineBlockEntity holder, Object... args) {
+    public ResearchStationMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder, args);
     }
 

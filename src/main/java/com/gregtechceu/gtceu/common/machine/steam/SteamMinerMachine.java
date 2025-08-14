@@ -1,13 +1,12 @@
 package com.gregtechceu.gtceu.common.machine.steam;
 
-import com.gregtechceu.gtceu.api.capability.IControllable;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IMiner;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.PredicatedImageWidget;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.*;
 import com.gregtechceu.gtceu.api.machine.steam.SteamWorkableMachine;
@@ -48,7 +47,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, IControllable, IExhaustVentMachine, IUIMachine, IMachineLife, IDataInfoProvider {
+public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, IExhaustVentMachine, IUIMachine, IDataInfoProvider {
 
     @Persisted
     @DescSynced
@@ -64,7 +63,7 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     @Nullable
     protected ISubscription exportItemSubs;
 
-    public SteamMinerMachine(IMachineBlockEntity holder, boolean isHighPressure, int speed, int maximumRadius, int fortune, int energyPerTick) {
+    public SteamMinerMachine(MetaMachineBlockEntity holder, boolean isHighPressure, int speed, int maximumRadius, int fortune, int energyPerTick) {
         super(holder, isHighPressure, fortune, speed, maximumRadius);
         this.inventorySize = 4;
         this.energyPerTick = energyPerTick;

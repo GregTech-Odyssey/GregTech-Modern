@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.api.item;
 
 import com.gregtechceu.gtceu.api.block.PipeBlock;
+import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
-import com.gregtechceu.gtceu.api.pipenet.IPipeNode;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -71,14 +71,14 @@ public class PipeBlockItem extends BlockItem {
 
         boolean superVal = super.placeBlock(context, state);
         if (superVal && !level.isClientSide) {
-            IPipeNode selfTile = getBlock().getPipeTile(level, pos);
+            PipeBlockEntity selfTile = getBlock().getPipeTile(level, pos);
             if (selfTile == null) return true;
             if (selfTile.getPipeBlock().canConnect(selfTile, side.getOpposite())) {
                 selfTile.setConnection(side.getOpposite(), true, false);
             }
             for (Direction facing : GTUtil.DIRECTIONS) {
                 BlockEntity te = selfTile.getNeighbor(facing);
-                if (te instanceof IPipeNode otherPipe) {
+                if (te instanceof PipeBlockEntity otherPipe) {
                     if (otherPipe.isConnected(facing.getOpposite())) {
                         if (otherPipe.getPipeBlock().canPipesConnect(otherPipe, facing.getOpposite(), selfTile)) {
                             selfTile.setConnection(facing, true, true);

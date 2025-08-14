@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.electric.gcym;
 
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 
@@ -12,7 +12,8 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 
-import java.util.HashSet;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+
 import java.util.Set;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -24,9 +25,9 @@ public class LargeChemicalBathMachine extends WorkableElectricMultiblockMachine 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(LargeChemicalBathMachine.class, WorkableElectricMultiblockMachine.MANAGED_FIELD_HOLDER);
     @DescSynced
     @RequireRerender
-    private final Set<BlockPos> fluidBlockOffsets = new HashSet<>();
+    private final Set<BlockPos> fluidBlockOffsets = new ObjectOpenHashSet<>();
 
-    public LargeChemicalBathMachine(IMachineBlockEntity holder, Object... args) {
+    public LargeChemicalBathMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder, args);
     }
 

@@ -17,13 +17,15 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+
 import java.util.*;
 
 public class ServerCache extends WorldCache {
 
     public static final ServerCache instance = new ServerCache();
 
-    private final Map<ResourceKey<Level>, ServerCacheSavedData> saveData = new HashMap<>();
+    private final Map<ResourceKey<Level>, ServerCacheSavedData> saveData = new Object2ObjectOpenHashMap<>();
 
     public void maybeInitWorld(ServerLevel world) {
         ResourceKey<Level> dim = world.dimension();

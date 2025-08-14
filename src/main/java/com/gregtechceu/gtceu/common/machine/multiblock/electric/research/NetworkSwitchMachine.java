@@ -1,9 +1,9 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.electric.research;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationHatch;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 
@@ -25,7 +25,7 @@ public class NetworkSwitchMachine extends DataMachine implements IOpticalComputa
     public IOpticalComputationProvider[] providers = new IOpticalComputationProvider[0];
     private boolean call;
 
-    public NetworkSwitchMachine(IMachineBlockEntity holder) {
+    public NetworkSwitchMachine(MetaMachineBlockEntity holder) {
         super(holder);
     }
 

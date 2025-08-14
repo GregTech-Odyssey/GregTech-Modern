@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationHatch;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableComputationContainer;
 
@@ -19,7 +19,7 @@ public class OpticalComputationHatchMachine extends MultiblockPartMachine implem
     private final boolean transmitter;
     protected NotifiableComputationContainer computationContainer;
 
-    public OpticalComputationHatchMachine(IMachineBlockEntity holder, boolean transmitter) {
+    public OpticalComputationHatchMachine(MetaMachineBlockEntity holder, boolean transmitter) {
         super(holder);
         this.transmitter = transmitter;
         this.computationContainer = createComputationContainer(transmitter);

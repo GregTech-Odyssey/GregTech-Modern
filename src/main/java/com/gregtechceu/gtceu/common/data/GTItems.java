@@ -69,6 +69,7 @@ import com.tterrag.registrate.util.entry.ItemEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
 import com.tterrag.registrate.util.nullness.NonNullConsumer;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -1433,7 +1434,7 @@ public class GTItems {
             .lang("Data Module").onRegister(attach(new DataItemBehavior(true)))
             .register();
 
-    public static final Map<MarkerMaterial, ItemEntry<Item>> GLASS_LENSES = new HashMap<>();
+    public static final Map<MarkerMaterial, ItemEntry<Item>> GLASS_LENSES = new Reference2ReferenceOpenHashMap<>();
 
     static {
         for (int i = 0; i < MarkerMaterials.Color.VALUES.length; i++) {

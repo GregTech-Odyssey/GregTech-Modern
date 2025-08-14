@@ -24,6 +24,8 @@ import net.minecraft.world.item.enchantment.EnchantmentCategory;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Block;
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -130,8 +132,8 @@ public class GTToolType {
         private String idFormat;
         private final List<TagKey<Item>> itemTags = new ArrayList<>();
         private final List<TagKey<Block>> harvestTags = new ArrayList<>();
-        private Set<String> toolClassNames = new HashSet<>();
-        private Set<GTToolType> toolClasses = new HashSet<>();
+        private Set<String> toolClassNames = new ObjectOpenHashSet<>();
+        private final Set<GTToolType> toolClasses = new ReferenceOpenHashSet<>();
         private IGTToolDefinition toolStats;
         private long materialAmount;
         private int tier = -1;

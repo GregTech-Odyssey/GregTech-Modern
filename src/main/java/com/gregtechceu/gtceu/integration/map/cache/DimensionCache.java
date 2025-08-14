@@ -9,6 +9,7 @@ import net.minecraft.world.level.ChunkPos;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -32,8 +33,9 @@ public class DimensionCache {
     }
 
     public CompoundTag toNBT(CompoundTag nbt, boolean isClient) {
-        for (GridPos key : cache.keySet()) {
-            nbt.put(key.x + "," + key.z, cache.get(key).toNBT(isClient));
+        for (Map.Entry<GridPos, GridCache> entry : cache.entrySet()) {
+            GridPos key = entry.getKey();
+            nbt.put(key.x + "," + key.z, entry.getValue().toNBT(isClient));
         }
         return nbt;
     }

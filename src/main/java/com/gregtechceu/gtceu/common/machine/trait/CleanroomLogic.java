@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.common.machine.trait;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
-import com.gregtechceu.gtceu.api.capability.IWorkable;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
@@ -17,7 +16,7 @@ import net.minecraft.util.Mth;
 
 import org.jetbrains.annotations.Nullable;
 
-public class CleanroomLogic extends RecipeLogic implements IWorkable {
+public class CleanroomLogic extends RecipeLogic {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(CleanroomLogic.class, RecipeLogic.MANAGED_FIELD_HOLDER);
     public static final int BASE_CLEAN_AMOUNT = 2;

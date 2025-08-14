@@ -1,9 +1,9 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IDataAccessHatch;
 import com.gregtechceu.gtceu.api.capability.IOpticalDataAccessHatch;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -28,7 +28,7 @@ public class OpticalDataHatchMachine extends MultiblockPartMachine implements IO
     private final boolean isTransmitter;
     private boolean call;
 
-    public OpticalDataHatchMachine(IMachineBlockEntity holder, boolean isTransmitter) {
+    public OpticalDataHatchMachine(MetaMachineBlockEntity holder, boolean isTransmitter) {
         super(holder);
         this.isTransmitter = isTransmitter;
     }

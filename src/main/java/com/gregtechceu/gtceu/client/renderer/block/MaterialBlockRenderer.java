@@ -10,13 +10,14 @@ import net.minecraft.data.models.model.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 
-import java.util.HashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+
 import java.util.Set;
 
 public class MaterialBlockRenderer {
 
     public static final String LAYER_2_SUFFIX = "_layer2";
-    private static final Set<MaterialBlockRenderer> MODELS = new HashSet<>();
+    private static final Set<MaterialBlockRenderer> MODELS = new ReferenceOpenHashSet<>();
 
     public static void create(Block block, MaterialIconType type, MaterialIconSet iconSet) {
         MODELS.add(new MaterialBlockRenderer(block, type, iconSet));

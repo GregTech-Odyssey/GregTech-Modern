@@ -1,15 +1,14 @@
 package com.gregtechceu.gtceu.client.renderer.block;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconType;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
-import com.gregtechceu.gtceu.api.pipenet.IPipeNode;
 import com.gregtechceu.gtceu.client.model.PipeModel;
 import com.gregtechceu.gtceu.client.renderer.cover.ICoverableRenderer;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
 
 import com.lowdragmc.lowdraglib.client.model.ModelFactory;
-import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -36,7 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class PipeBlockRenderer implements IRenderer, ICoverableRenderer {
+public class PipeBlockRenderer implements ICoverableRenderer {
 
     PipeModel pipeModel;
 
@@ -69,7 +68,7 @@ public class PipeBlockRenderer implements IRenderer, ICoverableRenderer {
     public List<BakedQuad> renderModel(BlockAndTintGetter level, BlockPos pos, BlockState state, Direction side, RandomSource rand) {
         if (level == null) {
             return pipeModel.bakeQuads(side, PipeModel.ITEM_CONNECTIONS, 0);
-        } else if (level.getBlockEntity(pos) instanceof IPipeNode<?, ?> pipeNode) {
+        } else if (level.getBlockEntity(pos) instanceof PipeBlockEntity<?, ?> pipeNode) {
             var quads = new LinkedList<>(pipeModel.bakeQuads(side, pipeNode.getVisualConnections(), pipeNode.getBlockedConnections()));
             var modelState = ModelFactory.getRotation(pipeNode.getCoverContainer().getFrontFacing());
             var modelFacing = side == null ? null : ModelFactory.modelFacing(side, pipeNode.getCoverContainer().getFrontFacing());
