@@ -1,13 +1,12 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.capability.IControllable;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.IMiner;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
@@ -52,7 +51,7 @@ import static com.gregtechceu.gtceu.common.data.GTMaterials.DrillingFluid;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class LargeMinerMachine extends WorkableElectricMultiblockMachine implements IMiner, IControllable, IDataInfoProvider {
+public class LargeMinerMachine extends WorkableElectricMultiblockMachine implements IMiner, IDataInfoProvider {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(LargeMinerMachine.class, WorkableMultiblockMachine.MANAGED_FIELD_HOLDER);
     public static final int CHUNK_LENGTH = 16;
@@ -63,7 +62,7 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
     protected FluidHandlerList inputFluidInventory;
     private final int drillingFluidConsumePerTick;
 
-    public LargeMinerMachine(IMachineBlockEntity holder, int tier, int speed, int maximumChunkDiameter, int fortune, int drillingFluidConsumePerTick) {
+    public LargeMinerMachine(MetaMachineBlockEntity holder, int tier, int speed, int maximumChunkDiameter, int fortune, int drillingFluidConsumePerTick) {
         super(holder, fortune, speed, maximumChunkDiameter);
         this.tier = tier;
         this.drillingFluidConsumePerTick = drillingFluidConsumePerTick;

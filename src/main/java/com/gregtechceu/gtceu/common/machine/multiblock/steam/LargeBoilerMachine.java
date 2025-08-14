@@ -1,11 +1,11 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.steam;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
@@ -59,7 +59,7 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
     protected TickableSubscription temperatureSubs;
     private int steamGenerated;
 
-    public LargeBoilerMachine(IMachineBlockEntity holder, int maxTemperature, int heatSpeed, Object... args) {
+    public LargeBoilerMachine(MetaMachineBlockEntity holder, int maxTemperature, int heatSpeed, Object... args) {
         super(holder, args);
         this.maxTemperature = maxTemperature;
         this.heatSpeed = heatSpeed;

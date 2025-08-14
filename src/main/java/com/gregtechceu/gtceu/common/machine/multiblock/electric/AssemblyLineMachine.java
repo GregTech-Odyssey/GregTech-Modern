@@ -1,9 +1,9 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
@@ -16,9 +16,6 @@ import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.FluidHatchPartMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.ItemBusPartMachine;
 import com.gregtechceu.gtceu.config.ConfigHolder;
-
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
@@ -33,7 +30,7 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
     private List<CustomItemStackHandler> itemStackTransfers = new ArrayList<>();
     private List<CustomFluidTank> fluidStackTransfers = new ArrayList<>();
 
-    public AssemblyLineMachine(IMachineBlockEntity holder) {
+    public AssemblyLineMachine(MetaMachineBlockEntity holder) {
         super(holder);
     }
 
@@ -51,11 +48,6 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
     @Override
     public RecipeLogic createRecipeLogic(Object... args) {
         return new AssemblyLineLogic(this);
-    }
-
-    @Override
-    public AssemblyLineLogic getRecipeLogic() {
-        return (AssemblyLineLogic) super.getRecipeLogic();
     }
 
     @Override
@@ -109,11 +101,6 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
 
     public static class AssemblyLineLogic extends RecipeLogic {
 
-        @Nullable
-        @Persisted
-        @DescSynced
-        private GTRecipe workingRecipe;
-
         public AssemblyLineLogic(IRecipeLogicMachine machine) {
             super(machine);
         }
@@ -122,33 +109,6 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
         @Override
         public AssemblyLineMachine getMachine() {
             return (AssemblyLineMachine) super.getMachine();
-        }
-
-        @Override
-        @Nullable
-        public GTRecipe getLastRecipe() {
-            return workingRecipe;
-        }
-
-        @Override
-        protected void handleSearchingRecipes(Iterator<GTRecipe> matches) {
-            workingRecipe = null;
-            super.handleSearchingRecipes(matches);
-        }
-
-        @Override
-        protected boolean matchRecipe(@NotNull GTRecipe recipe) {
-            if (ConfigHolder.INSTANCE.machines.orderedAssemblyLineItems &&
-                    !getMachine().checkItemInputs(recipe)) {
-                return false;
-            }
-
-            if (ConfigHolder.INSTANCE.machines.orderedAssemblyLineFluids &&
-                    !getMachine().checkFluidInputs(recipe)) {
-                return false;
-            }
-
-            return RecipeHelper.matchRecipe(this.machine, recipe);
         }
 
         @Override
@@ -164,26 +124,14 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
                         return false;
                     }
                 }
-
                 if (ConfigHolder.INSTANCE.machines.orderedAssemblyLineFluids) {
-                    if (!consumeOrderedFluidInputs(recipe)) {
-                        return false;
-                    }
+                    return consumeOrderedFluidInputs(recipe);
                 } else {
                     var fluids = recipe.getInputContents(FluidRecipeCapability.CAP);
-                    if (!RecipeHelper.handleRecipe(this.machine, recipe, io, Map.of(FluidRecipeCapability.CAP, fluids), chanceCaches, false, false)) {
-                        return false;
-                    }
+                    return RecipeHelper.handleRecipe(this.machine, recipe, io, Map.of(FluidRecipeCapability.CAP, fluids), chanceCaches, false, false);
                 }
-
-                workingRecipe = recipe;
-                return true;
             } else {
-                var result = super.handleRecipeIO(recipe, io);
-                if (result) {
-                    workingRecipe = null;
-                }
-                return result;
+                return super.handleRecipeIO(recipe, io);
             }
         }
 

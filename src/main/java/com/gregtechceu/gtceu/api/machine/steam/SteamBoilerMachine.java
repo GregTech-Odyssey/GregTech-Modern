@@ -1,11 +1,11 @@
 package com.gregtechceu.gtceu.api.machine.steam;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
@@ -80,7 +80,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
 
     public int fillAmount;
 
-    public SteamBoilerMachine(IMachineBlockEntity holder, boolean isHighPressure, Object... args) {
+    public SteamBoilerMachine(MetaMachineBlockEntity holder, boolean isHighPressure, Object... args) {
         super(holder, isHighPressure, args);
         this.waterTank = createWaterTank(args);
         this.waterTank.setFilter(fluid -> fluid.getFluid().is(GTMaterials.Water.getFluidTag()));

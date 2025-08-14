@@ -13,8 +13,8 @@ import net.minecraft.world.level.LevelAccessor;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
-import java.util.HashSet;
 import java.util.Set;
 
 public class WaypointManager {
@@ -30,7 +30,7 @@ public class WaypointManager {
         }
     }
 
-    private static final Set<IWaypointHandler> handlers = new HashSet<>();
+    private static final Set<IWaypointHandler> handlers = new ReferenceOpenHashSet<>();
     private static final Object2ObjectMap<String, WaypointKey> waypoints = new Object2ObjectArrayMap<>();
 
     public static void updateDimension(LevelAccessor dim) {

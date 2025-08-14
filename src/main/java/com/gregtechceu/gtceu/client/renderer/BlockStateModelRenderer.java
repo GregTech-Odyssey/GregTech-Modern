@@ -12,8 +12,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -23,7 +24,7 @@ public class BlockStateModelRenderer implements IRenderer {
     private final Map<BlockState, IRenderer> models;
 
     public BlockStateModelRenderer(Block block, Function<BlockState, IRenderer> predicate) {
-        this.models = new HashMap<>();
+        this.models = new Object2ObjectOpenHashMap<>();
         for (BlockState state : block.getStateDefinition().getPossibleStates()) {
             models.put(state, predicate.apply(state));
         }

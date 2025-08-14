@@ -1,13 +1,13 @@
 package com.gregtechceu.gtceu.api.machine.steam;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.PredicatedImageWidget;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IExhaustVentMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
@@ -51,7 +51,7 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
     @Persisted
     private boolean needsVenting;
 
-    public SimpleSteamMachine(IMachineBlockEntity holder, boolean isHighPressure, Object... args) {
+    public SimpleSteamMachine(MetaMachineBlockEntity holder, boolean isHighPressure, Object... args) {
         super(holder, isHighPressure, args);
         this.importItems = createImportItemHandler(args);
         this.exportItems = createExportItemHandler(args);

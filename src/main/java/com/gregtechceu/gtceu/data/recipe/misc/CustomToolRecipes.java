@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
-import static com.gregtechceu.gtceu.api.GTValues.LuV;
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.*;
 import static com.gregtechceu.gtceu.data.recipe.generated.ToolRecipeHandler.*;
 

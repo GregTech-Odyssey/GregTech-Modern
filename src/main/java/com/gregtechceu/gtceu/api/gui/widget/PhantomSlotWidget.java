@@ -6,7 +6,6 @@ import com.lowdragmc.lowdraglib.gui.editor.annotation.ConfigSetter;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.LDLRegister;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.NumberRange;
-import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.ingredient.IGhostIngredientTarget;
 import com.lowdragmc.lowdraglib.gui.ingredient.Target;
 
@@ -34,7 +33,7 @@ import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 
 @LDLRegister(name = "gtm_phantom_item_slot", group = "widget.gtm_container", priority = 50)
-public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTarget, IConfigurableWidget {
+public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTarget {
 
     private boolean clearSlotOnRightClick;
 

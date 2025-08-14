@@ -100,11 +100,12 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MetaMachine.class);
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
+    protected final MachineDefinition definition;
     @Persisted
     @DescSynced
     @Nullable
     private UUID ownerUUID;
-    public final IMachineBlockEntity holder;
+    public final MetaMachineBlockEntity holder;
     @DescSynced
     @Persisted(key = "cover")
     protected final MachineCoverContainer coverContainer;
@@ -115,6 +116,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     protected final List<MachineTrait> traits = new ObjectArrayList<>();
     private final List<TickableSubscription> serverTicks = new ObjectArrayList<>();
     private final List<TickableSubscription> waitingToAdd = new ObjectArrayList<>();
+    private final List<Runnable> ticks = new ObjectArrayList<>();
 
     protected final DirectionCache<IItemHandlerModifiable> itemHandlerModifiableCache = DirectionCache.create();
     protected final DirectionCache<IFluidHandlerModifiable> fluidHandlerModifiableCache = DirectionCache.create();
@@ -142,7 +144,10 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     private boolean wait;
 
-    public MetaMachine(IMachineBlockEntity holder) {
+    private boolean hasTick;
+
+    public MetaMachine(MetaMachineBlockEntity holder) {
+        this.definition = holder.definition;
         this.holder = holder;
         this.coverContainer = new MachineCoverContainer(this);
         // bind sync storage
@@ -174,7 +179,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     }
 
     public BlockState getBlockState() {
-        return holder.self().getBlockState();
+        return holder.getBlockState();
     }
 
     public boolean isRemote() {
@@ -213,7 +218,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     }
 
     public boolean isInValid() {
-        return holder.self().isRemoved();
+        return holder.isRemoved();
     }
 
     @MustBeInvokedByOverriders
@@ -282,10 +287,20 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         }
     }
 
+    public void tell(Runnable runnable) {
+        ticks.add(runnable);
+        hasTick = true;
+    }
+
     public void serverTick() {
         if (dirty) {
             dirty = false;
-            holder.self().setChanged();
+            holder.setChanged();
+        }
+        if (hasTick) {
+            ticks.forEach(Runnable::run);
+            ticks.clear();
+            hasTick = false;
         }
         if (wait) return;
         if (!waitingToAdd.isEmpty()) {
@@ -450,7 +465,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     }
 
     protected InteractionResult onSoftMalletClick(Player playerIn, InteractionHand hand, Direction gridSide, BlockHitResult hitResult) {
-        var controllable = GTCapabilityHelper.getControllable(holder.self(), gridSide);
+        var controllable = GTCapabilityHelper.getControllable(holder, gridSide);
         if (controllable == null) return InteractionResult.PASS;
         if (!isRemote()) {
             if (!playerIn.isShiftKeyDown() || !controllable.isWorkingEnabled()) {
@@ -586,7 +601,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     }
 
     public MachineDefinition getDefinition() {
-        return holder.getDefinition();
+        return definition;
     }
 
     /**
@@ -926,7 +941,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         return this.ownerUUID;
     }
 
-    public IMachineBlockEntity getHolder() {
+    public MetaMachineBlockEntity getHolder() {
         return this.holder;
     }
 

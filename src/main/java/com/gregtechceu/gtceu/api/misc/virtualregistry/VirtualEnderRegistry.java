@@ -6,10 +6,10 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -21,7 +21,7 @@ public class VirtualEnderRegistry extends SavedData {
     private static final String PUBLIC_KEY = "Public";
     private static final String PRIVATE_KEY = "Private";
     private static volatile VirtualEnderRegistry data;
-    private final Map<UUID, VirtualRegistryMap> VIRTUAL_REGISTRIES = new HashMap<>();
+    private final Map<UUID, VirtualRegistryMap> VIRTUAL_REGISTRIES = new Object2ObjectOpenHashMap<>();
 
     public VirtualEnderRegistry() {}
 
@@ -117,8 +117,9 @@ public class VirtualEnderRegistry extends SavedData {
     @Override
     public final CompoundTag save(@NotNull CompoundTag tag) {
         var privateTag = new CompoundTag();
-        for (var owner : VIRTUAL_REGISTRIES.keySet()) {
-            var mapTag = VIRTUAL_REGISTRIES.get(owner).serializeNBT();
+        for (Map.Entry<UUID, VirtualRegistryMap> entry : VIRTUAL_REGISTRIES.entrySet()) {
+            var owner = entry.getKey();
+            var mapTag = entry.getValue().serializeNBT();
             if (owner != null) {
                 privateTag.put(owner.toString(), mapTag);
             } else {

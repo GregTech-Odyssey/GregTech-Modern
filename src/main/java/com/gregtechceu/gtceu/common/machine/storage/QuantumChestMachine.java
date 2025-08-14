@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.common.machine.storage;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
@@ -7,7 +8,6 @@ import com.gregtechceu.gtceu.api.gui.widget.PhantomSlotWidget;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.TieredMachine;
@@ -96,7 +96,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     @Nullable
     protected TickableSubscription autoOutputSubs;
 
-    public QuantumChestMachine(IMachineBlockEntity holder, int tier, long maxAmount, Object... args) {
+    public QuantumChestMachine(MetaMachineBlockEntity holder, int tier, long maxAmount, Object... args) {
         super(holder, tier);
         this.outputFacingItems = getFrontFacing().getOpposite();
         this.maxAmount = maxAmount;

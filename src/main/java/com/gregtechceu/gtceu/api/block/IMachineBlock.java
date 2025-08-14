@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.api.block;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.data.RotationState;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 
@@ -57,13 +57,13 @@ public interface IMachineBlock extends IBlockRendererProvider, EntityBlock {
         if (blockEntityType == getDefinition().getBlockEntityType()) {
             if (!level.isClientSide) {
                 return (pLevel, pPos, pState, pTile) -> {
-                    if (pTile instanceof IMachineBlockEntity metaMachine) {
+                    if (pTile instanceof MetaMachineBlockEntity metaMachine) {
                         metaMachine.getMetaMachine().serverTick();
                     }
                 };
             } else {
                 return (pLevel, pPos, pState, pTile) -> {
-                    if (pTile instanceof IMachineBlockEntity metaMachine) {
+                    if (pTile instanceof MetaMachineBlockEntity metaMachine) {
                         metaMachine.getMetaMachine().clientTick();
                     }
                 };

@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.machine;
 
 import com.gregtechceu.gtceu.api.block.IMachineBlock;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
 import com.gregtechceu.gtceu.api.item.MetaMachineItem;
@@ -44,7 +45,7 @@ public class MachineDefinition implements Supplier<IMachineBlock> {
     private Supplier<? extends Block> blockSupplier;
     private Supplier<? extends MetaMachineItem> itemSupplier;
     private Supplier<BlockEntityType<? extends BlockEntity>> blockEntityTypeSupplier;
-    private Function<IMachineBlockEntity, MetaMachine> machineSupplier;
+    private Function<MetaMachineBlockEntity, MetaMachine> machineSupplier;
     @Nullable
     private GTRecipeType[] recipeTypes;
     private int tier;
@@ -95,7 +96,7 @@ public class MachineDefinition implements Supplier<IMachineBlock> {
         return blockEntityTypeSupplier.get();
     }
 
-    public MetaMachine createMetaMachine(IMachineBlockEntity blockEntity) {
+    public MetaMachine createMetaMachine(MetaMachineBlockEntity blockEntity) {
         return machineSupplier.apply(blockEntity);
     }
 
@@ -185,7 +186,7 @@ public class MachineDefinition implements Supplier<IMachineBlock> {
         this.blockEntityTypeSupplier = blockEntityTypeSupplier;
     }
 
-    public void setMachineSupplier(final Function<IMachineBlockEntity, MetaMachine> machineSupplier) {
+    public void setMachineSupplier(final Function<MetaMachineBlockEntity, MetaMachine> machineSupplier) {
         this.machineSupplier = machineSupplier;
     }
 

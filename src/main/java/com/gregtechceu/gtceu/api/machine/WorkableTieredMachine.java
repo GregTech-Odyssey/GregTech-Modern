@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.machine;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.machine.feature.*;
 import com.gregtechceu.gtceu.api.machine.trait.*;
@@ -43,10 +44,6 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     public final NotifiableFluidTank importFluids;
     @Persisted
     public final NotifiableFluidTank exportFluids;
-    @Persisted
-    public final NotifiableComputationContainer importComputation;
-    @Persisted
-    public final NotifiableComputationContainer exportComputation;
     protected final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
     protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
     @Persisted
@@ -57,7 +54,7 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     protected boolean isMuffled;
     protected boolean previouslyMuffled = true;
 
-    public WorkableTieredMachine(IMachineBlockEntity holder, int tier, Int2IntFunction tankScalingFunction, Object... args) {
+    public WorkableTieredMachine(MetaMachineBlockEntity holder, int tier, Int2IntFunction tankScalingFunction, Object... args) {
         super(holder, tier, args);
         this.overclockTier = getMaxOverclockTier();
         this.recipeTypes = getDefinition().getRecipeTypes();
@@ -71,8 +68,6 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
         this.exportItems = createExportItemHandler(args);
         this.importFluids = createImportFluidHandler(args);
         this.exportFluids = createExportFluidHandler(args);
-        this.importComputation = createImportComputationContainer(args);
-        this.exportComputation = createExportComputationContainer(args);
     }
 
     //////////////////////////////////////
@@ -116,18 +111,6 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
 
     protected NotifiableFluidTank createExportFluidHandler(Object... args) {
         return new NotifiableFluidTank(this, getRecipeType().getMaxOutputs(FluidRecipeCapability.CAP), this.tankScalingFunction.applyAsInt(this.getTier()), IO.OUT);
-    }
-
-    protected NotifiableComputationContainer createImportComputationContainer(Object... args) {
-        boolean transmitter = true;
-        if (args.length > 0 && args[args.length - 1] instanceof Boolean isTransmitter) {
-            transmitter = isTransmitter;
-        }
-        return new NotifiableComputationContainer(this, IO.IN, transmitter);
-    }
-
-    protected NotifiableComputationContainer createExportComputationContainer(Object... args) {
-        return new NotifiableComputationContainer(this, IO.OUT, false);
     }
 
     @Override

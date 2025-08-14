@@ -3,8 +3,8 @@ package com.gregtechceu.gtceu.api.machine.multiblock;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.block.IMachineBlock;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
@@ -67,7 +67,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
 
     private int waitingTime;
 
-    public MultiblockControllerMachine(IMachineBlockEntity holder) {
+    public MultiblockControllerMachine(MetaMachineBlockEntity holder) {
         super(holder);
     }
 
@@ -81,7 +81,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
 
     @Override
     public MultiblockMachineDefinition getDefinition() {
-        return (MultiblockMachineDefinition) super.getDefinition();
+        return (MultiblockMachineDefinition) definition;
     }
 
     @Override

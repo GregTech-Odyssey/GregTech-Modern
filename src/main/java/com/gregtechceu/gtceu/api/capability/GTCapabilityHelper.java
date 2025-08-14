@@ -1,7 +1,8 @@
 package com.gregtechceu.gtceu.api.capability;
 
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
-import com.gregtechceu.gtceu.api.item.ComponentItem;
+import com.gregtechceu.gtceu.api.item.IComponentItem;
+import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.capability.ElectricItem;
 import com.gregtechceu.gtceu.api.item.component.ElectricStats;
 import com.gregtechceu.gtceu.api.item.component.IItemComponent;
@@ -29,12 +30,15 @@ public class GTCapabilityHelper {
 
     @Nullable
     public static IElectricItem getElectricItem(ItemStack itemStack) {
-        if (itemStack.getItem() instanceof ComponentItem componentItem) {
+        var item = itemStack.getItem();
+        if (item instanceof IComponentItem componentItem) {
             for (IItemComponent component : componentItem.getComponents()) {
                 if (component instanceof ElectricStats electricStats) {
                     return new ElectricItem(itemStack, electricStats.maxCharge, electricStats.tier, electricStats.chargeable, electricStats.dischargeable);
                 }
             }
+        } else if (item instanceof IGTTool tool && tool.isElectric()) {
+            return new ElectricItem(itemStack, 0L, tool.getElectricTier(), true, false);
         }
         return null;
     }

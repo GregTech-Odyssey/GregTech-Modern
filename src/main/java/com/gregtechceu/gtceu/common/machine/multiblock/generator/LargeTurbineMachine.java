@@ -1,11 +1,10 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.generator;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IRotorHolderMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
@@ -31,13 +30,13 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class LargeTurbineMachine extends WorkableElectricMultiblockMachine implements ITieredMachine {
+public class LargeTurbineMachine extends WorkableElectricMultiblockMachine {
 
     public static final int MIN_DURABILITY_TO_WARN = 10;
     private final long BASE_EU_OUTPUT;
     private final int tier;
 
-    public LargeTurbineMachine(IMachineBlockEntity holder, int tier) {
+    public LargeTurbineMachine(MetaMachineBlockEntity holder, int tier) {
         super(holder);
         this.tier = tier;
         this.BASE_EU_OUTPUT = GTValues.V[tier] * 2;

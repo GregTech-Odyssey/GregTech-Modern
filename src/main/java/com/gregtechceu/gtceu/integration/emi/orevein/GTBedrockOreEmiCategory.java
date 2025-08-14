@@ -4,7 +4,7 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockore.BedrockOreDefinition;
-import com.gregtechceu.gtceu.client.ClientProxy;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 
@@ -24,7 +24,7 @@ public class GTBedrockOreEmiCategory extends EmiRecipeCategory {
     }
 
     public static void registerDisplays(EmiRegistry registry) {
-        for (BedrockOreDefinition fluid : ClientProxy.CLIENT_BEDROCK_ORE_VEINS.values()) {
+        for (BedrockOreDefinition fluid : GTRegistries.BEDROCK_ORE_DEFINITIONS.values()) {
             registry.addRecipe(new GTBedrockOre(fluid));
         }
     }

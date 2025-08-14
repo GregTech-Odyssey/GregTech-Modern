@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.ILaserContainer;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.pipenet.IPipeNode;
 import com.gregtechceu.gtceu.common.pipelike.laser.*;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.TaskHandler;
@@ -99,7 +98,7 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
         if (currentPipeNet != null && currentPipeNet.isValid() && currentPipeNet.containsNode(getPipePosLong())) {
             return currentPipeNet;
         }
-        LevelLaserPipeNet worldNet = (LevelLaserPipeNet) getPipeBlock().getWorldPipeNet((ServerLevel) getPipeLevel());
+        LevelLaserPipeNet worldNet = (LevelLaserPipeNet) getPipeBlock().getWorldPipeNet((ServerLevel) getLevel());
         currentPipeNet = worldNet.getNetFromPos(getPipePos(), getPipePosLong());
         if (currentPipeNet != null) {
             this.currentPipeNet = new WeakReference<>(currentPipeNet);
@@ -145,7 +144,7 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
             if (connections != 0) return;
             // check the same for the targeted pipe
             BlockEntity tile = getNeighbor(side);
-            if (tile instanceof IPipeNode<?, ?> pipeTile && pipeTile.getPipeType().getClass() == this.getPipeType().getClass()) {
+            if (tile instanceof PipeBlockEntity<?, ?> pipeTile && pipeTile.getPipeType().getClass() == this.getPipeType().getClass()) {
                 connections = pipeTile.getConnections();
                 connections &= ~(1 << side.ordinal());
                 connections &= ~(1 << side.getOpposite().ordinal());

@@ -1,14 +1,13 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.generator;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
@@ -43,7 +42,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMachine implements ITieredMachine {
+public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMachine {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(LargeCombustionEngineMachine.class, WorkableMultiblockMachine.MANAGED_FIELD_HOLDER);
     private static final FluidStack OXYGEN_STACK = GTMaterials.Oxygen.getFluid(1);
@@ -55,7 +54,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
     private boolean isOxygenBoosted = false;
     private int runningTimer = 0;
 
-    public LargeCombustionEngineMachine(IMachineBlockEntity holder, int tier) {
+    public LargeCombustionEngineMachine(MetaMachineBlockEntity holder, int tier) {
         super(holder);
         this.tier = tier;
     }

@@ -44,9 +44,7 @@ public class GTToolItem extends DiggerItem implements IGTTool {
     protected final Material material;
     private final IGTToolDefinition toolStats;
 
-    private Boolean canApplyAtEnchantingTable;
     private Boolean hasCraftingRemainingItem;
-    private Integer getEnchantmentValue;
     private Integer getMaxDamage;
 
     protected GTToolItem(GTToolType toolType, MaterialToolTier tier, Material material, IGTToolDefinition definition, Properties properties) {
@@ -148,14 +146,12 @@ public class GTToolItem extends DiggerItem implements IGTTool {
 
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        if (canApplyAtEnchantingTable == null) canApplyAtEnchantingTable = definition$canApplyAtEnchantingTable(stack, enchantment);
-        return canApplyAtEnchantingTable;
+        return definition$canApplyAtEnchantingTable(stack, enchantment);
     }
 
     @Override
     public int getEnchantmentValue(ItemStack stack) {
-        if (getEnchantmentValue == null) getEnchantmentValue = getTotalEnchantability(stack);
-        return getEnchantmentValue;
+        return getTotalEnchantability(stack);
     }
 
     @Override

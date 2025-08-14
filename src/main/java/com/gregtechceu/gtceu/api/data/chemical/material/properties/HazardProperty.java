@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.medicalcondition.MedicalCondition;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.item.GTBucketItem;
+import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.TagPrefixItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
@@ -20,6 +21,8 @@ import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
@@ -46,15 +49,10 @@ public class HazardProperty implements IMaterialProperty {
 
     public record HazardTrigger(String name, ProtectionType protectionType, Set<TagPrefix> affectedTagPrefixes) implements StringRepresentable {
 
-        public static final Map<String, HazardTrigger> ALL_TRIGGERS = new HashMap<>();
         public static final HazardTrigger INHALATION = new HazardTrigger("inhalation", ProtectionType.MASK, TagPrefix.dust, TagPrefix.dustSmall, TagPrefix.dustTiny, TagPrefix.dustPure, TagPrefix.dustImpure);
         public static final HazardTrigger ANY = new HazardTrigger("any", ProtectionType.FULL);
         public static final HazardTrigger SKIN_CONTACT = new HazardTrigger("skin_contact", ProtectionType.HANDS, TagPrefix.dust, TagPrefix.dustSmall, TagPrefix.dustTiny);
         public static final HazardTrigger NONE = new HazardTrigger("none", ProtectionType.NONE);
-
-        public HazardTrigger {
-            ALL_TRIGGERS.put(name, this);
-        }
 
         public HazardTrigger(String name, ProtectionType protectionType, TagPrefix... tagPrefixes) {
             this(name, protectionType, new HashSet<>());
@@ -98,7 +96,7 @@ public class HazardProperty implements IMaterialProperty {
             if (this == NONE) {
                 return true;
             }
-            Set<ArmorItem.Type> correctArmorItems = new HashSet<>();
+            Set<ArmorItem.Type> correctArmorItems = new ReferenceOpenHashSet<>();
             for (ArmorItem.Type equipmentType : equipmentTypes) {
                 ItemStack armor = livingEntity.getItemBySlot(equipmentType.getSlot());
                 if (!armor.isEmpty() && ((armor.getItem() instanceof ArmorComponentItem armorItem && armorItem.getArmorLogic().isPPE()) || armor.getTags().anyMatch(tag -> tag.equals(CustomTags.PPE_ARMOR)))) {
@@ -108,7 +106,7 @@ public class HazardProperty implements IMaterialProperty {
             if (!GTCEu.Mods.isCuriosLoaded() || this.curioSlots.isEmpty()) {
                 return correctArmorItems.containsAll(equipmentTypes);
             }
-            Set<String> correctCurios = new HashSet<>();
+            Set<String> correctCurios = new ObjectOpenHashSet<>();
             ICuriosItemHandler curiosInventory = CuriosApi.getCuriosInventory(livingEntity)
                     .resolve()
                     .orElse(null);
@@ -169,31 +167,34 @@ public class HazardProperty implements IMaterialProperty {
     }
 
     public static Material getValidHazardMaterial(ItemStack item) {
-        Material material = GTMaterials.NULL;
-        TagPrefix prefix = TagPrefix.NULL_PREFIX;
-        boolean isFluid = false;
-        if (item.getItem() instanceof TagPrefixItem prefixItem) {
-            material = prefixItem.material;
-            prefix = prefixItem.tagPrefix;
-        } else if (item.getItem() instanceof BucketItem bucket) {
-            if (ConfigHolder.INSTANCE.gameplay.universalHazards || bucket instanceof GTBucketItem) {
-                material = ChemicalHelper.getMaterial(bucket.getFluid());
-                isFluid = true;
+        if (ConfigHolder.INSTANCE.gameplay.hazardsEnabled || item.getItem() instanceof IGTTool) {
+            Material material = GTMaterials.NULL;
+            TagPrefix prefix = TagPrefix.NULL_PREFIX;
+            boolean isFluid = false;
+            if (item.getItem() instanceof TagPrefixItem prefixItem) {
+                material = prefixItem.material;
+                prefix = prefixItem.tagPrefix;
+            } else if (item.getItem() instanceof BucketItem bucket) {
+                if (bucket instanceof GTBucketItem) {
+                    material = ChemicalHelper.getMaterial(bucket.getFluid());
+                    isFluid = true;
+                }
+            } else {
+                MaterialEntry entry = ChemicalHelper.getMaterialEntry(item.getItem());
+                if (!entry.isEmpty()) {
+                    material = entry.material();
+                    prefix = entry.tagPrefix();
+                }
             }
-        } else if (ConfigHolder.INSTANCE.gameplay.universalHazards) {
-            MaterialEntry entry = ChemicalHelper.getMaterialEntry(item.getItem());
-            if (!entry.isEmpty()) {
-                material = entry.material();
-                prefix = entry.tagPrefix();
+            HazardProperty property = material.getProperty(PropertyKey.HAZARD);
+            if (property == null) {
+                return GTMaterials.NULL;
             }
+            if (!isFluid && !property.hazardTrigger.isAffected(prefix)) {
+                return GTMaterials.NULL;
+            }
+            return material;
         }
-        HazardProperty property = material.getProperty(PropertyKey.HAZARD);
-        if (property == null) {
-            return GTMaterials.NULL;
-        }
-        if (!isFluid && !property.hazardTrigger.isAffected(prefix)) {
-            return GTMaterials.NULL;
-        }
-        return material;
+        return GTMaterials.NULL;
     }
 }

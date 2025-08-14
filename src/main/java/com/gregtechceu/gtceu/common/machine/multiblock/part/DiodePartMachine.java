@@ -2,8 +2,8 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 
@@ -33,7 +33,7 @@ public class DiodePartMachine extends TieredIOPartMachine {
     @Persisted(key = "amp_mode")
     private int amps;
 
-    public DiodePartMachine(IMachineBlockEntity holder, int tier) {
+    public DiodePartMachine(MetaMachineBlockEntity holder, int tier) {
         super(holder, tier, IO.BOTH);
         long tierVoltage = GTValues.V[getTier()];
         this.amps = 1;

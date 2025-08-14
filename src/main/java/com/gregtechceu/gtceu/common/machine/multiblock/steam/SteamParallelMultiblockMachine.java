@@ -1,11 +1,11 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.steam;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.UITemplate;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
@@ -51,7 +51,7 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
     // if in millibuckets, this is 2.0, Meaning 2mb of steam -> 1 EU
     public static final double CONVERSION_RATE = 2.0;
 
-    public SteamParallelMultiblockMachine(IMachineBlockEntity holder, Object... args) {
+    public SteamParallelMultiblockMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder);
         if (args.length > 0 && args[0] instanceof Integer i) {
             this.maxParallels = i;

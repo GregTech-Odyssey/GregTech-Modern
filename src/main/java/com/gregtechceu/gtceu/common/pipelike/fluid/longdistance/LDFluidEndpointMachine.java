@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.common.pipelike.fluid.longdistance;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import com.gregtechceu.gtceu.common.machine.storage.LongDistanceEndpointMachine;
 
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class LDFluidEndpointMachine extends LongDistanceEndpointMachine {
 
-    public LDFluidEndpointMachine(IMachineBlockEntity holder) {
+    public LDFluidEndpointMachine(MetaMachineBlockEntity holder) {
         super(holder, LDFluidPipeType.INSTANCE);
     }
 

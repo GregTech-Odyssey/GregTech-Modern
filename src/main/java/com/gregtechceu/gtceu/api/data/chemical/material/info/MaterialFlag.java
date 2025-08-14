@@ -12,8 +12,6 @@ import java.util.Set;
 
 public class MaterialFlag {
 
-    private static final Set<MaterialFlag> FLAG_REGISTRY = new HashSet<>();
-
     private final String name;
 
     private final Set<MaterialFlag> requiredFlags;
@@ -23,7 +21,6 @@ public class MaterialFlag {
         this.name = name;
         this.requiredFlags = requiredFlags;
         this.requiredProperties = requiredProperties;
-        FLAG_REGISTRY.add(this);
     }
 
     protected Set<MaterialFlag> verifyFlag(Material material) {
@@ -45,23 +42,6 @@ public class MaterialFlag {
     @Override
     public String toString() {
         return this.name;
-    }
-
-    public static MaterialFlag getByName(String name) {
-        return FLAG_REGISTRY.stream().filter(f -> f.toString().equalsIgnoreCase(name)).findFirst().orElse(null);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        MaterialFlag that = (MaterialFlag) o;
-        return name.equals(that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
     }
 
     public static class Builder {

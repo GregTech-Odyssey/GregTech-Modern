@@ -23,9 +23,7 @@ import com.gregtechceu.gtceu.common.valueprovider.CastedFloat;
 import com.gregtechceu.gtceu.common.valueprovider.FlooredInt;
 import com.gregtechceu.gtceu.common.valueprovider.MultipliedFloat;
 import com.gregtechceu.gtceu.config.ConfigHolder;
-import com.gregtechceu.gtceu.core.mixins.IngredientAccessor;
 import com.gregtechceu.gtceu.core.mixins.IntersectionIngredientAccessor;
-import com.gregtechceu.gtceu.core.mixins.TagValueAccessor;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemEntryList;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemStackList;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemTagList;
@@ -540,16 +538,11 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
     }
 
     private static @Nullable ItemTagList tryMapTag(final Ingredient ingredient, int amount) {
-        var values = ((IngredientAccessor) ingredient).getValues();
+        var values = ingredient.values;
         if (values.length > 0 && values[0] instanceof Ingredient.TagValue tagValue) {
-            return ItemTagList.of(((TagValueAccessor) tagValue).getTag(), amount, null);
+            return ItemTagList.of(tagValue.tag, amount, null);
         }
         return null;
-    }
-
-    @Override
-    public Object2IntMap<Ingredient> makeChanceCache() {
-        return new Object2IntOpenCustomHashMap<>(IngredientEquality.IngredientHashStrategy.INSTANCE);
     }
 
     public interface ICustomParallel {

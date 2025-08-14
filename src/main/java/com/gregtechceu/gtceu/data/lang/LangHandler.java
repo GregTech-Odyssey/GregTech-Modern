@@ -1186,8 +1186,7 @@ public class LangHandler {
         provider.add("gtceu.multiblock.pattern.location_end", "§cVery End§r");
         provider.add("gtceu.multiblock.pattern.replaceable_air", "Replaceable by Air");
 
-        provider.add("gtceu.multiblock.computation.max", "Max CWU/t: %s");
-        provider.add("gtceu.multiblock.computation.usage", "Using: %s");
+        provider.add("gtceu.multiblock.computation.usable", "Usable CWU/t: %s");
         provider.add("gtceu.multiblock.computation.non_bridging", "Non-bridging connection found");
         provider.add("gtceu.multiblock.computation.non_bridging.detailed",
                 "A Reception Hatch is linked to a machine which cannot bridge");

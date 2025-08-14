@@ -1,11 +1,11 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
@@ -76,7 +76,7 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine implements IM
     @Nullable
     protected TickableSubscription maintenanceSubs;
 
-    public MaintenanceHatchPartMachine(IMachineBlockEntity metaTileEntityId, boolean isConfigurable) {
+    public MaintenanceHatchPartMachine(MetaMachineBlockEntity metaTileEntityId, boolean isConfigurable) {
         super(metaTileEntityId, isConfigurable ? 3 : 1);
         this.isConfigurable = isConfigurable;
         this.itemStackHandler = createInventory();

@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class FilteredFluidContainer implements IItemComponent, IComponentCapability, IAddInformation {
+public class FilteredFluidContainer implements IComponentCapability, IAddInformation {
 
     public final int capacity;
     public final boolean allowPartialFill;

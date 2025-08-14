@@ -277,8 +277,8 @@ public class MaterialBlock extends AppearanceBlock {
             BlockState original = level.getBlockState(context.getClickedPos());
             itemBlock.placeBlock(context, pipeState);
             var pipeTile = pipeBlock.getPipeTile(level, pos);
-            if (pipeTile instanceof PipeBlockEntity<?, ?> pipeBlockEntity) {
-                pipeBlockEntity.setFrameMaterial(material);
+            if (pipeTile != null) {
+                pipeTile.setFrameMaterial(material);
             } else {
                 // reset the state if we didn't place correctly
                 level.setBlockAndUpdate(context.getClickedPos(), original);

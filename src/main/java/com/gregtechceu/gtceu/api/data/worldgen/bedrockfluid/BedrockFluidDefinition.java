@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.utils.RegistryUtil;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -15,19 +14,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.material.Fluid;
 
-import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import org.jetbrains.annotations.ApiStatus;
-
 import java.util.*;
 import java.util.function.Supplier;
 
 public class BedrockFluidDefinition {
 
-    public static final MapCodec<Pair<Integer, Integer>> YIELD = Codec.mapPair(Codec.INT.fieldOf("min"), Codec.INT.fieldOf("max"));
-    public static final Codec<BedrockFluidDefinition> FULL_CODEC = RecordCodecBuilder.create(instance -> instance.group(Codec.INT.fieldOf("weight").forGetter(ft -> ft.weight), YIELD.fieldOf("yield").forGetter(ft -> Pair.of(ft.minimumYield, ft.maximumYield)), Codec.INT.fieldOf("depletion_amount").forGetter(ft -> ft.depletionAmount), Codec.INT.fieldOf("depletion_chance").forGetter(ft -> ft.depletionChance), Codec.INT.fieldOf("depleted_yield").forGetter(ft -> ft.depletedYield), BuiltInRegistries.FLUID.byNameCodec().fieldOf("fluid").forGetter(ft -> ft.storedFluid.get()), BiomeWeightModifier.CODEC.listOf().optionalFieldOf("weight_modifier", List.of()).forGetter(ft -> ft.originalModifiers), ResourceKey.codec(Registries.DIMENSION).listOf().fieldOf("dimension_filter").forGetter(ft -> new ArrayList<>(ft.dimensionFilter))).apply(instance, (weight, yield, depletionAmount, depletionChance, depletedYield, storedFluid, biomeWeightModifier, dimensionFilter) -> new BedrockFluidDefinition(weight, yield.getFirst(), yield.getSecond(), depletionAmount, depletionChance, depletedYield, () -> storedFluid, biomeWeightModifier, new HashSet<>(dimensionFilter))));
     private int weight; // weight value for determining which vein will appear
     private int minimumYield;
     private int maximumYield;// the [minimum, maximum) yields
@@ -148,13 +139,8 @@ public class BedrockFluidDefinition {
             return this.dimensions(new HashSet<>(RegistryUtil.resolveResourceKeys(Registries.DIMENSION, dimensions)));
         }
 
-        @ApiStatus.Internal
-        public BedrockFluidDefinition build() {
-            return new BedrockFluidDefinition(weight, minimumYield, maximumYield, depletionAmount, depletionChance, depletedYield, fluid, biomes, dimensions);
-        }
-
         public BedrockFluidDefinition register() {
-            var definition = build();
+            var definition = new BedrockFluidDefinition(weight, minimumYield, maximumYield, depletionAmount, depletionChance, depletedYield, fluid, biomes, dimensions);
             GTRegistries.BEDROCK_FLUID_DEFINITIONS.registerOrOverride(name, definition);
             return definition;
         }

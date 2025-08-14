@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
@@ -38,7 +38,7 @@ public class CokeOvenHatch extends MultiblockPartMachine {
     @Nullable
     protected ISubscription outputInventorySubs, outputTankSubs;
 
-    public CokeOvenHatch(IMachineBlockEntity holder, Object... args) {
+    public CokeOvenHatch(MetaMachineBlockEntity holder, Object... args) {
         super(holder);
         this.inputInventory = new ItemHandlerProxyTrait(this, IO.IN);
         this.outputInventory = new ItemHandlerProxyTrait(this, IO.OUT);

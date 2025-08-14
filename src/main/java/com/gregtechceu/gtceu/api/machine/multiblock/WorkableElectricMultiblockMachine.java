@@ -1,18 +1,22 @@
 package com.gregtechceu.gtceu.api.machine.multiblock;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
+import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
+import com.gregtechceu.gtceu.api.capability.recipe.CWURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.*;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.machine.feature.IComputationContainerMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IOverclockMachine;
 import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
+import com.gregtechceu.gtceu.api.misc.ComputationProviderList;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -35,7 +39,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine implements IFancyUIMachine, IDisplayUIMachine, ITieredMachine, IOverclockMachine {
+public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine implements IFancyUIMachine, IDisplayUIMachine, ITieredMachine, IOverclockMachine, IComputationContainerMachine {
 
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
             WorkableElectricMultiblockMachine.class, WorkableMultiblockMachine.MANAGED_FIELD_HOLDER);
@@ -43,11 +47,13 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     // runtime
     @NotNull
     protected EnergyContainerList energyContainer = EnergyContainerList.EMPTY;
+    @NotNull
+    protected ComputationProviderList computationProviderList = ComputationProviderList.EMPTY;
     protected int tier;
     @Persisted
     protected boolean batchEnabled;
 
-    public WorkableElectricMultiblockMachine(IMachineBlockEntity holder, Object... args) {
+    public WorkableElectricMultiblockMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder, args);
     }
 
@@ -63,6 +69,7 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     public void onStructureInvalid() {
         super.onStructureInvalid();
         this.energyContainer = EnergyContainerList.EMPTY;
+        this.computationProviderList = ComputationProviderList.EMPTY;
         this.tier = 0;
     }
 
@@ -70,6 +77,7 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     public void onStructureFormed() {
         super.onStructureFormed();
         List<IEnergyContainer> containers = new ArrayList<>();
+        List<IOpticalComputationProvider> providers = new ArrayList<>();
         var handlers = getCapabilitiesFlat(IO.IN, EURecipeCapability.CAP);
         if (handlers.isEmpty()) handlers = getCapabilitiesFlat(IO.OUT, EURecipeCapability.CAP);
         for (IRecipeHandler<?> handler : handlers) {
@@ -77,7 +85,13 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
                 containers.add(container);
             }
         }
-        energyContainer = new EnergyContainerList(containers);
+        for (IRecipeHandler<?> handler : getCapabilitiesFlat(IO.IN, CWURecipeCapability.CAP)) {
+            if (handler instanceof IOpticalComputationProvider provider) {
+                providers.add(provider);
+            }
+        }
+        if (!containers.isEmpty()) energyContainer = new EnergyContainerList(containers);
+        if (!providers.isEmpty()) computationProviderList = new ComputationProviderList(providers);
         this.tier = GTUtil.getFloorTierByVoltage(getMaxVoltage());
     }
 
@@ -85,6 +99,7 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     public void onPartUnload() {
         super.onPartUnload();
         this.energyContainer = EnergyContainerList.EMPTY;
+        this.computationProviderList = ComputationProviderList.EMPTY;
         this.tier = 0;
     }
 
@@ -189,5 +204,10 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
 
     public boolean isBatchEnabled() {
         return this.batchEnabled;
+    }
+
+    @Override
+    public @NotNull IOpticalComputationProvider getComputationProvider() {
+        return computationProviderList;
     }
 }

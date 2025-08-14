@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.block.PipeBlock;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
-import com.gregtechceu.gtceu.api.pipenet.IPipeNode;
 import com.gregtechceu.gtceu.client.model.PipeModel;
 import com.gregtechceu.gtceu.client.renderer.block.PipeBlockRenderer;
 import com.gregtechceu.gtceu.common.blockentity.LaserPipeBlockEntity;
@@ -80,7 +79,7 @@ public class LaserPipeBlock extends PipeBlock<LaserPipeType, LaserPipeProperties
     }
 
     @Override
-    public LaserPipeProperties createProperties(IPipeNode<LaserPipeType, LaserPipeProperties> pipeTile) {
+    public LaserPipeProperties createProperties(PipeBlockEntity<LaserPipeType, LaserPipeProperties> pipeTile) {
         LaserPipeType pipeType = pipeTile.getPipeType();
         if (pipeType == null) return getFallbackType();
         return this.pipeType.modifyProperties(properties);
@@ -102,13 +101,13 @@ public class LaserPipeBlock extends PipeBlock<LaserPipeType, LaserPipeProperties
     }
 
     @Override
-    public boolean canPipesConnect(IPipeNode<LaserPipeType, LaserPipeProperties> selfTile, Direction side,
-                                   IPipeNode<LaserPipeType, LaserPipeProperties> sideTile) {
+    public boolean canPipesConnect(PipeBlockEntity<LaserPipeType, LaserPipeProperties> selfTile, Direction side,
+                                   PipeBlockEntity<LaserPipeType, LaserPipeProperties> sideTile) {
         return selfTile instanceof LaserPipeBlockEntity && sideTile instanceof LaserPipeBlockEntity;
     }
 
     @Override
-    public boolean canPipeConnectToBlock(IPipeNode<LaserPipeType, LaserPipeProperties> selfTile, Direction side,
+    public boolean canPipeConnectToBlock(PipeBlockEntity<LaserPipeType, LaserPipeProperties> selfTile, Direction side,
                                          @Nullable BlockEntity tile) {
         return tile != null && tile.getCapability(GTCapability.CAPABILITY_LASER, side.getOpposite()).isPresent();
     }

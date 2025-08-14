@@ -2,11 +2,11 @@ package com.gregtechceu.gtceu.core.mixins;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.MaterialBlock;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.api.item.tool.aoe.AoESymmetrical;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.common.blockentity.CableBlockEntity;
 import com.gregtechceu.gtceu.config.ConfigHolder;
@@ -179,7 +179,7 @@ public abstract class LevelRendererMixin {
         if (!materialEntry.isEmpty()) {
             doRenderColoredOutline = true;
             rgb = materialEntry.material().getMaterialRGB();
-        } else if (level.getBlockEntity(pos) instanceof IMachineBlockEntity mbe) {
+        } else if (level.getBlockEntity(pos) instanceof MetaMachineBlockEntity mbe) {
             if (rendererCfg.coloredTieredMachineOutline && mbe.getMetaMachine() instanceof ITieredMachine tiered) {
                 doRenderColoredOutline = true;
                 rgb = GTValues.VCM[tiered.getTier()];

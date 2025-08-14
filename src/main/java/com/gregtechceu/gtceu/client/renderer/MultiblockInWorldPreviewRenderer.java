@@ -3,8 +3,8 @@ package com.gregtechceu.gtceu.client.renderer;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.IMachineBlock;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.data.RotationState;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
@@ -186,8 +186,8 @@ public class MultiblockInWorldPreviewRenderer {
                             }
                         }
                         BlockPos realPos = pos.offset(offset);
-                        if (blockInfo.getBlockEntity(realPos) instanceof IMachineBlockEntity holder && holder.getMetaMachine() instanceof IMultiController cont) {
-                            holder.self().setLevel(LEVEL);
+                        if (blockInfo.getBlockEntity(realPos) instanceof MetaMachineBlockEntity holder && holder.getMetaMachine() instanceof IMultiController cont) {
+                            holder.setLevel(LEVEL);
                             controllerBase = cont;
                         } else {
                             blockMap.put(realPos, BlockInfo.fromBlockState(blockState));
@@ -198,7 +198,7 @@ public class MultiblockInWorldPreviewRenderer {
         }
         LEVEL.addBlocks(blockMap);
         if (controllerBase != null) {
-            LEVEL.setInnerBlockEntity(controllerBase.self().holder.self());
+            LEVEL.setInnerBlockEntity(controllerBase.self().holder);
         }
         prepareBuffers(LEVEL, blockMap.keySet(), duration);
     }

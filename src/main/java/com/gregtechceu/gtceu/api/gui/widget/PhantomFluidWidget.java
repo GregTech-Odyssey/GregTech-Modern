@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.GTCEu;
 
 import com.lowdragmc.lowdraglib.gui.editor.annotation.ConfigSetter;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.LDLRegister;
-import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.ingredient.IGhostIngredientTarget;
 import com.lowdragmc.lowdraglib.gui.ingredient.Target;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
@@ -44,7 +43,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 @LDLRegister(name = "gtm_phantom_fluid_slot", group = "widget.gtm_container", priority = 50)
-public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTarget, IConfigurableWidget {
+public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTarget {
 
     private Supplier<FluidStack> phantomFluidGetter;
     private Consumer<FluidStack> phantomFluidSetter;

@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.common.machine.storage;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
@@ -45,7 +45,7 @@ public abstract class LongDistanceEndpointMachine extends MetaMachine implements
     @Nullable
     protected TickableSubscription refreshNetSubs;
 
-    public LongDistanceEndpointMachine(IMachineBlockEntity holder, LongDistancePipeType pipeType) {
+    public LongDistanceEndpointMachine(MetaMachineBlockEntity holder, LongDistancePipeType pipeType) {
         super(holder);
         this.pipeType = Objects.requireNonNull(pipeType);
     }

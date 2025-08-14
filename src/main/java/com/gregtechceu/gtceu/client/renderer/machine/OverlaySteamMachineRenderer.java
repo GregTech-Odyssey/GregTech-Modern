@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 @SuppressWarnings("removal")
-public class OverlaySteamMachineRenderer extends SteamHullMachineRenderer implements IPartRenderer {
+public class OverlaySteamMachineRenderer extends SteamHullMachineRenderer {
 
     protected IModelRenderer overlayModel;
 

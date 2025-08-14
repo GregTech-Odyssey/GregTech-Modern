@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 
 import net.minecraft.ChatFormatting;
@@ -453,7 +452,7 @@ public class GTUtil {
     }
 
     public static void appendHazardTooltips(Material material, List<Component> tooltipComponents) {
-        if (!ConfigHolder.INSTANCE.gameplay.hazardsEnabled || !material.hasProperty(HAZARD)) return;
+        if (!material.hasProperty(HAZARD)) return;
 
         if (GTUtil.isShiftDown()) {
             tooltipComponents.add(Component.translatable("gtceu.medical_condition.description_shift"));

@@ -1,13 +1,13 @@
 package com.gregtechceu.gtceu.common.machine.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
@@ -76,7 +76,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
     @DropSaved
     protected final NotifiableFluidTank cache;
 
-    public PumpMachine(IMachineBlockEntity holder, int tier, Object... args) {
+    public PumpMachine(MetaMachineBlockEntity holder, int tier, Object... args) {
         super(holder, tier);
         this.cache = createCacheFluidHandler(args);
     }

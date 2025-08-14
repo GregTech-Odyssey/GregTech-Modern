@@ -23,6 +23,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.resources.ResourceLocation;
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -120,7 +121,7 @@ public class MachineUIProject extends UIProject {
                 }
             }
             categories.forEach((groupName, definitions) -> menu.branch(groupName, m -> {
-                Set<EditableMachineUI> addedSet = new HashSet<>();
+                Set<EditableMachineUI> addedSet = new ObjectOpenHashSet<>();
                 for (var definition : definitions) {
                     var editableUI = definition.getEditableUI();
                     if (editableUI != null && addedSet.add(editableUI)) {

@@ -1,11 +1,11 @@
 package com.gregtechceu.gtceu.api.registry.registrate;
 
 import com.gregtechceu.gtceu.api.block.IMachineBlock;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.data.RotationState;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
 import com.gregtechceu.gtceu.api.item.MetaMachineItem;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
@@ -65,13 +65,13 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
     private TriFunction<IMultiController, IMultiPart, Direction, BlockState> partAppearance;
     private BiConsumer<IMultiController, List<Component>> additionalDisplay = (m, l) -> {};
 
-    protected MultiblockMachineBuilder(Registrate registrate, String name, Function<IMachineBlockEntity, ? extends MultiblockControllerMachine> metaMachine, BiFunction<BlockBehaviour.Properties, MultiblockMachineDefinition, IMachineBlock> blockFactory, BiFunction<IMachineBlock, Item.Properties, MetaMachineItem> itemFactory, TriFunction<BlockEntityType<?>, BlockPos, BlockState, IMachineBlockEntity> blockEntityFactory) {
+    protected MultiblockMachineBuilder(Registrate registrate, String name, Function<MetaMachineBlockEntity, ? extends MultiblockControllerMachine> metaMachine, BiFunction<BlockBehaviour.Properties, MultiblockMachineDefinition, IMachineBlock> blockFactory, BiFunction<IMachineBlock, Item.Properties, MetaMachineItem> itemFactory, TriFunction<BlockEntityType<?>, BlockPos, BlockState, MetaMachineBlockEntity> blockEntityFactory) {
         super(registrate, name, MultiblockMachineDefinition::createDefinition, metaMachine::apply, blockFactory, itemFactory, blockEntityFactory);
         allowExtendedFacing(true);
         allowCoverOnFront(true);
     }
 
-    public static MultiblockMachineBuilder createMulti(Registrate registrate, String name, Function<IMachineBlockEntity, ? extends MultiblockControllerMachine> metaMachine, BiFunction<BlockBehaviour.Properties, MultiblockMachineDefinition, IMachineBlock> blockFactory, BiFunction<IMachineBlock, Item.Properties, MetaMachineItem> itemFactory, TriFunction<BlockEntityType<?>, BlockPos, BlockState, IMachineBlockEntity> blockEntityFactory) {
+    public static MultiblockMachineBuilder createMulti(Registrate registrate, String name, Function<MetaMachineBlockEntity, ? extends MultiblockControllerMachine> metaMachine, BiFunction<BlockBehaviour.Properties, MultiblockMachineDefinition, IMachineBlock> blockFactory, BiFunction<IMachineBlock, Item.Properties, MetaMachineItem> itemFactory, TriFunction<BlockEntityType<?>, BlockPos, BlockState, MetaMachineBlockEntity> blockEntityFactory) {
         return new MultiblockMachineBuilder(registrate, name, metaMachine, blockFactory, itemFactory, blockEntityFactory);
     }
 
@@ -113,7 +113,7 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
     }
 
     @Override
-    public MultiblockMachineBuilder machine(Function<IMachineBlockEntity, MetaMachine> machine) {
+    public MultiblockMachineBuilder machine(Function<MetaMachineBlockEntity, MetaMachine> machine) {
         return (MultiblockMachineBuilder) super.machine(machine);
     }
 

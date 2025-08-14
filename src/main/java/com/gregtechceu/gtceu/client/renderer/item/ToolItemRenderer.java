@@ -7,12 +7,13 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.models.model.DelegatedModel;
 import net.minecraft.world.item.Item;
 
-import java.util.HashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+
 import java.util.Set;
 
 public class ToolItemRenderer {
 
-    private static final Set<ToolItemRenderer> MODELS = new HashSet<>();
+    private static final Set<ToolItemRenderer> MODELS = new ReferenceOpenHashSet<>();
 
     public static void reinitModels() {
         for (ToolItemRenderer model : MODELS) {

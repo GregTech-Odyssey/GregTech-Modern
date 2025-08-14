@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.api.pattern;
 
 import com.gregtechceu.gtceu.api.block.ActiveBlock;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
@@ -128,7 +128,7 @@ public class BlockPattern {
                                 }
                                 if (worldState.getBlockState().getBlock() instanceof ActiveBlock) {
                                     matchContext.vaBlocks.add(posLong);
-                                } else if (worldState.getTileEntity() instanceof IMachineBlockEntity machineBlockEntity && machineBlockEntity.getMetaMachine() instanceof IMultiPart part) {
+                                } else if (worldState.getTileEntity() instanceof MetaMachineBlockEntity machineBlockEntity && machineBlockEntity.getMetaMachine() instanceof IMultiPart part) {
                                     // add detected parts
                                     if (part.isFormed() && !part.canShared() && !part.hasController(worldState.controllerPos)) {
                                         // check part can be shared
@@ -312,7 +312,7 @@ public class BlockPattern {
                                         handler.extractItem(foundSlot, 1, false);
                                     }
                                 }
-                                if (world.getBlockEntity(pos) instanceof IMachineBlockEntity machineBlockEntity) {
+                                if (world.getBlockEntity(pos) instanceof MetaMachineBlockEntity machineBlockEntity) {
                                     blocks.put(posLong, machineBlockEntity.getMetaMachine());
                                 } else {
                                     blocks.put(posLong, world.getBlockState(pos));
@@ -489,7 +489,7 @@ public class BlockPattern {
                 BlockInfo blockInfo = blocks.get(p.relative(f).asLong());
                 if (blockInfo == null || blockInfo.getBlockState().getBlock() == Blocks.AIR) {
                     if (blocks.get(blockPos).getBlockState().getBlock() instanceof MetaMachineBlock machineBlock) {
-                        if (machineBlock.newBlockEntity(BlockPos.ZERO, machineBlock.defaultBlockState()) instanceof IMachineBlockEntity machineBlockEntity) {
+                        if (machineBlock.newBlockEntity(BlockPos.ZERO, machineBlock.defaultBlockState()) instanceof MetaMachineBlockEntity machineBlockEntity) {
                             var machine = machineBlockEntity.getMetaMachine();
                             if (machine instanceof IMultiController) {
                                 return false;

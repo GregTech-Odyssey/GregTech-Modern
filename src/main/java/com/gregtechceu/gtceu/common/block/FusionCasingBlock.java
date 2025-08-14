@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.block.ActiveBlock;
 import com.gregtechceu.gtceu.api.block.IFusionCasingType;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.StringRepresentable;
 
 public class FusionCasingBlock extends ActiveBlock {
 
@@ -13,7 +12,7 @@ public class FusionCasingBlock extends ActiveBlock {
         super(properties);
     }
 
-    public enum CasingType implements IFusionCasingType, StringRepresentable {
+    public enum CasingType implements IFusionCasingType {
 
         SUPERCONDUCTING_COIL("superconducting_coil", 2),
         FUSION_COIL("fusion_coil", 2),

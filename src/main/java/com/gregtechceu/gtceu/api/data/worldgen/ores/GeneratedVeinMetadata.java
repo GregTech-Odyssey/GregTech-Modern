@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.api.data.worldgen.ores;
 
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
-import com.gregtechceu.gtceu.client.ClientProxy;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -19,7 +18,7 @@ import java.util.Optional;
 public final class GeneratedVeinMetadata {
 
     public static final Codec<ChunkPos> CHUNK_POS_CODEC = Codec.LONG.xmap(ChunkPos::new, ChunkPos::toLong);
-    public static final Codec<GTOreDefinition> CLIENT_DEFINITION_CODEC = ResourceLocation.CODEC.flatXmap(rl -> Optional.ofNullable(ClientProxy.CLIENT_ORE_VEINS.get(rl)).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "Unknown registry key in client ore veins: " + rl)), obj -> Optional.ofNullable(ClientProxy.CLIENT_ORE_VEINS.inverse().get(obj)).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "Unknown registry element in client ore veins: " + obj)));
+    public static final Codec<GTOreDefinition> CLIENT_DEFINITION_CODEC = ResourceLocation.CODEC.flatXmap(rl -> Optional.ofNullable(GTRegistries.ORE_VEINS.get(rl)).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "Unknown registry key in client ore veins: " + rl)), obj -> Optional.ofNullable(GTRegistries.ORE_VEINS.getKey(obj)).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "Unknown registry element in client ore veins: " + obj)));
     public static final Codec<GeneratedVeinMetadata> CODEC = RecordCodecBuilder.create(instance -> instance.group(ResourceLocation.CODEC.fieldOf("id").forGetter(GeneratedVeinMetadata::id), CHUNK_POS_CODEC.fieldOf("origin_chunk").forGetter(GeneratedVeinMetadata::originChunk), BlockPos.CODEC.fieldOf("center").forGetter(GeneratedVeinMetadata::center), GTRegistries.ORE_VEINS.codec().fieldOf("definition").forGetter(GeneratedVeinMetadata::definition), Codec.BOOL.optionalFieldOf("depleted", false).forGetter(GeneratedVeinMetadata::depleted)).apply(instance, GeneratedVeinMetadata::new));
     public static final Codec<GeneratedVeinMetadata> CLIENT_CODEC = RecordCodecBuilder.create(instance -> instance.group(ResourceLocation.CODEC.fieldOf("id").forGetter(GeneratedVeinMetadata::id), CHUNK_POS_CODEC.fieldOf("origin_chunk").forGetter(GeneratedVeinMetadata::originChunk), BlockPos.CODEC.fieldOf("center").forGetter(GeneratedVeinMetadata::center), CLIENT_DEFINITION_CODEC.fieldOf("definition").forGetter(GeneratedVeinMetadata::definition), Codec.BOOL.optionalFieldOf("depleted", false).forGetter(GeneratedVeinMetadata::depleted)).apply(instance, GeneratedVeinMetadata::new));
     @NotNull
@@ -48,7 +47,7 @@ public final class GeneratedVeinMetadata {
         ResourceLocation id = buf.readResourceLocation();
         ChunkPos origin = new ChunkPos(buf.readVarLong());
         BlockPos center = BlockPos.of(buf.readVarLong());
-        GTOreDefinition def = ClientProxy.CLIENT_ORE_VEINS.get(buf.readResourceLocation());
+        GTOreDefinition def = GTRegistries.ORE_VEINS.get(buf.readResourceLocation());
         return new GeneratedVeinMetadata(id, origin, center, def, false);
     }
 

@@ -1,13 +1,13 @@
 package com.gregtechceu.gtceu.common.machine.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
 import com.gregtechceu.gtceu.api.capability.compat.FeCompat;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
@@ -46,7 +46,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
     @Persisted
     protected final CustomItemStackHandler batteryInventory;
 
-    public BatteryBufferMachine(IMachineBlockEntity holder, int tier, int inventorySize, Object... args) {
+    public BatteryBufferMachine(MetaMachineBlockEntity holder, int tier, int inventorySize, Object... args) {
         super(holder, tier, inventorySize);
         this.isWorkingEnabled = true;
         this.inventorySize = inventorySize;
@@ -215,7 +215,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
             }
             var batteries = getNonEmptyBatteries();
             if (!batteries.isEmpty()) {
-                long out = 0;
+                double out = 0;
                 long stored = getEnergyStored();
                 if (stored > 0) {
                     var voltage = getOutputVoltage();
@@ -224,7 +224,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                     if (out == 0) return;
 
                 }
-                long distributed = out / batteries.size();
+                long distributed = (long) (out / batteries.size() + 0.5);
                 boolean changed = false;
                 for (IElectricItem electricItem : batteries) {
                     var charged = electricItem.discharge(distributed, getTier(), false, true, false);

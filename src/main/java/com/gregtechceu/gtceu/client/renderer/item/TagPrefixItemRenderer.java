@@ -9,12 +9,13 @@ import net.minecraft.data.models.model.DelegatedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 
-import java.util.HashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+
 import java.util.Set;
 
 public class TagPrefixItemRenderer {
 
-    private static final Set<TagPrefixItemRenderer> MODELS = new HashSet<>();
+    private static final Set<TagPrefixItemRenderer> MODELS = new ReferenceOpenHashSet<>();
 
     public static void create(Item item, MaterialIconType type, MaterialIconSet iconSet) {
         MODELS.add(new TagPrefixItemRenderer(item, type, iconSet));

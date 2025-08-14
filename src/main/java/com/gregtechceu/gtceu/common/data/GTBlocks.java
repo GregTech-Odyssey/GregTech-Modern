@@ -71,6 +71,7 @@ import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
 import com.tterrag.registrate.util.nullness.NonNullSupplier;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -373,7 +374,6 @@ public class GTBlocks {
             "extreme_engine_intake_casing", "block/variant/extreme_engine_intake");
 
     // Fusion
-    public static final Map<IFusionCasingType, Supplier<FusionCasingBlock>> ALL_FUSION_CASINGS = new HashMap<>();
     public static final BlockEntry<FusionCasingBlock> SUPERCONDUCTING_COIL = createFusionCasing(
             FusionCasingBlock.CasingType.SUPERCONDUCTING_COIL);
     public static final BlockEntry<FusionCasingBlock> FUSION_COIL = createFusionCasing(
@@ -397,7 +397,7 @@ public class GTBlocks {
             GTCEu.id("block/casings/transparent/cleanroom_glass"), () -> RenderType::cutoutMipped);
 
     // Fireboxes
-    public static final Map<BoilerFireboxType, BlockEntry<ActiveBlock>> ALL_FIREBOXES = new HashMap<>();
+    public static final Map<BoilerFireboxType, BlockEntry<ActiveBlock>> ALL_FIREBOXES = new Reference2ReferenceOpenHashMap<>();
     public static final BlockEntry<ActiveBlock> FIREBOX_BRONZE = createFireboxCasing(BoilerFireboxType.BRONZE_FIREBOX);
     public static final BlockEntry<ActiveBlock> FIREBOX_STEEL = createFireboxCasing(BoilerFireboxType.STEEL_FIREBOX);
     public static final BlockEntry<ActiveBlock> FIREBOX_TITANIUM = createFireboxCasing(
@@ -590,7 +590,7 @@ public class GTBlocks {
     }
 
     private static BlockEntry<FusionCasingBlock> createFusionCasing(IFusionCasingType casingType) {
-        var casingBlock = REGISTRATE
+        return REGISTRATE
                 .block(casingType.getSerializedName(), p -> new FusionCasingBlock(p, casingType))
                 .initialProperties(() -> Blocks.IRON_BLOCK)
                 .properties(properties -> properties.strength(5.0f, 10.0f).sound(SoundType.METAL))
@@ -601,8 +601,6 @@ public class GTBlocks {
                 .item(BlockItem::new)
                 .build()
                 .register();
-        ALL_FUSION_CASINGS.put(casingType, casingBlock);
-        return casingBlock;
     }
 
     private static BlockEntry<Block> createCleanroomFilter(IFilterType filterType) {

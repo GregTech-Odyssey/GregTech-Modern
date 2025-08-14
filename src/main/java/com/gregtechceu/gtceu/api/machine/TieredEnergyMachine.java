@@ -1,10 +1,10 @@
 package com.gregtechceu.gtceu.api.machine;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.editor.EditableUI;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
-import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
@@ -23,7 +23,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class TieredEnergyMachine extends TieredMachine implements ITieredMachine, IExplosionMachine {
+public class TieredEnergyMachine extends TieredMachine implements IExplosionMachine {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(TieredEnergyMachine.class,
             MetaMachine.MANAGED_FIELD_HOLDER);
@@ -33,7 +33,7 @@ public class TieredEnergyMachine extends TieredMachine implements ITieredMachine
     protected TickableSubscription explosionSubs;
     protected ISubscription energyListener;
 
-    public TieredEnergyMachine(IMachineBlockEntity holder, int tier, Object... args) {
+    public TieredEnergyMachine(MetaMachineBlockEntity holder, int tier, Object... args) {
         super(holder, tier);
         energyContainer = createEnergyContainer(args);
     }

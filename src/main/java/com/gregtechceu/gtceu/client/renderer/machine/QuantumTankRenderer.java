@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.client.renderer.machine;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.item.QuantumTankMachineItem;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.common.data.GTMachines;
@@ -105,7 +105,7 @@ public class QuantumTankRenderer extends TieredHullMachineRenderer {
     @OnlyIn(Dist.CLIENT)
     public void render(BlockEntity blockEntity, float partialTicks, PoseStack poseStack, MultiBufferSource buffer,
                        int combinedLight, int combinedOverlay) {
-        if (blockEntity instanceof IMachineBlockEntity machineBlockEntity &&
+        if (blockEntity instanceof MetaMachineBlockEntity machineBlockEntity &&
                 machineBlockEntity.getMetaMachine() instanceof QuantumTankMachine machine) {
             poseStack.pushPose();
             var frontFacing = machine.getFrontFacing();

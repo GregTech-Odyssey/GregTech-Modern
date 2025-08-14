@@ -1,11 +1,11 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 
@@ -23,7 +23,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class PumpHatchPartMachine extends FluidHatchPartMachine {
 
-    public PumpHatchPartMachine(IMachineBlockEntity holder, Object... args) {
+    public PumpHatchPartMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder, 0, IO.OUT, FluidType.BUCKET_VOLUME, 1, args);
     }
 

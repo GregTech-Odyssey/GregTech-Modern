@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.IEnergyInfoProvider;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
@@ -9,7 +10,6 @@ import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
@@ -69,7 +69,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
     private long outputPerSec;
     protected ConditionalSubscriptionHandler tickSubscription;
 
-    public PowerSubstationMachine(IMachineBlockEntity holder) {
+    public PowerSubstationMachine(MetaMachineBlockEntity holder) {
         super(holder);
         this.tickSubscription = new ConditionalSubscriptionHandler(this, this::transferEnergyTick, this::isFormed);
         this.energyBank = new PowerStationEnergyBank(this, List.of());

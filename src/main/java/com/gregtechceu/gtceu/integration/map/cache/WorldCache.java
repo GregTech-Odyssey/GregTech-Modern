@@ -8,14 +8,15 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public abstract class WorldCache {
 
-    protected final Map<ResourceKey<Level>, DimensionCache> cache = new HashMap<>();
+    protected final Map<ResourceKey<Level>, DimensionCache> cache = new Object2ObjectOpenHashMap<>();
 
     public boolean addVein(ResourceKey<Level> dim, int gridX, int gridZ, GeneratedVeinMetadata vein) {
         if (!cache.containsKey(dim)) {

@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.api.machine.multiblock.part;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
@@ -16,6 +16,7 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -48,7 +49,7 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
 
     private @Nullable RecipeHandlerList handlerList;
 
-    public MultiblockPartMachine(IMachineBlockEntity holder) {
+    public MultiblockPartMachine(MetaMachineBlockEntity holder) {
         super(holder);
     }
 
@@ -71,6 +72,16 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
         return !controllerPositions.isEmpty();
     }
 
+    @Override
+    public void onRotated(Direction oldFacing, Direction newFacing) {
+        super.onRotated(oldFacing, newFacing);
+        if (oldFacing != newFacing) {
+            for (var controller : controllers) {
+                controller.requestCheck();
+            }
+        }
+    }
+
     // Not sure if necessary, but added to match the Controller class
     @SuppressWarnings("unused")
     public void onControllersUpdated(Set<Long> newPositions, Set<BlockPos> old) {
@@ -84,6 +95,15 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
 
     @Override
     @UnmodifiableView
+    public SortedSet<IMultiController> getUnmodifiableControllers() {
+        // Necessary to rebuild the set of controllers on client-side
+        if (controllers.size() != controllerPositions.size()) {
+            onControllersUpdated(controllerPositions, Collections.emptySet());
+        }
+        return Collections.unmodifiableSortedSet(controllers);
+    }
+
+    @Override
     public SortedSet<IMultiController> getControllers() {
         // Necessary to rebuild the set of controllers on client-side
         if (controllers.size() != controllerPositions.size()) {

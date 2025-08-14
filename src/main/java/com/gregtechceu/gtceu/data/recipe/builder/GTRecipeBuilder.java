@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.ItemMaterialInfo;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
-import com.gregtechceu.gtceu.api.data.medicalcondition.MedicalCondition;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.data.tag.TagUtil;
 import com.gregtechceu.gtceu.api.item.component.IDataItem;
@@ -57,6 +56,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.ftb.mods.ftbquests.quest.QuestObjectBase;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,10 +70,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class GTRecipeBuilder {
 
-    public Map<RecipeCapability<?>, List<Content>> input = new IdentityHashMap<>();
-    public Map<RecipeCapability<?>, List<Content>> tickInput = new IdentityHashMap<>();
-    public Map<RecipeCapability<?>, List<Content>> output = new IdentityHashMap<>();
-    public Map<RecipeCapability<?>, List<Content>> tickOutput = new IdentityHashMap<>();
+    public Map<RecipeCapability<?>, List<Content>> input = new Reference2ObjectOpenHashMap<>();
+    public Map<RecipeCapability<?>, List<Content>> tickInput = new Reference2ObjectOpenHashMap<>();
+    public Map<RecipeCapability<?>, List<Content>> output = new Reference2ObjectOpenHashMap<>();
+    public Map<RecipeCapability<?>, List<Content>> tickOutput = new Reference2ObjectOpenHashMap<>();
     public List<RecipeCondition> conditions = new ArrayList<>();
     @NotNull
     public CompoundTag data = new CompoundTag();
@@ -84,17 +84,17 @@ public class GTRecipeBuilder {
     public int chance = ChanceLogic.getMaxChancedValue();
     public int maxChance = ChanceLogic.getMaxChancedValue();
     public int tierChanceBoost = 0;
-    private boolean itemMaterialInfo = false;
-    private boolean fluidMaterialInfo = false;
-    private boolean removePreviousMatInfo = false;
+    protected boolean itemMaterialInfo = false;
+    protected boolean fluidMaterialInfo = false;
+    protected boolean removePreviousMatInfo = false;
     public GTRecipeCategory recipeCategory;
     @Nullable
     public BiConsumer<GTRecipeBuilder, Consumer<FinishedRecipe>> onSave;
-    private final Collection<ResearchRecipeEntry> researchRecipeEntries = new ArrayList<>();
-    private boolean generatingRecipes = true;
-    private List<ItemStack> tempItemStacks = new ArrayList<>();
-    private List<MaterialStack> tempItemMaterialStacks = new ArrayList<>();
-    private List<MaterialStack> tempFluidStacks = new ArrayList<>();
+    protected final Collection<ResearchRecipeEntry> researchRecipeEntries = new ArrayList<>();
+    protected boolean generatingRecipes = true;
+    protected List<ItemStack> tempItemStacks = new ArrayList<>();
+    protected List<MaterialStack> tempItemMaterialStacks = new ArrayList<>();
+    protected List<MaterialStack> tempFluidStacks = new ArrayList<>();
 
     public GTRecipeBuilder(ResourceLocation id, GTRecipeType recipeType) {
         this.id = id;
@@ -209,7 +209,7 @@ public class GTRecipeBuilder {
         return output(EURecipeCapability.CAP, eu);
     }
 
-    public GTRecipeBuilder inputCWU(int cwu) {
+    public GTRecipeBuilder inputCWU(long cwu) {
         return input(CWURecipeCapability.CAP, cwu);
     }
 
@@ -223,8 +223,7 @@ public class GTRecipeBuilder {
             tickInput.remove(CWURecipeCapability.CAP);
             inputCWU(cwu);
         } else if (cwu < 0) {
-            tickOutput.remove(CWURecipeCapability.CAP);
-            outputCWU(-cwu);
+            throw new IllegalArgumentException("CWUt can't be negative");
         }
         perTick = lastPerTick;
         return this;
@@ -235,10 +234,6 @@ public class GTRecipeBuilder {
         this.hideDuration(true);
         this.duration(cwu);
         return this;
-    }
-
-    public GTRecipeBuilder outputCWU(int cwu) {
-        return output(CWURecipeCapability.CAP, cwu);
     }
 
     public GTRecipeBuilder inputItems(Object input) {
@@ -968,14 +963,6 @@ public class GTRecipeBuilder {
 
     public GTRecipeBuilder posY(int min, int max) {
         return posY(min, max, false);
-    }
-
-    public GTRecipeBuilder environmentalHazard(MedicalCondition condition, boolean reverse) {
-        return addCondition(new EnvironmentalHazardCondition(condition).setReverse(reverse));
-    }
-
-    public GTRecipeBuilder environmentalHazard(MedicalCondition condition) {
-        return environmentalHazard(condition, false);
     }
 
     public GTRecipeBuilder daytime(boolean isNight) {

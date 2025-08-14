@@ -39,12 +39,12 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     public final String group;
     public final Object2IntSortedMap<RecipeCapability<?>> maxInputs = new Object2IntAVLTreeMap<>(RecipeCapability.COMPARATOR);
     public final Object2IntSortedMap<RecipeCapability<?>> maxOutputs = new Object2IntAVLTreeMap<>(RecipeCapability.COMPARATOR);
-    private GTRecipeBuilder recipeBuilder;
-    private ChanceBoostFunction chanceFunction = ChanceBoostFunction.OVERCLOCK;
-    private GTRecipeTypeUI recipeUI = new GTRecipeTypeUI(this);
-    private GTRecipeType smallRecipeMap;
+    protected GTRecipeBuilder recipeBuilder;
+    protected ChanceBoostFunction chanceFunction = ChanceBoostFunction.OVERCLOCK;
+    protected GTRecipeTypeUI recipeUI = new GTRecipeTypeUI(this);
+    protected GTRecipeType smallRecipeMap;
     @Nullable
-    private Supplier<ItemStack> iconSupplier;
+    protected Supplier<ItemStack> iconSupplier;
     @Nullable
     protected SoundEntry sound;
     protected List<Function<CompoundTag, String>> dataInfos = new ArrayList<>();
@@ -52,13 +52,13 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     // Does this recipe type have a research item slot? If this is true you MUST create a custom UI.
     protected boolean hasResearchSlot;
     protected final Map<RecipeType<?>, List<GTRecipe>> proxyRecipes;
-    private final GTRecipeCategory category;
-    private final Map<GTRecipeCategory, Set<GTRecipe>> categoryMap = new Object2ObjectOpenHashMap<>();
-    private final GTRecipeLookup lookup = new GTRecipeLookup(this);
-    private boolean offsetVoltageText = false;
-    private int voltageTextOffset = 20;
-    private final Map<String, Collection<GTRecipe>> researchEntries = new Object2ObjectOpenHashMap<>();
-    private final List<ICustomRecipeLogic> customRecipeLogicRunners = new ArrayList<>();
+    protected final GTRecipeCategory category;
+    protected final Map<GTRecipeCategory, Set<GTRecipe>> categoryMap = new Object2ObjectOpenHashMap<>();
+    protected final GTRecipeLookup lookup = new GTRecipeLookup(this);
+    protected boolean offsetVoltageText = false;
+    protected int voltageTextOffset = 20;
+    protected final Map<String, Collection<GTRecipe>> researchEntries = new Object2ObjectOpenHashMap<>();
+    protected final List<ICustomRecipeLogic> customRecipeLogicRunners = new ArrayList<>();
 
     public GTRecipeType(ResourceLocation registryName, String group, RecipeType<?>... proxyRecipes) {
         this.registryName = registryName;

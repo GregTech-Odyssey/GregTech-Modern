@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +29,7 @@ public class RecipeHandlerList {
         COMPARATOR = comparator.reversed();
     }
 
-    public final Map<RecipeCapability<?>, List<IRecipeHandler<?>>> handlerMap = new Object2ObjectOpenHashMap<>();
+    public final Reference2ObjectOpenHashMap<RecipeCapability<?>, List<IRecipeHandler<?>>> handlerMap = new Reference2ObjectOpenHashMap<>();
     public final List<IRecipeHandler<?>> allHandlers = new ArrayList<>();
     public final List<NotifiableRecipeHandlerTrait<?>> allHandlerTraits = new ArrayList<>();
     public final IO handlerIO;
@@ -201,7 +200,7 @@ public class RecipeHandlerList {
         return new Subscription(subs);
     }
 
-    public Map<RecipeCapability<?>, List<IRecipeHandler<?>>> getHandlerMap() {
+    public Reference2ObjectOpenHashMap<RecipeCapability<?>, List<IRecipeHandler<?>>> getHandlerMap() {
         return this.handlerMap;
     }
 

@@ -5,7 +5,7 @@ import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.capability.*;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.item.tool.IToolGridHighlight;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
@@ -19,11 +19,15 @@ import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.networking.LDLNetworking;
 import com.lowdragmc.lowdraglib.networking.s2c.SPacketManagedPayload;
+import com.lowdragmc.lowdraglib.syncdata.blockentity.IAsyncAutoSyncBlockEntity;
+import com.lowdragmc.lowdraglib.syncdata.blockentity.IAutoPersistBlockEntity;
+import com.lowdragmc.lowdraglib.syncdata.blockentity.IRPCBlockEntity;
 import com.lowdragmc.lowdraglib.syncdata.managed.IRef;
 import com.lowdragmc.lowdraglib.syncdata.managed.MultiManagedStorage;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -42,13 +46,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlockEntity {
+public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHighlight, IAsyncAutoSyncBlockEntity, IRPCBlockEntity, IAutoPersistBlockEntity, IPaintable {
 
     public final MultiManagedStorage managedStorage = new MultiManagedStorage();
     public final MetaMachine metaMachine;
-    private final long offset = GTValues.RNG.nextInt(20);
-    private final MachineDefinition definition;
-    private boolean asyncSyncing;
+    public final MachineDefinition definition;
+    protected final long offset = GTValues.RNG.nextInt(20);
+    protected boolean asyncSyncing;
 
     protected MetaMachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
@@ -79,11 +83,6 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
     }
 
     @Override
-    public long getOffset() {
-        return offset;
-    }
-
-    @Override
     public void setRemoved() {
         super.setRemoved();
         metaMachine.onUnload();
@@ -108,7 +107,7 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
     @Override
     @NotNull
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        var result = getCapability(getMetaMachine(), cap, side);
+        var result = getCapability(metaMachine, cap, side);
         return result == null ? super.getCapability(cap, side) : result;
     }
 
@@ -182,15 +181,6 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
                 return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> list.size() == 1 ? list.get(0) : new LaserContainerList(list)));
             }
             return LazyOptional.empty();
-        } else if (cap == GTCapability.CAPABILITY_COMPUTATION_PROVIDER) {
-            if (machine instanceof IOpticalComputationProvider computationProvider) {
-                return GTCapability.CAPABILITY_COMPUTATION_PROVIDER.orEmpty(cap, LazyOptional.of(() -> computationProvider));
-            }
-            var list = getCapabilitiesFromTraits(machine.getTraits(), side, IOpticalComputationProvider.class);
-            if (!list.isEmpty()) {
-                return GTCapability.CAPABILITY_COMPUTATION_PROVIDER.orEmpty(cap, LazyOptional.of(() -> list.get(0)));
-            }
-            return LazyOptional.empty();
         }
         return machine.getCapability(cap, side);
     }
@@ -230,18 +220,18 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
     @Override
     public void asyncTick(long periodID) {
         if (Platform.isServerNotSafe()) return;
-        if (getMetaMachine().needSync() || periodID + getOffset() % 20 == 0) {
-            if (useAsyncThread() && !getSelf().isRemoved()) {
+        if (metaMachine.needSync() || periodID + offset % 20 == 0) {
+            if (useAsyncThread() && !isRemoved()) {
                 for (IRef field : getNonLazyFields()) {
                     field.update();
                 }
-                if (getRootStorage().hasDirtySyncFields() && !isAsyncSyncing()) {
-                    setAsyncSyncing(true);
+                if (managedStorage.hasDirtySyncFields() && !asyncSyncing) {
+                    asyncSyncing = true;
                     Platform.getMinecraftServer().execute(() -> {
                         if (Platform.isServerNotSafe()) return;
                         var packet = SPacketManagedPayload.of(this, false);
-                        LDLNetworking.NETWORK.sendToTrackingChunk(packet, this.self().getLevel().getChunkAt(this.getCurrentPos()));
-                        setAsyncSyncing(false);
+                        LDLNetworking.NETWORK.sendToTrackingChunk(packet, this.level.getChunkAt(this.getCurrentPos()));
+                        asyncSyncing = false;
                     });
                 }
             }
@@ -259,26 +249,76 @@ public class MetaMachineBlockEntity extends BlockEntity implements IMachineBlock
     }
 
     @Override
-    public MetaMachineBlockEntity self() {
+    public MetaMachineBlockEntity getSelf() {
         return this;
     }
 
-    @Override
     public Level level() {
         return level;
     }
 
-    @Override
     public BlockPos pos() {
         return worldPosition;
     }
 
-    @Override
-    public MachineDefinition getDefinition() {
-        return definition;
+    public void notifyBlockUpdate() {
+        if (level != null) {
+            level.updateNeighborsAt(worldPosition, level.getBlockState(worldPosition).getBlock());
+        }
+    }
+
+    public void scheduleRenderUpdate() {
+        var pos = worldPosition;
+        if (level != null) {
+            var state = level.getBlockState(pos);
+            if (level.isClientSide) {
+                level.sendBlockUpdated(pos, state, state, 1 << 3);
+            } else {
+                level.blockEvent(pos, state.getBlock(), 1, 0);
+            }
+        }
+    }
+
+    public long getOffset() {
+        return offset;
+    }
+
+    public long getOffsetTimer() {
+        if (level == null) return offset;
+        else if (level.isClientSide()) return GTValues.CLIENT_TIME + offset;
+        var server = level.getServer();
+        if (server != null) return server.getTickCount() + offset;
+        return offset;
     }
 
     public MetaMachine getMetaMachine() {
         return this.metaMachine;
+    }
+
+    @Override
+    public void saveCustomPersistedData(CompoundTag tag, boolean forDrop) {
+        IAutoPersistBlockEntity.super.saveCustomPersistedData(tag, forDrop);
+        metaMachine.saveCustomPersistedData(tag, forDrop);
+    }
+
+    @Override
+    public void loadCustomPersistedData(CompoundTag tag) {
+        IAutoPersistBlockEntity.super.loadCustomPersistedData(tag);
+        metaMachine.loadCustomPersistedData(tag);
+    }
+
+    @Override
+    public int getPaintingColor() {
+        return metaMachine.getPaintingColor();
+    }
+
+    @Override
+    public void setPaintingColor(int color) {
+        metaMachine.setPaintingColor(color);
+    }
+
+    @Override
+    public int getDefaultPaintingColor() {
+        return metaMachine.getDefaultPaintingColor();
     }
 }

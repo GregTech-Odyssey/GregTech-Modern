@@ -34,8 +34,6 @@ import java.util.function.Consumer;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import static com.gregtechceu.gtceu.utils.GTMatrixUtils.*;
-
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class WorkableOverlayModel {

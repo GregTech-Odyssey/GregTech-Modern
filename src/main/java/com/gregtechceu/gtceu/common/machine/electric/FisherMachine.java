@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.common.machine.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IWorkable;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
@@ -11,7 +12,6 @@ import com.gregtechceu.gtceu.api.gui.editor.EditableUI;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
@@ -116,7 +116,7 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
     @DescSynced
     protected boolean junkEnabled = true;
 
-    public FisherMachine(IMachineBlockEntity holder, int tier, Object... ignoredArgs) {
+    public FisherMachine(MetaMachineBlockEntity holder, int tier, Object... ignoredArgs) {
         super(holder, tier);
         this.inventorySize = (tier + 1) * (tier + 1);
         this.maxProgress = calcMaxProgress(tier);

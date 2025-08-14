@@ -210,31 +210,13 @@ public class MultiblockDisplayText {
          * <br>
          * Added if the structure is formed and if the max CWU/t is greater than zero.
          */
-        public Builder addComputationUsageLine(int maxCWUt) {
+        public Builder addComputationUsageLine(long maxCWUt) {
             if (!isStructureFormed)
                 return this;
             if (maxCWUt > 0) {
                 Component computation = Component.literal(FormattingUtil.formatNumbers(maxCWUt))
                         .withStyle(ChatFormatting.AQUA);
-                textList.add(Component.translatable("gtceu.multiblock.computation.max",
-                        computation).withStyle(ChatFormatting.GRAY));
-            }
-            return this;
-        }
-
-        /**
-         * Adds a currently used CWU/t line.
-         * <br>
-         * Added if the structure is formed, the machine is active, and the current CWU/t is greater than zero.
-         */
-        public Builder addComputationUsageExactLine(int currentCWUt) {
-            if (!isStructureFormed)
-                return this;
-            if (isActive && currentCWUt > 0) {
-                Component computation = Component.literal(FormattingUtil.formatNumbers(currentCWUt) + " CWU/t")
-                        .withStyle(ChatFormatting.AQUA);
-                textList.add(Component.translatable(
-                        "gtceu.multiblock.computation.usage",
+                textList.add(Component.translatable("gtceu.multiblock.computation.usable",
                         computation).withStyle(ChatFormatting.GRAY));
             }
             return this;

@@ -1,10 +1,12 @@
 package com.gregtechceu.gtceu.integration.map;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+
 import java.util.*;
 
 public class ButtonState {
 
-    private static final Map<String, Button> buttons = new HashMap<>();
+    private static final Map<String, Button> buttons = new Object2ObjectOpenHashMap<>();
     private static List<Button> sortedButtons;
 
     public static void toggleButton(Button button) {
@@ -13,9 +15,10 @@ public class ButtonState {
 
         // disable all other buttons if one is enabled
         if (button.enabled) {
-            for (String name : buttons.keySet()) {
+            for (Map.Entry<String, Button> entry : buttons.entrySet()) {
+                String name = entry.getKey();
                 if (!name.equals(button.name)) {
-                    buttons.get(name).enabled = false;
+                    entry.getValue().enabled = false;
                     GroupingMapRenderer.getInstance().setLayerActive(name, false);
                 }
             }

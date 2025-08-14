@@ -109,7 +109,7 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
 
     @Override
     public Level getLevel() {
-        return pipeTile.getPipeLevel();
+        return pipeTile.getLevel();
     }
 
     @Override

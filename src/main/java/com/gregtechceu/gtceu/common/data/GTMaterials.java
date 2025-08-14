@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags.*;
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.*;
@@ -182,10 +183,10 @@ public class GTMaterials {
         block.setIgnored(Concrete, GTMemoizer.memoizeBlockSupplier(() -> GTBlocks.DARK_CONCRETE.get()));
         block.setIgnored(Concrete, GTMemoizer.memoizeBlockSupplier(() -> GTBlocks.LIGHT_CONCRETE.get()));
 
-        for (TagPrefix prefix : ORES.keySet()) {
-            TagPrefix.OreType oreType = ORES.get(prefix);
+        for (Map.Entry<TagPrefix, OreType> entry : ORES.entrySet()) {
+            TagPrefix.OreType oreType = entry.getValue();
             if (oreType.shouldDropAsItem() && oreType.material() != null) {
-                prefix.addSecondaryMaterial(new MaterialStack(oreType.material().get(), dust.materialAmount()));
+                entry.getKey().addSecondaryMaterial(new MaterialStack(oreType.material().get(), dust.materialAmount()));
             }
         }
 

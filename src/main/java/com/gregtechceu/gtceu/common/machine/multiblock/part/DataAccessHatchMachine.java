@@ -1,14 +1,15 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IDataAccessHatch;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
+import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine;
@@ -35,6 +36,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -50,7 +52,7 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
     @Persisted
     public final NotifiableItemStackHandler importItems;
 
-    public DataAccessHatchMachine(IMachineBlockEntity holder, int tier, boolean isCreative) {
+    public DataAccessHatchMachine(MetaMachineBlockEntity holder, int tier, boolean isCreative) {
         super(holder, tier);
         this.isCreative = isCreative;
         this.recipes = isCreative ? Collections.emptySet() : new ObjectOpenHashSet<>();
@@ -58,8 +60,8 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
     }
 
     protected NotifiableItemStackHandler createImportItemHandler() {
-        if (isCreative) return new NotifiableItemStackHandler(this, 0, IO.BOTH);
-        return new NotifiableItemStackHandler(this, getInventorySize(), IO.BOTH) {
+        if (isCreative) return new NotifiableItemStackHandler(this, 0, IO.NONE, IO.BOTH);
+        return new NotifiableItemStackHandler(this, getInventorySize(), IO.NONE, IO.BOTH) {
 
             @Override
             public void onContentsChanged() {
@@ -121,12 +123,22 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
                 }
             }
         }
+        for (var controller : getControllers()) {
+            if (controller instanceof IRecipeLogicMachine recipeLogicMachine) {
+                if (controller instanceof DataBankMachine dataBankMachine) {
+                    for (var hatch : dataBankMachine.transmissions) {
+                        hatch.updateRecipeLogic();
+                    }
+                } else {
+                    recipeLogicMachine.getRecipeLogic().updateTickSubscription();
+                }
+            }
+        }
     }
 
     @Override
-    public boolean isRecipeAvailable(@NotNull GTRecipe recipe, @NotNull Collection<IDataAccessHatch> seen) {
-        seen.add(this);
-        return recipe.conditions.stream().noneMatch(ResearchCondition.class::isInstance) || recipes.contains(recipe);
+    public boolean isRecipeAvailable(@NotNull GTRecipe recipe) {
+        return recipes.contains(recipe);
     }
 
     @NotNull
@@ -162,8 +174,13 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
     }
 
     @Override
-    public GTRecipe modifyRecipe(GTRecipe recipe) {
-        return IDataAccessHatch.super.modifyRecipe(recipe);
+    public @Nullable GTRecipe modifyRecipe(GTRecipe recipe) {
+        // creative hatches do not need to check, they always have the recipe
+        if (this.isCreative()) return recipe;
+        if (recipe.conditions.stream().noneMatch(ResearchCondition.class::isInstance)) return recipe;
+        // hatches need to have the recipe available
+        if (this.isRecipeAvailable(recipe)) return recipe;
+        return null;
     }
 
     @Override

@@ -690,18 +690,6 @@ public class ConfigHolder {
         @Configurable
         @Configurable.Comment({ "Enable hazardous materials", "Default: true" })
         public boolean hazardsEnabled = true;
-        @Configurable
-        @Configurable.Comment({ "Whether hazards are applied to all valid items, or just GT's.",
-                "true = all, false = GT only.", "Default: true" })
-        public boolean universalHazards = true;
-        @Configurable
-        @Configurable.Comment({ "Whether environmental hazards like pollution or radiation are active",
-                "Default: false" })
-        public boolean environmentalHazards = false;
-        @Configurable
-        @Configurable.Comment({ "How much environmental hazards decay per chunk, per tick.",
-                "Default: 0.001" })
-        public float environmentalHazardDecayRate = 0.001f;
     }
 
     public static class ClientConfigs {

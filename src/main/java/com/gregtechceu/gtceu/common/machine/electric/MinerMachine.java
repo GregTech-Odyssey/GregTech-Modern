@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.common.machine.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
-import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.capability.IMiner;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.api.gui.WidgetUtils;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
 import com.gregtechceu.gtceu.api.gui.editor.EditableUI;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.WorkableTieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
@@ -65,7 +64,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class MinerMachine extends WorkableTieredMachine implements IMiner, IControllable, IFancyUIMachine, IDataInfoProvider, IAutoOutputItem {
+public class MinerMachine extends WorkableTieredMachine implements IMiner, IFancyUIMachine, IDataInfoProvider, IAutoOutputItem {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MinerMachine.class, WorkableTieredMachine.MANAGED_FIELD_HOLDER);
     @Persisted
@@ -90,7 +89,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, ICont
     @Nullable
     protected ISubscription energySubs;
 
-    public MinerMachine(IMachineBlockEntity holder, int tier, int speed, int maximumRadius, int fortune, Object... args) {
+    public MinerMachine(MetaMachineBlockEntity holder, int tier, int speed, int maximumRadius, int fortune, Object... args) {
         super(holder, tier, GTMachineUtils.defaultTankSizeFunction, args, (tier + 1) * (tier + 1), fortune, speed, maximumRadius);
         this.energyPerTick = GTValues.V[tier - 1];
         this.chargerInventory = createChargerItemHandler();

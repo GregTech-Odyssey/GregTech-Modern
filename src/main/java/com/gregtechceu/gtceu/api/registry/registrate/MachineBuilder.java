@@ -3,11 +3,11 @@ package com.gregtechceu.gtceu.api.registry.registrate;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.IMachineBlock;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.data.RotationState;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
 import com.gregtechceu.gtceu.api.item.MetaMachineItem;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
@@ -70,11 +70,11 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     protected final String name;
     protected final BiFunction<BlockBehaviour.Properties, DEFINITION, IMachineBlock> blockFactory;
     protected final BiFunction<IMachineBlock, Item.Properties, MetaMachineItem> itemFactory;
-    protected final TriFunction<BlockEntityType<?>, BlockPos, BlockState, IMachineBlockEntity> blockEntityFactory;
+    protected final TriFunction<BlockEntityType<?>, BlockPos, BlockState, MetaMachineBlockEntity> blockEntityFactory;
     // non-final for KJS
     protected Function<ResourceLocation, DEFINITION> definition;
     // non-final for KJS
-    protected Function<IMachineBlockEntity, MetaMachine> machine;
+    protected Function<MetaMachineBlockEntity, MetaMachine> machine;
     @Nullable
     private Supplier<IRenderer> renderer;
     private VoxelShape shape = Shapes.block();
@@ -120,7 +120,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     @Nullable
     private String langValue = null;
 
-    protected MachineBuilder(Registrate registrate, String name, Function<ResourceLocation, DEFINITION> definition, Function<IMachineBlockEntity, MetaMachine> machine, BiFunction<BlockBehaviour.Properties, DEFINITION, IMachineBlock> blockFactory, BiFunction<IMachineBlock, Item.Properties, MetaMachineItem> itemFactory, TriFunction<BlockEntityType<?>, BlockPos, BlockState, IMachineBlockEntity> blockEntityFactory) {
+    protected MachineBuilder(Registrate registrate, String name, Function<ResourceLocation, DEFINITION> definition, Function<MetaMachineBlockEntity, MetaMachine> machine, BiFunction<BlockBehaviour.Properties, DEFINITION, IMachineBlock> blockFactory, BiFunction<IMachineBlock, Item.Properties, MetaMachineItem> itemFactory, TriFunction<BlockEntityType<?>, BlockPos, BlockState, MetaMachineBlockEntity> blockEntityFactory) {
         super(new ResourceLocation(registrate.getModid(), name));
         this.registrate = registrate;
         this.name = name;
@@ -143,7 +143,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
         return this;
     }
 
-    public static <DEFINITION extends MachineDefinition> MachineBuilder<DEFINITION> create(Registrate registrate, String name, Function<ResourceLocation, DEFINITION> definitionFactory, Function<IMachineBlockEntity, MetaMachine> metaMachine, BiFunction<BlockBehaviour.Properties, DEFINITION, IMachineBlock> blockFactory, BiFunction<IMachineBlock, Item.Properties, MetaMachineItem> itemFactory, TriFunction<BlockEntityType<?>, BlockPos, BlockState, IMachineBlockEntity> blockEntityFactory) {
+    public static <DEFINITION extends MachineDefinition> MachineBuilder<DEFINITION> create(Registrate registrate, String name, Function<ResourceLocation, DEFINITION> definitionFactory, Function<MetaMachineBlockEntity, MetaMachine> metaMachine, BiFunction<BlockBehaviour.Properties, DEFINITION, IMachineBlock> blockFactory, BiFunction<IMachineBlock, Item.Properties, MetaMachineItem> itemFactory, TriFunction<BlockEntityType<?>, BlockPos, BlockState, MetaMachineBlockEntity> blockEntityFactory) {
         return new MachineBuilder<>(registrate, name, definitionFactory, metaMachine, blockFactory, itemFactory, blockEntityFactory);
     }
 
@@ -266,7 +266,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
             this.itemBuilder.accept(itemBuilder);
         }
         var item = itemBuilder.register();
-        var blockEntityBuilder = registrate.blockEntity(name, (type, pos, state) -> blockEntityFactory.apply(type, pos, state).self()).validBlock(block);
+        var blockEntityBuilder = registrate.blockEntity(name, (type, pos, state) -> blockEntityFactory.apply(type, pos, state)).validBlock(block);
         if (hasTESR) {
             blockEntityBuilder = blockEntityBuilder.renderer(() -> GTRendererProvider::getOrCreate);
         }
@@ -364,7 +364,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     /**
      * @return {@code this}.
      */
-    public MachineBuilder<DEFINITION> machine(final Function<IMachineBlockEntity, MetaMachine> machine) {
+    public MachineBuilder<DEFINITION> machine(final Function<MetaMachineBlockEntity, MetaMachine> machine) {
         this.machine = machine;
         return this;
     }

@@ -1,9 +1,9 @@
 package com.gregtechceu.gtceu.api.machine;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
-import com.gregtechceu.gtceu.api.machine.feature.IEnvironmentalHazardEmitter;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -36,16 +36,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class SimpleGeneratorMachine extends WorkableTieredMachine implements IFancyUIMachine, IEnvironmentalHazardEmitter {
+public class SimpleGeneratorMachine extends WorkableTieredMachine implements IFancyUIMachine {
 
     private final float hazardStrengthPerOperation;
 
-    public SimpleGeneratorMachine(IMachineBlockEntity holder, int tier, float hazardStrengthPerOperation, Int2IntFunction tankScalingFunction, Object... args) {
+    public SimpleGeneratorMachine(MetaMachineBlockEntity holder, int tier, float hazardStrengthPerOperation, Int2IntFunction tankScalingFunction, Object... args) {
         super(holder, tier, tankScalingFunction, args);
         this.hazardStrengthPerOperation = hazardStrengthPerOperation;
     }
 
-    public SimpleGeneratorMachine(IMachineBlockEntity holder, int tier, Int2IntFunction tankScalingFunction, Object... args) {
+    public SimpleGeneratorMachine(MetaMachineBlockEntity holder, int tier, Int2IntFunction tankScalingFunction, Object... args) {
         this(holder, tier, 0.25F, tankScalingFunction, args);
     }
 
@@ -109,12 +109,6 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine implements IFa
     @Override
     public boolean canVoidRecipeOutputs(RecipeCapability<?> capability) {
         return capability != EURecipeCapability.CAP;
-    }
-
-    @Override
-    public void afterWorking() {
-        super.afterWorking();
-        spreadEnvironmentalHazard();
     }
 
     //////////////////////////////////////

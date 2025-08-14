@@ -2,18 +2,14 @@ package com.gregtechceu.gtceu.api.data.chemical.material.info;
 
 import net.minecraft.client.renderer.RenderType;
 
-import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.function.Supplier;
 
 public class MaterialIconSet {
 
-    public static final Map<String, MaterialIconSet> ICON_SETS = new HashMap<>();
     public static final MaterialIconSet DULL = new MaterialIconSet("dull", null, true);
     public static final MaterialIconSet METALLIC = new MaterialIconSet("metallic");
     public static final MaterialIconSet MAGNETIC = new MaterialIconSet("magnetic", METALLIC);
@@ -82,16 +78,9 @@ public class MaterialIconSet {
      */
     public MaterialIconSet(@NotNull String name, @Nullable MaterialIconSet parentIconset, boolean isRootIconset) {
         this.name = name.toLowerCase(Locale.ENGLISH);
-        Preconditions.checkArgument(!ICON_SETS.containsKey(this.name),
-                "MaterialIconSet " + this.name + " already registered!");
         this.id = idCounter++;
         this.isRootIconset = isRootIconset;
         this.parentIconset = parentIconset;
-        ICON_SETS.put(this.name, this);
-    }
-
-    public static MaterialIconSet getByName(@NotNull String name) {
-        return ICON_SETS.get(name.toLowerCase(Locale.ENGLISH));
     }
 
     public boolean isGlass() {

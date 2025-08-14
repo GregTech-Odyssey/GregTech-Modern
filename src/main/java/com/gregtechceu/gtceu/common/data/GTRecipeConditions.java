@@ -39,9 +39,6 @@ public final class GTRecipeConditions {
             .register("eu_to_start", new RecipeConditionType<>(EUToStartCondition::new, EUToStartCondition.CODEC));
     public static final RecipeConditionType<ResearchCondition> RESEARCH = GTRegistries.RECIPE_CONDITIONS
             .register("research", new RecipeConditionType<>(ResearchCondition::new, ResearchCondition.CODEC));
-    public static final RecipeConditionType<EnvironmentalHazardCondition> ENVIRONMENTAL_HAZARD = GTRegistries.RECIPE_CONDITIONS
-            .register("environmental_hazard",
-                    new RecipeConditionType<>(EnvironmentalHazardCondition::new, EnvironmentalHazardCondition.CODEC));
     public static final RecipeConditionType<DaytimeCondition> DAYTIME = GTRegistries.RECIPE_CONDITIONS
             .register("daytime", new RecipeConditionType<>(DaytimeCondition::new, DaytimeCondition.CODEC));
     public static RecipeConditionType<FTBQuestCondition> FTB_QUEST;

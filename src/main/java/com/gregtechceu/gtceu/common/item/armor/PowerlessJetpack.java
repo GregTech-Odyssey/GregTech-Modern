@@ -215,7 +215,7 @@ public class PowerlessJetpack implements IArmorLogic, IJetpack, IItemHUDProvider
      * }
      */
 
-    public static class Behaviour implements IDurabilityBar, IItemComponent, ISubItemHandler, IAddInformation,
+    public static class Behaviour implements IDurabilityBar, ISubItemHandler, IAddInformation,
                                   IInteractionItem, IComponentCapability {
 
         public final int maxCapacity;

@@ -26,8 +26,6 @@ import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 
-import static net.minecraft.ChatFormatting.*;
-
 public class RecipeLogicProvider extends CapabilityBlockProvider<RecipeLogic> {
 
     public RecipeLogicProvider() {

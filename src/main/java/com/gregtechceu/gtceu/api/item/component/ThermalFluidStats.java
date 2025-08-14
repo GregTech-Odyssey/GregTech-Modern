@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class ThermalFluidStats implements IItemComponent, IComponentCapability, IAddInformation {
+public class ThermalFluidStats implements IComponentCapability, IAddInformation {
 
     public final int capacity;
     public final boolean gasProof;

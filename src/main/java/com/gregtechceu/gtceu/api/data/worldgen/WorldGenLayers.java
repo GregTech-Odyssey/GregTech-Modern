@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.addon.IGTAddon;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
@@ -14,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public enum WorldGenLayers implements IWorldGenLayer, StringRepresentable {
+public enum WorldGenLayers implements IWorldGenLayer {
 
     STONE("stone", new TagMatchTest(BlockTags.STONE_ORE_REPLACEABLES), Set.of(Level.OVERWORLD.location())),
     DEEPSLATE("deepslate", new TagMatchTest(BlockTags.DEEPSLATE_ORE_REPLACEABLES), Set.of(Level.OVERWORLD.location())),

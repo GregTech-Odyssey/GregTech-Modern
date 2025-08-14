@@ -1,12 +1,12 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.primitive;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
@@ -38,7 +38,7 @@ public class PrimitiveBlastFurnaceMachine extends PrimitiveWorkableMachine imple
 
     private TickableSubscription hurtSubscription;
 
-    public PrimitiveBlastFurnaceMachine(IMachineBlockEntity holder, Object... args) {
+    public PrimitiveBlastFurnaceMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder, args);
     }
 

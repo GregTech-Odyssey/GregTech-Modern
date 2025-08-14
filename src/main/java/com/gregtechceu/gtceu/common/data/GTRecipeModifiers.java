@@ -2,10 +2,8 @@ package com.gregtechceu.gtceu.common.data;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
-import com.gregtechceu.gtceu.api.data.medicalcondition.MedicalCondition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IOverclockMachine;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.CoilWorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.OverclockingLogic;
@@ -14,16 +12,11 @@ import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
-import com.gregtechceu.gtceu.common.capability.EnvironmentalHazardSavedData;
-import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import net.minecraft.Util;
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static com.gregtechceu.gtceu.api.recipe.OverclockingLogic.*;
@@ -43,83 +36,9 @@ public class GTRecipeModifiers {
             });
 
     // Shortcuts for common OC logics
-    public static final RecipeModifier OC_PERFECT = ELECTRIC_OVERCLOCK.apply(PERFECT_OVERCLOCK);
     public static final RecipeModifier OC_NON_PERFECT = ELECTRIC_OVERCLOCK.apply(NON_PERFECT_OVERCLOCK);
     public static final RecipeModifier OC_PERFECT_SUBTICK = ELECTRIC_OVERCLOCK.apply(PERFECT_OVERCLOCK_SUBTICK);
     public static final RecipeModifier OC_NON_PERFECT_SUBTICK = ELECTRIC_OVERCLOCK.apply(NON_PERFECT_OVERCLOCK_SUBTICK);
-
-    public static final BiFunction<MedicalCondition, Integer, RecipeModifier> ENVIRONMENT_REQUIREMENT = Util
-            .memoize((condition, maxAllowedStrength) -> (machine, recipe) -> {
-                if (!ConfigHolder.INSTANCE.gameplay.environmentalHazards) return ModifierFunction.IDENTITY;
-                if (!(machine.getLevel() instanceof ServerLevel serverLevel)) return ModifierFunction.NULL;
-
-                EnvironmentalHazardSavedData data = EnvironmentalHazardSavedData.getOrCreate(serverLevel);
-                BlockPos machinePos = machine.getPos();
-                var zone = data.getZoneByContainedPosAndCondition(machinePos, condition);
-                if (zone == null) return ModifierFunction.IDENTITY;
-
-                float strength = zone.strength();
-                if (strength > maxAllowedStrength) return ModifierFunction.NULL;
-
-                int multiplier = (1 + (int) (strength * 5 / maxAllowedStrength));
-                if (multiplier > 5) return ModifierFunction.NULL;
-
-                return ModifierFunction.builder()
-                        .durationMultiplier(multiplier)
-                        .build();
-            });
-
-    public static final RecipeModifier DEFAULT_ENVIRONMENT_REQUIREMENT = ENVIRONMENT_REQUIREMENT
-            .apply(GTMedicalConditions.CARBON_MONOXIDE_POISONING, 1000);
-
-    public static final RecipeModifier PARALLEL_HATCH = GTRecipeModifiers::hatchParallel;
-    public static final RecipeModifier BATCH_MODE = GTRecipeModifiers::batchMode;
-
-    /**
-     * Recipe Modifier for <b>Parallel Multiblock Machines</b> - can be used as a valid {@link RecipeModifier}
-     * <p>
-     * Looks for the Parallel Hatch on a Multiblock and attempts to parallelize the recipe up to the set amount
-     * </p>
-     *
-     * @param machine an {@link IMultiController} machine
-     * @param recipe  recipe
-     * @return A {@link ModifierFunction} for the given Parallel Multiblock
-     */
-    public static @NotNull ModifierFunction hatchParallel(@NotNull MetaMachine machine, @NotNull GTRecipe recipe) {
-        if (machine instanceof IMultiController controller && controller.isFormed()) {
-            int parallels = controller.getParallelHatch()
-                    .map(hatch -> ParallelLogic.getParallelAmount(machine, recipe, hatch.getCurrentParallel()))
-                    .orElse(1);
-
-            if (parallels == 1) return ModifierFunction.IDENTITY;
-            return ModifierFunction.builder()
-                    .modifyAllContents(ContentModifier.multiplier(parallels))
-                    .eutMultiplier(parallels)
-                    .parallels(parallels)
-                    .build();
-        }
-        return ModifierFunction.IDENTITY;
-    }
-
-    public static @NotNull ModifierFunction batchMode(@NotNull MetaMachine machine, @NotNull GTRecipe recipe) {
-        if (machine instanceof IMultiController controller && controller.isFormed() && controller.isBatchEnabled()) {
-            if (recipe.duration < ConfigHolder.INSTANCE.machines.batchDuration) {
-                int parallel = ConfigHolder.INSTANCE.machines.batchDuration / recipe.duration;
-                parallel = ParallelLogic.getParallelAmountWithoutEU(machine, recipe, parallel);
-
-                if (parallel == 0) return ModifierFunction.NULL;
-                if (parallel == 1) return ModifierFunction.IDENTITY;
-
-                return ModifierFunction.builder()
-                        .inputModifier(ContentModifier.multiplier(parallel))
-                        .outputModifier(ContentModifier.multiplier(parallel))
-                        .durationMultiplier(parallel)
-                        .batchParallels(parallel)
-                        .build();
-            }
-        }
-        return ModifierFunction.IDENTITY;
-    }
 
     /**
      * Recipe Modifier for <b>Cracker Multiblocks</b> - can be used as a valid {@link RecipeModifier}

@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A machine can handle recipes.
  */
-public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IMachineFeature, IWorkable, ICleanroomReceiver,
+public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IWorkable, ICleanroomReceiver,
                                      IVoidable {
 
     /**

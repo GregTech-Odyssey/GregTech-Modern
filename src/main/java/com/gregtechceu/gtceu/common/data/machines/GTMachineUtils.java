@@ -12,7 +12,6 @@ import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidPipeProperties;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
-import com.gregtechceu.gtceu.api.data.medicalcondition.MedicalCondition;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.fluids.PropertyFluidFilter;
 import com.gregtechceu.gtceu.api.item.DrumMachineItem;
@@ -77,10 +76,8 @@ import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
-import static com.gregtechceu.gtceu.api.GTValues.UV;
 import static com.gregtechceu.gtceu.api.capability.recipe.IO.IN;
 import static com.gregtechceu.gtceu.api.pattern.Predicates.*;
-import static com.gregtechceu.gtceu.api.pattern.Predicates.autoAbilities;
 import static com.gregtechceu.gtceu.common.data.GTBlocks.ALL_FIREBOXES;
 import static com.gregtechceu.gtceu.common.data.GTCreativeModeTabs.MACHINE;
 import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.DUMMY_RECIPES;
@@ -141,15 +138,7 @@ public class GTMachineUtils {
                                                              int... tiers) {
         return registerTieredMachines(name,
                 (holder, tier) -> new SimpleTieredMachine(holder, tier, tankScalingFunction), (tier, builder) -> {
-                    if (hasPollutionDebuff) {
-                        builder.recipeModifiers(GTRecipeModifiers.ENVIRONMENT_REQUIREMENT
-                                .apply(GTMedicalConditions.CARBON_MONOXIDE_POISONING, 100 * tier),
-                                GTRecipeModifiers.OC_NON_PERFECT)
-                                .conditionalTooltip(defaultEnvironmentRequirement(),
-                                        ConfigHolder.INSTANCE.gameplay.environmentalHazards);
-                    } else {
-                        builder.recipeModifier(GTRecipeModifiers.OC_NON_PERFECT);
-                    }
+                    builder.recipeModifier(GTRecipeModifiers.OC_NON_PERFECT);
                     return builder
                             .langValue("%s %s %s".formatted(VLVH[tier], toEnglishName(name), VLVT[tier]))
                             .editableUI(SimpleTieredMachine.EDITABLE_UI_CREATOR.apply(GTCEu.id(name), recipeType))
@@ -164,7 +153,7 @@ public class GTMachineUtils {
     }
 
     public static MachineDefinition[] registerTieredMachines(String name,
-                                                             BiFunction<IMachineBlockEntity, Integer, MetaMachine> factory,
+                                                             BiFunction<MetaMachineBlockEntity, Integer, MetaMachine> factory,
                                                              BiFunction<Integer, MachineBuilder<MachineDefinition>, MachineDefinition> builder,
                                                              int... tiers) {
         MachineDefinition[] definitions = new MachineDefinition[GTValues.TIER_COUNT];
@@ -179,7 +168,7 @@ public class GTMachineUtils {
     }
 
     public static Pair<MachineDefinition, MachineDefinition> registerSteamMachines(String name,
-                                                                                   BiFunction<IMachineBlockEntity, Boolean, MetaMachine> factory,
+                                                                                   BiFunction<MetaMachineBlockEntity, Boolean, MetaMachine> factory,
                                                                                    BiFunction<Boolean, MachineBuilder<MachineDefinition>, MachineDefinition> builder) {
         MachineDefinition lowTier = builder.apply(false,
                 REGISTRATE.machine("lp_%s".formatted(name), holder -> factory.apply(holder, false))
@@ -508,7 +497,7 @@ public class GTMachineUtils {
     }
 
     public static MultiblockMachineDefinition[] registerTieredMultis(String name,
-                                                                     BiFunction<IMachineBlockEntity, Integer, MultiblockControllerMachine> factory,
+                                                                     BiFunction<MetaMachineBlockEntity, Integer, MultiblockControllerMachine> factory,
                                                                      BiFunction<Integer, MultiblockMachineBuilder, MultiblockMachineDefinition> builder,
                                                                      int... tiers) {
         MultiblockMachineDefinition[] definitions = new MultiblockMachineDefinition[GTValues.TIER_COUNT];
@@ -690,15 +679,6 @@ public class GTMachineUtils {
         if (ConfigHolder.INSTANCE.machines.shouldWeatherOrTerrainExplosion)
             return Component.translatable("gtceu.universal.tooltip.terrain_resist");
         return null;
-    }
-
-    public static Component environmentRequirement(MedicalCondition condition) {
-        return Component.translatable("gtceu.recipe.environmental_hazard.reverse",
-                Component.translatable("gtceu.medical_condition." + condition.name));
-    }
-
-    public static Component defaultEnvironmentRequirement() {
-        return environmentRequirement(GTMedicalConditions.CARBON_MONOXIDE_POISONING);
     }
 
     public static BiConsumer<ItemStack, List<Component>> TANK_TOOLTIPS = (stack, list) -> {

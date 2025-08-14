@@ -2,8 +2,8 @@ package com.gregtechceu.gtceu.api.gui.widget;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
@@ -363,9 +363,9 @@ public class PatternPreviewWidget extends WidgetGroup {
                     if (info != null) {
                         BlockState blockState = info.getBlockState();
                         BlockPos pos = multiPos.offset(x, y, z);
-                        if (info.getBlockEntity(pos) instanceof IMachineBlockEntity holder &&
+                        if (info.getBlockEntity(pos) instanceof MetaMachineBlockEntity holder &&
                                 holder.getMetaMachine() instanceof IMultiController controller) {
-                            holder.self().setLevel(LEVEL);
+                            holder.setLevel(LEVEL);
                             controllerBase = controller;
                             center = pos;
                         }
@@ -377,7 +377,7 @@ public class PatternPreviewWidget extends WidgetGroup {
 
         LEVEL.addBlocks(blockMap);
         if (controllerBase != null) {
-            LEVEL.setInnerBlockEntity(controllerBase.self().holder.self());
+            LEVEL.setInnerBlockEntity(controllerBase.self().holder);
         }
 
         Map<ItemStackKey, PartInfo> parts = gatherBlockDrops(blockMap);

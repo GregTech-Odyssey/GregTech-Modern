@@ -14,6 +14,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,7 +22,7 @@ import java.util.*;
 
 public abstract class GTRegistry<K, V> implements Iterable<V> {
 
-    public static final Map<ResourceLocation, GTRegistry<?, ?>> REGISTERED = new HashMap<>();
+    public static final Map<ResourceLocation, GTRegistry<?, ?>> REGISTERED = new Object2ObjectOpenHashMap<>();
     protected final BiMap<K, V> registry;
     protected final ResourceLocation registryName;
     protected boolean frozen = true;
@@ -67,17 +68,7 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean checkActiveModContainerIsGregtech() {
         ModContainer container = ModLoadingContext.get().getActiveContainer();
-        return container != null && (container.getModId().equals(this.registryName.getNamespace()) || container.getModId().equals(GTCEu.MOD_ID) || container.getModId().equals("minecraft")); // check
-                                                                                                                                                                                              // for
-                                                                                                                                                                                              // minecraft
-                                                                                                                                                                                              // modid
-                                                                                                                                                                                              // in
-                                                                                                                                                                                              // case
-                                                                                                                                                                                              // of
-                                                                                                                                                                                              // datagen
-                                                                                                                                                                                              // or
-                                                                                                                                                                                              // a
-                                                                                                                                                                                              // mishap
+        return container != null && (container.getModId().equals(this.registryName.getNamespace()) || container.getModId().equals(GTCEu.MOD_ID) || container.getModId().equals("minecraft"));
     }
 
     public <T extends V> T register(K key, T value) {
@@ -215,17 +206,32 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
         }
 
         @Override
+        public <T extends V> T registerOrOverride(ResourceLocation key, T value) {
+            this.registry.put(key, value);
+            return value;
+        }
+
+        @Override
+        public <T extends V> T register(ResourceLocation key, T value) {
+            if (frozen) {
+                throw new IllegalStateException("[register] registry %s has been frozen".formatted(registryName));
+            }
+            registry.put(key, value);
+            return value;
+        }
+
+        @Override
         public void writeBuf(V value, FriendlyByteBuf buf) {
             buf.writeBoolean(containValue(value));
             if (containValue(value)) {
-                buf.writeUtf(getKey(value).toString());
+                buf.writeResourceLocation(getKey(value));
             }
         }
 
         @Override
         public V readBuf(FriendlyByteBuf buf) {
             if (buf.readBoolean()) {
-                return get(new ResourceLocation(buf.readUtf()));
+                return get(buf.readResourceLocation());
             }
             return null;
         }

@@ -1,15 +1,10 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.electric.research;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IObjectHolder;
-import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
-import com.gregtechceu.gtceu.api.capability.IOpticalComputationReceiver;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
-import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
@@ -17,24 +12,21 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
-import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class ResearchStationMachine extends WorkableElectricMultiblockMachine implements IOpticalComputationReceiver, IDisplayUIMachine {
+public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
 
-    private IOpticalComputationProvider computationProvider;
     private IObjectHolder objectHolder;
 
-    public ResearchStationMachine(IMachineBlockEntity holder, Object... args) {
+    public ResearchStationMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder, args);
     }
 
@@ -49,6 +41,16 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine im
     }
 
     @Override
+    public long requestCWU(long cwut, boolean simulate) {
+        long cwu = super.requestCWU(cwut, simulate);
+        if (!simulate && cwu >= cwut) {
+            var progress = getRecipeLogic().getProgress();
+            getRecipeLogic().setProgress(progress + (int) Math.min(getRecipeLogic().getMaxProgress() - progress, cwu));
+        }
+        return cwu;
+    }
+
+    @Override
     public void onStructureFormed() {
         super.onStructureFormed();
         for (IMultiPart part : getParts()) {
@@ -60,10 +62,9 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine im
                 this.objectHolder = iObjectHolder;
                 addHandlerList(RecipeHandlerList.of(IO.IN, iObjectHolder.getAsHandler()));
             }
-            part.self().holder.self().getCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER).ifPresent(provider -> this.computationProvider = provider);
         }
         // should never happen, but would rather do this than have an obscure NPE
-        if (computationProvider == null || objectHolder == null) {
+        if (objectHolder == null) {
             onStructureInvalid();
         }
     }
@@ -79,7 +80,6 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine im
 
     @Override
     public void onStructureInvalid() {
-        computationProvider = null;
         // recheck the ability to make sure it wasn't the one broken
         for (IMultiPart part : getParts()) {
             if (part instanceof IObjectHolder holder) {
@@ -95,12 +95,6 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine im
     @Override
     public boolean regressWhenWaiting() {
         return false;
-    }
-
-    @Override
-    public void addDisplayText(List<Component> textList) {
-        // .addComputationUsageExactLine(computationProvider.getMaxCWUt()) // TODO: (Onion)
-        MultiblockDisplayText.builder(textList, isFormed()).setWorkingStatus(recipeLogic.isWorkingEnabled(), recipeLogic.isActive()).setWorkingStatusKeys("gtceu.multiblock.idling", "gtceu.multiblock.work_paused", "gtceu.multiblock.research_station.researching").addEnergyUsageLine(energyContainer).addEnergyTierLine(tier).addWorkingStatusLine().addProgressLineOnlyPercent(recipeLogic.getProgressPercent());
     }
 
     public static class ResearchStationRecipeLogic extends RecipeLogic {
@@ -172,10 +166,6 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine im
             }
             return true;
         }
-    }
-
-    public IOpticalComputationProvider getComputationProvider() {
-        return this.computationProvider;
     }
 
     public IObjectHolder getObjectHolder() {

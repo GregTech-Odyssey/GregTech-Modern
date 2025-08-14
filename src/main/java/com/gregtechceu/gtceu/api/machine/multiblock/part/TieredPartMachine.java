@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.api.machine.multiblock.part;
 
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -13,7 +13,7 @@ public class TieredPartMachine extends MultiblockPartMachine implements ITieredM
 
     protected final int tier;
 
-    public TieredPartMachine(IMachineBlockEntity holder, int tier) {
+    public TieredPartMachine(MetaMachineBlockEntity holder, int tier) {
         super(holder);
         this.tier = tier;
     }

@@ -1,11 +1,11 @@
 package com.gregtechceu.gtceu.common.machine.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.*;
 import com.gregtechceu.gtceu.api.capability.compat.FeCompat;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
@@ -55,7 +55,7 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
     @RequireRerender
     private State state;
 
-    public ChargerMachine(IMachineBlockEntity holder, int tier, int inventorySize, Object... args) {
+    public ChargerMachine(MetaMachineBlockEntity holder, int tier, int inventorySize, Object... args) {
         super(holder, tier, inventorySize);
         this.isWorkingEnabled = true;
         this.inventorySize = inventorySize;

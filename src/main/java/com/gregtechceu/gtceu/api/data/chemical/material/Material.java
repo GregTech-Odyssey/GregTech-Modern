@@ -35,6 +35,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -975,9 +976,8 @@ public class Material implements Comparable<Material> {
          */
         public Builder ignoredTagPrefixes(TagPrefix... prefixes) {
             if (this.ignoredTagPrefixes == null) {
-                this.ignoredTagPrefixes = new HashSet<>();
+                this.ignoredTagPrefixes = new ReferenceOpenHashSet<>(prefixes);
             }
-            this.ignoredTagPrefixes.addAll(Arrays.asList(prefixes));
             return this;
         }
 

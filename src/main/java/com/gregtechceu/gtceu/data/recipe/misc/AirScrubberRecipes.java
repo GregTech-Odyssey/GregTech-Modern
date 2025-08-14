@@ -1,7 +1,5 @@
 package com.gregtechceu.gtceu.data.recipe.misc;
 
-import com.gregtechceu.gtceu.common.data.GTMedicalConditions;
-
 import net.minecraft.data.recipes.FinishedRecipe;
 
 import java.util.function.Consumer;
@@ -16,7 +14,6 @@ public class AirScrubberRecipes {
         AIR_SCRUBBER_RECIPES.recipeBuilder("carbon_monoxide_poisoning")
                 .circuitMeta(1)
                 .outputFluids(CarbonMonoxide.getFluid(1000))
-                .environmentalHazard(GTMedicalConditions.CARBON_MONOXIDE_POISONING)
                 .duration(200).EUt(VHA[LV]).save(provider);
 
         /*

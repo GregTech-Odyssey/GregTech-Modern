@@ -91,7 +91,7 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
             boolean reachedLimit = count > limit;
             if (!simulate) {
                 if (existing.isEmpty()) {
-                    this.stacks[slot] = reachedLimit ? ItemHandlerHelper.copyStackWithSize(stack, limit) : stack;
+                    this.stacks[slot] = stack.copyWithCount(reachedLimit ? limit : count);
                 } else {
                     existing.grow(reachedLimit ? limit : count);
                 }
@@ -106,7 +106,6 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
      * @return Remaining amount.
      **/
     public int insertItemFast(int slot, @NotNull ItemStack stack, int count, boolean simulate) {
-        if (count < 1) return 0;
         if (!isItemValid(slot, stack)) return count;
         ItemStack existing = this.stacks[slot];
         var stored = existing.getCount();
@@ -116,11 +115,10 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
             boolean reachedLimit = count > limit;
             if (!simulate) {
                 if (existing.isEmpty()) {
-                    this.stacks[slot] = reachedLimit ? ItemHandlerHelper.copyStackWithSize(stack, limit) : stack;
+                    this.stacks[slot] = stack.copyWithCount(reachedLimit ? limit : count);
                 } else {
                     existing.grow(reachedLimit ? limit : count);
                 }
-                onContentsChanged(slot);
             }
             return reachedLimit ? count - limit : 0;
         }

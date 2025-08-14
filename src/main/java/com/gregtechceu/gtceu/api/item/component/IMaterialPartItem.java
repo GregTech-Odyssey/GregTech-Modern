@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public interface IMaterialPartItem extends IItemComponent, IDurabilityBar, IAddInformation, ICustomDescriptionId {
+public interface IMaterialPartItem extends IDurabilityBar, IAddInformation, ICustomDescriptionId {
 
     int getPartMaxDurability(ItemStack itemStack);
 

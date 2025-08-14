@@ -1,11 +1,11 @@
 package com.gregtechceu.gtceu.api.block;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.data.RotationState;
 import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.MetaMachineItem;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
@@ -228,7 +228,7 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
     public List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
         BlockEntity tileEntity = builder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
         var drops = super.getDrops(state, builder);
-        if (tileEntity instanceof IMachineBlockEntity holder) {
+        if (tileEntity instanceof MetaMachineBlockEntity holder) {
             var machine = holder.getMetaMachine();
             if (machine instanceof IMachineModifyDrops machineModifyDrops) {
                 machineModifyDrops.onDrops(drops);

@@ -4,45 +4,25 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
-import com.gregtechceu.gtceu.api.capability.IMedicalConditionTracker;
 import com.gregtechceu.gtceu.api.capability.compat.EUToFEProvider;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
-import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.HazardProperty;
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
-import com.gregtechceu.gtceu.api.data.medicalcondition.MedicalCondition;
 import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEnderRegistry;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldSavedData;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
-import com.gregtechceu.gtceu.common.capability.EnvironmentalHazardSavedData;
-import com.gregtechceu.gtceu.common.capability.LocalizedHazardSavedData;
 import com.gregtechceu.gtceu.common.capability.MedicalConditionTracker;
 import com.gregtechceu.gtceu.common.capability.WorldIDSaveData;
 import com.gregtechceu.gtceu.common.commands.GTCommands;
-import com.gregtechceu.gtceu.common.commands.HazardCommands;
-import com.gregtechceu.gtceu.common.commands.MedicalConditionCommands;
 import com.gregtechceu.gtceu.common.data.*;
 import com.gregtechceu.gtceu.common.fluid.potion.BottleItemFluidHandler;
 import com.gregtechceu.gtceu.common.fluid.potion.PotionItemFluidHandler;
 import com.gregtechceu.gtceu.common.item.ToggleEnergyConsumerBehavior;
 import com.gregtechceu.gtceu.common.item.armor.IJetpack;
 import com.gregtechceu.gtceu.common.item.armor.QuarkTechSuite;
-import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.SPacketSendWorldID;
-import com.gregtechceu.gtceu.common.network.packets.SPacketSyncBedrockOreVeins;
-import com.gregtechceu.gtceu.common.network.packets.SPacketSyncFluidVeins;
-import com.gregtechceu.gtceu.common.network.packets.SPacketSyncOreVeins;
-import com.gregtechceu.gtceu.common.network.packets.hazard.SPacketAddHazardZone;
-import com.gregtechceu.gtceu.common.network.packets.hazard.SPacketRemoveHazardZone;
-import com.gregtechceu.gtceu.common.network.packets.hazard.SPacketSyncLevelHazards;
 import com.gregtechceu.gtceu.config.ConfigHolder;
-import com.gregtechceu.gtceu.data.loader.BedrockFluidLoader;
-import com.gregtechceu.gtceu.data.loader.BedrockOreLoader;
-import com.gregtechceu.gtceu.data.loader.GTOreLoader;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.integration.map.ClientCacheManager;
 import com.gregtechceu.gtceu.integration.map.WaypointManager;
@@ -63,18 +43,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.PotionItem;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.*;
 import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.event.level.ChunkWatchEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
@@ -82,9 +58,7 @@ import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.items.IItemHandler;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -134,47 +108,6 @@ public class ForgeCommonEventListener {
     }
 
     @SubscribeEvent
-    public static void tickPlayerInventoryHazards(TickEvent.PlayerTickEvent event) {
-        if (event.side == LogicalSide.CLIENT || event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
-        Player player = event.player;
-        IMedicalConditionTracker tracker = GTCapabilityHelper.getMedicalConditionTracker(player);
-        if (tracker == null) {
-            return;
-        }
-        if (!ConfigHolder.INSTANCE.gameplay.hazardsEnabled) {
-            for (MedicalCondition medicalCondition : tracker.getMedicalConditions().keySet()) {
-                tracker.removeMedicalCondition(medicalCondition);
-            }
-            return;
-        }
-
-        IItemHandler inventory = player.getCapability(ForgeCapabilities.ITEM_HANDLER, null).orElse(null);
-        if (inventory == null) {
-            return;
-        }
-        tracker.tick();
-
-        for (int i = 0; i < inventory.getSlots(); ++i) {
-            ItemStack stack = inventory.getStackInSlot(i);
-            Material material = HazardProperty.getValidHazardMaterial(stack);
-            if (material.isNull() || !material.hasProperty(PropertyKey.HAZARD)) {
-                continue;
-            }
-            HazardProperty property = material.getProperty(PropertyKey.HAZARD);
-            if (property.hazardTrigger.protectionType().isProtected(player)) {
-                // entity has proper safety equipment, so damage it per material every 5 seconds.
-                property.hazardTrigger.protectionType().damageEquipment(player, 1);
-                // don't progress this material condition if entity is protected
-                continue;
-            }
-            tracker.progressRelatedCondition(material);
-        }
-    }
-
-    @SubscribeEvent
     public static void onMobEffectEvent(MobEffectEvent.Applicable event) {
         if (event.getEntity() instanceof Player player) {
             ItemStack item = player.getItemBySlot(EquipmentSlot.HEAD);
@@ -206,39 +139,19 @@ public class ForgeCommonEventListener {
     }
 
     @SubscribeEvent
-    public static void onBreakEvent(BlockEvent.BreakEvent event) {
-        var machine = MetaMachine.getMachine(event.getLevel(), event.getPos());
-        if (machine != null) {
-            if (!MachineOwner.canBreakOwnerMachine(event.getPlayer(), machine)) {
-                event.setCanceled(true);
-            }
-        }
-    }
-
-    @SubscribeEvent
     public static void registerCommand(RegisterCommandsEvent event) {
         GTCommands.register(event.getDispatcher(), event.getBuildContext());
-        MedicalConditionCommands.register(event.getDispatcher(), event.getBuildContext());
-        HazardCommands.register(event.getDispatcher(), event.getBuildContext());
     }
 
     @SubscribeEvent
     public static void registerReloadListeners(AddReloadListenerEvent event) {
         GTRegistries.updateFrozenRegistry(event.getRegistryAccess());
-
-        event.addListener(new GTOreLoader());
-        event.addListener(new BedrockFluidLoader());
-        event.addListener(new BedrockOreLoader());
     }
 
     @SubscribeEvent
     public static void levelTick(TickEvent.LevelTickEvent event) {
         if (event.phase == TickEvent.Phase.END && event.level instanceof ServerLevel serverLevel) {
             TaskHandler.onTickUpdate(serverLevel);
-            if (ConfigHolder.INSTANCE.gameplay.environmentalHazards) {
-                EnvironmentalHazardSavedData.getOrCreate(serverLevel).tick();
-                LocalizedHazardSavedData.getOrCreate(serverLevel).tick();
-            }
         }
     }
 
@@ -289,32 +202,6 @@ public class ForgeCommonEventListener {
         Player player = event.getEntity();
         if (player instanceof ServerPlayer serverPlayer) {
             GTNetwork.NETWORK.sendToPlayer(new SPacketSendWorldID(), serverPlayer);
-
-            if (!ConfigHolder.INSTANCE.gameplay.environmentalHazards)
-                return;
-
-            ServerLevel level = serverPlayer.serverLevel();
-            var data = EnvironmentalHazardSavedData.getOrCreate(level);
-            GTNetwork.NETWORK.sendToPlayer(new SPacketSyncLevelHazards(data.getHazardZones()), serverPlayer);
-        }
-    }
-
-    @SubscribeEvent
-    public static void onDatapackSync(OnDatapackSyncEvent event) {
-        ServerPlayer player = event.getPlayer();
-        if (player == null) {
-            // if player == null, the /reload command was ran. sync to all players.
-            GTNetwork.NETWORK.sendToAll(new SPacketSyncOreVeins(GTRegistries.ORE_VEINS.registry()));
-            GTNetwork.NETWORK.sendToAll(new SPacketSyncFluidVeins(GTRegistries.BEDROCK_FLUID_DEFINITIONS.registry()));
-            GTNetwork.NETWORK
-                    .sendToAll(new SPacketSyncBedrockOreVeins(GTRegistries.BEDROCK_ORE_DEFINITIONS.registry()));
-        } else {
-            // else it's a player logging in. sync to only that player.
-            GTNetwork.NETWORK.sendToPlayer(new SPacketSyncOreVeins(GTRegistries.ORE_VEINS.registry()), player);
-            GTNetwork.NETWORK.sendToPlayer(new SPacketSyncFluidVeins(GTRegistries.BEDROCK_FLUID_DEFINITIONS.registry()),
-                    player);
-            GTNetwork.NETWORK.sendToPlayer(
-                    new SPacketSyncBedrockOreVeins(GTRegistries.BEDROCK_ORE_DEFINITIONS.registry()), player);
         }
     }
 
@@ -357,19 +244,6 @@ public class ForgeCommonEventListener {
     }
 
     @SubscribeEvent
-    public static void onEntityDie(LivingDeathEvent event) {
-        if (event.getEntity() instanceof Player player) {
-            IMedicalConditionTracker tracker = GTCapabilityHelper.getMedicalConditionTracker(player);
-            if (tracker == null) {
-                return;
-            }
-            for (MedicalCondition condition : tracker.getMedicalConditions().keySet()) {
-                tracker.removeMedicalCondition(condition);
-            }
-        }
-    }
-
-    @SubscribeEvent
     public static void onEntitySpawn(MobSpawnEvent.FinalizeSpawn event) {
         Mob entity = event.getEntity();
         Difficulty difficulty = entity.level().getDifficulty();
@@ -380,42 +254,6 @@ public class ForgeCommonEventListener {
                 entity.setItemSlot(EquipmentSlot.MAINHAND, itemStack);
                 zombie.setDropChance(EquipmentSlot.MAINHAND, 0.0f);
             }
-        }
-    }
-
-    @SubscribeEvent
-    public static void onPlayerLevelChange(PlayerEvent.PlayerChangedDimensionEvent event) {
-        if (!ConfigHolder.INSTANCE.gameplay.environmentalHazards) {
-            return;
-        }
-
-        ServerLevel newLevel = event.getEntity().getServer().getLevel(event.getTo());
-        var data = EnvironmentalHazardSavedData.getOrCreate(newLevel);
-        GTNetwork.NETWORK.sendToPlayer(new SPacketSyncLevelHazards(data.getHazardZones()),
-                (ServerPlayer) event.getEntity());
-    }
-
-    @SubscribeEvent
-    public static void onChunkWatch(ChunkWatchEvent.Watch event) {
-        ChunkPos pos = event.getPos();
-        ServerPlayer player = event.getPlayer();
-        var data = EnvironmentalHazardSavedData.getOrCreate(event.getLevel());
-
-        var zone = data.getZoneByPos(pos);
-        if (zone != null) {
-            GTNetwork.NETWORK.sendToPlayer(new SPacketAddHazardZone(pos, zone), player);
-        }
-    }
-
-    @SubscribeEvent
-    public static void onChunkUnWatch(ChunkWatchEvent.UnWatch event) {
-        ChunkPos pos = event.getPos();
-        ServerPlayer player = event.getPlayer();
-        var data = EnvironmentalHazardSavedData.getOrCreate(event.getLevel());
-
-        var zone = data.getZoneByPos(pos);
-        if (zone != null) {
-            GTNetwork.NETWORK.sendToPlayer(new SPacketRemoveHazardZone(pos), player);
         }
     }
 }

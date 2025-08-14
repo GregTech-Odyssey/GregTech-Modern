@@ -2,8 +2,8 @@ package com.gregtechceu.gtceu.api.item;
 
 import com.gregtechceu.gtceu.api.block.IMachineBlock;
 import com.gregtechceu.gtceu.api.block.PipeBlock;
+import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
-import com.gregtechceu.gtceu.api.pipenet.IPipeNode;
 
 import com.lowdragmc.lowdraglib.client.renderer.IItemRendererProvider;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
@@ -53,7 +53,7 @@ public class MetaMachineItem extends BlockItem implements IItemRendererProvider 
             BlockPos possiblePipe = pos.offset(side.getOpposite().getNormal());
             Block block = level.getBlockState(possiblePipe).getBlock();
             if (block instanceof PipeBlock<?, ?, ?>) {
-                IPipeNode pipeTile = ((PipeBlock<?, ?, ?>) block).getPipeTile(level, possiblePipe);
+                PipeBlockEntity pipeTile = ((PipeBlock<?, ?, ?>) block).getPipeTile(level, possiblePipe);
                 if (pipeTile != null && ((PipeBlock<?, ?, ?>) block).canPipeConnectToBlock(pipeTile, side.getOpposite(),
                         level.getBlockEntity(pos))) {
                     pipeTile.setConnection(side, true, false);

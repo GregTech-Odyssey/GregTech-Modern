@@ -2,10 +2,9 @@ package com.gregtechceu.gtceu.common.blockentity;
 
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IDataAccessHatch;
-import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.pipenet.IPipeNode;
+import com.gregtechceu.gtceu.api.misc.ComputationProviderList;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.common.pipelike.optical.*;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -29,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
-import java.util.Collection;
 import java.util.EnumMap;
 
 public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, OpticalPipeProperties> {
@@ -38,7 +36,6 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
     private final EnumMap<Direction, OpticalNetHandler> handlers = new EnumMap<>(Direction.class);
     // the OpticalNetHandler can only be created on the server, so we have an empty placeholder for the client
     private static final IDataAccessHatch defaultDataHandler = new DefaultDataHandler();
-    private static final IOpticalComputationProvider defaultComputationHandler = new DefaultComputationHandler();
     private WeakReference<OpticalPipeNet> currentPipeNet = new WeakReference<>(null);
     private OpticalNetHandler defaultHandler;
     @Persisted
@@ -77,7 +74,7 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
         }
         if (capability == GTCapability.CAPABILITY_COMPUTATION_PROVIDER) {
             if (level.isClientSide) {
-                return GTCapability.CAPABILITY_COMPUTATION_PROVIDER.orEmpty(capability, LazyOptional.of(() -> defaultComputationHandler));
+                return GTCapability.CAPABILITY_COMPUTATION_PROVIDER.orEmpty(capability, LazyOptional.of(() -> ComputationProviderList.EMPTY));
             }
             if (handlers.isEmpty()) initHandlers();
             checkNetwork();
@@ -106,7 +103,7 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
         if (level == null || level.isClientSide) return null;
         OpticalPipeNet currentPipeNet = this.currentPipeNet.get();
         if (currentPipeNet != null && currentPipeNet.isValid() && currentPipeNet.containsNode(getPipePosLong())) return currentPipeNet;
-        LevelOpticalPipeNet worldNet = (LevelOpticalPipeNet) getPipeBlock().getWorldPipeNet((ServerLevel) getPipeLevel());
+        LevelOpticalPipeNet worldNet = (LevelOpticalPipeNet) getPipeBlock().getWorldPipeNet((ServerLevel) getLevel());
         currentPipeNet = worldNet.getNetFromPos(getPipePos(), getPipePosLong());
         if (currentPipeNet != null) {
             this.currentPipeNet = new WeakReference<>(currentPipeNet);
@@ -121,7 +118,7 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
             if (getNumConnections() >= 2) return;
             // also check the other pipe
             BlockEntity tile = getLevel().getBlockEntity(getPipePos().relative(side));
-            if (tile instanceof IPipeNode<?, ?> pipeTile && pipeTile.getPipeType().getClass() == this.getPipeType().getClass()) {
+            if (tile instanceof PipeBlockEntity<?, ?> pipeTile && pipeTile.getPipeType().getClass() == this.getPipeType().getClass()) {
                 if (pipeTile.getNumConnections() >= 2) return;
             }
         }
@@ -167,30 +164,12 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
     private static class DefaultDataHandler implements IDataAccessHatch {
 
         @Override
-        public boolean isRecipeAvailable(@NotNull GTRecipe recipe, @NotNull Collection<IDataAccessHatch> seen) {
+        public boolean isRecipeAvailable(@NotNull GTRecipe recipe) {
             return false;
         }
 
         @Override
         public boolean isCreative() {
-            return false;
-        }
-    }
-
-    private static class DefaultComputationHandler implements IOpticalComputationProvider {
-
-        @Override
-        public int requestCWUt(int cwut, boolean simulate, @NotNull Collection<IOpticalComputationProvider> seen) {
-            return 0;
-        }
-
-        @Override
-        public int getMaxCWUt(@NotNull Collection<IOpticalComputationProvider> seen) {
-            return 0;
-        }
-
-        @Override
-        public boolean canBridge(@NotNull Collection<IOpticalComputationProvider> seen) {
             return false;
         }
     }

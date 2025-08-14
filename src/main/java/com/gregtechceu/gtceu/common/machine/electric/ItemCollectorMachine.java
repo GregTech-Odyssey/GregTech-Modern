@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.common.machine.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IWorkable;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
@@ -12,7 +13,6 @@ import com.gregtechceu.gtceu.api.gui.editor.EditableUI;
 import com.gregtechceu.gtceu.api.gui.widget.IntInputWidget;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
@@ -111,7 +111,7 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     @RequireRerender
     private boolean active = false;
 
-    public ItemCollectorMachine(IMachineBlockEntity holder, int tier, Object... ignoredArgs) {
+    public ItemCollectorMachine(MetaMachineBlockEntity holder, int tier, Object... ignoredArgs) {
         super(holder, tier);
         this.inventorySize = INVENTORY_SIZES[Mth.clamp(getTier(), 0, INVENTORY_SIZES.length - 1)];
         this.energyPerTick = (long) BASE_EU_CONSUMPTION * (1L << (tier - 1));

@@ -1,10 +1,10 @@
 package com.gregtechceu.gtceu.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.api.block.ActiveBlock;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.ICleanroomProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
@@ -56,7 +56,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Nullable
     protected LongSet activeBlocks;
 
-    public WorkableMultiblockMachine(IMachineBlockEntity holder, Object... args) {
+    public WorkableMultiblockMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder);
         this.recipeTypes = getDefinition().getRecipeTypes();
         this.activeRecipeType = 0;
@@ -86,7 +86,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     //////////////////////////////////////
     @Override
     protected void onStructureFormedAfter() {
-        recipeLogic.loadTickSubscription();
+        recipeLogic.updateTickSubscription();
     }
 
     @Override
@@ -143,7 +143,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         // fine some parts invalid now.
         // but we shouldn't reset recipe logic rn.
         // if it's due to chunk unload, we should just wait for it to be valid again.
-        recipeLogic.loadTickSubscription();
+        recipeLogic.updateTickSubscription();
     }
 
     //////////////////////////////////////

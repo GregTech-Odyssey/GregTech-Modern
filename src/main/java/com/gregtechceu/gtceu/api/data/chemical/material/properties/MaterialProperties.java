@@ -7,10 +7,10 @@ import java.util.*;
 
 public class MaterialProperties {
 
-    private static final Set<PropertyKey<?>> baseTypes = Set.of(PropertyKey.FLUID, PropertyKey.DUST, PropertyKey.INGOT, PropertyKey.GEM, PropertyKey.EMPTY);
+    public static final Set<PropertyKey<?>> baseTypes = Set.of(PropertyKey.FLUID, PropertyKey.DUST, PropertyKey.INGOT, PropertyKey.GEM, PropertyKey.EMPTY);
 
-    private final Map<PropertyKey<? extends IMaterialProperty>, IMaterialProperty> propertyMap;
-    private Material material;
+    public final Map<PropertyKey<? extends IMaterialProperty>, IMaterialProperty> propertyMap;
+    public Material material;
 
     public MaterialProperties() {
         propertyMap = new IdentityHashMap<>();

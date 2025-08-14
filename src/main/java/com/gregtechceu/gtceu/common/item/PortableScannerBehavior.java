@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.common.item;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.IMachineBlock;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
@@ -12,13 +13,10 @@ import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.BedrockFluidVeinSave
 import com.gregtechceu.gtceu.api.gui.misc.ProspectorMode;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
 import com.gregtechceu.gtceu.common.blockentity.FluidPipeBlockEntity;
-import com.gregtechceu.gtceu.common.capability.EnvironmentalHazardSavedData;
-import com.gregtechceu.gtceu.common.capability.LocalizedHazardSavedData;
 import com.gregtechceu.gtceu.common.data.GTSoundEntries;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.prospecting.SPacketProspectBedrockFluid;
@@ -164,7 +162,7 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
                 });
             }
         }
-        if (tileEntity instanceof IMachineBlockEntity machineBlockEntity) {
+        if (tileEntity instanceof MetaMachineBlockEntity machineBlockEntity) {
             MetaMachine machine = machineBlockEntity.getMetaMachine();
             list.add(Component.translatable(state.getBlock().getDescriptionId()).withStyle(ChatFormatting.BLUE));
             // General machine information
@@ -175,7 +173,7 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
                 if (machine.getDefinition().isAllowExtendedFacing()) {
                     list.add(Component.translatable("behavior.portable_scanner.divider"));
                     list.add(Component.translatable("behavior.portable_scanner.machine_front_facing", machine.getFrontFacing().getSerializedName()));
-                    list.add(Component.translatable("behavior.portable_scanner.machine_upwards_facing", machineBlockEntity.self().getBlockState().getValue(IMachineBlock.UPWARDS_FACING_PROPERTY).getSerializedName()));
+                    list.add(Component.translatable("behavior.portable_scanner.machine_upwards_facing", machineBlockEntity.getBlockState().getValue(IMachineBlock.UPWARDS_FACING_PROPERTY).getSerializedName()));
                 }
                 // Fluid tanks
                 Optional<IFluidHandler> fluidCap = tileEntity.getCapability(ForgeCapabilities.FLUID_HANDLER).resolve();
@@ -285,21 +283,6 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
                     }
                 } else {
                     list.add(Component.translatable("behavior.portable_scanner.bedrock_fluid.nothing"));
-                }
-                // Pollution
-                var environmental = EnvironmentalHazardSavedData.getOrCreate(serverLevel);
-                var environmentHazardZone = environmental.getZoneByContainedPos(pos);
-                if (environmentHazardZone != null) {
-                    list.add(Component.translatable("behavior.portable_scanner.environmental_hazard", Component.translatable("gtceu.medical_condition." + environmentHazardZone.condition().name), Component.literal(FormattingUtil.formatNumbers(environmentHazardZone.strength()))));
-                } else {
-                    list.add(Component.translatable("behavior.portable_scanner.environmental_hazard.nothing"));
-                }
-                var local = LocalizedHazardSavedData.getOrCreate(serverLevel);
-                var localHazardZone = local.getZoneByContainedPos(pos);
-                if (localHazardZone != null) {
-                    list.add(Component.translatable("behavior.portable_scanner.local_hazard", Component.translatable("gtceu.medical_condition." + localHazardZone.condition().name), Component.literal(FormattingUtil.formatNumbers(localHazardZone.strength()))));
-                } else {
-                    list.add(Component.translatable("behavior.portable_scanner.local_hazard.nothing"));
                 }
             }
         }

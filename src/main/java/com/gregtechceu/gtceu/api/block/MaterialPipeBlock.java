@@ -77,7 +77,7 @@ public abstract class MaterialPipeBlock<
     }
 
     @Override
-    public NodeDataType createProperties(IPipeNode<PipeType, NodeDataType> pipeTile) {
+    public NodeDataType createProperties(PipeBlockEntity<PipeType, NodeDataType> pipeTile) {
         PipeType pipeType = pipeTile.getPipeType();
         Material material = ((MaterialPipeBlock<PipeType, NodeDataType, WorldPipeNetType>) pipeTile
                 .getPipeBlock()).material;

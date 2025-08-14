@@ -1,10 +1,10 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.common.data.GTMachines;
@@ -42,7 +42,7 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
     private boolean hasFluidHandler;
     private boolean hasItemHandler;
 
-    public DualHatchPartMachine(IMachineBlockEntity holder, int tier, IO io, Object... args) {
+    public DualHatchPartMachine(MetaMachineBlockEntity holder, int tier, IO io, Object... args) {
         super(holder, tier, io);
         this.tank = createTank(INITIAL_TANK_CAPACITY, (int) Math.sqrt(getInventorySize()), args);
         setDistinct(true);
@@ -145,7 +145,7 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
 
         getLevel().setBlockAndUpdate(blockPos, newBlockState);
 
-        if (getLevel().getBlockEntity(blockPos) instanceof IMachineBlockEntity newHolder) {
+        if (getLevel().getBlockEntity(blockPos) instanceof MetaMachineBlockEntity newHolder) {
             if (newHolder.getMetaMachine() instanceof DualHatchPartMachine newMachine) {
                 newMachine.setFrontFacing(this.getFrontFacing());
                 newMachine.setUpwardsFacing(this.getUpwardsFacing());
