@@ -34,6 +34,12 @@ public class ItemHandlerProxyTrait extends MachineTrait implements IItemHandlerM
     // ******* Capability ********//
     //////////////////////////////////////
     @Override
+    public boolean hasCapability(@Nullable Direction side) {
+        if (capabilityIO == IO.NONE) return false;
+        return capabilityValidator.test(side);
+    }
+
+    @Override
     public int getSlots() {
         return proxy == null ? 0 : proxy.getSlots();
     }

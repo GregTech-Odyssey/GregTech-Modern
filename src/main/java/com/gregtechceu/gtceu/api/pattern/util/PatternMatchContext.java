@@ -27,11 +27,14 @@ public class PatternMatchContext {
         return predicates;
     }
 
-    public void merge(PatternMatchContext state) {
+    public void mergeData(PatternMatchContext state) {
         if (state.data != null) {
             if (data == null) data = new Object2ObjectOpenHashMap<>();
             data.putAll(state.data);
         }
+    }
+
+    public void merge(PatternMatchContext state) {
         if (state.predicates != null) {
             if (predicates == null) predicates = new Long2ObjectOpenHashMap<>();
             predicates.putAll(state.predicates);

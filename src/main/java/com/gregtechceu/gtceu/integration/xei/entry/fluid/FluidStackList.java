@@ -2,7 +2,8 @@ package com.gregtechceu.gtceu.integration.xei.entry.fluid;
 
 import net.minecraftforge.fluids.FluidStack;
 
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
@@ -12,7 +13,11 @@ public final class FluidStackList implements FluidEntryList {
     private final List<FluidStack> stacks;
 
     public FluidStackList() {
-        this.stacks = new ArrayList<>();
+        this.stacks = new ObjectArrayList<>();
+    }
+
+    public FluidStackList(FluidStack[] array) {
+        this.stacks = new ObjectArrayList<>(array);
     }
 
     public static FluidStackList of(FluidStack stack) {

@@ -11,6 +11,7 @@ import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FluidTankProxyTrait extends MachineTrait implements IFluidHandlerModifiable, ICapabilityTrait {
 
@@ -31,6 +32,12 @@ public class FluidTankProxyTrait extends MachineTrait implements IFluidHandlerMo
     //////////////////////////////////////
     // ******* Capability ********//
     //////////////////////////////////////
+    @Override
+    public boolean hasCapability(@Nullable Direction side) {
+        if (capabilityIO == IO.NONE) return false;
+        return capabilityValidator.test(side);
+    }
+
     @Override
     public int getTanks() {
         return proxy == null ? 0 : proxy.getTanks();

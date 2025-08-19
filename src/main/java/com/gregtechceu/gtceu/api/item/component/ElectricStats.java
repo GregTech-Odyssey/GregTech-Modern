@@ -12,13 +12,11 @@ import com.gregtechceu.gtceu.utils.FormattingUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -35,7 +33,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
-public class ElectricStats implements IInteractionItem, ISubItemHandler, IAddInformation, IItemLifeCycle, IItemDecoratorComponent {
+public class ElectricStats implements IInteractionItem, IAddInformation, IItemLifeCycle, IItemDecoratorComponent {
 
     public static final ElectricStats EMPTY = ElectricStats.create(0, 0, false, false);
 
@@ -224,17 +222,6 @@ public class ElectricStats implements IInteractionItem, ISubItemHandler, IAddInf
     private static boolean isInDischargeMode(ItemStack itemStack) {
         var tagCompound = itemStack.getTag();
         return tagCompound != null && tagCompound.getBoolean("DischargeMode");
-    }
-
-    @Override
-    public void fillItemCategory(Item item, CreativeModeTab category, NonNullList<ItemStack> items) {
-        items.add(new ItemStack(item));
-        var stack = new ItemStack(item);
-        var electricItem = GTCapabilityHelper.getElectricItem(stack);
-        if (electricItem != null) {
-            electricItem.charge(electricItem.getMaxCharge(), electricItem.getTier(), true, false);
-            items.add(stack);
-        }
     }
 
     public static ElectricStats createElectricItem(long maxCharge, int tier) {

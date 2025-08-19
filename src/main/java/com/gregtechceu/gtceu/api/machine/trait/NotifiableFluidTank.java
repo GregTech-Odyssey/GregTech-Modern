@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
 import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
@@ -18,7 +19,9 @@ import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
 
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -32,11 +35,14 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     protected final CustomFluidTank[] storages;
     protected boolean allowSameFluids; // Can different tanks be filled with the same fluid. It should be determined
     // while creating tanks.
-    private Boolean isEmpty;
+    protected Boolean isEmpty;
+    protected boolean changed = true;
     @Persisted
     @DescSynced
     protected final CustomFluidTank lockedFluid = new CustomFluidTank(FluidType.BUCKET_VOLUME);
-    protected Predicate<FluidStack> filter = f -> true;
+    protected Predicate<FluidStack> filter = GTUtil.FAVORABLE;
+
+    protected Object2LongOpenHashMap<FluidStack> fluidMap;
 
     public NotifiableFluidTank(MetaMachine machine, int slots, int capacity, IO io, IO capabilityIO) {
         super(machine);
@@ -71,8 +77,9 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     }
 
     public void onContentsChanged() {
-        notifyListeners();
         isEmpty = null;
+        changed = true;
+        notifyListeners();
     }
 
     @Override
@@ -199,7 +206,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
             setFilter(stack -> stack.isFluidEqual(this.lockedFluid.getFluid()));
         } else {
             this.lockedFluid.setFluid(FluidStack.EMPTY);
-            setFilter(stack -> true);
+            setFilter(GTUtil.FAVORABLE);
         }
         notifyListeners();
     }
@@ -224,6 +231,27 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     @Override
     public int getSize() {
         return getTanks();
+    }
+
+    @Override
+    public @Nullable Object2LongOpenHashMap<FluidStack> getFluidMap() {
+        if (fluidMap == null) {
+            fluidMap = new Object2LongOpenHashMap<>();
+        }
+        if (changed) {
+            changed = false;
+            fluidMap.clear();
+            var tanks = getTanks();
+            for (int i = 0; i < tanks; ++i) {
+                FluidStack stack = getFluidInTank(i);
+                var amount = stack.getAmount();
+                if (amount > 0) {
+                    fluidMap.addTo(stack, amount);
+                }
+            }
+            isEmpty = fluidMap.isEmpty();
+        }
+        return isEmpty ? null : fluidMap;
     }
 
     @Override
@@ -286,6 +314,12 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     //////////////////////////////////////
     // ******* Capability ********//
     //////////////////////////////////////
+    @Override
+    public boolean hasCapability(@Nullable Direction side) {
+        if (capabilityIO == IO.NONE) return false;
+        return capabilityValidator.test(side);
+    }
+
     @NotNull
     @Override
     public FluidStack getFluidInTank(int tank) {

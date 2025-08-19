@@ -13,8 +13,6 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
-import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
-import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
@@ -34,7 +32,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class DistillationTowerMachine extends WorkableElectricMultiblockMachine implements FluidRecipeCapability.ICustomParallel {
+public class DistillationTowerMachine extends WorkableElectricMultiblockMachine {
 
     private List<IFluidHandler> fluidOutputs;
     @Nullable
@@ -112,28 +110,6 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
         fluidOutputs = null;
         firstValid = null;
         super.onStructureInvalid();
-    }
-
-    @Override
-    public int limitFluidParallel(GTRecipe recipe, int multiplier, boolean tick) {
-        int minMultiplier = 0;
-        int maxMultiplier = multiplier;
-        var contents = (tick ? recipe.tickInputs : recipe.inputs).get(FluidRecipeCapability.CAP);
-        if (contents == null || contents.isEmpty()) return multiplier;
-        int maxAmount = contents.stream().map(Content::getContent).map(FluidRecipeCapability.CAP::of).filter(i -> !i.isEmpty()).mapToInt(FluidIngredient::getAmount).max().orElse(0);
-        if (maxAmount == 0) return multiplier;
-        if (multiplier > Integer.MAX_VALUE / maxAmount) {
-            maxMultiplier = multiplier = Integer.MAX_VALUE / maxAmount;
-        }
-        while (minMultiplier != maxMultiplier) {
-            GTRecipe copy = modifyOutputs(recipe, ContentModifier.multiplier(multiplier));
-            boolean filled = getRecipeLogic().applyFluidOutputs(copy, FluidAction.SIMULATE);
-            int[] bin = ParallelLogic.adjustMultiplier(filled, minMultiplier, multiplier, maxMultiplier);
-            minMultiplier = bin[0];
-            multiplier = bin[1];
-            maxMultiplier = bin[2];
-        }
-        return multiplier;
     }
 
     private static GTRecipe modifyOutputs(GTRecipe recipe, ContentModifier cm) {

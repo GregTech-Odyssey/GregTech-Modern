@@ -1,29 +1,29 @@
 package com.gregtechceu.gtceu.utils;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class TaskHandler {
 
-    private static final Map<ResourceKey<Level>, List<RunnableEntry>> serverTasks = new Object2ObjectOpenHashMap<>();
-    private static final Map<ResourceKey<Level>, List<RunnableEntry>> waitToAddTasks = new Object2ObjectOpenHashMap<>();
+    private static final Map<ResourceLocation, List<RunnableEntry>> serverTasks = new Object2ObjectOpenHashMap<>();
+    private static final Map<ResourceLocation, List<RunnableEntry>> waitToAddTasks = new Object2ObjectOpenHashMap<>();
 
     // schedule tick event here
     public static void onTickUpdate(ServerLevel level) {
-        var key = level.dimension();
+        var key = level.dimension().location();
         synchronized (waitToAddTasks) {
             var list = waitToAddTasks.remove(key);
             if (list != null && !list.isEmpty()) {
-                serverTasks.computeIfAbsent(key, k -> new ArrayList<>()).addAll(list);
+                serverTasks.computeIfAbsent(key, k -> new ObjectArrayList<>()).addAll(list);
             }
         }
         execute(serverTasks.get(key));
@@ -31,10 +31,18 @@ public class TaskHandler {
 
     // clean up here
     public static void onWorldUnLoad(ServerLevel level) {
-        var key = level.dimension();
-        serverTasks.remove(key);
+        var key = level.dimension().location();
+        var tasks = serverTasks.get(key);
+        if (tasks != null) {
+            tasks.forEach(TickableSubscription::unsubscribe);
+            serverTasks.remove(key);
+        }
         synchronized (waitToAddTasks) {
-            waitToAddTasks.remove(key);
+            tasks = waitToAddTasks.get(key);
+            if (tasks != null) {
+                tasks.forEach(TickableSubscription::unsubscribe);
+                waitToAddTasks.remove(key);
+            }
         }
     }
 
@@ -44,12 +52,16 @@ public class TaskHandler {
         while (iter.hasNext()) {
             var task = iter.next();
             if (task.delay <= 0) {
-                try {
-                    task.runnable.run();
-                } catch (Exception e) {
-                    GTCEu.LOGGER.error("error while schedule gregtech task", e);
+                if (task.isStillSubscribed()) {
+                    try {
+                        task.run();
+                    } catch (Exception e) {
+                        GTCEu.LOGGER.error("error while schedule gregtech task", e);
+                    }
+                    if (task.task) iter.remove();
+                } else {
+                    iter.remove();
                 }
-                iter.remove();
             } else {
                 task.delay--;
             }
@@ -57,19 +69,28 @@ public class TaskHandler {
     }
 
     public static void enqueueServerTask(ServerLevel level, Runnable task, int delay) {
+        var entry = new RunnableEntry(task, delay);
+        entry.task = true;
         synchronized (waitToAddTasks) {
-            waitToAddTasks.computeIfAbsent(level.dimension(), key -> new ArrayList<>())
-                    .add(new RunnableEntry(task, delay));
+            waitToAddTasks.computeIfAbsent(level.dimension().location(), key -> new ObjectArrayList<>()).add(entry);
         }
     }
 
-    private static class RunnableEntry {
+    public static TickableSubscription enqueueServerTick(ServerLevel level, Runnable runnable, int delay) {
+        var entry = new RunnableEntry(runnable, delay);
+        synchronized (waitToAddTasks) {
+            waitToAddTasks.computeIfAbsent(level.dimension().location(), key -> new ObjectArrayList<>()).add(entry);
+            return entry;
+        }
+    }
 
-        Runnable runnable;
-        int delay;
+    private static class RunnableEntry extends TickableSubscription {
+
+        private boolean task;
+        private int delay;
 
         public RunnableEntry(Runnable runnable, int delay) {
-            this.runnable = runnable;
+            super(runnable);
             this.delay = delay;
         }
     }

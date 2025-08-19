@@ -17,9 +17,9 @@ import net.minecraft.world.level.block.Block;
 import net.minecraftforge.eventbus.api.GenericEvent;
 import net.minecraftforge.fml.event.IModBusEvent;
 
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.ApiStatus;
 
-import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -38,9 +38,9 @@ public class GTCEuAPI {
      */
     private static boolean highTier;
     private static boolean highTierInitialized;
-    public static final Map<ICoilType, Supplier<CoilBlock>> HEATING_COILS = new IdentityHashMap<>();
-    public static final Map<IFilterType, Supplier<Block>> CLEANROOM_FILTERS = new IdentityHashMap<>();
-    public static final Map<IBatteryData, Supplier<BatteryBlock>> PSS_BATTERIES = new IdentityHashMap<>();
+    public static final Map<ICoilType, Supplier<CoilBlock>> HEATING_COILS = new Reference2ReferenceOpenHashMap<>();
+    public static final Map<IFilterType, Supplier<Block>> CLEANROOM_FILTERS = new Reference2ReferenceOpenHashMap<>();
+    public static final Map<IBatteryData, Supplier<BatteryBlock>> PSS_BATTERIES = new Reference2ReferenceOpenHashMap<>();
 
     /**
      * Initializes High-Tier. Internal use only, do not attempt to call this.

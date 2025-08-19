@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.gui.SteamTexture;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.chance.boost.ChanceBoostFunction;
-import com.gregtechceu.gtceu.api.recipe.lookup.GTRecipeLookup;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 import com.gregtechceu.gtceu.api.sound.SoundEntry;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
@@ -54,7 +53,6 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     protected final Map<RecipeType<?>, List<GTRecipe>> proxyRecipes;
     protected final GTRecipeCategory category;
     protected final Map<GTRecipeCategory, Set<GTRecipe>> categoryMap = new Object2ObjectOpenHashMap<>();
-    protected final GTRecipeLookup lookup = new GTRecipeLookup(this);
     protected boolean offsetVoltageText = false;
     protected int voltageTextOffset = 20;
     protected final Map<String, Collection<GTRecipe>> researchEntries = new Object2ObjectOpenHashMap<>();
@@ -154,23 +152,6 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
 
     @NotNull
     public Iterator<GTRecipe> searchRecipe(IRecipeCapabilityHolder holder, Predicate<GTRecipe> canHandle) {
-        if (!holder.hasCapabilityProxies()) return Collections.emptyIterator();
-        var iterator = getLookup().getRecipeIterator(holder, canHandle);
-        boolean any = false;
-        while (iterator.hasNext()) {
-            GTRecipe recipe = iterator.next();
-            if (recipe == null) continue;
-            any = true;
-            break;
-        }
-        if (any) {
-            iterator.reset();
-            return iterator;
-        }
-        for (ICustomRecipeLogic logic : customRecipeLogicRunners) {
-            GTRecipe recipe = logic.createCustomRecipe(holder);
-            if (recipe != null && canHandle.test(recipe)) return Collections.singleton(recipe).iterator();
-        }
         return Collections.emptyIterator();
     }
 
@@ -400,10 +381,6 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
 
     public Map<GTRecipeCategory, Set<GTRecipe>> getCategoryMap() {
         return this.categoryMap;
-    }
-
-    public GTRecipeLookup getLookup() {
-        return this.lookup;
     }
 
     /**

@@ -2,8 +2,8 @@ package com.gregtechceu.gtceu.api.machine;
 
 public class TickableSubscription {
 
-    private final Runnable runnable;
-    private boolean stillSubscribed;
+    protected final Runnable runnable;
+    protected boolean stillSubscribed;
 
     public TickableSubscription(Runnable runnable) {
         this.runnable = runnable;

@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.item.tool;
 import com.gregtechceu.gtceu.api.item.tool.aoe.AoESymmetrical;
 import com.gregtechceu.gtceu.api.item.tool.behavior.IToolBehavior;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -166,7 +167,7 @@ public class ToolDefinitionBuilder {
                 if (effectiveStates != null) {
                     effectiveStatePredicate = effectiveStatePredicate == null ? effectiveStates : effectiveStatePredicate.or(effectiveStates);
                 }
-                this.effectiveStatePredicate = effectiveStatePredicate == null ? state -> false : effectiveStatePredicate;
+                this.effectiveStatePredicate = effectiveStatePredicate == null ? GTUtil.NEGATIVE : effectiveStatePredicate;
             }
 
             @Override

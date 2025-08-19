@@ -12,6 +12,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -165,7 +166,7 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
         protected EnergyBatteryTrait(int inventorySize) {
             super(ChargerMachine.this, GTValues.V[tier] * inventorySize * 32L, GTValues.V[tier], inventorySize * AMPS_PER_ITEM, 0L, 0L);
             this.setSideInputCondition(side -> isWorkingEnabled());
-            this.setSideOutputCondition(side -> false);
+            this.setSideOutputCondition(GTUtil.NEGATIVE);
         }
 
         @Override

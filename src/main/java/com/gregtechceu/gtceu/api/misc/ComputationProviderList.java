@@ -29,6 +29,15 @@ public final class ComputationProviderList implements IOpticalComputationProvide
     }
 
     @Override
+    public long getMaxCWU() {
+        long result = 0;
+        for (IOpticalComputationProvider provider : providers) {
+            result += provider.getMaxCWU();
+        }
+        return result;
+    }
+
+    @Override
     public boolean canBridge() {
         for (IOpticalComputationProvider provider : providers) {
             if (!provider.canBridge()) return false;

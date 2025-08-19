@@ -5,10 +5,10 @@ import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.ingredient.IntProviderIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.SizedIngredient;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
+import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
@@ -19,6 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import it.unimi.dsi.fastutil.objects.Object2LongOpenCustomHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,6 +30,10 @@ import java.util.function.Predicate;
 
 public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ingredient> implements ICapabilityTrait, IItemHandlerModifiable {
 
+    public static NotifiableItemStackHandler empty(MetaMachine machine) {
+        return new NotifiableItemStackHandler(machine, 0, IO.NONE).shouldSearchContent(false);
+    }
+
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(NotifiableItemStackHandler.class, NotifiableRecipeHandlerTrait.MANAGED_FIELD_HOLDER);
     public final IO handlerIO;
     public final IO capabilityIO;
@@ -36,7 +41,10 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     @DescSynced
     public final CustomItemStackHandler storage;
     private boolean shouldSearchContent = true;
-    private Boolean isEmpty;
+    protected Boolean isEmpty;
+    protected boolean changed = true;
+
+    protected Object2LongOpenCustomHashMap<ItemStack> itemMap;
 
     public NotifiableItemStackHandler(MetaMachine machine, int slots, @NotNull IO handlerIO, @NotNull IO capabilityIO, IntFunction<CustomItemStackHandler> storageFactory) {
         super(machine);
@@ -60,8 +68,9 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     }
 
     public void onContentsChanged() {
-        notifyListeners();
         isEmpty = null;
+        changed = true;
+        notifyListeners();
     }
 
     @Override
@@ -91,45 +100,13 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
             }
             ItemStack[] items;
             int amount;
-            if (io == IO.OUT && ingredient instanceof IntProviderIngredient provider) {
-                provider.setItemStacks(null);
-                provider.setSampledCount(-1);
-                ItemStack output;
-                if (simulate) {
-                    output = provider.getMaxSizeStack();
-                    items = new ItemStack[] { output };
-                } else {
-                    items = provider.getItems();
-                    if (items.length == 0 || items[0].isEmpty()) {
-                        it.remove();
-                        continue;
-                    }
-                    output = items[0];
-                }
-                int outputStorageLimit = 0;
-                for (int slot = 0; slot < storage.getSlots(); ++slot) {
-                    ItemStack stack = storage.getStackInSlot(slot);
-                    if (stack.isEmpty() || ItemStack.isSameItemSameTags(stack, output)) {
-                        outputStorageLimit += storage.getSlotLimit(slot) - stack.getCount();
-                    }
-                }
-                if (provider.getCountProvider().getMinValue() > outputStorageLimit) {
-                    it.remove();
-                    continue;
-                } else if (simulate) {
-                    amount = provider.getCountProvider().getMaxValue();
-                } else {
-                    amount = Math.min(output.getCount(), outputStorageLimit);
-                }
-            } else {
-                items = ingredient.getItems();
-                if (items.length == 0 || items[0].isEmpty()) {
-                    it.remove();
-                    continue;
-                }
-                if (ingredient instanceof SizedIngredient si) amount = si.getAmount();
-                else amount = items[0].getCount();
+            items = ingredient.getItems();
+            if (items.length == 0 || items[0].isEmpty()) {
+                it.remove();
+                continue;
             }
+            if (ingredient instanceof SizedIngredient si) amount = si.getAmount();
+            else amount = items[0].getCount();
             for (int slot = 0; slot < storage.getSlots(); ++slot) {
                 ItemStack current = visited[slot] == null ? storage.getStackInSlot(slot) : visited[slot];
                 int count = current.getCount();
@@ -173,11 +150,6 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
         return left.isEmpty() ? null : left;
     }
 
-    @Nullable
-    private static ItemStack getActioned(CustomItemStackHandler storage, int index, List<?> actions) {
-        return null;
-    }
-
     @Override
     public RecipeCapability<Ingredient> getCapability() {
         return ItemRecipeCapability.CAP;
@@ -193,11 +165,32 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     }
 
     @Override
+    public @Nullable Object2LongOpenCustomHashMap<ItemStack> getItemMap() {
+        if (itemMap == null) {
+            itemMap = new Object2LongOpenCustomHashMap<>(ItemStackHashStrategy.ITEM_AND_TAG);
+        }
+        if (changed) {
+            changed = false;
+            itemMap.clear();
+            int sl = getSlots();
+            for (int i = 0; i < sl; ++i) {
+                ItemStack stack = storage.getStackInSlot(i);
+                var count = stack.getCount();
+                if (count > 0) {
+                    itemMap.addTo(stack, count);
+                }
+            }
+            isEmpty = itemMap.isEmpty();
+        }
+        return isEmpty ? null : itemMap;
+    }
+
+    @Override
     @NotNull
     public List<Object> getContents() {
         var stacks = new ArrayList<>();
         for (int i = 0; i < getSlots(); ++i) {
-            ItemStack stack = getStackInSlot(i);
+            ItemStack stack = storage.getStackInSlot(i);
             if (!stack.isEmpty()) {
                 stacks.add(stack);
             }
@@ -209,7 +202,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     public double getTotalContentAmount() {
         long amount = 0;
         for (int i = 0; i < getSlots(); ++i) {
-            ItemStack stack = getStackInSlot(i);
+            ItemStack stack = storage.getStackInSlot(i);
             if (!stack.isEmpty()) {
                 amount += stack.getCount();
             }
@@ -252,6 +245,12 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     //////////////////////////////////////
     // ******* Capability ********//
     //////////////////////////////////////
+    @Override
+    public boolean hasCapability(@Nullable Direction side) {
+        if (capabilityIO == IO.NONE) return false;
+        return capabilityValidator.test(side);
+    }
+
     @NotNull
     @Override
     public ItemStack getStackInSlot(int slot) {

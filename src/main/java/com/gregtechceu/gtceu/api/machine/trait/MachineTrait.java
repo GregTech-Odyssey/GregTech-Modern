@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
 import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
@@ -25,11 +26,11 @@ public abstract class MachineTrait implements IEnhancedManaged {
 
     public MachineTrait(MetaMachine machine) {
         this.machine = machine;
-        this.capabilityValidator = side -> true;
+        this.capabilityValidator = GTUtil.FAVORABLE;
         machine.attachTraits(this);
     }
 
-    public final boolean hasCapability(@Nullable Direction side) {
+    public boolean hasCapability(@Nullable Direction side) {
         return capabilityValidator.test(side);
     }
 
@@ -37,6 +38,8 @@ public abstract class MachineTrait implements IEnhancedManaged {
     public void onChanged() {
         machine.onChanged();
     }
+
+    public void onMachineRotated(Direction oldFacing, Direction newFacing) {}
 
     public void onMachineLoad() {}
 

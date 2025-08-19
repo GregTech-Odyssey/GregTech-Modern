@@ -26,7 +26,7 @@ import java.util.function.Supplier;
 
 public class SimplePredicate {
 
-    public static SimplePredicate ANY = new SimplePredicate("any", x -> true, null, null);
+    public static SimplePredicate ANY = new SimplePredicate("any", GTUtil.FAVORABLE, null, null);
     public static SimplePredicate AIR = new SimplePredicate("air", blockWorldState -> blockWorldState.getBlockState().isAir(), null, null);
 
     @Nullable

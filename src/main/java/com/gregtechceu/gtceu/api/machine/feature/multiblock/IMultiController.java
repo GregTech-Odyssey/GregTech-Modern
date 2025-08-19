@@ -21,11 +21,11 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
+import java.util.function.Supplier;
 
 public interface IMultiController extends IInteractedMachine {
 
@@ -102,12 +102,8 @@ public interface IMultiController extends IInteractedMachine {
         return self().getDefinition().getPatternFactory().get();
     }
 
-    default List<BlockPattern> getSubPattern() {
-        return Collections.emptyList();
-    }
-
-    default List<MultiblockState> getSubMultiblockState() {
-        return Collections.emptyList();
+    default Supplier<BlockPattern>[] getSubPattern() {
+        return self().getDefinition().getSubPatternFactory();
     }
 
     /**

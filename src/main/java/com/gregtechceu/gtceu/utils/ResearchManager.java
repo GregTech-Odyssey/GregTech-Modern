@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.item.component.IItemComponent;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
+import com.gregtechceu.gtceu.api.transfer.item.ItemHandlerList;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.config.ConfigHolder;
@@ -22,7 +23,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.wrapper.CombinedInvWrapper;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -187,7 +187,7 @@ public final class ResearchManager {
                     .filter(IItemHandlerModifiable.class::isInstance)
                     .map(IItemHandlerModifiable.class::cast)
                     .toArray(IItemHandlerModifiable[]::new);
-            var inputs = new CombinedInvWrapper(itemInputs);
+            var inputs = new ItemHandlerList(itemInputs);
             if (inputs.getSlots() > 1) {
                 // try the data recipe both ways, prioritizing overwriting the first
                 GTRecipe recipe = createDataRecipe(inputs.getStackInSlot(0), inputs.getStackInSlot(1));

@@ -64,6 +64,39 @@ public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait
     }
 
     @Override
+    public long getMaxCWU() {
+        if (call) return 0;
+        call = true;
+        var result = 0L;
+        var latestTimeStamp = getMachine().getOffsetTimer();
+        if (lastTimeStamp < latestTimeStamp) {
+            lastOutputCwu = currentOutputCwu;
+            currentOutputCwu = 0;
+            lastTimeStamp = latestTimeStamp;
+        }
+        if (transmitter) {
+            if (machine instanceof IMultiPart part) {
+                for (IMultiController controller : part.getControllers()) {
+                    if (!controller.isFormed()) {
+                        continue;
+                    }
+                    if (controller instanceof IOpticalComputationProvider provider) {
+                        result += provider.getMaxCWU();
+                    }
+                }
+            }
+        } else {
+            // Ask the attached Transmitter hatch, if it exists
+            IOpticalComputationProvider provider = getOpticalNetProvider();
+            if (provider != null) {
+                result = provider.getMaxCWU();
+            }
+        }
+        call = false;
+        return result;
+    }
+
+    @Override
     public boolean canBridge() {
         if (transmitter) {
             if (machine instanceof IMultiPart part) {

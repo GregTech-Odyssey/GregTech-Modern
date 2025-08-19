@@ -25,9 +25,9 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.HitResult;
 
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,7 +53,7 @@ public class LampBlock extends Block implements IBlockRendererProvider {
 
     public final DyeColor color;
     public final boolean bordered;
-    private final Map<BlockState, LampRenderer> renderers = new IdentityHashMap<>();
+    private final Map<BlockState, LampRenderer> renderers = new Reference2ReferenceOpenHashMap<>();
 
     public LampBlock(Properties properties, DyeColor color, boolean bordered) {
         super(properties);

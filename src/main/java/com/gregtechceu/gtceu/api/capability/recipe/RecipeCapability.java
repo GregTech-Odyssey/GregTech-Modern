@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 import com.gregtechceu.gtceu.api.recipe.content.IContentSerializer;
-import com.gregtechceu.gtceu.api.recipe.lookup.ingredient.AbstractMapIngredient;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 
@@ -108,14 +107,6 @@ public abstract class RecipeCapability<T> {
 
     public boolean isRecipeSearchFilter() {
         return false;
-    }
-
-    public List<Object> compressIngredients(Collection<Object> ingredients) {
-        return new ArrayList<>(ingredients);
-    }
-
-    public @Nullable List<AbstractMapIngredient> getDefaultMapIngredient(Object object) {
-        return null;
     }
 
     /**

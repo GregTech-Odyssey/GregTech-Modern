@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.api.pattern.predicates;
 
+import com.gregtechceu.gtceu.utils.GTUtil;
+
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
 import net.minecraft.core.Holder;
@@ -27,7 +29,7 @@ public class PredicateBlockTag extends SimplePredicate {
     @Override
     public SimplePredicate buildPredicate() {
         if (tag == null) {
-            predicate = state -> false;
+            predicate = GTUtil.NEGATIVE;
             blockInfo = () -> BlockInfo.EMPTY;
             candidates = () -> new Block[] { Blocks.AIR };
             return this;

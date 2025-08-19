@@ -4,17 +4,15 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
-import com.gregtechceu.gtceu.api.item.IComponentItem;
 import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.LampBlockItem;
-import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 import com.gregtechceu.gtceu.common.pipelike.cable.Insulation;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.*;
+import net.minecraft.world.level.block.Block;
 
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import org.jetbrains.annotations.NotNull;
@@ -55,12 +53,6 @@ public class GTCreativeModeTabs {
                     .title(REGISTRATE.addLang("itemGroup", GTCEu.id("decoration"), GTCEu.NAME + " Decoration Blocks"))
                     .build())
             .register();
-    public static RegistryEntry<CreativeModeTab> TOOL = REGISTRATE.defaultCreativeTab("tool",
-            builder -> builder.displayItems(new RegistrateDisplayItemsGenerator("tool", REGISTRATE))
-                    .icon(() -> ToolHelper.get(GTToolType.WRENCH, GTMaterials.Steel))
-                    .title(REGISTRATE.addLang("itemGroup", GTCEu.id("tool"), GTCEu.NAME + " Tools"))
-                    .build())
-            .register();
     public static RegistryEntry<CreativeModeTab> MACHINE = REGISTRATE.defaultCreativeTab("machine",
             builder -> builder.displayItems(new RegistrateDisplayItemsGenerator("machine", REGISTRATE))
                     .icon(() -> GTMachines.ELECTROLYZER[GTValues.LV].asStack())
@@ -91,20 +83,11 @@ public class GTCreativeModeTabs {
                            @NotNull CreativeModeTab.Output output) {
             var tab = registrate.get(name, Registries.CREATIVE_MODE_TAB);
             for (var entry : registrate.getAll(Registries.BLOCK)) {
-                if (!registrate.isInCreativeTab(entry, tab))
-                    continue;
-                Item item = entry.get().asItem();
-                if (item == Items.AIR)
-                    continue;
-                if (item instanceof IComponentItem componentItem) {
-                    NonNullList<ItemStack> list = NonNullList.create();
-                    componentItem.fillItemCategory(tab.get(), list);
-                    list.forEach(output::accept);
-                } else if (item instanceof IGTTool tool) {
-                    NonNullList<ItemStack> list = NonNullList.create();
-                    tool.definition$fillItemCategory(tab.get(), list);
-                    list.forEach(output::accept);
-                } else if (item instanceof LampBlockItem lamp) {
+                if (!registrate.isInCreativeTab(entry, tab)) continue;
+                Block block = entry.get();
+                Item item = block.asItem();
+                if (item == Items.AIR) continue;
+                if (item instanceof LampBlockItem lamp) {
                     NonNullList<ItemStack> list = NonNullList.create();
                     lamp.fillItemCategory(tab.get(), list);
                     list.forEach(output::accept);
@@ -113,22 +96,11 @@ public class GTCreativeModeTabs {
                 }
             }
             for (var entry : registrate.getAll(Registries.ITEM)) {
-                if (!registrate.isInCreativeTab(entry, tab))
-                    continue;
+                if (!registrate.isInCreativeTab(entry, tab)) continue;
                 Item item = entry.get();
-                if (item instanceof BlockItem)
-                    continue;
-                if (item instanceof IComponentItem componentItem) {
-                    NonNullList<ItemStack> list = NonNullList.create();
-                    componentItem.fillItemCategory(tab.get(), list);
-                    list.forEach(output::accept);
-                } else if (item instanceof IGTTool tool) {
-                    NonNullList<ItemStack> list = NonNullList.create();
-                    tool.definition$fillItemCategory(tab.get(), list);
-                    list.forEach(output::accept);
-                } else {
-                    output.accept(item);
-                }
+                if (item instanceof BlockItem) continue;
+                if (item instanceof IGTTool) continue;
+                output.accept(item);
             }
         }
     }

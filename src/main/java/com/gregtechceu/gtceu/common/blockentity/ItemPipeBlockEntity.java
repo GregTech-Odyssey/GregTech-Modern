@@ -174,7 +174,7 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
                     var handler = LazyOptionalUtil.get(be.getCapability(ForgeCapabilities.ITEM_HANDLER, facing.getOpposite()));
                     if (handler != null) {
                         hasHandler = true;
-                        throughput -= GTTransferUtils.transferItemsFiltered(handler, handlers.getOrDefault(facing, defaultHandler), getCoverContainer().getCoverAtSide(facing) instanceof ItemFilterCover filterCover ? filterCover.getItemFilter() : i -> true, throughput);
+                        throughput -= GTTransferUtils.transferItemsFiltered(handler, handlers.getOrDefault(facing, defaultHandler), getCoverContainer().getCoverAtSide(facing) instanceof ItemFilterCover filterCover ? filterCover.getItemFilter() : GTUtil.FAVORABLE, throughput);
                         if (throughput <= 0) break;
                     }
                 }

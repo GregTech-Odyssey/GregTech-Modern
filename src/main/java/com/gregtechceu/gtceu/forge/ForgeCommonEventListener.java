@@ -193,6 +193,7 @@ public class ForgeCommonEventListener {
         for (var level : levels) {
             if (!level.isClientSide()) {
                 MultiblockWorldSavedData.getOrCreate(level).releaseExecutorService();
+                TaskHandler.onWorldUnLoad(level);
             }
         }
     }

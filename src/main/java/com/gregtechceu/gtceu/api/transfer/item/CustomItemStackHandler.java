@@ -24,7 +24,7 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
 
     @NotNull
     protected Runnable onContentsChanged = GTUtil.NOOP;
-    protected Predicate<ItemStack> filter = stack -> true;
+    protected Predicate<ItemStack> filter = GTUtil.FAVORABLE;
 
     protected ItemStack[] stacks;
     protected int size;

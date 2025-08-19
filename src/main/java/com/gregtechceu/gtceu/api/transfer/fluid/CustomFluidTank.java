@@ -19,7 +19,7 @@ public class CustomFluidTank extends FluidTank implements IFluidHandlerModifiabl
     protected Runnable onContentsChanged = GTUtil.NOOP;
 
     public CustomFluidTank(int capacity) {
-        super(capacity, e -> true);
+        super(capacity, GTUtil.FAVORABLE);
     }
 
     public CustomFluidTank(int capacity, Predicate<FluidStack> validator) {

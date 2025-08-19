@@ -62,8 +62,15 @@ public class OpticalNetHandler implements IDataAccessHatch, IOpticalComputationP
         IOpticalComputationProvider provider = getComputationProvider();
         if (provider == null) return 0;
         long provided = provider.requestCWU(cwu, simulate);
-        if (provided > 0) setPipesActive();
+        if (!simulate && provided > 0) setPipesActive();
         return provided;
+    }
+
+    @Override
+    public long getMaxCWU() {
+        IOpticalComputationProvider provider = getComputationProvider();
+        if (provider == null) return 0;
+        return provider.getMaxCWU();
     }
 
     @Override

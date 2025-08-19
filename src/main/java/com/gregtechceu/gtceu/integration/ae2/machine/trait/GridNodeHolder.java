@@ -45,6 +45,11 @@ public class GridNodeHolder extends MachineTrait {
     }
 
     @Override
+    public void onMachineRotated(Direction oldFacing, Direction newFacing) {
+        mainNode.setExposedOnSides(EnumSet.of(newFacing));
+    }
+
+    @Override
     public void onMachineLoad() {
         super.onMachineLoad();
         GridHelper.onFirstTick(machine.holder, b -> createMainNode());

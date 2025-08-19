@@ -18,24 +18,26 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class MultiblockMachineDefinition extends MachineDefinition {
 
-    private int checkPriority;
-    private boolean generator;
+    protected int checkPriority;
+    protected boolean generator;
 
-    private Supplier<BlockPattern> patternFactory;
-    private Supplier<List<MultiblockShapeInfo>> shapes;
+    protected Supplier<BlockPattern> patternFactory;
+    protected Supplier<BlockPattern>[] subPatternFactory;
+    protected Supplier<List<MultiblockShapeInfo>> shapes;
     /**
      * Set this to false only if your multiblock is set up such that it could have a wall-shared controller.
      */
-    private boolean allowFlip;
-    private boolean renderXEIPreview;
+    protected boolean allowFlip;
+    protected boolean renderXEIPreview;
     @Nullable
-    private Supplier<ItemStack> recoveryItems;
-    private TriFunction<IMultiController, IMultiPart, Direction, BlockState> partAppearance;
-    private BiConsumer<IMultiController, List<Component>> additionalDisplay;
+    protected Supplier<ItemStack> recoveryItems;
+    protected TriFunction<IMultiController, IMultiPart, Direction, BlockState> partAppearance;
+    protected BiConsumer<IMultiController, List<Component>> additionalDisplay;
 
     protected MultiblockMachineDefinition(ResourceLocation id) {
         super(id);
@@ -88,15 +90,20 @@ public class MultiblockMachineDefinition extends MachineDefinition {
         this.generator = generator;
     }
 
-    public void setPatternFactory(final Supplier<BlockPattern> patternFactory) {
-        if (patternFactory == null) {
-            throw new NullPointerException("patternFactory is marked non-null but is null");
-        }
-        this.patternFactory = patternFactory;
+    public void setPatternFactory(final Function<MultiblockMachineDefinition, BlockPattern> patternFactory) {
+        this.patternFactory = GTMemoizer.memoize(() -> patternFactory.apply(this));
     }
 
     public Supplier<BlockPattern> getPatternFactory() {
         return this.patternFactory;
+    }
+
+    public void setSubPatternFactory(final List<Function<MultiblockMachineDefinition, BlockPattern>> subPatternFactory) {
+        this.subPatternFactory = subPatternFactory.stream().map(p -> GTMemoizer.memoize(() -> p.apply(this))).toArray(Supplier[]::new);
+    }
+
+    public Supplier<BlockPattern>[] getSubPatternFactory() {
+        return this.subPatternFactory;
     }
 
     public void setShapes(final Supplier<List<MultiblockShapeInfo>> shapes) {

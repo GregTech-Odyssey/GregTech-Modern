@@ -30,6 +30,7 @@ import com.gregtechceu.gtceu.common.cover.ItemFilterCover;
 import com.gregtechceu.gtceu.common.item.tool.behavior.ToolModeSwitchBehavior;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 import com.gregtechceu.gtceu.common.machine.owner.PlayerOwner;
+import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 
@@ -708,6 +709,9 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
             itemHandlerModifiableCoverCache.remove(newFacing);
             fluidHandlerModifiableCache.remove(newFacing);
             fluidHandlerModifiableCoverCache.remove(newFacing);
+            for (var trait : traits) {
+                trait.onMachineRotated(oldFacing, newFacing);
+            }
         }
     }
 
@@ -802,7 +806,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
                 return filterCover.getItemFilter();
             }
         }
-        return item -> true;
+        return GTUtil.FAVORABLE;
     }
 
     public Predicate<FluidStack> getFluidCapFilter(@Nullable Direction side, IO io) {
@@ -812,7 +816,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
                 return filterCover.getFluidFilter();
             }
         }
-        return fluid -> true;
+        return GTUtil.FAVORABLE;
     }
 
     public @Nullable IItemHandlerModifiable getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
@@ -828,11 +832,16 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
             if (filteredTraits.isEmpty()) {
                 return null;
             }
+            IItemHandlerModifiable handlerList = null;
             IO io = IO.BOTH;
+            var inf = getItemCapFilter(side, IO.IN);
+            var outf = getItemCapFilter(side, IO.OUT);
             if (side != null && this instanceof IAutoOutputItem autoOutput && autoOutput.getOutputFacingItems() == side && !autoOutput.isAllowInputFromOutputSideItems()) {
                 io = IO.OUT;
+            } else if (filteredTraits.size() == 1 && inf == GTUtil.FAVORABLE && outf == GTUtil.FAVORABLE) {
+                handlerList = filteredTraits.get(0);
             }
-            var handlerList = new IOFilteredInvWrapper(filteredTraits, io, getItemCapFilter(side, IO.IN), getItemCapFilter(side, IO.OUT));
+            if (handlerList == null) handlerList = new IOFilteredInvWrapper(filteredTraits, io, inf, outf);
             if (!useCoverCapability || side == null) return handlerList;
             CoverBehavior cover = getCoverContainer().getCoverAtSide(side);
             return cover != null ? cover.getItemHandlerCap(handlerList) : handlerList;
@@ -852,11 +861,16 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
             if (filteredTraits.isEmpty()) {
                 return null;
             }
+            IFluidHandlerModifiable handlerList = null;
+            var inf = getFluidCapFilter(side, IO.IN);
+            var outf = getFluidCapFilter(side, IO.OUT);
             IO io = IO.BOTH;
             if (side != null && this instanceof IAutoOutputFluid autoOutput && autoOutput.getOutputFacingFluids() == side && !autoOutput.isAllowInputFromOutputSideFluids()) {
                 io = IO.OUT;
+            } else if (filteredTraits.size() == 1 && inf == GTUtil.FAVORABLE && outf == GTUtil.FAVORABLE && filteredTraits.get(0) instanceof IFluidHandlerModifiable modifiable) {
+                handlerList = modifiable;
             }
-            var handlerList = new IOFluidHandlerList(filteredTraits, io, getFluidCapFilter(side, IO.IN), getFluidCapFilter(side, IO.OUT));
+            if (handlerList == null) handlerList = new IOFluidHandlerList(filteredTraits, io, inf, outf);
             if (!useCoverCapability || side == null) return handlerList;
             CoverBehavior cover = getCoverContainer().getCoverAtSide(side);
             return cover != null ? cover.getFluidHandlerCap(handlerList) : handlerList;

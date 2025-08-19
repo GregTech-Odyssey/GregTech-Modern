@@ -51,7 +51,7 @@ public class ItemMaterialData {
     public static final Map<Supplier<BlockState>, TagPrefix> ORES_INVERSE = new Object2ReferenceOpenHashMap<>();
 
     public static final Map<ItemStack, List<ItemStack>> UNRESOLVED_ITEM_MATERIAL_INFO = new Object2ObjectOpenCustomHashMap<>(
-            ItemStackHashStrategy.comparingAllButCount());
+            ItemStackHashStrategy.ITEM_AND_TAG);
 
     public static void registerMaterialInfo(ItemLike item, ItemMaterialInfo materialInfo) {
         ITEM_MATERIAL_INFO.put(item.asItem(), materialInfo);

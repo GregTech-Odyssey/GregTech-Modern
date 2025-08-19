@@ -95,7 +95,7 @@ public final class ChestGenHooks {
         rollValues.put(tableLocation, UniformGenerator.between(minAdd, maxAdd));
     }
 
-    private static final ItemStackHashStrategy HASH_STRATEGY = ItemStackHashStrategy.comparingAllButCount();
+    private static final ItemStackHashStrategy HASH_STRATEGY = ItemStackHashStrategy.ITEM_AND_TAG;
 
     @NotNull
     private static String createEntryName(@NotNull ItemStack stack, @NotNull String modid, int weight, @NotNull RandomWeightLootFunction function) {

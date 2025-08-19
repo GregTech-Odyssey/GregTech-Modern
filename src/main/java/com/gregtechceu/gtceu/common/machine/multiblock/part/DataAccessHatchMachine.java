@@ -149,7 +149,7 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
             List<Component> list = new ArrayList<>();
             list.add(Component.translatable("behavior.data_item.assemblyline.title"));
             list.add(Component.empty());
-            Collection<ItemStack> itemsAdded = new ObjectOpenCustomHashSet<>(ItemStackHashStrategy.comparingAll());
+            Collection<ItemStack> itemsAdded = new ObjectOpenCustomHashSet<>(ItemStackHashStrategy.ALL);
             for (GTRecipe recipe : recipes) {
                 ItemStack stack = ItemRecipeCapability.CAP.of(recipe.getOutputContents(ItemRecipeCapability.CAP).get(0).content).getItems()[0];
                 if (!itemsAdded.contains(stack)) {

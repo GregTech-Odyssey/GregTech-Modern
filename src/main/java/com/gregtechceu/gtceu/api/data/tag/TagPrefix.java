@@ -23,6 +23,7 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.integration.xei.widgets.GTOreByProduct;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
+import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
 
 import net.minecraft.client.renderer.RenderType;
@@ -184,7 +185,7 @@ public class TagPrefix {
     // Prefix to determine which kind of Rock this is.
     // Also has a base tag path of only the material, for things like obsidian etc.
     public static final TagPrefix rock =  // generate a block but not really, for TagPrefix#setIgnoredBlock
-            new TagPrefix("rock").defaultTagPath("%s").langValue("%s").miningToolTag(BlockTags.MINEABLE_WITH_PICKAXE).unificationEnabled(false).generateBlock(true).generationCondition(material -> false);
+            new TagPrefix("rock").defaultTagPath("%s").langValue("%s").miningToolTag(BlockTags.MINEABLE_WITH_PICKAXE).unificationEnabled(false).generateBlock(true).generationCondition(GTUtil.NEGATIVE);
     public static final TagPrefix frameGt = new TagPrefix("frame").defaultTagPath("frames/%s").unformattedTagPath("frames").langValue("%s Frame").materialAmount(GTValues.M * 2).materialIconType(MaterialIconType.frameGt).miningToolTag(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WRENCH).unificationEnabled(true).enableRecycling().generateBlock(true).blockProperties(() -> RenderType::translucent, BlockBehaviour.Properties::noOcclusion).generationCondition(material -> material.hasProperty(PropertyKey.DUST) && material.hasFlag(MaterialFlags.GENERATE_FRAME));
     // Pipes
     public static final TagPrefix pipeTinyFluid = new TagPrefix("pipeTinyFluid").itemTable(() -> GTMaterialBlocks.FLUID_PIPE_BLOCKS).langValue("Tiny %s Fluid Pipe").miningToolTag(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WRENCH).materialAmount(GTValues.M / 2).unificationEnabled(true).enableRecycling();

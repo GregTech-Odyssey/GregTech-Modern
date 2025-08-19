@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.client.scene.WorldSceneRenderer;
 import com.lowdragmc.lowdraglib.client.scene.forge.WorldSceneRendererImpl;
@@ -397,7 +398,7 @@ public class MultiblockInWorldPreviewRenderer {
                 poseStack.translate(-0.5, -0.5, -0.5);
                 level.setRenderFilter(p -> p.equals(pos));
                 WorldSceneRendererImpl.renderBlocksForge(dispatcher, state, pos, level, poseStack, wrapperBuffer, GTValues.RNG, layer);
-                level.setRenderFilter(p -> true);
+                level.setRenderFilter(GTUtil.FAVORABLE);
                 poseStack.popPose();
             }
             // render fluids

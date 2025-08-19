@@ -3,6 +3,8 @@ package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+
 import java.util.*;
 
 public class MaterialProperties {
@@ -13,7 +15,7 @@ public class MaterialProperties {
     public Material material;
 
     public MaterialProperties() {
-        propertyMap = new IdentityHashMap<>();
+        propertyMap = new Reference2ReferenceOpenHashMap<>();
     }
 
     public boolean isEmpty() {

@@ -11,7 +11,6 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -22,7 +21,6 @@ public class NetworkSwitchMachine extends DataMachine implements IOpticalComputa
 
     public static final int EUT_PER_HATCH = GTValues.VA[GTValues.IV];
     private int EUt;
-    public IOpticalComputationProvider[] providers = new IOpticalComputationProvider[0];
     private boolean call;
 
     public NetworkSwitchMachine(MetaMachineBlockEntity holder) {
@@ -48,25 +46,18 @@ public class NetworkSwitchMachine extends DataMachine implements IOpticalComputa
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        List<IOpticalComputationProvider> receivers = new ArrayList<>();
-        List<IOpticalComputationProvider> transmitters = new ArrayList<>();
+        int size = 0;
         for (var part : this.getParts()) {
-            if (part instanceof IOpticalComputationHatch hatch) {
-                if (hatch.isTransmitter()) {
-                    transmitters.add(hatch);
-                } else {
-                    receivers.add(hatch);
-                }
+            if (part instanceof IOpticalComputationHatch) {
+                size++;
             }
         }
-        providers = receivers.toArray(new IOpticalComputationProvider[0]);
-        this.EUt = (receivers.size() + transmitters.size()) * EUT_PER_HATCH;
+        this.EUt = size * EUT_PER_HATCH;
     }
 
     @Override
     public void onStructureInvalid() {
         super.onStructureInvalid();
-        this.providers = new IOpticalComputationProvider[0];
         this.EUt = 0;
     }
 
@@ -78,7 +69,7 @@ public class NetworkSwitchMachine extends DataMachine implements IOpticalComputa
     @Override
     public void addDisplayText(List<Component> textList) {
         // transform into two-state system for display
-        MultiblockDisplayText.builder(textList, isFormed()).setWorkingStatus(true, isActive() && isWorkingEnabled()).setWorkingStatusKeys("gtceu.multiblock.idling", "gtceu.multiblock.idling", "gtceu.multiblock.data_bank.providing").addEnergyUsageExactLine(getEnergyUsage()).addComputationUsageLine(getMaxCWUt()).addWorkingStatusLine();
+        MultiblockDisplayText.builder(textList, isFormed()).setWorkingStatus(true, isActive() && isWorkingEnabled()).setWorkingStatusKeys("gtceu.multiblock.idling", "gtceu.multiblock.idling", "gtceu.multiblock.data_bank.providing").addEnergyUsageExactLine(getEnergyUsage()).addComputationUsageLine(this.getMaxCWU()).addWorkingStatusLine();
     }
 
     @Override
@@ -86,10 +77,24 @@ public class NetworkSwitchMachine extends DataMachine implements IOpticalComputa
         if (call) return 0;
         call = true;
         long result = 0;
-        for (IOpticalComputationProvider provider : providers) {
+        for (IOpticalComputationProvider provider : computationProviderList.providers) {
             if (provider.canBridge()) {
                 result += provider.requestCWU(cwu - result, simulate);
                 if (result >= cwu) break;
+            }
+        }
+        call = false;
+        return result;
+    }
+
+    @Override
+    public long getMaxCWU() {
+        if (call) return 0;
+        call = true;
+        long result = 0;
+        for (IOpticalComputationProvider provider : computationProviderList.providers) {
+            if (provider.canBridge()) {
+                result += provider.getMaxCWU();
             }
         }
         call = false;

@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.recipe.chance.boost.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.chance.logic.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
-import com.gregtechceu.gtceu.api.recipe.ingredient.IntProviderIngredient;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GradientUtil;
 
@@ -82,34 +81,12 @@ public class Content {
             @OnlyIn(Dist.CLIENT)
             public void draw(GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
                 drawChance(graphics, x, y, width, height, recipeTier, chanceTier, function);
-                drawRangeAmount(graphics, x, y, width, height);
                 drawFluidAmount(graphics, x, y, width, height);
                 if (perTick) {
                     drawTick(graphics, x, y, width, height);
                 }
             }
         };
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public void drawRangeAmount(GuiGraphics graphics, float x, float y, int width, int height) {
-        if (content instanceof IntProviderIngredient ingredient) {
-            graphics.pose().pushPose();
-            graphics.pose().translate(0, 0, 400);
-            graphics.pose().scale(0.5F, 0.5F, 1);
-            int min = ingredient.getCountProvider().getMinValue();
-            int max = ingredient.getCountProvider().getMaxValue();
-            String s = String.format("%s-%s", min, max);
-            int color = 16777215;
-            Font fontRenderer = Minecraft.getInstance().font;
-            // 5 == max num of characters that fit in a slot at 0.5x render size
-            if (s.length() > 5) {
-                s = "X-Y";
-                color = 15597568;
-            }
-            graphics.drawString(fontRenderer, s, (int) ((x + (width / 3.0F)) * 2 - fontRenderer.width(s) + 21), (int) ((y + (height / 3.0F) + 6) * 2), color, true);
-            graphics.pose().popPose();
-        }
     }
 
     @OnlyIn(Dist.CLIENT)

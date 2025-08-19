@@ -27,6 +27,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -438,7 +439,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     }
 
     protected Map<RecipeCapability<?>, Object2IntMap<?>> makeChanceCaches() {
-        Map<RecipeCapability<?>, Object2IntMap<?>> map = new IdentityHashMap<>();
+        Map<RecipeCapability<?>, Object2IntMap<?>> map = new Reference2ObjectOpenHashMap<>();
         for (RecipeCapability<?> cap : GTRegistries.RECIPE_CAPABILITIES.values()) {
             map.put(cap, cap.makeChanceCache());
         }

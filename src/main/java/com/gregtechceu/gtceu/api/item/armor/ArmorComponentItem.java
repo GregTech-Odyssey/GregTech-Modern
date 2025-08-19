@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.item.component.*;
 import com.gregtechceu.gtceu.common.data.GTItems;
 
 import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -141,21 +140,6 @@ public class ArmorComponentItem extends ArmorItem implements IComponentItem {
     public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
         var textureId = armorLogic.getArmorTexture(stack, entity, slot, type);
         return textureId == null ? null : textureId.toString();
-    }
-
-    ///////////////////////////////////////////
-    ///// ALL component item things ///////
-    ///////////////////////////////////////////
-    public void fillItemCategory(CreativeModeTab category, NonNullList<ItemStack> items) {
-        boolean found = false;
-        for (IItemComponent component : components) {
-            if (component instanceof ISubItemHandler subItemHandler) {
-                subItemHandler.fillItemCategory(this, category, items);
-                found = true;
-            }
-        }
-        if (found) return;
-        items.add(new ItemStack(this));
     }
 
     @Override

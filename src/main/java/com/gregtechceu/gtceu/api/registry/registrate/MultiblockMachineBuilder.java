@@ -42,6 +42,7 @@ import com.tterrag.registrate.builders.ItemBuilder;
 import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.apache.commons.lang3.function.TriFunction;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -56,6 +57,7 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
     private int checkPriority;
     private boolean generator;
     private Function<MultiblockMachineDefinition, BlockPattern> pattern;
+    private List<Function<MultiblockMachineDefinition, BlockPattern>> subPattern;
     private final List<Function<MultiblockMachineDefinition, List<MultiblockShapeInfo>>> shapeInfos = new ArrayList<>();
     /**
      * Set this to false only if your multiblock is set up such that it could have a wall-shared controller.
@@ -353,7 +355,10 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
         if (pattern == null) {
             throw new IllegalStateException("missing pattern while creating multiblock " + name);
         }
-        definition.setPatternFactory(GTMemoizer.memoize(() -> pattern.apply(definition)));
+        definition.setPatternFactory(pattern);
+        if (subPattern != null) {
+            definition.setSubPatternFactory(subPattern);
+        }
         definition.setShapes(() -> shapeInfos.stream().map(factory -> factory.apply(definition)).flatMap(Collection::stream).toList());
         definition.setAllowFlip(allowFlip);
         if (recoveryItems != null) {
@@ -384,8 +389,17 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
     /**
      * @return {@code this}.
      */
-    public MultiblockMachineBuilder pattern(final Function<MultiblockMachineDefinition, BlockPattern> pattern) {
+    public MultiblockMachineBuilder pattern(@NotNull Function<MultiblockMachineDefinition, BlockPattern> pattern) {
         this.pattern = pattern;
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public MultiblockMachineBuilder addSubPattern(@NotNull Function<MultiblockMachineDefinition, BlockPattern> pattern) {
+        if (subPattern == null) subPattern = new ArrayList<>();
+        subPattern.add(pattern);
         return this;
     }
 

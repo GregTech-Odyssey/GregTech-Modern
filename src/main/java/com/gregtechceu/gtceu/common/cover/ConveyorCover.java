@@ -315,7 +315,7 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     @NotNull
     protected Map<ItemStack, TypeItemInfo> countInventoryItemsByType(@NotNull IItemHandler inventory) {
         ItemFilter filter = filterHandler.getFilter();
-        Map<ItemStack, TypeItemInfo> result = new Object2ObjectOpenCustomHashMap<>(ItemStackHashStrategy.comparingAllButCount());
+        Map<ItemStack, TypeItemInfo> result = new Object2ObjectOpenCustomHashMap<>(ItemStackHashStrategy.ITEM_AND_TAG);
         for (int srcIndex = 0; srcIndex < inventory.getSlots(); srcIndex++) {
             ItemStack itemStack = inventory.getStackInSlot(srcIndex);
             if (itemStack.isEmpty() || !filter.test(itemStack)) {
@@ -331,7 +331,7 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     @NotNull
     protected Map<ItemStack, GroupItemInfo> countInventoryItemsByMatchSlot(@NotNull IItemHandler inventory) {
         ItemFilter filter = filterHandler.getFilter();
-        Map<ItemStack, GroupItemInfo> result = new Object2ObjectOpenCustomHashMap<>(ItemStackHashStrategy.comparingAllButCount());
+        Map<ItemStack, GroupItemInfo> result = new Object2ObjectOpenCustomHashMap<>(ItemStackHashStrategy.ITEM_AND_TAG);
         for (int srcIndex = 0; srcIndex < inventory.getSlots(); srcIndex++) {
             ItemStack itemStack = inventory.getStackInSlot(srcIndex);
             if (itemStack.isEmpty() || !filter.test(itemStack)) {

@@ -2,8 +2,14 @@ package com.gregtechceu.gtceu.api.capability.recipe;
 
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fluids.FluidStack;
+
+import it.unimi.dsi.fastutil.objects.Object2LongOpenCustomHashMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.List;
@@ -45,6 +51,26 @@ public interface IRecipeHandler<K> extends IFilteredHandler<K> {
 
     @NotNull
     List<Object> getContents();
+
+    default @Nullable Object2LongOpenCustomHashMap<ItemStack> getItemMap() {
+        return null;
+    }
+
+    default @Nullable Object2LongOpenHashMap<FluidStack> getFluidMap() {
+        return null;
+    }
+
+    default boolean isNotConsumable() {
+        return false;
+    }
+
+    default boolean skipParallelComputing() {
+        return false;
+    }
+
+    default boolean isRecipeOnly() {
+        return false;
+    }
 
     double getTotalContentAmount();
 

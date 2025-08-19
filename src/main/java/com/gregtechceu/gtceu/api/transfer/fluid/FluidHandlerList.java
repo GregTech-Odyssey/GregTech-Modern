@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.transfer.fluid;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -10,63 +11,65 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
 public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializable<CompoundTag> {
 
     public final IFluidHandler[] handlers;
-    protected Predicate<FluidStack> filter = fluid -> true;
+    protected final int size;
+    protected Predicate<FluidStack> filter = GTUtil.FAVORABLE;
 
     public FluidHandlerList(IFluidHandler... handlers) {
         this.handlers = handlers;
+        int size = 0;
+        for (IFluidHandler handler : handlers) {
+            size += handler.getTanks();
+        }
+        this.size = size;
     }
 
     public FluidHandlerList(List<IFluidHandler> handlers) {
-        this.handlers = handlers.toArray(IFluidHandler[]::new);
+        this(handlers.toArray(new IFluidHandler[0]));
     }
 
     @Override
     public int getTanks() {
-        return Arrays.stream(handlers).mapToInt(IFluidHandler::getTanks).sum();
+        return size;
     }
 
     @Override
-    @NotNull
-    public FluidStack getFluidInTank(int tank) {
-        int index = 0;
+    public @NotNull FluidStack getFluidInTank(int tank) {
         for (IFluidHandler handler : handlers) {
-            if (tank - index < handler.getTanks()) {
-                return handler.getFluidInTank(tank - index);
+            var tanks = handler.getTanks();
+            if (tank < tanks) {
+                return handler.getFluidInTank(tank);
             }
-            index += handler.getTanks();
+            tank -= tanks;
         }
         return FluidStack.EMPTY;
     }
 
     @Override
     public void setFluidInTank(int tank, FluidStack stack) {
-        int index = 0;
         for (IFluidHandler handler : handlers) {
-            if (handler instanceof IFluidHandlerModifiable modifiable) {
-                if (tank - index < modifiable.getTanks()) {
-                    modifiable.setFluidInTank(tank - index, stack);
-                    return;
-                }
+            var tanks = handler.getTanks();
+            if (tank < tanks) {
+                if (handler instanceof IFluidHandlerModifiable modifiable) modifiable.setFluidInTank(tank, stack);
+                return;
             }
-            index += handler.getTanks();
+            tank -= tanks;
         }
     }
 
     @Override
     public int getTankCapacity(int tank) {
-        int index = 0;
         for (IFluidHandler handler : handlers) {
-            if (tank - index < handler.getTanks()) {
-                return handler.getTankCapacity(tank - index);
+            var tanks = handler.getTanks();
+            if (tank < tanks) {
+                return handler.getTankCapacity(tank);
             }
-            index += handler.getTanks();
+            tank -= tanks;
         }
         return 0;
     }
@@ -74,12 +77,12 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
     @Override
     public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
         if (!filter.test(stack)) return false;
-        int index = 0;
         for (IFluidHandler handler : handlers) {
-            if (tank - index < handler.getTanks()) {
-                return handler.isFluidValid(tank - index, stack);
+            var tanks = handler.getTanks();
+            if (tank < tanks) {
+                return handler.isFluidValid(tank, stack);
             }
-            index += handler.getTanks();
+            tank -= tanks;
         }
         return false;
     }
@@ -163,13 +166,14 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
     @Override
     public boolean supportsFill(int tank) {
         for (IFluidHandler handler : handlers) {
-            if (tank >= handler.getTanks()) {
-                tank -= handler.getTanks();
-                continue;
+            var tanks = handler.getTanks();
+            if (tank < tanks) {
+                if (handler instanceof IFluidHandlerModifiable modifiable) {
+                    return modifiable.supportsFill(tank);
+                }
+                return true;
             }
-            if (handler instanceof IFluidHandlerModifiable modifiable) {
-                return modifiable.supportsFill(tank);
-            }
+            tank -= tanks;
         }
         return true;
     }
@@ -177,13 +181,14 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
     @Override
     public boolean supportsDrain(int tank) {
         for (IFluidHandler handler : handlers) {
-            if (tank >= handler.getTanks()) {
-                tank -= handler.getTanks();
-                continue;
+            var tanks = handler.getTanks();
+            if (tank < tanks) {
+                if (handler instanceof IFluidHandlerModifiable modifiable) {
+                    return modifiable.supportsDrain(tank);
+                }
+                return true;
             }
-            if (handler instanceof IFluidHandlerModifiable modifiable) {
-                return modifiable.supportsDrain(tank);
-            }
+            tank -= tanks;
         }
         return true;
     }

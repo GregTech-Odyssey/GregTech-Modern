@@ -1,16 +1,10 @@
 package com.gregtechceu.gtceu.common.item;
 
-import com.gregtechceu.gtceu.api.GTCEuAPI;
-import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.item.IComponentItem;
 import com.gregtechceu.gtceu.api.item.component.IMaterialPartItem;
-import com.gregtechceu.gtceu.api.item.component.ISubItemHandler;
 
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
@@ -20,25 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.turbineBlade;
-
-public class TurbineRotorBehaviour implements IMaterialPartItem, ISubItemHandler {
-
-    @Override
-    public void fillItemCategory(Item item, CreativeModeTab category, NonNullList<ItemStack> items) {
-        for (Material material : GTCEuAPI.materialManager.getRegisteredMaterials()) {
-            if (!material.shouldGenerateRecipesFor(turbineBlade) || !material.hasProperty(PropertyKey.INGOT)) {
-                continue;
-            }
-
-            var rotorStack = new ItemStack(item);
-            var behavior = TurbineRotorBehaviour.getBehaviour(rotorStack);
-            if (behavior != null) {
-                behavior.setPartMaterial(rotorStack, material);
-                items.add(rotorStack);
-            }
-        }
-    }
+public class TurbineRotorBehaviour implements IMaterialPartItem {
 
     public int getRotorPower(ItemStack stack) {
         var property = getPartMaterial(stack).getProperty(PropertyKey.ROTOR);

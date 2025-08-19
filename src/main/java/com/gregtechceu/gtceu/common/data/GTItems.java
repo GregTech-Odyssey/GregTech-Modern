@@ -78,7 +78,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.gregtechceu.gtceu.common.data.GTCreativeModeTabs.ITEM;
-import static com.gregtechceu.gtceu.common.data.GTCreativeModeTabs.TOOL;
 import static com.gregtechceu.gtceu.common.data.GTModels.createTextureModel;
 import static com.gregtechceu.gtceu.common.data.GTModels.overrideModel;
 import static com.gregtechceu.gtceu.common.registry.GTRegistration.REGISTRATE;
@@ -338,8 +337,7 @@ public class GTItems {
             .setData(ProviderType.ITEM_MODEL, NonNullBiConsumer.noop())
             .color(() -> GTItems::cellColor)
             .onRegister(attach(
-                    ThermalFluidStats.create(FluidType.BUCKET_VOLUME, true, false, false),
-                    new ItemFluidContainer(), cellName()))
+                    ThermalFluidStats.create(FluidType.BUCKET_VOLUME, true, false, false), cellName()))
             .register();
     public static ItemEntry<ComponentItem> FLUID_CELL_UNIVERSAL = REGISTRATE
             .item("universal_fluid_cell", ComponentItem::create)
@@ -347,8 +345,7 @@ public class GTItems {
             .color(() -> GTItems::cellColor)
             .setData(ProviderType.ITEM_MODEL, NonNullBiConsumer.noop())
             .onRegister(attach(cellName(),
-                    ThermalFluidStats.create(FluidType.BUCKET_VOLUME, true, false, true),
-                    new ItemFluidContainer()))
+                    ThermalFluidStats.create(FluidType.BUCKET_VOLUME, true, false, true)))
             .register();
     public static ItemEntry<ComponentItem> FLUID_CELL_LARGE_STEEL = createFluidCell(GTMaterials.Steel, 8, 4, 64);
     public static ItemEntry<ComponentItem> FLUID_CELL_LARGE_ALUMINIUM = createFluidCell(GTMaterials.Aluminium, 32, 4,
@@ -366,8 +363,7 @@ public class GTItems {
             .setData(ProviderType.ITEM_MODEL, NonNullBiConsumer.noop())
             .onRegister(
                     attach(cellName(),
-                            ThermalFluidStats.create(FluidType.BUCKET_VOLUME, false, false, true),
-                            new ItemFluidContainer()))
+                            ThermalFluidStats.create(FluidType.BUCKET_VOLUME, false, false, true)))
             .register();
 
     public static ItemEntry<ComponentItem> createFluidCell(Material mat, int capacity, int matSize, int stackSize) {
@@ -382,8 +378,7 @@ public class GTItems {
                 .setData(ProviderType.ITEM_MODEL, NonNullBiConsumer.noop())
                 .properties(p -> p.stacksTo(stackSize))
                 .onRegister(attach(cellName(),
-                        ThermalFluidStats.create(FluidType.BUCKET_VOLUME * capacity, prop, true),
-                        new ItemFluidContainer()))
+                        ThermalFluidStats.create(FluidType.BUCKET_VOLUME * capacity, prop, true)))
                 .onRegister(materialInfo(new ItemMaterialInfo(new MaterialStack(mat, GTValues.M * matSize))))
                 .register();
     }
@@ -406,8 +401,7 @@ public class GTItems {
             .properties(p -> p.stacksTo(1))
             .setData(ProviderType.ITEM_MODEL, NonNullBiConsumer.noop())
             .onRegister(attach(new LighterBehavior(true, true, true)))
-            .onRegister(attach(new FilteredFluidContainer(100, true, x -> x.getFluid().is(CustomTags.LIGHTER_FLUIDS)),
-                    new ItemFluidContainer()))
+            .onRegister(attach(new FilteredFluidContainer(100, true, x -> x.getFluid().is(CustomTags.LIGHTER_FLUIDS))))
             .onRegister(modelPredicate(GTCEu.id("lighter_open"),
                     (itemStack) -> itemStack.getOrCreateTag().getBoolean(LighterBehavior.LIGHTER_OPEN) ? 1.0f : 0.0f))
             .tag(CustomTags.TOOLS_IGNITER)
@@ -418,8 +412,7 @@ public class GTItems {
             .properties(p -> p.stacksTo(1).rarity(Rarity.UNCOMMON))
             .setData(ProviderType.ITEM_MODEL, NonNullBiConsumer.noop())
             .onRegister(attach(new LighterBehavior(true, true, true)))
-            .onRegister(attach(new FilteredFluidContainer(1000, true, x -> x.getFluid().is(CustomTags.LIGHTER_FLUIDS)),
-                    new ItemFluidContainer()))
+            .onRegister(attach(new FilteredFluidContainer(1000, true, x -> x.getFluid().is(CustomTags.LIGHTER_FLUIDS))))
             .onRegister(modelPredicate(GTCEu.id("lighter_open"),
                     (itemStack) -> itemStack.getOrCreateTag().getBoolean(LighterBehavior.LIGHTER_OPEN) ? 1.0f : 0.0f))
             .tag(CustomTags.TOOLS_IGNITER)
@@ -981,7 +974,6 @@ public class GTItems {
     public static ItemEntry<ComponentItem> DYNAMITE = REGISTRATE.item("dynamite", ComponentItem::create)
             .lang("Dynamite")
             .onRegister(attach(new DynamiteBehaviour()))
-            .tab(TOOL.getKey())
             .register();
 
     public static ItemEntry<ComponentItem> CONVEYOR_MODULE_LV = REGISTRATE

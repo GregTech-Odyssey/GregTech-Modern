@@ -47,7 +47,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class MultiblockControllerMachine extends MetaMachine implements IMultiController {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MultiblockControllerMachine.class, MetaMachine.MANAGED_FIELD_HOLDER);
-    private MultiblockState multiblockState;
+    protected MultiblockState multiblockState;
+    protected MultiblockState[] subMultiblockState = null;
+    protected int formeds = 0;
     private final List<IMultiPart> parts = new ArrayList<>();
     @Nullable
     private IParallelHatch parallelHatch = null;
@@ -147,6 +149,10 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     //////////////////////////////////////
     private final Lock patternLock = new ReentrantLock();
 
+    public int getSubFormed() {
+        return formeds;
+    }
+
     @Override
     public boolean checkPattern() {
         if (waitingTime < 1) {
@@ -155,19 +161,25 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             if (pattern != null) {
                 checking = true;
                 var state = getMultiblockState();
+                formeds = 0;
                 state.cleanCache();
                 result = pattern.checkPatternAt(state, false);
                 if (result) {
                     var subPattern = getSubPattern();
-                    if (!subPattern.isEmpty()) {
-                        for (int i = 0; i < subPattern.size(); i++) {
+                    if (subPattern != null) {
+                        for (int i = 0; i < subPattern.length; i++) {
                             var subState = MultiblockState.copy(state);
-                            if (subPattern.get(i).checkPatternAt(subState, false)) {
+                            if (subPattern[i].get().checkPatternAt(subState, false)) {
                                 state.merge(subState);
+                                formeds++;
                             }
-                            getSubMultiblockState().set(i, subState);
+                            if (subMultiblockState != null) {
+                                subMultiblockState[i] = subState;
+                            }
                         }
-                        getSubMultiblockState().forEach(MultiblockState::cleanCache);
+                        if (subMultiblockState != null) {
+                            for (var subState : subMultiblockState) subState.cleanCache();
+                        }
                     }
                 }
                 state.cleanCache();

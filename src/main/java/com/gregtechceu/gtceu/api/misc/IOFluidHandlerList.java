@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.misc;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerList;
 import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
@@ -49,7 +50,7 @@ public class IOFluidHandlerList extends FluidHandlerList {
 
     @Override
     public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
-        Predicate<FluidStack> filter = s -> true;
+        Predicate<FluidStack> filter = GTUtil.FAVORABLE;
         if (io.support(IO.IN)) filter = inFilter.and(filter);
         if (io.support(IO.OUT)) filter = outFilter.and(filter);
         return filter.test(stack) && super.isFluidValid(tank, stack);

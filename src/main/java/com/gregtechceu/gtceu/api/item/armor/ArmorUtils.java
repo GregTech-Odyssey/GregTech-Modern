@@ -165,7 +165,7 @@ public class ArmorUtils {
      */
     public static List<ItemStack> format(List<ItemStack> input) {
         Object2IntMap<ItemStack> items = new Object2IntOpenCustomHashMap<>(
-                ItemStackHashStrategy.comparingAllButCount());
+                ItemStackHashStrategy.ITEM_AND_TAG);
         List<ItemStack> output = new ArrayList<>();
         for (ItemStack itemStack : input) {
             if (items.containsKey(itemStack)) {

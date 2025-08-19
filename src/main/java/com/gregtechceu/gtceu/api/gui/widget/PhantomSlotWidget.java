@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.gui.widget;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.editor.annotation.ConfigSetter;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
@@ -41,7 +42,7 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
     @NumberRange(range = { 0, 64 })
     private int maxStackSize = 64;
 
-    private Predicate<ItemStack> validator = stack -> true;
+    private Predicate<ItemStack> validator = GTUtil.FAVORABLE;
 
     public PhantomSlotWidget() {
         super();

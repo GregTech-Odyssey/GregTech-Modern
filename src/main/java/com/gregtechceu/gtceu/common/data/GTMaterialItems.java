@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import static com.gregtechceu.gtceu.common.data.GTCreativeModeTabs.MATERIAL_ITEM;
-import static com.gregtechceu.gtceu.common.data.GTCreativeModeTabs.TOOL;
 import static com.gregtechceu.gtceu.common.registry.GTRegistration.REGISTRATE;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -90,7 +89,7 @@ public class GTMaterialItems {
 
     // Material Tools
     public static void generateTools() {
-        REGISTRATE.creativeModeTab(() -> TOOL);
+        REGISTRATE.creativeModeTab(() -> null);
         for (GTToolType toolType : GTToolType.getTypes().values()) {
             for (MaterialRegistry registry : GTCEuAPI.materialManager.getRegistries()) {
                 GTRegistrate registrate = registry.getRegistrate();

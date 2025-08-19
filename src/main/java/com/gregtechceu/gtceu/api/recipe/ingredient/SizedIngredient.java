@@ -69,21 +69,9 @@ public class SizedIngredient extends Ingredient {
 
     public static Ingredient copy(Ingredient ingredient) {
         if (ingredient instanceof SizedIngredient sizedIngredient) {
-            if (sizedIngredient.inner instanceof IntProviderIngredient intProviderIngredient) {
-                return copy(intProviderIngredient);
-            }
             return SizedIngredient.create(sizedIngredient.inner, sizedIngredient.amount);
         } else if (ingredient instanceof IntCircuitIngredient circuit) {
             return circuit;
-        } else if (ingredient instanceof IntProviderIngredient intProviderIngredient) {
-            var copied = IntProviderIngredient.of(intProviderIngredient.inner, intProviderIngredient.countProvider);
-            if (intProviderIngredient.itemStacks != null) {
-                copied.itemStacks = Arrays.stream(intProviderIngredient.itemStacks).map(ItemStack::copy).toArray(ItemStack[]::new);
-            }
-            if (intProviderIngredient.sampledCount != -1) {
-                copied.sampledCount = intProviderIngredient.sampledCount;
-            }
-            return copied;
         }
         return SizedIngredient.create(ingredient);
     }
@@ -122,9 +110,6 @@ public class SizedIngredient extends Ingredient {
 
     @Override
     public ItemStack @NotNull [] getItems() {
-        if (getInner() instanceof IntProviderIngredient intProviderIngredient) {
-            return intProviderIngredient.getItems();
-        }
         if (changed || itemStacks == null) {
             itemStacks = inner.getItems();
             for (int i = 0; i < itemStacks.length; i++) {
@@ -156,8 +141,6 @@ public class SizedIngredient extends Ingredient {
     public static Ingredient getInner(Ingredient ingredient) {
         if (ingredient instanceof SizedIngredient sizedIngredient) {
             return getInner(sizedIngredient.getInner());
-        } else if (ingredient instanceof IntProviderIngredient intProviderIngredient) {
-            return getInner(intProviderIngredient.getInner());
         }
         return ingredient;
     }

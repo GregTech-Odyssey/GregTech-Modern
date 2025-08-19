@@ -4,9 +4,7 @@ public interface IOpticalComputationProvider {
 
     long requestCWU(long cwu, boolean simulate);
 
-    default long getMaxCWUt() {
-        return requestCWU(Long.MAX_VALUE, true);
-    }
+    long getMaxCWU();
 
     default boolean canBridge() {
         return true;

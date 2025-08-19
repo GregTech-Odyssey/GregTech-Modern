@@ -7,12 +7,10 @@ import com.gregtechceu.gtceu.api.item.armor.IArmorLogic;
 import com.gregtechceu.gtceu.api.item.component.*;
 import com.gregtechceu.gtceu.api.item.component.forge.IComponentCapability;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
-import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.utils.GradientUtil;
 import com.gregtechceu.gtceu.utils.input.KeyBind;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -215,7 +213,7 @@ public class PowerlessJetpack implements IArmorLogic, IJetpack, IItemHUDProvider
      * }
      */
 
-    public static class Behaviour implements IDurabilityBar, ISubItemHandler, IAddInformation,
+    public static class Behaviour implements IDurabilityBar, IAddInformation,
                                   IInteractionItem, IComponentCapability {
 
         public final int maxCapacity;
@@ -268,18 +266,6 @@ public class PowerlessJetpack implements IArmorLogic, IJetpack, IItemHUDProvider
             state = hover ? Component.translatable("metaarmor.hud.status.enabled") :
                     Component.translatable("metaarmor.hud.status.disabled");
             tooltipComponents.add(Component.translatable("metaarmor.hud.hover_mode", state));
-        }
-
-        @Override
-        public void fillItemCategory(Item item, CreativeModeTab category, NonNullList<ItemStack> items) {
-            ItemStack copy = item.getDefaultInstance();
-            IFluidHandler fluidHandlerItem = FluidUtil.getFluidHandler(copy).orElse(null);
-            if (fluidHandlerItem != null) {
-                fluidHandlerItem.fill(GTMaterials.Diesel.getFluid(tankCapacity), IFluidHandler.FluidAction.SIMULATE);
-                items.add(copy);
-            } else {
-                items.add(copy);
-            }
         }
     }
 }

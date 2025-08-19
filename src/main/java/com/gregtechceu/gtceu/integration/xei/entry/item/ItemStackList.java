@@ -2,7 +2,8 @@ package com.gregtechceu.gtceu.integration.xei.entry.item;
 
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
@@ -12,11 +13,11 @@ public final class ItemStackList implements ItemEntryList {
     private final List<ItemStack> stacks;
 
     public ItemStackList() {
-        this.stacks = new ArrayList<>();
+        this.stacks = new ObjectArrayList<>();
     }
 
-    public ItemStackList(List<ItemStack> list) {
-        this.stacks = new ArrayList<>(list);
+    public ItemStackList(ItemStack[] array) {
+        this.stacks = new ObjectArrayList<>(array);
     }
 
     public static ItemStackList of(ItemStack stack) {

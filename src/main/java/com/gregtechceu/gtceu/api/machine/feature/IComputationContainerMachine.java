@@ -14,6 +14,6 @@ public interface IComputationContainerMachine {
     }
 
     default long getMaxCWU() {
-        return getComputationProvider().requestCWU(Long.MAX_VALUE, true);
+        return getComputationProvider().getMaxCWU();
     }
 }

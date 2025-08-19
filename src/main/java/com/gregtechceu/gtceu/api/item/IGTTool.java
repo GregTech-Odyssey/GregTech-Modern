@@ -30,7 +30,6 @@ import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import net.minecraft.client.color.item.ItemColor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.NonNullList;
 import net.minecraft.locale.Language;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -611,14 +610,6 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
         }
 
         return true;
-    }
-
-    default void definition$fillItemCategory(CreativeModeTab category, @NotNull NonNullList<ItemStack> items) {
-        if (isElectric()) {
-            items.add(get(Integer.MAX_VALUE));
-        } else {
-            items.add(get());
-        }
     }
 
     default void definition$appendHoverText(@NotNull ItemStack stack, @Nullable Level world,

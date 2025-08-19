@@ -170,7 +170,7 @@ public class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, FluidPi
                     var handler = LazyOptionalUtil.get(be.getCapability(ForgeCapabilities.FLUID_HANDLER, facing.getOpposite()));
                     if (handler != null) {
                         hasHandler = true;
-                        throughput -= GTTransferUtils.transferFluidsFiltered(handler, handlers.getOrDefault(facing, defaultHandler), getCoverContainer().getCoverAtSide(facing) instanceof FluidFilterCover filterCover ? filterCover.getFluidFilter() : f -> true, throughput);
+                        throughput -= GTTransferUtils.transferFluidsFiltered(handler, handlers.getOrDefault(facing, defaultHandler), getCoverContainer().getCoverAtSide(facing) instanceof FluidFilterCover filterCover ? filterCover.getFluidFilter() : GTUtil.FAVORABLE, throughput);
                         if (throughput <= 0) break;
                     }
                 }

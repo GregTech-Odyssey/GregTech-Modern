@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.integration.ae2.machine.feature.multiblock;
 
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.integration.ae2.slot.IConfigurableSlotList;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
@@ -26,7 +27,7 @@ public interface IMEStockingPart extends IAutoPullPart {
 
     @Override
     default void removedFromController(IMultiController controller) {
-        setAutoPullTest($ -> false);
+        setAutoPullTest(GTUtil.NEGATIVE);
         if (isAutoPull()) {
             getSlotList().clearInventory(0);
         }

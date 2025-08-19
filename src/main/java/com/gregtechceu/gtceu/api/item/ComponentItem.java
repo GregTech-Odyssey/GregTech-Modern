@@ -12,7 +12,6 @@ import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
@@ -25,7 +24,6 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -71,18 +69,6 @@ public class ComponentItem extends Item implements HeldItemUIFactory.IHeldItemUI
         for (IItemComponent component : components) {
             component.onAttached(this);
         }
-    }
-
-    public void fillItemCategory(CreativeModeTab category, NonNullList<ItemStack> items) {
-        boolean found = false;
-        for (IItemComponent component : components) {
-            if (component instanceof ISubItemHandler subItemHandler) {
-                subItemHandler.fillItemCategory(this, category, items);
-                found = true;
-            }
-        }
-        if (found) return;
-        items.add(new ItemStack(this));
     }
 
     @Override
