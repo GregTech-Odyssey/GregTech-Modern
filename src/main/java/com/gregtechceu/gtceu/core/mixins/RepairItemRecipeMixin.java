@@ -25,7 +25,7 @@ public abstract class RepairItemRecipeMixin extends CustomRecipe {
 
     @Override
     public @NotNull NonNullList<ItemStack> getRemainingItems(@NotNull CraftingContainer container) {
-        return NonNullList.withSize(0, ItemStack.EMPTY);
+        return NonNullList.withSize(container.getContainerSize(), ItemStack.EMPTY);
     }
 
     @Redirect(method = "matches(Lnet/minecraft/world/inventory/CraftingContainer;Lnet/minecraft/world/level/Level;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z"))

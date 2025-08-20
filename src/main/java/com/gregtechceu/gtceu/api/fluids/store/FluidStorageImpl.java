@@ -7,7 +7,7 @@ import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 
 import net.minecraft.world.level.material.Fluid;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,8 +18,8 @@ import java.util.function.Supplier;
 
 public class FluidStorageImpl implements FluidStorage {
 
-    private final Map<FluidStorageKey, FluidEntry> map = new Object2ObjectOpenHashMap<>();
-    private Map<FluidStorageKey, FluidBuilder> toRegister = new Object2ObjectOpenHashMap<>();
+    private final Map<FluidStorageKey, FluidEntry> map = new Reference2ReferenceOpenHashMap<>();
+    private Map<FluidStorageKey, FluidBuilder> toRegister = new Reference2ReferenceOpenHashMap<>();
 
     private boolean registered = false;
 
@@ -97,7 +97,8 @@ public class FluidStorageImpl implements FluidStorage {
      */
     @Override
     public @Nullable Fluid get(@NotNull FluidStorageKey key) {
-        return map.containsKey(key) ? map.get(key).getFluid().get() : null;
+        var fluid = map.get(key);
+        return fluid == null ? null : fluid.getFluid().get();
     }
 
     public @Nullable FluidEntry getEntry(@NotNull FluidStorageKey key) {

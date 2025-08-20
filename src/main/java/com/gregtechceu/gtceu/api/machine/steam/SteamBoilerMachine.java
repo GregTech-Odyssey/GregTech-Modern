@@ -45,6 +45,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
@@ -83,7 +84,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     public SteamBoilerMachine(MetaMachineBlockEntity holder, boolean isHighPressure, Object... args) {
         super(holder, isHighPressure, args);
         this.waterTank = createWaterTank(args);
-        this.waterTank.setFilter(fluid -> fluid.getFluid().is(GTMaterials.Water.getFluidTag()));
+        this.waterTank.setFilter(fluid -> fluid.getFluid() == Fluids.WATER);
     }
 
     //////////////////////////////////////

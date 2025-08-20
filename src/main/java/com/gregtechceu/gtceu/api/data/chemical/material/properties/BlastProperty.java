@@ -99,12 +99,12 @@ public class BlastProperty implements IMaterialProperty {
     public enum GasTier {
 
         // Tiers used by GTCEu
-        LOW(() -> FluidIngredient.of(GTMaterials.Nitrogen.getFluidTag(), 1000)),
-        MID(() -> FluidIngredient.of(GTMaterials.Helium.getFluidTag(), 100)),
-        HIGH(() -> FluidIngredient.of(GTMaterials.Argon.getFluidTag(), 50)),
+        LOW(() -> FluidIngredient.of(GTMaterials.Nitrogen.getFluid(1000))),
+        MID(() -> FluidIngredient.of(GTMaterials.Helium.getFluid(100))),
+        HIGH(() -> FluidIngredient.of(GTMaterials.Argon.getFluid(50))),
         // Tiers reserved for addons
-        HIGHER(() -> FluidIngredient.of(GTMaterials.Neon.getFluidTag(), 25)),
-        HIGHEST(() -> FluidIngredient.of(GTMaterials.Krypton.getFluidTag(), 10));
+        HIGHER(() -> FluidIngredient.of(GTMaterials.Neon.getFluid(25))),
+        HIGHEST(() -> FluidIngredient.of(GTMaterials.Krypton.getFluid(10)));
 
         public static final GasTier[] VALUES = values();
         private Supplier<FluidIngredient> fluid;

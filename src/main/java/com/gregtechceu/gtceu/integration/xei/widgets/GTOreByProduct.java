@@ -13,7 +13,6 @@ import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidEntryList;
 import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidStackList;
-import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidTagList;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemEntryList;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemStackList;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemTagList;
@@ -192,10 +191,10 @@ public class GTOreByProduct {
         addToOutputs(material, TagPrefix.crushedPurified, 1);
         addToOutputs(byproducts[0], TagPrefix.dust, 1);
         addChance(3333, 0);
-        FluidTagList tagList = new FluidTagList();
-        tagList.add(GTMaterials.Water.getFluidTag(), 1000, null);
-        tagList.add(GTMaterials.DistilledWater.getFluidTag(), 100, null);
-        fluidInputs.add(tagList);
+        FluidStackList stackList = new FluidStackList();
+        stackList.add(GTMaterials.Water.getFluid(1000));
+        stackList.add(GTMaterials.DistilledWater.getFluid(100));
+        fluidInputs.add(stackList);
 
         // TC crushed/crushed purified -> centrifuged
         addToOutputs(material, TagPrefix.crushedRefined, 1);
@@ -232,7 +231,7 @@ public class GTOreByProduct {
             addToOutputs(material, TagPrefix.crushedPurified, 1);
             addToOutputs(byproducts[3], TagPrefix.dust, byproductMultiplier);
             addChance(7000, 580);
-            fluidInputs.add(FluidTagList.of(washedIn.first().getFluidTag(), washedIn.secondInt(), null));
+            fluidInputs.add(FluidStackList.of(washedIn.first().getFluid(washedIn.secondInt())));
         } else {
             addEmptyOutputs(2);
             fluidInputs.add(new FluidStackList());

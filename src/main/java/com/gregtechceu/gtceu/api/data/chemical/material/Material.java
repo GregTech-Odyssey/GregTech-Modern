@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.*;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.api.data.medicalcondition.MedicalCondition;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
-import com.gregtechceu.gtceu.api.data.tag.TagUtil;
 import com.gregtechceu.gtceu.api.fluids.FluidBuilder;
 import com.gregtechceu.gtceu.api.fluids.FluidState;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKey;
@@ -25,7 +24,6 @@ import com.gregtechceu.gtceu.utils.GTMath;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.material.Fluid;
@@ -207,9 +205,9 @@ public class Material implements Comparable<Material> {
         }
         Fluid fluid = prop.get(prop.getPrimaryKey());
         if (fluid != null) return fluid;
-        fluid = getFluid(FluidStorageKeys.LIQUID);
+        fluid = prop.get(FluidStorageKeys.LIQUID);
         if (fluid != null) return fluid;
-        return getFluid(FluidStorageKeys.GAS);
+        return prop.get(FluidStorageKeys.GAS);
     }
 
     /**
@@ -240,14 +238,6 @@ public class Material implements Comparable<Material> {
      */
     public FluidStack getFluid(@NotNull FluidStorageKey key, int amount) {
         return new FluidStack(getFluid(key), amount);
-    }
-
-    /**
-     * @return a {@code TagKey<Fluid>} with the material's name as the tag key
-     * @see #getFluid(FluidStorageKey, int)
-     */
-    public TagKey<Fluid> getFluidTag() {
-        return TagUtil.createFluidTag(this.getName());
     }
 
     /**

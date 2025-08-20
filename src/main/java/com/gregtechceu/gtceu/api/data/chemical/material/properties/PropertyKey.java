@@ -36,7 +36,7 @@ public class PropertyKey<T extends IMaterialProperty> {
     }
 
     public T cast(IMaterialProperty property) {
-        return this.type.cast(property);
+        return property == null ? null : (T) property;
     }
 
     @Override

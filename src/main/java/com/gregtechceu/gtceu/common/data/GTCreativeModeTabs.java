@@ -4,8 +4,9 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
-import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.LampBlockItem;
+import com.gregtechceu.gtceu.api.item.tool.GTToolType;
+import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 import com.gregtechceu.gtceu.common.pipelike.cable.Insulation;
 
@@ -51,6 +52,12 @@ public class GTCreativeModeTabs {
             builder -> builder.displayItems(new RegistrateDisplayItemsGenerator("decoration", REGISTRATE))
                     .icon(() -> GTBlocks.COIL_CUPRONICKEL.asStack())
                     .title(REGISTRATE.addLang("itemGroup", GTCEu.id("decoration"), GTCEu.NAME + " Decoration Blocks"))
+                    .build())
+            .register();
+    public static RegistryEntry<CreativeModeTab> TOOL = REGISTRATE.defaultCreativeTab("tool",
+            builder -> builder.displayItems(new RegistrateDisplayItemsGenerator("tool", REGISTRATE))
+                    .icon(() -> ToolHelper.get(GTToolType.WRENCH, GTMaterials.Steel))
+                    .title(REGISTRATE.addLang("itemGroup", GTCEu.id("tool"), GTCEu.NAME + " Tools"))
                     .build())
             .register();
     public static RegistryEntry<CreativeModeTab> MACHINE = REGISTRATE.defaultCreativeTab("machine",
@@ -99,7 +106,6 @@ public class GTCreativeModeTabs {
                 if (!registrate.isInCreativeTab(entry, tab)) continue;
                 Item item = entry.get();
                 if (item instanceof BlockItem) continue;
-                if (item instanceof IGTTool) continue;
                 output.accept(item);
             }
         }

@@ -60,7 +60,7 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     @Override
     public @Nullable Object2LongOpenCustomHashMap<ItemStack> getItemMap() {
         if (itemMap == null) {
-            itemMap = new Object2LongOpenCustomHashMap<>(ItemStackHashStrategy.ITEM_AND_TAG);
+            itemMap = new Object2LongOpenCustomHashMap<>(ItemStackHashStrategy.ITEM);
         }
         if (changed) {
             changed = false;

@@ -33,7 +33,7 @@ public class SteamHatchPartMachine extends FluidHatchPartMachine {
     @Override
     protected NotifiableFluidTank createTank(int initialCapacity, int slots, Object... args) {
         return super.createTank(initialCapacity, slots)
-                .setFilter(fluidStack -> fluidStack.getFluid().is(GTMaterials.Steam.getFluidTag()));
+                .setFilter(fluidStack -> fluidStack.getFluid() == GTMaterials.Steam.getFluid());
     }
 
     @Override

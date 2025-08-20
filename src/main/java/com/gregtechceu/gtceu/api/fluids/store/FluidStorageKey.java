@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.api.fluids.store;
 
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconType;
-import com.gregtechceu.gtceu.api.data.tag.TagUtil;
 import com.gregtechceu.gtceu.api.fluids.FluidState;
 
 import net.minecraft.resources.ResourceLocation;
@@ -25,17 +24,15 @@ public final class FluidStorageKey {
     private final MaterialIconType iconType;
     private final Function<Material, String> registryNameFunction;
     private final Function<Material, String> translationKeyFunction;
-    private final int hashCode;
     private final FluidState defaultFluidState;
     private final int registrationPriority;
 
-    public FluidStorageKey(@NotNull ResourceLocation resourceLocation, @Nullable TagKey<Fluid> extraTag, @NotNull MaterialIconType iconType, @NotNull Function<@NotNull Material, @NotNull String> registryNameFunction, @NotNull Function<@NotNull Material, @NotNull String> translationKeyFunction, @Nullable FluidState defaultFluidState, int registrationPriority) {
+    FluidStorageKey(@NotNull ResourceLocation resourceLocation, @Nullable TagKey<Fluid> extraTag, @NotNull MaterialIconType iconType, @NotNull Function<@NotNull Material, @NotNull String> registryNameFunction, @NotNull Function<@NotNull Material, @NotNull String> translationKeyFunction, @Nullable FluidState defaultFluidState, int registrationPriority) {
         this.resourceLocation = resourceLocation;
         this.extraTag = extraTag;
         this.iconType = iconType;
         this.registryNameFunction = registryNameFunction;
         this.translationKeyFunction = translationKeyFunction;
-        this.hashCode = resourceLocation.hashCode();
         this.defaultFluidState = defaultFluidState;
         this.registrationPriority = registrationPriority;
         if (keys.containsKey(resourceLocation)) {
@@ -44,12 +41,8 @@ public final class FluidStorageKey {
         keys.put(resourceLocation, this);
     }
 
-    public FluidStorageKey(@NotNull ResourceLocation resourceLocation, @NotNull String tagKey, @NotNull MaterialIconType iconType, @NotNull Function<@NotNull Material, @NotNull String> registryNameFunction, @NotNull Function<@NotNull Material, @NotNull String> translationKeyFunction, @Nullable FluidState defaultFluidState, int registrationPriority) {
-        this(resourceLocation, TagUtil.createFluidTag(tagKey), iconType, registryNameFunction, translationKeyFunction, defaultFluidState, registrationPriority);
-    }
-
     public FluidStorageKey(@NotNull ResourceLocation resourceLocation, @NotNull MaterialIconType iconType, @NotNull Function<@NotNull Material, @NotNull String> registryNameFunction, @NotNull Function<@NotNull Material, @NotNull String> translationKeyFunction, @Nullable FluidState defaultFluidState, int registrationPriority) {
-        this(resourceLocation, (TagKey<Fluid>) null, iconType, registryNameFunction, translationKeyFunction, defaultFluidState, registrationPriority);
+        this(resourceLocation, null, iconType, registryNameFunction, translationKeyFunction, defaultFluidState, registrationPriority);
     }
 
     @Nullable
@@ -76,19 +69,6 @@ public final class FluidStorageKey {
     @NotNull
     public String getTranslationKeyFor(@NotNull Material material) {
         return this.translationKeyFunction.apply(material);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        FluidStorageKey fluidKey = (FluidStorageKey) o;
-        return resourceLocation.equals(fluidKey.getResourceLocation());
-    }
-
-    @Override
-    public int hashCode() {
-        return this.hashCode;
     }
 
     @Override

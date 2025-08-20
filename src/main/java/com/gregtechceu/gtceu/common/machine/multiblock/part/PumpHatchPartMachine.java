@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
-import com.gregtechceu.gtceu.common.data.GTMaterials;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
@@ -15,6 +14,7 @@ import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidType;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -29,8 +29,7 @@ public class PumpHatchPartMachine extends FluidHatchPartMachine {
 
     @Override
     protected NotifiableFluidTank createTank(int initialCapacity, int slots, Object... args) {
-        return super.createTank(initialCapacity, slots)
-                .setFilter(fluidStack -> fluidStack.getFluid().is(GTMaterials.Water.getFluidTag()));
+        return super.createTank(initialCapacity, slots).setFilter(fluidStack -> fluidStack.getFluid() == Fluids.WATER);
     }
 
     @Override

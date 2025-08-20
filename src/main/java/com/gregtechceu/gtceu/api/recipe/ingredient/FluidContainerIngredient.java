@@ -1,12 +1,9 @@
 package com.gregtechceu.gtceu.api.recipe.ingredient;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.data.tag.TagUtil;
 
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -41,11 +38,11 @@ public class FluidContainerIngredient extends Ingredient {
     }
 
     public FluidContainerIngredient(FluidStack fluidStack) {
-        this(FluidIngredient.of(TagUtil.createFluidTag(BuiltInRegistries.FLUID.getKey(fluidStack.getFluid()).getPath()), fluidStack.getAmount()));
+        this(FluidIngredient.of(fluidStack));
     }
 
-    public FluidContainerIngredient(TagKey<Fluid> tag, int amount) {
-        this(FluidIngredient.of(tag, amount, null));
+    public FluidContainerIngredient(Fluid fluid, int amount) {
+        this(FluidIngredient.of(amount, fluid));
     }
 
     private ItemStack[] cachedStacks;
