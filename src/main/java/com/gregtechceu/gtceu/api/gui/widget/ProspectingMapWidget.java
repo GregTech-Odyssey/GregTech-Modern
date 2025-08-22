@@ -31,6 +31,8 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -97,7 +99,7 @@ public class ProspectingMapWidget extends WidgetGroup implements SearchComponent
     }
 
     private void addOresToList(Object[][][] data) {
-        var newItems = new HashSet<>();
+        var newItems = new ObjectOpenHashSet<>();
         for (int x = 0; x < mode.cellSize; x++) {
             for (int z = 0; z < mode.cellSize; z++) {
                 for (var item : data[x][z]) {
@@ -222,9 +224,9 @@ public class ProspectingMapWidget extends WidgetGroup implements SearchComponent
         int cZ = (mouseY - y) / 16;
         if (cX >= 0 && cZ >= 0 && cX < chunkRadius * 2 - 1 && cZ < chunkRadius * 2 - 1) {
             // draw hover layer
-            List<Component> tooltips = new ArrayList<>();
+            List<Component> tooltips = new ObjectArrayList<>();
             tooltips.add(Component.translatable(mode.unlocalizedName));
-            List<Object[]> items = new ArrayList<>();
+            List<Object[]> items = new ObjectArrayList<>();
             for (int i = 0; i < mode.cellSize; i++) {
                 for (int j = 0; j < mode.cellSize; j++) {
                     assert texture != null;
@@ -319,7 +321,7 @@ public class ProspectingMapWidget extends WidgetGroup implements SearchComponent
 
     @Override
     public void search(String s, Consumer<Object> consumer) {
-        var added = new HashSet<String>();
+        var added = new ObjectOpenHashSet<String>();
         for (var item : this.items) {
             if (Thread.currentThread().isInterrupted()) return;
             var id = mode.getUniqueID(item);

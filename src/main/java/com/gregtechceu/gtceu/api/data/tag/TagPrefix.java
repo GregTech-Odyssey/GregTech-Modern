@@ -235,7 +235,7 @@ public class TagPrefix {
     public final String name;
     private String idPattern;
     public final boolean invertedName;
-    protected final List<TagType> tags = new ArrayList<>();
+    protected final List<TagType> tags = new ObjectArrayList<>();
     public String langValue;
     private long materialAmount = -1;
     private boolean unificationEnabled;
@@ -256,7 +256,7 @@ public class TagPrefix {
     private final Map<Material, Supplier<? extends ItemLike>[]> ignoredMaterials = new Reference2ObjectOpenHashMap<>();
     private final Reference2FloatMap<Material> materialAmounts = new Reference2FloatOpenHashMap<>();
     private int maxStackSize = 64;
-    private final List<MaterialStack> secondaryMaterials = new ArrayList<>();
+    private final List<MaterialStack> secondaryMaterials = new ObjectArrayList<>();
     protected final Set<TagKey<Block>> miningToolTag = new ObjectOpenHashSet<>();
 
     protected TagPrefix(String name) {

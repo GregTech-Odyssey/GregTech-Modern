@@ -17,9 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import static com.gregtechceu.gtceu.common.block.LampBlock.isBloomEnabled;
-import static com.gregtechceu.gtceu.common.block.LampBlock.isInverted;
-import static com.gregtechceu.gtceu.common.block.LampBlock.isLightEnabled;
+import static com.gregtechceu.gtceu.common.block.LampBlock.*;
 
 @ParametersAreNonnullByDefault
 public class LampBlockItem extends BlockItem implements IItemRendererProvider {

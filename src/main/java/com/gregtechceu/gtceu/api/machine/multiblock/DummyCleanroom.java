@@ -2,11 +2,11 @@ package com.gregtechceu.gtceu.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.api.machine.feature.ICleanroomProvider;
 
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 public final class DummyCleanroom implements ICleanroomProvider {
@@ -44,6 +44,6 @@ public final class DummyCleanroom implements ICleanroomProvider {
 
     @Override
     public Set<CleanroomType> getTypes() {
-        return allowsAllTypes ? CleanroomType.getAllTypes() : new HashSet<>(allowedTypes);
+        return allowsAllTypes ? CleanroomType.getAllTypes() : new ReferenceOpenHashSet<>(allowedTypes);
     }
 }

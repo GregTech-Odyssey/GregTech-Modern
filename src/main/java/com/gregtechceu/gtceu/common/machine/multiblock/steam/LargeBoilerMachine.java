@@ -35,10 +35,10 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.material.Fluids;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -126,7 +126,7 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
                 // if maxDrain is 0 because throttle is too low, skip trying to make steam
                 // drain water
                 var drainWater = List.of(FluidIngredient.of(maxDrain, Fluids.WATER));
-                List<IRecipeHandler<?>> inputTanks = new ArrayList<>();
+                List<IRecipeHandler<?>> inputTanks = new ObjectArrayList<>();
                 inputTanks.addAll(getCapabilitiesFlat(IO.IN, FluidRecipeCapability.CAP));
                 inputTanks.addAll(getCapabilitiesFlat(IO.BOTH, FluidRecipeCapability.CAP));
                 for (IRecipeHandler<?> tank : inputTanks) {
@@ -140,7 +140,7 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
                 if (drained > 0) {
                     // fill steam
                     var fillSteam = List.of(FluidIngredient.of(GTMaterials.Steam.getFluid(steamGenerated)));
-                    List<IRecipeHandler<?>> outputTanks = new ArrayList<>();
+                    List<IRecipeHandler<?>> outputTanks = new ObjectArrayList<>();
                     outputTanks.addAll(getCapabilitiesFlat(IO.OUT, FluidRecipeCapability.CAP));
                     outputTanks.addAll(getCapabilitiesFlat(IO.BOTH, FluidRecipeCapability.CAP));
                     for (IRecipeHandler<?> tank : outputTanks) {

@@ -38,8 +38,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -51,8 +51,8 @@ public class VeinedVeinGenerator extends VeinGenerator {
     public static final Codec<Either<List<TargetBlockState>, Material>> BLOCK_ENTRY_CODEC = Codec.either(TargetBlockState.CODEC.listOf(), GTCEuAPI.materialManager.codec());
     public static final Codec<VeinedVeinGenerator> CODEC = RecordCodecBuilder.create(instance -> // ,
     instance.group(VeinBlockDefinition.CODEC.listOf().fieldOf("ore_blocks").forGetter(it -> it.oreBlocks), VeinBlockDefinition.CODEC.listOf().fieldOf("rare_blocks").forGetter(it -> it.rareBlocks), BlockState.CODEC.fieldOf("filler_block").orElse(Blocks.AIR.defaultBlockState()).forGetter(it -> it.fillerBlock), Codec.INT.fieldOf("min_y").forGetter(it -> it.minYLevel), Codec.INT.fieldOf("max_y").forGetter(it -> it.maxYLevel), Codec.FLOAT.fieldOf("veininess_threshold").orElse(0.4F).forGetter(it -> it.veininessThreshold), Codec.INT.fieldOf("edge_roundoff_begin").orElse(20).forGetter(it -> it.edgeRoundoffBegin), Codec.DOUBLE.fieldOf("max_edge_roundoff").orElse(0.2).forGetter(it -> it.maxEdgeRoundoff), Codec.FLOAT.fieldOf("min_richness").orElse(0.1F).forGetter(it -> it.minRichness), Codec.FLOAT.fieldOf("max_richness").orElse(0.3F).forGetter(it -> it.maxRichness), Codec.FLOAT.fieldOf("max_richness_threshold").orElse(0.6F).forGetter(it -> it.maxRichnessThreshold), Codec.FLOAT.fieldOf("rare_block_chance").orElse(0.02F).forGetter(it -> it.rareBlockChance)).apply(instance, VeinedVeinGenerator::new));
-    public List<VeinBlockDefinition> oreBlocks = new ArrayList<>();
-    public List<VeinBlockDefinition> rareBlocks = new ArrayList<>();
+    public List<VeinBlockDefinition> oreBlocks = new ObjectArrayList<>();
+    public List<VeinBlockDefinition> rareBlocks = new ObjectArrayList<>();
     public BlockState fillerBlock = Blocks.AIR.defaultBlockState();
     public int minYLevel;
     public int maxYLevel;
@@ -70,7 +70,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
 
     @Override
     public List<VeinEntry> getAllEntries() {
-        List<VeinEntry> entries = new ArrayList<>(oreBlocks.size() + rareBlocks.size());
+        List<VeinEntry> entries = new ObjectArrayList<>(oreBlocks.size() + rareBlocks.size());
         for (var def : oreBlocks) {
             VeinGenerator.mapTarget(def.block, def.weight).forEach(entries::add);
         }
@@ -209,7 +209,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
 
     @Override
     public VeinGenerator copy() {
-        return new VeinedVeinGenerator(new ArrayList<>(this.oreBlocks), new ArrayList<>(this.rareBlocks), this.fillerBlock, this.minYLevel, this.maxYLevel, this.veininessThreshold, this.edgeRoundoffBegin, this.maxEdgeRoundoff, this.minRichness, this.maxRichness, this.maxRichnessThreshold, this.rareBlockChance);
+        return new VeinedVeinGenerator(new ObjectArrayList<>(this.oreBlocks), new ObjectArrayList<>(this.rareBlocks), this.fillerBlock, this.minYLevel, this.maxYLevel, this.veininessThreshold, this.edgeRoundoffBegin, this.maxEdgeRoundoff, this.minRichness, this.maxRichness, this.maxRichnessThreshold, this.rareBlockChance);
     }
 
     @Override

@@ -1,10 +1,6 @@
 package com.gregtechceu.gtceu.common.machine.trait.customlogic;
 
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.capability.recipe.IRecipeCapabilityHolder;
-import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.data.tag.TagUtil;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -28,17 +24,18 @@ import net.minecraftforge.common.brewing.BrewingRecipeRegistry;
 import net.minecraftforge.common.brewing.IBrewingRecipe;
 import net.minecraftforge.fluids.FluidStack;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
-import static com.gregtechceu.gtceu.api.GTValues.*;
+import static com.gregtechceu.gtceu.api.GTValues.MV;
+import static com.gregtechceu.gtceu.api.GTValues.VHA;
 
 // TODO: Make these static recipes
 @SuppressWarnings("deprecation")
@@ -57,9 +54,9 @@ public enum BreweryLogic implements GTRecipeType.ICustomRecipeLogic {
     public @Nullable GTRecipe createCustomRecipe(IRecipeCapabilityHolder holder) {
         var handlerLists = holder.getCapabilitiesForIO(IO.IN);
         if (handlerLists.isEmpty()) return null;
-        List<RecipeHandlerList> distinct = new ArrayList<>();
-        List<IRecipeHandler<?>> notDistinctItems = new ArrayList<>();
-        List<IRecipeHandler<?>> notDistinctFluids = new ArrayList<>();
+        List<RecipeHandlerList> distinct = new ObjectArrayList<>();
+        List<IRecipeHandler<?>> notDistinctItems = new ObjectArrayList<>();
+        List<IRecipeHandler<?>> notDistinctFluids = new ObjectArrayList<>();
 
         for (var handlerList : handlerLists) {
             if (handlerList.isDistinct()) {
@@ -72,8 +69,8 @@ public enum BreweryLogic implements GTRecipeType.ICustomRecipeLogic {
 
         if (distinct.isEmpty() && notDistinctItems.isEmpty() && notDistinctFluids.isEmpty()) return null;
 
-        List<ItemStack> itemStacks = new ArrayList<>();
-        List<FluidStack> fluidStacks = new ArrayList<>();
+        List<ItemStack> itemStacks = new ObjectArrayList<>();
+        List<FluidStack> fluidStacks = new ObjectArrayList<>();
 
         for (var handlerList : distinct) {
             itemStacks.clear();

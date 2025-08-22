@@ -5,9 +5,9 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 public class MaterialFlag {
@@ -31,7 +31,7 @@ public class MaterialFlag {
             }
         });
 
-        Set<MaterialFlag> thisAndDependencies = new HashSet<>(requiredFlags);
+        Set<MaterialFlag> thisAndDependencies = new ReferenceOpenHashSet<>(requiredFlags);
         requiredFlags.stream()
                 .map(f -> f.verifyFlag(material))
                 .forEach(thisAndDependencies::addAll);

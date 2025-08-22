@@ -35,11 +35,11 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.player.Player;
 
 import com.google.common.annotations.VisibleForTesting;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigInteger;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -78,8 +78,8 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        List<IEnergyContainer> inputs = new ArrayList<>();
-        List<IEnergyContainer> outputs = new ArrayList<>();
+        List<IEnergyContainer> inputs = new ObjectArrayList<>();
+        List<IEnergyContainer> outputs = new ObjectArrayList<>();
         for (IMultiPart part : getParts()) {
             if (part instanceof IMaintenanceMachine maintenanceMachine) {
                 this.maintenance = maintenanceMachine;
@@ -97,7 +97,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
         }
         this.inputHatches = new EnergyContainerList(inputs);
         this.outputHatches = new EnergyContainerList(outputs);
-        List<IBatteryData> batteries = new ArrayList<>();
+        List<IBatteryData> batteries = new ObjectArrayList<>();
         for (var battery : getMultiblockState().getMatchContext().entrySet()) {
             if (battery.getKey() instanceof String string && string.startsWith(PMC_BATTERY_HEADER) && battery.getValue() instanceof BatteryMatchWrapper wrapper)
                 for (int i = 0; i < wrapper.amount; i++) {

@@ -13,9 +13,9 @@ import net.minecraft.world.phys.AABB;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class LargeMacerationTowerMachine extends WorkableElectricMultiblockMachine {
@@ -23,7 +23,7 @@ public class LargeMacerationTowerMachine extends WorkableElectricMultiblockMachi
     @NotNull
     private AABB grindBound = new AABB(BlockPos.ZERO);
     @NotNull
-    private final List<IItemHandler> handlers = new ArrayList<>();
+    private final List<IItemHandler> handlers = new ObjectArrayList<>();
 
     private TickableSubscription hurtSub;
 
@@ -69,7 +69,7 @@ public class LargeMacerationTowerMachine extends WorkableElectricMultiblockMachi
         if (isRemote() || getLevel() == null) return;
         if (getOffsetTimer() % 10 != 0) return;
 
-        List<ItemEntity> itemEntities = new ArrayList<>();
+        List<ItemEntity> itemEntities = new ObjectArrayList<>();
         for (var entity : getLevel().getEntities(null, grindBound)) {
             if (entity instanceof ItemEntity ie) {
                 itemEntities.add(ie);

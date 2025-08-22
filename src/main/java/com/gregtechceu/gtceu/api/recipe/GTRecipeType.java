@@ -46,7 +46,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     protected Supplier<ItemStack> iconSupplier;
     @Nullable
     protected SoundEntry sound;
-    protected List<Function<CompoundTag, String>> dataInfos = new ArrayList<>();
+    protected List<Function<CompoundTag, String>> dataInfos = new ObjectArrayList<>();
     protected boolean isScanner;
     // Does this recipe type have a research item slot? If this is true you MUST create a custom UI.
     protected boolean hasResearchSlot;
@@ -56,7 +56,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     protected boolean offsetVoltageText = false;
     protected int voltageTextOffset = 20;
     protected final Map<String, Collection<GTRecipe>> researchEntries = new Object2ObjectOpenHashMap<>();
-    protected final List<ICustomRecipeLogic> customRecipeLogicRunners = new ArrayList<>();
+    protected final List<ICustomRecipeLogic> customRecipeLogicRunners = new ObjectArrayList<>();
 
     public GTRecipeType(ResourceLocation registryName, String group, RecipeType<?>... proxyRecipes) {
         this.registryName = registryName;
@@ -66,7 +66,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         // must be linked to stop json contents from shuffling
         Map<RecipeType<?>, List<GTRecipe>> map = new Object2ObjectLinkedOpenHashMap<>();
         for (RecipeType<?> proxyRecipe : proxyRecipes) {
-            map.put(proxyRecipe, new ArrayList<>());
+            map.put(proxyRecipe, new ObjectArrayList<>());
         }
         this.proxyRecipes = map;
     }

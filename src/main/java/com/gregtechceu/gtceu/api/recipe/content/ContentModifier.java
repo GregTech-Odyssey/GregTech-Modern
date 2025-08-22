@@ -2,8 +2,9 @@ package com.gregtechceu.gtceu.api.recipe.content;
 
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+
 import java.util.List;
 import java.util.Map;
 
@@ -42,13 +43,13 @@ public record ContentModifier(double multiplier, double addition) {
      * @return A new Content map that is the modified version of the argument
      */
     public Map<RecipeCapability<?>, List<Content>> applyContents(Map<RecipeCapability<?>, List<Content>> contents) {
-        if (this == IDENTITY) return new HashMap<>(contents);
-        Map<RecipeCapability<?>, List<Content>> copyContents = new HashMap<>();
+        if (this == IDENTITY) return new Reference2ReferenceOpenHashMap<>(contents);
+        Map<RecipeCapability<?>, List<Content>> copyContents = new Reference2ReferenceOpenHashMap<>();
         for (var entry : contents.entrySet()) {
             var contentList = entry.getValue();
             var cap = entry.getKey();
             if (contentList != null && !contentList.isEmpty()) {
-                List<Content> contentsCopy = new ArrayList<>();
+                List<Content> contentsCopy = new ObjectArrayList<>();
                 for (Content content : contentList) {
                     contentsCopy.add(content.copy(cap, this));
                 }

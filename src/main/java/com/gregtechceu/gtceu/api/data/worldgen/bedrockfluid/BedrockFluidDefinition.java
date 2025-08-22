@@ -14,7 +14,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.material.Fluid;
 
-import java.util.*;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public class BedrockFluidDefinition {
@@ -136,7 +140,7 @@ public class BedrockFluidDefinition {
         }
 
         public Builder dimensions(String... dimensions) {
-            return this.dimensions(new HashSet<>(RegistryUtil.resolveResourceKeys(Registries.DIMENSION, dimensions)));
+            return this.dimensions(new ObjectOpenHashSet<>(RegistryUtil.resolveResourceKeys(Registries.DIMENSION, dimensions)));
         }
 
         public BedrockFluidDefinition register() {

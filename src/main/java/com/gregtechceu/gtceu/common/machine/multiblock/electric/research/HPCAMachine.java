@@ -54,7 +54,9 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -88,9 +90,9 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        List<IEnergyContainer> energyContainers = new ArrayList<>();
-        List<IFluidHandler> coolantContainers = new ArrayList<>();
-        List<IHPCAComponentHatch> componentHatches = new ArrayList<>();
+        List<IEnergyContainer> energyContainers = new ObjectArrayList<>();
+        List<IFluidHandler> coolantContainers = new ObjectArrayList<>();
+        List<IHPCAComponentHatch> componentHatches = new ObjectArrayList<>();
         for (IMultiPart part : getParts()) {
             if (part instanceof IHPCAComponentHatch componentHatch) {
                 componentHatches.add(componentHatch);
@@ -408,7 +410,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
             // 1% chance each tick to damage a component if running too hot
             if (GTValues.RNG.nextInt(200) == 0) {
                 // randomize which component is actually damaged
-                List<IHPCAComponentHatch> candidates = new ArrayList<>();
+                List<IHPCAComponentHatch> candidates = new ObjectArrayList<>();
                 for (var component : components) {
                     if (component.canBeDamaged()) {
                         candidates.add(component);

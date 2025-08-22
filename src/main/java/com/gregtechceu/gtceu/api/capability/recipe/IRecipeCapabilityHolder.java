@@ -1,11 +1,13 @@
 package com.gregtechceu.gtceu.api.capability.recipe;
 
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
+import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +17,11 @@ public interface IRecipeCapabilityHolder {
     default boolean hasCapabilityProxies() {
         return !getCapabilitiesProxy().isEmpty();
     }
+
+    @Nullable
+    RecipeHandlerList getCurrentHandlerList();
+
+    void setCurrentHandlerList(RecipeHandlerList list, GTRecipe recipe);
 
     @NotNull
     Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy();
@@ -37,12 +44,12 @@ public interface IRecipeCapabilityHolder {
     default void addHandlerList(RecipeHandlerList handler) {
         if (handler == RecipeHandlerList.NO_DATA) return;
         IO io = handler.getHandlerIO();
-        getCapabilitiesProxy().computeIfAbsent(io, i -> new ArrayList<>()).add(handler);
-        var entrySet = handler.getHandlerMap().entrySet();
+        getCapabilitiesProxy().computeIfAbsent(io, i -> new ObjectArrayList<>()).add(handler);
+        var entrySet = handler.handlerMap.entrySet();
         var inner = getCapabilitiesFlat().computeIfAbsent(io, i -> new Reference2ObjectOpenHashMap<>(entrySet.size()));
         for (var entry : entrySet) {
             var entryList = entry.getValue();
-            inner.computeIfAbsent(entry.getKey(), c -> new ArrayList<>(entryList.size())).addAll(entryList);
+            inner.computeIfAbsent(entry.getKey(), c -> new ObjectArrayList<>(entryList.size())).addAll(entryList);
         }
     }
 }

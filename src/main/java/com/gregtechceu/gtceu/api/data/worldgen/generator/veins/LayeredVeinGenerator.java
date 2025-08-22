@@ -29,8 +29,8 @@ import it.unimi.dsi.fastutil.floats.FloatList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -43,7 +43,7 @@ public class LayeredVeinGenerator extends VeinGenerator {
                     .forGetter(LayeredVeinGenerator::getLayerPatterns))
             .apply(instance, LayeredVeinGenerator::new));
 
-    private final List<NonNullSupplier<GTLayerPattern>> bakingLayerPatterns = new ArrayList<>();
+    private final List<NonNullSupplier<GTLayerPattern>> bakingLayerPatterns = new ObjectArrayList<>();
 
     public List<GTLayerPattern> layerPatterns;
 
@@ -93,7 +93,7 @@ public class LayeredVeinGenerator extends VeinGenerator {
         if (origin.getY() >= level.getMaxBuildHeight())
             return Long2ObjectMaps.emptyMap();
 
-        List<GTLayerPattern.Layer> resolvedLayers = new ArrayList<>();
+        List<GTLayerPattern.Layer> resolvedLayers = new ObjectArrayList<>();
         FloatList layerDiameterOffsets = new FloatArrayList();
 
         int layerCoordinate = random.nextInt(4);
@@ -217,7 +217,7 @@ public class LayeredVeinGenerator extends VeinGenerator {
 
     @Override
     public VeinGenerator copy() {
-        return new LayeredVeinGenerator(new ArrayList<>(this.layerPatterns));
+        return new LayeredVeinGenerator(new ObjectArrayList<>(this.layerPatterns));
     }
 
     @Override

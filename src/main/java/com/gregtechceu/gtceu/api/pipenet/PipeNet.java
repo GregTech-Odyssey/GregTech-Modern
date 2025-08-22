@@ -20,7 +20,8 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 public abstract class PipeNet<NodeDataType> implements ITagSerializable<CompoundTag> {
 

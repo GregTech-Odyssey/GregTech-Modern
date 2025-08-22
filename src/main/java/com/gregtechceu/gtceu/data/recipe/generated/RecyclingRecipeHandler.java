@@ -9,9 +9,9 @@ import com.gregtechceu.gtceu.data.recipe.misc.RecyclingRecipes;
 
 import net.minecraft.data.recipes.FinishedRecipe;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
@@ -39,7 +39,7 @@ public final class RecyclingRecipeHandler {
             return;
         }
 
-        ArrayList<MaterialStack> materialStacks = new ArrayList<>();
+        List<MaterialStack> materialStacks = new ObjectArrayList<>();
         materialStacks.add(new MaterialStack(material, prefix.getMaterialAmount(material)));
         materialStacks.addAll(prefix.secondaryMaterials());
         // only ignore arc smelting for blacklisted prefixes if yielded material is the same as input material

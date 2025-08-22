@@ -35,7 +35,10 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BiFunction;
 
 @OnlyIn(Dist.CLIENT)
@@ -158,7 +161,7 @@ public class RenderUtil {
             return null;
         }
         var contents = new ObjectArrayList<Content>();
-        var empty = new ArrayList<Content>();
+        var empty = new ObjectArrayList<Content>();
         contents.addAll(recipe.outputs.getOrDefault(FluidRecipeCapability.CAP, empty));
         contents.addAll(recipe.inputs.getOrDefault(FluidRecipeCapability.CAP, empty));
         if (contents.isEmpty()) {

@@ -24,7 +24,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -308,12 +307,6 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
             sum = sum - canInput;
         }
         return sum <= 0 ? null : Collections.singletonList(sum);
-    }
-
-    @Override
-    @NotNull
-    public List<Object> getContents() {
-        return List.of(energyStored);
     }
 
     @Override

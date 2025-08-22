@@ -50,10 +50,10 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -312,7 +312,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
         if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_MACHINE_INFO) {
             return Collections.singletonList(Component.translatable("gtceu.machine.steam_boiler.heat_amount", FormattingUtil.formatNumbers((int) (getTemperaturePercent() * 100))));
         }
-        return new ArrayList<>();
+        return new ObjectArrayList<>();
     }
 
     public int getCurrentTemperature() {

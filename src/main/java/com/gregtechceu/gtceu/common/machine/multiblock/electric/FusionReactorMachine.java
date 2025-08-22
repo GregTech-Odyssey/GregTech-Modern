@@ -36,10 +36,12 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2IntAVLTreeMap;
 import it.unimi.dsi.fastutil.longs.Long2IntSortedMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -107,7 +109,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     public void onStructureFormed() {
         super.onStructureFormed();
         // capture all energy containers
-        List<IEnergyContainer> energyContainers = new ArrayList<>();
+        List<IEnergyContainer> energyContainers = new ObjectArrayList<>();
         for (IMultiPart part : getParts()) {
             for (var handlerList : part.getRecipeHandlers()) {
                 handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).forEach(energyContainers::add);

@@ -20,9 +20,9 @@ import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -47,7 +47,7 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        List<IEnergyContainer> energyContainers = new ArrayList<>();
+        List<IEnergyContainer> energyContainers = new ObjectArrayList<>();
         for (IMultiPart part : getParts()) {
             if (part instanceof IMaintenanceMachine maintenanceMachine) {
                 this.maintenance = maintenanceMachine;

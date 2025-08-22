@@ -28,7 +28,9 @@ import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 public class HazardProperty implements IMaterialProperty {
 
@@ -55,7 +57,7 @@ public class HazardProperty implements IMaterialProperty {
         public static final HazardTrigger NONE = new HazardTrigger("none", ProtectionType.NONE);
 
         public HazardTrigger(String name, ProtectionType protectionType, TagPrefix... tagPrefixes) {
-            this(name, protectionType, new HashSet<>());
+            this(name, protectionType, new ReferenceOpenHashSet<>());
             affectedTagPrefixes.addAll(Arrays.asList(tagPrefixes));
         }
 

@@ -30,11 +30,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
@@ -49,8 +49,9 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MultiblockControllerMachine.class, MetaMachine.MANAGED_FIELD_HOLDER);
     protected MultiblockState multiblockState;
     protected MultiblockState[] subMultiblockState = null;
-    protected int formeds = 0;
-    private final List<IMultiPart> parts = new ArrayList<>();
+    protected boolean[] formeds;
+    protected int formedCount;
+    private final List<IMultiPart> parts = new ObjectArrayList<>();
     @Nullable
     private IParallelHatch parallelHatch = null;
     @DescSynced
@@ -149,8 +150,12 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     //////////////////////////////////////
     private final Lock patternLock = new ReentrantLock();
 
-    public int getSubFormed() {
+    public boolean @Nullable [] getSubFormed() {
         return formeds;
+    }
+
+    public int getSubFormedAmount() {
+        return formedCount;
     }
 
     @Override
@@ -161,17 +166,19 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             if (pattern != null) {
                 checking = true;
                 var state = getMultiblockState();
-                formeds = 0;
                 state.cleanCache();
                 result = pattern.checkPatternAt(state, false);
                 if (result) {
                     var subPattern = getSubPattern();
                     if (subPattern != null) {
+                        formedCount = 0;
+                        formeds = new boolean[subPattern.length];
                         for (int i = 0; i < subPattern.length; i++) {
                             var subState = MultiblockState.copy(state);
                             if (subPattern[i].get().checkPatternAt(subState, false)) {
                                 state.merge(subState);
-                                formeds++;
+                                formeds[i] = true;
+                                formedCount++;
                             }
                             if (subMultiblockState != null) {
                                 subMultiblockState[i] = subState;

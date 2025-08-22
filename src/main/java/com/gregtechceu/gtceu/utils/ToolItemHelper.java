@@ -10,12 +10,13 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.HashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+
 import java.util.Map;
 
 public class ToolItemHelper {
 
-    public static final Map<GTToolType, ItemStack> TOOL_CACHE = new HashMap<>();
+    public static final Map<GTToolType, ItemStack> TOOL_CACHE = new Reference2ReferenceOpenHashMap<>();
 
     /**
      * Attempts to get an electric item variant with override of max charge

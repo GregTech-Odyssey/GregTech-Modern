@@ -19,7 +19,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -37,7 +38,7 @@ public class PumpHatchPartRenderer extends CTMModelRenderer {
     public List<BakedQuad> renderModel(BlockAndTintGetter level, BlockPos pos, BlockState state, Direction side,
                                        RandomSource rand) {
         if (state != null && state.getBlock() instanceof MetaMachineBlock machineBlock && side == machineBlock.getFrontFacing(state)) {
-            var quads = new ArrayList<>(super.renderModel(level, pos, state, side, rand));
+            var quads = new ObjectArrayList<>(super.renderModel(level, pos, state, side, rand));
             quads.add(StaticFaceBakery.bakeFace(side, ModelFactory.getBlockSprite(PIPE_OUT)));
             quads.add(StaticFaceBakery.bakeFace(
                     side, ModelFactory.getBlockSprite(FLUID_HATCH),

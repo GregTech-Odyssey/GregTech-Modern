@@ -22,10 +22,10 @@ import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -164,7 +164,7 @@ public abstract class LongDistanceEndpointMachine extends MetaMachine implements
     }
 
     private List<LongDistanceNetwork> findNetworks(ServerLevel level) {
-        List<LongDistanceNetwork> networks = new ArrayList<>();
+        List<LongDistanceNetwork> networks = new ObjectArrayList<>();
         LongDistanceNetwork network;
         // only check input and output side
         network = LongDistanceNetwork.get(level, getPos().relative(getFrontFacing()));
@@ -228,7 +228,7 @@ public abstract class LongDistanceEndpointMachine extends MetaMachine implements
 
     @Override
     public List<Component> getDataInfo(PortableScannerBehavior.DisplayMode mode) {
-        List<Component> textComponents = new ArrayList<>();
+        List<Component> textComponents = new ObjectArrayList<>();
         if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_MACHINE_INFO) {
             if (getLevel() instanceof ServerLevel serverLevel) {
                 LongDistanceNetwork network = LongDistanceNetwork.get(serverLevel, getPos());

@@ -52,10 +52,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.BlockHitResult;
 
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -357,7 +357,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IFanc
             int workingArea = IMiner.getWorkingArea(getRecipeLogic().getCurrentRadius());
             return Collections.singletonList(Component.translatable("gtceu.universal.tooltip.working_area", workingArea, workingArea));
         }
-        return new ArrayList<>();
+        return new ObjectArrayList<>();
     }
 
     public Direction getOutputFacingItems() {

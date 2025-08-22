@@ -19,9 +19,12 @@ import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
 
@@ -60,7 +63,7 @@ public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
     }
 
     public static Map<RecipeCapability<?>, List<Content>> tuplesToMap(List<Tuple<RecipeCapability<?>, List<Content>>> entries) {
-        Map<RecipeCapability<?>, List<Content>> map = new HashMap<>();
+        Map<RecipeCapability<?>, List<Content>> map = new Reference2ReferenceOpenHashMap<>();
         entries.forEach(entry -> map.put(entry.getA(), entry.getB()));
         return map;
     }
@@ -71,15 +74,15 @@ public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
         ResourceLocation recipeType = buf.readResourceLocation();
         int duration = buf.readVarInt();
         Map<RecipeCapability<?>, List<Content>> inputs = tuplesToMap(
-                buf.readCollection(c -> new ArrayList<>(), GTRecipeSerializer::entryReader));
+                buf.readCollection(c -> new ObjectArrayList<>(), GTRecipeSerializer::entryReader));
         Map<RecipeCapability<?>, List<Content>> tickInputs = tuplesToMap(
-                buf.readCollection(c -> new ArrayList<>(), GTRecipeSerializer::entryReader));
+                buf.readCollection(c -> new ObjectArrayList<>(), GTRecipeSerializer::entryReader));
         Map<RecipeCapability<?>, List<Content>> outputs = tuplesToMap(
-                buf.readCollection(c -> new ArrayList<>(), GTRecipeSerializer::entryReader));
+                buf.readCollection(c -> new ObjectArrayList<>(), GTRecipeSerializer::entryReader));
         Map<RecipeCapability<?>, List<Content>> tickOutputs = tuplesToMap(
-                buf.readCollection(c -> new ArrayList<>(), GTRecipeSerializer::entryReader));
+                buf.readCollection(c -> new ObjectArrayList<>(), GTRecipeSerializer::entryReader));
 
-        List<RecipeCondition> conditions = buf.readCollection(c -> new ArrayList<>(),
+        List<RecipeCondition> conditions = buf.readCollection(c -> new ObjectArrayList<>(),
                 GTRecipeSerializer::conditionReader);
 
         CompoundTag data = buf.readNbt();

@@ -8,7 +8,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import java.util.List;
 
 public class PatternError {
@@ -26,7 +27,7 @@ public class PatternError {
     }
 
     public List<List<ItemStack>> getCandidates() {
-        List<List<ItemStack>> candidates = new ArrayList<>();
+        List<List<ItemStack>> candidates = new ObjectArrayList<>();
         for (SimplePredicate common : predicate.common) {
             candidates.add(common.getCandidates());
         }

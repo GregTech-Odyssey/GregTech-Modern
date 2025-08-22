@@ -15,9 +15,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
@@ -59,7 +59,7 @@ public class OreRenderLayer extends MapRenderLayer {
     }
 
     public static List<Component> getTooltip(String name, GeneratedVeinMetadata vein) {
-        final List<Component> tooltip = new ArrayList<>();
+        final List<Component> tooltip = new ObjectArrayList<>();
         var title = Component.literal(name);
         if (vein.depleted()) {
             title.append(" (").append(Component.translatable("gtceu.minimap.ore_vein.depleted")).append(")");

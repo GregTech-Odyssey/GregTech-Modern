@@ -13,13 +13,14 @@ import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.gregtechceu.gtceu.api.GTValues.*;
+import static com.gregtechceu.gtceu.api.GTValues.LV;
+import static com.gregtechceu.gtceu.api.GTValues.VA;
 import static com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags.*;
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.dust;
 import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.CENTRIFUGE_RECIPES;
@@ -42,8 +43,8 @@ public final class DecompositionRecipeHandler {
                 material.getMaterialComponents().size() > 6)
             return;
 
-        List<ItemStack> outputs = new ArrayList<>();
-        List<FluidStack> fluidOutputs = new ArrayList<>();
+        List<ItemStack> outputs = new ObjectArrayList<>();
+        List<FluidStack> fluidOutputs = new ObjectArrayList<>();
         long totalInputAmount = 0;
 
         // compute outputs
@@ -74,7 +75,7 @@ public final class DecompositionRecipeHandler {
 
             // divide components
             if (highestDivisor != 1) {
-                List<ItemStack> reducedOutputs = new ArrayList<>();
+                List<ItemStack> reducedOutputs = new ObjectArrayList<>();
 
                 for (ItemStack itemStack : outputs) {
                     ItemStack reducedStack = itemStack.copy();
@@ -82,7 +83,7 @@ public final class DecompositionRecipeHandler {
                     reducedOutputs.add(reducedStack);
                 }
 
-                List<FluidStack> reducedFluidOutputs = new ArrayList<>();
+                List<FluidStack> reducedFluidOutputs = new ObjectArrayList<>();
 
                 for (FluidStack fluidStack : fluidOutputs) {
                     FluidStack reducedFluidStack = fluidStack.copy();

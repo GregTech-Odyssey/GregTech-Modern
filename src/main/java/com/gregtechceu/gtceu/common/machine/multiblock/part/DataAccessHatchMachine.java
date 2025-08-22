@@ -33,12 +33,16 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -146,7 +150,7 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
     public List<Component> getDataInfo(PortableScannerBehavior.DisplayMode mode) {
         if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_RECIPE_INFO) {
             if (recipes.isEmpty()) return Collections.emptyList();
-            List<Component> list = new ArrayList<>();
+            List<Component> list = new ObjectArrayList<>();
             list.add(Component.translatable("behavior.data_item.assemblyline.title"));
             list.add(Component.empty());
             Collection<ItemStack> itemsAdded = new ObjectOpenCustomHashSet<>(ItemStackHashStrategy.ALL);
@@ -159,7 +163,7 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
             }
             return list;
         }
-        return new ArrayList<>();
+        return new ObjectArrayList<>();
     }
 
     @Override

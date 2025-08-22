@@ -23,7 +23,7 @@ import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.List;
 import java.util.function.Predicate;
 
 public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngredient> implements ICapabilityTrait, IFluidHandlerModifiable {
@@ -96,7 +96,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
         // Necessary for simulation since we don't actually modify the slot's contents
         // Doesn't hurt for execution, and definitely cheaper than copying the entire storage
         FluidStack[] visited = new FluidStack[storages.length];
-        for (var it = left.iterator(); it.hasNext();) {
+        for (var it = left.listIterator(0); it.hasNext();) {
             var ingredient = it.next();
             if (ingredient.isEmpty()) {
                 it.remove();
@@ -230,7 +230,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
 
     @Override
     public int getSize() {
-        return getTanks();
+        return storages.length;
     }
 
     @Override
@@ -256,13 +256,11 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
 
     @Override
     @NotNull
-    public List<Object> getContents() {
-        var ingredients = new ArrayList<>();
+    public Object[] getContents() {
+        var tanks = getTanks();
+        var ingredients = new Object[tanks];
         for (int i = 0; i < getTanks(); ++i) {
-            FluidStack stack = getFluidInTank(i);
-            if (!stack.isEmpty()) {
-                ingredients.add(stack);
-            }
+            ingredients[i] = getFluidInTank(i);
         }
         return ingredients;
     }

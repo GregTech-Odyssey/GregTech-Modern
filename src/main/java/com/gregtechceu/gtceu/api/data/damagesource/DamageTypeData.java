@@ -13,9 +13,9 @@ import net.minecraft.world.damagesource.*;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.LevelAccessor;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +30,7 @@ import java.util.stream.Stream;
  */
 public class DamageTypeData {
 
-    private static final List<DamageTypeData> ALL = new ArrayList<>();
+    private static final List<DamageTypeData> ALL = new ObjectArrayList<>();
 
     public final ResourceKey<DamageType> key;
     public final ResourceLocation id;
@@ -96,7 +96,7 @@ public class DamageTypeData {
         private DamageScaling scaling = DamageScaling.WHEN_CAUSED_BY_LIVING_NON_PLAYER;
         private DamageEffects effects = DamageEffects.HURT;
         private DeathMessageType deathMessageType = DeathMessageType.DEFAULT;
-        private final List<TagKey<DamageType>> tags = new ArrayList<>();
+        private final List<TagKey<DamageType>> tags = new ObjectArrayList<>();
 
         /**
          * Set the ResourceLocation or ID of this type. This is a required field.

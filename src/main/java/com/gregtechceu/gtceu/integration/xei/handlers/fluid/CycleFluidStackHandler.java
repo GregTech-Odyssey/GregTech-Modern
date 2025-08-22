@@ -5,9 +5,9 @@ import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidStackList;
 
 import net.minecraftforge.fluids.FluidStack;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class CycleFluidStackHandler implements IFluidHandlerModifiable {
@@ -15,7 +15,7 @@ public class CycleFluidStackHandler implements IFluidHandlerModifiable {
     private final List<FluidStackList> stacks;
 
     public CycleFluidStackHandler(List<List<FluidStack>> stacks) {
-        this.stacks = new ArrayList<>();
+        this.stacks = new ObjectArrayList<>();
         for (var list : stacks) {
             this.stacks.add(FluidStackList.of(list));
         }

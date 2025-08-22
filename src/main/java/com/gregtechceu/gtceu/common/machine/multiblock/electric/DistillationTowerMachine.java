@@ -2,7 +2,10 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.*;
+import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.IO;
+import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
@@ -172,7 +175,7 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
             this.workingRecipe = recipe.copy();
             var contents = recipe.getOutputContents(FluidRecipeCapability.CAP);
             var outputs = getMachine().getFluidOutputs();
-            List<Content> trimmed = new ArrayList<>(12);
+            List<Content> trimmed = new ObjectArrayList<>(12);
             for (int i = 0; i < Math.min(contents.size(), outputs.size()); ++i) {
                 if (!(outputs.get(i) instanceof VoidFluidHandler)) trimmed.add(contents.get(i));
             }

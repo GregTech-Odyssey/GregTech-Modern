@@ -2,7 +2,8 @@ package com.gregtechceu.gtceu.api.data.worldgen;
 
 import net.minecraft.core.BlockPos;
 
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import java.util.List;
 
 public class RTTTree {
@@ -11,7 +12,7 @@ public class RTTTree {
     final BlockPos root;
 
     public RTTTree(BlockPos root) {
-        this.nodes = new ArrayList<>();
+        this.nodes = new ObjectArrayList<>();
         nodes.add(root);
         this.root = root;
     }

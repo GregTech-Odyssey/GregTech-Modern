@@ -8,7 +8,6 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.misc.IgnoreEnergyRecipeHandler;
 import com.gregtechceu.gtceu.api.misc.ItemRecipeHandler;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
@@ -41,6 +40,7 @@ import net.minecraftforge.common.Tags;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,7 +94,6 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
     protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
     private final ItemRecipeHandler inputItemHandler;
     private final ItemRecipeHandler outputItemHandler;
-    private final IgnoreEnergyRecipeHandler inputEnergyHandler;
     private Direction dir = Direction.DOWN;
 
     /**
@@ -118,8 +117,7 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
         this.capabilitiesFlat = new EnumMap<>(IO.class);
         this.inputItemHandler = new ItemRecipeHandler(IO.IN, machine.getRecipeType().getMaxInputs(ItemRecipeCapability.CAP));
         this.outputItemHandler = new ItemRecipeHandler(IO.OUT, machine.getRecipeType().getMaxOutputs(ItemRecipeCapability.CAP));
-        this.inputEnergyHandler = new IgnoreEnergyRecipeHandler();
-        RecipeHandlerList inHandlers = RecipeHandlerList.of(IO.IN, inputItemHandler, inputEnergyHandler);
+        RecipeHandlerList inHandlers = RecipeHandlerList.of(IO.IN, inputItemHandler);
         RecipeHandlerList outHandlers = RecipeHandlerList.of(IO.OUT, outputItemHandler);
         addHandlerList(inHandlers);
         addHandlerList(outHandlers);
@@ -313,7 +311,7 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
             if (GTUtil.getTierByVoltage(eut) <= getVoltageTier()) {
                 if (RecipeHelper.handleRecipeIO(this, match, IO.OUT, this.chanceCaches)) {
                     blockDrops.clear();
-                    var result = new ArrayList<ItemStack>();
+                    var result = new ObjectArrayList<ItemStack>();
                     for (int i = 0; i < outputItemHandler.storage.getSlots(); ++i) {
                         var stack = outputItemHandler.storage.getStackInSlot(i);
                         if (stack.isEmpty()) continue;
@@ -631,6 +629,14 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
     public boolean isInventoryFull() {
         return this.isInventoryFull;
     }
+
+    @Override
+    public @Nullable RecipeHandlerList getCurrentHandlerList() {
+        return null;
+    }
+
+    @Override
+    public void setCurrentHandlerList(RecipeHandlerList list, GTRecipe recipe) {}
 
     public Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {
         return this.capabilitiesProxy;

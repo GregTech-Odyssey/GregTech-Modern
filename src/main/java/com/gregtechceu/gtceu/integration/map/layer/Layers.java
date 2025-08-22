@@ -6,7 +6,8 @@ import com.gregtechceu.gtceu.integration.map.GenericMapRenderer;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.BiFunction;
 
 public class Layers {

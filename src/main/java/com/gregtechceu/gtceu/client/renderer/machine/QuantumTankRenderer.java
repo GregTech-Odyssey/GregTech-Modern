@@ -45,7 +45,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.gregtechceu.gtceu.common.machine.storage.QuantumTankMachine.TANK_CAPACITY;
-import static com.gregtechceu.gtceu.utils.GTMatrixUtils.*;
+import static com.gregtechceu.gtceu.utils.GTMatrixUtils.rotateMatrix;
+import static com.gregtechceu.gtceu.utils.GTMatrixUtils.upwardFacingAngle;
 
 public class QuantumTankRenderer extends TieredHullMachineRenderer {
 

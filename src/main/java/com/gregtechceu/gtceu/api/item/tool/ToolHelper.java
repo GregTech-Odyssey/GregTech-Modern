@@ -55,6 +55,7 @@ import it.unimi.dsi.fastutil.chars.CharSet;
 import it.unimi.dsi.fastutil.chars.CharSets;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -311,7 +312,7 @@ public class ToolHelper {
         }
         sideDirection = sideDirection.getClockWise();
 
-        List<BlockPos> validPositions = new ArrayList<>();
+        List<BlockPos> validPositions = new ObjectArrayList<>();
         for (int depth = 0; depth <= aoeDefinition.layer; depth++) {
             for (int top = aoeRowEnd; top >= aoeRowStart; top--) {
                 for (int side = -aoeDefinition.column; side <= aoeDefinition.column; side++) {

@@ -11,7 +11,9 @@ import net.minecraft.nbt.CompoundTag;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class ItemPipeNet extends PipeNet<ItemPipeProperties> {
 

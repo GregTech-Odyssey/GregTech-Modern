@@ -11,7 +11,9 @@ import com.gregtechceu.gtceu.api.registry.GTRegistry;
 import com.gregtechceu.gtceu.common.commands.arguments.GTRegistryArgument;
 import com.gregtechceu.gtceu.data.pack.GTDynamicDataPack;
 
-import net.minecraft.commands.*;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandRuntimeException;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.BlockPos;
@@ -35,7 +37,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
 
 import static net.minecraft.commands.Commands.*;
 

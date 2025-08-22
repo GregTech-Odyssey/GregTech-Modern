@@ -20,13 +20,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -118,10 +118,10 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
 
     protected RecipeHandlerList getHandlerList() {
         if (handlerList == null) {
-            List<IRecipeHandler<?>> handlers = new ArrayList<>();
+            List<IRecipeHandler<?>> handlers = new ObjectArrayList<>();
             IO handlerIO = null;
             for (var trait : traits) {
-                if (trait instanceof IRecipeHandlerTrait<?> rht) {
+                if (trait instanceof IRecipeHandlerTrait<?> rht && rht.getHandlerIO() != IO.NONE) {
                     if (handlerIO == null) handlerIO = rht.getHandlerIO();
                     handlers.add(rht);
                 }
@@ -130,7 +130,7 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
             if (handlers.isEmpty()) {
                 handlerList = RecipeHandlerList.NO_DATA;
             } else {
-                handlerList = RecipeHandlerList.of(handlerIO, getPaintingColor(), handlers);
+                handlerList = RecipeHandlerList.of(handlerIO, this, handlers);
             }
         }
         return handlerList;

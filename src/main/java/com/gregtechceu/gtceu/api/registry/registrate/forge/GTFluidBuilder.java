@@ -44,9 +44,9 @@ import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
 import com.tterrag.registrate.util.nullness.NonNullBiFunction;
 import com.tterrag.registrate.util.nullness.NonNullConsumer;
 import com.tterrag.registrate.util.nullness.NonNullSupplier;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
@@ -96,7 +96,7 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
     private NonNullSupplier<? extends LiquidBlock> block;
     @Nullable
     private NonNullSupplier<? extends BucketItem> bucket;
-    private final List<TagKey<Fluid>> tags = new ArrayList<>();
+    private final List<TagKey<Fluid>> tags = new ObjectArrayList<>();
 
     public GTFluidBuilder(AbstractRegistrate<?> owner, P parent, Material material, String name, String langKey, BuilderCallback callback, ResourceLocation stillTexture, ResourceLocation flowingTexture, GTFluidBuilder.FluidTypeFactory typeFactory) {
         super(owner, parent, "flowing_" + name, callback, ForgeRegistries.Keys.FLUIDS);

@@ -7,14 +7,15 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class GridCache {
 
-    private final List<GeneratedVeinMetadata> veins = new ArrayList<>();
+    private final List<GeneratedVeinMetadata> veins = new ObjectArrayList<>();
 
     public boolean addVein(GeneratedVeinMetadata vein) {
         if (veins.contains(vein)) return false;

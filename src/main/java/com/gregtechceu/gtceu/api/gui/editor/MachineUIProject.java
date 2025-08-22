@@ -23,12 +23,16 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.resources.ResourceLocation;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @LDLRegister(name = "mui", group = "editor.gtceu")
 public class MachineUIProject extends UIProject {
@@ -117,7 +121,7 @@ public class MachineUIProject extends UIProject {
                 final var editableUI = definition.getEditableUI();
                 if (editableUI != null) {
                     // has editable UI
-                    categories.computeIfAbsent(editableUI.getGroupName(), group -> new ArrayList<>()).add(definition);
+                    categories.computeIfAbsent(editableUI.getGroupName(), group -> new ObjectArrayList<>()).add(definition);
                 }
             }
             categories.forEach((groupName, definitions) -> menu.branch(groupName, m -> {

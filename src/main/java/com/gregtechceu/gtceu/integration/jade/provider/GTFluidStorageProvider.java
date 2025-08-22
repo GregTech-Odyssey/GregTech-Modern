@@ -19,11 +19,7 @@ import snownee.jade.addon.universal.FluidStorageProvider;
 import snownee.jade.api.Accessor;
 import snownee.jade.api.fluid.JadeFluidObject;
 import snownee.jade.api.ui.IElementHelper;
-import snownee.jade.api.view.ClientViewGroup;
-import snownee.jade.api.view.FluidView;
-import snownee.jade.api.view.IClientExtensionProvider;
-import snownee.jade.api.view.IServerExtensionProvider;
-import snownee.jade.api.view.ViewGroup;
+import snownee.jade.api.view.*;
 import snownee.jade.util.FluidTextHelper;
 import snownee.jade.util.JadeForgeUtils;
 

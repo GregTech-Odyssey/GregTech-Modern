@@ -11,7 +11,8 @@ import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidStack;
 
-import java.util.HashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -24,7 +25,7 @@ public class FuelRecipes {
     public static void init(Consumer<FinishedRecipe> provider) {
         // TODO this all needs to be cleaned up, but this will make it somewhat work for now
         // do these first because for some reason vanilla fuels are not set up yet at this phase?
-        Set<Item> addedItems = new HashSet<>();
+        Set<Item> addedItems = new ReferenceOpenHashSet<>();
         for (var fuelEntry : FurnaceBlockEntity.getFuel().entrySet()) {
             addedItems.add(fuelEntry.getKey());
             var resLoc = BuiltInRegistries.ITEM.getKey(fuelEntry.getKey());

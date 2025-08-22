@@ -40,7 +40,8 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.ModLoader;
 
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -524,7 +525,7 @@ public class GTRecipeTypes {
             })
             .setUiBuilder((recipe, widgetGroup) -> {
                 int temp = recipe.data.getInt("ebf_temp");
-                List<List<ItemStack>> items = new ArrayList<>();
+                List<List<ItemStack>> items = new ObjectArrayList<>();
                 items.add(GTCEuAPI.HEATING_COILS.entrySet().stream()
                         .filter(coil -> coil.getKey().getCoilTemperature() >= temp)
                         .map(coil -> new ItemStack(coil.getValue().get())).toList());

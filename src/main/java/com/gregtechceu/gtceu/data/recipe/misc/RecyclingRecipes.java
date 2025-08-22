@@ -25,6 +25,7 @@ import net.minecraft.world.item.ItemStack;
 
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,7 +48,7 @@ public class RecyclingRecipes {
         for (var entry : ChemicalHelper.getAllItemInfos()) {
             ItemStack itemStack = entry.getFirst();
             ItemMaterialInfo materialInfo = entry.getSecond();
-            ArrayList<MaterialStack> materialStacks = new ArrayList<>(materialInfo.getMaterials());
+            List<MaterialStack> materialStacks = new ObjectArrayList<>(materialInfo.getMaterials());
             registerRecyclingRecipes(provider, itemStack, materialStacks, false, null);
         }
     }
@@ -444,7 +445,7 @@ public class RecyclingRecipes {
     private static List<ItemStack> finalizeOutputs(List<MaterialStack> materials, int maxOutputs,
                                                    Function<MaterialStack, ItemStack> toItemStackMapper) {
         // Map of ItemStack, Long to properly sort by the true material amount for outputs
-        List<Tuple<ItemStack, MaterialStack>> outputs = new ArrayList<>();
+        List<Tuple<ItemStack, MaterialStack>> outputs = new ObjectArrayList<>();
 
         for (MaterialStack ms : materials) {
             ms = new MaterialStack(ms.material().hasFlag(IS_MAGNETIC) ?
@@ -463,8 +464,8 @@ public class RecyclingRecipes {
                     } else {
                         // Attempt to split and to shrink the stack, and choose the option that creates the
                         // "larger" single stack, in terms of raw material amount.
-                        List<Tuple<ItemStack, MaterialStack>> split = new ArrayList<>();
-                        List<Tuple<ItemStack, MaterialStack>> shrink = new ArrayList<>();
+                        List<Tuple<ItemStack, MaterialStack>> split = new ObjectArrayList<>();
+                        List<Tuple<ItemStack, MaterialStack>> shrink = new ObjectArrayList<>();
                         splitStacks(split, stack, entry);
                         shrinkStacks(shrink, stack, entry);
 

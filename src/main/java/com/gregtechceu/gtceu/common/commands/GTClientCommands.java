@@ -14,7 +14,8 @@ import com.mojang.brigadier.CommandDispatcher;
 import java.util.List;
 import java.util.UUID;
 
-import static net.minecraft.commands.Commands.*;
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
 
 public class GTClientCommands {
 

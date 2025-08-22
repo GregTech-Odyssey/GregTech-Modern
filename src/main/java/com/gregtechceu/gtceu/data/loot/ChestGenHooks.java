@@ -34,10 +34,10 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -88,7 +88,7 @@ public final class ChestGenHooks {
         String modid = Objects.requireNonNull(BuiltInRegistries.ITEM.getKey(stack.getItem())).getNamespace();
         String entryName = createEntryName(stack, modid, weight, lootFunction);
         GTLootEntryItem itemEntry = new GTLootEntryItem(stack, weight, lootFunction, entryName);
-        lootEntryItems.computeIfAbsent(lootTable, $ -> new ArrayList<>()).add(itemEntry);
+        lootEntryItems.computeIfAbsent(lootTable, $ -> new ObjectArrayList<>()).add(itemEntry);
     }
 
     public static void addRolls(ResourceLocation tableLocation, int minAdd, int maxAdd) {

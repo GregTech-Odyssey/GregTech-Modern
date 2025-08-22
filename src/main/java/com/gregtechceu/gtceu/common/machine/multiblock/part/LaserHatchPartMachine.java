@@ -16,9 +16,9 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -70,7 +70,7 @@ public class LaserHatchPartMachine extends TieredIOPartMachine implements IDataI
             return Collections.singletonList(Component.translatable(
                     String.format("%d/%d EU", buffer.getEnergyStored(), buffer.getEnergyCapacity())));
         }
-        return new ArrayList<>();
+        return new ObjectArrayList<>();
     }
 
     //////////////////////////////////////

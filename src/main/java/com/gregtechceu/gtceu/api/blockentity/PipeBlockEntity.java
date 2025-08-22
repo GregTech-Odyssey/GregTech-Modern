@@ -238,7 +238,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
                 wait = true;
             }
         } else {
-            for (var iter = serverTicks.listIterator(); iter.hasNext();) {
+            for (var iter = serverTicks.listIterator(0); iter.hasNext();) {
                 var tickable = iter.next();
                 if (tickable.isStillSubscribed()) {
                     tickable.run();

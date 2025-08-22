@@ -21,11 +21,11 @@ import net.minecraft.nbt.NbtIo;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,7 +110,7 @@ public class RecipeTypeUIProject extends UIProject {
         } else if (name.equals("template_tab")) {
             Map<String, List<GTRecipeType>> categories = new LinkedHashMap<>();
             for (GTRecipeType recipeType : GTRegistries.RECIPE_TYPES) {
-                categories.computeIfAbsent(recipeType.group, group -> new ArrayList<>()).add(recipeType);
+                categories.computeIfAbsent(recipeType.group, group -> new ObjectArrayList<>()).add(recipeType);
             }
             categories.forEach((groupName, recipeTypes) -> menu.branch(groupName, m -> {
                 for (GTRecipeType recipeType : recipeTypes) {

@@ -28,9 +28,9 @@ import it.unimi.dsi.fastutil.ints.IntIntPair;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenCustomHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -61,7 +61,7 @@ public class ArmorUtils {
      * @return Map of the inventory and a list of the index of a chargable item
      */
     public static List<Pair<NonNullList<ItemStack>, IntList>> getChargeableItem(Player player, int tier) {
-        List<Pair<NonNullList<ItemStack>, IntList>> inventorySlotMap = new ArrayList<>();
+        List<Pair<NonNullList<ItemStack>, IntList>> inventorySlotMap = new ObjectArrayList<>();
 
         IntList openMainSlots = new IntArrayList();
         for (int i = 0; i < player.getInventory().items.size(); i++) {
@@ -166,7 +166,7 @@ public class ArmorUtils {
     public static List<ItemStack> format(List<ItemStack> input) {
         Object2IntMap<ItemStack> items = new Object2IntOpenCustomHashMap<>(
                 ItemStackHashStrategy.ITEM_AND_TAG);
-        List<ItemStack> output = new ArrayList<>();
+        List<ItemStack> output = new ObjectArrayList<>();
         for (ItemStack itemStack : input) {
             if (items.containsKey(itemStack)) {
                 int amount = items.getInt(itemStack);
@@ -205,7 +205,7 @@ public class ArmorUtils {
         private static final Minecraft mc = Minecraft.getInstance();
 
         public ModularHUD() {
-            this.stringList = new ArrayList<>();
+            this.stringList = new ObjectArrayList<>();
         }
 
         public void newString(Component string) {

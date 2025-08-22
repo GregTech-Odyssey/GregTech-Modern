@@ -5,10 +5,10 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 
 import net.minecraft.util.Mth;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -20,7 +20,7 @@ public class OreProperty implements IMaterialProperty {
      * <p>
      * Default: none, meaning only this property's Material.
      */
-    private final List<Material> oreByProducts = new ArrayList<>();
+    private final List<Material> oreByProducts = new ObjectArrayList<>();
     /**
      * Crushed Ore output amount multiplier during Maceration.
      * <p>
@@ -70,7 +70,7 @@ public class OreProperty implements IMaterialProperty {
      * Material will have a Dust Property.
      * Default: none.
      */
-    private final List<Material> separatedInto = new ArrayList<>();
+    private final List<Material> separatedInto = new ObjectArrayList<>();
 
     public OreProperty(int oreMultiplier, int byProductMultiplier) {
         this.oreMultiplier = oreMultiplier;

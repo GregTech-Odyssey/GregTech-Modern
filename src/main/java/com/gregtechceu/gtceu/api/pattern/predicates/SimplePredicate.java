@@ -18,9 +18,12 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -72,7 +75,7 @@ public class SimplePredicate {
 
     @OnlyIn(Dist.CLIENT)
     public List<Component> getToolTips(TraceabilityPredicate predicates) {
-        List<Component> result = new ArrayList<>();
+        List<Component> result = new ObjectArrayList<>();
         if (toolTips != null) {
             result.addAll(toolTips);
         }

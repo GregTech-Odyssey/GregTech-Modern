@@ -41,11 +41,13 @@ import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.builders.ItemBuilder;
 import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.*;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -58,7 +60,7 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
     private boolean generator;
     private Function<MultiblockMachineDefinition, BlockPattern> pattern;
     private List<Function<MultiblockMachineDefinition, BlockPattern>> subPattern;
-    private final List<Function<MultiblockMachineDefinition, List<MultiblockShapeInfo>>> shapeInfos = new ArrayList<>();
+    private final List<Function<MultiblockMachineDefinition, List<MultiblockShapeInfo>>> shapeInfos = new ObjectArrayList<>();
     /**
      * Set this to false only if your multiblock is set up such that it could have a wall-shared controller.
      */
@@ -398,7 +400,7 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
      * @return {@code this}.
      */
     public MultiblockMachineBuilder addSubPattern(@NotNull Function<MultiblockMachineDefinition, BlockPattern> pattern) {
-        if (subPattern == null) subPattern = new ArrayList<>();
+        if (subPattern == null) subPattern = new ObjectArrayList<>();
         subPattern.add(pattern);
         return this;
     }

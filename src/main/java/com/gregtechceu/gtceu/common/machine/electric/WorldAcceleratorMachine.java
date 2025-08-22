@@ -36,9 +36,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import it.unimi.dsi.fastutil.objects.Object2BooleanFunction;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,7 +49,7 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
     private static final Object2BooleanFunction<Class<? extends BlockEntity>> blacklistCache = new Object2BooleanOpenHashMap<>();
     private static boolean gatheredClasses = false;
     // Hard-coded blacklist for blockentities
-    private static final List<String> blockEntityClassNamesBlackList = new ArrayList<>();
+    private static final List<String> blockEntityClassNamesBlackList = new ObjectArrayList<>();
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(WorldAcceleratorMachine.class, TieredEnergyMachine.MANAGED_FIELD_HOLDER);
     private static final long blockEntityAmperage = 6;
     private static final long randomTickAmperage = 3;

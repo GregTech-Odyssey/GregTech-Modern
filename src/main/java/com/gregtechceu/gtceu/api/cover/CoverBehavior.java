@@ -31,10 +31,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -124,7 +124,7 @@ public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighli
      * Append additional drops. It doesn't include itself.
      */
     public List<ItemStack> getAdditionalDrops() {
-        return new ArrayList<>();
+        return new ObjectArrayList<>();
     }
 
     /**

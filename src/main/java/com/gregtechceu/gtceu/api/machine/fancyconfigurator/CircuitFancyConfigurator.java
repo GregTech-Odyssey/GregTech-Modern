@@ -23,7 +23,8 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -147,7 +148,7 @@ public class CircuitFancyConfigurator implements IFancyConfigurator, IFancyCusto
 
     @Override
     public List<Component> getTooltips() {
-        var list = new ArrayList<>(IFancyConfigurator.super.getTooltips());
+        var list = new ObjectArrayList<>(IFancyConfigurator.super.getTooltips());
         list.addAll(Arrays.stream(
                 LangHandler.getMultiLang("gtceu.gui.configurator_slot.tooltip").toArray(new MutableComponent[0]))
                 .toList());

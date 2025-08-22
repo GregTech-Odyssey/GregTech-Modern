@@ -7,7 +7,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.ChunkPos;
 
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -58,7 +59,7 @@ public class DimensionCache {
     public List<GeneratedVeinMetadata> getVeinsInBounds(BlockPos topLeftBlock, BlockPos bottomRightBlock) {
         GridPos topLeft = new GridPos(topLeftBlock);
         GridPos bottomRight = new GridPos(bottomRightBlock);
-        List<GeneratedVeinMetadata> found = new ArrayList<>();
+        List<GeneratedVeinMetadata> found = new ObjectArrayList<>();
         for (int i = topLeft.x; i <= bottomRight.x; i++) {
             for (int j = topLeft.z; j <= bottomRight.z; j++) {
                 GridPos curPos = new GridPos(i, j);
@@ -75,7 +76,7 @@ public class DimensionCache {
         if (cache.containsKey(gPos)) {
             return cache.get(gPos).getVeinsMatching(vein -> pos.equals(vein.originChunk()));
         }
-        return new ArrayList<>();
+        return new ObjectArrayList<>();
     }
 
     public void removeAllInChunk(ChunkPos pos) {

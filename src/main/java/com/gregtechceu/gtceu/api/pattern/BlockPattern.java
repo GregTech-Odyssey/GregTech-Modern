@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.pattern.error.PatternError;
+import com.gregtechceu.gtceu.api.pattern.error.PatternStringError;
 import com.gregtechceu.gtceu.api.pattern.error.SinglePredicateError;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.PatternMatchContext;
@@ -38,13 +39,15 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 
@@ -61,6 +64,7 @@ public class BlockPattern {
     public final int[] centerOffset; // x, y, z, minZ, maxZ
     public int[] formedRepetitionCount;
     public Collection<TraceabilityPredicate> predicates;
+    public PatternCondition condition;
 
     public BlockPattern(TraceabilityPredicate[][][] predicatesIn, RelativeDirection[] structureDir, int[][] aisleRepetitions, int[] centerOffset) {
         this.blockMatches = predicatesIn;
@@ -74,6 +78,10 @@ public class BlockPattern {
     }
 
     public boolean checkPatternAt(MultiblockState worldState, boolean savePredicate) {
+        if (condition != null && !condition.condition().test(worldState)) {
+            worldState.setError(new PatternStringError(condition.translateKey()));
+            return false;
+        }
         IMultiController controller = worldState.controller;
         BlockPos centerPos = worldState.controllerPos;
         Direction frontFacing = controller.self().getFrontFacing();
@@ -274,7 +282,7 @@ public class BlockPattern {
                                         infos = ArrayUtils.addAll(infos, common.candidates == null ? null : common.candidates.get());
                                     }
                                 }
-                                List<ItemStack> candidates = new ArrayList<>();
+                                List<ItemStack> candidates = new ObjectArrayList<>();
                                 if (infos != null) {
                                     for (Block info : infos) {
                                         if (info != Blocks.AIR) {

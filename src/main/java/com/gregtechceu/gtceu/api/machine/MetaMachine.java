@@ -322,7 +322,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
             lastExecutionTime = currentTime;
             boolean observe = OBSERVE || this.observe;
             if (observe) currentTime = System.nanoTime();
-            for (var iter = serverTicks.listIterator(); iter.hasNext();) {
+            for (var iter = serverTicks.listIterator(0); iter.hasNext();) {
                 var tickable = iter.next();
                 if (tickable.isStillSubscribed()) {
                     tickable.run();
@@ -356,7 +356,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
                 serverTicks.addAll(waitingToAdd);
                 waitingToAdd.clear();
             }
-            for (var iter = serverTicks.iterator(); iter.hasNext();) {
+            for (var iter = serverTicks.listIterator(0); iter.hasNext();) {
                 var tickable = iter.next();
                 if (tickable.isStillSubscribed()) {
                     tickable.run();
@@ -823,7 +823,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         var cache = useCoverCapability ? itemHandlerModifiableCoverCache : itemHandlerModifiableCache;
         return cache.getOrSet(side, () -> {
             var ts = getTraits();
-            List<IItemHandlerModifiable> filteredTraits = new ArrayList<>(ts.size());
+            List<IItemHandlerModifiable> filteredTraits = new ObjectArrayList<>(ts.size());
             for (var t : ts) {
                 if (t instanceof IItemHandlerModifiable && t.hasCapability(side)) {
                     filteredTraits.add((IItemHandlerModifiable) t);
@@ -852,7 +852,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         var cache = useCoverCapability ? fluidHandlerModifiableCoverCache : fluidHandlerModifiableCache;
         return cache.getOrSet(side, () -> {
             var ts = getTraits();
-            List<IFluidHandler> filteredTraits = new ArrayList<>(ts.size());
+            List<IFluidHandler> filteredTraits = new ObjectArrayList<>(ts.size());
             for (var t : ts) {
                 if (t instanceof IFluidHandler && t.hasCapability(side)) {
                     filteredTraits.add((IFluidHandler) t);
@@ -887,7 +887,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     @Override
     public final List<Component> getFancyTooltip() {
-        var tooltips = new ArrayList<Component>();
+        var tooltips = new ObjectArrayList<Component>();
         onAddFancyInformationTooltip(tooltips);
         return tooltips;
     }

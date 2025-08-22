@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 
 import com.mojang.datafixers.util.Pair;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -196,10 +197,10 @@ public class ChemicalHelper {
     }
 
     public static List<ItemLike> getItems(MaterialEntry materialEntry) {
-        if (materialEntry.material().isNull()) return new ArrayList<>();
+        if (materialEntry.material().isNull()) return Collections.emptyList();
         return MATERIAL_ENTRY_ITEM_MAP.computeIfAbsent(materialEntry, entry -> {
             TagPrefix prefix = entry.tagPrefix();
-            var items = new ArrayList<Supplier<? extends Item>>();
+            var items = new ObjectArrayList<Supplier<? extends Item>>();
             for (TagKey<Item> tag : prefix.getItemTags(entry.material())) {
                 for (Holder<Item> itemHolder : BuiltInRegistries.ITEM.getTagOrEmpty(tag)) {
                     items.add(itemHolder::value);
@@ -232,7 +233,7 @@ public class ChemicalHelper {
         if (materialEntry.isEmpty()) return Collections.emptyList();
         return MATERIAL_ENTRY_BLOCK_MAP.computeIfAbsent(materialEntry, entry -> {
             TagPrefix prefix = entry.tagPrefix();
-            var blocks = new ArrayList<Supplier<? extends Block>>();
+            var blocks = new ObjectArrayList<Supplier<? extends Block>>();
             for (TagKey<Block> tag : prefix.getBlockTags(entry.material())) {
                 for (Holder<Block> itemHolder : BuiltInRegistries.BLOCK.getTagOrEmpty(tag)) {
                     blocks.add(itemHolder::value);
@@ -279,7 +280,7 @@ public class ChemicalHelper {
     }
 
     public static List<Pair<ItemStack, ItemMaterialInfo>> getAllItemInfos() {
-        List<Pair<ItemStack, ItemMaterialInfo>> f = new ArrayList<>();
+        List<Pair<ItemStack, ItemMaterialInfo>> f = new ObjectArrayList<>(ITEM_MATERIAL_INFO.size());
         for (var entry : ITEM_MATERIAL_INFO.entrySet()) {
             f.add(Pair.of(new ItemStack(entry.getKey()), entry.getValue()));
         }

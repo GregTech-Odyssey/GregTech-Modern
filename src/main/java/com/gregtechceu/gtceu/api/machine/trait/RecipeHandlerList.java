@@ -3,49 +3,46 @@ package com.gregtechceu.gtceu.api.machine.trait;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
+import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Consumer;
 
 public class RecipeHandlerList {
 
     public static final RecipeHandlerList NO_DATA = new RecipeHandlerList(IO.NONE);
-    public static final Comparator<RecipeHandlerList> COMPARATOR;
 
-    static {
-        Comparator<RecipeHandlerList> comparator = (h1, h2) -> {
-            int cmp = Long.compare(h1.getPriority(), h2.getPriority());
-            if (cmp != 0) return cmp;
-            boolean b1 = h1.getTotalContentAmount() > 0;
-            boolean b2 = h2.getTotalContentAmount() > 0;
-            return Boolean.compare(b1, b2);
-        };
-        COMPARATOR = comparator.reversed();
-    }
+    public static Consumer<MultiblockPartMachine> NOTIFY = p -> {};
 
     public final Reference2ObjectOpenHashMap<RecipeCapability<?>, List<IRecipeHandler<?>>> handlerMap = new Reference2ObjectOpenHashMap<>();
-    public final List<IRecipeHandler<?>> allHandlers = new ArrayList<>();
-    public final List<NotifiableRecipeHandlerTrait<?>> allHandlerTraits = new ArrayList<>();
-    public final IO handlerIO;
-    public int color = -1;
-    @NotNull
-    public RecipeHandlerGroup group = RecipeHandlerGroupColor.UNDYED;
+    public final List<IRecipeHandler<?>> allHandlers = new ObjectArrayList<>();
+    public final List<NotifiableRecipeHandlerTrait<?>> allHandlerTraits = new ObjectArrayList<>();
+    private final IO handlerIO;
+    private int color = -1;
+    private boolean isDistinct;
 
-    protected RecipeHandlerList(IO handlerIO) {
+    public final IntIngredientMap intIngredientMap = new IntIngredientMap();
+    public boolean change = true;
+
+    public final MultiblockPartMachine part;
+
+    protected RecipeHandlerList(IO handlerIO, MultiblockPartMachine part) {
         this.handlerIO = handlerIO;
+        this.part = part;
     }
 
-    public static RecipeHandlerList of(IO io, int color, IRecipeHandler<?>... handlers) {
-        RecipeHandlerList rhl = new RecipeHandlerList(io);
-        rhl.addHandlers(handlers);
-        rhl.setColor(color);
-        return rhl;
+    private RecipeHandlerList(IO handlerIO) {
+        this.handlerIO = handlerIO;
+        this.part = null;
     }
 
     public static RecipeHandlerList of(IO io, IRecipeHandler<?>... handlers) {
@@ -60,10 +57,9 @@ public class RecipeHandlerList {
         return rhl;
     }
 
-    public static RecipeHandlerList of(IO io, int color, Iterable<IRecipeHandler<?>> handlers) {
-        RecipeHandlerList rhl = new RecipeHandlerList(io);
+    public static RecipeHandlerList of(IO io, MultiblockPartMachine part, Iterable<IRecipeHandler<?>> handlers) {
+        RecipeHandlerList rhl = new RecipeHandlerList(io, part);
         rhl.addHandlers(handlers);
-        rhl.setColor(color);
         return rhl;
     }
 
@@ -77,7 +73,7 @@ public class RecipeHandlerList {
 
     public void addHandlers(Iterable<IRecipeHandler<?>> handlers) {
         for (var handler : handlers) {
-            getHandlerMap().computeIfAbsent(handler.getCapability(), c -> new ArrayList<>()).add(handler);
+            handlerMap.computeIfAbsent(handler.getCapability(), c -> new ObjectArrayList<>()).add(handler);
             allHandlers.add(handler);
             if (handler instanceof NotifiableRecipeHandlerTrait<?> rht) allHandlerTraits.add(rht);
         }
@@ -85,32 +81,29 @@ public class RecipeHandlerList {
     }
 
     private void sort() {
-        for (var list : getHandlerMap().values()) {
+        for (var list : handlerMap.values()) {
             list.sort(IRecipeHandler.ENTRY_COMPARATOR);
         }
     }
 
     public final void setDistinctAndNotify(boolean distinct) {
-        setDistinct(distinct, true);
+        setDistinct(distinct);
+        if (part != null) {
+            NOTIFY.accept(part);
+        }
     }
 
     public final void setDistinct(boolean distinct) {
-        setDistinct(distinct, false);
-    }
-
-    protected void setDistinct(boolean distinct, boolean notify) {
-        boolean currentDistinct = isDistinct();
-        if (currentDistinct != distinct) {
-            this.group = currentDistinct ? new RecipeHandlerGroupColor(color) : RecipeHandlerGroupDistinctness.BUS_DISTINCT;
+        if (isDistinct != distinct) {
+            isDistinct = distinct;
             for (var rht : allHandlerTraits) {
-                rht.setDistinct(distinct);
-                if (notify) rht.notifyListeners();
+                rht.setDistinct(isDistinct);
             }
         }
     }
 
     public boolean isDistinct() {
-        return this.group == RecipeHandlerGroupDistinctness.BUS_DISTINCT;
+        return isDistinct;
     }
 
     public void setColor(int color) {
@@ -119,60 +112,22 @@ public class RecipeHandlerList {
 
     public void setColor(int color, boolean notify) {
         this.color = color;
-        if (this.group != RecipeHandlerGroupDistinctness.BUS_DISTINCT) {
-            this.group = new RecipeHandlerGroupColor(color);
-        }
-        if (notify) {
-            for (var rht : allHandlerTraits) {
-                rht.notifyListeners();
-            }
+        if (notify && part != null) {
+            NOTIFY.accept(part);
         }
     }
 
     public boolean hasCapability(RecipeCapability<?> cap) {
-        return getHandlerMap().containsKey(cap);
+        return handlerMap.containsKey(cap);
     }
 
-    @NotNull
-    public List<IRecipeHandler<?>> getCapability(RecipeCapability<?> cap) {
-        return getHandlerMap().getOrDefault(cap, Collections.emptyList());
+    public @NotNull List<IRecipeHandler<?>> getCapability(RecipeCapability<?> cap) {
+        return handlerMap.getOrDefault(cap, Collections.emptyList());
     }
 
     public boolean isValid(IO extIO) {
         if (this == NO_DATA || handlerIO == IO.NONE) return false;
         return (extIO == IO.BOTH || handlerIO == IO.BOTH || extIO == handlerIO);
-    }
-
-    public long getPriority() {
-        long priority = 0;
-        for (var handler : allHandlers) priority += handler.getPriority();
-        return priority;
-    }
-
-    public double getTotalContentAmount() {
-        double sum = 0;
-        for (var handler : allHandlers) sum += handler.getTotalContentAmount();
-        return sum;
-    }
-
-    @Contract(pure = true)
-    public Map<RecipeCapability<?>, List<Object>> handleRecipe(IO io, GTRecipe recipe, Map<RecipeCapability<?>, List<Object>> contents, boolean simulate) {
-        if (getHandlerMap().isEmpty()) return contents;
-        var copy = new Reference2ObjectOpenHashMap<>(contents);
-        for (var it = copy.reference2ObjectEntrySet().fastIterator(); it.hasNext();) {
-            var entry = it.next();
-            var handlerList = getCapability(entry.getKey());
-            for (var handler : handlerList) {
-                var left = handler.handleRecipe(io, recipe, entry.getValue(), simulate);
-                if (left == null) {
-                    it.remove();
-                    break;
-                } else {
-                    entry.setValue(new ArrayList<>(left));
-                }
-            }
-        }
-        return copy;
     }
 
     private record Subscription(List<ISubscription> subs) implements ISubscription {
@@ -184,14 +139,14 @@ public class RecipeHandlerList {
     }
 
     public ISubscription subscribe(Runnable listener) {
-        List<ISubscription> subs = new ArrayList<>(allHandlerTraits.size());
+        List<ISubscription> subs = new ObjectArrayList<>(allHandlerTraits.size());
         allHandlerTraits.forEach(rht -> subs.add(rht.addChangedListener(listener)));
         return new Subscription(subs);
     }
 
     public ISubscription subscribe(Runnable listener, RecipeCapability<?> cap) {
         var capList = getCapability(cap);
-        List<ISubscription> subs = new ArrayList<>(capList.size());
+        List<ISubscription> subs = new ObjectArrayList<>(capList.size());
         for (var handler : capList) {
             if (handler instanceof IRecipeHandlerTrait<?> trait) {
                 subs.add(trait.addChangedListener(listener));
@@ -200,27 +155,11 @@ public class RecipeHandlerList {
         return new Subscription(subs);
     }
 
-    public Reference2ObjectOpenHashMap<RecipeCapability<?>, List<IRecipeHandler<?>>> getHandlerMap() {
-        return this.handlerMap;
-    }
-
     public IO getHandlerIO() {
         return this.handlerIO;
     }
 
     public int getColor() {
         return this.color;
-    }
-
-    public void setGroup(@NotNull final RecipeHandlerGroup group) {
-        if (group == null) {
-            throw new NullPointerException("group is marked non-null but is null");
-        }
-        this.group = group;
-    }
-
-    @NotNull
-    public RecipeHandlerGroup getGroup() {
-        return this.group;
     }
 }

@@ -15,9 +15,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -52,8 +52,8 @@ public enum FormingPressLogic implements GTRecipeType.ICustomRecipeLogic {
         var rhlList = holder.getCapabilitiesForIO(IO.IN);
         if (rhlList.isEmpty()) return null;
 
-        List<RecipeHandlerList> distinct = new ArrayList<>();
-        List<IRecipeHandler<?>> indistinct = new ArrayList<>();
+        List<RecipeHandlerList> distinct = new ObjectArrayList<>();
+        List<IRecipeHandler<?>> indistinct = new ObjectArrayList<>();
 
         for (var rhl : rhlList) {
             if (rhl.isDistinct() && rhl.hasCapability(ItemRecipeCapability.CAP)) {
@@ -103,7 +103,7 @@ public enum FormingPressLogic implements GTRecipeType.ICustomRecipeLogic {
 
     private static List<ItemStack> collect(List<IRecipeHandler<?>> handlers) {
         if (handlers.isEmpty()) return Collections.emptyList();
-        List<ItemStack> list = new ArrayList<>();
+        List<ItemStack> list = new ObjectArrayList<>();
         for (var handler : handlers) {
             if (!handler.shouldSearchContent()) continue;
             for (var content : handler.getContents()) {

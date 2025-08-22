@@ -28,12 +28,11 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
 
-import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -63,7 +62,7 @@ public class PotionFluidHelper {
             return FluidIngredient.of(Stream.of(GTFluids.POTION.get()), amount, strict.getStack().getTag());
         }
 
-        List<FluidStack> fluids = new ArrayList<>();
+        List<FluidStack> fluids = new ObjectArrayList<>();
         for (ItemStack stack : potion.getItems()) {
             FluidStack fluidStack = getFluidFromPotionItem(stack, amount);
             if (!fluidStack.isEmpty()) {
@@ -108,7 +107,7 @@ public class PotionFluidHelper {
     @OnlyIn(Dist.CLIENT)
     public static void addPotionTooltip(FluidStack fs, Consumer<Component> tooltip) {
         List<MobEffectInstance> list = PotionUtils.getAllEffects(fs.getOrCreateTag());
-        List<Tuple<String, AttributeModifier>> modifiers = Lists.newArrayList();
+        List<Tuple<String, AttributeModifier>> modifiers = new ObjectArrayList<>();
         if (list.isEmpty()) {
             tooltip.accept(Component.translatable("effect.none").withStyle(ChatFormatting.GRAY));
         } else {

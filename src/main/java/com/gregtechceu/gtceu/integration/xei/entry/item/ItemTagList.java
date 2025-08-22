@@ -8,16 +8,16 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
 public final class ItemTagList implements ItemEntryList {
 
-    private final List<ItemTagEntry> entries = new ArrayList<>();
+    private final List<ItemTagEntry> entries = new ObjectArrayList<>();
 
     public static ItemTagList of(@NotNull TagKey<Item> tag, int amount, @Nullable CompoundTag nbt) {
         var list = new ItemTagList();

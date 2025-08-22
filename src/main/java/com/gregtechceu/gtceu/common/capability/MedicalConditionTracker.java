@@ -16,7 +16,8 @@ import net.minecraftforge.common.util.INBTSerializable;
 import it.unimi.dsi.fastutil.objects.*;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Optional;
+import java.util.Set;
 
 public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSerializable<CompoundTag> {
 

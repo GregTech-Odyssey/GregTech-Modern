@@ -27,11 +27,11 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -182,7 +182,7 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
                 this.overlay = SlotWidget.this.overlay;
             }
         }.setCanPutItems(false).setCanTakeItems(false).setHandlerSlot(handler, 0)));
-        ConfiguratorParser.createConfigurators(father, new HashMap<>(), getClass(), this);
+        ConfiguratorParser.createConfigurators(father, new Object2ObjectOpenHashMap<>(), getClass(), this);
     }
 
     @Nullable

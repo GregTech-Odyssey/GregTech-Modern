@@ -8,8 +8,8 @@ import net.minecraft.world.level.Level;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -22,7 +22,7 @@ public class WrappedSoundEntry extends SoundEntry {
                              List<ConfiguredSoundEvent> wrappedEvents, SoundSource category, int attenuationDistance) {
         super(id, subtitle, category, attenuationDistance);
         this.wrappedEvents = wrappedEvents;
-        compiledEvents = new ArrayList<>();
+        compiledEvents = new ObjectArrayList<>();
     }
 
     @Override

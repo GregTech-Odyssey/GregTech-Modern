@@ -20,8 +20,11 @@ import net.minecraftforge.fml.common.Mod;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import it.unimi.dsi.fastutil.booleans.BooleanBooleanMutablePair;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.WeakHashMap;
 import java.util.function.Supplier;
 
 @Mod.EventBusSubscriber(modid = GTCEu.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -56,7 +59,7 @@ public enum KeyBind {
     @SubscribeEvent
     @OnlyIn(Dist.CLIENT)
     public static void onInputEvent(InputEvent.Key event) {
-        List<KeyBind> updating = new ArrayList<>();
+        List<KeyBind> updating = new ObjectArrayList<>();
         for (KeyBind keybind : VALUES) {
             boolean previousPressed = keybind.isPressed;
             boolean previousKeyDown = keybind.isKeyDown;

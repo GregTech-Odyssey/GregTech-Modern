@@ -27,11 +27,15 @@ import com.tterrag.registrate.util.entry.RegistryEntry;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -40,7 +44,7 @@ public class ItemMaterialData {
     /** Used for custom material data for items that do not fall into the normal "prefix, material" pair */
     public static final Map<Item, ItemMaterialInfo> ITEM_MATERIAL_INFO = new Object2ObjectOpenHashMap<>();
     /** Mapping of an item to a "prefix, material" pair */
-    public static final List<Pair<Supplier<? extends Item>, MaterialEntry>> ITEM_MATERIAL_ENTRY = new ArrayList<>();
+    public static final List<Pair<Supplier<? extends Item>, MaterialEntry>> ITEM_MATERIAL_ENTRY = new ObjectArrayList<>();
     public static final Map<Item, MaterialEntry> ITEM_MATERIAL_ENTRY_COLLECTED = new Object2ObjectOpenHashMap<>();
     /** Mapping of a fluid to a material */
     public static final Map<Fluid, Material> FLUID_MATERIAL = new Object2ObjectOpenHashMap<>();
@@ -112,7 +116,7 @@ public class ItemMaterialData {
 
     private static void registerItemEntry(@NotNull Supplier<? extends ItemLike> supplier,
                                           @NotNull MaterialEntry materialEntry) {
-        MATERIAL_ENTRY_ITEM_MAP.computeIfAbsent(materialEntry, k -> new ArrayList<>())
+        MATERIAL_ENTRY_ITEM_MAP.computeIfAbsent(materialEntry, k -> new ObjectArrayList<>())
                 .add(() -> supplier.get().asItem());
         if (TagPrefix.ORES.containsKey(materialEntry.tagPrefix()) &&
                 !ORES_INVERSE.containsValue(materialEntry.tagPrefix())) {
@@ -122,7 +126,7 @@ public class ItemMaterialData {
 
     private static void registerBlockEntry(@NotNull Supplier<? extends Block> supplier,
                                            @NotNull MaterialEntry materialEntry) {
-        MATERIAL_ENTRY_BLOCK_MAP.computeIfAbsent(materialEntry, k -> new ArrayList<>())
+        MATERIAL_ENTRY_BLOCK_MAP.computeIfAbsent(materialEntry, k -> new ObjectArrayList<>())
                 .add(supplier);
     }
 
@@ -165,7 +169,7 @@ public class ItemMaterialData {
     @ApiStatus.Internal
     public static void resolveItemMaterialInfos(Consumer<FinishedRecipe> provider) {
         for (var entry : UNRESOLVED_ITEM_MATERIAL_INFO.entrySet()) {
-            List<MaterialStack> stacks = new ArrayList<>();
+            List<MaterialStack> stacks = new ObjectArrayList<>();
             var stack = entry.getKey();
             var count = stack.getCount();
             for (var input : entry.getValue()) {

@@ -4,8 +4,9 @@ import net.minecraft.data.recipes.FinishedRecipe;
 
 import java.util.function.Consumer;
 
-import static com.gregtechceu.gtceu.api.GTValues.*;
-import static com.gregtechceu.gtceu.common.data.GTMaterials.*;
+import static com.gregtechceu.gtceu.api.GTValues.LV;
+import static com.gregtechceu.gtceu.api.GTValues.VHA;
+import static com.gregtechceu.gtceu.common.data.GTMaterials.CarbonMonoxide;
 import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.AIR_SCRUBBER_RECIPES;
 
 public class AirScrubberRecipes {

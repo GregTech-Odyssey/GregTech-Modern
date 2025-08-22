@@ -11,7 +11,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public interface IMaintenanceMachine extends IMultiPart {
 
@@ -166,7 +166,7 @@ public interface IMaintenanceMachine extends IMultiPart {
     default void attachTooltips(TooltipsPanel tooltipsPanel) {
         if (ConfigHolder.INSTANCE.machines.enableMaintenance) {
             tooltipsPanel.attachTooltips(new IFancyTooltip.Basic(() -> GuiTextures.MAINTENANCE_ICON, () -> {
-                var tooltips = new ArrayList<Component>();
+                var tooltips = new ObjectArrayList<Component>();
                 tooltips.add(Component.translatable("gtceu.multiblock.universal.has_problems_header")
                         .setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
 

@@ -20,9 +20,9 @@ import com.lowdragmc.lowdraglib.utils.Size;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -64,7 +64,7 @@ public class CombinedDirectionalFancyConfigurator implements IFancyUIProvider {
 
     // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private static final List<Function<MetaMachine, Supplier<IDirectionalConfigHandler>>> CONFIG_HANDLERS = new ArrayList<>();
+    private static final List<Function<MetaMachine, Supplier<IDirectionalConfigHandler>>> CONFIG_HANDLERS = new ObjectArrayList<>();
 
     static {
         // Left side:

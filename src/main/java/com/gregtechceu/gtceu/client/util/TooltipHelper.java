@@ -8,7 +8,8 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.UnaryOperator;
@@ -31,7 +32,7 @@ public class TooltipHelper {
     public static final UnaryOperator<Style> RAINBOW_HSL_SLOW = style -> style.withColor(rainbowColor(1.25f));
     public static final UnaryOperator<Style> RAINBOW_HSL_FAST = style -> style.withColor(rainbowColor(3.75f));
 
-    private static final List<GTFormattingCode> CODES = new ArrayList<>();
+    private static final List<GTFormattingCode> CODES = new ObjectArrayList<>();
 
     /** Array of TextFormatting codes that are used to create a rainbow effect */
     private static final ChatFormatting[] ALL_COLORS = new ChatFormatting[] {

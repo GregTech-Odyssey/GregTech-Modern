@@ -33,11 +33,15 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.function.UnaryOperator;
 
 import static com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey.HAZARD;
@@ -507,7 +511,7 @@ public class Material implements Comparable<Material> {
         /*
          * The temporary list of components for this Material.
          */
-        private List<MaterialStack> composition = new ArrayList<>();
+        private List<MaterialStack> composition = new ObjectArrayList<>();
         /*
          * Temporary value to use to determine how to calculate default RGB
          */

@@ -14,7 +14,9 @@ import com.gregtechceu.gtceu.api.machine.steam.SteamBoilerMachine;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.client.renderer.machine.*;
 import com.gregtechceu.gtceu.client.util.TooltipHelper;
-import com.gregtechceu.gtceu.common.data.machines.*;
+import com.gregtechceu.gtceu.common.data.machines.GTMachineUtils;
+import com.gregtechceu.gtceu.common.data.machines.GTMultiMachines;
+import com.gregtechceu.gtceu.common.data.machines.GTResearchMachines;
 import com.gregtechceu.gtceu.common.machine.electric.*;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.*;
 import com.gregtechceu.gtceu.common.machine.steam.SteamLiquidBoilerMachine;
@@ -473,17 +475,10 @@ public class GTMachines {
                     .langValue("%s Buffer %s".formatted(VLVH[tier], VLVT[tier]))
                     .noneRotation()
                     .tieredHullRenderer(GTCEu.id("block/machine/buffer"))
-                    .tooltips(
-                            Component.translatable("gtceu.machine.buffer.tooltip"),
-                            Component.translatable(
-                                    "gtceu.universal.tooltip.item_storage_capacity",
-                                    BufferMachine.getInventorySize(tier)),
-                            Component.translatable(
-                                    "gtceu.universal.tooltip.fluid_storage_capacity_mult",
-                                    BufferMachine.getTankSize(tier), FluidHatchPartMachine.getTankCapacity(
-                                            DualHatchPartMachine.INITIAL_TANK_CAPACITY, tier)))
+                    .tooltips(Component.translatable("gtceu.machine.buffer.tooltip"), Component.translatable("gtceu.universal.tooltip.item_storage_capacity", BufferMachine.getInventorySize(tier)),
+                            Component.translatable("gtceu.universal.tooltip.fluid_storage_capacity_mult", BufferMachine.getTankSize(tier), FluidHatchPartMachine.getTankCapacity(DualHatchPartMachine.INITIAL_TANK_CAPACITY, tier)))
                     .register(),
-            LV, MV, HV);
+            tiersBetween(LV, MAX));
 
     public static final BiConsumer<ItemStack, List<Component>> CREATIVE_TOOLTIPS = (stack, list) -> list.add(
             Component.translatable("gtceu.creative_tooltip.1")
@@ -580,9 +575,7 @@ public class GTMachines {
                     .allRotation()
                     .abilities(PartAbility.IMPORT_ITEMS)
                     .overlayTieredHullRenderer("item_bus.import")
-                    .tooltips(Component.translatable("gtceu.machine.item_bus.import.tooltip"),
-                            Component.translatable("gtceu.universal.tooltip.item_storage_capacity",
-                                    (1 + Math.min(9, tier)) * (1 + Math.min(9, tier))))
+                    .tooltips(Component.translatable("gtceu.machine.item_bus.import.tooltip"), Component.translatable("gtceu.universal.tooltip.item_storage_capacity", (1 + tier) * (1 + tier)))
                     .allowCoverOnFront(true)
                     .register(),
             ALL_TIERS);
@@ -594,9 +587,7 @@ public class GTMachines {
                     .allRotation()
                     .abilities(PartAbility.EXPORT_ITEMS)
                     .overlayTieredHullRenderer("item_bus.export")
-                    .tooltips(Component.translatable("gtceu.machine.item_bus.export.tooltip"),
-                            Component.translatable("gtceu.universal.tooltip.item_storage_capacity",
-                                    (1 + Math.min(9, tier)) * (1 + Math.min(9, tier))))
+                    .tooltips(Component.translatable("gtceu.machine.item_bus.export.tooltip"), Component.translatable("gtceu.universal.tooltip.item_storage_capacity", (1 + tier) * (1 + tier)))
                     .allowCoverOnFront(true)
                     .register(),
             ALL_TIERS);
@@ -897,21 +888,14 @@ public class GTMachines {
             (tier, builder) -> builder
                     .langValue("%s Dual Input Hatch".formatted(VNF[tier]))
                     .allRotation()
-                    .abilities(DUAL_INPUT_HATCH_ABILITIES)
+                    .abilities(PartAbility.IMPORT_ITEMS)
                     .overlayTieredHullRenderer("dual_hatch.import")
-                    .tooltips(
-                            Component.translatable("gtceu.machine.dual_hatch.import.tooltip"),
-                            Component.translatable(
-                                    "gtceu.universal.tooltip.item_storage_capacity",
-                                    (int) Math.pow((tier - 4), 2)),
-                            Component.translatable(
-                                    "gtceu.universal.tooltip.fluid_storage_capacity_mult",
-                                    (tier - 4),
-                                    DualHatchPartMachine.getTankCapacity(DualHatchPartMachine.INITIAL_TANK_CAPACITY,
-                                            tier)),
+                    .tooltips(Component.translatable("gtceu.machine.dual_hatch.import.tooltip"),
+                            Component.translatable("gtceu.universal.tooltip.item_storage_capacity", tier * tier),
+                            Component.translatable("gtceu.universal.tooltip.fluid_storage_capacity_mult", tier, DualHatchPartMachine.getTankCapacity(DualHatchPartMachine.INITIAL_TANK_CAPACITY, tier)),
                             Component.translatable("gtceu.part_sharing.enabled"))
                     .register(),
-            DUAL_HATCH_TIERS);
+            GTValues.tiersBetween(LV, MAX));
 
     public static final MachineDefinition[] DUAL_EXPORT_HATCH = registerTieredMachines(
             "dual_output_hatch",
@@ -919,21 +903,14 @@ public class GTMachines {
             (tier, builder) -> builder
                     .langValue("%s Dual Output Hatch".formatted(VNF[tier]))
                     .allRotation()
-                    .abilities(DUAL_OUTPUT_HATCH_ABILITIES)
+                    .abilities(PartAbility.EXPORT_ITEMS, PartAbility.EXPORT_FLUIDS)
                     .overlayTieredHullRenderer("dual_hatch.export")
-                    .tooltips(
-                            Component.translatable("gtceu.machine.dual_hatch.export.tooltip"),
-                            Component.translatable(
-                                    "gtceu.universal.tooltip.item_storage_capacity",
-                                    (int) Math.pow((tier - 4), 2)),
-                            Component.translatable(
-                                    "gtceu.universal.tooltip.fluid_storage_capacity_mult",
-                                    (tier - 4),
-                                    DualHatchPartMachine.getTankCapacity(
-                                            DualHatchPartMachine.INITIAL_TANK_CAPACITY, tier)),
+                    .tooltips(Component.translatable("gtceu.machine.dual_hatch.export.tooltip"),
+                            Component.translatable("gtceu.universal.tooltip.item_storage_capacity", tier * tier),
+                            Component.translatable("gtceu.universal.tooltip.fluid_storage_capacity_mult", tier, DualHatchPartMachine.getTankCapacity(DualHatchPartMachine.INITIAL_TANK_CAPACITY, tier)),
                             Component.translatable("gtceu.part_sharing.enabled"))
                     .register(),
-            DUAL_HATCH_TIERS);
+            GTValues.tiersBetween(LV, MAX));
 
     public static final MachineDefinition[] DIODE = registerTieredMachines("diode",
             DiodePartMachine::new,

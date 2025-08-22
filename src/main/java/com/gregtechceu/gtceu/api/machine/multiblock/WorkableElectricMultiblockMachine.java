@@ -29,9 +29,9 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -76,8 +76,8 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        List<IEnergyContainer> containers = new ArrayList<>();
-        List<IOpticalComputationProvider> providers = new ArrayList<>();
+        List<IEnergyContainer> containers = new ObjectArrayList<>();
+        List<IOpticalComputationProvider> providers = new ObjectArrayList<>();
         var handlers = getCapabilitiesFlat(IO.IN, EURecipeCapability.CAP);
         if (handlers.isEmpty()) handlers = getCapabilitiesFlat(IO.OUT, EURecipeCapability.CAP);
         for (IRecipeHandler<?> handler : handlers) {

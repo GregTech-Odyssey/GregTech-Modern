@@ -14,7 +14,8 @@ import net.minecraftforge.common.Tags;
 
 import com.tterrag.registrate.providers.RegistrateItemTagsProvider;
 
-import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.*;
+import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.lens;
+import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.plate;
 import static com.gregtechceu.gtceu.common.data.GTMaterials.*;
 
 public class ItemTagLoader {

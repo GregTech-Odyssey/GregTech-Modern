@@ -18,8 +18,10 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 public class ServerCache extends WorldCache {
 
@@ -68,7 +70,7 @@ public class ServerCache extends WorldCache {
                                               ServerPlayer player, int radius) {
         if (radius < 0) return;
         List<GeneratedVeinMetadata> nearbyVeins = getNearbyVeins(dim, pos, radius);
-        List<GeneratedVeinMetadata> foundVeins = new ArrayList<>();
+        List<GeneratedVeinMetadata> foundVeins = new ObjectArrayList<>();
         for (GeneratedVeinMetadata nearbyVein : nearbyVeins) {
             for (var gen : nearbyVein.definition().indicatorGenerators()) {
                 var block = gen.block();
@@ -91,7 +93,7 @@ public class ServerCache extends WorldCache {
                                       int radius) {
         if (radius < 0) return;
         List<GeneratedVeinMetadata> nearbyVeins = getNearbyVeins(dim, origin, radius);
-        List<GeneratedVeinMetadata> foundVeins = new ArrayList<>();
+        List<GeneratedVeinMetadata> foundVeins = new ObjectArrayList<>();
         for (GeneratedVeinMetadata nearbyVein : nearbyVeins) {
             if (nearbyVein.definition().veinGenerator().getAllMaterials().contains(material)) {
                 foundVeins.add(nearbyVein);
@@ -104,7 +106,7 @@ public class ServerCache extends WorldCache {
                                       int radius) {
         if (radius < 0) return;
         List<GeneratedVeinMetadata> nearbyVeins = getNearbyVeins(dim, origin, radius);
-        List<GeneratedVeinMetadata> foundVeins = new ArrayList<>();
+        List<GeneratedVeinMetadata> foundVeins = new ObjectArrayList<>();
         for (GeneratedVeinMetadata nearbyVein : nearbyVeins) {
             if (GTRegistries.ORE_VEINS.getKey(nearbyVein.definition()).toString().equals(depositName)) {
                 foundVeins.add(nearbyVein);
@@ -115,7 +117,7 @@ public class ServerCache extends WorldCache {
 
     public void prospectAllInChunk(ResourceKey<Level> dim, ChunkPos pos, ServerPlayer player) {
         List<GeneratedVeinMetadata> nearbyVeins = cache.get(dim).getVeinsInChunk(pos);
-        List<GeneratedVeinMetadata> foundVeins = new ArrayList<>();
+        List<GeneratedVeinMetadata> foundVeins = new ObjectArrayList<>();
         for (GeneratedVeinMetadata nearbyVein : nearbyVeins) {
             if (cache.containsKey(dim)) {
                 foundVeins.add(nearbyVein);

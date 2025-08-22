@@ -18,8 +18,12 @@ import net.minecraft.world.level.biome.Biome;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 public class BedrockOreDefinition {
 
@@ -122,7 +126,7 @@ public class BedrockOreDefinition {
         }
 
         public Builder material(Material material, int amount) {
-            if (this.materials == null) this.materials = new ArrayList<>();
+            if (this.materials == null) this.materials = new ObjectArrayList<>();
             this.materials.add(new WeightedMaterial(material, amount));
             return this;
         }
@@ -153,7 +157,7 @@ public class BedrockOreDefinition {
         }
 
         public Builder dimensions(String... dimensions) {
-            return this.dimensions(new HashSet<>(RegistryUtil.resolveResourceKeys(Registries.DIMENSION, dimensions)));
+            return this.dimensions(new ObjectOpenHashSet<>(RegistryUtil.resolveResourceKeys(Registries.DIMENSION, dimensions)));
         }
 
         public BedrockOreDefinition register() {

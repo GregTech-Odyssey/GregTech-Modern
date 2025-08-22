@@ -8,15 +8,15 @@ import dev.toma.configuration.Configuration;
 import dev.toma.configuration.config.format.ConfigFormats;
 import dev.toma.configuration.config.value.ConfigValue;
 import dev.toma.configuration.config.value.ObjectValue;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 public class ConfigurationLang {
 
     public static void init(RegistrateLangProvider provider) {
-        dfs(provider, new HashSet<>(),
+        dfs(provider, new ObjectOpenHashSet<>(),
                 Configuration.registerConfig(ConfigHolder.class, ConfigFormats.yaml()).getValueMap());
     }
 

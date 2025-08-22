@@ -10,9 +10,9 @@ import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -22,7 +22,7 @@ public final class ResearchData implements Iterable<ResearchData.ResearchEntry> 
     private final List<ResearchEntry> entries;
 
     public ResearchData() {
-        entries = new ArrayList<>();
+        entries = new ObjectArrayList<>();
     }
 
     /**
@@ -39,7 +39,7 @@ public final class ResearchData implements Iterable<ResearchData.ResearchEntry> 
     }
 
     public static ResearchData fromJson(JsonArray array) {
-        List<ResearchEntry> entries = new ArrayList<>();
+        List<ResearchEntry> entries = new ObjectArrayList<>();
         for (int i = 0; i < array.size(); ++i) {
             entries.add(ResearchEntry.fromJson(array.get(i).getAsJsonObject()));
         }
@@ -53,7 +53,7 @@ public final class ResearchData implements Iterable<ResearchData.ResearchEntry> 
     }
 
     public static ResearchData fromNetwork(FriendlyByteBuf buf) {
-        List<ResearchEntry> entries = new ArrayList<>();
+        List<ResearchEntry> entries = new ObjectArrayList<>();
         int size = buf.readVarInt();
         for (int i = 0; i < size; ++i) {
             entries.add(ResearchEntry.fromNetwork(buf));

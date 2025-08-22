@@ -15,7 +15,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import static com.gregtechceu.gtceu.client.util.RenderUtil.*;
+import static com.gregtechceu.gtceu.client.util.RenderUtil.getNormal;
+import static com.gregtechceu.gtceu.client.util.RenderUtil.getVertices;
 import static net.minecraft.util.FastColor.ARGB32.*;
 
 public class FluidBlockRenderer {

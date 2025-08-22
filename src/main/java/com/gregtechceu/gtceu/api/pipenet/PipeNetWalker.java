@@ -9,11 +9,15 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * This is a helper class to get information about a pipe net
@@ -34,8 +38,8 @@ public abstract class PipeNetWalker<T extends PipeBlockEntity<?, ?>, NodeDataTyp
     private Set<T> walked;
     protected List<PipeNetWalker<T, NodeDataType, Net>> walkers;
     protected final BlockPos.MutableBlockPos currentPos;
-    protected final List<Direction> nextPipeFacings = new ArrayList<>(5);
-    protected final List<T> nextPipes = new ArrayList<>(5);
+    protected final List<Direction> nextPipeFacings = new ObjectArrayList<>(5);
+    protected final List<T> nextPipes = new ObjectArrayList<>(5);
     protected T currentPipe;
     private Direction from = null;
     protected int walkedBlocks;
@@ -148,7 +152,7 @@ public abstract class PipeNetWalker<T extends PipeBlockEntity<?, ?>, NodeDataTyp
                 walkedBlocks++;
                 return !isRunning();
             }
-            walkers = new ArrayList<>();
+            walkers = new ObjectArrayList<>();
             for (int i = 0; i < nextPipeFacings.size(); i++) {
                 Direction side = nextPipeFacings.get(i);
                 PipeNetWalker<T, NodeDataType, Net> walker = Objects.requireNonNull(createSubWalker(pipeNet, side, currentPos.relative(side), walkedBlocks + 1), "Walker can't be null");
@@ -158,7 +162,7 @@ public abstract class PipeNetWalker<T extends PipeBlockEntity<?, ?>, NodeDataTyp
                 walkers.add(walker);
             }
         }
-        Iterator<PipeNetWalker<T, NodeDataType, Net>> iterator = walkers.iterator();
+        Iterator<PipeNetWalker<T, NodeDataType, Net>> iterator = walkers.listIterator(0);
         while (iterator.hasNext()) {
             PipeNetWalker<T, NodeDataType, Net> walker = iterator.next();
             if (walker.walk()) {

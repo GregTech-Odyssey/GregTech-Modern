@@ -25,9 +25,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public interface IFancyUIMachine extends IUIMachine, IFancyUIProvider {
@@ -139,7 +139,7 @@ public interface IFancyUIMachine extends IUIMachine, IFancyUIProvider {
 
     @Override
     default List<Component> getTabTooltips() {
-        var list = new ArrayList<Component>();
+        var list = new ObjectArrayList<Component>();
         list.add(Component.translatable(self().getDefinition().getDescriptionId()));
         return list;
     }

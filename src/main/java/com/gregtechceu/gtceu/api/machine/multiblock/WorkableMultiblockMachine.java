@@ -26,10 +26,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Block;
 
 import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -55,6 +58,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     protected boolean previouslyMuffled = true;
     @Nullable
     protected LongSet activeBlocks;
+    protected RecipeHandlerList currentHandlerList;
 
     public WorkableMultiblockMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder);
@@ -63,7 +67,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         this.recipeLogic = createRecipeLogic(args);
         this.capabilitiesProxy = new EnumMap<>(IO.class);
         this.capabilitiesFlat = new EnumMap<>(IO.class);
-        this.traitSubscriptions = new ArrayList<>();
+        this.traitSubscriptions = new ObjectArrayList<>();
     }
 
     //////////////////////////////////////
@@ -108,7 +112,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         Map<IO, List<IRecipeHandler<?>>> ioTraits = new EnumMap<>(IO.class);
         for (MachineTrait trait : getTraits()) {
             if (trait instanceof IRecipeHandlerTrait<?> handlerTrait && handlerTrait.getHandlerIO() != IO.NONE) {
-                ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ArrayList<>()).add(handlerTrait);
+                ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ObjectArrayList<>()).add(handlerTrait);
             }
         }
         for (var entry : ioTraits.entrySet()) {
@@ -282,6 +286,16 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     public int getActiveRecipeType() {
         return this.activeRecipeType;
+    }
+
+    @Override
+    public @Nullable RecipeHandlerList getCurrentHandlerList() {
+        return currentHandlerList;
+    }
+
+    @Override
+    public void setCurrentHandlerList(RecipeHandlerList list, GTRecipe recipe) {
+        this.currentHandlerList = list;
     }
 
     public Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {

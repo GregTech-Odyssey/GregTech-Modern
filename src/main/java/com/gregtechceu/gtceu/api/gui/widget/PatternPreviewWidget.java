@@ -50,6 +50,9 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.longs.LongSets;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
@@ -63,7 +66,7 @@ public class PatternPreviewWidget extends WidgetGroup {
     private boolean isLoaded;
     private static TrackedDummyWorld LEVEL;
     private static BlockPos LAST_POS = new BlockPos(0, 50, 0);
-    private static final Map<MultiblockMachineDefinition, MBPattern[]> CACHE = new HashMap<>();
+    private static final Map<MultiblockMachineDefinition, MBPattern[]> CACHE = new Reference2ReferenceOpenHashMap<>();
     private final SceneWidget sceneWidget;
     private final DraggableScrollableWidgetGroup scrollableWidgetGroup;
     public final MultiblockMachineDefinition controllerDefinition;
@@ -78,7 +81,7 @@ public class PatternPreviewWidget extends WidgetGroup {
         super(0, 0, 160, 160);
         setClientSideWidget();
         this.controllerDefinition = controllerDefinition;
-        predicates = new ArrayList<>();
+        predicates = new ObjectArrayList<>();
         layer = -1;
 
         addWidget(sceneWidget = new SceneWidget(3, 3, 150, 150, LEVEL) {
@@ -168,7 +171,7 @@ public class PatternPreviewWidget extends WidgetGroup {
                         .setDropShadow(true)));
 
         this.patterns = CACHE.computeIfAbsent(controllerDefinition, definition -> {
-            HashSet<ItemStackKey> drops = new HashSet<>();
+            Set<ItemStackKey> drops = new ObjectOpenHashSet<>();
             drops.add(new ItemStackKey(this.controllerDefinition.asStack()));
             return controllerDefinition.getMatchingShapes().stream()
                     .map(it -> initializePattern(it, drops))
@@ -301,8 +304,8 @@ public class PatternPreviewWidget extends WidgetGroup {
                     removeWidget(candidate);
                 }
             }
-            List<List<ItemStack>> candidateStacks = new ArrayList<>();
-            List<List<Component>> predicateTips = new ArrayList<>();
+            List<List<ItemStack>> candidateStacks = new ObjectArrayList<>();
+            List<List<Component>> predicateTips = new ObjectArrayList<>();
             for (SimplePredicate simplePredicate : predicates) {
                 List<ItemStack> itemStacks = simplePredicate.getCandidates();
                 if (!itemStacks.isEmpty()) {
@@ -347,8 +350,8 @@ public class PatternPreviewWidget extends WidgetGroup {
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
     }
 
-    private MBPattern initializePattern(MultiblockShapeInfo shapeInfo, HashSet<ItemStackKey> blockDrops) {
-        Map<BlockPos, BlockInfo> blockMap = new HashMap<>();
+    private MBPattern initializePattern(MultiblockShapeInfo shapeInfo, Set<ItemStackKey> blockDrops) {
+        Map<BlockPos, BlockInfo> blockMap = new Object2ObjectOpenHashMap<>();
         IMultiController controllerBase = null;
         BlockPos multiPos = locateNextRegion(500);
         BlockPos center = BlockPos.ZERO;

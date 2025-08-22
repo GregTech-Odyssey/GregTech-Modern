@@ -40,8 +40,8 @@ import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
 import appeng.api.networking.pathing.ChannelMode;
 import appeng.core.AEConfig;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -181,7 +181,7 @@ public class GTMultiMachines {
                         .build();
             })
             .shapeInfos(definition -> {
-                ArrayList<MultiblockShapeInfo> shapeInfo = new ArrayList<>();
+                List<MultiblockShapeInfo> shapeInfo = new ObjectArrayList<>();
                 var baseBuilder = MultiblockShapeInfo.builder()
                         .where('S', definition, Direction.NORTH)
                         .where('X', CASING_PTFE_INERT.getDefaultState())
@@ -367,7 +367,7 @@ public class GTMultiMachines {
                         .build();
             })
             .shapeInfos(definition -> {
-                List<MultiblockShapeInfo> shapeInfos = new ArrayList<>();
+                List<MultiblockShapeInfo> shapeInfos = new ObjectArrayList<>();
                 var builder = MultiblockShapeInfo.builder()
                         .where('C', definition, Direction.NORTH)
                         .where('S', CASING_STAINLESS_CLEAN.getDefaultState())
@@ -377,13 +377,13 @@ public class GTMultiMachines {
                         .where('M', MAINTENANCE_HATCH, Direction.SOUTH)
                         .where('#', Blocks.AIR.defaultBlockState())
                         .where('F', FLUID_EXPORT_HATCH[HV], Direction.SOUTH);
-                List<String> front = new ArrayList<>(15);
+                List<String> front = new ObjectArrayList<>(15);
                 front.add("XCI");
                 front.add("SSS");
-                List<String> middle = new ArrayList<>(15);
+                List<String> middle = new ObjectArrayList<>(15);
                 middle.add("SSS");
                 middle.add("SSS");
-                List<String> back = new ArrayList<>(15);
+                List<String> back = new ObjectArrayList<>(15);
                 back.add("MES");
                 back.add("SFS");
                 for (int i = 1; i <= 11; ++i) {
@@ -569,7 +569,7 @@ public class GTMultiMachines {
                                 .build();
                     })
                     .shapeInfos((controller) -> {
-                        List<MultiblockShapeInfo> shapeInfos = new ArrayList<>();
+                        List<MultiblockShapeInfo> shapeInfos = new ObjectArrayList<>();
 
                         MultiblockShapeInfo.ShapeInfoBuilder baseBuilder = MultiblockShapeInfo.builder()
                                 .aisle("###############", "######NMN######", "###############")
@@ -734,7 +734,7 @@ public class GTMultiMachines {
                     .where('I', abilities(PartAbility.PASSTHROUGH_HATCH))
                     .build())
             .shapeInfos((controller) -> {
-                ArrayList<MultiblockShapeInfo> shapeInfo = new ArrayList<>();
+                List<MultiblockShapeInfo> shapeInfo = new ObjectArrayList<>();
                 MultiblockShapeInfo.ShapeInfoBuilder builder = MultiblockShapeInfo.builder()
                         .aisle("XXXXX", "XXHXX", "XXDXX", "XXXXX", "XXXXX")
                         .aisle("XXXXX", "X   X", "G   G", "X   X", "XFFFX")
@@ -864,7 +864,7 @@ public class GTMultiMachines {
                     .where('B', Predicates.powerSubstationBatteries())
                     .build())
             .shapeInfos(definition -> {
-                List<MultiblockShapeInfo> shapeInfo = new ArrayList<>();
+                List<MultiblockShapeInfo> shapeInfo = new ObjectArrayList<>();
                 MultiblockShapeInfo.ShapeInfoBuilder builder = MultiblockShapeInfo.builder()
                         .aisle("ICSCO", "NCMCT", "GGGGG", "GGGGG", "GGGGG")
                         .aisle("CCCCC", "CCCCC", "GBBBG", "GBBBG", "GGGGG")
@@ -960,7 +960,7 @@ public class GTMultiMachines {
             "wooden_tank_valve", "Wooden Tank Valve", false,
             (builder, overlay) -> builder.sidedWorkableCasingRenderer("block/casings/wood_wall", overlay));
     public static final MultiblockMachineDefinition WOODEN_MULTIBLOCK_TANK = registerMultiblockTank(
-            "wooden_multiblock_tank", "Wooden Multiblock Tank", 250 * 1000,
+            "wooden_multiblock_tank", "Wooden Multiblock Tank", 250 * 10000,
             CASING_WOOD_WALL, WOODEN_TANK_VALVE::getBlock,
             new PropertyFluidFilter(false, false),
             (builder, overlay) -> builder.sidedWorkableCasingRenderer("block/casings/wood_wall", overlay));
@@ -970,7 +970,7 @@ public class GTMultiMachines {
             (builder, overlay) -> builder.workableCasingRenderer(
                     GTCEu.id("block/casings/solid/machine_casing_solid_steel"), overlay));
     public static final MultiblockMachineDefinition STEEL_MULTIBLOCK_TANK = registerMultiblockTank(
-            "steel_multiblock_tank", "Steel Multiblock Tank", 1000 * 1000,
+            "steel_multiblock_tank", "Steel Multiblock Tank", 1000 * 10000,
             CASING_STEEL_SOLID, STEEL_TANK_VALVE::getBlock,
             null,
             (builder, overlay) -> builder.workableCasingRenderer(

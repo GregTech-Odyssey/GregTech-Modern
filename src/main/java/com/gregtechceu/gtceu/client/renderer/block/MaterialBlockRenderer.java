@@ -6,7 +6,8 @@ import com.gregtechceu.gtceu.data.pack.GTDynamicResourcePack;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.models.BlockModelGenerators;
-import net.minecraft.data.models.model.*;
+import net.minecraft.data.models.model.DelegatedModel;
+import net.minecraft.data.models.model.ModelLocationUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 

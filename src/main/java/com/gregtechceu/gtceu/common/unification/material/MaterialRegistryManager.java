@@ -13,10 +13,10 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -127,7 +127,7 @@ public final class MaterialRegistryManager implements IMaterialRegistryManager {
 
     public void closeRegistries() {
         registries.values().forEach(MaterialRegistryImpl::closeRegistry);
-        Collection<Material> collection = new ArrayList<>();
+        Collection<Material> collection = new ObjectArrayList<>();
         for (MaterialRegistry registry : registries.values()) {
             collection.addAll(registry.getAllMaterials());
         }

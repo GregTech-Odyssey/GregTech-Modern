@@ -7,9 +7,12 @@ import com.lowdragmc.lowdraglib.utils.BlockInfo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -43,8 +46,8 @@ public class TraceabilityPredicate {
         }
     };
 
-    public List<SimplePredicate> common = new ArrayList<>();
-    public List<SimplePredicate> limited = new ArrayList<>();
+    public List<SimplePredicate> common = new ObjectArrayList<>();
+    public List<SimplePredicate> limited = new ObjectArrayList<>();
     public boolean isController;
 
     public TraceabilityPredicate() {}
@@ -89,14 +92,14 @@ public class TraceabilityPredicate {
             common.forEach(predicate -> {
                 if (predicate.candidates == null) return;
                 if (predicate.toolTips == null) {
-                    predicate.toolTips = new ArrayList<>();
+                    predicate.toolTips = new ObjectArrayList<>();
                 }
                 predicate.toolTips.addAll(tooltips);
             });
             limited.forEach(predicate -> {
                 if (predicate.candidates == null) return;
                 if (predicate.toolTips == null) {
-                    predicate.toolTips = new ArrayList<>();
+                    predicate.toolTips = new ObjectArrayList<>();
                 }
                 predicate.toolTips.addAll(tooltips);
             });

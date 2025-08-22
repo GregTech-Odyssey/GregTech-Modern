@@ -2,7 +2,9 @@ package com.gregtechceu.gtceu.common.machine.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.*;
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
+import com.gregtechceu.gtceu.api.capability.IControllable;
+import com.gregtechceu.gtceu.api.capability.IElectricItem;
 import com.gregtechceu.gtceu.api.capability.compat.FeCompat;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
@@ -11,6 +13,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -26,10 +29,11 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraftforge.energy.IEnergyStorage;
+import net.minecraftforge.items.IItemHandlerModifiable;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -78,13 +82,18 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
     }
 
     protected CustomItemStackHandler createChargerInventory(Object... args) {
-        var handler = new CustomItemStackHandler(this.inventorySize);
+        var handler = new SingleCustomItemStackHandler(this.inventorySize);
         handler.setFilter(item -> {
             var electric = GTCapabilityHelper.getElectricItem(item);
             if (electric != null) return electric.getTier() <= getTier();
             return ConfigHolder.INSTANCE.compat.energy.nativeEUToFE && GTCapabilityHelper.getForgeEnergyItem(item) != null;
         });
         return handler;
+    }
+
+    @Override
+    public @Nullable IItemHandlerModifiable getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
+        return chargerInventory;
     }
 
     @Override
@@ -135,7 +144,7 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
     // ****** Charger Logic ******//
     //////////////////////////////////////
     private List<Object> getNonFullElectricItem() {
-        List<Object> electricItems = new ArrayList<>();
+        List<Object> electricItems = new ObjectArrayList<>();
         for (int i = 0; i < chargerInventory.getSlots(); i++) {
             var electricItemStack = chargerInventory.getStackInSlot(i);
             var electricItem = GTCapabilityHelper.getElectricItem(electricItemStack);

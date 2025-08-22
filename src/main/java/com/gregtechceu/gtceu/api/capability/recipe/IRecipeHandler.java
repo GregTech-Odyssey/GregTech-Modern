@@ -50,7 +50,9 @@ public interface IRecipeHandler<K> extends IFilteredHandler<K> {
     }
 
     @NotNull
-    List<Object> getContents();
+    default Object[] getContents() {
+        return new Object[0];
+    }
 
     default @Nullable Object2LongOpenCustomHashMap<ItemStack> getItemMap() {
         return null;

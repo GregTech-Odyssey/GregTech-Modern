@@ -44,12 +44,15 @@ import net.minecraftforge.event.entity.player.PlayerXpEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import com.tterrag.registrate.util.entry.ItemEntry;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import oshi.util.tuples.Triplet;
 import top.theillusivec4.curios.api.CuriosApi;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.List;
 
 public class ItemMagnetBehavior implements IItemLifeCycle, IAddInformation, IItemUIFactory {
 
@@ -70,8 +73,8 @@ public class ItemMagnetBehavior implements IItemLifeCycle, IAddInformation, IIte
         var held = holder.getHeld();
         var tag = held.getOrCreateTag();
         var selected = Filter.get(tag.getInt(FILTER_ORDINAL_TAG));
-        var widgets = new HashSet<Triplet<Filter, Widget, Widget>>();
-        var stacks = new HashMap<Filter, ItemStack>();
+        var widgets = new ObjectOpenHashSet<Triplet<Filter, Widget, Widget>>();
+        var stacks = new EnumMap<Filter, ItemStack>(Filter.class);
         var ui = new ModularUI(176, 157, holder, entityPlayer)
                 .background(GuiTextures.BACKGROUND)
                 .widget(new EnumSelectorWidget<>(146, 5, 20, 20,

@@ -1,8 +1,10 @@
 package com.gregtechceu.gtceu.integration.map;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 public class ButtonState {
 
@@ -43,7 +45,7 @@ public class ButtonState {
 
     public static List<Button> getAllButtons() {
         if (sortedButtons == null) {
-            sortedButtons = new ArrayList<>(buttons.values());
+            sortedButtons = new ObjectArrayList<>(buttons.values());
         }
         return sortedButtons;
     }

@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -26,10 +27,11 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraftforge.energy.IEnergyStorage;
+import net.minecraftforge.items.IItemHandlerModifiable;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -68,19 +70,18 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
     }
 
     protected CustomItemStackHandler createBatteryInventory(Object... ignoredArgs) {
-        var handler = new CustomItemStackHandler(this.inventorySize) {
-
-            @Override
-            public int getSlotLimit(int slot) {
-                return 1;
-            }
-        };
+        var handler = new SingleCustomItemStackHandler(this.inventorySize);
         handler.setFilter(item -> {
             var electric = GTCapabilityHelper.getElectricItem(item);
             if (electric != null) return electric.getTier() <= getTier();
             return ConfigHolder.INSTANCE.compat.energy.nativeEUToFE && GTCapabilityHelper.getForgeEnergyItem(item) != null;
         });
         return handler;
+    }
+
+    @Override
+    public @Nullable IItemHandlerModifiable getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
+        return batteryInventory;
     }
 
     @Override
@@ -132,7 +133,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
     }
 
     private List<Object> getNonFullBatteries() {
-        List<Object> batteries = new ArrayList<>();
+        List<Object> batteries = new ObjectArrayList<>();
         for (int i = 0; i < batteryInventory.getSlots(); i++) {
             var batteryStack = batteryInventory.getStackInSlot(i);
             var electricItem = GTCapabilityHelper.getElectricItem(batteryStack);
@@ -153,7 +154,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
     }
 
     private List<IElectricItem> getNonEmptyBatteries() {
-        List<IElectricItem> batteries = new ArrayList<>();
+        List<IElectricItem> batteries = new ObjectArrayList<>();
         for (int i = 0; i < batteryInventory.getSlots(); i++) {
             var batteryStack = batteryInventory.getStackInSlot(i);
             var electricItem = GTCapabilityHelper.getElectricItem(batteryStack);
@@ -167,7 +168,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
     }
 
     private List<Object> getAllBatteries() {
-        List<Object> batteries = new ArrayList<>();
+        List<Object> batteries = new ObjectArrayList<>();
         for (int i = 0; i < batteryInventory.getSlots(); i++) {
             var batteryStack = batteryInventory.getStackInSlot(i);
             var electricItem = GTCapabilityHelper.getElectricItem(batteryStack);

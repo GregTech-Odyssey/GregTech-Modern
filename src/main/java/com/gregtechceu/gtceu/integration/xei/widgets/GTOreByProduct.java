@@ -27,14 +27,14 @@ import net.minecraft.world.level.block.Blocks;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class GTOreByProduct {
 
-    private static final List<TagPrefix> ORES = new ArrayList<>();
+    private static final List<TagPrefix> ORES = new ObjectArrayList<>();
 
     public static void addOreByProductPrefix(TagPrefix orePrefix) {
         if (!ORES.contains(orePrefix)) {
@@ -47,9 +47,9 @@ public class GTOreByProduct {
     private static ImmutableList<ItemStack> ALWAYS_MACHINES;
 
     private final Int2ObjectMap<Content> chances = new Int2ObjectOpenHashMap<>();
-    protected final List<ItemEntryList> itemInputs = new ArrayList<>();
+    protected final List<ItemEntryList> itemInputs = new ObjectArrayList<>();
     protected final NonNullList<ItemStack> itemOutputs = NonNullList.create();
-    protected final List<FluidEntryList> fluidInputs = new ArrayList<>();
+    protected final List<FluidEntryList> fluidInputs = new ObjectArrayList<>();
     private boolean hasDirectSmelt = false;
     private boolean hasChemBath = false;
     private boolean hasSeparator = false;
@@ -101,7 +101,7 @@ public class GTOreByProduct {
         itemInputs.add(oreStacks);
 
         // set up machines as inputs
-        List<ItemStack> simpleWashers = new ArrayList<>();
+        List<ItemStack> simpleWashers = new ObjectArrayList<>();
         simpleWashers.add(new ItemStack(Items.CAULDRON));
         simpleWashers.add(GTMachines.ORE_WASHER[GTValues.LV].asStack());
 

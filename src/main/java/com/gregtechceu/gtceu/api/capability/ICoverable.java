@@ -26,9 +26,9 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -181,7 +181,7 @@ public interface ICoverable extends ITickSubscription, IAppearance {
 
     default VoxelShape[] addCoverCollisionBoundingBox() {
         double plateThickness = getCoverPlateThickness();
-        List<VoxelShape> shapes = new ArrayList<>();
+        List<VoxelShape> shapes = new ObjectArrayList<>();
         if (plateThickness > 0.0) {
             for (Direction side : GTUtil.DIRECTIONS) {
                 if (getCoverAtSide(side) != null) {

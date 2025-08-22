@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidStackList;
 
 import net.minecraftforge.fluids.FluidStack;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ public class CycleFluidEntryHandler implements IFluidHandlerModifiable {
     private List<List<FluidStack>> unwrapped = null;
 
     public CycleFluidEntryHandler(List<FluidEntryList> entries) {
-        this.entries = new ArrayList<>(entries);
+        this.entries = new ObjectArrayList<>(entries);
     }
 
     public List<List<FluidStack>> getUnwrapped() {

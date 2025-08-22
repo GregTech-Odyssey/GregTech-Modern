@@ -10,12 +10,12 @@ import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -191,7 +191,7 @@ public abstract class ChanceLogic {
             }
 
             // Finally, generate a new Content list with the changes
-            List<Content> normalizedEntries = new ArrayList<>();
+            List<Content> normalizedEntries = new ObjectArrayList<>();
             for (int i = 0; i < chancesOutOfTenThousand.size(); i++) {
                 normalizedEntries.add(new Content(chancedEntries.get(i).content, chancesOutOfTenThousand.getInt(i),
                         getMaxChancedValue(), chancedEntries.get(i).tierChanceBoost));

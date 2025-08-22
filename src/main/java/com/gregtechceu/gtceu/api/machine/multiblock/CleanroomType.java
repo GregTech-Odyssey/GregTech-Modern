@@ -2,10 +2,10 @@ package com.gregtechceu.gtceu.api.machine.multiblock;
 
 import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -57,6 +57,6 @@ public class CleanroomType {
     }
 
     public static Set<CleanroomType> getAllTypes() {
-        return new HashSet<>(CLEANROOM_TYPES.values());
+        return new ReferenceOpenHashSet<>(CLEANROOM_TYPES.values());
     }
 }

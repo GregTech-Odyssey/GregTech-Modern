@@ -12,9 +12,8 @@ import com.gregtechceu.gtceu.utils.GTMath;
 
 import net.minecraftforge.fluids.FluidStack;
 
-import org.jetbrains.annotations.NotNull;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,7 +34,7 @@ public class SteamEnergyRecipeHandler implements IRecipeHandler<Long> {
         if (totalSteam > 0) {
             var steam = io == IO.IN ? FluidIngredient.of(totalSteam, GTMaterials.Steam.getFluid()) :
                     FluidIngredient.of(GTMaterials.Steam.getFluid(totalSteam));
-            var list = new ArrayList<FluidIngredient>();
+            var list = new ObjectArrayList<FluidIngredient>();
             list.add(steam);
             var leftSteam = steamTank.handleRecipeInner(io, recipe, list, simulate);
             if (leftSteam == null || leftSteam.isEmpty()) return null;
@@ -45,22 +44,8 @@ public class SteamEnergyRecipeHandler implements IRecipeHandler<Long> {
     }
 
     @Override
-    public @NotNull List<Object> getContents() {
-        List<FluidStack> tankContents = new ArrayList<>();
-        for (int i = 0; i < steamTank.getTanks(); ++i) {
-            FluidStack stack = steamTank.getFluidInTank(i);
-            if (!stack.isEmpty()) {
-                tankContents.add(stack);
-            }
-        }
-        long sum = tankContents.stream().mapToLong(FluidStack::getAmount).sum();
-        long realSum = (long) Math.ceil(sum * conversionRate);
-        return List.of(realSum);
-    }
-
-    @Override
     public double getTotalContentAmount() {
-        List<FluidStack> tankContents = new ArrayList<>();
+        List<FluidStack> tankContents = new ObjectArrayList<>();
         for (int i = 0; i < steamTank.getTanks(); ++i) {
             FluidStack stack = steamTank.getFluidInTank(i);
             if (!stack.isEmpty()) {

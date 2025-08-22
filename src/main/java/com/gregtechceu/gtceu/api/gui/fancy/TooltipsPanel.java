@@ -8,15 +8,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class TooltipsPanel extends Widget {
 
-    protected List<IFancyTooltip> tooltips = new ArrayList<>();
+    protected List<IFancyTooltip> tooltips = new ObjectArrayList<>();
 
     public TooltipsPanel() {
         super(202, 2, 20, 0);

@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 
@@ -11,11 +12,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
 import it.unimi.dsi.fastutil.objects.Object2LongOpenCustomHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.IntFunction;
 
@@ -77,12 +77,6 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     }
 
     @Override
-    @NotNull
-    public List<Object> getContents() {
-        return Collections.singletonList(storage.getStackInSlot(0));
-    }
-
-    @Override
     public double getTotalContentAmount() {
         return storage.getStackInSlot(0).getCount();
     }
@@ -104,8 +98,8 @@ public class CircuitHandler extends NotifiableItemStackHandler {
             ItemStack stored = storage.getStackInSlot(0);
             int count = stored.getCount();
             if (count == 1) {
-                left = new ArrayList<>(left);
-                for (var it = left.iterator(); it.hasNext();) {
+                left = new ObjectArrayList<>(left);
+                for (var it = left.listIterator(0); it.hasNext();) {
                     if (it.next().test(stored)) {
                         it.remove();
                         break;
@@ -116,20 +110,10 @@ public class CircuitHandler extends NotifiableItemStackHandler {
         return left.isEmpty() ? null : left;
     }
 
-    public static class ItemStackHandler extends CustomItemStackHandler {
+    public static class ItemStackHandler extends SingleCustomItemStackHandler {
 
         protected ItemStackHandler(int size) {
             super(size);
-        }
-
-        @Override
-        public int getSlotLimit(int slot) {
-            return 1;
-        }
-
-        @Override
-        protected int getStackLimit(int slot, @NotNull ItemStack stack) {
-            return 1;
         }
 
         @Override

@@ -25,9 +25,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -77,8 +77,8 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
     public void onStructureFormed() {
         super.onStructureFormed();
         // capture all energy containers
-        List<IEnergyContainer> powerInput = new ArrayList<>();
-        List<IEnergyContainer> powerOutput = new ArrayList<>();
+        List<IEnergyContainer> powerInput = new ObjectArrayList<>();
+        List<IEnergyContainer> powerOutput = new ObjectArrayList<>();
         for (IMultiPart part : getPrioritySortedParts()) {
             for (var handlerList : part.getRecipeHandlers()) {
                 var containers = handlerList.getCapability(EURecipeCapability.CAP).stream()

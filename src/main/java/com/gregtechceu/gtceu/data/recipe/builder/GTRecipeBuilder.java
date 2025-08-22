@@ -53,6 +53,7 @@ import net.minecraftforge.fluids.FluidStack;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.ftb.mods.ftbquests.quest.QuestObjectBase;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -72,7 +73,7 @@ public class GTRecipeBuilder {
     public Map<RecipeCapability<?>, List<Content>> tickInput = new Reference2ObjectOpenHashMap<>();
     public Map<RecipeCapability<?>, List<Content>> output = new Reference2ObjectOpenHashMap<>();
     public Map<RecipeCapability<?>, List<Content>> tickOutput = new Reference2ObjectOpenHashMap<>();
-    public List<RecipeCondition> conditions = new ArrayList<>();
+    public List<RecipeCondition> conditions = new ObjectArrayList<>();
     @NotNull
     public CompoundTag data = new CompoundTag();
     public ResourceLocation id;
@@ -88,11 +89,11 @@ public class GTRecipeBuilder {
     public GTRecipeCategory recipeCategory;
     @Nullable
     public BiConsumer<GTRecipeBuilder, Consumer<FinishedRecipe>> onSave;
-    protected final Collection<ResearchRecipeEntry> researchRecipeEntries = new ArrayList<>();
+    protected final Collection<ResearchRecipeEntry> researchRecipeEntries = new ObjectArrayList<>();
     protected boolean generatingRecipes = true;
-    protected List<ItemStack> tempItemStacks = new ArrayList<>();
-    protected List<MaterialStack> tempItemMaterialStacks = new ArrayList<>();
-    protected List<MaterialStack> tempFluidStacks = new ArrayList<>();
+    protected List<ItemStack> tempItemStacks = new ObjectArrayList<>();
+    protected List<MaterialStack> tempItemMaterialStacks = new ObjectArrayList<>();
+    protected List<MaterialStack> tempFluidStacks = new ObjectArrayList<>();
 
     public GTRecipeBuilder(ResourceLocation id, GTRecipeType recipeType) {
         this.id = id;
@@ -103,10 +104,10 @@ public class GTRecipeBuilder {
     public GTRecipeBuilder(GTRecipe toCopy, GTRecipeType recipeType) {
         this.id = toCopy.id;
         this.recipeType = recipeType;
-        toCopy.inputs.forEach((k, v) -> this.input.put(k, new ArrayList<>(v)));
-        toCopy.outputs.forEach((k, v) -> this.output.put(k, new ArrayList<>(v)));
-        toCopy.tickInputs.forEach((k, v) -> this.tickInput.put(k, new ArrayList<>(v)));
-        toCopy.tickOutputs.forEach((k, v) -> this.tickOutput.put(k, new ArrayList<>(v)));
+        toCopy.inputs.forEach((k, v) -> this.input.put(k, new ObjectArrayList<>(v)));
+        toCopy.outputs.forEach((k, v) -> this.output.put(k, new ObjectArrayList<>(v)));
+        toCopy.tickInputs.forEach((k, v) -> this.tickInput.put(k, new ObjectArrayList<>(v)));
+        toCopy.tickOutputs.forEach((k, v) -> this.tickOutput.put(k, new ObjectArrayList<>(v)));
         this.conditions.addAll(toCopy.conditions);
         this.data = toCopy.data.copy();
         this.duration = toCopy.duration;
@@ -127,10 +128,10 @@ public class GTRecipeBuilder {
 
     public GTRecipeBuilder copy(ResourceLocation id) {
         GTRecipeBuilder copy = new GTRecipeBuilder(id, this.recipeType);
-        this.input.forEach((k, v) -> copy.input.put(k, new ArrayList<>(v)));
-        this.output.forEach((k, v) -> copy.output.put(k, new ArrayList<>(v)));
-        this.tickInput.forEach((k, v) -> copy.tickInput.put(k, new ArrayList<>(v)));
-        this.tickOutput.forEach((k, v) -> copy.tickOutput.put(k, new ArrayList<>(v)));
+        this.input.forEach((k, v) -> copy.input.put(k, new ObjectArrayList<>(v)));
+        this.output.forEach((k, v) -> copy.output.put(k, new ObjectArrayList<>(v)));
+        this.tickInput.forEach((k, v) -> copy.tickInput.put(k, new ObjectArrayList<>(v)));
+        this.tickOutput.forEach((k, v) -> copy.tickOutput.put(k, new ObjectArrayList<>(v)));
         copy.conditions.addAll(this.conditions);
         copy.data = this.data.copy();
         copy.duration = this.duration;
@@ -152,28 +153,28 @@ public class GTRecipeBuilder {
     public <T> GTRecipeBuilder input(RecipeCapability<T> capability, T obj) {
         var t = (perTick ? tickInput : input);
         warnTooManyIngredients(capability, true, t, 1);
-        t.computeIfAbsent(capability, c -> new ArrayList<>()).add(makeContent(capability.of(obj)));
+        t.computeIfAbsent(capability, c -> new ObjectArrayList<>()).add(makeContent(capability.of(obj)));
         return this;
     }
 
     public <T> GTRecipeBuilder input(RecipeCapability<T> capability, T... obj) {
         var t = (perTick ? tickInput : input);
         warnTooManyIngredients(capability, true, t, obj.length);
-        t.computeIfAbsent(capability, c -> new ArrayList<>()).addAll(Arrays.stream(obj).map(capability::of).map(this::makeContent).toList());
+        t.computeIfAbsent(capability, c -> new ObjectArrayList<>()).addAll(Arrays.stream(obj).map(capability::of).map(this::makeContent).toList());
         return this;
     }
 
     public <T> GTRecipeBuilder output(RecipeCapability<T> capability, T obj) {
         var t = (perTick ? tickOutput : output);
         warnTooManyIngredients(capability, false, t, 1);
-        t.computeIfAbsent(capability, c -> new ArrayList<>()).add(makeContent(capability.of(obj)));
+        t.computeIfAbsent(capability, c -> new ObjectArrayList<>()).add(makeContent(capability.of(obj)));
         return this;
     }
 
     public <T> GTRecipeBuilder output(RecipeCapability<T> capability, T... obj) {
         var t = (perTick ? tickOutput : output);
         warnTooManyIngredients(capability, false, t, obj.length);
-        t.computeIfAbsent(capability, c -> new ArrayList<>()).addAll(Arrays.stream(obj).map(capability::of).map(this::makeContent).toList());
+        t.computeIfAbsent(capability, c -> new ObjectArrayList<>()).addAll(Arrays.stream(obj).map(capability::of).map(this::makeContent).toList());
         return this;
     }
 
@@ -290,7 +291,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder inputItems(Ingredient... inputs) {
-        List<Ingredient> ingredients = new ArrayList<>();
+        List<Ingredient> ingredients = new ObjectArrayList<>();
         for (int i = 0; i < inputs.length; i++) {
             var ingredient = inputs[i];
             if (missingIngredientError(i, true, ItemRecipeCapability.CAP, ingredient::isEmpty)) {
@@ -328,7 +329,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder inputItems(ItemStack... inputs) {
-        List<Ingredient> ingredients = new ArrayList<>();
+        List<Ingredient> ingredients = new ObjectArrayList<>();
         for (int i = 0; i < inputs.length; i++) {
             ItemStack itemStack = inputs[i];
             if (missingIngredientError(i, true, ItemRecipeCapability.CAP, itemStack::isEmpty)) {
@@ -462,7 +463,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder outputItems(ItemStack... outputs) {
-        List<Ingredient> ingredients = new ArrayList<>();
+        List<Ingredient> ingredients = new ObjectArrayList<>();
         for (int i = 0; i < outputs.length; i++) {
             ItemStack itemStack = outputs[i];
             if (missingIngredientError(i, false, ItemRecipeCapability.CAP, itemStack::isEmpty)) {
@@ -774,7 +775,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder inputFluids(FluidStack... inputs) {
-        List<FluidIngredient> ingredients = new ArrayList<>();
+        List<FluidIngredient> ingredients = new ObjectArrayList<>();
         for (int i = 0; i < inputs.length; i++) {
             FluidStack fluid = inputs[i];
             if (missingIngredientError(i, true, FluidRecipeCapability.CAP, fluid::isEmpty)) {
@@ -1165,8 +1166,8 @@ public class GTRecipeBuilder {
     }
 
     private void addOutputMaterialInfo() {
-        var itemOutputs = output.getOrDefault(ItemRecipeCapability.CAP, new ArrayList<>());
-        var itemInputs = input.getOrDefault(ItemRecipeCapability.CAP, new ArrayList<>());
+        var itemOutputs = output.getOrDefault(ItemRecipeCapability.CAP, new ObjectArrayList<>());
+        var itemInputs = input.getOrDefault(ItemRecipeCapability.CAP, new ObjectArrayList<>());
         if (itemOutputs.size() == 1 && (!itemInputs.isEmpty() || !tempFluidStacks.isEmpty())) {
             var currOutput = ItemRecipeCapability.CAP.of(itemOutputs.get(0).content);
             Item out = null;

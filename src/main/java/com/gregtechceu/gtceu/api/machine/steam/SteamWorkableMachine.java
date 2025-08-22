@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -32,10 +33,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -70,7 +75,7 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
         this.recipeLogic = createRecipeLogic(args);
         this.capabilitiesProxy = new EnumMap<>(IO.class);
         this.capabilitiesFlat = new EnumMap<>(IO.class);
-        this.traitSubscriptions = new ArrayList<>();
+        this.traitSubscriptions = new ObjectArrayList<>();
         this.outputFacing = hasFrontFacing() ? getFrontFacing().getOpposite() : Direction.UP;
     }
 
@@ -89,7 +94,7 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
         Map<IO, List<IRecipeHandler<?>>> ioTraits = new EnumMap<>(IO.class);
         for (MachineTrait trait : getTraits()) {
             if (trait instanceof IRecipeHandlerTrait<?> handlerTrait) {
-                ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ArrayList<>()).add(handlerTrait);
+                ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ObjectArrayList<>()).add(handlerTrait);
             }
         }
         for (var entry : ioTraits.entrySet()) {
@@ -198,6 +203,14 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
     public void setMuffled(final boolean isMuffled) {
         this.isMuffled = isMuffled;
     }
+
+    @Override
+    public @Nullable RecipeHandlerList getCurrentHandlerList() {
+        return null;
+    }
+
+    @Override
+    public void setCurrentHandlerList(RecipeHandlerList list, GTRecipe recipe) {}
 
     public Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {
         return this.capabilitiesProxy;

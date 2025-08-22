@@ -24,16 +24,16 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class ConfiguratorPanel extends WidgetGroup {
 
-    protected List<Tab> tabs = new ArrayList<>();
+    protected List<Tab> tabs = new ObjectArrayList<>();
     @Nullable
     protected Tab expanded;
     protected int border = 4;

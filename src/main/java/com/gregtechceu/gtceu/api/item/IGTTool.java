@@ -46,7 +46,9 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.BlockGetter;
@@ -62,13 +64,14 @@ import net.minecraftforge.common.util.LazyOptional;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMaps;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.gregtechceu.gtceu.api.item.tool.ToolHelper.*;
@@ -474,8 +477,8 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
             CompoundTag newTag = newStack.getTag();
             CompoundTag oldTag = oldStack.getTag();
             if (newTag != null && oldTag != null) {
-                Set<String> newKeys = new HashSet<>(newTag.getAllKeys());
-                Set<String> oldKeys = new HashSet<>(oldTag.getAllKeys());
+                Set<String> newKeys = new ObjectOpenHashSet<>(newTag.getAllKeys());
+                Set<String> oldKeys = new ObjectOpenHashSet<>(oldTag.getAllKeys());
                 newKeys.remove(ItemStack.TAG_DAMAGE);
                 oldKeys.remove(ItemStack.TAG_DAMAGE);
                 newKeys.remove(CHARGE_KEY);
@@ -712,7 +715,7 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
             if (GTUtil.isShiftDown()) {
                 Material material = getToolMaterial(stack);
 
-                Collection<Component> repairItems = new ArrayList<>();
+                Collection<Component> repairItems = new ObjectArrayList<>();
                 if (!VanillaRecipeHelper.isMaterialWood(material)) {
                     if (material.hasProperty(PropertyKey.INGOT)) {
                         repairItems.add(TagPrefix.ingot.getLocalizedName(material));
@@ -822,7 +825,7 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
     }
 
     default Set<GTToolType> getToolClasses(ItemStack stack) {
-        return new HashSet<>(getToolType().toolClasses);
+        return new ReferenceOpenHashSet<>(getToolType().toolClasses);
     }
 
     default Set<String> getToolClassNames(ItemStack stack) {
@@ -831,7 +834,7 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
 
     @Nullable
     default ICapabilityProvider definition$initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
-        List<ICapabilityProvider> providers = new ArrayList<>();
+        List<ICapabilityProvider> providers = new ObjectArrayList<>();
         for (IToolBehavior behavior : getToolStats().getBehaviors()) {
             if (behavior instanceof IComponentCapability componentCapability) {
                 providers.add(new ICapabilityProvider() {

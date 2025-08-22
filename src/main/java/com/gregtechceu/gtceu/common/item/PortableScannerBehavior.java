@@ -45,9 +45,9 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -88,7 +88,7 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
         var pos = context.getClickedPos();
         var stack = context.getItemInHand();
         if (!level.isClientSide() && !level.isEmptyBlock(pos) && player != null) {
-            List<Component> list = new ArrayList<>();
+            List<Component> list = new ObjectArrayList<>();
             int energyCost = addScannerInfo(player, level, pos, getMode(stack), list);
             if (player.isCreative()) {
                 energyCost = 0;

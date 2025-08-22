@@ -23,7 +23,6 @@ import it.unimi.dsi.fastutil.objects.Object2LongOpenCustomHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
@@ -92,7 +91,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
         // Necessary for simulation since we don't actually modify the slot's contents
         // Doesn't hurt for execution, and definitely cheaper than copying the entire storage
         ItemStack[] visited = new ItemStack[storage.getSlots()];
-        for (var it = left.listIterator(); it.hasNext();) {
+        for (var it = left.listIterator(0); it.hasNext();) {
             var ingredient = it.next();
             if (ingredient.isEmpty()) {
                 it.remove();
@@ -187,15 +186,8 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
 
     @Override
     @NotNull
-    public List<Object> getContents() {
-        var stacks = new ArrayList<>();
-        for (int i = 0; i < getSlots(); ++i) {
-            ItemStack stack = storage.getStackInSlot(i);
-            if (!stack.isEmpty()) {
-                stacks.add(stack);
-            }
-        }
-        return stacks;
+    public Object[] getContents() {
+        return storage.stacks;
     }
 
     @Override
@@ -254,7 +246,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     @NotNull
     @Override
     public ItemStack getStackInSlot(int slot) {
-        return storage.getStackInSlot(slot);
+        return storage.stacks[slot];
     }
 
     @Override

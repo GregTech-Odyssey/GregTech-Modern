@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.machine.feature.*;
 import com.gregtechceu.gtceu.api.machine.trait.*;
+import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -15,10 +16,13 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -53,6 +57,7 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     @DescSynced
     protected boolean isMuffled;
     protected boolean previouslyMuffled = true;
+    protected RecipeHandlerList currentHandlerList;
 
     public WorkableTieredMachine(MetaMachineBlockEntity holder, int tier, Int2IntFunction tankScalingFunction, Object... args) {
         super(holder, tier, args);
@@ -62,7 +67,7 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
         this.tankScalingFunction = tankScalingFunction;
         this.capabilitiesProxy = new EnumMap<>(IO.class);
         this.capabilitiesFlat = new EnumMap<>(IO.class);
-        this.traitSubscriptions = new ArrayList<>();
+        this.traitSubscriptions = new ObjectArrayList<>();
         this.recipeLogic = createRecipeLogic(args);
         this.importItems = createImportItemHandler(args);
         this.exportItems = createExportItemHandler(args);
@@ -120,7 +125,7 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
         Map<IO, List<IRecipeHandler<?>>> ioTraits = new EnumMap<>(IO.class);
         for (MachineTrait trait : getTraits()) {
             if (trait instanceof IRecipeHandlerTrait<?> handlerTrait) {
-                ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ArrayList<>()).add(handlerTrait);
+                ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ObjectArrayList<>()).add(handlerTrait);
             }
         }
         for (var entry : ioTraits.entrySet()) {
@@ -228,6 +233,16 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
 
     public void setCleanroom(@Nullable final ICleanroomProvider cleanroom) {
         this.cleanroom = cleanroom;
+    }
+
+    @Override
+    public @Nullable RecipeHandlerList getCurrentHandlerList() {
+        return currentHandlerList;
+    }
+
+    @Override
+    public void setCurrentHandlerList(RecipeHandlerList list, GTRecipe recipe) {
+        this.currentHandlerList = list;
     }
 
     public Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {

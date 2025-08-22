@@ -5,7 +5,8 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 
 import net.minecraftforge.fluids.FluidStack;
 
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -17,8 +18,8 @@ public class OverlayedTankHandler {
     private final List<OverlayedTank> overlayedTanks;
 
     public OverlayedTankHandler(List<NotifiableFluidTank> tanks) {
-        overlayedTanks = new ArrayList<>(tanks.size());
-        var copy = new ArrayList<>(tanks);
+        overlayedTanks = new ObjectArrayList<>(tanks.size());
+        var copy = new ObjectArrayList<>(tanks);
         copy.sort(IRecipeHandler.ENTRY_COMPARATOR);
         for (var tank : copy) {
             overlayedTanks.add(new OverlayedTank(tank));
@@ -81,7 +82,7 @@ public class OverlayedTankHandler {
             capacity = tank.getTankCapacity(0);
             sameFluidFill = tank.isAllowSameFluids();
             filter = tank.getFilter();
-            originalStacks = new ArrayList<>(tank.getStorages().length);
+            originalStacks = new ObjectArrayList<>(tank.getStorages().length);
             for (var storage : tank.getStorages()) {
                 if (!storage.getFluid().isEmpty())
                     originalStacks.add(storage.getFluid());
@@ -93,7 +94,7 @@ public class OverlayedTankHandler {
          * Resets the Overlayed Tank back to its original state
          */
         public void reset() {
-            stacks = new ArrayList<>(size);
+            stacks = new ObjectArrayList<>(size);
             for (var stack : originalStacks) stacks.add(stack.copy());
         }
 

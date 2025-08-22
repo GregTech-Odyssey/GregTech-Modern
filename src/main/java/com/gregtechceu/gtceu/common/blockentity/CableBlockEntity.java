@@ -34,11 +34,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 
@@ -285,7 +285,7 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
     @Override
     @NotNull
     public List<Component> getDataInfo(PortableScannerBehavior.DisplayMode mode) {
-        List<Component> list = new ArrayList<>();
+        List<Component> list = new ObjectArrayList<>();
         if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_ELECTRICAL_INFO) {
             list.add(Component.translatable("behavior.portable_scanner.eu_per_sec", Component.translatable(FormattingUtil.formatNumbers(getCurrentVoltage())).withStyle(ChatFormatting.RED)));
         }

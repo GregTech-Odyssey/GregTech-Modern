@@ -52,6 +52,10 @@ public interface IMultiController extends IInteractedMachine {
         return self().getDefinition().checkPriority();
     }
 
+    boolean @Nullable [] getSubFormed();
+
+    int getSubFormedAmount();
+
     /**
      * Check MultiBlock Pattern. Just checking pattern without any other logic.
      * You can override it but it's unsafe for calling. because it will also be called in an async thread.

@@ -14,15 +14,11 @@ import net.minecraft.world.level.saveddata.SavedData;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -34,9 +30,9 @@ public class LongDistanceNetwork {
     private final LongDistancePipeType pipeType;
     private final WorldData world;
     // stores all connected endpoints, but only the first two are being used
-    private final List<ILDEndpoint> endpoints = new ArrayList<>();
+    private final List<ILDEndpoint> endpoints = new ObjectArrayList<>();
     // all endpoint positions, for nbt
-    private final List<BlockPos> endpointPoss = new ArrayList<>();
+    private final List<BlockPos> endpointPoss = new ObjectArrayList<>();
     private int activeInputIndex = -1;
     private int activeOutputIndex = -1;
 
@@ -90,7 +86,7 @@ public class LongDistanceNetwork {
             return;
         }
         // find amount of neighbour networks
-        List<BlockPos> neighbours = new ArrayList<>();
+        List<BlockPos> neighbours = new ObjectArrayList<>();
         BlockPos.MutableBlockPos offsetPos = new BlockPos.MutableBlockPos();
         for (Direction facing : GTUtil.DIRECTIONS) {
             offsetPos.set(pos).move(facing);

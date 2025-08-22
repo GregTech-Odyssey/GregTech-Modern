@@ -3,13 +3,14 @@ package com.gregtechceu.gtceu.api.pattern;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 
-import it.unimi.dsi.fastutil.chars.*;
+import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class FactoryBlockPattern {
 
@@ -18,13 +19,14 @@ public class FactoryBlockPattern {
     private final List<int[]> aisleRepetitions;
     private final Char2ObjectOpenHashMap<TraceabilityPredicate> symbolMap;
     private final RelativeDirection[] structureDir;
+    private PatternCondition condition;
     private int aisleHeight;
     private int rowWidth;
 
     private FactoryBlockPattern(RelativeDirection charDir, RelativeDirection stringDir, RelativeDirection aisleDir, MultiblockMachineDefinition definition) {
         this.definition = definition;
-        depth = new ArrayList<>();
-        aisleRepetitions = new ArrayList<>();
+        depth = new ObjectArrayList<>();
+        aisleRepetitions = new ObjectArrayList<>();
         symbolMap = new Char2ObjectOpenHashMap<>();
         structureDir = new RelativeDirection[3];
         structureDir[0] = charDir;
@@ -120,6 +122,15 @@ public class FactoryBlockPattern {
         return this;
     }
 
+    public FactoryBlockPattern condition(Predicate<MultiblockState> condition) {
+        return condition(condition, "gtceu.recipe_logic.condition_fails");
+    }
+
+    public FactoryBlockPattern condition(Predicate<MultiblockState> condition, String translateKey) {
+        this.condition = new PatternCondition(condition, translateKey);
+        return this;
+    }
+
     public BlockPattern build() {
         int size = this.depth.size();
         int[] centerOffset = new int[5];
@@ -139,6 +150,7 @@ public class FactoryBlockPattern {
         }
 
         var pattern = new BlockPattern(predicate, structureDir, aisleRepetitions, centerOffset);
+        if (condition != null) pattern.condition = condition;
         if (definition != null) {
             pattern.predicates = symbolMap.values();
             definition.setCheckPriority(-(pattern.fingerLength * pattern.thumbLength * pattern.palmLength));

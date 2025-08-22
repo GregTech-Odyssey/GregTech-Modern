@@ -35,7 +35,9 @@ import net.minecraftforge.fluids.FluidType;
 import com.google.common.collect.Tables;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.LinkedHashMap;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 

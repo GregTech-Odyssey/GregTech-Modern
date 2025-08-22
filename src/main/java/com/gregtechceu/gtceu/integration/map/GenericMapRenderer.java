@@ -11,7 +11,8 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import java.util.List;
 
 /**
@@ -27,7 +28,7 @@ public abstract class GenericMapRenderer {
     }
 
     public GenericMapRenderer(boolean initializeLayers) {
-        layers = new ArrayList<>();
+        layers = new ObjectArrayList<>();
         if (initializeLayers) {
             Layers.addLayersTo(layers, this);
         }

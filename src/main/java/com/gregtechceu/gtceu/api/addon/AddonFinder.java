@@ -3,6 +3,8 @@ package com.gregtechceu.gtceu.api.addon;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.forgespi.language.ModFileScanData;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -15,7 +17,7 @@ public class AddonFinder {
 
     private static final Logger LOGGER = LogManager.getLogger();
     protected static List<IGTAddon> cache = null;
-    protected static Map<String, IGTAddon> modIdMap = new HashMap<>();
+    protected static Map<String, IGTAddon> modIdMap = new Object2ObjectOpenHashMap<>();
 
     public static List<IGTAddon> getAddons() {
         if (cache == null) {
@@ -47,7 +49,7 @@ public class AddonFinder {
                 }
             }
         }
-        List<T> instances = new ArrayList<>();
+        List<T> instances = new ObjectArrayList<>();
         for (String className : pluginClassNames) {
             try {
                 Class<?> asmClass = Class.forName(className);

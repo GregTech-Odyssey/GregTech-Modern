@@ -36,12 +36,16 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("SameParameterValue")
@@ -459,7 +463,7 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
             super.readUpdateInfo(id, buffer);
             if (id == 101) {
                 int size = buffer.readVarInt();
-                List<VirtualEntry> entries = new ArrayList<>();
+                List<VirtualEntry> entries = new ObjectArrayList<>(size);
                 for (int i = 0; i < size; i++) {
                     VirtualEntry entry = cover.getEntryType().createInstance();
                     entry.deserializeNBT(Objects.requireNonNull(buffer.readNbt()));

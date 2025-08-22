@@ -1,12 +1,7 @@
 package com.gregtechceu.gtceu.api.recipe;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerGroup;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerGroupColor;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerGroupDistinctness;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.machine.trait.*;
 import com.gregtechceu.gtceu.api.recipe.condition.RecipeConditionType;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
@@ -18,12 +13,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class RecipeHelper {
@@ -202,15 +200,6 @@ public class RecipeHelper {
                                        Map<RecipeCapability<?>, List<Content>> contents,
                                        Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches,
                                        boolean isTick, boolean simulated) {
-        RecipeRunner runner = new RecipeRunner(recipe, io, isTick, holder, chanceCaches, simulated);
-        var result = runner.handle(contents);
-
-        if (result.isSuccess() || result.capability() == null) return true;
-
-        if (!simulated) {
-            GTCEu.LOGGER.warn("IO {} Error while handling recipe {} outputs for {}",
-                    Component.translatable(io.tooltip).getString(), recipe, holder);
-        }
         return false;
     }
 
@@ -230,7 +219,7 @@ public class RecipeHelper {
         Map<RecipeConditionType<?>, List<RecipeCondition>> or = new Reference2ObjectArrayMap<>();
         for (RecipeCondition condition : recipe.conditions) {
             if (condition.isOr()) {
-                or.computeIfAbsent(condition.getType(), type -> new ArrayList<>()).add(condition);
+                or.computeIfAbsent(condition.getType(), type -> new ObjectArrayList<>()).add(condition);
             } else if (!condition.check(recipe, recipeLogic)) {
                 return ActionResult.fail(Component.translatable("gtceu.recipe_logic.condition_fails")
                         .append(": ")
@@ -296,14 +285,14 @@ public class RecipeHelper {
             int N = trimLimits.getOrDefault(cap, -1);
             if (N == 0) continue; // Skip this cap if limit is 0
 
-            List<Content> list = outputs.computeIfAbsent(cap, c -> new ArrayList<>());
+            List<Content> list = outputs.computeIfAbsent(cap, c -> new ObjectArrayList<>());
             if (N == -1) { // Add all if limit is -1/not in map
                 list.addAll(contents);
                 continue;
             }
 
             int added = 0;
-            List<Content> chanced = new ArrayList<>();
+            List<Content> chanced = new ObjectArrayList<>();
             // Add non-chanced contents with priority and store chanced contents for later
             for (var content : contents) {
                 if (added == N) break;
@@ -340,6 +329,6 @@ public class RecipeHelper {
         // Add other RHL's to their own group, or create it (using the undyed group as base) if it does not exist.
         List<RecipeHandlerList> undyed = map.getOrDefault(RecipeHandlerGroupColor.UNDYED, Collections.emptyList());
 
-        map.computeIfAbsent(key, $ -> new ArrayList<>(undyed)).add(handler);
+        map.computeIfAbsent(key, $ -> new ObjectArrayList<>(undyed)).add(handler);
     }
 }

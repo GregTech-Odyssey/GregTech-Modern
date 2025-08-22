@@ -52,10 +52,10 @@ import net.minecraftforge.fluids.capability.templates.FluidTank;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.emi.emi.api.forge.ForgeEmiStack;
 import dev.emi.emi.api.stack.EmiIngredient;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -248,7 +248,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
 
     @Override
     public List<Component> getTooltipTexts() {
-        List<Component> tooltips = getAdditionalTooltips(new ArrayList<>());
+        List<Component> tooltips = getAdditionalTooltips(new ObjectArrayList<>());
         tooltips.addAll(tooltipTexts);
         return tooltips;
     }
@@ -262,7 +262,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
 
     @Override
     public List<Component> getFullTooltipTexts() {
-        List<Component> tooltips = new ArrayList<>();
+        List<Component> tooltips = new ObjectArrayList<>();
         boolean isPhantom = this instanceof PhantomFluidWidget;
         var fluidStack = this.lastFluidInTank;
         if (fluidStack != null && !fluidStack.isEmpty()) {

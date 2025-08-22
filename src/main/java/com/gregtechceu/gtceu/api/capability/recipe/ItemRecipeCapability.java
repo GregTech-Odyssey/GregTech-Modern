@@ -19,7 +19,8 @@ import com.gregtechceu.gtceu.integration.xei.entry.item.ItemTagList;
 import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemEntryHandler;
 import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemStackHandler;
 import com.gregtechceu.gtceu.integration.xei.widgets.GTRecipeWidget;
-import com.gregtechceu.gtceu.utils.*;
+import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
+import com.gregtechceu.gtceu.utils.ResearchManager;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.jei.IngredientIO;
@@ -30,12 +31,15 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.common.crafting.IntersectionIngredient;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import it.unimi.dsi.fastutil.objects.*;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
@@ -73,7 +77,7 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
                 .collect(Collectors.toList());
 
         if (io == IO.OUT && recipe.recipeType.isScanner()) {
-            List<Object> scannerPossibilities = new ArrayList<>();
+            List<Object> scannerPossibilities = new ObjectArrayList<>();
             // Scanner Output replacing, used for cycling research outputs
             ResearchManager.ResearchItem researchData = null;
             for (Content stack : recipe.getOutputContents(this)) {
@@ -158,7 +162,7 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
                                 .filter(ResearchCondition.class::isInstance).findAny()
                                 .map(ResearchCondition.class::cast).orElse(null);
                         if (condition != null) {
-                            List<ItemStack> dataItems = new ArrayList<>();
+                            List<ItemStack> dataItems = new ObjectArrayList<>();
                             for (ResearchData.ResearchEntry entry : condition.data) {
                                 ItemStack dataStick = entry.getDataItem().copy();
                                 ResearchManager.writeResearchToNBT(dataStick.getOrCreateTag(), entry.getResearchId(),

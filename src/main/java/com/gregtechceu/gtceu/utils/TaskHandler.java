@@ -48,7 +48,7 @@ public class TaskHandler {
 
     private static void execute(List<RunnableEntry> tasks) {
         if (tasks == null || tasks.isEmpty()) return;
-        var iter = tasks.iterator();
+        var iter = tasks.listIterator(0);
         while (iter.hasNext()) {
             var task = iter.next();
             if (task.delay <= 0) {

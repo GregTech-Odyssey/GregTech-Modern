@@ -18,15 +18,15 @@ import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class ShapelessRecipeBuilder {
 
-    private List<Ingredient> ingredients = new ArrayList<>();
+    private List<Ingredient> ingredients = new ObjectArrayList<>();
     protected String group;
     private ItemStack output = ItemStack.EMPTY;
     private float experience;

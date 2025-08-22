@@ -13,10 +13,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -31,7 +31,7 @@ public record AntidoteBehavior(Set<MedicalCondition> types, int removePercent)
         implements IInteractionItem, IAddInformation {
 
     public AntidoteBehavior(int timeToRemove, MedicalCondition... types) {
-        this(new HashSet<>(), timeToRemove);
+        this(new ReferenceOpenHashSet<>(), timeToRemove);
         this.types.addAll(Arrays.asList(types));
     }
 

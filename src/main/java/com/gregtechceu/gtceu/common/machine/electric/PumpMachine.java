@@ -46,12 +46,7 @@ import net.minecraftforge.fluids.capability.wrappers.BucketPickupHandlerWrapper;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -135,7 +130,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
      * the vector first.
      */
     private List<Direction> biasedInVecDirections(RandomSource randomSource, Vec3i vec, boolean goUp) {
-        List<Direction> searchList = new ArrayList<>();
+        List<Direction> searchList = new ObjectArrayList<>();
         if (goUp) {
             searchList.add(Direction.UP);
         }
@@ -259,7 +254,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
         checked.add(headPos);
         checked.add(headPosBelow);
         int maxPumpRange = getMaxPumpRadius(getTier());
-        List<BlockPos> pathStack = new ArrayList<>();
+        List<BlockPos> pathStack = new ObjectArrayList<>();
         Deque<BlockPos> nonSources = new ArrayDeque<>();
         Deque<BlockPos> pathToLastSource = new ArrayDeque<>();
         Deque<BlockPos> sourceStack = new ArrayDeque<>();
@@ -268,7 +263,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
         int iterations = 0;
         int previousSources = 0;
         Queue<Deque<BlockPos>> paths = new ArrayDeque<>();
-        List<BlockPos> sources = new ArrayList<>();
+        List<BlockPos> sources = new ObjectArrayList<>();
         // We do at most 1000 iterations to try and find source blocks
         while (!pathStack.isEmpty() && iterations < 1000) {
             // Peeks at the tail

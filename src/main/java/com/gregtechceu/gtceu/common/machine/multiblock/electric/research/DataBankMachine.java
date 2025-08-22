@@ -8,7 +8,8 @@ import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.level.block.Block;
 
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -17,9 +18,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class DataBankMachine extends DataMachine {
 
-    public final List<IDataAccessHatch> dataAccesses = new ArrayList<>();
-    public final List<IDataAccessHatch> receptions = new ArrayList<>();
-    public final List<IDataAccessHatch> transmissions = new ArrayList<>();
+    public final List<IDataAccessHatch> dataAccesses = new ObjectArrayList<>();
+    public final List<IDataAccessHatch> receptions = new ObjectArrayList<>();
+    public final List<IDataAccessHatch> transmissions = new ObjectArrayList<>();
 
     public DataBankMachine(MetaMachineBlockEntity holder) {
         super(holder);

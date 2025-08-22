@@ -13,10 +13,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -57,7 +57,7 @@ public class LongDistancePipeBlock extends Block implements ILDNetworkPart {
     }
 
     public List<LongDistanceNetwork> findNetworks(ServerLevel level, BlockPos pos) {
-        List<LongDistanceNetwork> networks = new ArrayList<>();
+        List<LongDistanceNetwork> networks = new ObjectArrayList<>();
         BlockPos.MutableBlockPos offsetPos = new BlockPos.MutableBlockPos();
         for (Direction facing : GTUtil.DIRECTIONS) {
             offsetPos.set(pos).move(facing);

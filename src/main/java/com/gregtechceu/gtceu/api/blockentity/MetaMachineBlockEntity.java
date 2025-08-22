@@ -41,10 +41,13 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHighlight, IAsyncAutoSyncBlockEntity, IRPCBlockEntity, IAutoPersistBlockEntity, IPaintable {
 
@@ -187,7 +190,7 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
 
     public static <T> List<T> getCapabilitiesFromTraits(List<MachineTrait> traits, Direction accessSide, Class<T> capability) {
         if (traits.isEmpty()) return Collections.emptyList();
-        List<T> list = new ArrayList<>();
+        List<T> list = new ObjectArrayList<>();
         for (MachineTrait trait : traits) {
             if (trait.hasCapability(accessSide) && capability.isInstance(trait)) {
                 list.add(capability.cast(trait));

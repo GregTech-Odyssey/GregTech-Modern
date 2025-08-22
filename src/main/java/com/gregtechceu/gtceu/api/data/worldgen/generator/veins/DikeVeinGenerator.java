@@ -33,8 +33,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class DikeVeinGenerator extends VeinGenerator {
@@ -50,7 +50,7 @@ public class DikeVeinGenerator extends VeinGenerator {
 
     @Override
     public List<VeinEntry> getAllEntries() {
-        List<VeinEntry> entries = new ArrayList<>(this.blocks.size());
+        List<VeinEntry> entries = new ObjectArrayList<>(this.blocks.size());
         for (var def : this.blocks) {
             VeinGenerator.mapTarget(def.block, def.weight).forEach(entries::add);
         }
@@ -123,7 +123,7 @@ public class DikeVeinGenerator extends VeinGenerator {
 
     @Override
     public VeinGenerator copy() {
-        return new DikeVeinGenerator(new ArrayList<>(blocks), minYLevel, maxYLevel);
+        return new DikeVeinGenerator(new ObjectArrayList<>(blocks), minYLevel, maxYLevel);
     }
 
     @Override
@@ -141,7 +141,7 @@ public class DikeVeinGenerator extends VeinGenerator {
     }
 
     public DikeVeinGenerator withBlock(DikeBlockDefinition block) {
-        if (this.blocks == null) this.blocks = new ArrayList<>();
+        if (this.blocks == null) this.blocks = new ObjectArrayList<>();
         this.blocks.add(block);
         return this;
     }

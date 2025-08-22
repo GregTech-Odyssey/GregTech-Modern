@@ -65,9 +65,9 @@ import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.BiConsumer;
@@ -92,7 +92,6 @@ public class GTMachineUtils {
     public static final int[] LOW_TIERS = GTValues.tiersBetween(LV, EV);
     public static final int[] HIGH_TIERS = GTValues.tiersBetween(IV, GTCEuAPI.isHighTier() ? OpV : UHV);
     public static final int[] MULTI_HATCH_TIERS = GTValues.tiersBetween(EV, GTCEuAPI.isHighTier() ? MAX : UHV);
-    public static final int[] DUAL_HATCH_TIERS = GTValues.tiersBetween(LuV, GTCEuAPI.isHighTier() ? MAX : UHV);
 
     public static final Int2IntFunction defaultTankSizeFunction = tier -> (tier <= GTValues.LV ? 8 :
             tier == GTValues.MV ? 12 : tier == GTValues.HV ? 16 : tier == GTValues.EV ? 32 : 64) *
@@ -107,14 +106,6 @@ public class GTMachineUtils {
             16) * FluidType.BUCKET_VOLUME;
 
     public static Object2IntMap<MachineDefinition> DRUM_CAPACITY = new Object2IntArrayMap<>();
-
-    public static final PartAbility[] DUAL_INPUT_HATCH_ABILITIES = new PartAbility[] {
-            PartAbility.IMPORT_ITEMS, PartAbility.IMPORT_FLUIDS,
-    };
-
-    public static final PartAbility[] DUAL_OUTPUT_HATCH_ABILITIES = new PartAbility[] {
-            PartAbility.EXPORT_ITEMS, PartAbility.EXPORT_FLUIDS,
-    };
 
     public static MachineDefinition[] registerSimpleMachines(String name, GTRecipeType recipeType,
                                                              Int2IntFunction tankScalingFunction,
@@ -359,7 +350,7 @@ public class GTMachineUtils {
                         .abilities(ability)
                         .overlayTieredHullRenderer("laser_hatch." + name)
                         .register(),
-                HIGH_TIERS);
+                tiersBetween(IV, MAX));
     }
 
     public static MachineDefinition registerCrate(Material material, int capacity, String lang) {
@@ -703,7 +694,7 @@ public class GTMachineUtils {
 
     public static Component[] workableTiered(int tier, long voltage, long energyCapacity, GTRecipeType recipeType,
                                              long tankCapacity, boolean input) {
-        List<Component> tooltipComponents = new ArrayList<>();
+        List<Component> tooltipComponents = new ObjectArrayList<>();
         tooltipComponents
                 .add(input ?
                         Component.translatable("gtceu.universal.tooltip.voltage_in",

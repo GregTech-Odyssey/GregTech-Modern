@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
@@ -23,7 +24,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -139,7 +139,7 @@ public class ClientCacheManager {
     }
 
     public static List<ProspectionInfo> getProspectionShareData() {
-        List<ProspectionInfo> result = new ArrayList<>();
+        List<ProspectionInfo> result = new ObjectArrayList<>();
         for (IClientCache cache : caches.keySet()) {
             ClientCacheInfo cacheInfo = caches.get(cache);
             for (String dimPrefix : cacheInfo.dimFilePrefixes) {

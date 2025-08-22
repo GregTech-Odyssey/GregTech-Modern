@@ -41,10 +41,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import it.unimi.dsi.fastutil.longs.Long2BooleanMap;
 import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 
 import static com.gregtechceu.gtceu.api.pattern.util.RelativeDirection.*;
 
@@ -139,7 +141,7 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine {
         }
 
         StringBuilder[] floorLayer = new StringBuilder[fDist + bDist + 1];
-        List<StringBuilder[]> wallLayers = new ArrayList<>();
+        List<StringBuilder[]> wallLayers = new ObjectArrayList<>();
         StringBuilder[] ceilingLayer = new StringBuilder[fDist + bDist + 1];
 
         for (int i = 0; i < floorLayer.length; i++) {

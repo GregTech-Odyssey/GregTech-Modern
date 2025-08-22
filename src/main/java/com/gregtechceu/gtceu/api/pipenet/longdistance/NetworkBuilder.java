@@ -17,7 +17,9 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * This bad boy is responsible for building the network
@@ -31,8 +33,8 @@ public class NetworkBuilder extends Thread {
     private final ServerLevel world;
     private final ObjectList<BlockPos> currentPoints = new ObjectArrayList<>();
     private final ObjectOpenHashSet<BlockPos> walked = new ObjectOpenHashSet<>();
-    private final List<BlockPos> pipes = new ArrayList<>();
-    private final List<ILDEndpoint> endpoints = new ArrayList<>();
+    private final List<BlockPos> pipes = new ObjectArrayList<>();
+    private final List<ILDEndpoint> endpoints = new ObjectArrayList<>();
     private final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
     private final LongOpenHashSet loadedChunks = new LongOpenHashSet();
 

@@ -16,7 +16,8 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import java.util.List;
 
 public class MachineModeFancyConfigurator implements IFancyUIProvider {
@@ -58,7 +59,7 @@ public class MachineModeFancyConfigurator implements IFancyUIProvider {
 
     @Override
     public List<Component> getTabTooltips() {
-        List<Component> tooltip = new ArrayList<>();
+        List<Component> tooltip = new ObjectArrayList<>();
         tooltip.add(Component.literal("Change active Machine Mode"));
         return tooltip;
     }
