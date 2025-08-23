@@ -22,8 +22,8 @@ import com.lowdragmc.lowdraglib.networking.s2c.SPacketManagedPayload;
 import com.lowdragmc.lowdraglib.syncdata.blockentity.IAsyncAutoSyncBlockEntity;
 import com.lowdragmc.lowdraglib.syncdata.blockentity.IAutoPersistBlockEntity;
 import com.lowdragmc.lowdraglib.syncdata.blockentity.IRPCBlockEntity;
+import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
 import com.lowdragmc.lowdraglib.syncdata.managed.IRef;
-import com.lowdragmc.lowdraglib.syncdata.managed.MultiManagedStorage;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -51,7 +51,6 @@ import java.util.Set;
 
 public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHighlight, IAsyncAutoSyncBlockEntity, IRPCBlockEntity, IAutoPersistBlockEntity, IPaintable {
 
-    public final MultiManagedStorage managedStorage = new MultiManagedStorage();
     public final MetaMachine metaMachine;
     public final MachineDefinition definition;
     protected final long offset = GTValues.RNG.nextInt(20);
@@ -69,8 +68,8 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
     }
 
     @Override
-    public MultiManagedStorage getRootStorage() {
-        return managedStorage;
+    public FieldManagedStorage getRootStorage() {
+        return metaMachine.getSyncStorage();
     }
 
     @Override
@@ -228,7 +227,7 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
                 for (IRef field : getNonLazyFields()) {
                     field.update();
                 }
-                if (managedStorage.hasDirtySyncFields() && !asyncSyncing) {
+                if (metaMachine.getSyncStorage().hasDirtySyncFields() && !asyncSyncing) {
                     asyncSyncing = true;
                     Platform.getMinecraftServer().execute(() -> {
                         if (Platform.isServerNotSafe()) return;

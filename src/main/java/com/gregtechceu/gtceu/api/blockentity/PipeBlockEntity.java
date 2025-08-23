@@ -533,7 +533,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
                 for (IRef field : getNonLazyFields()) {
                     field.update();
                 }
-                if (getRootStorage().hasDirtySyncFields() && !asyncSyncing) {
+                if (syncStorage.hasDirtySyncFields() && !asyncSyncing) {
                     asyncSyncing = true;
                     Platform.getMinecraftServer().execute(() -> {
                         if (Platform.isServerNotSafe()) return;

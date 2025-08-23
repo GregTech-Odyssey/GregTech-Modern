@@ -24,6 +24,7 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
 
     @NotNull
     protected Runnable onContentsChanged = GTUtil.NOOP;
+    protected boolean freezeChanged = false;
     protected Predicate<ItemStack> filter = GTUtil.FAVORABLE;
 
     public ItemStack[] stacks;
@@ -212,7 +213,13 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
 
     @Override
     public void setOnContentsChanged(@NotNull final Runnable onContentsChanged) {
+        if (freezeChanged) return;
         this.onContentsChanged = onContentsChanged;
+    }
+
+    public void setOnContentsChangedAndfreeze(@NotNull final Runnable onContentsChanged) {
+        this.onContentsChanged = onContentsChanged;
+        freezeChanged = true;
     }
 
     public Predicate<ItemStack> getFilter() {

@@ -31,7 +31,6 @@ public class RecipeHandlerList {
     private boolean isDistinct;
 
     public final IntIngredientMap intIngredientMap = new IntIngredientMap();
-    public boolean change = true;
 
     public final MultiblockPartMachine part;
 

@@ -17,6 +17,7 @@ public class CustomFluidTank extends FluidTank implements IFluidHandlerModifiabl
 
     @NotNull
     protected Runnable onContentsChanged = GTUtil.NOOP;
+    protected boolean freezeChanged = false;
 
     public CustomFluidTank(int capacity) {
         super(capacity, GTUtil.FAVORABLE);
@@ -65,6 +66,12 @@ public class CustomFluidTank extends FluidTank implements IFluidHandlerModifiabl
 
     @Override
     public void setOnContentsChanged(@NotNull final Runnable onContentsChanged) {
+        if (freezeChanged) return;
         this.onContentsChanged = onContentsChanged;
+    }
+
+    public void setOnContentsChangedAndfreeze(@NotNull final Runnable onContentsChanged) {
+        this.onContentsChanged = onContentsChanged;
+        freezeChanged = true;
     }
 }

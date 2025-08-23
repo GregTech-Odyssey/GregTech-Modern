@@ -59,6 +59,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Nullable
     protected LongSet activeBlocks;
     protected RecipeHandlerList currentHandlerList;
+    protected boolean contentChange = true;
 
     public WorkableMultiblockMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder);
@@ -289,6 +290,16 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     }
 
     @Override
+    public boolean isChange() {
+        return contentChange;
+    }
+
+    @Override
+    public void setChange(boolean cache) {
+        this.contentChange = cache;
+    }
+
+    @Override
     public @Nullable RecipeHandlerList getCurrentHandlerList() {
         return currentHandlerList;
     }
@@ -298,11 +309,11 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         this.currentHandlerList = list;
     }
 
-    public Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {
+    public @NotNull Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {
         return this.capabilitiesProxy;
     }
 
-    public Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> getCapabilitiesFlat() {
+    public @NotNull Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> getCapabilitiesFlat() {
         return this.capabilitiesFlat;
     }
 

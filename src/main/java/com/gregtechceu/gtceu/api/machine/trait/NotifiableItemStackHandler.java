@@ -50,7 +50,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
         this.handlerIO = handlerIO;
         this.storage = storageFactory.apply(slots);
         this.capabilityIO = capabilityIO;
-        this.storage.setOnContentsChanged(this::onContentsChanged);
+        this.storage.setOnContentsChangedAndfreeze(this::onContentsChanged);
     }
 
     public NotifiableItemStackHandler(MetaMachine machine, int slots, @NotNull IO handlerIO, @NotNull IO capabilityIO) {
@@ -69,6 +69,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     public void onContentsChanged() {
         isEmpty = null;
         changed = true;
+        machine.onChanged();
         notifyListeners();
     }
 

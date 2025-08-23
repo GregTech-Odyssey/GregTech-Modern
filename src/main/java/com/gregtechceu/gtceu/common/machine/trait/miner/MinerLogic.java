@@ -630,19 +630,11 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
         return this.isInventoryFull;
     }
 
-    @Override
-    public @Nullable RecipeHandlerList getCurrentHandlerList() {
-        return null;
-    }
-
-    @Override
-    public void setCurrentHandlerList(RecipeHandlerList list, GTRecipe recipe) {}
-
-    public Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {
+    public @NotNull Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {
         return this.capabilitiesProxy;
     }
 
-    public Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> getCapabilitiesFlat() {
+    public @NotNull Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> getCapabilitiesFlat() {
         return this.capabilitiesFlat;
     }
 

@@ -51,7 +51,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
         this.capabilityIO = capabilityIO;
         for (int i = 0; i < this.storages.length; i++) {
             this.storages[i] = new CustomFluidTank(capacity);
-            this.storages[i].setOnContentsChanged(this::onContentsChanged);
+            this.storages[i].setOnContentsChangedAndfreeze(this::onContentsChanged);
         }
     }
 
@@ -64,7 +64,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
             this.allowSameFluids = true;
         }
         for (CustomFluidTank storage : this.storages) {
-            storage.setOnContentsChanged(this::onContentsChanged);
+            storage.setOnContentsChangedAndfreeze(this::onContentsChanged);
         }
     }
 
@@ -79,6 +79,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     public void onContentsChanged() {
         isEmpty = null;
         changed = true;
+        machine.onChanged();
         notifyListeners();
     }
 

@@ -151,10 +151,6 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         this.definition = holder.definition;
         this.holder = holder;
         this.coverContainer = new MachineCoverContainer(this);
-        // bind sync storage
-        if (holder.getRootStorage() != null) {
-            this.holder.getRootStorage().attach(getSyncStorage());
-        }
     }
 
     //////////////////////////////////////

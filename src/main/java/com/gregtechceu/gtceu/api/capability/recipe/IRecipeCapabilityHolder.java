@@ -18,10 +18,18 @@ public interface IRecipeCapabilityHolder {
         return !getCapabilitiesProxy().isEmpty();
     }
 
-    @Nullable
-    RecipeHandlerList getCurrentHandlerList();
+    default boolean isChange() {
+        return true;
+    }
 
-    void setCurrentHandlerList(RecipeHandlerList list, GTRecipe recipe);
+    default void setChange(boolean cache) {}
+
+    @Nullable
+    default RecipeHandlerList getCurrentHandlerList() {
+        return null;
+    }
+
+    default void setCurrentHandlerList(RecipeHandlerList list, GTRecipe recipe) {}
 
     @NotNull
     Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy();

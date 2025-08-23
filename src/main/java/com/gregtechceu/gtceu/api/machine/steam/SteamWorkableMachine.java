@@ -14,7 +14,6 @@ import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -204,19 +203,11 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
         this.isMuffled = isMuffled;
     }
 
-    @Override
-    public @Nullable RecipeHandlerList getCurrentHandlerList() {
-        return null;
-    }
-
-    @Override
-    public void setCurrentHandlerList(RecipeHandlerList list, GTRecipe recipe) {}
-
-    public Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {
+    public @NotNull Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {
         return this.capabilitiesProxy;
     }
 
-    public Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> getCapabilitiesFlat() {
+    public @NotNull Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> getCapabilitiesFlat() {
         return this.capabilitiesFlat;
     }
 }
