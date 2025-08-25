@@ -12,14 +12,12 @@ import com.gregtechceu.gtceu.data.recipe.generated.*;
 import com.gregtechceu.gtceu.data.recipe.misc.*;
 import com.gregtechceu.gtceu.data.recipe.serialized.chemistry.ChemistryRecipes;
 
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.ComposterBlock;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 import java.util.Set;
-import java.util.function.Consumer;
 
 public class GTRecipes {
 
@@ -34,13 +32,7 @@ public class GTRecipes {
      * This should also be used for recipes that need
      * to respond to a config option in ConfigHolder.
      */
-    public static void recipeAddition(Consumer<FinishedRecipe> originalConsumer) {
-        Consumer<FinishedRecipe> consumer = recipe -> {
-            if (!RECIPE_FILTERS.contains(recipe.getId())) {
-                originalConsumer.accept(recipe);
-            }
-        };
-
+    public static void recipeAddition() {
         ComposterRecipes.addComposterRecipes(ComposterBlock.COMPOSTABLES::put);
 
         // Decomposition info loading
@@ -53,47 +45,45 @@ public class GTRecipes {
                 continue;
             }
 
-            DecompositionRecipeHandler.run(consumer, material);
-            MaterialRecipeHandler.run(consumer, material);
-            OreRecipeHandler.run(consumer, material);
-            PartsRecipeHandler.run(consumer, material);
-            PipeRecipeHandler.run(consumer, material);
-            PolarizingRecipeHandler.run(consumer, material);
-            RecyclingRecipeHandler.run(consumer, material);
-            ToolRecipeHandler.run(consumer, material);
-            WireCombiningHandler.run(consumer, material);
-            WireRecipeHandler.run(consumer, material);
+            DecompositionRecipeHandler.run(material);
+            MaterialRecipeHandler.run(material);
+            OreRecipeHandler.run(material);
+            PartsRecipeHandler.run(material);
+            PipeRecipeHandler.run(material);
+            PolarizingRecipeHandler.run(material);
+            RecyclingRecipeHandler.run(material);
+            ToolRecipeHandler.run(material);
+            WireCombiningHandler.run(material);
+            WireRecipeHandler.run(material);
         }
 
-        CustomToolRecipes.init(consumer);
-        AirScrubberRecipes.init(consumer);
-        ChemistryRecipes.init(consumer);
-        MetaTileEntityMachineRecipeLoader.init(consumer);
-        MiscRecipeLoader.init(consumer);
-        VanillaStandardRecipes.init(consumer);
-        WoodMachineRecipes.init(consumer);
-        StoneMachineRecipes.init(consumer);
-        CraftingRecipeLoader.init(consumer);
-        FuelRecipes.init(consumer);
-        FusionLoader.init(consumer);
-        MachineRecipeLoader.init(consumer);
-        AssemblerRecipeLoader.init(consumer);
-        AssemblyLineLoader.init(consumer);
-        BatteryRecipes.init(consumer);
-        DecorationRecipes.init(consumer);
+        CustomToolRecipes.init();
+        AirScrubberRecipes.init();
+        ChemistryRecipes.init();
+        MetaTileEntityMachineRecipeLoader.init();
+        MiscRecipeLoader.init();
+        VanillaStandardRecipes.init();
+        WoodMachineRecipes.init();
+        StoneMachineRecipes.init();
+        CraftingRecipeLoader.init();
+        FuelRecipes.init();
+        FusionLoader.init();
+        MachineRecipeLoader.init();
+        AssemblerRecipeLoader.init();
+        AssemblyLineLoader.init();
+        BatteryRecipes.init();
+        DecorationRecipes.init();
 
-        CircuitRecipes.init(consumer);
-        ComponentRecipes.init(consumer);
-        MetaTileEntityLoader.init(consumer);
+        CircuitRecipes.init();
+        ComponentRecipes.init();
+        MetaTileEntityLoader.init();
 
         // Config-dependent recipes
-        RecipeAddition.init(consumer);
-
-        AddonFinder.getAddons().forEach(addon -> addon.addRecipes(consumer));
+        RecipeAddition.init();
 
         // Must run recycling recipes very last
-        RecyclingRecipes.init(consumer);
-        ItemMaterialData.resolveItemMaterialInfos(consumer);
+        RecyclingRecipes.init();
+        ItemMaterialData.resolveItemMaterialInfos();
     }
 
     /*

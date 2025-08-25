@@ -3,10 +3,6 @@ package com.gregtechceu.gtceu.data.recipe.misc;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 
-import net.minecraft.data.recipes.FinishedRecipe;
-
-import java.util.function.Consumer;
-
 import static com.gregtechceu.gtceu.api.GTValues.*;
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.plateDouble;
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.wireGtSingle;
@@ -19,7 +15,7 @@ import static com.gregtechceu.gtceu.common.data.machines.GTMultiMachines.FUSION_
 
 public class AssemblyLineLoader {
 
-    public static void init(Consumer<FinishedRecipe> provider) {
+    public static void init() {
         ASSEMBLY_LINE_RECIPES.recipeBuilder("fusion_reactor_mk1")
                 .inputItems(SUPERCONDUCTING_COIL.asStack())
                 .inputItems(CustomTags.ZPM_CIRCUITS, 4)
@@ -35,7 +31,7 @@ public class AssemblyLineLoader {
                         .researchStack(ChemicalHelper.get(wireGtSingle, IndiumTinBariumTitaniumCuprate))
                         .duration(1200)
                         .EUt(VA[IV]))
-                .duration(800).EUt(VA[LuV]).save(provider);
+                .duration(800).EUt(VA[LuV]).save();
 
         ASSEMBLY_LINE_RECIPES.recipeBuilder("fusion_reactor_mk2")
                 .inputItems(FUSION_COIL.asStack())
@@ -53,7 +49,7 @@ public class AssemblyLineLoader {
                         .researchStack(FUSION_REACTOR[LuV].asStack())
                         .CWUt(16)
                         .EUt(VA[ZPM]))
-                .duration(1000).EUt(61440).save(provider);
+                .duration(1000).EUt(61440).save();
 
         ASSEMBLY_LINE_RECIPES.recipeBuilder("fusion_reactor_mk3")
                 .inputItems(FUSION_COIL.asStack())
@@ -71,6 +67,6 @@ public class AssemblyLineLoader {
                         .researchStack(FUSION_REACTOR[ZPM].asStack())
                         .CWUt(96)
                         .EUt(VA[UV]))
-                .duration(1000).EUt(VA[ZPM]).save(provider);
+                .duration(1000).EUt(VA[ZPM]).save();
     }
 }

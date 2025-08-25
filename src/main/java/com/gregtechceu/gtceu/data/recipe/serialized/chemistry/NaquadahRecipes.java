@@ -1,9 +1,5 @@
 package com.gregtechceu.gtceu.data.recipe.serialized.chemistry;
 
-import net.minecraft.data.recipes.FinishedRecipe;
-
-import java.util.function.Consumer;
-
 import static com.gregtechceu.gtceu.api.GTValues.*;
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.dust;
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.ingotHot;
@@ -25,28 +21,28 @@ public class NaquadahRecipes {
     // |> 0.25 Gallium
     // |> 0.25 Barium
 
-    public static void init(Consumer<FinishedRecipe> provider) {
+    public static void init() {
         // FLUOROANTIMONIC ACID
 
         CHEMICAL_RECIPES.recipeBuilder("antimony_trioxide").EUt(VA[ULV]).duration(60)
                 .inputItems(dust, Antimony, 2)
                 .inputFluids(Oxygen.getFluid(3000))
                 .outputItems(dust, AntimonyTrioxide, 5)
-                .save(provider);
+                .save();
 
         CHEMICAL_RECIPES.recipeBuilder("antimony_trifluoride").EUt(VA[LV]).duration(60)
                 .inputItems(dust, AntimonyTrioxide, 5)
                 .inputFluids(HydrofluoricAcid.getFluid(6000))
                 .outputItems(dust, AntimonyTrifluoride, 8)
                 .outputFluids(Water.getFluid(3000))
-                .save(provider);
+                .save();
 
         CHEMICAL_RECIPES.recipeBuilder("fluoroantimonic_acid").EUt(VA[HV]).duration(300)
                 .inputItems(dust, AntimonyTrifluoride, 4)
                 .inputFluids(HydrofluoricAcid.getFluid(4000))
                 .outputFluids(FluoroantimonicAcid.getFluid(1000))
                 .outputFluids(Hydrogen.getFluid(2000))
-                .save(provider);
+                .save();
 
         // STARTING POINT
 
@@ -56,7 +52,7 @@ public class NaquadahRecipes {
                 .outputFluids(ImpureEnrichedNaquadahSolution.getFluid(2000))
                 .outputFluids(ImpureNaquadriaSolution.getFluid(2000))
                 .outputItems(dust, TitaniumTrifluoride, 4)
-                .save(provider);
+                .save();
 
         // ENRICHED NAQUADAH PROCESS
 
@@ -65,20 +61,20 @@ public class NaquadahRecipes {
                 .outputItems(dust, TriniumSulfide)
                 .outputItems(dust, AntimonyTrifluoride, 2)
                 .outputFluids(EnrichedNaquadahSolution.getFluid(1000))
-                .save(provider);
+                .save();
 
         MIXER_RECIPES.recipeBuilder("enriched_naquadah_solution_separation").EUt(VA[HV]).duration(100)
                 .inputFluids(EnrichedNaquadahSolution.getFluid(1000))
                 .inputFluids(SulfuricAcid.getFluid(2000))
                 .outputFluids(AcidicEnrichedNaquadahSolution.getFluid(3000))
-                .save(provider);
+                .save();
 
         CENTRIFUGE_RECIPES.recipeBuilder("acidic_enriched_naquadah_separation").EUt(VA[HV]).duration(100)
                 .inputFluids(AcidicEnrichedNaquadahSolution.getFluid(3000))
                 .outputFluids(EnrichedNaquadahWaste.getFluid(2000))
                 .outputFluids(Fluorine.getFluid(500))
                 .outputItems(dust, EnrichedNaquadahSulfate, 6) // Nq+SO4
-                .save(provider);
+                .save();
 
         BLAST_RECIPES.recipeBuilder("enriched_naquadah_sulfate_separation").EUt(VA[IV]).duration(500)
                 .blastFurnaceTemp(7000)
@@ -86,7 +82,7 @@ public class NaquadahRecipes {
                 .inputFluids(Hydrogen.getFluid(2000))
                 .outputItems(ingotHot, NaquadahEnriched)
                 .outputFluids(SulfuricAcid.getFluid(1000))
-                .save(provider);
+                .save();
 
         DISTILLATION_RECIPES.recipeBuilder("enriched_naquadah_waste_separation").EUt(VA[HV]).duration(300)
                 .inputFluids(EnrichedNaquadahWaste.getFluid(2000))
@@ -94,7 +90,7 @@ public class NaquadahRecipes {
                 .outputFluids(SulfuricAcid.getFluid(500))
                 .outputFluids(EnrichedNaquadahSolution.getFluid(250))
                 .outputFluids(NaquadriaSolution.getFluid(100))
-                .save(provider);
+                .save();
 
         // NAQUADRIA PROCESS
 
@@ -103,27 +99,27 @@ public class NaquadahRecipes {
                 .outputItems(dust, IndiumPhosphide)
                 .outputItems(dust, AntimonyTrifluoride, 2)
                 .outputFluids(NaquadriaSolution.getFluid(1000))
-                .save(provider);
+                .save();
 
         MIXER_RECIPES.recipeBuilder("naquadria_solution_separation").EUt(VA[HV]).duration(100)
                 .inputFluids(NaquadriaSolution.getFluid(1000))
                 .inputFluids(SulfuricAcid.getFluid(2000))
                 .outputFluids(AcidicNaquadriaSolution.getFluid(3000))
-                .save(provider);
+                .save();
 
         CENTRIFUGE_RECIPES.recipeBuilder("acidic_naquadria_solution_separation").EUt(VA[HV]).duration(100)
                 .inputFluids(AcidicNaquadriaSolution.getFluid(3000))
                 .outputFluids(NaquadriaWaste.getFluid(2000))
                 .outputFluids(Fluorine.getFluid(500))
                 .outputItems(dust, NaquadriaSulfate, 6)
-                .save(provider);
+                .save();
 
         BLAST_RECIPES.recipeBuilder("naquadria_sulfate_separation").EUt(VA[ZPM]).duration(600).blastFurnaceTemp(9000)
                 .inputItems(dust, NaquadriaSulfate, 6)
                 .inputFluids(Hydrogen.getFluid(2000))
                 .outputItems(ingotHot, Naquadria)
                 .outputFluids(SulfuricAcid.getFluid(1000))
-                .save(provider);
+                .save();
 
         DISTILLATION_RECIPES.recipeBuilder("naquadria_waste_separation").EUt(VA[HV]).duration(300)
                 .inputFluids(NaquadriaWaste.getFluid(2000))
@@ -131,7 +127,7 @@ public class NaquadahRecipes {
                 .outputFluids(SulfuricAcid.getFluid(500))
                 .outputFluids(NaquadriaSolution.getFluid(250))
                 .outputFluids(EnrichedNaquadahSolution.getFluid(100))
-                .save(provider);
+                .save();
 
         // TRINIUM
 
@@ -141,7 +137,7 @@ public class NaquadahRecipes {
                 .inputItems(dust, Zinc)
                 .outputItems(ingotHot, Trinium)
                 .outputItems(dust, ZincSulfide, 2)
-                .save(provider);
+                .save();
 
         // BYPRODUCT PROCESSING
 
@@ -151,7 +147,7 @@ public class NaquadahRecipes {
                 .inputFluids(Hydrogen.getFluid(3000))
                 .outputItems(ingotHot, Titanium)
                 .outputFluids(HydrofluoricAcid.getFluid(3000))
-                .save(provider);
+                .save();
 
         // Indium Phosphide
         CHEMICAL_RECIPES.recipeBuilder("indium_phosphide_separation").duration(30).EUt(VA[ULV])
@@ -159,6 +155,6 @@ public class NaquadahRecipes {
                 .inputItems(dust, Calcium)
                 .outputItems(dust, Indium)
                 .outputItems(dust, CalciumPhosphide, 2)
-                .save(provider);
+                .save();
     }
 }

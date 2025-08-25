@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.data.recipe.builder;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.data.pack.GTDynamicDataPack;
 
 import com.lowdragmc.lowdraglib.utils.NBTToJsonConverter;
 
@@ -18,8 +19,6 @@ import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
 import com.google.gson.JsonObject;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.function.Consumer;
 
 public class CampfireRecipeBuilder {
 
@@ -99,8 +98,8 @@ public class CampfireRecipeBuilder {
         json.addProperty("cookingtime", cookingTime);
     }
 
-    public void save(Consumer<FinishedRecipe> consumer) {
-        consumer.accept(new FinishedRecipe() {
+    public void save() {
+        GTDynamicDataPack.addRecipe(new FinishedRecipe() {
 
             @Override
             public void serializeRecipeData(JsonObject pJson) {

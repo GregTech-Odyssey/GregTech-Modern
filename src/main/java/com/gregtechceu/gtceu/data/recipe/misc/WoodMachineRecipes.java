@@ -14,7 +14,6 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
 import com.gregtechceu.gtceu.data.recipe.WoodTypeEntry;
 
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
@@ -37,10 +36,10 @@ import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.*;
 
 public class WoodMachineRecipes {
 
-    public static void init(Consumer<FinishedRecipe> provider) {
-        registerGTWoodRecipes(provider);
-        registerWoodRecipes(provider);
-        registerPyrolyseOvenRecipes(provider);
+    public static void init() {
+        registerGTWoodRecipes();
+        registerWoodRecipes();
+        registerPyrolyseOvenRecipes();
     }
 
     private static List<WoodTypeEntry> DEFAULT_ENTRIES;
@@ -318,16 +317,16 @@ public class WoodMachineRecipes {
     /**
      * Standardized processing for wood types
      */
-    private static void registerWoodRecipes(Consumer<FinishedRecipe> provider) {
+    private static void registerWoodRecipes() {
         if (ConfigHolder.INSTANCE.recipes.nerfWoodCrafting) {
-            VanillaRecipeHelper.addShapedRecipe(provider, "stick_saw", new ItemStack(Items.STICK, 4), "s", "P", "P",
+            VanillaRecipeHelper.addShapedRecipe("stick_saw", new ItemStack(Items.STICK, 4), "s", "P", "P",
                     'P', ItemTags.PLANKS);
-            VanillaRecipeHelper.addShapedRecipe(provider, "stick_normal", new ItemStack(Items.STICK, 2), "P", "P", 'P',
+            VanillaRecipeHelper.addShapedRecipe("stick_normal", new ItemStack(Items.STICK, 2), "P", "P", 'P',
                     ItemTags.PLANKS);
         }
 
         for (WoodTypeEntry entry : getDefaultEntries()) {
-            registerWoodTypeRecipe(provider, entry);
+            registerWoodTypeRecipe(entry);
         }
     }
 
@@ -429,7 +428,7 @@ public class WoodMachineRecipes {
      *
      * @param entry the entry to register for
      */
-    public static void registerWoodTypeRecipe(Consumer<FinishedRecipe> provider, @NotNull WoodTypeEntry entry) {
+    public static void registerWoodTypeRecipe(@NotNull WoodTypeEntry entry) {
         final String name = entry.woodName;
         TagKey<Item> logTag = entry.logTag;
         boolean hasPlanksRecipe = entry.planksRecipeName != null;
@@ -446,7 +445,7 @@ public class WoodMachineRecipes {
                     .outputItems(entry.strippedLog)
                     .outputItems(dust, Wood, 1)
                     .duration(160).EUt(VA[ULV])
-                    .save(provider);
+                    .save();
 
             // lathe stripped log
             LATHE_RECIPES.recipeBuilder("lathe_stripped_" + name + "_log")
@@ -454,7 +453,7 @@ public class WoodMachineRecipes {
                     .outputItems(rodLong, Wood, 4)
                     .outputItems(dust, Wood, 1)
                     .duration(160).EUt(VA[ULV])
-                    .save(provider);
+                    .save();
         }
 
         if (entry.strippedWood != null) {
@@ -464,7 +463,7 @@ public class WoodMachineRecipes {
                     .outputItems(entry.strippedWood)
                     .outputItems(dust, Wood, 1)
                     .duration(160).EUt(VA[ULV])
-                    .save(provider);
+                    .save();
 
             // lathe stripped wood
             LATHE_RECIPES.recipeBuilder("lathe_stripped_" + name + "_wood")
@@ -472,21 +471,21 @@ public class WoodMachineRecipes {
                     .outputItems(rodLong, Wood, 4)
                     .outputItems(dust, Wood, 1)
                     .duration(160).EUt(VA[ULV])
-                    .save(provider);
+                    .save();
         }
 
         if (entry.generateLogToPlankRecipe) {
             if (ConfigHolder.INSTANCE.recipes.nerfWoodCrafting) {
-                VanillaRecipeHelper.addShapelessRecipe(provider,
+                VanillaRecipeHelper.addShapelessRecipe(
                         hasPlanksRecipe ? entry.planksRecipeName : name + "_planks",
                         new ItemStack(entry.planks, 2), logTag);
             } else if (!hasPlanksRecipe) {
-                VanillaRecipeHelper.addShapelessRecipe(provider, name + "_planks",
+                VanillaRecipeHelper.addShapelessRecipe(name + "_planks",
                         new ItemStack(entry.planks, 4), logTag);
             }
 
             // log -> plank saw crafting
-            VanillaRecipeHelper.addShapedRecipe(provider, name + "_planks_saw",
+            VanillaRecipeHelper.addShapedRecipe(name + "_planks_saw",
                     new ItemStack(entry.planks, ConfigHolder.INSTANCE.recipes.nerfWoodCrafting ? 4 : 6),
                     "s", "L", 'L', logTag);
 
@@ -497,7 +496,7 @@ public class WoodMachineRecipes {
                     .outputItems(dust, Wood, 2)
                     .duration(200)
                     .EUt(VA[ULV])
-                    .save(provider);
+                    .save();
         }
         ItemMaterialData.registerMaterialInfo(entry.planks,
                 new ItemMaterialInfo(new MaterialStack(GTMaterials.Wood, M)));
@@ -508,7 +507,7 @@ public class WoodMachineRecipes {
             if (ConfigHolder.INSTANCE.recipes.hardWoodRecipes) {
                 String recipeName = hasDoorRecipe ? entry.doorRecipeName : name + "_door";
                 if (entry.trapdoor != null) {
-                    VanillaRecipeHelper.addShapedRecipe(provider, recipeName, new ItemStack(entry.door),
+                    VanillaRecipeHelper.addShapedRecipe(recipeName, new ItemStack(entry.door),
                             "PTd", "PRS", "PPs",
                             'P', entry.planks,
                             'T', entry.trapdoor,
@@ -522,9 +521,9 @@ public class WoodMachineRecipes {
                             .inputFluids(Iron.getFluid(GTValues.L / 9))
                             .outputItems(entry.door)
                             .duration(400).EUt(4)
-                            .addMaterialInfo(true, true).save(provider);
+                            .addMaterialInfo(true, true).save();
                 } else {
-                    VanillaRecipeHelper.addShapedRecipe(provider, recipeName, new ItemStack(entry.door),
+                    VanillaRecipeHelper.addShapedRecipe(recipeName, new ItemStack(entry.door),
                             "PTd", "PRS", "PPs",
                             'P', entry.planks,
                             'T', ItemTags.WOODEN_TRAPDOORS,
@@ -537,11 +536,11 @@ public class WoodMachineRecipes {
                             .inputItems(new ItemStack(entry.planks, 4))
                             .inputFluids(Iron.getFluid(GTValues.L / 9))
                             .outputItems(entry.door)
-                            .duration(400).EUt(4).save(provider);
+                            .duration(400).EUt(4).save();
                 }
             } else {
                 if (!hasDoorRecipe) {
-                    VanillaRecipeHelper.addShapedRecipe(provider, name + "_door", new ItemStack(entry.door, 3),
+                    VanillaRecipeHelper.addShapedRecipe(name + "_door", new ItemStack(entry.door, 3),
                             "PP", "PP", "PP",
                             'P', entry.planks);
                 }
@@ -552,7 +551,7 @@ public class WoodMachineRecipes {
                         .circuitMeta(6)
                         .duration(600).EUt(4)
                         .addMaterialInfo(true)
-                        .save(provider);
+                        .save();
             }
         }
 
@@ -561,7 +560,7 @@ public class WoodMachineRecipes {
             final boolean hasSignRecipe = entry.signRecipeName != null;
             String recipeName = hasSignRecipe ? entry.signRecipeName : name + "_sign";
             if (ConfigHolder.INSTANCE.recipes.hardWoodRecipes) {
-                VanillaRecipeHelper.addShapedRecipe(provider, recipeName + "_iron", new ItemStack(entry.sign),
+                VanillaRecipeHelper.addShapedRecipe(recipeName + "_iron", new ItemStack(entry.sign),
                         "LLL", "RPR", "sSd",
                         'P', entry.planks,
                         'R', new MaterialEntry(screw, Iron),
@@ -575,9 +574,9 @@ public class WoodMachineRecipes {
                         .inputItems(entry.getStick(), 1)
                         .inputFluids(Iron.getFluid(GTValues.L / 9))
                         .outputItems(entry.sign, 3)
-                        .duration(200).EUt(4).save(provider);
+                        .duration(200).EUt(4).save();
 
-                VanillaRecipeHelper.addShapedRecipe(provider, recipeName + "_steel", new ItemStack(entry.sign, 2),
+                VanillaRecipeHelper.addShapedRecipe(recipeName + "_steel", new ItemStack(entry.sign, 2),
                         "LLL", "RPR", "sSd",
                         'P', entry.planks,
                         'R', new MaterialEntry(screw, Steel),
@@ -591,10 +590,10 @@ public class WoodMachineRecipes {
                         .inputItems(entry.getStick(), 1)
                         .inputFluids(Steel.getFluid(GTValues.L / 9))
                         .outputItems(entry.sign, 5)
-                        .duration(200).EUt(4).save(provider);
+                        .duration(200).EUt(4).save();
             } else {
                 if (!hasSignRecipe) {
-                    VanillaRecipeHelper.addShapedRecipe(provider, recipeName + "_stick", new ItemStack(entry.sign, 3),
+                    VanillaRecipeHelper.addShapedRecipe(recipeName + "_stick", new ItemStack(entry.sign, 3),
                             "PPP", "PPP", " S ",
                             'P', entry.planks,
                             'S', entry.getStick());
@@ -605,7 +604,7 @@ public class WoodMachineRecipes {
                         .inputItems(entry.getStick())
                         .outputItems(new ItemStack(entry.sign), 3)
                         .circuitMeta(4)
-                        .duration(100).EUt(4).save(provider);
+                        .duration(100).EUt(4).save();
             }
 
             // hanging sign
@@ -614,14 +613,14 @@ public class WoodMachineRecipes {
                 String recipeNameHanging = hasHangingSignRecipe ? entry.hangingSignRecipeName : name + "_hanging_sign";
 
                 if (ConfigHolder.INSTANCE.recipes.hardWoodRecipes) {
-                    VanillaRecipeHelper.addShapedRecipe(provider, recipeNameHanging, new ItemStack(entry.hangingSign),
+                    VanillaRecipeHelper.addShapedRecipe(recipeNameHanging, new ItemStack(entry.hangingSign),
                             "LLL", "C C", "RSR",
                             'C', Items.CHAIN,
                             'R', new MaterialEntry(ring, Iron),
                             'S', new ItemStack(entry.sign),
                             'L', new ItemStack(entry.slab));
 
-                    VanillaRecipeHelper.addShapedRecipe(provider, recipeNameHanging + "_steel",
+                    VanillaRecipeHelper.addShapedRecipe(recipeNameHanging + "_steel",
                             new ItemStack(entry.hangingSign, 2),
                             "LLL", "C C", "RSR",
                             'C', Items.CHAIN,
@@ -635,10 +634,10 @@ public class WoodMachineRecipes {
                             .inputItems(Items.CHAIN, 2)
                             .outputItems(entry.hangingSign)
                             .circuitMeta(5)
-                            .duration(150).EUt(4).save(provider);
+                            .duration(150).EUt(4).save();
                 } else {
                     if (!hasHangingSignRecipe) {
-                        VanillaRecipeHelper.addShapedRecipe(provider, recipeNameHanging,
+                        VanillaRecipeHelper.addShapedRecipe(recipeNameHanging,
                                 new ItemStack(entry.hangingSign, 6),
                                 "C C", "LLL", "LLL",
                                 'C', Items.CHAIN,
@@ -650,7 +649,7 @@ public class WoodMachineRecipes {
                             .inputItems(new ItemStack(Items.CHAIN, 2))
                             .outputItems(entry.hangingSign, 6)
                             .circuitMeta(5)
-                            .duration(100).EUt(4).save(provider);
+                            .duration(100).EUt(4).save();
                 }
             }
         }
@@ -660,7 +659,7 @@ public class WoodMachineRecipes {
             final boolean hasTrapdoorRecipe = entry.trapdoorRecipeName != null;
             String recipeName = hasTrapdoorRecipe ? entry.trapdoorRecipeName : name + "_trapdoor";
             if (ConfigHolder.INSTANCE.recipes.hardWoodRecipes) {
-                VanillaRecipeHelper.addShapedRecipe(provider, recipeName + "_iron", new ItemStack(entry.trapdoor),
+                VanillaRecipeHelper.addShapedRecipe(recipeName + "_iron", new ItemStack(entry.trapdoor),
                         "BPS", "PdP", "SPB",
                         'P', entry.planks,
                         'B', new MaterialEntry(bolt, Iron),
@@ -672,9 +671,9 @@ public class WoodMachineRecipes {
                         .inputItems(new ItemStack(entry.planks, 2))
                         .inputFluids(Iron.getFluid(GTValues.L / 9))
                         .outputItems(entry.trapdoor)
-                        .duration(200).EUt(4).save(provider);
+                        .duration(200).EUt(4).save();
 
-                VanillaRecipeHelper.addShapedRecipe(provider, recipeName + "_steel", new ItemStack(entry.trapdoor, 2),
+                VanillaRecipeHelper.addShapedRecipe(recipeName + "_steel", new ItemStack(entry.trapdoor, 2),
                         "BPS", "PdP", "SPB",
                         'P', entry.planks,
                         'B', new MaterialEntry(bolt, Steel),
@@ -686,10 +685,10 @@ public class WoodMachineRecipes {
                         .inputItems(new ItemStack(entry.planks, 2))
                         .inputFluids(Steel.getFluid(GTValues.L / 9))
                         .outputItems(entry.trapdoor, 2)
-                        .duration(200).EUt(4).save(provider);
+                        .duration(200).EUt(4).save();
             } else {
                 if (!hasTrapdoorRecipe) {
-                    VanillaRecipeHelper.addShapedRecipe(provider, recipeName, new ItemStack(entry.trapdoor, 2),
+                    VanillaRecipeHelper.addShapedRecipe(recipeName, new ItemStack(entry.trapdoor, 2),
                             "PPP", "PPP",
                             'P', entry.planks);
                 }
@@ -698,7 +697,7 @@ public class WoodMachineRecipes {
                         .circuitMeta(3)
                         .inputItems(new ItemStack(entry.planks), 6)
                         .outputItems(new ItemStack(entry.trapdoor), 4)
-                        .duration(100).EUt(4).save(provider);
+                        .duration(100).EUt(4).save();
             }
         }
 
@@ -706,7 +705,7 @@ public class WoodMachineRecipes {
         if (entry.stairs != null) {
             final boolean hasStairRecipe = entry.stairsRecipeName != null;
             if (entry.addStairsCraftingRecipe) {
-                VanillaRecipeHelper.addShapedRecipe(provider,
+                VanillaRecipeHelper.addShapedRecipe(
                         hasStairRecipe ? entry.stairsRecipeName : name + "_stairs",
                         new ItemStack(entry.stairs, 4),
                         "P  ", "PP ", "PPP",
@@ -719,18 +718,18 @@ public class WoodMachineRecipes {
                     .outputItems(new ItemStack(entry.stairs, 4))
                     .circuitMeta(7)
                     .EUt(4).duration(100)
-                    .addMaterialInfo(true).save(provider);
+                    .addMaterialInfo(true).save();
         }
 
         // slab
         if (entry.slab != null) {
             if (entry.addSlabCraftingRecipe && !ConfigHolder.INSTANCE.recipes.hardWoodRecipes) {
-                VanillaRecipeHelper.addShapedRecipe(provider, name + "_slab", new ItemStack(entry.slab, 6),
+                VanillaRecipeHelper.addShapedRecipe(name + "_slab", new ItemStack(entry.slab, 6),
                         "PPP", 'P', entry.planks);
             }
 
             // plank -> slab crafting
-            VanillaRecipeHelper.addShapedRecipe(provider, name + "_slab_saw", new ItemStack(entry.slab, 2),
+            VanillaRecipeHelper.addShapedRecipe(name + "_slab_saw", new ItemStack(entry.slab, 2),
                     "sS", 'S', entry.planks);
 
             // plank -> slab cutting
@@ -739,7 +738,7 @@ public class WoodMachineRecipes {
                     .outputItems(new ItemStack(entry.slab, 2))
                     .duration(200).EUt(VA[ULV])
                     .addMaterialInfo(true)
-                    .save(provider);
+                    .save();
         }
 
         // fence
@@ -747,14 +746,14 @@ public class WoodMachineRecipes {
             final boolean hasFenceRecipe = entry.fenceRecipeName != null;
             if (ConfigHolder.INSTANCE.recipes.hardWoodRecipes) {
 
-                VanillaRecipeHelper.addShapedRecipe(provider, hasFenceRecipe ? entry.fenceRecipeName : name + "_fence",
+                VanillaRecipeHelper.addShapedRecipe(hasFenceRecipe ? entry.fenceRecipeName : name + "_fence",
                         new ItemStack(entry.fence),
                         "PSP", "PSP", "PSP",
                         'P', entry.planks,
                         'S', entry.getStick());
             } else {
                 if (!hasFenceRecipe) {
-                    VanillaRecipeHelper.addShapedRecipe(provider, name + "_fence", new ItemStack(entry.fence, 3),
+                    VanillaRecipeHelper.addShapedRecipe(name + "_fence", new ItemStack(entry.fence, 3),
                             "PSP", "PSP",
                             'P', entry.planks,
                             'S', entry.getStick());
@@ -768,7 +767,7 @@ public class WoodMachineRecipes {
                     .circuitMeta(13)
                     .duration(100).EUt(4)
                     .addMaterialInfo(true)
-                    .save(provider);
+                    .save();
         }
 
         // fence gate
@@ -776,7 +775,7 @@ public class WoodMachineRecipes {
             final boolean hasFenceGateRecipe = entry.fenceGateRecipeName != null;
             if (ConfigHolder.INSTANCE.recipes.hardWoodRecipes) {
 
-                VanillaRecipeHelper.addShapedRecipe(provider,
+                VanillaRecipeHelper.addShapedRecipe(
                         hasFenceGateRecipe ? entry.fenceGateRecipeName : name + "_fence_gate",
                         new ItemStack(entry.fenceGate),
                         "F F", "SPS", "SPS",
@@ -784,7 +783,7 @@ public class WoodMachineRecipes {
                         'S', entry.getStick(),
                         'F', Items.FLINT);
 
-                VanillaRecipeHelper.addShapedRecipe(provider, name + "_fence_gate_screws",
+                VanillaRecipeHelper.addShapedRecipe(name + "_fence_gate_screws",
                         new ItemStack(entry.fenceGate, 2),
                         "IdI", "SPS", "SPS",
                         'P', entry.planks,
@@ -792,7 +791,7 @@ public class WoodMachineRecipes {
                         'I', new MaterialEntry(screw, Iron));
             } else {
                 if (!hasFenceGateRecipe) {
-                    VanillaRecipeHelper.addShapedRecipe(provider, name + "_fence_gate", new ItemStack(entry.fenceGate),
+                    VanillaRecipeHelper.addShapedRecipe(name + "_fence_gate", new ItemStack(entry.fenceGate),
                             "SPS", "SPS",
                             'P', entry.planks,
                             'S', entry.getStick());
@@ -806,7 +805,7 @@ public class WoodMachineRecipes {
                     .outputItems(entry.fenceGate)
                     .circuitMeta(2)
                     .duration(100).EUt(4)
-                    .addMaterialInfo(true).save(provider);
+                    .addMaterialInfo(true).save();
         }
 
         // boat
@@ -814,7 +813,7 @@ public class WoodMachineRecipes {
             final boolean hasBoatRecipe = entry.boatRecipeName != null;
             if (ConfigHolder.INSTANCE.recipes.hardWoodRecipes) {
                 if (entry.slab != null) {
-                    VanillaRecipeHelper.addShapedRecipe(provider, hasBoatRecipe ? entry.boatRecipeName : name + "_boat",
+                    VanillaRecipeHelper.addShapedRecipe(hasBoatRecipe ? entry.boatRecipeName : name + "_boat",
                             new ItemStack(entry.boat),
                             "PHP", "PkP", "SSS",
                             'P', entry.planks,
@@ -823,7 +822,7 @@ public class WoodMachineRecipes {
                 }
             } else {
                 if (!hasBoatRecipe) {
-                    VanillaRecipeHelper.addShapedRecipe(provider, name + "_boat", new ItemStack(entry.boat),
+                    VanillaRecipeHelper.addShapedRecipe(name + "_boat", new ItemStack(entry.boat),
                             "P P", "PPP",
                             'P', entry.planks);
                 }
@@ -835,21 +834,21 @@ public class WoodMachineRecipes {
                     .outputItems(entry.boat)
                     .circuitMeta(15)
                     .duration(100).EUt(4)
-                    .addMaterialInfo(true).save(provider);
+                    .addMaterialInfo(true).save();
 
             // chest boat
             if (entry.chestBoat != null) {
                 final boolean hasChestBoatRecipe = entry.chestBoatRecipeName != null;
                 String recipeName = hasChestBoatRecipe ? entry.chestBoatRecipeName : name + "_chest_boat";
                 if (ConfigHolder.INSTANCE.recipes.hardWoodRecipes) {
-                    VanillaRecipeHelper.addShapedRecipe(provider, recipeName,
+                    VanillaRecipeHelper.addShapedRecipe(recipeName,
                             new ItemStack(entry.chestBoat),
                             " B ", "SCS", " w ",
                             'B', entry.boat,
                             'S', new MaterialEntry(bolt, Wood),
                             'C', Tags.Items.CHESTS_WOODEN);
                 } else {
-                    VanillaRecipeHelper.addShapelessRecipe(provider, recipeName,
+                    VanillaRecipeHelper.addShapelessRecipe(recipeName,
                             new ItemStack(entry.chestBoat),
                             entry.boat, Tags.Items.CHESTS_WOODEN);
                 }
@@ -861,7 +860,7 @@ public class WoodMachineRecipes {
                         .outputItems(entry.chestBoat)
                         .circuitMeta(16)
                         .duration(100).EUt(4)
-                        .addMaterialInfo(true).save(provider);
+                        .addMaterialInfo(true).save();
             }
         }
 
@@ -869,11 +868,11 @@ public class WoodMachineRecipes {
         if (entry.button != null) {
             final boolean hasButtonRecipe = entry.buttonRecipeName != null;
             if (ConfigHolder.INSTANCE.recipes.hardWoodRecipes) {
-                VanillaRecipeHelper.addShapedRecipe(provider, name + "_button", new ItemStack(entry.button, 6), "sP",
+                VanillaRecipeHelper.addShapedRecipe(name + "_button", new ItemStack(entry.button, 6), "sP",
                         'P', new ItemStack(entry.pressurePlate));
             } else {
                 if (!hasButtonRecipe) {
-                    VanillaRecipeHelper.addShapedRecipe(provider, name + "_button", new ItemStack(entry.button), "P",
+                    VanillaRecipeHelper.addShapedRecipe(name + "_button", new ItemStack(entry.button), "P",
                             'P', new ItemStack(entry.planks));
                 }
             }
@@ -882,7 +881,7 @@ public class WoodMachineRecipes {
             CUTTER_RECIPES.recipeBuilder(name + "_button")
                     .inputItems(new ItemStack(entry.pressurePlate))
                     .outputItems(entry.button, 12)
-                    .duration(250).EUt(VA[ULV]).save(provider);
+                    .duration(250).EUt(VA[ULV]).save();
 
             ItemMaterialData.registerMaterialInfo(entry.button,
                     new ItemMaterialInfo(new MaterialStack(entry.material, M / 9)));
@@ -892,7 +891,7 @@ public class WoodMachineRecipes {
         if (entry.pressurePlate != null) {
             final boolean hasPressurePlateRecipe = entry.pressurePlateRecipeName != null;
             if (ConfigHolder.INSTANCE.recipes.hardWoodRecipes) {
-                VanillaRecipeHelper.addShapedRecipe(provider, name + "_pressure_plate",
+                VanillaRecipeHelper.addShapedRecipe(name + "_pressure_plate",
                         new ItemStack(entry.pressurePlate, 2), "SrS", "LCL", "SdS",
                         'S', new MaterialEntry(bolt, GTMaterials.Wood),
                         'L', entry.slab.asItem(),
@@ -903,10 +902,10 @@ public class WoodMachineRecipes {
                         .inputItems(spring, Iron)
                         .outputItems(entry.pressurePlate)
                         .circuitMeta(7)
-                        .duration(100).EUt(VA[ULV]).save(provider);
+                        .duration(100).EUt(VA[ULV]).save();
             } else {
                 if (!hasPressurePlateRecipe) {
-                    VanillaRecipeHelper.addShapedRecipe(provider, name + "_pressure_plate",
+                    VanillaRecipeHelper.addShapedRecipe(name + "_pressure_plate",
                             new ItemStack(entry.pressurePlate), "PP",
                             'P', new ItemStack(entry.planks));
                 }
@@ -915,7 +914,7 @@ public class WoodMachineRecipes {
                 CUTTER_RECIPES.recipeBuilder(name + "_pressure_plate")
                         .inputItems(new ItemStack(entry.slab))
                         .outputItems(entry.pressurePlate, 8)
-                        .duration(250).EUt(VA[ULV]).save(provider);
+                        .duration(250).EUt(VA[ULV]).save();
             }
 
         }
@@ -924,23 +923,23 @@ public class WoodMachineRecipes {
     /**
      * Standard recipes for GT woods
      */
-    private static void registerGTWoodRecipes(Consumer<FinishedRecipe> provider) {
-        VanillaRecipeHelper.addShapedRecipe(provider, "treated_wood_stick",
+    private static void registerGTWoodRecipes() {
+        VanillaRecipeHelper.addShapedRecipe("treated_wood_stick",
                 ChemicalHelper.get(rod, TreatedWood, ConfigHolder.INSTANCE.recipes.nerfWoodCrafting ? 2 : 4),
                 "L", "L",
                 'L', GTBlocks.TREATED_WOOD_PLANK.asItem());
         if (ConfigHolder.INSTANCE.recipes.nerfWoodCrafting) {
-            VanillaRecipeHelper.addShapedRecipe(provider, "treated_wood_stick_saw",
+            VanillaRecipeHelper.addShapedRecipe("treated_wood_stick_saw",
                     ChemicalHelper.get(rod, TreatedWood, 4),
                     "s", "L", "L",
                     'L', GTBlocks.TREATED_WOOD_PLANK.asItem());
         }
 
-        VanillaRecipeHelper.addShapedRecipe(provider, "rubber_wood",
+        VanillaRecipeHelper.addShapedRecipe("rubber_wood",
                 GTBlocks.RUBBER_WOOD.asStack(3),
                 "LL", "LL", 'L', GTBlocks.RUBBER_LOG.asStack());
 
-        VanillaRecipeHelper.addShapedRecipe(provider, "stripped_rubber_wood",
+        VanillaRecipeHelper.addShapedRecipe("stripped_rubber_wood",
                 GTBlocks.STRIPPED_RUBBER_WOOD.asStack(3),
                 "LL", "LL", 'L', GTBlocks.STRIPPED_RUBBER_LOG.asStack());
     }
@@ -1038,7 +1037,7 @@ public class WoodMachineRecipes {
         }
     }
 
-    private static void registerPyrolyseOvenRecipes(Consumer<FinishedRecipe> provider) {
+    private static void registerPyrolyseOvenRecipes() {
         // Logs ================================================
 
         // Charcoal Byproducts
@@ -1048,7 +1047,7 @@ public class WoodMachineRecipes {
                 .outputItems(Items.CHARCOAL, 20)
                 .outputFluids(CharcoalByproducts.getFluid(4000))
                 .duration(320).EUt(96)
-                .save(provider);
+                .save();
 
         // Wood Tar
         PYROLYSE_RECIPES.recipeBuilder("log_to_wood_tar").circuitMeta(9)
@@ -1056,7 +1055,7 @@ public class WoodMachineRecipes {
                 .outputItems(Items.CHARCOAL, 20)
                 .outputFluids(WoodTar.getFluid(1500))
                 .duration(640).EUt(64)
-                .save(provider);
+                .save();
 
         PYROLYSE_RECIPES.recipeBuilder("log_to_wood_tar_nitrogen").circuitMeta(10)
                 .inputItems(ItemTags.LOGS_THAT_BURN, 16)
@@ -1064,7 +1063,7 @@ public class WoodMachineRecipes {
                 .outputItems(Items.CHARCOAL, 20)
                 .outputFluids(WoodTar.getFluid(1500))
                 .duration(320).EUt(96)
-                .save(provider);
+                .save();
 
         // Wood Gas
         PYROLYSE_RECIPES.recipeBuilder("log_to_wood_gas").circuitMeta(5)
@@ -1072,7 +1071,7 @@ public class WoodMachineRecipes {
                 .outputItems(Items.CHARCOAL, 20)
                 .outputFluids(WoodGas.getFluid(1500))
                 .duration(640).EUt(64)
-                .save(provider);
+                .save();
 
         PYROLYSE_RECIPES.recipeBuilder("log_to_wood_gas_nitrogen").circuitMeta(6)
                 .inputItems(ItemTags.LOGS_THAT_BURN, 16)
@@ -1080,7 +1079,7 @@ public class WoodMachineRecipes {
                 .outputItems(Items.CHARCOAL, 20)
                 .outputFluids(WoodGas.getFluid(1500))
                 .duration(320).EUt(96)
-                .save(provider);
+                .save();
 
         // Wood Vinegar
         PYROLYSE_RECIPES.recipeBuilder("log_to_wood_vinegar").circuitMeta(7)
@@ -1088,7 +1087,7 @@ public class WoodMachineRecipes {
                 .outputItems(Items.CHARCOAL, 20)
                 .outputFluids(WoodVinegar.getFluid(3000))
                 .duration(640).EUt(64)
-                .save(provider);
+                .save();
 
         PYROLYSE_RECIPES.recipeBuilder("log_to_wood_vinegar_nitrogen").circuitMeta(8)
                 .inputItems(ItemTags.LOGS_THAT_BURN, 16)
@@ -1096,7 +1095,7 @@ public class WoodMachineRecipes {
                 .outputItems(Items.CHARCOAL, 20)
                 .outputFluids(WoodVinegar.getFluid(3000))
                 .duration(320).EUt(96)
-                .save(provider);
+                .save();
 
         // Creosote
         PYROLYSE_RECIPES.recipeBuilder("log_to_creosote").circuitMeta(1)
@@ -1104,7 +1103,7 @@ public class WoodMachineRecipes {
                 .outputItems(Items.CHARCOAL, 20)
                 .outputFluids(Creosote.getFluid(4000))
                 .duration(640).EUt(64)
-                .save(provider);
+                .save();
 
         PYROLYSE_RECIPES.recipeBuilder("log_to_creosote_nitrogen").circuitMeta(2)
                 .inputItems(ItemTags.LOGS_THAT_BURN, 16)
@@ -1112,7 +1111,7 @@ public class WoodMachineRecipes {
                 .outputItems(Items.CHARCOAL, 20)
                 .outputFluids(Creosote.getFluid(4000))
                 .duration(320).EUt(96)
-                .save(provider);
+                .save();
 
         // Heavy Oil
         PYROLYSE_RECIPES.recipeBuilder("log_to_heavy_oil").circuitMeta(3)
@@ -1120,7 +1119,7 @@ public class WoodMachineRecipes {
                 .outputItems(dust, Ash, 4)
                 .outputFluids(OilHeavy.getFluid(200))
                 .duration(320).EUt(192)
-                .save(provider);
+                .save();
 
         // Creosote
         PYROLYSE_RECIPES.recipeBuilder("coal_to_coke_creosote").circuitMeta(1)
@@ -1128,7 +1127,7 @@ public class WoodMachineRecipes {
                 .outputItems(gem, Coke, 16)
                 .outputFluids(Creosote.getFluid(8000))
                 .duration(640).EUt(64)
-                .save(provider);
+                .save();
 
         PYROLYSE_RECIPES.recipeBuilder("coal_to_coke_creosote_nitrogen").circuitMeta(2)
                 .inputItems(gem, Coal, 16)
@@ -1136,14 +1135,14 @@ public class WoodMachineRecipes {
                 .outputItems(gem, Coke, 16)
                 .outputFluids(Creosote.getFluid(8000))
                 .duration(320).EUt(96)
-                .save(provider);
+                .save();
 
         PYROLYSE_RECIPES.recipeBuilder("coal_block_to_coke_creosote").circuitMeta(1)
                 .inputItems(block, Coal, 8)
                 .outputItems(block, Coke, 8)
                 .outputFluids(Creosote.getFluid(32000))
                 .duration(2560).EUt(64)
-                .save(provider);
+                .save();
 
         PYROLYSE_RECIPES.recipeBuilder("coal_block_to_coke_creosote_nitrogen").circuitMeta(2)
                 .inputItems(block, Coal, 8)
@@ -1151,7 +1150,7 @@ public class WoodMachineRecipes {
                 .outputItems(block, Coke, 8)
                 .outputFluids(Creosote.getFluid(32000))
                 .duration(1280).EUt(96)
-                .save(provider);
+                .save();
 
         // Biomass
         PYROLYSE_RECIPES.recipeBuilder("bio_chaff_to_fermented_biomass").EUt(10).duration(200)
@@ -1159,14 +1158,14 @@ public class WoodMachineRecipes {
                 .circuitMeta(2)
                 .inputFluids(Water.getFluid(1500))
                 .outputFluids(FermentedBiomass.getFluid(1500))
-                .save(provider);
+                .save();
 
         PYROLYSE_RECIPES.recipeBuilder("bio_chaff_to_biomass").EUt(10).duration(900)
                 .inputItems(BIO_CHAFF, 4)
                 .circuitMeta(1)
                 .inputFluids(Water.getFluid(4000))
                 .outputFluids(Biomass.getFluid(5000))
-                .save(provider);
+                .save();
 
         // Sugar to Charcoal
         PYROLYSE_RECIPES.recipeBuilder("sugar_to_charcoal").circuitMeta(1)
@@ -1174,7 +1173,7 @@ public class WoodMachineRecipes {
                 .outputItems(dust, Charcoal, 12)
                 .outputFluids(Water.getFluid(1500))
                 .duration(320).EUt(64)
-                .save(provider);
+                .save();
 
         PYROLYSE_RECIPES.recipeBuilder("sugar_to_charcoal_nitrogen").circuitMeta(2)
                 .inputItems(dust, Sugar, 23)
@@ -1182,7 +1181,7 @@ public class WoodMachineRecipes {
                 .outputItems(dust, Charcoal, 12)
                 .outputFluids(Water.getFluid(1500))
                 .duration(160).EUt(96)
-                .save(provider);
+                .save();
 
         // COAL GAS ============================================
 
@@ -1193,7 +1192,7 @@ public class WoodMachineRecipes {
                 .outputItems(Items.CHARCOAL, 20)
                 .outputFluids(CoalGas.getFluid(2000))
                 .duration(640).EUt(64)
-                .save(provider);
+                .save();
 
         // From Coal
         PYROLYSE_RECIPES.recipeBuilder("coal_to_coal_gas").circuitMeta(22)
@@ -1202,7 +1201,7 @@ public class WoodMachineRecipes {
                 .outputItems(gem, Coke, 16)
                 .outputFluids(CoalGas.getFluid(4000))
                 .duration(320).EUt(96)
-                .save(provider);
+                .save();
 
         PYROLYSE_RECIPES.recipeBuilder("coal_block_to_coal_gas").circuitMeta(22)
                 .inputItems(block, Coal, 8)
@@ -1210,7 +1209,7 @@ public class WoodMachineRecipes {
                 .outputItems(block, Coke, 8)
                 .outputFluids(CoalGas.getFluid(16000))
                 .duration(1280).EUt(96)
-                .save(provider);
+                .save();
 
         // COAL TAR ============================================
         PYROLYSE_RECIPES.recipeBuilder("charcoal_to_coal_tar").circuitMeta(8)
@@ -1218,20 +1217,20 @@ public class WoodMachineRecipes {
                 .chancedOutput(dust, Ash, 5000, 0)
                 .outputFluids(CoalTar.getFluid(1000))
                 .duration(640).EUt(64)
-                .save(provider);
+                .save();
 
         PYROLYSE_RECIPES.recipeBuilder("coal_to_coal_tar").circuitMeta(8)
                 .inputItems(Items.COAL, 12)
                 .chancedOutput(dust, DarkAsh, 5000, 0)
                 .outputFluids(CoalTar.getFluid(3000))
                 .duration(320).EUt(96)
-                .save(provider);
+                .save();
 
         PYROLYSE_RECIPES.recipeBuilder("coke_to_coal_tar").circuitMeta(8)
                 .inputItems(gem, Coke, 8)
                 .chancedOutput(dust, Ash, 7500, 0)
                 .outputFluids(CoalTar.getFluid(4000))
                 .duration(320).EUt(96)
-                .save(provider);
+                .save();
     }
 }

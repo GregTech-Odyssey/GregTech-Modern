@@ -15,7 +15,6 @@ import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
@@ -28,8 +27,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.function.Consumer;
 
 public final class ResearchManager {
 
@@ -115,8 +112,7 @@ public final class ResearchManager {
      *
      * @param builder the builder to retrieve recipe info from
      */
-    public static void createDefaultResearchRecipe(@NotNull GTRecipeBuilder builder,
-                                                   Consumer<FinishedRecipe> provider) {
+    public static void createDefaultResearchRecipe(@NotNull GTRecipeBuilder builder) {
         if (!ConfigHolder.INSTANCE.machines.enableResearch) return;
 
         for (GTRecipeBuilder.ResearchRecipeEntry entry : builder.researchRecipeEntries()) {
@@ -125,14 +121,14 @@ public final class ResearchManager {
 
             createDefaultResearchRecipe(builder.recipeType, entry.researchId(), entry.researchItem(),
                     entry.researchFluid(),
-                    entry.dataStack(), entry.duration(), entry.EUt(), entry.CWUt(), provider);
+                    entry.dataStack(), entry.duration(), entry.EUt(), entry.CWUt());
         }
     }
 
     public static void createDefaultResearchRecipe(@NotNull GTRecipeType recipeType, @NotNull String researchId,
                                                    @NotNull ItemStack researchItem, @NotNull FluidStack researchFluid,
                                                    @NotNull ItemStack dataItem,
-                                                   int duration, int EUt, int CWUt, Consumer<FinishedRecipe> provider) {
+                                                   int duration, int EUt, int CWUt) {
         if (!ConfigHolder.INSTANCE.machines.enableResearch) return;
 
         CompoundTag compound = dataItem.getOrCreateTag();
@@ -150,7 +146,7 @@ public final class ResearchManager {
                     .EUt(EUt)
                     .CWUt(CWUt)
                     .totalCWU(duration)
-                    .save(provider);
+                    .save();
         } else {
             var builder = GTRecipeTypes.SCANNER_RECIPES.recipeBuilder(FormattingUtil.toLowerCaseUnderscore(researchId))
                     .inputItems(dataItem.getItem());
@@ -162,7 +158,7 @@ public final class ResearchManager {
                     .duration(duration)
                     .EUt(EUt)
                     .researchScan(true)
-                    .save(provider);
+                    .save();
         }
     }
 

@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.api.transfer.fluid;
 
+import com.gregtechceu.gtceu.api.misc.IContentChange;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import com.lowdragmc.lowdraglib.syncdata.IContentChangeAware;
 import com.lowdragmc.lowdraglib.syncdata.ITagSerializable;
 
 import net.minecraft.nbt.CompoundTag;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Predicate;
 
-public class CustomFluidTank extends FluidTank implements IFluidHandlerModifiable, ITagSerializable<CompoundTag>, IContentChangeAware {
+public class CustomFluidTank extends FluidTank implements IFluidHandlerModifiable, ITagSerializable<CompoundTag>, IContentChange {
 
     @NotNull
     protected Runnable onContentsChanged = GTUtil.NOOP;
@@ -73,5 +73,10 @@ public class CustomFluidTank extends FluidTank implements IFluidHandlerModifiabl
     public void setOnContentsChangedAndfreeze(@NotNull final Runnable onContentsChanged) {
         this.onContentsChanged = onContentsChanged;
         freezeChanged = true;
+    }
+
+    @Override
+    public boolean isFreezeChanged() {
+        return freezeChanged;
     }
 }

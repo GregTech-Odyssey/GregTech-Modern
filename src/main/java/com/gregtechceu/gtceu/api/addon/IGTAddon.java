@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.api.addon;
 import com.gregtechceu.gtceu.api.addon.events.MaterialCasingCollectionEvent;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.function.Consumer;
@@ -77,8 +76,6 @@ public interface IGTAddon {
      * Call init on your custom IndicatorGenerator class(es) here
      */
     default void registerIndicatorGenerators() {}
-
-    default void addRecipes(Consumer<FinishedRecipe> provider) {}
 
     default void removeRecipes(Consumer<ResourceLocation> consumer) {}
 

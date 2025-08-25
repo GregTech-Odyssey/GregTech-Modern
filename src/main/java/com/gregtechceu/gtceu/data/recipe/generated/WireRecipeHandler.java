@@ -13,14 +13,12 @@ import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.Util;
-import net.minecraft.data.recipes.FinishedRecipe;
 
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
-import java.util.function.Consumer;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
 import static com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags.*;
@@ -60,7 +58,7 @@ public final class WireRecipeHandler {
 
     private WireRecipeHandler() {}
 
-    public static void run(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
+    public static void run(@NotNull Material material) {
         WireProperties property = material.getProperty(PropertyKey.WIRE);
         if (property == null) {
             return;
@@ -71,17 +69,17 @@ public final class WireRecipeHandler {
         // Wiremill: 1x Wire -> Fine
         // Extruder: Ingot -> 1x Wire
         // Wire Cutter: Plate -> 1x Wire
-        processWires(provider, material);
+        processWires(material);
 
         // Generate Cable Covering Recipes
-        generateCableCovering(provider, property, wireGtSingle, material);
-        generateCableCovering(provider, property, wireGtDouble, material);
-        generateCableCovering(provider, property, wireGtQuadruple, material);
-        generateCableCovering(provider, property, wireGtOctal, material);
-        generateCableCovering(provider, property, wireGtHex, material);
+        generateCableCovering(property, wireGtSingle, material);
+        generateCableCovering(property, wireGtDouble, material);
+        generateCableCovering(property, wireGtQuadruple, material);
+        generateCableCovering(property, wireGtOctal, material);
+        generateCableCovering(property, wireGtHex, material);
     }
 
-    private static void processWires(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
+    private static void processWires(@NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(wireGtSingle)) {
             return;
         }
@@ -95,7 +93,7 @@ public final class WireRecipeHandler {
                 .outputItems(wireGtSingle, material, 2)
                 .duration((int) material.getMass() * 2)
                 .EUt(6L * getVoltageMultiplier(material))
-                .save(provider);
+                .save();
 
         WIREMILL_RECIPES.recipeBuilder("mill_" + material.getName() + "_wire")
                 .inputItems(prefix, material)
@@ -103,7 +101,7 @@ public final class WireRecipeHandler {
                 .outputItems(wireGtSingle, material, 2)
                 .duration((int) material.getMass())
                 .EUt(getVoltageMultiplier(material))
-                .save(provider);
+                .save();
 
         for (TagPrefix wireSize : wireSizes) {
             final int multiplier = (int) (wireSize.getMaterialAmount(material) / GTValues.M);
@@ -113,7 +111,7 @@ public final class WireRecipeHandler {
                     .outputItems(wireSize, material)
                     .duration((int) material.getMass() * multiplier)
                     .EUt(getVoltageMultiplier(material))
-                    .save(provider);
+                    .save();
         }
 
         if (material.hasFlag(GENERATE_FINE_WIRE)) {
@@ -123,18 +121,17 @@ public final class WireRecipeHandler {
                     .outputItems(wireFine, material, 8)
                     .duration((int) material.getMass() * 3)
                     .EUt(getVoltageMultiplier(material))
-                    .save(provider);
+                    .save();
         }
 
         if (!material.hasFlag(NO_WORKING) && material.hasFlag(GENERATE_PLATE)) {
-            VanillaRecipeHelper.addShapedRecipe(provider, String.format("%s_wire_single", material.getName()),
+            VanillaRecipeHelper.addShapedRecipe(String.format("%s_wire_single", material.getName()),
                     ChemicalHelper.get(wireGtSingle, material), "Xx",
                     'X', new MaterialEntry(plate, material));
         }
     }
 
-    private static void generateCableCovering(@NotNull Consumer<FinishedRecipe> provider,
-                                              @NotNull WireProperties property,
+    private static void generateCableCovering(@NotNull WireProperties property,
                                               @NotNull TagPrefix prefix, @NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(prefix) || property.isSuperconductor()) {
             // Superconductors have no Cables, so exit early
@@ -148,7 +145,7 @@ public final class WireRecipeHandler {
 
         // Generate hand-crafting recipes for ULV and LV cables
         if (voltageTier <= LV) {
-            generateManualRecipe(provider, prefix, cablePrefix, cableAmount, material);
+            generateManualRecipe(prefix, cablePrefix, cableAmount, material);
         }
 
         // Rubber Recipe (ULV-EV cables)
@@ -163,7 +160,7 @@ public final class WireRecipeHandler {
             if (voltageTier == EV) {
                 builder.inputItems(foil, PolyvinylChloride, insulationAmount);
             }
-            builder.save(provider);
+            builder.save();
         }
 
         // Silicone Rubber Recipe (all cables)
@@ -184,7 +181,7 @@ public final class WireRecipeHandler {
         }
 
         builder.inputFluids(SiliconeRubber.getFluid(L * insulationAmount / 2))
-                .save(provider);
+                .save();
 
         // Styrene Butadiene Rubber Recipe (all cables)
         builder = ASSEMBLER_RECIPES
@@ -204,10 +201,10 @@ public final class WireRecipeHandler {
         }
 
         builder.inputFluids(StyreneButadieneRubber.getFluid(L * insulationAmount / 4))
-                .save(provider);
+                .save();
     }
 
-    private static void generateManualRecipe(@NotNull Consumer<FinishedRecipe> provider, @NotNull TagPrefix wirePrefix,
+    private static void generateManualRecipe(@NotNull TagPrefix wirePrefix,
                                              @NotNull TagPrefix cablePrefix, int cableAmount,
                                              @NotNull Material material) {
         int insulationAmount = INSULATION_AMOUNT.getInt(cablePrefix);
@@ -216,7 +213,7 @@ public final class WireRecipeHandler {
         for (int i = 1; i <= insulationAmount; i++) {
             ingredients[i] = ChemicalHelper.get(plate, Rubber);
         }
-        VanillaRecipeHelper.addShapelessRecipe(provider, String.format("%s_cable_%d", material.getName(), cableAmount),
+        VanillaRecipeHelper.addShapelessRecipe(String.format("%s_cable_%d", material.getName(), cableAmount),
                 ChemicalHelper.get(cablePrefix, material),
                 ingredients);
 
@@ -225,7 +222,7 @@ public final class WireRecipeHandler {
                 .inputItems(plate, Rubber, insulationAmount)
                 .outputItems(cablePrefix, material)
                 .duration(100).EUt(VA[ULV])
-                .save(provider);
+                .save();
     }
 
     private static int getVoltageMultiplier(@NotNull Material material) {

@@ -8,13 +8,11 @@ import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
 
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.world.item.ItemStack;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
-import java.util.function.Consumer;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.*;
@@ -30,18 +28,18 @@ public final class PolarizingRecipeHandler {
 
     private PolarizingRecipeHandler() {}
 
-    public static void run(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
+    public static void run(@NotNull Material material) {
         IngotProperty property = material.getProperty(PropertyKey.INGOT);
         if (property == null) {
             return;
         }
 
         for (TagPrefix prefix : POLARIZING_PREFIXES) {
-            processPolarizing(provider, property, prefix, material);
+            processPolarizing(property, prefix, material);
         }
     }
 
-    private static void processPolarizing(@NotNull Consumer<FinishedRecipe> provider, @NotNull IngotProperty property,
+    private static void processPolarizing(@NotNull IngotProperty property,
                                           @NotNull TagPrefix prefix, @NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(prefix) || !material.hasProperty(PropertyKey.INGOT)) {
             return;
@@ -57,9 +55,9 @@ public final class PolarizingRecipeHandler {
                     .outputItems(magneticStack)
                     .duration((int) ((int) material.getMass() * prefix.getMaterialAmount(material) / M))
                     .EUt(getVoltageMultiplier(material))
-                    .save(provider);
+                    .save();
 
-            VanillaRecipeHelper.addSmeltingRecipe(provider,
+            VanillaRecipeHelper.addSmeltingRecipe(
                     "demagnetize_" + magneticMaterial.getName() + "_" + prefix.name.toLowerCase(Locale.ROOT),
                     ChemicalHelper.getTag(prefix, magneticMaterial),
                     ChemicalHelper.get(prefix, material)); // de-magnetizing

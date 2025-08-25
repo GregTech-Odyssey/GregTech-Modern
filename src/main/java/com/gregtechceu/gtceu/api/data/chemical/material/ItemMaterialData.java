@@ -13,7 +13,6 @@ import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 import com.gregtechceu.gtceu.utils.memoization.MemoizedBlockSupplier;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
@@ -36,7 +35,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class ItemMaterialData {
@@ -167,7 +165,7 @@ public class ItemMaterialData {
     }
 
     @ApiStatus.Internal
-    public static void resolveItemMaterialInfos(Consumer<FinishedRecipe> provider) {
+    public static void resolveItemMaterialInfos() {
         for (var entry : UNRESOLVED_ITEM_MATERIAL_INFO.entrySet()) {
             List<MaterialStack> stacks = new ObjectArrayList<>();
             var stack = entry.getKey();
@@ -187,7 +185,7 @@ public class ItemMaterialData {
             } else {
                 matInfo.addMaterialStacks(stacks);
             }
-            RecyclingRecipes.registerRecyclingRecipes(provider, entry.getKey().copyWithCount(1),
+            RecyclingRecipes.registerRecyclingRecipes(entry.getKey().copyWithCount(1),
                     matInfo.getMaterials(), false, null);
         }
         UNRESOLVED_ITEM_MATERIAL_INFO.clear();

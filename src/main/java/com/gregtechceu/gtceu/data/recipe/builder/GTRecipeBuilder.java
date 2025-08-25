@@ -21,14 +21,12 @@ import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.SizedIngredient;
-import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.common.recipe.condition.*;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.data.pack.GTDynamicDataPack;
 import com.gregtechceu.gtceu.utils.ResearchManager;
-
-import com.lowdragmc.lowdraglib.utils.NBTToJsonConverter;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -50,7 +48,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.ftb.mods.ftbquests.quest.QuestObjectBase;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -88,7 +85,7 @@ public class GTRecipeBuilder {
     protected boolean removePreviousMatInfo = false;
     public GTRecipeCategory recipeCategory;
     @Nullable
-    public BiConsumer<GTRecipeBuilder, Consumer<FinishedRecipe>> onSave;
+    public Consumer<GTRecipeBuilder> onSave;
     protected final Collection<ResearchRecipeEntry> researchRecipeEntries = new ObjectArrayList<>();
     protected boolean generatingRecipes = true;
     protected List<ItemStack> tempItemStacks = new ObjectArrayList<>();
@@ -1070,47 +1067,11 @@ public class GTRecipeBuilder {
         return this;
     }
 
-    public void toJson(JsonObject json) {
-        json.addProperty("type", recipeType.registryName.toString());
-        json.addProperty("duration", Math.abs(duration));
-        if (data != null && !data.isEmpty()) {
-            json.add("data", NBTToJsonConverter.getObject(data));
-        }
-        json.add("inputs", capabilitiesToJson(input));
-        json.add("outputs", capabilitiesToJson(output));
-        json.add("tickInputs", capabilitiesToJson(tickInput));
-        json.add("tickOutputs", capabilitiesToJson(tickOutput));
-        json.addProperty("category", recipeCategory.registryKey.toString());
-        if (!conditions.isEmpty()) {
-            JsonArray array = new JsonArray();
-            for (RecipeCondition condition : conditions) {
-                var condJson = condition.serialize();
-                condJson.addProperty("type", GTRegistries.RECIPE_CONDITIONS.getKey(condition.getType()));
-                array.add(condJson);
-            }
-            json.add("recipeConditions", array);
-        }
-    }
-
-    public JsonObject capabilitiesToJson(Map<RecipeCapability<?>, List<Content>> contents) {
-        JsonObject jsonObject = new JsonObject();
-        contents.forEach((cap, list) -> {
-            JsonArray contentsJson = new JsonArray();
-            for (Content content : list) {
-                contentsJson.add(cap.serializer.toJsonContent(content));
-            }
-            jsonObject.add(GTRegistries.RECIPE_CAPABILITIES.getKey(cap), contentsJson);
-        });
-        return jsonObject;
-    }
-
     public FinishedRecipe build() {
         return new FinishedRecipe() {
 
             @Override
-            public void serializeRecipeData(JsonObject pJson) {
-                toJson(pJson);
-            }
+            public void serializeRecipeData(JsonObject pJson) {}
 
             @Override
             public ResourceLocation getId() {
@@ -1136,9 +1097,9 @@ public class GTRecipeBuilder {
         };
     }
 
-    public void save(Consumer<FinishedRecipe> consumer) {
+    public GTRecipe save() {
         if (onSave != null) {
-            onSave.accept(this, consumer);
+            onSave.accept(this);
         }
         ResearchCondition condition = this.conditions.stream().filter(ResearchCondition.class::isInstance).findAny().map(ResearchCondition.class::cast).orElse(null);
         if (condition != null) {
@@ -1162,7 +1123,8 @@ public class GTRecipeBuilder {
         tempItemStacks = null;
         tempItemMaterialStacks = null;
         tempFluidStacks = null;
-        consumer.accept(build());
+        GTDynamicDataPack.addRecipe(build());
+        return buildRawRecipe();
     }
 
     private void addOutputMaterialInfo() {
@@ -1353,7 +1315,7 @@ public class GTRecipeBuilder {
     /**
      * @return {@code this}.
      */
-    public GTRecipeBuilder onSave(@Nullable final BiConsumer<GTRecipeBuilder, Consumer<FinishedRecipe>> onSave) {
+    public GTRecipeBuilder onSave(@Nullable final Consumer<GTRecipeBuilder> onSave) {
         this.onSave = onSave;
         return this;
     }

@@ -5,10 +5,7 @@ import com.gregtechceu.gtceu.common.data.machines.GTMultiMachines;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.world.item.ItemStack;
-
-import java.util.function.Consumer;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.*;
@@ -22,7 +19,7 @@ import static com.gregtechceu.gtceu.common.data.machines.GTResearchMachines.*;
 
 public class ComputerRecipes {
 
-    public static void init(Consumer<FinishedRecipe> provider) {
+    public static void init() {
         ASSEMBLER_RECIPES.recipeBuilder("data_access_hatch")
                 .inputItems(ITEM_IMPORT_BUS[EV])
                 .inputItems(TOOL_DATA_STICK, 4)
@@ -31,7 +28,7 @@ public class ComputerRecipes {
                 .inputFluids(Polytetrafluoroethylene, L * 2)
                 .cleanroom(CleanroomType.CLEANROOM)
                 .duration(200).EUt(VA[EV])
-                .addMaterialInfo(true).save(provider);
+                .addMaterialInfo(true).save();
 
         ASSEMBLY_LINE_RECIPES.recipeBuilder("advanced_data_access_hatch")
                 .inputItems(ITEM_IMPORT_BUS[LuV])
@@ -42,7 +39,7 @@ public class ComputerRecipes {
                 .inputFluids(Polybenzimidazole, L * 4)
                 .stationResearch(b -> b.researchStack(DATA_BANK.asStack()).CWUt(4))
                 .duration(400).EUt(6000)
-                .addMaterialInfo(true, true).save(provider);
+                .addMaterialInfo(true, true).save();
 
         ASSEMBLER_RECIPES.recipeBuilder("high_power_casing")
                 .inputItems(frameGt, Iridium)
@@ -54,7 +51,7 @@ public class ComputerRecipes {
                 .outputItems(HIGH_POWER_CASING,
                         ConfigHolder.INSTANCE.recipes.casingsPerCraft)
                 .duration(100).EUt(VA[IV])
-                .addMaterialInfo(true).save(provider);
+                .addMaterialInfo(true).save();
 
         ASSEMBLER_RECIPES.recipeBuilder("computer_casing")
                 .inputItems(frameGt, Iridium)
@@ -66,7 +63,7 @@ public class ComputerRecipes {
                 .outputItems(COMPUTER_CASING,
                         ConfigHolder.INSTANCE.recipes.casingsPerCraft)
                 .duration(200).EUt(VA[LuV])
-                .addMaterialInfo(true).save(provider);
+                .addMaterialInfo(true).save();
 
         ASSEMBLER_RECIPES.recipeBuilder("advanced_computer_casing")
                 .inputItems(COMPUTER_CASING.asStack())
@@ -76,7 +73,7 @@ public class ComputerRecipes {
                 .inputItems(wireGtSingle, IndiumTinBariumTitaniumCuprate, 4)
                 .outputItems(ADVANCED_COMPUTER_CASING)
                 .duration(200).EUt(VA[LuV])
-                .addMaterialInfo(true).save(provider);
+                .addMaterialInfo(true).save();
 
         ASSEMBLER_RECIPES.recipeBuilder("computer_heat_vent")
                 .inputItems(frameGt, StainlessSteel)
@@ -88,7 +85,7 @@ public class ComputerRecipes {
                 .outputItems(COMPUTER_HEAT_VENT,
                         ConfigHolder.INSTANCE.recipes.casingsPerCraft)
                 .duration(100).EUt(VA[EV])
-                .addMaterialInfo(true).save(provider);
+                .addMaterialInfo(true).save();
 
         ASSEMBLER_RECIPES.recipeBuilder("optical_pipe")
                 .inputItems(wireFine, BorosilicateGlass, 8)
@@ -97,7 +94,7 @@ public class ComputerRecipes {
                 .cleanroom(CleanroomType.CLEANROOM)
                 .outputItems(OPTICAL_PIPES[0])
                 .duration(100).EUt(VA[IV])
-                .addMaterialInfo(true).save(provider);
+                .addMaterialInfo(true).save();
 
         ASSEMBLY_LINE_RECIPES.recipeBuilder("data_bank")
                 .inputItems(COMPUTER_CASING.asStack())
@@ -115,7 +112,7 @@ public class ComputerRecipes {
                         .duration(2400)
                         .EUt(VA[EV]))
                 .duration(1200).EUt(6000)
-                .addMaterialInfo(true, true).save(provider);
+                .addMaterialInfo(true, true).save();
 
         ASSEMBLY_LINE_RECIPES.recipeBuilder("research_station")
                 .inputItems(DATA_BANK)
@@ -134,7 +131,7 @@ public class ComputerRecipes {
                         .duration(2400)
                         .EUt(VA[IV]))
                 .duration(1200).EUt(100000)
-                .addMaterialInfo(true, true).save(provider);
+                .addMaterialInfo(true, true).save();
 
         ASSEMBLY_LINE_RECIPES.recipeBuilder("object_holder")
                 .inputItems(ITEM_IMPORT_BUS[ZPM])
@@ -152,7 +149,7 @@ public class ComputerRecipes {
                         .duration(2400)
                         .EUt(VA[IV]))
                 .duration(1200).EUt(100000)
-                .addMaterialInfo(true, true).save(provider);
+                .addMaterialInfo(true, true).save();
 
         ASSEMBLY_LINE_RECIPES.recipeBuilder("network_switch")
                 .inputItems(COMPUTER_CASING.asStack())
@@ -171,7 +168,7 @@ public class ComputerRecipes {
                         .CWUt(32)
                         .EUt(VA[ZPM]))
                 .duration(1200).EUt(100000)
-                .addMaterialInfo(true, true).save(provider);
+                .addMaterialInfo(true, true).save();
 
         ASSEMBLY_LINE_RECIPES.recipeBuilder("high_performance_computing_array")
                 .inputItems(DATA_BANK)
@@ -190,7 +187,7 @@ public class ComputerRecipes {
                         .duration(2400)
                         .EUt(VA[IV]))
                 .duration(1200).EUt(100000)
-                .addMaterialInfo(true, true).save(provider);
+                .addMaterialInfo(true, true).save();
 
         ASSEMBLER_RECIPES.recipeBuilder("hpca_empty_component")
                 .inputItems(COMPUTER_CASING.asStack())
@@ -200,7 +197,7 @@ public class ComputerRecipes {
                 .inputFluids(PCBCoolant, 1000)
                 .cleanroom(CleanroomType.CLEANROOM)
                 .duration(200).EUt(VA[IV])
-                .addMaterialInfo(true).save(provider);
+                .addMaterialInfo(true).save();
 
         ASSEMBLER_RECIPES.recipeBuilder("hpca_heat_sink_component")
                 .inputItems(HPCA_EMPTY_COMPONENT)
@@ -210,7 +207,7 @@ public class ComputerRecipes {
                 .inputFluids(PCBCoolant, 1000)
                 .cleanroom(CleanroomType.CLEANROOM)
                 .duration(200).EUt(VA[IV])
-                .addMaterialInfo(true).save(provider);
+                .addMaterialInfo(true).save();
 
         ASSEMBLER_RECIPES.recipeBuilder("hpca_active_cooler_component")
                 .inputItems(ADVANCED_COMPUTER_CASING.asStack())
@@ -221,7 +218,7 @@ public class ComputerRecipes {
                 .inputFluids(PCBCoolant, 1000)
                 .cleanroom(CleanroomType.CLEANROOM)
                 .duration(200).EUt(VA[IV])
-                .addMaterialInfo(true).save(provider);
+                .addMaterialInfo(true).save();
 
         ASSEMBLER_RECIPES.recipeBuilder("hpca_bridge_component")
                 .inputItems(ADVANCED_COMPUTER_CASING.asStack())
@@ -232,7 +229,7 @@ public class ComputerRecipes {
                 .inputFluids(PCBCoolant, 1000)
                 .cleanroom(CleanroomType.CLEANROOM)
                 .duration(200).EUt(VA[LuV])
-                .addMaterialInfo(true).save(provider);
+                .addMaterialInfo(true).save();
 
         ASSEMBLER_RECIPES.recipeBuilder("hpca_computation_component")
                 .inputItems(HPCA_EMPTY_COMPONENT)
@@ -242,7 +239,7 @@ public class ComputerRecipes {
                 .inputFluids(PCBCoolant, 1000)
                 .cleanroom(CleanroomType.CLEANROOM)
                 .duration(200).EUt(VA[LuV])
-                .addMaterialInfo(true).save(provider);
+                .addMaterialInfo(true).save();
 
         ASSEMBLER_RECIPES.recipeBuilder("hpca_advanced_computation_component")
                 .inputItems(HPCA_COMPUTATION_COMPONENT)
@@ -252,7 +249,7 @@ public class ComputerRecipes {
                 .inputFluids(PCBCoolant, 1000)
                 .cleanroom(CleanroomType.CLEANROOM)
                 .duration(200).EUt(VA[ZPM])
-                .addMaterialInfo(true).save(provider);
+                .addMaterialInfo(true).save();
 
         ASSEMBLER_RECIPES.recipeBuilder("data_receiver_hatch")
                 .inputItems(COMPUTER_CASING.asStack())
@@ -264,7 +261,7 @@ public class ComputerRecipes {
                 .outputItems(DATA_HATCH_RECEIVER)
                 .cleanroom(CleanroomType.CLEANROOM)
                 .duration(200).EUt(VA[LuV])
-                .addMaterialInfo(true, true).save(provider);
+                .addMaterialInfo(true, true).save();
 
         ASSEMBLER_RECIPES.recipeBuilder("data_transmitter_hatch")
                 .inputItems(COMPUTER_CASING.asStack())
@@ -276,7 +273,7 @@ public class ComputerRecipes {
                 .outputItems(DATA_HATCH_TRANSMITTER)
                 .cleanroom(CleanroomType.CLEANROOM)
                 .duration(200).EUt(VA[LuV])
-                .addMaterialInfo(true, true).save(provider);
+                .addMaterialInfo(true, true).save();
 
         ASSEMBLER_RECIPES.recipeBuilder("computation_receiver_hatch")
                 .inputItems(DATA_HATCH_RECEIVER)
@@ -286,7 +283,7 @@ public class ComputerRecipes {
                 .outputItems(COMPUTATION_HATCH_RECEIVER)
                 .cleanroom(CleanroomType.CLEANROOM)
                 .duration(200).EUt(VA[LuV])
-                .addMaterialInfo(true, true).save(provider);
+                .addMaterialInfo(true, true).save();
 
         ASSEMBLER_RECIPES.recipeBuilder("computation_transmitter_hatch")
                 .inputItems(DATA_HATCH_TRANSMITTER)
@@ -296,7 +293,7 @@ public class ComputerRecipes {
                 .outputItems(COMPUTATION_HATCH_TRANSMITTER)
                 .cleanroom(CleanroomType.CLEANROOM)
                 .duration(200).EUt(VA[LuV])
-                .addMaterialInfo(true, true).save(provider);
+                .addMaterialInfo(true, true).save();
 
         ASSEMBLER_RECIPES.recipeBuilder("active_transformer")
                 .inputItems(POWER_TRANSFORMER[LuV])
@@ -306,7 +303,7 @@ public class ComputerRecipes {
                 .inputFluids(PCBCoolant, 1000)
                 .outputItems(GTMultiMachines.ACTIVE_TRANSFORMER)
                 .duration(300).EUt(VA[LuV])
-                .addMaterialInfo(true).save(provider);
+                .addMaterialInfo(true).save();
 
         ASSEMBLER_RECIPES.recipeBuilder("laser_cable")
                 .inputItems(CASING_LAMINATED_GLASS.asStack(1))
@@ -315,6 +312,6 @@ public class ComputerRecipes {
                 .outputItems(LASER_PIPES[0])
                 .cleanroom(CleanroomType.CLEANROOM)
                 .duration(100).EUt(VA[IV])
-                .addMaterialInfo(true).save(provider);
+                .addMaterialInfo(true).save();
     }
 }

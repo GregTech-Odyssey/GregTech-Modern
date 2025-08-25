@@ -2,11 +2,8 @@ package com.gregtechceu.gtceu.data.recipe.serialized.chemistry;
 
 import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
 
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
-
-import java.util.function.Consumer;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.dust;
@@ -17,7 +14,7 @@ import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.*;
 
 public class GrowthMediumRecipes {
 
-    public static void init(Consumer<FinishedRecipe> provider) {
+    public static void init() {
         // Bio Chaff
         MACERATOR_RECIPES.recipeBuilder("bio_chaff").EUt(4).duration(200)
                 .inputItems(PLANT_BALL, 2)
@@ -25,12 +22,12 @@ public class GrowthMediumRecipes {
                 .outputItems(BIO_CHAFF)
                 .chancedOutput(BIO_CHAFF.asStack(), 5000, 0)
                 .chancedOutput(BIO_CHAFF.asStack(), 2500, 0)
-                .save(provider);
+                .save();
 
         MACERATOR_RECIPES.recipeBuilder("dirt_from_bio_chaff").EUt(4).duration(300)
                 .inputItems(BIO_CHAFF)
                 .outputItems(Blocks.DIRT.asItem())
-                .save(provider);
+                .save();
 
         // Bacteria
         BREWING_RECIPES.recipeBuilder("bacteria").EUt(VA[HV]).duration(300)
@@ -38,7 +35,7 @@ public class GrowthMediumRecipes {
                 .inputFluids(DistilledWater.getFluid(1000))
                 .outputFluids(Bacteria.getFluid(1000))
                 .cleanroom(CleanroomType.STERILE_CLEANROOM)
-                .save(provider);
+                .save();
 
         // Bacterial Sludge
         CHEMICAL_RECIPES.recipeBuilder("bacterial_sludge").EUt(VA[EV]).duration(600)
@@ -46,7 +43,7 @@ public class GrowthMediumRecipes {
                 .inputFluids(Bacteria.getFluid(1000))
                 .outputFluids(BacterialSludge.getFluid(1000))
                 .cleanroom(CleanroomType.STERILE_CLEANROOM)
-                .save(provider);
+                .save();
 
         // Enriched Bacterial Sludge
         BREWING_RECIPES.recipeBuilder("enriched_bacterial_sludge_from_u238").EUt(4).duration(128)
@@ -54,21 +51,21 @@ public class GrowthMediumRecipes {
                 .inputFluids(BacterialSludge.getFluid(1000))
                 .outputFluids(EnrichedBacterialSludge.getFluid(1000))
                 .cleanroom(CleanroomType.STERILE_CLEANROOM)
-                .save(provider);
+                .save();
 
         BREWING_RECIPES.recipeBuilder("enriched_bacterial_sludge_from_u235").EUt(4).duration(128)
                 .inputItems(dustTiny, Uranium235)
                 .inputFluids(BacterialSludge.getFluid(1000))
                 .outputFluids(EnrichedBacterialSludge.getFluid(1000))
                 .cleanroom(CleanroomType.STERILE_CLEANROOM)
-                .save(provider);
+                .save();
 
         BREWING_RECIPES.recipeBuilder("enriched_bacterial_sludge_from_naquadria").EUt(4).duration(128)
                 .inputItems(dustTiny, Naquadria)
                 .inputFluids(BacterialSludge.getFluid(1000))
                 .outputFluids(EnrichedBacterialSludge.getFluid(2000))
                 .cleanroom(CleanroomType.STERILE_CLEANROOM)
-                .save(provider);
+                .save();
 
         // Mutagen
         DISTILLERY_RECIPES.recipeBuilder("mutagen").EUt(VA[IV]).duration(100)
@@ -76,7 +73,7 @@ public class GrowthMediumRecipes {
                 .circuitMeta(1)
                 .outputFluids(Mutagen.getFluid(100))
                 .cleanroom(CleanroomType.STERILE_CLEANROOM)
-                .save(provider);
+                .save();
 
         // Collagen
         CHEMICAL_RECIPES.recipeBuilder("collagen_from_bone_meal").EUt(VA[HV]).duration(800)
@@ -86,7 +83,7 @@ public class GrowthMediumRecipes {
                 .outputItems(dust, Collagen)
                 .outputFluids(DilutedSulfuricAcid.getFluid(500))
                 .cleanroom(CleanroomType.STERILE_CLEANROOM)
-                .save(provider);
+                .save();
 
         CHEMICAL_RECIPES.recipeBuilder("collagen_from_bone").EUt(VA[HV]).duration(1600)
                 .inputItems(dust, Meat, 2)
@@ -95,7 +92,7 @@ public class GrowthMediumRecipes {
                 .outputItems(dust, Collagen, 2)
                 .outputFluids(DilutedSulfuricAcid.getFluid(1000))
                 .cleanroom(CleanroomType.STERILE_CLEANROOM)
-                .save(provider);
+                .save();
 
         // Gelatin
         MIXER_RECIPES.recipeBuilder("gelatin_mixture").EUt(VA[HV]).duration(1600)
@@ -104,14 +101,14 @@ public class GrowthMediumRecipes {
                 .inputFluids(Water.getFluid(3000))
                 .outputFluids(GelatinMixture.getFluid(4000))
                 .cleanroom(CleanroomType.STERILE_CLEANROOM)
-                .save(provider);
+                .save();
 
         CENTRIFUGE_RECIPES.recipeBuilder("gelatin").EUt(VA[HV]).duration(2400)
                 .inputFluids(GelatinMixture.getFluid(6000))
                 .outputItems(dust, Phosphorus)
                 .outputItems(dust, Gelatin, 4)
                 .cleanroom(CleanroomType.STERILE_CLEANROOM)
-                .save(provider);
+                .save();
 
         // Agar
         AUTOCLAVE_RECIPES.recipeBuilder("agar").EUt(VA[HV]).duration(600)
@@ -119,7 +116,7 @@ public class GrowthMediumRecipes {
                 .inputFluids(DistilledWater.getFluid(1000))
                 .outputItems(dust, Agar)
                 .cleanroom(CleanroomType.STERILE_CLEANROOM)
-                .save(provider);
+                .save();
 
         // Raw Growth Medium
         MIXER_RECIPES.recipeBuilder("raw_growth_medium").EUt(VA[IV]).duration(1200)
@@ -130,7 +127,7 @@ public class GrowthMediumRecipes {
                 .inputFluids(Mutagen.getFluid(4000))
                 .outputFluids(RawGrowthMedium.getFluid(4000))
                 .cleanroom(CleanroomType.STERILE_CLEANROOM)
-                .save(provider);
+                .save();
 
         // Sterile Growth Medium
         FLUID_HEATER_RECIPES.recipeBuilder("sterile_growth_medium").EUt(VA[IV]).duration(20)
@@ -138,7 +135,7 @@ public class GrowthMediumRecipes {
                 .inputFluids(RawGrowthMedium.getFluid(100))
                 .outputFluids(SterileGrowthMedium.getFluid(100))
                 .cleanroom(CleanroomType.STERILE_CLEANROOM)
-                .save(provider);
+                .save();
 
         // Stem Cells
         CHEMICAL_RECIPES.recipeBuilder("stem_cells").EUt(VA[LuV]).duration(300)
@@ -148,6 +145,6 @@ public class GrowthMediumRecipes {
                 .outputItems(STEM_CELLS, 32)
                 .outputFluids(BacterialSludge.getFluid(500))
                 .cleanroom(CleanroomType.STERILE_CLEANROOM)
-                .save(provider);
+                .save();
     }
 }

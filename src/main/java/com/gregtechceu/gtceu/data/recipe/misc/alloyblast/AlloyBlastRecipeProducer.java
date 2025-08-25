@@ -16,13 +16,10 @@ import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
 import org.jetbrains.annotations.NotNull;
-
-import java.util.function.Consumer;
 
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.ingotHot;
 
@@ -36,8 +33,7 @@ public class AlloyBlastRecipeProducer {
      * @param material the material to generate for
      * @param property the blast property of the material
      */
-    public void produce(@NotNull Material material, @NotNull BlastProperty property,
-                        Consumer<FinishedRecipe> provider) {
+    public void produce(@NotNull Material material, @NotNull BlastProperty property) {
         // do not generate for disabled materials
         if (material.hasFlag(MaterialFlags.DISABLE_ALLOY_BLAST)) return;
 
@@ -50,7 +46,7 @@ public class AlloyBlastRecipeProducer {
         Fluid molten;
         if (ingotHot.doGenerateItem(material)) {
             molten = GTUtil.getMoltenFluid(material);
-            addFreezerRecipes(material, molten, property.getBlastTemperature(), provider);
+            addFreezerRecipes(material, molten, property.getBlastTemperature());
         } else {
             molten = material.getFluid();
         }
@@ -61,7 +57,7 @@ public class AlloyBlastRecipeProducer {
         int outputAmount = addInputs(material, builder);
         if (outputAmount <= 0) return;
 
-        buildRecipes(property, molten, outputAmount, componentAmount, builder, provider);
+        buildRecipes(property, molten, outputAmount, componentAmount, builder);
     }
 
     /**
@@ -125,7 +121,7 @@ public class AlloyBlastRecipeProducer {
      */
     protected void buildRecipes(@NotNull BlastProperty property, @NotNull Fluid molten, int outputAmount,
                                 int componentAmount,
-                                @NotNull GTRecipeBuilder builder, Consumer<FinishedRecipe> provider) {
+                                @NotNull GTRecipeBuilder builder) {
         // add the fluid output with the correct amount
         builder.outputFluids(new FluidStack(molten, GTValues.L * outputAmount));
 
@@ -140,13 +136,13 @@ public class AlloyBlastRecipeProducer {
             builderGas.circuitMeta(getGasCircuitNum(componentAmount))
                     .inputFluids(gas)
                     .duration((int) (duration * 0.67))
-                    .save(provider);
+                    .save();
         }
 
         // build the non-gas recipe
         builder.circuitMeta(getCircuitNum(componentAmount))
                 .duration(duration)
-                .save(provider);
+                .save();
     }
 
     /**
@@ -173,8 +169,7 @@ public class AlloyBlastRecipeProducer {
      * @param temperature the temperature of the material
      */
     @SuppressWarnings("MethodMayBeStatic")
-    protected void addFreezerRecipes(@NotNull Material material, @NotNull Fluid molten, int temperature,
-                                     Consumer<FinishedRecipe> provider) {
+    protected void addFreezerRecipes(@NotNull Material material, @NotNull Fluid molten, int temperature) {
         // build the freezer recipe
         GTRecipeBuilder freezerBuilder = GTRecipeTypes.VACUUM_RECIPES.recipeBuilder(material.getName())
                 .inputFluids(new FluidStack(molten, GTValues.L))
@@ -187,6 +182,6 @@ public class AlloyBlastRecipeProducer {
             freezerBuilder.inputFluids(GTMaterials.Helium.getFluid(FluidStorageKeys.LIQUID, 500))
                     .outputFluids(GTMaterials.Helium.getFluid(250));
         }
-        freezerBuilder.save(provider);
+        freezerBuilder.save();
     }
 }

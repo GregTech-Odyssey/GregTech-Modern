@@ -17,7 +17,6 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -195,7 +194,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         return recipeBuilder.copyFrom(builder);
     }
 
-    public GTRecipeType onRecipeBuild(BiConsumer<GTRecipeBuilder, Consumer<FinishedRecipe>> onBuild) {
+    public GTRecipeType onRecipeBuild(Consumer<GTRecipeBuilder> onBuild) {
         recipeBuilder.onSave(onBuild);
         return this;
     }

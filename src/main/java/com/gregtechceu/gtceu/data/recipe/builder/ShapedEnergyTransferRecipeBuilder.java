@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.data.recipe.builder;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.recipe.ShapedEnergyTransferRecipe;
+import com.gregtechceu.gtceu.data.pack.GTDynamicDataPack;
 
 import com.lowdragmc.lowdraglib.utils.Builder;
 import com.lowdragmc.lowdraglib.utils.NBTToJsonConverter;
@@ -21,8 +22,6 @@ import net.minecraftforge.common.crafting.StrictNBTIngredient;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.function.Consumer;
 
 public class ShapedEnergyTransferRecipeBuilder extends Builder<Ingredient, ShapedEnergyTransferRecipeBuilder> {
 
@@ -165,8 +164,8 @@ public class ShapedEnergyTransferRecipeBuilder extends Builder<Ingredient, Shape
         return BuiltInRegistries.ITEM.getKey(output.getItem());
     }
 
-    public void save(Consumer<FinishedRecipe> consumer) {
-        consumer.accept(new FinishedRecipe() {
+    public void save() {
+        GTDynamicDataPack.addRecipe(new FinishedRecipe() {
 
             @Override
             public void serializeRecipeData(JsonObject pJson) {

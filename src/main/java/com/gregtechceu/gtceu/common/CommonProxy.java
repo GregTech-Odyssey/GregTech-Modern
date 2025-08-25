@@ -249,7 +249,7 @@ public class CommonProxy {
             long startTime = System.currentTimeMillis();
             GTCraftingComponents.init();
             GTRecipes.recipeRemoval();
-            GTRecipes.recipeAddition(GTDynamicDataPack::addRecipe);
+            GTRecipes.recipeAddition();
             // Initialize dungeon loot additions
             DungeonLootLoader.init();
             GTCEu.LOGGER.info("GregTech Data loading took {}ms", System.currentTimeMillis() - startTime);

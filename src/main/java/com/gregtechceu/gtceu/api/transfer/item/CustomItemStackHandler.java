@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.api.transfer.item;
 
+import com.gregtechceu.gtceu.api.misc.IContentChange;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import com.lowdragmc.lowdraglib.syncdata.IContentChangeAware;
 import com.lowdragmc.lowdraglib.syncdata.ITagSerializable;
 
 import net.minecraft.nbt.CompoundTag;
@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSerializable<CompoundTag>, IContentChangeAware, ITagSerializable<CompoundTag> {
+public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSerializable<CompoundTag>, IContentChange, ITagSerializable<CompoundTag> {
 
     @NotNull
     protected Runnable onContentsChanged = GTUtil.NOOP;
@@ -215,6 +215,11 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
     public void setOnContentsChanged(@NotNull final Runnable onContentsChanged) {
         if (freezeChanged) return;
         this.onContentsChanged = onContentsChanged;
+    }
+
+    @Override
+    public boolean isFreezeChanged() {
+        return freezeChanged;
     }
 
     public void setOnContentsChangedAndfreeze(@NotNull final Runnable onContentsChanged) {

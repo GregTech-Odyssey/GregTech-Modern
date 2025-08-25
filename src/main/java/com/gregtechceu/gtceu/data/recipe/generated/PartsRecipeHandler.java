@@ -13,14 +13,12 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
-import java.util.function.Consumer;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
 import static com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags.*;
@@ -31,28 +29,28 @@ public final class PartsRecipeHandler {
 
     private PartsRecipeHandler() {}
 
-    public static void run(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
-        processRod(provider, material);
-        processLongRod(provider, material);
-        processPlate(provider, material);
-        processPlateDouble(provider, material);
-        processPlateDense(provider, material);
-        processTurbine(provider, material);
-        processRotor(provider, material);
-        processBolt(provider, material);
-        processScrew(provider, material);
-        processFineWire(provider, material);
-        processFoil(provider, material);
-        processLens(provider, material);
-        processGear(provider, gear, material);
-        processGear(provider, gearSmall, material);
-        processRing(provider, material);
-        processSpring(provider, spring, material);
-        processSpring(provider, springSmall, material);
-        processRound(provider, material);
+    public static void run(@NotNull Material material) {
+        processRod(material);
+        processLongRod(material);
+        processPlate(material);
+        processPlateDouble(material);
+        processPlateDense(material);
+        processTurbine(material);
+        processRotor(material);
+        processBolt(material);
+        processScrew(material);
+        processFineWire(material);
+        processFoil(material);
+        processLens(material);
+        processGear(gear, material);
+        processGear(gearSmall, material);
+        processRing(material);
+        processSpring(spring, material);
+        processSpring(springSmall, material);
+        processRound(material);
     }
 
-    private static void processBolt(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
+    private static void processBolt(@NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(bolt) || !material.hasProperty(PropertyKey.DUST)) {
             return;
         }
@@ -67,7 +65,7 @@ public final class PartsRecipeHandler {
                 .outputItems(boltStack)
                 .duration(20)
                 .EUt(24)
-                .save(provider);
+                .save();
 
         if (!boltStack.isEmpty() && !ingotStack.isEmpty()) {
             EXTRUDER_RECIPES.recipeBuilder("extrude_" + material.getName() + "_ingot_to_bolt")
@@ -76,7 +74,7 @@ public final class PartsRecipeHandler {
                     .outputItems(boltStack.copyWithCount(8))
                     .duration(15)
                     .EUt(VA[MV])
-                    .save(provider);
+                    .save();
 
             if (material.hasFlag(NO_SMASHING)) {
                 EXTRUDER_RECIPES.recipeBuilder("extrude_" + material.getName() + "_dust_to_bolt")
@@ -85,12 +83,12 @@ public final class PartsRecipeHandler {
                         .outputItems(boltStack.copyWithCount(8))
                         .duration(15)
                         .EUt(VA[MV])
-                        .save(provider);
+                        .save();
             }
         }
     }
 
-    private static void processScrew(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
+    private static void processScrew(@NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(screw) || !material.hasProperty(PropertyKey.DUST)) {
             return;
         }
@@ -104,14 +102,14 @@ public final class PartsRecipeHandler {
                 .outputItems(screwStack)
                 .duration((int) Math.max(1, material.getMass() / 8L))
                 .EUt(4)
-                .save(provider);
+                .save();
 
-        VanillaRecipeHelper.addShapedRecipe(provider, String.format("screw_%s", material.getName()),
+        VanillaRecipeHelper.addShapedRecipe(String.format("screw_%s", material.getName()),
                 screwStack, "fX", "X ",
                 'X', new MaterialEntry(bolt, material));
     }
 
-    private static void processFoil(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
+    private static void processFoil(@NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(foil) || !material.hasProperty(PropertyKey.INGOT)) {
             return;
         }
@@ -119,7 +117,7 @@ public final class PartsRecipeHandler {
         var magMaterial = material.hasFlag(IS_MAGNETIC) ?
                 material.getProperty(PropertyKey.INGOT).getMacerateInto() : material;
         if (!material.hasFlag(NO_SMASHING))
-            VanillaRecipeHelper.addShapedRecipe(provider, String.format("foil_%s", material.getName()),
+            VanillaRecipeHelper.addShapedRecipe(String.format("foil_%s", material.getName()),
                     ChemicalHelper.get(foil, material, 2),
                     "hP ", 'P', new MaterialEntry(plate, magMaterial));
 
@@ -129,7 +127,7 @@ public final class PartsRecipeHandler {
                 .duration((int) material.getMass())
                 .EUt(24)
                 .circuitMeta(1)
-                .save(provider);
+                .save();
 
         BENDER_RECIPES.recipeBuilder("bend_" + material.getName() + "_ingot_to_foil")
                 .inputItems(ingot, material)
@@ -137,7 +135,7 @@ public final class PartsRecipeHandler {
                 .duration((int) material.getMass())
                 .EUt(24)
                 .circuitMeta(10)
-                .save(provider);
+                .save();
 
         if (material.hasFlag(NO_SMASHING)) {
             EXTRUDER_RECIPES.recipeBuilder("extrude_" + material.getName() + "_ingot_to_foil")
@@ -146,7 +144,7 @@ public final class PartsRecipeHandler {
                     .outputItems(foil, magMaterial, 4)
                     .duration((int) material.getMass())
                     .EUt(24)
-                    .save(provider);
+                    .save();
 
             EXTRUDER_RECIPES.recipeBuilder("extrude_" + material.getName() + "_dust_to_foil")
                     .inputItems(dust, material)
@@ -154,11 +152,11 @@ public final class PartsRecipeHandler {
                     .outputItems(foil, magMaterial, 4)
                     .duration((int) material.getMass())
                     .EUt(24)
-                    .save(provider);
+                    .save();
         }
     }
 
-    private static void processFineWire(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
+    private static void processFineWire(@NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(wireFine) || !material.hasProperty(PropertyKey.INGOT)) {
             return;
         }
@@ -167,7 +165,7 @@ public final class PartsRecipeHandler {
                 material.getProperty(PropertyKey.INGOT).getMacerateInto() : material);
 
         if (!ChemicalHelper.get(foil, material).isEmpty())
-            VanillaRecipeHelper.addShapelessRecipe(provider, String.format("fine_wire_%s", material.getName()),
+            VanillaRecipeHelper.addShapelessRecipe(String.format("fine_wire_%s", material.getName()),
                     fineWireStack, 'x', new MaterialEntry(foil, material));
 
         if (material.hasProperty(PropertyKey.WIRE)) {
@@ -176,18 +174,18 @@ public final class PartsRecipeHandler {
                     .outputItems(fineWireStack.copyWithCount(4))
                     .duration((int) material.getMass() * 3 / 2)
                     .EUt(VA[ULV])
-                    .save(provider);
+                    .save();
         } else {
             WIREMILL_RECIPES.recipeBuilder("mill_" + material.getName() + "ingot_to_fine_wire")
                     .inputItems(ingot, material)
                     .outputItems(fineWireStack.copyWithCount(8))
                     .duration((int) material.getMass() * 3)
                     .EUt(VA[ULV])
-                    .save(provider);
+                    .save();
         }
     }
 
-    private static void processGear(@NotNull Consumer<FinishedRecipe> provider, @NotNull TagPrefix prefix,
+    private static void processGear(@NotNull TagPrefix prefix,
                                     @NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(prefix) || !material.hasProperty(PropertyKey.DUST)) {
             return;
@@ -205,7 +203,7 @@ public final class PartsRecipeHandler {
                     .outputItems(stack)
                     .duration((int) material.getMass() * 5)
                     .EUt(8L * voltageMultiplier)
-                    .save(provider);
+                    .save();
 
             ALLOY_SMELTER_RECIPES.recipeBuilder("alloy_smelt_" + material.getName() + "_ingot_to_gear")
                     .inputItems(ingot, material, 8)
@@ -214,7 +212,7 @@ public final class PartsRecipeHandler {
                     .duration((int) material.getMass() * 10)
                     .EUt(2L * voltageMultiplier)
                     .category(GTRecipeCategories.INGOT_MOLDING)
-                    .save(provider);
+                    .save();
 
             if (material.hasFlag(NO_SMASHING)) {
                 EXTRUDER_RECIPES.recipeBuilder("extrude_" + material.getName() + "_dust_to_gear")
@@ -223,7 +221,7 @@ public final class PartsRecipeHandler {
                         .outputItems(stack)
                         .duration((int) material.getMass() * 5)
                         .EUt(8L * voltageMultiplier)
-                        .save(provider);
+                        .save();
             }
         }
 
@@ -236,13 +234,13 @@ public final class PartsRecipeHandler {
                         .outputItems(stack)
                         .duration(isSmall ? 20 : 100)
                         .EUt(VA[ULV])
-                        .save(provider);
+                        .save();
             }
         }
 
         if (material.hasFlag(GENERATE_PLATE) && material.hasFlag(GENERATE_ROD)) {
             if (isSmall) {
-                VanillaRecipeHelper.addShapedRecipe(provider, String.format("small_gear_%s", material.getName()),
+                VanillaRecipeHelper.addShapedRecipe(String.format("small_gear_%s", material.getName()),
                         stack,
                         " R ", "hPx", " R ", 'R', new MaterialEntry(rod, material), 'P',
                         new MaterialEntry(plate, material));
@@ -253,7 +251,7 @@ public final class PartsRecipeHandler {
                         .outputItems(stack)
                         .duration((int) material.getMass())
                         .EUt(material.getBlastTemperature() >= 2800 ? 256 : 64)
-                        .save(provider);
+                        .save();
 
                 ALLOY_SMELTER_RECIPES.recipeBuilder("alloy_smelt_" + material.getName() + "_ingot_to_small_gear")
                         .duration((int) material.getMass()).EUt(VA[LV])
@@ -261,7 +259,7 @@ public final class PartsRecipeHandler {
                         .notConsumable(GTItems.SHAPE_MOLD_GEAR_SMALL)
                         .outputItems(stack)
                         .category(GTRecipeCategories.INGOT_MOLDING)
-                        .save(provider);
+                        .save();
 
                 if (material.hasFlag(NO_SMASHING)) {
                     EXTRUDER_RECIPES.recipeBuilder("extrude_" + material.getName() + "_dust_to_small_gear")
@@ -270,10 +268,10 @@ public final class PartsRecipeHandler {
                             .outputItems(stack)
                             .duration((int) material.getMass())
                             .EUt(material.getBlastTemperature() >= 2800 ? 256 : 64)
-                            .save(provider);
+                            .save();
                 }
             } else {
-                VanillaRecipeHelper.addShapedRecipe(provider, String.format("gear_%s", material.getName()), stack,
+                VanillaRecipeHelper.addShapedRecipe(String.format("gear_%s", material.getName()), stack,
                         "RPR", "PwP", "RPR",
                         'P', new MaterialEntry(plate, material),
                         'R', new MaterialEntry(rod, material));
@@ -281,7 +279,7 @@ public final class PartsRecipeHandler {
         }
     }
 
-    private static void processLens(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
+    private static void processLens(@NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(lens) || !material.hasProperty(PropertyKey.GEM)) {
             return;
         }
@@ -290,18 +288,18 @@ public final class PartsRecipeHandler {
                 .inputItems(plate, material)
                 .outputItems(lens, material)
                 .outputItems(dustSmall, material)
-                .duration(1200).EUt(120).save(provider);
+                .duration(1200).EUt(120).save();
 
         if (!ChemicalHelper.get(gemExquisite, material).isEmpty()) {
             LATHE_RECIPES.recipeBuilder("lathe_" + material.getName() + "_gem_to_lens")
                     .inputItems(gemExquisite, material)
                     .outputItems(lens, material)
                     .outputItems(dust, material, 2)
-                    .duration(2400).EUt(30).save(provider);
+                    .duration(2400).EUt(30).save();
         }
     }
 
-    private static void processPlate(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
+    private static void processPlate(@NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(plate) || !material.hasProperty(PropertyKey.DUST)) {
             return;
         }
@@ -315,12 +313,12 @@ public final class PartsRecipeHandler {
                         .outputItems(plate, material)
                         .duration(40)
                         .EUt(VA[ULV])
-                        .save(provider);
+                        .save();
             }
         }
     }
 
-    private static void processPlateDouble(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
+    private static void processPlateDouble(@NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(plateDouble) || !material.hasProperty(PropertyKey.INGOT)) {
             return;
         }
@@ -329,7 +327,7 @@ public final class PartsRecipeHandler {
                 material.getProperty(PropertyKey.INGOT).getMacerateInto() : material;
         if (material.hasFlag(GENERATE_PLATE)) {
             if (!material.hasFlag(NO_SMASHING)) {
-                VanillaRecipeHelper.addShapedRecipe(provider, String.format("plate_double_%s", material.getName()),
+                VanillaRecipeHelper.addShapedRecipe(String.format("plate_double_%s", material.getName()),
                         ChemicalHelper.get(plateDouble, magMaterial),
                         "h", "P", "P", 'P', new MaterialEntry(plate, material));
             }
@@ -339,7 +337,7 @@ public final class PartsRecipeHandler {
                     .inputItems(plate, material, 2)
                     .outputItems(plateDouble, magMaterial)
                     .circuitMeta(2)
-                    .save(provider);
+                    .save();
 
             BENDER_RECIPES.recipeBuilder("bend_" + material.getName() + "_ingot_to_double_plate")
                     .inputItems(ingot, material, 2)
@@ -347,11 +345,11 @@ public final class PartsRecipeHandler {
                     .outputItems(plateDouble, magMaterial)
                     .duration((int) material.getMass() * 2)
                     .EUt(96)
-                    .save(provider);
+                    .save();
         }
     }
 
-    private static void processPlateDense(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
+    private static void processPlateDense(@NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(plateDense) || !material.hasProperty(PropertyKey.DUST)) {
             return;
         }
@@ -364,7 +362,7 @@ public final class PartsRecipeHandler {
                 .outputItems(plateDense, magMaterial)
                 .duration((int) Math.max(material.getMass() * 9L, 1L))
                 .EUt(96)
-                .save(provider);
+                .save();
 
         if (material.hasProperty(PropertyKey.INGOT)) {
             BENDER_RECIPES.recipeBuilder("bend_" + material.getName() + "_ingot_to_dense_plate")
@@ -373,11 +371,11 @@ public final class PartsRecipeHandler {
                     .outputItems(plateDense, magMaterial)
                     .duration((int) Math.max(material.getMass() * 9L, 1L))
                     .EUt(96)
-                    .save(provider);
+                    .save();
         }
     }
 
-    private static void processRing(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
+    private static void processRing(@NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(ring) || !material.hasProperty(PropertyKey.INGOT)) {
             return;
         }
@@ -388,10 +386,10 @@ public final class PartsRecipeHandler {
                 .outputItems(ring, material, 4)
                 .duration((int) material.getMass() * 2)
                 .EUt(6L * getVoltageMultiplier(material))
-                .save(provider);
+                .save();
 
         if (!material.hasFlag(NO_SMASHING)) {
-            VanillaRecipeHelper.addShapedRecipe(provider, String.format("ring_%s", material.getName()),
+            VanillaRecipeHelper.addShapedRecipe(String.format("ring_%s", material.getName()),
                     ChemicalHelper.get(ring, material),
                     "h ", " X",
                     'X', new MaterialEntry(rod, material));
@@ -402,11 +400,11 @@ public final class PartsRecipeHandler {
                     .outputItems(ring, material, 4)
                     .duration((int) material.getMass() * 2)
                     .EUt(6L * getVoltageMultiplier(material))
-                    .save(provider);
+                    .save();
         }
     }
 
-    private static void processSpring(@NotNull Consumer<FinishedRecipe> provider, @NotNull TagPrefix prefix,
+    private static void processSpring(@NotNull TagPrefix prefix,
                                       @NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(prefix) || !material.hasProperty(PropertyKey.INGOT)) {
             return;
@@ -414,7 +412,7 @@ public final class PartsRecipeHandler {
 
         boolean isSmall = prefix == springSmall;
         if (isSmall) {
-            VanillaRecipeHelper.addShapedRecipe(provider, String.format("spring_small_%s", material.getName()),
+            VanillaRecipeHelper.addShapedRecipe(String.format("spring_small_%s", material.getName()),
                     ChemicalHelper.get(springSmall, material),
                     " s ", "fRx", 'R', new MaterialEntry(rod, material));
 
@@ -423,7 +421,7 @@ public final class PartsRecipeHandler {
                     .inputItems(rod, material)
                     .outputItems(springSmall, material, 2)
                     .circuitMeta(1)
-                    .save(provider);
+                    .save();
         } else {
             BENDER_RECIPES.recipeBuilder("bend_" + material.getName() + "_long_rod_to_spring")
                     .inputItems(rodLong, material)
@@ -431,21 +429,21 @@ public final class PartsRecipeHandler {
                     .circuitMeta(1)
                     .duration(200)
                     .EUt(16)
-                    .save(provider);
+                    .save();
 
-            VanillaRecipeHelper.addShapedRecipe(provider, String.format("spring_%s", material.getName()),
+            VanillaRecipeHelper.addShapedRecipe(String.format("spring_%s", material.getName()),
                     ChemicalHelper.get(spring, material),
                     " s ", "fRx", " R ", 'R', new MaterialEntry(rodLong, material));
         }
     }
 
-    private static void processRotor(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
+    private static void processRotor(@NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(rotor) || !material.hasProperty(PropertyKey.INGOT)) {
             return;
         }
 
         ItemStack stack = ChemicalHelper.get(rotor, material);
-        VanillaRecipeHelper.addShapedRecipe(provider, String.format("rotor_%s", material.getName()), stack,
+        VanillaRecipeHelper.addShapedRecipe(String.format("rotor_%s", material.getName()), stack,
                 "ChC", "SRf", "CdC",
                 'C', new MaterialEntry(plate, material),
                 'S', new MaterialEntry(screw, material),
@@ -460,7 +458,7 @@ public final class PartsRecipeHandler {
                         .outputItems(stack.copy())
                         .duration(120)
                         .EUt(20)
-                        .save(provider);
+                        .save();
             }
         }
 
@@ -470,7 +468,7 @@ public final class PartsRecipeHandler {
                 .outputItems(stack.copy())
                 .duration((int) material.getMass() * 4)
                 .EUt(material.getBlastTemperature() >= 2800 ? 256 : 64)
-                .save(provider);
+                .save();
 
         if (material.hasFlag(NO_SMASHING)) {
             EXTRUDER_RECIPES.recipeBuilder("extrude_" + material.getName() + "_dust_to_rotor")
@@ -479,11 +477,11 @@ public final class PartsRecipeHandler {
                     .outputItems(stack.copy())
                     .duration((int) material.getMass() * 4)
                     .EUt(material.getBlastTemperature() >= 2800 ? 256 : 64)
-                    .save(provider);
+                    .save();
         }
     }
 
-    private static void processRod(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
+    private static void processRod(@NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(rod) || !material.hasProperty(PropertyKey.DUST)) {
             return;
         }
@@ -502,7 +500,7 @@ public final class PartsRecipeHandler {
             } else {
                 builder.outputItems(rod, materialOutput, 2);
             }
-            builder.save(provider);
+            builder.save();
         }
 
         if (material.hasFlag(GENERATE_BOLT_SCREW)) {
@@ -513,16 +511,16 @@ public final class PartsRecipeHandler {
                     .outputItems(boltStack.copyWithCount(4))
                     .duration((int) Math.max(material.getMass() * 2L, 1L))
                     .EUt(4)
-                    .save(provider);
+                    .save();
 
-            VanillaRecipeHelper.addShapedRecipe(provider, String.format("bolt_saw_%s", material.getName()),
+            VanillaRecipeHelper.addShapedRecipe(String.format("bolt_saw_%s", material.getName()),
                     boltStack.copyWithCount(2),
                     "s ", " X",
                     'X', new MaterialEntry(rod, material));
         }
     }
 
-    private static void processLongRod(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
+    private static void processLongRod(@NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(rodLong) || !material.hasProperty(PropertyKey.DUST)) {
             return;
         }
@@ -538,21 +536,21 @@ public final class PartsRecipeHandler {
                 .inputItems(rodLong, material)
                 .outputItems(stickStack.copyWithCount(2))
                 .duration((int) Math.max(material.getMass(), 1L)).EUt(4)
-                .save(provider);
+                .save();
 
-        VanillaRecipeHelper.addShapedRecipe(provider, String.format("stick_long_%s", material.getName()),
+        VanillaRecipeHelper.addShapedRecipe(String.format("stick_long_%s", material.getName()),
                 stickStack.copyWithCount(2),
                 "s", "X", 'X', new MaterialEntry(rodLong, material));
 
         if (material.hasProperty(PropertyKey.GEM)) {
-            VanillaRecipeHelper.addShapedRecipe(provider,
+            VanillaRecipeHelper.addShapedRecipe(
                     String.format("stick_long_gem_flawless_%s", material.getName()),
                     stickStack,
                     "sf",
                     "G ",
                     'G', new MaterialEntry(gemFlawless, material));
 
-            VanillaRecipeHelper.addShapedRecipe(provider,
+            VanillaRecipeHelper.addShapedRecipe(
                     String.format("stick_long_gem_exquisite_%s", material.getName()),
                     stickStack.copyWithCount(2),
                     "sf", "G ",
@@ -560,7 +558,7 @@ public final class PartsRecipeHandler {
 
         }
 
-        VanillaRecipeHelper.addShapedRecipe(provider, String.format("stick_long_stick_%s", material.getName()), stack,
+        VanillaRecipeHelper.addShapedRecipe(String.format("stick_long_stick_%s", material.getName()), stack,
                 "ShS",
                 'S', new MaterialEntry(rod, material));
 
@@ -569,10 +567,10 @@ public final class PartsRecipeHandler {
                 .outputItems(stack)
                 .duration((int) Math.max(material.getMass(), 1L))
                 .EUt(16)
-                .save(provider);
+                .save();
     }
 
-    private static void processTurbine(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
+    private static void processTurbine(@NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(turbineBlade) || !material.hasProperty(PropertyKey.INGOT)) {
             return;
         }
@@ -587,7 +585,7 @@ public final class PartsRecipeHandler {
                 .outputItems(rotorStack)
                 .duration(200)
                 .EUt(400)
-                .save(provider);
+                .save();
 
         FORMING_PRESS_RECIPES.recipeBuilder("press_" + material.getName() + "_turbine_rotor")
                 .inputItems(plateDouble, material, 5)
@@ -595,16 +593,16 @@ public final class PartsRecipeHandler {
                 .outputItems(turbineBlade, material)
                 .duration(20)
                 .EUt(256)
-                .save(provider);
+                .save();
 
-        VanillaRecipeHelper.addShapedRecipe(provider, String.format("turbine_blade_%s", material.getName()),
+        VanillaRecipeHelper.addShapedRecipe(String.format("turbine_blade_%s", material.getName()),
                 ChemicalHelper.get(turbineBlade, material),
                 "PPP", "SPS", "fPd",
                 'P', new MaterialEntry(plateDouble, material),
                 'S', new MaterialEntry(screw, material));
     }
 
-    private static void processRound(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
+    private static void processRound(@NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(round) || !material.hasProperty(PropertyKey.INGOT)) {
             return;
         }
@@ -612,11 +610,11 @@ public final class PartsRecipeHandler {
         var outputMaterial = material.hasFlag(IS_MAGNETIC) ? material.getProperty(PropertyKey.INGOT).getMacerateInto() :
                 material;
         if (!material.hasFlag(NO_SMASHING)) {
-            VanillaRecipeHelper.addShapedRecipe(provider, String.format("round_%s", material.getName()),
+            VanillaRecipeHelper.addShapedRecipe(String.format("round_%s", material.getName()),
                     ChemicalHelper.get(round, outputMaterial),
                     "fN", "Nh", 'N', new MaterialEntry(nugget, material));
 
-            VanillaRecipeHelper.addShapedRecipe(provider, String.format("round_from_ingot_%s", material.getName()),
+            VanillaRecipeHelper.addShapedRecipe(String.format("round_from_ingot_%s", material.getName()),
                     ChemicalHelper.get(round, outputMaterial, 4),
                     "fIh", 'I', new MaterialEntry(ingot, material));
         }
@@ -625,7 +623,7 @@ public final class PartsRecipeHandler {
                 .EUt(VA[ULV]).duration(100)
                 .inputItems(nugget, material)
                 .outputItems(round, outputMaterial)
-                .save(provider);
+                .save();
     }
 
     private static int getVoltageMultiplier(@NotNull Material material) {

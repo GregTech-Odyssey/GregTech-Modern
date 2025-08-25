@@ -67,11 +67,11 @@ public class GTRecipeTypes {
     public final static GTRecipeType STEAM_BOILER_RECIPES = register("steam_boiler", STEAM)
             .setMaxIOSize(1, 0, 1, 1)
             .setProgressBar(GuiTextures.PROGRESS_BAR_BOILER_FUEL.get(true), DOWN_TO_UP)
-            .onRecipeBuild((builder, provider) -> {
+            .onRecipeBuild((builder) -> {
                 // remove the * 12 if SteamBoilerMachine:240 is uncommented
                 var duration = (builder.duration / 12 / 80); // copied for large boiler
                 if (duration > 0) {
-                    GTRecipeTypes.LARGE_BOILER_RECIPES.copyFrom(builder).duration(duration).save(provider);
+                    GTRecipeTypes.LARGE_BOILER_RECIPES.copyFrom(builder).duration(duration).save();
                 }
                 var list = builder.input.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList());
                 if (!list.isEmpty()) {
@@ -108,7 +108,7 @@ public class GTRecipeTypes {
             .setEUIO(IO.IN)
             .setProgressBar(GuiTextures.PROGRESS_BAR_ARC_FURNACE, LEFT_TO_RIGHT)
             .setSound(GTSoundEntries.ARC)
-            .onRecipeBuild((recipeBuilder, provider) -> {
+            .onRecipeBuild((recipeBuilder) -> {
                 if (recipeBuilder.input.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList()).isEmpty() &&
                         recipeBuilder.tickInput.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList())
                                 .isEmpty()) {
@@ -197,8 +197,8 @@ public class GTRecipeTypes {
             .setProgressBar(GuiTextures.PROGRESS_BAR_ARROW_MULTIPLE, LEFT_TO_RIGHT)
             .setSound(GTValues.FOOLS.getAsBoolean() ? GTSoundEntries.SCIENCE : GTSoundEntries.CHEMICAL)
             .setMaxTooltips(4)
-            .onRecipeBuild((recipeBuilder, provider) -> GTRecipeTypes.LARGE_CHEMICAL_RECIPES.copyFrom(recipeBuilder)
-                    .save(provider));
+            .onRecipeBuild((recipeBuilder) -> GTRecipeTypes.LARGE_CHEMICAL_RECIPES.copyFrom(recipeBuilder)
+                    .save());
 
     public final static GTRecipeType COMPRESSOR_RECIPES = register("compressor", ELECTRIC).setMaxIOSize(1, 1, 0, 0)
             .setEUIO(IO.IN)
@@ -217,7 +217,7 @@ public class GTRecipeTypes {
             .setProgressBar(GuiTextures.PROGRESS_BAR_SLICE, LEFT_TO_RIGHT)
             .setSound(GTSoundEntries.CUT)
             .setMaxTooltips(4)
-            .onRecipeBuild((recipeBuilder, provider) -> {
+            .onRecipeBuild((recipeBuilder) -> {
                 if (recipeBuilder.input.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList()).isEmpty() &&
                         recipeBuilder.tickInput.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList())
                                 .isEmpty()) {
@@ -226,14 +226,14 @@ public class GTRecipeTypes {
                             .inputFluids(GTMaterials.Water.getFluid((int) Math.max(4,
                                     Math.min(1000, recipeBuilder.duration * recipeBuilder.EUt() / 320))))
                             .duration(recipeBuilder.duration * 2)
-                            .save(provider);
+                            .save();
 
                     recipeBuilder
                             .copy(new ResourceLocation(recipeBuilder.id.toString() + "_distilled_water"))
                             .inputFluids(GTMaterials.DistilledWater.getFluid((int) Math.max(3,
                                     Math.min(750, recipeBuilder.duration * recipeBuilder.EUt() / 426))))
                             .duration((int) (recipeBuilder.duration * 1.5))
-                            .save(provider);
+                            .save();
 
                     // Don't call buildAndRegister as we are mutating the original recipe and already in the middle of a
                     // buildAndRegister call.
@@ -385,14 +385,14 @@ public class GTRecipeTypes {
             .setProgressBar(GuiTextures.PROGRESS_BAR_CIRCUIT_ASSEMBLER, LEFT_TO_RIGHT)
             .setSound(GTSoundEntries.ASSEMBLER)
             .setMaxTooltips(4)
-            .onRecipeBuild((recipeBuilder, provider) -> {
+            .onRecipeBuild((recipeBuilder) -> {
                 if (recipeBuilder.input.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList()).isEmpty() &&
                         recipeBuilder.tickInput.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList())
                                 .isEmpty()) {
                     recipeBuilder.copy(new ResourceLocation(recipeBuilder.id.toString() + "_soldering_alloy"))
                             .inputFluids(GTMaterials.SolderingAlloy
                                     .getFluid(Math.max(1, (GTValues.L / 2) * recipeBuilder.getSolderMultiplier())))
-                            .save(provider);
+                            .save();
 
                     // Don't call buildAndRegister as we are mutating the original recipe and already in the middle of a
                     // buildAndRegister call.
@@ -538,7 +538,7 @@ public class GTRecipeTypes {
             .setMaxIOSize(0, 1, 1, 12).setEUIO(IO.IN)
             .setSound(GTSoundEntries.CHEMICAL)
             .setProgressBar(GuiTextures.PROGRESS_BAR_ARROW_MULTIPLE, LEFT_TO_RIGHT)
-            .onRecipeBuild((recipeBuilder, provider) -> {
+            .onRecipeBuild((recipeBuilder) -> {
                 if (recipeBuilder.data.getBoolean("disable_distillery")) return;
                 if (recipeBuilder.output.containsKey(FluidRecipeCapability.CAP)) {
                     long EUt = EURecipeCapability.CAP
@@ -594,7 +594,7 @@ public class GTRecipeTypes {
                                     .tierChanceBoost(outputContent.tierChanceBoost)
                                     .outputFluids(output)
                                     .duration(recipeDuration)
-                                    .save(provider);
+                                    .save();
                             continue;
                         }
 
@@ -608,7 +608,7 @@ public class GTRecipeTypes {
                                 builder.outputItems(stack);
                             }
                         }
-                        builder.save(provider);
+                        builder.save();
                     }
                 }
             });

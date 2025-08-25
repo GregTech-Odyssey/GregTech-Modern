@@ -7,14 +7,11 @@ import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.data.recipe.misc.RecyclingRecipes;
 
-import net.minecraft.data.recipes.FinishedRecipe;
-
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.*;
 
@@ -24,16 +21,16 @@ public final class RecyclingRecipeHandler {
 
     private RecyclingRecipeHandler() {}
 
-    public static void run(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
+    public static void run(@NotNull Material material) {
         // registers universal maceration recipes for specified ore prefixes
         for (TagPrefix prefix : TagPrefix.values()) {
             if (prefix.generateRecycling()) {
-                processCrushing(provider, prefix, material);
+                processCrushing(prefix, material);
             }
         }
     }
 
-    private static void processCrushing(@NotNull Consumer<FinishedRecipe> provider, @NotNull TagPrefix prefix,
+    private static void processCrushing(@NotNull TagPrefix prefix,
                                         @NotNull Material material) {
         if (!material.shouldGenerateRecipesFor(prefix) || !material.hasProperty(PropertyKey.DUST)) {
             return;
@@ -47,7 +44,7 @@ public final class RecyclingRecipeHandler {
         boolean ignoreArcSmelting = IGNORE_ARC_SMELTING.contains(prefix) &&
                 !(material.hasProperty(PropertyKey.INGOT) &&
                         material.getProperty(PropertyKey.INGOT).getArcSmeltingInto() != material);
-        RecyclingRecipes.registerRecyclingRecipes(provider, ChemicalHelper.get(prefix, material), materialStacks,
+        RecyclingRecipes.registerRecyclingRecipes(ChemicalHelper.get(prefix, material), materialStacks,
                 ignoreArcSmelting, prefix);
     }
 }

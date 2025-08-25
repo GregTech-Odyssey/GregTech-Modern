@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 import com.gregtechceu.gtceu.utils.GTMath;
 
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
@@ -17,7 +16,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 import static com.gregtechceu.gtceu.api.GTValues.LV;
 import static com.gregtechceu.gtceu.api.GTValues.VA;
@@ -30,11 +28,11 @@ public final class DecompositionRecipeHandler {
 
     private DecompositionRecipeHandler() {}
 
-    public static void run(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
-        processDecomposition(provider, material);
+    public static void run(@NotNull Material material) {
+        processDecomposition(material);
     }
 
-    private static void processDecomposition(@NotNull Consumer<FinishedRecipe> provider, @NotNull Material material) {
+    private static void processDecomposition(@NotNull Material material) {
         if (material.getMaterialComponents().isEmpty() ||
                 (!material.hasFlag(DECOMPOSITION_BY_ELECTROLYZING) &&
                         !material.hasFlag(DECOMPOSITION_BY_CENTRIFUGING)) ||
@@ -120,7 +118,7 @@ public final class DecompositionRecipeHandler {
         }
 
         // register recipe
-        builder.save(provider);
+        builder.save();
     }
 
     private static boolean isEveryMaterialReducible(int divisor, LongList materialAmounts) {

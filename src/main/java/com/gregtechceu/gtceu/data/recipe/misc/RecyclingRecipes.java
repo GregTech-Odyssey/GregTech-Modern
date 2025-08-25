@@ -16,7 +16,6 @@ import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Tuple;
@@ -32,7 +31,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -44,16 +42,16 @@ public class RecyclingRecipes {
 
     // TODO - Work on durations and EUt's
 
-    public static void init(Consumer<FinishedRecipe> provider) {
+    public static void init() {
         for (var entry : ChemicalHelper.getAllItemInfos()) {
             ItemStack itemStack = entry.getFirst();
             ItemMaterialInfo materialInfo = entry.getSecond();
             List<MaterialStack> materialStacks = new ObjectArrayList<>(materialInfo.getMaterials());
-            registerRecyclingRecipes(provider, itemStack, materialStacks, false, null);
+            registerRecyclingRecipes(itemStack, materialStacks, false, null);
         }
     }
 
-    public static void registerRecyclingRecipes(Consumer<FinishedRecipe> provider, ItemStack input,
+    public static void registerRecyclingRecipes(ItemStack input,
                                                 List<MaterialStack> components, boolean ignoreArcSmelting,
                                                 @Nullable TagPrefix prefix) {
         // Gather the valid Materials for use in recycling recipes.
@@ -73,10 +71,10 @@ public class RecyclingRecipes {
         int voltageMultiplier = calculateVoltageMultiplier(components);
 
         if (prefix != TagPrefix.dust) {
-            registerMaceratorRecycling(provider, input, components, voltageMultiplier);
+            registerMaceratorRecycling(input, components, voltageMultiplier);
         }
         if (prefix != null) {
-            registerExtractorRecycling(provider, input, components, voltageMultiplier, prefix);
+            registerExtractorRecycling(input, components, voltageMultiplier, prefix);
         }
         if (ignoreArcSmelting) return;
 
@@ -100,10 +98,10 @@ public class RecyclingRecipes {
                 return;
             }
         }
-        registerArcRecycling(provider, input, components, prefix);
+        registerArcRecycling(input, components, prefix);
     }
 
-    private static void registerMaceratorRecycling(Consumer<FinishedRecipe> provider, ItemStack input,
+    private static void registerMaceratorRecycling(ItemStack input,
                                                    List<MaterialStack> materials, int multiplier) {
         // Finalize the output list.
         List<ItemStack> outputs = finalizeOutputs(
@@ -143,10 +141,10 @@ public class RecyclingRecipes {
             builder.category(GTRecipeCategories.MACERATOR_RECYCLING);
         }
 
-        builder.save(provider);
+        builder.save();
     }
 
-    private static void registerExtractorRecycling(Consumer<FinishedRecipe> provider, ItemStack input,
+    private static void registerExtractorRecycling(ItemStack input,
                                                    List<MaterialStack> materials, int multiplier,
                                                    @Nullable TagPrefix prefix) {
         MaterialEntry entry = ChemicalHelper.getMaterialEntry(input.getItem());
@@ -183,7 +181,7 @@ public class RecyclingRecipes {
             } else {
                 builder.inputItems(inputTag);
             }
-            builder.save(provider);
+            builder.save();
 
             return;
         }
@@ -230,10 +228,10 @@ public class RecyclingRecipes {
             if (!outputStack.isEmpty()) extractorBuilder.outputItems(outputStack);
         }
 
-        extractorBuilder.save(provider);
+        extractorBuilder.save();
     }
 
-    private static void registerArcRecycling(Consumer<FinishedRecipe> provider, ItemStack input,
+    private static void registerArcRecycling(ItemStack input,
                                              List<MaterialStack> materials, @Nullable TagPrefix prefix) {
         MaterialEntry entry = ChemicalHelper.getMaterialEntry(input.getItem());
         TagKey<Item> inputTag = null;
@@ -265,7 +263,7 @@ public class RecyclingRecipes {
                         ms.material() == ms.material().getProperty(PropertyKey.INGOT).getArcSmeltingInto()) {
                     builder.category(GTRecipeCategories.ARC_FURNACE_RECYCLING);
                 }
-                builder.save(provider);
+                builder.save();
             }
             return;
         }
@@ -303,7 +301,7 @@ public class RecyclingRecipes {
             builder.category(GTRecipeCategories.ARC_FURNACE_RECYCLING);
         }
 
-        builder.save(provider);
+        builder.save();
     }
 
     private static boolean needsRecyclingCategory(@Nullable TagPrefix prefix, @NotNull MaterialStack inputStack,

@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.data.recipe.builder;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.data.pack.GTDynamicDataPack;
 
 import com.lowdragmc.lowdraglib.utils.NBTToJsonConverter;
 
@@ -22,7 +23,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 public class ShapelessRecipeBuilder {
 
@@ -102,8 +102,8 @@ public class ShapelessRecipeBuilder {
         }
     }
 
-    public void save(Consumer<FinishedRecipe> consumer) {
-        consumer.accept(new FinishedRecipe() {
+    public void save() {
+        GTDynamicDataPack.addRecipe(new FinishedRecipe() {
 
             @Override
             public void serializeRecipeData(JsonObject pJson) {

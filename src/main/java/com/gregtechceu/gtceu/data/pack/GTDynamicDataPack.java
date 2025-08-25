@@ -34,12 +34,15 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 public class GTDynamicDataPack implements PackResources {
+
+    public static final Consumer<FinishedRecipe> CONSUMER = GTDynamicDataPack::addRecipe;
 
     protected static final ObjectSet<String> SERVER_DOMAINS = new ObjectOpenHashSet<>();
     protected static final GTDynamicPackContents CONTENTS = new GTDynamicPackContents();
