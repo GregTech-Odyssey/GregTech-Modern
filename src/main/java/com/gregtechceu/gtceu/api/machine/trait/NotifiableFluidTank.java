@@ -33,6 +33,8 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     public final IO capabilityIO;
     @Persisted
     protected final CustomFluidTank[] storages;
+    protected boolean allowSameFluids = true; // Can different tanks be filled with the same fluid. It should be
+                                              // determined
     // while creating tanks.
     protected Boolean isEmpty;
     protected boolean changed = true;
@@ -52,6 +54,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
             this.storages[i] = new CustomFluidTank(capacity);
             this.storages[i].setOnContentsChangedAndfreeze(this::onContentsChanged);
         }
+        if (slots > 1 && io == IO.IN) allowSameFluids = false;
     }
 
     public NotifiableFluidTank(MetaMachine machine, List<CustomFluidTank> storages, IO io, IO capabilityIO) {
@@ -314,12 +317,28 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     public int fillInternal(FluidStack resource, FluidAction action) {
         if (resource.isEmpty()) return 0;
         var copied = resource.copy();
-        for (var storage : storages) {
-            var filled = storage.fill(copied.copy(), action);
-            if (filled > 0) {
-                copied.shrink(filled);
+        CustomFluidTank existingStorage = null;
+        if (!allowSameFluids) {
+            for (var storage : storages) {
+                if (!storage.getFluid().isEmpty() && storage.getFluid().isFluidEqual(resource)) {
+                    existingStorage = storage;
+                    break;
+                }
+            }
+        }
+        if (existingStorage == null) {
+            for (var storage : storages) {
+                var filled = storage.fill(copied.copy(), action);
+                if (filled > 0) {
+                    copied.shrink(filled);
+                    if (!allowSameFluids) {
+                        break;
+                    }
+                }
                 if (copied.isEmpty()) break;
             }
+        } else {
+            copied.shrink(existingStorage.fill(copied.copy(), action));
         }
         return resource.getAmount() - copied.getAmount();
     }
