@@ -415,18 +415,26 @@ public class Material implements Comparable<Material> {
         return totalNeutrons / totalAmount;
     }
 
+    private long mass = -1;
+
     public long getMass() {
         if (materialInfo.element != null) return materialInfo.element.mass();
-        if (materialInfo.componentList.isEmpty()) return 98;
-        long totalMass = 0;
-        long totalAmount = 0;
-        for (MaterialStack material : materialInfo.componentList) {
-            if (material.isEmpty()) continue;
-            totalAmount += material.amount();
-            totalMass += material.amount() * material.material().getMass();
+        if (materialInfo.componentList == null || materialInfo.componentList.isEmpty()) return 98;
+        if (mass < 0) {
+            long totalMass = 0;
+            long totalAmount = 0;
+            for (MaterialStack material : materialInfo.componentList) {
+                if (material.isEmpty()) continue;
+                totalAmount += material.amount();
+                totalMass += material.amount() * material.material().getMass();
+            }
+            if (totalAmount == 0) {
+                mass = 0;
+            } else {
+                mass = totalMass / totalAmount;
+            }
         }
-        if (totalAmount == 0) return 0;
-        return totalMass / totalAmount;
+        return mass;
     }
 
     public int getBlastTemperature() {
@@ -1209,7 +1217,7 @@ public class Material implements Comparable<Material> {
     /**
      * Holds the basic info for a Material, like the name, color, id, etc..
      */
-    private static class MaterialInfo {
+    public static class MaterialInfo {
 
         /**
          * The modid and unlocalized name of this Material.

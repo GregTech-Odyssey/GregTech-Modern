@@ -25,13 +25,11 @@ import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.common.recipe.condition.*;
 import com.gregtechceu.gtceu.config.ConfigHolder;
-import com.gregtechceu.gtceu.data.pack.GTDynamicDataPack;
 import com.gregtechceu.gtceu.utils.ResearchManager;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
@@ -41,14 +39,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
-import com.google.gson.JsonObject;
 import dev.ftb.mods.ftbquests.quest.QuestObjectBase;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
@@ -1067,44 +1063,16 @@ public class GTRecipeBuilder {
         return this;
     }
 
-    public FinishedRecipe build() {
-        return new FinishedRecipe() {
-
-            @Override
-            public void serializeRecipeData(JsonObject pJson) {}
-
-            @Override
-            public ResourceLocation getId() {
-                return new ResourceLocation(id.getNamespace(), recipeType.registryName.getPath() + "/" + id.getPath());
-            }
-
-            @Override
-            public RecipeSerializer<?> getType() {
-                return GTRecipeSerializer.SERIALIZER;
-            }
-
-            @Nullable
-            @Override
-            public JsonObject serializeAdvancement() {
-                return null;
-            }
-
-            @Nullable
-            @Override
-            public ResourceLocation getAdvancementId() {
-                return null;
-            }
-        };
-    }
-
     public GTRecipe save() {
         if (onSave != null) {
             onSave.accept(this);
         }
+        var recipe = buildRawRecipe();
+        recipeType.recipes.put(recipe.id, recipe);
         ResearchCondition condition = this.conditions.stream().filter(ResearchCondition.class::isInstance).findAny().map(ResearchCondition.class::cast).orElse(null);
         if (condition != null) {
             for (ResearchData.ResearchEntry entry : condition.data) {
-                this.recipeType.addDataStickEntry(entry.getResearchId(), buildRawRecipe());
+                this.recipeType.addDataStickEntry(entry.getResearchId(), recipe);
             }
         }
         if (recipeType != null) {
@@ -1123,8 +1091,7 @@ public class GTRecipeBuilder {
         tempItemStacks = null;
         tempItemMaterialStacks = null;
         tempFluidStacks = null;
-        GTDynamicDataPack.addRecipe(build());
-        return buildRawRecipe();
+        return recipe;
     }
 
     private void addOutputMaterialInfo() {

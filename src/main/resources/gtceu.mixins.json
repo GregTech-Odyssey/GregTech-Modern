@@ -41,7 +41,6 @@
         "ShapedRecipeAccessor",
         "SidedRedstoneConnectivityMixin",
         "StrictNBTIngredientAccessor",
-        "TagManagerMixin",
         "emi.FillRecipePacketMixin",
         "emi.FluidEmiStackMixin",
         "ldlib.ModularWrapperWidgetMixin",

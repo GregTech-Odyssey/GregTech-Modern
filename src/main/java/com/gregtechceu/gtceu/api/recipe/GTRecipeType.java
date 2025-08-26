@@ -56,6 +56,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     protected int voltageTextOffset = 20;
     protected final Map<String, Collection<GTRecipe>> researchEntries = new Object2ObjectOpenHashMap<>();
     protected final List<ICustomRecipeLogic> customRecipeLogicRunners = new ObjectArrayList<>();
+    public final Map<ResourceLocation, GTRecipe> recipes = new Object2ReferenceOpenHashMap<>();
 
     public GTRecipeType(ResourceLocation registryName, String group, RecipeType<?>... proxyRecipes) {
         this.registryName = registryName;
@@ -151,7 +152,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
 
     @NotNull
     public Iterator<GTRecipe> searchRecipe(IRecipeCapabilityHolder holder, Predicate<GTRecipe> canHandle) {
-        return Collections.emptyIterator();
+        return recipes.values().parallelStream().filter(canHandle).toList().iterator();
     }
 
     public int getMaxInputs(RecipeCapability<?> cap) {
@@ -230,7 +231,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         if (recipe instanceof SmeltingRecipe smeltingRecipe) {
             builder.duration(smeltingRecipe.getCookingTime());
         }
-        return GTRecipeSerializer.SERIALIZER.fromJson(id, builder.build().serializeRecipe());
+        return builder.buildRawRecipe();
     }
 
     public void buildRepresentativeRecipes() {
