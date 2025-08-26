@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "gtceu:item/basic_electronic_circuit",
+    "layer1": "gtocore:item/circuit/basic_electronic_circuit_lv"
+  }
+}

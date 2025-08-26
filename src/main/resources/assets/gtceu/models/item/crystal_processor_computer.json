@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "gtceu:item/crystal_processor_computer",
+    "layer1": "gtocore:item/circuit/crystal_processor_computer_zpm"
+  }
+}

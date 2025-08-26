@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "gtceu:item/quantum_processor",
+    "layer1": "gtocore:item/circuit/quantum_processor_ev"
+  }
+}

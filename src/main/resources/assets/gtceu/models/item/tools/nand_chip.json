@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "gtceu:item/nand_chip",
+    "layer1": "gtocore:item/circuit/nand_chip_ulv"
+  }
+}

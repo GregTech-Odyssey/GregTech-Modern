@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "gtceu:item/good_integrated_circuit",
+    "layer1": "gtocore:item/circuit/good_integrated_circuit_mv"
+  }
+}
