@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "gtceu:item/advanced_integrated_circuit",
+    "layer1": "gtocore:item/circuit/advanced_integrated_circuit_hv"
+  }
+}

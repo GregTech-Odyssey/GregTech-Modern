@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "gtceu:item/micro_processor_assembly",
+    "layer1": "gtocore:item/circuit/micro_processor_assembly_hv"
+  }
+}

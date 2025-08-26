@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "gtceu:item/vacuum_tube",
+    "layer1": "gtocore:item/circuit/vacuum_tube_ulv"
+  }
+}

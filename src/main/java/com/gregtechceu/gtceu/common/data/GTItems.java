@@ -1594,6 +1594,7 @@ public class GTItems {
             .register();
 
     public static ItemEntry<Item> VACUUM_TUBE = REGISTRATE.item("vacuum_tube", Item::new).lang("Vacuum Tube")
+            .model(NonNullBiConsumer.noop())
             .tag(CustomTags.ULV_CIRCUITS).register();
     public static ItemEntry<Item> GLASS_TUBE = REGISTRATE.item("glass_tube", Item::new).lang("Glass Tube")
             .onRegister(materialInfo(new ItemMaterialInfo(new MaterialStack(GTMaterials.Glass, GTValues.M))))
@@ -1636,95 +1637,121 @@ public class GTItems {
     // T1: Electronic
     public static ItemEntry<Item> ELECTRONIC_CIRCUIT_LV = REGISTRATE.item("basic_electronic_circuit", Item::new)
             .lang("Basic Electronic Circuit").tag(CustomTags.LV_CIRCUITS)
+            .model(NonNullBiConsumer.noop())
             .register();
     public static ItemEntry<Item> ELECTRONIC_CIRCUIT_MV = REGISTRATE.item("good_electronic_circuit", Item::new)
             .lang("Good Electronic Circuit").tag(CustomTags.MV_CIRCUITS)
+            .model(NonNullBiConsumer.noop())
             .register();
 
     // T2: Integrated
     public static ItemEntry<Item> INTEGRATED_CIRCUIT_LV = REGISTRATE.item("basic_integrated_circuit", Item::new)
             .lang("Basic Integrated Circuit").tag(CustomTags.LV_CIRCUITS)
+            .model(NonNullBiConsumer.noop())
             .register();
     public static ItemEntry<Item> INTEGRATED_CIRCUIT_MV = REGISTRATE.item("good_integrated_circuit", Item::new)
             .lang("Good Integrated Circuit").tag(CustomTags.MV_CIRCUITS)
+            .model(NonNullBiConsumer.noop())
             .register();
     public static ItemEntry<Item> INTEGRATED_CIRCUIT_HV = REGISTRATE.item("advanced_integrated_circuit", Item::new)
             .lang("Advanced Integrated Circuit").tag(CustomTags.HV_CIRCUITS)
+            .model(NonNullBiConsumer.noop())
             .register();
 
     // ULV/LV easier circuits
     public static ItemEntry<Item> NAND_CHIP_ULV = REGISTRATE.item("nand_chip", Item::new).lang("NAND Chip")
-            .tag(CustomTags.ULV_CIRCUITS).register();
+            .tag(CustomTags.ULV_CIRCUITS)
+            .model(NonNullBiConsumer.noop()).register();
     public static ItemEntry<Item> MICROPROCESSOR_LV = REGISTRATE.item("microchip_processor", Item::new)
             .lang("Microchip Processor").tag(CustomTags.LV_CIRCUITS)
+            .model(NonNullBiConsumer.noop())
             .register();
 
     // T3: Processor
     public static ItemEntry<Item> PROCESSOR_MV = REGISTRATE.item("micro_processor", Item::new).lang("Microprocessor")
-            .tag(CustomTags.MV_CIRCUITS).register();
+            .tag(CustomTags.MV_CIRCUITS)
+            .model(NonNullBiConsumer.noop()).register();
     public static ItemEntry<Item> PROCESSOR_ASSEMBLY_HV = REGISTRATE.item("micro_processor_assembly", Item::new)
-            .lang("Microprocessor Assembly").tag(CustomTags.HV_CIRCUITS)
+            .lang("Microprocessor Assembly")
+            .model(NonNullBiConsumer.noop()).tag(CustomTags.HV_CIRCUITS)
             .register();
     public static ItemEntry<Item> WORKSTATION_EV = REGISTRATE.item("micro_processor_computer", Item::new)
-            .lang("Microprocessor Supercomputer").tag(CustomTags.EV_CIRCUITS)
+            .lang("Microprocessor Supercomputer")
+            .model(NonNullBiConsumer.noop()).tag(CustomTags.EV_CIRCUITS)
             .register();
     public static ItemEntry<Item> MAINFRAME_IV = REGISTRATE.item("micro_processor_mainframe", Item::new)
-            .lang("Microprocessor Mainframe").tag(CustomTags.IV_CIRCUITS)
+            .lang("Microprocessor Mainframe")
+            .model(NonNullBiConsumer.noop()).tag(CustomTags.IV_CIRCUITS)
             .register();
 
     // T4: Nano
     public static ItemEntry<Item> NANO_PROCESSOR_HV = REGISTRATE.item("nano_processor", Item::new).lang("Nanoprocessor")
-            .tag(CustomTags.HV_CIRCUITS).register();
+            .tag(CustomTags.HV_CIRCUITS).model(NonNullBiConsumer.noop()).register();
     public static ItemEntry<Item> NANO_PROCESSOR_ASSEMBLY_EV = REGISTRATE.item("nano_processor_assembly", Item::new)
-            .lang("Nanoprocessor Assembly").tag(CustomTags.EV_CIRCUITS)
+            .lang("Nanoprocessor Assembly")
+            .model(NonNullBiConsumer.noop()).tag(CustomTags.EV_CIRCUITS)
             .register();
     public static ItemEntry<Item> NANO_COMPUTER_IV = REGISTRATE.item("nano_processor_computer", Item::new)
-            .lang("Nanoprocessor Supercomputer").tag(CustomTags.IV_CIRCUITS)
+            .lang("Nanoprocessor Supercomputer")
+            .model(NonNullBiConsumer.noop()).tag(CustomTags.IV_CIRCUITS)
             .register();
     public static ItemEntry<Item> NANO_MAINFRAME_LuV = REGISTRATE.item("nano_processor_mainframe", Item::new)
-            .lang("Nanoprocessor Mainframe").tag(CustomTags.LuV_CIRCUITS)
+            .lang("Nanoprocessor Mainframe")
+            .model(NonNullBiConsumer.noop()).tag(CustomTags.LuV_CIRCUITS)
             .register();
 
     // T5: Quantum
     public static ItemEntry<Item> QUANTUM_PROCESSOR_EV = REGISTRATE.item("quantum_processor", Item::new)
-            .lang("Quantum Processor").tag(CustomTags.EV_CIRCUITS)
+            .lang("Quantum Processor")
+            .model(NonNullBiConsumer.noop()).tag(CustomTags.EV_CIRCUITS)
             .register();
     public static ItemEntry<Item> QUANTUM_ASSEMBLY_IV = REGISTRATE.item("quantum_processor_assembly", Item::new)
-            .lang("Quantum Processor Assembly").tag(CustomTags.IV_CIRCUITS)
+            .lang("Quantum Processor Assembly")
+            .model(NonNullBiConsumer.noop()).tag(CustomTags.IV_CIRCUITS)
             .register();
     public static ItemEntry<Item> QUANTUM_COMPUTER_LuV = REGISTRATE.item("quantum_processor_computer", Item::new)
-            .lang("Quantum Processor Supercomputer").tag(CustomTags.LuV_CIRCUITS)
+            .lang("Quantum Processor Supercomputer")
+            .model(NonNullBiConsumer.noop()).tag(CustomTags.LuV_CIRCUITS)
             .register();
     public static ItemEntry<Item> QUANTUM_MAINFRAME_ZPM = REGISTRATE.item("quantum_processor_mainframe", Item::new)
-            .lang("Quantum Processor Mainframe").tag(CustomTags.ZPM_CIRCUITS)
+            .lang("Quantum Processor Mainframe")
+            .model(NonNullBiConsumer.noop()).tag(CustomTags.ZPM_CIRCUITS)
             .register();
 
     // T6: Crystal
     public static ItemEntry<Item> CRYSTAL_PROCESSOR_IV = REGISTRATE.item("crystal_processor", Item::new)
-            .lang("Crystal Processor").tag(CustomTags.IV_CIRCUITS)
+            .lang("Crystal Processor")
+            .model(NonNullBiConsumer.noop()).tag(CustomTags.IV_CIRCUITS)
             .register();
     public static ItemEntry<Item> CRYSTAL_ASSEMBLY_LuV = REGISTRATE.item("crystal_processor_assembly", Item::new)
-            .lang("Crystal Processor Assembly").tag(CustomTags.LuV_CIRCUITS)
+            .lang("Crystal Processor Assembly")
+            .model(NonNullBiConsumer.noop()).tag(CustomTags.LuV_CIRCUITS)
             .register();
     public static ItemEntry<Item> CRYSTAL_COMPUTER_ZPM = REGISTRATE.item("crystal_processor_computer", Item::new)
-            .lang("Crystal Processor Supercomputer").tag(CustomTags.ZPM_CIRCUITS)
+            .lang("Crystal Processor Supercomputer")
+            .model(NonNullBiConsumer.noop()).tag(CustomTags.ZPM_CIRCUITS)
             .register();
     public static ItemEntry<Item> CRYSTAL_MAINFRAME_UV = REGISTRATE.item("crystal_processor_mainframe", Item::new)
-            .lang("Crystal Processor Mainframe").tag(CustomTags.UV_CIRCUITS)
+            .lang("Crystal Processor Mainframe")
+            .model(NonNullBiConsumer.noop()).tag(CustomTags.UV_CIRCUITS)
             .register();
 
     // T7: Wetware
     public static ItemEntry<Item> WETWARE_PROCESSOR_LuV = REGISTRATE.item("wetware_processor", Item::new)
-            .lang("Wetware Processor").tag(CustomTags.LuV_CIRCUITS)
+            .lang("Wetware Processor")
+            .model(NonNullBiConsumer.noop()).tag(CustomTags.LuV_CIRCUITS)
             .register();
     public static ItemEntry<Item> WETWARE_PROCESSOR_ASSEMBLY_ZPM = REGISTRATE
             .item("wetware_processor_assembly", Item::new).lang("Wetware Processor Assembly")
-            .tag(CustomTags.ZPM_CIRCUITS).register();
+            .tag(CustomTags.ZPM_CIRCUITS)
+            .model(NonNullBiConsumer.noop()).register();
     public static ItemEntry<Item> WETWARE_SUPER_COMPUTER_UV = REGISTRATE.item("wetware_processor_computer", Item::new)
-            .lang("Wetware Processor Supercomputer").tag(CustomTags.UV_CIRCUITS)
+            .lang("Wetware Processor Supercomputer")
+            .model(NonNullBiConsumer.noop()).tag(CustomTags.UV_CIRCUITS)
             .register();
     public static ItemEntry<Item> WETWARE_MAINFRAME_UHV = REGISTRATE.item("wetware_processor_mainframe", Item::new)
-            .lang("Wetware Processor Mainframe").tag(CustomTags.UHV_CIRCUITS)
+            .lang("Wetware Processor Mainframe")
+            .model(NonNullBiConsumer.noop()).tag(CustomTags.UHV_CIRCUITS)
             .register();
 
     public static ItemEntry<Item> COMPONENT_GRINDER_DIAMOND = REGISTRATE.item("diamond_grinding_head", Item::new)
@@ -1747,7 +1774,7 @@ public class GTItems {
             .register();
 
     public static ItemEntry<Item> QUANTUM_EYE = REGISTRATE.item("quantum_eye", Item::new).lang("Quantum Eye")
-            .register();
+            .model(NonNullBiConsumer.noop()).register();
     public static ItemEntry<Item> QUANTUM_STAR = REGISTRATE.item("quantum_star", Item::new).lang("Quantum Star")
             .register();
     public static ItemEntry<Item> GRAVI_STAR = REGISTRATE.item("gravi_star", Item::new).lang("Gravi-Star")
