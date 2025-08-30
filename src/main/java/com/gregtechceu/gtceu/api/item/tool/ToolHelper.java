@@ -474,10 +474,7 @@ public class ToolHelper {
         }
 
         BlockHitResult hitResult = getPlayerDefaultRaytrace(player);
-        var hand = is(player.getItemInHand(InteractionHand.MAIN_HAND), GTToolType.MINING_HAMMER) ?
-                InteractionHand.MAIN_HAND : null;
-        if (hand == null) return Collections.emptyList();
-        UseOnContext context = new UseOnContext(player, hand, hitResult);
+        UseOnContext context = new UseOnContext(player, player.getUsedItemHand(), hitResult);
         return getHarvestableBlocks(aoeDefinition, context);
     }
 
