@@ -46,7 +46,7 @@ public class DiodePartMachine extends TieredIOPartMachine {
         if (!getLevel().isClientSide) {
             reinitializeEnergyContainer();
             notifyBlockUpdate();
-            markDirty();
+            onChanged();
         }
     }
 

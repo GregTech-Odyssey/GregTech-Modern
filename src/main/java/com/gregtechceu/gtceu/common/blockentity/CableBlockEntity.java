@@ -164,11 +164,11 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
     }
 
     public long getCurrentVoltage() {
-        return voltageCounter.get(getLevel());
+        return voltageCounter.get(getOffsetTimer());
     }
 
     public double getCurrentAmperage() {
-        return amperageCounter.get(getLevel());
+        return (double) amperageCounter.get(getOffsetTimer()) / 100;
     }
 
     public long getMaxAmperage() {
@@ -187,11 +187,15 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
      * Should only be called internally
      */
     public void incrementAmperage(long voltage, long amperage) {
-        voltageCounter.set(level, voltage);
-        amperageCounter.set(level, amperage);
+        var time = getOffsetTimer();
+        voltageCounter.set(time, voltage);
+        amperageCounter.set(time, amperage);
+        if ((amperageCounter.get(time) > getMaxAmperage() * 100) || voltageCounter.get(time) > getMaxVoltage()) {
+            applyHeat((int) Math.sqrt(amperageCounter.get(time)));
+        }
     }
 
-    public void applyHeat(int amount) {
+    private void applyHeat(int amount) {
         heatQueue += amount;
         if (!level.isClientSide && heatSubs == null && temperature + heatQueue > getDefaultTemp()) {
             subscribeHeat();
@@ -288,6 +292,8 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
         List<Component> list = new ObjectArrayList<>();
         if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_ELECTRICAL_INFO) {
             list.add(Component.translatable("behavior.portable_scanner.eu_per_sec", Component.translatable(FormattingUtil.formatNumbers(getCurrentVoltage())).withStyle(ChatFormatting.RED)));
+            list.add(Component.translatable("behavior.portable_scanner.amp_per_sec", Component.translatable(FormattingUtil.formatNumbers(getCurrentAmperage())).withStyle(ChatFormatting.RED)));
+            list.add(Component.translatable("gtceu.recipe.temperature", temperature).withStyle(ChatFormatting.RED));
         }
         return list;
     }

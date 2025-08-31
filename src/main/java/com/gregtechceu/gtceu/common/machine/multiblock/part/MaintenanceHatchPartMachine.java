@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
+import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine;
@@ -270,6 +271,11 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine implements IM
      */
     public void fixAllMaintenanceProblems() {
         for (int i = 0; i < 6; i++) setMaintenanceFixed(i);
+        for (var controller : getControllers()) {
+            if (controller instanceof IRecipeLogicMachine recipeLogicMachine) {
+                recipeLogicMachine.getRecipeLogic().updateTickSubscription();
+            }
+        }
     }
 
     @Override

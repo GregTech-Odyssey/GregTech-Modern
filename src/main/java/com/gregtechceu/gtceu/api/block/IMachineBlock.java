@@ -55,13 +55,7 @@ public interface IMachineBlock extends IBlockRendererProvider, EntityBlock {
     default <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state,
                                                                    BlockEntityType<T> blockEntityType) {
         if (blockEntityType == getDefinition().getBlockEntityType()) {
-            if (!level.isClientSide) {
-                return (pLevel, pPos, pState, pTile) -> {
-                    if (pTile instanceof MetaMachineBlockEntity metaMachine) {
-                        metaMachine.getMetaMachine().serverTick();
-                    }
-                };
-            } else {
+            if (level.isClientSide) {
                 return (pLevel, pPos, pState, pTile) -> {
                     if (pTile instanceof MetaMachineBlockEntity metaMachine) {
                         metaMachine.getMetaMachine().clientTick();

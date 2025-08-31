@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.api.gui.util.TimedProgressSupplier;
 import com.gregtechceu.gtceu.api.gui.widget.ExtendedProgressWidget;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
@@ -19,7 +18,6 @@ import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerList;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
-import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -67,13 +65,10 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
 
     private static final double IDLE_TEMPERATURE = 200;
     private static final double DAMAGE_TEMPERATURE = 1000;
-    private IMaintenanceMachine maintenance;
-    private IEnergyContainer energyContainer;
     private IFluidHandler coolantHandler;
     @Persisted
     @DescSynced
     private final HPCAGridHandler hpcaHandler;
-    private boolean hasNotEnoughEnergy;
     @Persisted
     private double temperature = IDLE_TEMPERATURE; // start at idle temperature
     private final TimedProgressSupplier progressSupplier;
@@ -88,29 +83,27 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     }
 
     @Override
+    protected void onStructureFormedAfter() {
+        super.onStructureFormedAfter();
+        updateTickSubscription();
+    }
+
+    @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        List<IEnergyContainer> energyContainers = new ObjectArrayList<>();
         List<IFluidHandler> coolantContainers = new ObjectArrayList<>();
         List<IHPCAComponentHatch> componentHatches = new ObjectArrayList<>();
         for (IMultiPart part : getParts()) {
             if (part instanceof IHPCAComponentHatch componentHatch) {
                 componentHatches.add(componentHatch);
-            } else if (part instanceof IMaintenanceMachine maintenanceMachine) {
-                this.maintenance = maintenanceMachine;
             } else {
                 for (var handlerList : part.getRecipeHandlers()) {
-                    handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).forEach(energyContainers::add);
                     handlerList.getCapability(FluidRecipeCapability.CAP).stream().filter(IFluidHandler.class::isInstance).map(IFluidHandler.class::cast).forEach(coolantContainers::add);
                 }
             }
         }
-        this.energyContainer = new EnergyContainerList(energyContainers);
         this.coolantHandler = new FluidHandlerList(coolantContainers);
         this.hpcaHandler.onStructureForm(componentHatches);
-        if (getLevel() instanceof ServerLevel serverLevel) {
-            serverLevel.getServer().tell(new TickTask(0, this::updateTickSubscription));
-        }
     }
 
     @Override
@@ -142,18 +135,24 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     @Override
     public void onStructureInvalid() {
         super.onStructureInvalid();
-        this.energyContainer = EnergyContainerList.EMPTY;
+        updateTickSubscription();
         this.hpcaHandler.reset();
     }
 
     @Override
     public long requestCWU(long cwu, boolean simulate) {
-        return isActive() && isWorkingEnabled() && !hasNotEnoughEnergy ? hpcaHandler.allocateCWUt(cwu, simulate) : 0;
+        if (isWorkingEnabled() && getRecipeLogic().isWorking()) {
+            return hpcaHandler.allocateCWUt(cwu, simulate);
+        }
+        return 0;
     }
 
     @Override
     public long getMaxCWU() {
-        return isActive() && isWorkingEnabled() && !hasNotEnoughEnergy ? hpcaHandler.maxCWUt - hpcaHandler.cachedCWUt : 0;
+        if (isWorkingEnabled() && getRecipeLogic().isWorking()) {
+            return hpcaHandler.maxCWUt - hpcaHandler.cachedCWUt;
+        }
+        return 0;
     }
 
     @Override
@@ -162,8 +161,13 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     }
 
     public void tick() {
-        if (isWorkingEnabled()) consumeEnergy();
-        if (isActive()) {
+        if (isWorkingEnabled()) {
+            long energyToConsume = hpcaHandler.getCurrentEUt();
+            if (this.energyContainer.removeEnergy(energyToConsume) >= energyToConsume) {
+                getRecipeLogic().setStatus(RecipeLogic.Status.WORKING);
+            } else {
+                getRecipeLogic().setWaiting(Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(EURecipeCapability.CAP.getName()));
+            }
             // forcibly use active coolers at full rate if temperature is half-way to damaging temperature
             double midpoint = (DAMAGE_TEMPERATURE - IDLE_TEMPERATURE) / 2;
             double temperatureChange = hpcaHandler.calculateTemperatureChange(coolantHandler, temperature >= midpoint) / 2.0;
@@ -180,32 +184,6 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
             hpcaHandler.clearComputationCache();
             // passively cool (slowly) if not active
             temperature = Math.max(IDLE_TEMPERATURE, temperature - 0.25);
-        }
-    }
-
-    private void consumeEnergy() {
-        long energyToConsume = hpcaHandler.getCurrentEUt();
-        boolean hasMaintenance = ConfigHolder.INSTANCE.machines.enableMaintenance && this.maintenance != null;
-        if (hasMaintenance) {
-            // 10% more energy per maintenance problem
-            energyToConsume += maintenance.getNumMaintenanceProblems() * energyToConsume / 10;
-        }
-        if (this.hasNotEnoughEnergy && energyContainer.getInputPerSec() > 19L * energyToConsume) {
-            this.hasNotEnoughEnergy = false;
-        }
-        if (this.energyContainer.getEnergyStored() >= energyToConsume) {
-            if (!hasNotEnoughEnergy) {
-                long consumed = this.energyContainer.removeEnergy(energyToConsume);
-                if (consumed >= energyToConsume) {
-                    getRecipeLogic().setStatus(RecipeLogic.Status.WORKING);
-                } else {
-                    this.hasNotEnoughEnergy = true;
-                    getRecipeLogic().setStatus(RecipeLogic.Status.WAITING);
-                }
-            }
-        } else {
-            this.hasNotEnoughEnergy = true;
-            getRecipeLogic().setStatus(RecipeLogic.Status.WAITING);
         }
     }
 

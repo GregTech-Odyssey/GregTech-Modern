@@ -50,6 +50,11 @@ public class PipeBlockItem extends BlockItem {
     }
 
     @Override
+    protected boolean canPlace(BlockPlaceContext context, BlockState state) {
+        return true;
+    }
+
+    @Override
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public boolean placeBlock(BlockPlaceContext context, BlockState state) {
         Level level = context.getLevel();

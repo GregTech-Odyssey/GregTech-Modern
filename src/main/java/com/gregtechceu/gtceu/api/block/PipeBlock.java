@@ -45,7 +45,6 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -368,54 +367,26 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
 
     @Override
     public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext context) {
-        var pipeNode = getPipeTile(pLevel, pPos);
+        var pipeTile = getPipeTile(pLevel, pPos);
         var connections = 0;
-        if (pipeNode != null) {
-            if (!pipeNode.getFrameMaterial().isNull()) {
+        if (pipeTile != null) {
+            if (!pipeTile.getFrameMaterial().isNull()) {
                 return Shapes.block();
             }
-            connections = pipeNode.getVisualConnections();
-            VoxelShape shape = getPipeModel().getShapes(connections);
-            shape = Shapes.or(shape, pipeNode.getCoverContainer().addCoverCollisionBoundingBox());
-
             if (context instanceof EntityCollisionContext entityCtx && entityCtx.getEntity() instanceof Player player) {
-                var coverable = pipeNode.getCoverContainer();
-                var held = player.getMainHandItem();
-                Set<GTToolType> types = Set.of(GTToolType.WIRE_CUTTER, GTToolType.WRENCH);
-                BlockEntity tile = pLevel.getBlockEntity(pPos);
-                if (tile instanceof PipeBlockEntity<?, ?> pipeTile) {
-                    types = Set.of(pipeTile.getPipeTuneTool());
-                }
-
-                if ((player.isShiftKeyDown() && held.isEmpty() && coverable.hasAnyCover()) ||
-                        types.stream().anyMatch(type -> type.itemTags.stream().anyMatch(held::is)) ||
-                        CoverPlaceBehavior.isCoverBehaviorItem(held, coverable::hasAnyCover,
-                                coverDef -> ICoverable.canPlaceCover(coverDef, coverable)) ||
-                        (held.getItem() instanceof BlockItem blockItem &&
-                                blockItem.getBlock() instanceof PipeBlock<?, ?, ?> pipeBlock &&
-                                pipeBlock.pipeType.type().equals(pipeType.type()))) {
+                var coverable = pipeTile.getCoverContainer();
+                ItemStack itemStack = player.getItemInHand(InteractionHand.MAIN_HAND);
+                if (itemStack.isEmpty()) itemStack = player.getItemInHand(InteractionHand.OFF_HAND);
+                if ((player.isShiftKeyDown() && itemStack.isEmpty() && coverable.hasAnyCover()) || ToolHelper.getToolTypes(itemStack).contains(pipeTile.getPipeTuneTool()) || CoverPlaceBehavior.isCoverBehaviorItem(itemStack, coverable::hasAnyCover, coverDef -> ICoverable.canPlaceCover(coverDef, coverable)) || (itemStack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof PipeBlock<?, ?, ?> pipeBlock && pipeBlock.pipeType.type().equals(pipeType.type()))) {
                     return Shapes.block();
                 }
             }
+            connections = pipeTile.getVisualConnections();
+            VoxelShape shape = getPipeModel().getShapes(connections);
+            shape = Shapes.or(shape, pipeTile.getCoverContainer().addCoverCollisionBoundingBox());
             return shape;
         }
         return getPipeModel().getShapes(connections);
-    }
-
-    @Nullable
-    @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state,
-                                                                  BlockEntityType<T> blockEntityType) {
-        if (blockEntityType == getBlockEntityType()) {
-            if (!level.isClientSide) {
-                return (pLevel, pPos, pState, pTile) -> {
-                    if (pTile instanceof PipeBlockEntity<?, ?> pipeNode) {
-                        pipeNode.serverTick();
-                    }
-                };
-            }
-        }
-        return null;
     }
 
     @Override

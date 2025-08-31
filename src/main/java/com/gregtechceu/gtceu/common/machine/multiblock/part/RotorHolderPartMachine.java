@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.gui.widget.BlockableSlotWidget;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
+import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IRotorHolderMachine;
@@ -132,6 +133,11 @@ public class RotorHolderPartMachine extends TieredPartMachine implements IMachin
             this.rotorMaterial = rotorBehaviour.getPartMaterial(stack);
         } else {
             this.rotorMaterial = GTMaterials.NULL;
+        }
+        for (var controller : getControllers()) {
+            if (controller instanceof IRecipeLogicMachine recipeLogicMachine) {
+                recipeLogicMachine.getRecipeLogic().updateTickSubscription();
+            }
         }
     }
 

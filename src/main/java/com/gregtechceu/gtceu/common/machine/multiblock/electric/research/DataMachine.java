@@ -2,17 +2,13 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric.research;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
-import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
@@ -20,7 +16,6 @@ import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -33,9 +28,7 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
 
     public static final int EUT_PER_HATCH = GTValues.VA[GTValues.EV];
     public static final int EUT_PER_HATCH_CHAINED = GTValues.VA[GTValues.LuV];
-    private IMaintenanceMachine maintenance;
-    private IEnergyContainer energyContainer;
-    private int energyUsage = 0;
+    protected int energyUsage = 0;
     @Nullable
     protected TickableSubscription tickSubs;
 
@@ -45,27 +38,15 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
     }
 
     @Override
+    protected void onStructureFormedAfter() {
+        super.onStructureFormedAfter();
+        updateTickSubscription();
+    }
+
+    @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        List<IEnergyContainer> energyContainers = new ObjectArrayList<>();
-        for (IMultiPart part : getParts()) {
-            if (part instanceof IMaintenanceMachine maintenanceMachine) {
-                this.maintenance = maintenanceMachine;
-            } else {
-                for (var handlerList : part.getRecipeHandlers()) {
-                    handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).forEach(energyContainers::add);
-                }
-            }
-        }
-        this.energyContainer = new EnergyContainerList(energyContainers);
         this.energyUsage = calculateEnergyUsage();
-        if (this.maintenance == null) {
-            onStructureInvalid();
-            return;
-        }
-        if (getLevel() instanceof ServerLevel serverLevel) {
-            serverLevel.getServer().tell(new TickTask(0, this::updateTickSubscription));
-        }
     }
 
     protected int calculateEnergyUsage() {
@@ -92,7 +73,7 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
     @Override
     public void onStructureInvalid() {
         super.onStructureInvalid();
-        this.energyContainer = EnergyContainerList.EMPTY;
+        updateTickSubscription();
         this.energyUsage = 0;
     }
 
@@ -123,44 +104,18 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
     }
 
     public void tick() {
-        int energyToConsume = this.getEnergyUsage();
-        boolean hasMaintenance = ConfigHolder.INSTANCE.machines.enableMaintenance && this.maintenance != null;
-        if (hasMaintenance) {
-            // 10% more energy per maintenance problem
-            energyToConsume += maintenance.getNumMaintenanceProblems() * energyToConsume / 10;
-        }
-        if (getRecipeLogic().isWaiting() && energyContainer.getInputPerSec() > 19L * energyToConsume) {
-            getRecipeLogic().setStatus(RecipeLogic.Status.IDLE);
-        }
-        if (this.energyContainer.getEnergyStored() >= energyToConsume) {
-            if (!getRecipeLogic().isWaiting()) {
-                long consumed = this.energyContainer.removeEnergy(energyToConsume);
-                if (consumed >= energyToConsume) {
-                    getRecipeLogic().setStatus(RecipeLogic.Status.WORKING);
-                } else {
-                    getRecipeLogic().setWaiting(Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(EURecipeCapability.CAP.getName()));
-                }
-            }
+        if (this.energyContainer.removeEnergy(energyUsage) >= energyUsage) {
+            getRecipeLogic().setStatus(RecipeLogic.Status.WORKING);
         } else {
             getRecipeLogic().setWaiting(Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(EURecipeCapability.CAP.getName()));
         }
-        updateTickSubscription();
     }
 
     @Override
     public void addDisplayText(List<Component> textList) {
-        // transform into two-state system for display
-        MultiblockDisplayText.builder(textList, isFormed()).setWorkingStatus(true, isActive() && isWorkingEnabled()).setWorkingStatusKeys("gtceu.multiblock.idling", "gtceu.multiblock.idling", "gtceu.multiblock.data_bank.providing").addEnergyUsageExactLine(getEnergyUsage()).addWorkingStatusLine();
+        MultiblockDisplayText.builder(textList, isFormed()).setWorkingStatus(true, isActive() && isWorkingEnabled()).setWorkingStatusKeys("gtceu.multiblock.idling", "gtceu.multiblock.idling", "gtceu.multiblock.data_bank.providing").addEnergyUsageExactLine(energyUsage).addWorkingStatusLine();
     }
 
-    /*
-     * @Override
-     * protected void addWarningText(List<Component> textList) {
-     * MultiblockDisplayText.builder(textList, isFormed(), false)
-     * .addLowPowerLine(hasNotEnoughEnergy)
-     * .addMaintenanceProblemLines(maintenance.getMaintenanceProblems());
-     * }
-     */
     @Override
     public int getProgress() {
         return 0;
@@ -169,9 +124,5 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
     @Override
     public int getMaxProgress() {
         return 0;
-    }
-
-    public int getEnergyUsage() {
-        return this.energyUsage;
     }
 }

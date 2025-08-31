@@ -136,17 +136,17 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
             this.io = io;
         }
         subscriptionHandler.updateSubscription();
-        coverHolder.markDirty();
+        coverHolder.onChanged();
     }
 
     public void setDistributionMode(DistributionMode distributionMode) {
         this.distributionMode = distributionMode;
-        coverHolder.markDirty();
+        coverHolder.onChanged();
     }
 
     protected void setManualIOMode(ManualIOMode manualIOMode) {
         this.manualIOMode = manualIOMode;
-        coverHolder.markDirty();
+        coverHolder.onChanged();
     }
 
     @Override

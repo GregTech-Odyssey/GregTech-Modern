@@ -86,10 +86,7 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
 
     @Override
     public void onChanged() {
-        var level = getLevel();
-        if (level != null && !level.isClientSide && level.getServer() != null) {
-            level.getServer().execute(this::markDirty);
-        }
+        pipeTile.onChanged();
     }
 
     @Override
@@ -120,11 +117,6 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
     @Override
     public long getOffsetTimer() {
         return pipeTile.getOffsetTimer();
-    }
-
-    @Override
-    public void markDirty() {
-        pipeTile.markAsDirty();
     }
 
     @Override

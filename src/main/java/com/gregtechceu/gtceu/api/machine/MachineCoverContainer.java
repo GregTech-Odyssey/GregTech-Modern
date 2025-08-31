@@ -86,10 +86,7 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
 
     @Override
     public void onChanged() {
-        var level = getLevel();
-        if (level != null && !level.isClientSide && level.getServer() != null) {
-            level.getServer().execute(this::markDirty);
-        }
+        machine.onChanged();
     }
 
     @Override
@@ -120,11 +117,6 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
     @Override
     public long getOffsetTimer() {
         return machine.getOffsetTimer();
-    }
-
-    @Override
-    public void markDirty() {
-        machine.markDirty();
     }
 
     @Override

@@ -48,7 +48,7 @@ public interface ICoverable extends ITickSubscription, IAppearance {
 
     long getOffsetTimer();
 
-    void markDirty();
+    void onChanged();
 
     boolean isInValid();
 
@@ -97,7 +97,7 @@ public interface ICoverable extends ITickSubscription, IAppearance {
         coverBehavior.onLoad();
         setCoverAtSide(coverBehavior, side);
         notifyBlockUpdate();
-        markDirty();
+        onChanged();
         scheduleNeighborShapeUpdate();
         // TODO achievement
         // AdvancementTriggers.FIRST_COVER_PLACE.trigger((PlayerMP) player);
@@ -123,7 +123,7 @@ public interface ICoverable extends ITickSubscription, IAppearance {
 
         }
         notifyBlockUpdate();
-        markDirty();
+        onChanged();
         scheduleNeighborShapeUpdate();
         return true;
     }

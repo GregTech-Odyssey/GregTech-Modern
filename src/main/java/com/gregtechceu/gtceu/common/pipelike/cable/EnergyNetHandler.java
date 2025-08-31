@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.common.pipelike.cable;
 
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.common.blockentity.CableBlockEntity;
-import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.Direction;
 
@@ -41,7 +40,7 @@ public class EnergyNetHandler implements IEnergyContainer {
             if (facing == null) return 0;
             side = facing;
         }
-
+        energyToAdd = Math.min(energyToAdd, getEnergyCapacity());
         long energyUsed = 0;
         var pos = cable.getPipePos();
         for (EnergyRoutePath path : net.getNetData(cable.getPipePosLong(), pos)) {
@@ -70,11 +69,8 @@ public class EnergyNetHandler implements IEnergyContainer {
             if (accept == 0) continue;
             energyUsed += accept + loss;
             for (var c : path.getPath()) {
-                c.incrementAmperage(voltage, accept / voltage);
-                if (voltage > c.getMaxVoltage()) {
-                    int heat = (int) (Math.log(GTUtil.getTierByVoltage(voltage) - GTUtil.getTierByVoltage(cable.getMaxVoltage())) * 45 + 36.5);
-                    c.applyHeat(heat);
-                }
+                var v = Math.min(voltage, c.getMaxVoltage());
+                c.incrementAmperage(v, 100 * accept / v);
             }
         }
         return energyUsed;

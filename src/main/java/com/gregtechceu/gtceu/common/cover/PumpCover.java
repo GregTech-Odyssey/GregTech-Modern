@@ -183,7 +183,7 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
 
     protected void setManualIOMode(ManualIOMode manualIOMode) {
         this.manualIOMode = manualIOMode;
-        coverHolder.markDirty();
+        coverHolder.onChanged();
     }
 
     protected void update() {

@@ -31,6 +31,7 @@ import com.gregtechceu.gtceu.common.item.tool.behavior.ToolModeSwitchBehavior;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 import com.gregtechceu.gtceu.common.machine.owner.PlayerOwner;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.TaskHandler;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 
@@ -50,6 +51,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.locale.Language;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -117,7 +119,8 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     protected final List<MachineTrait> traits = new ObjectArrayList<>();
     private final List<TickableSubscription> serverTicks = new ObjectArrayList<>();
     private final List<TickableSubscription> waitingToAdd = new ObjectArrayList<>();
-    private final List<Runnable> ticks = new ObjectArrayList<>();
+    private final List<Runnable> tasks = new ObjectArrayList<>();
+    private TickableSubscription serverTick;
 
     protected final DirectionCache<IItemHandlerModifiable> itemHandlerModifiableCache = DirectionCache.create();
     protected final DirectionCache<IFluidHandlerModifiable> fluidHandlerModifiableCache = DirectionCache.create();
@@ -129,13 +132,9 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     public final BlockEntityDirectionCache blockEntityDirectionCache = BlockEntityDirectionCache.create();
 
-    private boolean dirty;
-
     private boolean sync = true;
 
     private long offsetTimer;
-
-    private long lastExecutionTime;
 
     private int averageTickTime;
 
@@ -143,9 +142,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     private boolean observe;
 
-    private boolean wait;
-
-    private boolean hasTick;
+    private boolean hasTask;
 
     public MetaMachine(MetaMachineBlockEntity holder) {
         this.definition = holder.definition;
@@ -163,7 +160,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     @Override
     public void onChanged() {
-        dirty = true;
+        holder.setChanged();
     }
 
     @Nullable
@@ -210,16 +207,16 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         return offsetTimer;
     }
 
-    public void markDirty() {
-        dirty = true;
-    }
-
     public boolean isInValid() {
         return holder.isRemoved();
     }
 
     @MustBeInvokedByOverriders
     public void onUnload() {
+        if (serverTick != null) {
+            serverTick.unsubscribe();
+            serverTick = null;
+        }
         traits.forEach(MachineTrait::onMachineUnLoad);
         coverContainer.onUnload();
         for (TickableSubscription serverTick : serverTicks) {
@@ -265,10 +262,12 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
      */
     @Nullable
     public TickableSubscription subscribeServerTick(Runnable runnable) {
-        if (!isRemote()) {
-            wait = false;
+        if (getLevel() instanceof ServerLevel serverLevel) {
             var subscription = new TickableSubscription(runnable);
             waitingToAdd.add(subscription);
+            if (serverTick == null || !serverTick.isStillSubscribed()) {
+                serverTick = TaskHandler.enqueueServerTick(serverLevel, this::serverTick, 0);
+            }
             return subscription;
         } else if (getLevel() instanceof DummyWorld) {
             var subscription = new TickableSubscription(runnable);
@@ -284,39 +283,36 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         }
     }
 
-    public void tell(Runnable runnable) {
-        ticks.add(runnable);
-        hasTick = true;
+    public void tell(Runnable task) {
+        if (getLevel() instanceof ServerLevel serverLevel) {
+            tasks.add(task);
+            hasTask = true;
+            if (serverTick == null || !serverTick.isStillSubscribed()) {
+                serverTick = TaskHandler.enqueueServerTick(serverLevel, this::serverTick, 0);
+            }
+        }
     }
 
     public void serverTick() {
-        if (dirty) {
-            dirty = false;
-            holder.setChanged();
+        if (hasTask) {
+            tasks.forEach(Runnable::run);
+            tasks.clear();
+            hasTask = false;
         }
-        if (hasTick) {
-            ticks.forEach(Runnable::run);
-            ticks.clear();
-            hasTick = false;
-        }
-        if (wait) return;
         if (!waitingToAdd.isEmpty()) {
             serverTicks.addAll(waitingToAdd);
             waitingToAdd.clear();
         }
         if (serverTicks.isEmpty()) {
-            if (!this.isInValid() && !OBSERVE) {
-                wait = true;
+            if (!OBSERVE) {
+                serverTick.unsubscribe();
+                serverTick = null;
             }
             averageTickTime = 0;
         } else {
-            long currentTime = System.currentTimeMillis();
-            if (currentTime - lastExecutionTime < 40) {
-                return;
-            }
             offsetTimer = holder.getOffsetTimer();
-            lastExecutionTime = currentTime;
             boolean observe = OBSERVE || this.observe;
+            long currentTime = 0;
             if (observe) currentTime = System.nanoTime();
             for (var iter = serverTicks.listIterator(0); iter.hasNext();) {
                 var tickable = iter.next();
@@ -664,7 +660,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         }
         if (getLevel() != null && !getLevel().isClientSide) {
             notifyBlockUpdate();
-            markDirty();
+            onChanged();
         }
     }
 
@@ -690,7 +686,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
             getLevel().setBlockAndUpdate(getPos(), blockState.setValue(IMachineBlock.UPWARDS_FACING_PROPERTY, upwardsFacing));
             if (getLevel() != null && !getLevel().isClientSide) {
                 notifyBlockUpdate();
-                markDirty();
+                onChanged();
             }
         }
     }

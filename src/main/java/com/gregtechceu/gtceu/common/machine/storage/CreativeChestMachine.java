@@ -100,7 +100,7 @@ public class CreativeChestMachine extends QuantumChestMachine {
     @Override
     public Widget createUIWidget() {
         var group = new WidgetGroup(0, 0, 176, 131);
-        group.addWidget(new PhantomSlotWidget(cache, 0, 36, 6).setClearSlotOnRightClick(true).setMaxStackSize(1).setBackgroundTexture(GuiTextures.SLOT).setChangeListener(this::markDirty));
+        group.addWidget(new PhantomSlotWidget(cache, 0, 36, 6).setClearSlotOnRightClick(true).setMaxStackSize(1).setBackgroundTexture(GuiTextures.SLOT).setChangeListener(this::onChanged));
         group.addWidget(new LabelWidget(7, 9, "gtceu.creative.chest.item"));
         group.addWidget(new ImageWidget(7, 48, 154, 14, GuiTextures.DISPLAY));
         group.addWidget(new TextFieldWidget(9, 50, 152, 10, () -> String.valueOf(itemsPerCycle), this::setItemsPerCycle).setMaxStringLength(11).setNumbersOnly(1, Integer.MAX_VALUE));

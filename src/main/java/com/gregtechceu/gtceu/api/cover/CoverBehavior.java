@@ -82,7 +82,7 @@ public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighli
     public void onChanged() {
         var level = coverHolder.getLevel();
         if (level != null && !level.isClientSide && level.getServer() != null) {
-            level.getServer().execute(coverHolder::markDirty);
+            level.getServer().execute(coverHolder::onChanged);
         }
     }
 
@@ -139,7 +139,7 @@ public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighli
         if (this.redstoneSignalOutput == redstoneSignalOutput) return;
         this.redstoneSignalOutput = redstoneSignalOutput;
         coverHolder.notifyBlockUpdate();
-        coverHolder.markDirty();
+        coverHolder.onChanged();
     }
 
     public boolean canConnectRedstone() {

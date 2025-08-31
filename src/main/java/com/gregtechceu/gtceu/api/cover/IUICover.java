@@ -28,7 +28,7 @@ public interface IUICover extends IUIHolder {
 
     @Override
     default void markAsDirty() {
-        self().coverHolder.markDirty();
+        self().coverHolder.onChanged();
     }
 
     @Override

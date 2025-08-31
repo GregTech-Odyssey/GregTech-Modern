@@ -34,6 +34,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -55,6 +56,7 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
     public final MachineDefinition definition;
     protected final long offset = GTValues.RNG.nextInt(20);
     protected boolean asyncSyncing;
+    protected LevelChunk chunk;
 
     protected MetaMachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
@@ -65,6 +67,13 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
 
     public static MetaMachineBlockEntity createBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         return new MetaMachineBlockEntity(type, pos, blockState);
+    }
+
+    public @Nullable LevelChunk getChunk() {
+        if (chunk == null && level != null) {
+            chunk = level.getChunkAt(worldPosition);
+        }
+        return chunk;
     }
 
     @Override
@@ -115,8 +124,9 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
 
     @Override
     public void setChanged() {
-        if (getLevel() != null) {
-            getLevel().blockEntityChanged(getBlockPos());
+        var chunk = getChunk();
+        if (chunk != null) {
+            chunk.setUnsaved(true);
         }
     }
 
@@ -232,7 +242,7 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
                     Platform.getMinecraftServer().execute(() -> {
                         if (Platform.isServerNotSafe()) return;
                         var packet = SPacketManagedPayload.of(this, false);
-                        LDLNetworking.NETWORK.sendToTrackingChunk(packet, this.level.getChunkAt(this.getCurrentPos()));
+                        LDLNetworking.NETWORK.sendToTrackingChunk(packet, getChunk());
                         asyncSyncing = false;
                     });
                 }
@@ -265,18 +275,16 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
 
     public void notifyBlockUpdate() {
         if (level != null) {
-            level.updateNeighborsAt(worldPosition, level.getBlockState(worldPosition).getBlock());
+            level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
         }
     }
 
     public void scheduleRenderUpdate() {
-        var pos = worldPosition;
         if (level != null) {
-            var state = level.getBlockState(pos);
             if (level.isClientSide) {
-                level.sendBlockUpdated(pos, state, state, 1 << 3);
+                level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 1 << 3);
             } else {
-                level.blockEvent(pos, state.getBlock(), 1, 0);
+                level.blockEvent(worldPosition, getBlockState().getBlock(), 1, 0);
             }
         }
     }

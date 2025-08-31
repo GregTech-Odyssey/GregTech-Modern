@@ -3,45 +3,40 @@ package com.gregtechceu.gtceu.utils;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 
 import java.util.List;
 import java.util.Map;
 
 public class TaskHandler {
 
-    private static final Map<ResourceLocation, List<RunnableEntry>> serverTasks = new Object2ObjectOpenHashMap<>();
-    private static final Map<ResourceLocation, List<RunnableEntry>> waitToAddTasks = new Object2ObjectOpenHashMap<>();
+    private static final Map<ServerLevel, List<RunnableEntry>> serverTasks = new Reference2ReferenceOpenHashMap<>();
+    private static final Map<ServerLevel, List<RunnableEntry>> waitToAddTasks = new Reference2ReferenceOpenHashMap<>();
 
     // schedule tick event here
     public static void onTickUpdate(ServerLevel level) {
-        var key = level.dimension().location();
         synchronized (waitToAddTasks) {
-            var list = waitToAddTasks.remove(key);
+            var list = waitToAddTasks.remove(level);
             if (list != null && !list.isEmpty()) {
-                serverTasks.computeIfAbsent(key, k -> new ObjectArrayList<>()).addAll(list);
+                serverTasks.computeIfAbsent(level, k -> new ObjectArrayList<>()).addAll(list);
             }
         }
-        execute(serverTasks.get(key));
+        execute(serverTasks.get(level));
     }
 
     // clean up here
     public static void onWorldUnLoad(ServerLevel level) {
-        var key = level.dimension().location();
-        var tasks = serverTasks.get(key);
+        var tasks = serverTasks.remove(level);
         if (tasks != null) {
             tasks.forEach(TickableSubscription::unsubscribe);
-            serverTasks.remove(key);
         }
         synchronized (waitToAddTasks) {
-            tasks = waitToAddTasks.get(key);
+            tasks = waitToAddTasks.remove(level);
             if (tasks != null) {
                 tasks.forEach(TickableSubscription::unsubscribe);
-                waitToAddTasks.remove(key);
             }
         }
     }
@@ -56,7 +51,7 @@ public class TaskHandler {
                     try {
                         task.run();
                     } catch (Exception e) {
-                        GTCEu.LOGGER.error("error while schedule gregtech task", e);
+                        GTCEu.LOGGER.error("error while run gregtech task", e);
                     }
                     if (task.task) iter.remove();
                 } else {
@@ -72,14 +67,14 @@ public class TaskHandler {
         var entry = new RunnableEntry(task, delay);
         entry.task = true;
         synchronized (waitToAddTasks) {
-            waitToAddTasks.computeIfAbsent(level.dimension().location(), key -> new ObjectArrayList<>()).add(entry);
+            waitToAddTasks.computeIfAbsent(level, key -> new ObjectArrayList<>()).add(entry);
         }
     }
 
     public static TickableSubscription enqueueServerTick(ServerLevel level, Runnable runnable, int delay) {
         var entry = new RunnableEntry(runnable, delay);
         synchronized (waitToAddTasks) {
-            waitToAddTasks.computeIfAbsent(level.dimension().location(), key -> new ObjectArrayList<>()).add(entry);
+            waitToAddTasks.computeIfAbsent(level, key -> new ObjectArrayList<>()).add(entry);
             return entry;
         }
     }

@@ -17,6 +17,7 @@ import com.gregtechceu.gtceu.api.pipenet.*;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.TaskHandler;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 
 import com.lowdragmc.lowdraglib.Platform;
@@ -48,6 +49,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.BlockHitResult;
 
 import com.mojang.datafixers.util.Pair;
@@ -92,13 +94,14 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     private Material frameMaterial = GTMaterials.NULL;
     private final List<TickableSubscription> serverTicks = new ObjectArrayList<>();
     private final List<TickableSubscription> waitingToAdd = new ObjectArrayList<>();
+    private TickableSubscription serverTick;
+
+    private LevelChunk chunk;
 
     private boolean asyncSyncing;
     private boolean sync = true;
 
     private final long posLong;
-
-    private boolean wait;
 
     public final BlockEntityDirectionCache blockEntityDirectionCache = BlockEntityDirectionCache.create();
 
@@ -129,10 +132,17 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
 
     @Override
     public void onChanged() {
-        var level = getLevel();
-        if (level != null && !level.isClientSide && level.getServer() != null) {
-            level.getServer().execute(this::setChanged);
+        var chunk = getChunk();
+        if (chunk != null) {
+            chunk.setUnsaved(true);
         }
+    }
+
+    public @Nullable LevelChunk getChunk() {
+        if (chunk == null && level != null) {
+            chunk = level.getChunkAt(worldPosition);
+        }
+        return chunk;
     }
 
     public long getOffsetTimer() {
@@ -142,6 +152,10 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     @Override
     public void setRemoved() {
         super.setRemoved();
+        if (serverTick != null) {
+            serverTick.unsubscribe();
+            serverTick = null;
+        }
         coverContainer.onUnload();
         blockEntityDirectionCache.clearCache();
         if (transferSubs != null) {
@@ -212,10 +226,12 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
 
     @Nullable
     public TickableSubscription subscribeServerTick(Runnable runnable) {
-        if (!isRemote()) {
-            wait = false;
+        if (getLevel() instanceof ServerLevel serverLevel) {
             var subscription = new TickableSubscription(runnable);
             waitingToAdd.add(subscription);
+            if (serverTick == null || !serverTick.isStillSubscribed()) {
+                serverTick = TaskHandler.enqueueServerTick(serverLevel, this::serverTick, 0);
+            }
             return subscription;
         }
         return null;
@@ -228,15 +244,13 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     }
 
     public final void serverTick() {
-        if (wait) return;
         if (!waitingToAdd.isEmpty()) {
             serverTicks.addAll(waitingToAdd);
             waitingToAdd.clear();
         }
         if (serverTicks.isEmpty()) {
-            if (!isRemoved()) {
-                wait = true;
-            }
+            serverTick.unsubscribe();
+            serverTick = null;
         } else {
             for (var iter = serverTicks.listIterator(0); iter.hasNext();) {
                 var tickable = iter.next();
@@ -538,7 +552,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
                     Platform.getMinecraftServer().execute(() -> {
                         if (Platform.isServerNotSafe()) return;
                         var packet = SPacketManagedPayload.of(this, false);
-                        LDLNetworking.NETWORK.sendToTrackingChunk(packet, level.getChunkAt(this.getCurrentPos()));
+                        LDLNetworking.NETWORK.sendToTrackingChunk(packet, getChunk());
                         asyncSyncing = false;
                     });
                 }
@@ -579,10 +593,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
         return true;
     }
 
-    public void markAsDirty() {
-        setChanged();
-    }
-
     public boolean isInValid() {
         return isRemoved();
     }
@@ -613,25 +623,19 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     }
 
     public void scheduleRenderUpdate() {
-        var pos = worldPosition;
         var level = this.level;
         if (level != null) {
-            var state = level.getBlockState(pos);
             if (level.isClientSide) {
-                level.sendBlockUpdated(pos, state, state, Block.UPDATE_IMMEDIATE);
+                level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_IMMEDIATE);
             } else {
-                level.blockEvent(pos, state.getBlock(), 1, 0);
+                level.blockEvent(worldPosition, getBlockState().getBlock(), 1, 0);
             }
         }
     }
 
     public void scheduleNeighborShapeUpdate() {
         Level level = this.level;
-        BlockPos pos = worldPosition;
-
-        if (level == null || pos == null)
-            return;
-
-        level.getBlockState(pos).updateNeighbourShapes(level, pos, Block.UPDATE_ALL);
+        if (level == null) return;
+        getBlockState().updateNeighbourShapes(level, worldPosition, Block.UPDATE_ALL);
     }
 }

@@ -61,7 +61,7 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
 
     public void setFilterMode(FilterMode filterMode) {
         this.filterMode = filterMode;
-        coverHolder.markDirty();
+        coverHolder.onChanged();
     }
 
     @Override

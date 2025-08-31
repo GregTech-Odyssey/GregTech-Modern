@@ -81,7 +81,7 @@ public abstract class HPCAComponentPartMachine extends MultiblockPartMachine
         if (!canBeDamaged()) return;
         if (this.damaged != damaged) {
             this.damaged = damaged;
-            markDirty();
+            onChanged();
         }
     }
 
