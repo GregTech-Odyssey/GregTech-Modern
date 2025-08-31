@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.capability.compat.EUToFEProvider;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEnderRegistry;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldSavedData;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
@@ -68,6 +69,8 @@ import net.minecraftforge.fml.common.Mod;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
 
 @Mod.EventBusSubscriber(modid = GTCEu.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ForgeCommonEventListener {
@@ -261,6 +264,16 @@ public class ForgeCommonEventListener {
                 entity.setItemSlot(EquipmentSlot.MAINHAND, itemStack);
                 zombie.setDropChance(EquipmentSlot.MAINHAND, 0.0f);
             }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        Player player = event.getEntity();
+        if (player instanceof ServerPlayer serverPlayer) {
+            MultiblockControllerMachine.MESSAGE_CACHE.get(serverPlayer.getUUID()).stream()
+                    .filter(Objects::nonNull).forEach(serverPlayer::sendSystemMessage);
+            MultiblockControllerMachine.MESSAGE_CACHE.removeAll(serverPlayer.getUUID());
         }
     }
 }

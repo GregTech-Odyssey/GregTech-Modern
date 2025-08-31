@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
+import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
@@ -19,24 +20,32 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 import com.lowdragmc.lowdraglib.syncdata.annotation.UpdateListener;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -44,7 +53,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class MultiblockControllerMachine extends MetaMachine implements IMultiController {
+public class MultiblockControllerMachine extends MetaMachine implements IMultiController, IMachineLife {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MultiblockControllerMachine.class, MetaMachine.MANAGED_FIELD_HOLDER);
     protected MultiblockState multiblockState;
@@ -69,6 +78,16 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     private boolean checking;
 
     private int waitingTime;
+
+    private boolean toldNotFormed = false;
+
+    /**
+     * Cache for rendering highlight boxes on client side.
+     * rendering is done in GTOCore
+     */
+    public static final ObjectOpenHashSet<BlockPos> HIGHLIGHT_CACHE = new ObjectOpenHashSet<>();
+    public static final Multimap<UUID, Component> MESSAGE_CACHE = HashMultimap.create();
+    public static boolean sendMessage;
 
     public MultiblockControllerMachine(MetaMachineBlockEntity holder) {
         super(holder);
@@ -100,7 +119,19 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         super.onUnload();
         if (getLevel() instanceof ServerLevel serverLevel) {
             MultiblockWorldSavedData.getOrCreate(serverLevel).removeAsyncLogic(this);
-        }
+        } else HIGHLIGHT_CACHE.remove(getPos());
+    }
+
+    @Override
+    public void onMachineRemoved() {
+        IMachineLife.super.onMachineRemoved();
+        if (isRemote()) HIGHLIGHT_CACHE.remove(getPos());
+    }
+
+    @Override
+    public void onMachinePlaced(@Nullable LivingEntity player, ItemStack stack) {
+        IMachineLife.super.onMachinePlaced(player, stack);
+        toldNotFormed = true; // newly placed machine won't tell invalid structure
     }
 
     @Override
@@ -227,6 +258,23 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                     simpleLock = false;
                 });
             } else {
+                serverLevel.getServer().execute(() -> {
+                    if (getMultiblockState().error != MultiblockState.UNINIT_ERROR && !toldNotFormed && getOwner() != null) {
+                        if (sendMessage) {
+                            getOwner().getMembers().forEach(
+                                    uuid -> {
+                                        Player p = serverLevel.getPlayerByUUID(uuid);
+                                        Component m = Component.translatable("gtocore.multiblock.invalid.message",
+                                                getDefinition().getBlock().getName().withStyle(ChatFormatting.YELLOW),
+                                                Component.literal(getPos().toShortString()).withStyle(ChatFormatting.AQUA));
+                                        if (p != null) p.sendSystemMessage(m); // this player is online
+                                        else MESSAGE_CACHE.put(uuid, m); // cache message for offline player
+                                    });
+                        }
+                        requestSync();
+                        toldNotFormed = true;
+                    }
+                });
                 simpleLock = false;
             }
         }
@@ -412,5 +460,17 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @Override
     public MultiblockControllerMachine self() {
         return this;
+    }
+
+    @Override
+    public void clientTick() {
+        super.clientTick();
+        if (getLevel() != null && getOffsetTimer() % 20 == 0) {
+            if (!isFormed) {
+                HIGHLIGHT_CACHE.add(getPos());
+            } else {
+                HIGHLIGHT_CACHE.remove(getPos());
+            }
+        }
     }
 }

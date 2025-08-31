@@ -1,8 +1,14 @@
 package com.gregtechceu.gtceu.api.cover.filter;
 
+import com.gregtechceu.gtceu.api.gui.GuiTextures;
+import com.gregtechceu.gtceu.api.gui.widget.PhantomSlotWidget;
+import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.utils.TagExprFilter;
 
+import com.lowdragmc.lowdraglib.gui.widget.*;
+
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -11,6 +17,7 @@ import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 public class TagItemFilter extends TagFilter<ItemStack, ItemFilter> implements ItemFilter {
 
@@ -51,6 +58,11 @@ public class TagItemFilter extends TagFilter<ItemStack, ItemFilter> implements I
     }
 
     @Override
+    StackHandlerWidget<ItemStack, ItemFilter> getItemHandler() {
+        return new PhantomSlot(new CustomItemStackHandler(1));
+    }
+
+    @Override
     public int testItemCount(ItemStack itemStack) {
         return test(itemStack) ? Integer.MAX_VALUE : 0;
     }
@@ -58,5 +70,48 @@ public class TagItemFilter extends TagFilter<ItemStack, ItemFilter> implements I
     @Override
     public boolean supportsAmounts() {
         return false;
+    }
+
+    protected static class PhantomSlot extends PhantomSlotWidget implements StackHandlerWidget<ItemStack, ItemFilter> {
+
+        final CustomItemStackHandler handler;
+
+        public PhantomSlot(CustomItemStackHandler handler) {
+            super(handler, 0, 90, 30);
+            this.handler = handler;
+            setBackground(GuiTextures.SLOT);
+        }
+
+        @Override
+        public void updateScreen() {
+            super.updateScreen();
+            setMaxStackSize(1);
+        }
+
+        @Override
+        public void detectAndSendChanges() {
+            super.detectAndSendChanges();
+            setMaxStackSize(1);
+        }
+
+        @Override
+        public ItemStack getStack() {
+            return handler.getStackInSlot(0);
+        }
+
+        @Override
+        public void setOnContentsChanged(Runnable runnable) {
+            handler.setOnContentsChanged(runnable);
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return getStack().isEmpty();
+        }
+
+        @Override
+        public Stream<TagKey<?>> getTags() {
+            return getStack().getTags().map(t -> (TagKey<?>) t);
+        }
     }
 }

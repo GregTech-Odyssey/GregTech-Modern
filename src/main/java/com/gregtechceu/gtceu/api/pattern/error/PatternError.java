@@ -42,11 +42,11 @@ public class PatternError {
         StringBuilder builder = new StringBuilder();
         for (List<ItemStack> candidate : candidates) {
             if (!candidate.isEmpty()) {
-                builder.append(candidate.get(0).getDisplayName());
+                builder.append(candidate.get(0).getDisplayName().getString());
                 builder.append(", ");
             }
         }
         builder.append("...");
-        return Component.translatable("gtceu.multiblock.pattern.error", builder.toString(), pos);
+        return Component.translatable("gtceu.multiblock.pattern.error", builder.toString(), pos.toShortString());
     }
 }
