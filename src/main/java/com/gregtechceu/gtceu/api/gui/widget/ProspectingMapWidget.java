@@ -47,7 +47,7 @@ public class ProspectingMapWidget extends WidgetGroup implements SearchComponent
     private final ProspectorMode mode;
     private final int scanTick;
     private boolean darkMode = false;
-    private final DraggableScrollableWidgetGroup itemList;
+    protected final DraggableScrollableWidgetGroup itemList;
     @OnlyIn(Dist.CLIENT)
     private ProspectingTexture texture;
     private int playerChunkX;
@@ -256,7 +256,7 @@ public class ProspectingMapWidget extends WidgetGroup implements SearchComponent
         return true;
     }
 
-    private WaypointItem getClickedVein(double mouseX, double mouseY) {
+    protected WaypointItem getClickedVein(double mouseX, double mouseY) {
         var position = getPosition();
         var size = getSize();
         var x = position.x + 3;
@@ -335,7 +335,7 @@ public class ProspectingMapWidget extends WidgetGroup implements SearchComponent
         }
     }
 
-    private record WaypointItem(BlockPos position, String name, int color) {}
+    protected record WaypointItem(BlockPos position, String name, int color) {}
 
     public boolean isDarkMode() {
         return this.darkMode;
