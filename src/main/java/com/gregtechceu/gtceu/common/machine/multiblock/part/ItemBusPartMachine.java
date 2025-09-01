@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDistinctPart;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.CircuitHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
@@ -41,7 +42,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinctPart, IMachineLife {
+public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinctPart, IMachineLife, IInputLimitableMachine {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ItemBusPartMachine.class, TieredIOPartMachine.MANAGED_FIELD_HOLDER);
     @Persisted
@@ -123,6 +124,11 @@ public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinct
     public void setDistinct(boolean distinct) {
         isDistinct = (io != IO.OUT && distinct);
         getHandlerList().setDistinctAndNotify(isDistinct);
+    }
+
+    @Override
+    public void setInputLimit(boolean inputLimit) {
+        this.inventory.storage.isInputLimited = (io != IO.OUT && inputLimit);
     }
 
     @Override
@@ -218,12 +224,18 @@ public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinct
 
     //////////////////////////////////////
     // ********** GUI ***********//
+
+
+
+
+
     //////////////////////////////////////
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
         if (this.io == IO.OUT) {
             IDistinctPart.super.superAttachConfigurators(configuratorPanel);
         } else if (this.io == IO.IN) {
             IDistinctPart.super.attachConfigurators(configuratorPanel);
+            IInputLimitableMachine.super.attachConfigurators(configuratorPanel);
             configuratorPanel.attachConfigurators(new CircuitFancyConfigurator(circuitInventory.storage));
         }
     }
@@ -260,4 +272,6 @@ public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinct
     public boolean isDistinct() {
         return this.isDistinct;
     }
+
+    public boolean isInputLimit() { return this.inventory.storage.isInputLimited; }
 }

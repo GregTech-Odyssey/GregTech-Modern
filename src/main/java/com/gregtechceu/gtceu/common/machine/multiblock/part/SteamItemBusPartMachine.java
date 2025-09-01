@@ -22,10 +22,12 @@ import org.jetbrains.annotations.NotNull;
 public class SteamItemBusPartMachine extends ItemBusPartMachine {
 
     private final String autoTooltipKey;
+    private final String inputLimitTooltipKey;
 
     public SteamItemBusPartMachine(MetaMachineBlockEntity holder, IO io, Object... args) {
         super(holder, 1, io, args);
         autoTooltipKey = io == IO.IN ? "gtceu.gui.item_auto_input.tooltip" : "gtceu.gui.item_auto_output.tooltip";
+        inputLimitTooltipKey = "gtceu.multiblock.steam.input_limit";
     }
 
     @NotNull
@@ -41,6 +43,10 @@ public class SteamItemBusPartMachine extends ItemBusPartMachine {
                         GuiTextures.BUTTON_ITEM_OUTPUT, this::isWorkingEnabled, this::setWorkingEnabled)
                         .setShouldUseBaseBackground() // TODO: Steamify background
                         .setTooltipText(autoTooltipKey))
+                .widget(new ToggleButtonWidget(7 + 18 + 3 * xOffset, 18 + 18 * rowSize, 18, 18,
+                        GuiTextures.LOCK_WHITE.scale(0.9f), this::isInputLimit, this::setInputLimit)
+                        .setShouldUseBaseBackground()
+                        .setTooltipText(inputLimitTooltipKey))
                 .widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(),
                         GuiTextures.SLOT_STEAM.get(ConfigHolder.INSTANCE.machines.steelSteamMultiblocks),
                         7 + xOffset, 18 + 18 * rowSize + 24, true));
