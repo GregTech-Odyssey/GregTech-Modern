@@ -45,13 +45,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.PotionItem;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.entity.living.MobEffectEvent;
@@ -65,15 +65,18 @@ import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-@Mod.EventBusSubscriber(modid = GTCEu.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ForgeCommonEventListener {
+
+    public static void init() {
+        MinecraftForge.EVENT_BUS.register(ForgeCommonEventListener.class);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGH, TaskHandler::onTickUpdate);
+    }
 
     @SubscribeEvent
     public static void registerItemStackCapabilities(AttachCapabilitiesEvent<ItemStack> event) {
@@ -158,13 +161,6 @@ public class ForgeCommonEventListener {
     }
 
     @SubscribeEvent
-    public static void levelTick(TickEvent.LevelTickEvent event) {
-        if (event.phase == TickEvent.Phase.END && event.level instanceof ServerLevel serverLevel) {
-            TaskHandler.onTickUpdate(serverLevel);
-        }
-    }
-
-    @SubscribeEvent
     public static void worldLoad(LevelEvent.Load event) {
         if (event.getLevel().isClientSide()) {
             WaypointManager.updateDimension(event.getLevel());
@@ -198,6 +194,7 @@ public class ForgeCommonEventListener {
 
     @SubscribeEvent
     public static void serverStopping(ServerStoppingEvent event) {
+        MultiblockControllerMachine.MESSAGE_CACHE.clear();
         var levels = event.getServer().getAllLevels();
         for (var level : levels) {
             if (!level.isClientSide()) {
@@ -269,11 +266,12 @@ public class ForgeCommonEventListener {
 
     @SubscribeEvent
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        Player player = event.getEntity();
-        if (player instanceof ServerPlayer serverPlayer) {
-            MultiblockControllerMachine.MESSAGE_CACHE.get(serverPlayer.getUUID()).stream()
-                    .filter(Objects::nonNull).forEach(serverPlayer::sendSystemMessage);
-            MultiblockControllerMachine.MESSAGE_CACHE.removeAll(serverPlayer.getUUID());
+        if (event.getEntity() instanceof ServerPlayer serverPlayer) {
+            TaskHandler.enqueueServerTask(serverPlayer.serverLevel(), () -> {
+                MultiblockControllerMachine.MESSAGE_CACHE.get(serverPlayer.getUUID()).stream()
+                        .filter(Objects::nonNull).forEach(serverPlayer::sendSystemMessage);
+                MultiblockControllerMachine.MESSAGE_CACHE.removeAll(serverPlayer.getUUID());
+            }, 200);
         }
     }
 }

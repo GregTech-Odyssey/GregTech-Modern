@@ -29,7 +29,7 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
 
     public ItemStack[] stacks;
     public boolean isInputLimited;
-    protected int size;
+    public int size;
 
     public CustomItemStackHandler() {
         this.stacks = new ItemStack[] { ItemStack.EMPTY };

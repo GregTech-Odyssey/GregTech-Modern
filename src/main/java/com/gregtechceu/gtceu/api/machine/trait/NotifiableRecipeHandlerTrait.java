@@ -1,10 +1,13 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
+
+import net.minecraft.server.level.ServerLevel;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -46,7 +49,9 @@ public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait imple
                 listeners.forEach(Runnable::run);
                 notify = null;
             };
-            machine.tell(notify);
+            if (machine.getLevel() instanceof ServerLevel serverLevel) {
+                TaskHandler.enqueueServerTask(serverLevel, notify, 0);
+            }
         }
     }
 

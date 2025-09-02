@@ -3,16 +3,18 @@ package com.gregtechceu.gtceu.common.pipelike.cable;
 public class PerTickLongCounter {
 
     private final long defaultValue;
+    private final boolean override;
     private long lastUpdatedTime;
     private long currentValue;
 
-    public PerTickLongCounter() {
-        this(0);
+    public PerTickLongCounter(boolean override) {
+        this(0, override);
     }
 
-    public PerTickLongCounter(long defaultValue) {
+    public PerTickLongCounter(long defaultValue, boolean override) {
         this.defaultValue = defaultValue;
         this.currentValue = defaultValue;
+        this.override = override;
     }
 
     private void checkValueState(long time) {
@@ -29,6 +31,7 @@ public class PerTickLongCounter {
 
     public void set(long time, long value) {
         checkValueState(time);
-        this.currentValue += value;
+        if (override) this.currentValue = value;
+        else this.currentValue += value;
     }
 }

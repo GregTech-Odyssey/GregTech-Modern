@@ -52,8 +52,8 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
     protected WeakReference<EnergyNet> currentEnergyNet = new WeakReference<>(null);
     private static final int meltTemp = 3000;
     private final EnumMap<Direction, EnergyNetHandler> handlers = new EnumMap<>(Direction.class);
-    private final PerTickLongCounter voltageCounter = new PerTickLongCounter();
-    private final PerTickLongCounter amperageCounter = new PerTickLongCounter();
+    private final PerTickLongCounter voltageCounter = new PerTickLongCounter(true);
+    private final PerTickLongCounter amperageCounter = new PerTickLongCounter(false);
     private EnergyNetHandler defaultHandler;
     private int heatQueue;
     @Persisted

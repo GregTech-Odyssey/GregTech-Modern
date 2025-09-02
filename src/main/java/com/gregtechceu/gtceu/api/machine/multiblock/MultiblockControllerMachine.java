@@ -258,23 +258,17 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                     simpleLock = false;
                 });
             } else {
-                serverLevel.getServer().execute(() -> {
-                    if (getMultiblockState().error != MultiblockState.UNINIT_ERROR && !toldNotFormed && getOwner() != null) {
-                        if (sendMessage) {
-                            getOwner().getMembers().forEach(
-                                    uuid -> {
-                                        Player p = serverLevel.getPlayerByUUID(uuid);
-                                        Component m = Component.translatable("gtocore.multiblock.invalid.message",
-                                                getDefinition().getBlock().getName().withStyle(ChatFormatting.YELLOW),
-                                                Component.literal(getPos().toShortString()).withStyle(ChatFormatting.AQUA));
-                                        if (p != null) p.sendSystemMessage(m); // this player is online
-                                        else MESSAGE_CACHE.put(uuid, m); // cache message for offline player
-                                    });
-                        }
-                        requestSync();
-                        toldNotFormed = true;
-                    }
-                });
+                if (sendMessage && getMultiblockState().error != MultiblockState.UNINIT_ERROR && !toldNotFormed && getOwner() != null) {
+                    serverLevel.getServer().execute(() -> getOwner().getMembers().forEach(uuid -> {
+                        Player p = serverLevel.getPlayerByUUID(uuid);
+                        Component m = Component.translatable("gtocore.multiblock.invalid.message",
+                                getDefinition().getBlock().getName().withStyle(ChatFormatting.YELLOW),
+                                Component.literal(getPos().toShortString()).withStyle(ChatFormatting.AQUA));
+                        if (p != null) p.sendSystemMessage(m); // this player is online
+                        else MESSAGE_CACHE.put(uuid, m); // cache message for offline player
+                    }));
+                    toldNotFormed = true;
+                }
                 simpleLock = false;
             }
         }

@@ -119,7 +119,6 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     protected final List<MachineTrait> traits = new ObjectArrayList<>();
     private final List<TickableSubscription> serverTicks = new ObjectArrayList<>();
     private final List<TickableSubscription> waitingToAdd = new ObjectArrayList<>();
-    private final List<Runnable> tasks = new ObjectArrayList<>();
     private TickableSubscription serverTick;
 
     protected final DirectionCache<IItemHandlerModifiable> itemHandlerModifiableCache = DirectionCache.create();
@@ -141,8 +140,6 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     private long totaTickCount;
 
     private boolean observe;
-
-    private boolean hasTask;
 
     public MetaMachine(MetaMachineBlockEntity holder) {
         this.definition = holder.definition;
@@ -283,22 +280,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         }
     }
 
-    public void tell(Runnable task) {
-        if (getLevel() instanceof ServerLevel serverLevel) {
-            tasks.add(task);
-            hasTask = true;
-            if (serverTick == null || !serverTick.isStillSubscribed()) {
-                serverTick = TaskHandler.enqueueServerTick(serverLevel, this::serverTick, 0);
-            }
-        }
-    }
-
     public void serverTick() {
-        if (hasTask) {
-            tasks.forEach(Runnable::run);
-            tasks.clear();
-            hasTask = false;
-        }
         if (!waitingToAdd.isEmpty()) {
             serverTicks.addAll(waitingToAdd);
             waitingToAdd.clear();

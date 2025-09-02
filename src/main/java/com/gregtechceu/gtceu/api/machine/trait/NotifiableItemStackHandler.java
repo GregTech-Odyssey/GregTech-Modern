@@ -91,7 +91,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
         // Store the ItemStack in each slot after an operation
         // Necessary for simulation since we don't actually modify the slot's contents
         // Doesn't hurt for execution, and definitely cheaper than copying the entire storage
-        ItemStack[] visited = new ItemStack[storage.getSlots()];
+        ItemStack[] visited = new ItemStack[storage.size];
         for (var it = left.listIterator(0); it.hasNext();) {
             var ingredient = it.next();
             if (ingredient.isEmpty()) {
@@ -107,8 +107,8 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
             }
             if (ingredient instanceof SizedIngredient si) amount = si.getAmount();
             else amount = items[0].getCount();
-            for (int slot = 0; slot < storage.getSlots(); ++slot) {
-                ItemStack current = visited[slot] == null ? storage.getStackInSlot(slot) : visited[slot];
+            for (int slot = 0; slot < storage.size; ++slot) {
+                ItemStack current = visited[slot] == null ? storage.stacks[slot] : visited[slot];
                 int count = current.getCount();
                 if (io == IO.IN) {
                     if (current.isEmpty()) continue;
@@ -156,12 +156,12 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     }
 
     public int getSlots() {
-        return storage.getSlots();
+        return storage.size;
     }
 
     @Override
     public int getSize() {
-        return getSlots();
+        return storage.size;
     }
 
     @Override
@@ -172,9 +172,8 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
         if (changed) {
             changed = false;
             itemMap.clear();
-            int sl = getSlots();
-            for (int i = 0; i < sl; ++i) {
-                ItemStack stack = storage.getStackInSlot(i);
+            for (int i = 0; i < storage.size; ++i) {
+                ItemStack stack = storage.stacks[i];
                 var count = stack.getCount();
                 if (count > 0) {
                     itemMap.addTo(stack, count);
@@ -194,8 +193,8 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     @Override
     public double getTotalContentAmount() {
         long amount = 0;
-        for (int i = 0; i < getSlots(); ++i) {
-            ItemStack stack = storage.getStackInSlot(i);
+        for (int i = 0; i < storage.size; ++i) {
+            ItemStack stack = storage.stacks[i];
             if (!stack.isEmpty()) {
                 amount += stack.getCount();
             }
@@ -206,8 +205,8 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     public boolean isEmpty() {
         if (isEmpty == null) {
             isEmpty = true;
-            for (int i = 0; i < storage.getSlots(); i++) {
-                if (!storage.getStackInSlot(i).isEmpty()) {
+            for (int i = 0; i < storage.size; i++) {
+                if (!storage.stacks[i].isEmpty()) {
                     isEmpty = false;
                     break;
                 }

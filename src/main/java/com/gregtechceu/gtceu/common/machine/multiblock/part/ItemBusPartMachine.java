@@ -225,10 +225,6 @@ public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinct
     //////////////////////////////////////
     // ********** GUI ***********//
 
-
-
-
-
     //////////////////////////////////////
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
         if (this.io == IO.OUT) {
@@ -273,5 +269,7 @@ public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinct
         return this.isDistinct;
     }
 
-    public boolean isInputLimit() { return this.inventory.storage.isInputLimited; }
+    public boolean isInputLimit() {
+        return this.inventory.storage.isInputLimited;
+    }
 }

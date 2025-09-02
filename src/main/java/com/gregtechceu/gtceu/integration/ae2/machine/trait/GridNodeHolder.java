@@ -13,6 +13,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 
 import appeng.api.networking.GridFlags;
+import appeng.api.networking.GridHelper;
 import appeng.me.helpers.BlockEntityNodeListener;
 import appeng.me.helpers.IGridConnectedBlockEntity;
 
@@ -51,7 +52,7 @@ public class GridNodeHolder extends MachineTrait {
     @Override
     public void onMachineLoad() {
         super.onMachineLoad();
-        createMainNode();
+        GridHelper.onFirstTick(machine.holder, b -> createMainNode());
     }
 
     @Override

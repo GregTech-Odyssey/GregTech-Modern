@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 
 import net.minecraft.server.level.ServerLevel;
+import net.minecraftforge.event.TickEvent;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
@@ -17,14 +18,36 @@ public class TaskHandler {
     private static final Map<ServerLevel, List<RunnableEntry>> waitToAddTasks = new Reference2ReferenceOpenHashMap<>();
 
     // schedule tick event here
-    public static void onTickUpdate(ServerLevel level) {
-        synchronized (waitToAddTasks) {
-            var list = waitToAddTasks.remove(level);
-            if (list != null && !list.isEmpty()) {
-                serverTasks.computeIfAbsent(level, k -> new ObjectArrayList<>()).addAll(list);
+    public static void onTickUpdate(TickEvent.LevelTickEvent event) {
+        if (event.phase == TickEvent.Phase.END && event.level instanceof ServerLevel level) {
+            synchronized (waitToAddTasks) {
+                var list = waitToAddTasks.get(level);
+                if (list != null && !list.isEmpty()) {
+                    serverTasks.computeIfAbsent(level, k -> new ObjectArrayList<>()).addAll(list);
+                    list.clear();
+                }
+            }
+            var tasks = serverTasks.get(level);
+            if (tasks == null || tasks.isEmpty()) return;
+            var iter = tasks.listIterator(0);
+            while (iter.hasNext()) {
+                var task = iter.next();
+                if (task.delay > 0) {
+                    task.delay--;
+                } else {
+                    if (task.isStillSubscribed()) {
+                        try {
+                            task.run();
+                        } catch (Exception e) {
+                            GTCEu.LOGGER.error("error while run gregtech task", e);
+                        }
+                        if (task.task) iter.remove();
+                    } else {
+                        iter.remove();
+                    }
+                }
             }
         }
-        execute(serverTasks.get(level));
     }
 
     // clean up here
@@ -37,28 +60,6 @@ public class TaskHandler {
             tasks = waitToAddTasks.remove(level);
             if (tasks != null) {
                 tasks.forEach(TickableSubscription::unsubscribe);
-            }
-        }
-    }
-
-    private static void execute(List<RunnableEntry> tasks) {
-        if (tasks == null || tasks.isEmpty()) return;
-        var iter = tasks.listIterator(0);
-        while (iter.hasNext()) {
-            var task = iter.next();
-            if (task.delay <= 0) {
-                if (task.isStillSubscribed()) {
-                    try {
-                        task.run();
-                    } catch (Exception e) {
-                        GTCEu.LOGGER.error("error while run gregtech task", e);
-                    }
-                    if (task.task) iter.remove();
-                } else {
-                    iter.remove();
-                }
-            } else {
-                task.delay--;
             }
         }
     }
