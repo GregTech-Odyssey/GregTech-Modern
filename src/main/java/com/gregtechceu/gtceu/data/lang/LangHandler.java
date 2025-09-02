@@ -1161,6 +1161,13 @@ public class LangHandler {
         provider.add("gtceu.multiblock.universal.distinct.yes", "Yes");
         provider.add("gtceu.multiblock.universal.distinct.info",
                 "If enabled, each Item Input Bus will be treated as fully distinct from each other for recipe lookup. Useful for things like Programmed Circuits, Extruder Shapes, etc.");
+        provider.add("gtceu.multiblock.universal.input_limit", "Input Limit:");
+        provider.add("gtceu.multiblock.universal.input_limit.no", "No");
+        provider.add("gtceu.multiblock.universal.input_limit.yes", "Yes");
+        provider.add("gtceu.multiblock.universal.input_limit.info",
+                "If enabled, Item input will be limited up to 1 stack.");
+        provider.add("gtceu.multiblock.steam.input_limit.disabled", "Input Limit Disabled");
+        provider.add("gtceu.multiblock.steam.input_limit.enabled", "Input Limit Enabled");
         provider.add("gtceu.multiblock.parallel", "Performing up to %d Recipes in Parallel");
         provider.add("gtceu.multiblock.parallel.exact", "Performing %d Recipes in Parallel");
         provider.add("gtceu.multiblock.multiple_recipemaps.header", "Machine Mode:");

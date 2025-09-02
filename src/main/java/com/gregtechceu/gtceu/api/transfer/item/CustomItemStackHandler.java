@@ -28,6 +28,7 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
     protected Predicate<ItemStack> filter = GTUtil.FAVORABLE;
 
     public ItemStack[] stacks;
+    public boolean isInputLimited;
     protected int size;
 
     public CustomItemStackHandler() {
@@ -84,6 +85,7 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
         var count = stack.getCount();
         if (count < 1) return ItemStack.EMPTY;
         if (!isItemValid(slot, stack)) return stack;
+        if (isInputLimited && !canLimitedInsert(slot, stack)) return stack;
         ItemStack existing = this.stacks[slot];
         var stored = existing.getCount();
         int limit = getStackLimit(slot, stack) - stored;
@@ -108,6 +110,7 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
      **/
     public int insertItemFast(int slot, @NotNull ItemStack stack, int count, boolean simulate) {
         if (!isItemValid(slot, stack)) return count;
+        if (isInputLimited && !canLimitedInsert(slot, stack)) return count;
         ItemStack existing = this.stacks[slot];
         var stored = existing.getCount();
         int limit = getStackLimit(slot, stack) - stored;
@@ -246,6 +249,13 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
             return at.equals(bt);
         }
         return false;
+    }
+
+    public boolean canLimitedInsert(int index, ItemStack itemStack) {
+        for (int i = 0; i < this.size; i++) {
+            if (canItemStacksStack(stacks[i], itemStack)) return i == index;
+        }
+        return stacks[index] == null || stacks[index].isEmpty();
     }
 
     public static void insertItemStackedFast(CustomItemStackHandler inventory, @NotNull ItemStack stack) {
