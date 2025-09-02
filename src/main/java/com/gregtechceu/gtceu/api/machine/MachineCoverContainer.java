@@ -173,11 +173,6 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
     }
 
     @Override
-    public void unsubscribe(@Nullable TickableSubscription current) {
-        machine.unsubscribe(current);
-    }
-
-    @Override
     public CoverBehavior getCoverAtSide(Direction side) {
         return switch (side) {
             case UP -> up;

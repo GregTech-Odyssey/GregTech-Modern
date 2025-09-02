@@ -26,6 +26,7 @@ import com.lowdragmc.lowdraglib.networking.LDLNetworking;
 import com.lowdragmc.lowdraglib.networking.s2c.SPacketManagedPayload;
 import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
 import com.lowdragmc.lowdraglib.syncdata.IManagedStorage;
+import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
@@ -94,7 +95,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     private Material frameMaterial = GTMaterials.NULL;
     private final List<TickableSubscription> serverTicks = new ObjectArrayList<>();
     private final List<TickableSubscription> waitingToAdd = new ObjectArrayList<>();
-    private TickableSubscription serverTick;
+    private ISubscription serverTickSubscription;
 
     private LevelChunk chunk;
 
@@ -105,7 +106,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
 
     public final BlockEntityDirectionCache blockEntityDirectionCache = BlockEntityDirectionCache.create();
 
-    @Nullable
     protected TickableSubscription transferSubs;
 
     public boolean autoTransfer;
@@ -152,9 +152,8 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     @Override
     public void setRemoved() {
         super.setRemoved();
-        if (serverTick != null) {
-            serverTick.unsubscribe();
-            serverTick = null;
+        if (serverTickSubscription != null) {
+            serverTickSubscription.unsubscribe();
         }
         coverContainer.onUnload();
         blockEntityDirectionCache.clearCache();
@@ -166,6 +165,10 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
 
     @Override
     public void clearRemoved() {
+        if (serverTickSubscription != null) {
+            serverTickSubscription.unsubscribe();
+        }
+        serverTicks.clear();
         blockEntityDirectionCache.clearCache();
         super.clearRemoved();
         coverContainer.onLoad();
@@ -229,38 +232,29 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
         if (getLevel() instanceof ServerLevel serverLevel) {
             var subscription = new TickableSubscription(runnable);
             waitingToAdd.add(subscription);
-            if (serverTick == null || !serverTick.isStillSubscribed()) {
-                serverTick = TaskHandler.enqueueServerTick(serverLevel, this::serverTick, 0);
+            if (serverTickSubscription == null) {
+                serverTickSubscription = TaskHandler.enqueueServerTick(serverLevel, () -> {
+                    if (!waitingToAdd.isEmpty()) {
+                        serverTicks.addAll(waitingToAdd);
+                        waitingToAdd.clear();
+                    }
+                    if (serverTicks.isEmpty()) {
+                        serverTickSubscription.unsubscribe();
+                    } else {
+                        for (var iter = serverTicks.listIterator(0); iter.hasNext();) {
+                            var tickable = iter.next();
+                            if (tickable.isStillSubscribed()) {
+                                tickable.run();
+                            } else {
+                                iter.remove();
+                            }
+                        }
+                    }
+                }, () -> serverTickSubscription = null, 0)::unsubscribe;
             }
             return subscription;
         }
         return null;
-    }
-
-    public void unsubscribe(@Nullable TickableSubscription current) {
-        if (current != null) {
-            current.unsubscribe();
-        }
-    }
-
-    public final void serverTick() {
-        if (!waitingToAdd.isEmpty()) {
-            serverTicks.addAll(waitingToAdd);
-            waitingToAdd.clear();
-        }
-        if (serverTicks.isEmpty()) {
-            serverTick.unsubscribe();
-            serverTick = null;
-        } else {
-            for (var iter = serverTicks.listIterator(0); iter.hasNext();) {
-                var tickable = iter.next();
-                if (tickable.isStillSubscribed()) {
-                    tickable.run();
-                } else {
-                    iter.remove();
-                }
-            }
-        }
     }
 
     protected void updateTransferTick(boolean tick, Runnable runnable) {

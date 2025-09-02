@@ -222,6 +222,8 @@ public class CommonProxy {
 
     @SubscribeEvent
     public void commonSetup(FMLCommonSetupEvent event) {
+        GTCraftingComponents.init();
+        GTRecipes.recipeAddition();
         event.enqueueWork(() -> {
             CraftingHelper.register(SizedIngredient.TYPE, SizedIngredient.SERIALIZER);
             CraftingHelper.register(IntCircuitIngredient.TYPE, IntCircuitIngredient.SERIALIZER);
@@ -245,13 +247,8 @@ public class CommonProxy {
                     Pack.Position.BOTTOM,
                     GTDynamicResourcePack::new));
         } else if (event.getPackType() == PackType.SERVER_DATA) {
-            // Clear old data
-            GTDynamicDataPack.clearServer();
-
             long startTime = System.currentTimeMillis();
-            GTCraftingComponents.init();
             GTRecipes.recipeRemoval();
-            GTRecipes.recipeAddition();
             // Initialize dungeon loot additions
             DungeonLootLoader.init();
             GTCEu.LOGGER.info("GregTech Data loading took {}ms", System.currentTimeMillis() - startTime);

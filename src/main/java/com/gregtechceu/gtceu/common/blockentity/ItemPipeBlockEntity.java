@@ -159,6 +159,12 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
         updateTransferTick(isBlocked && blockedSide != null, this::autoTransfer);
     }
 
+    @Override
+    public void onNeighborChanged() {
+        super.onNeighborChanged();
+        updateTransferTick(blockedSide != null && isBlocked(blockedSide), this::autoTransfer);
+    }
+
     private void autoTransfer() {
         if (getOffsetTimer() % 20 == 0) {
             ensureHandlersInitialized();
@@ -181,7 +187,8 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
             }
             autoTransfer = false;
             if (!hasHandler) {
-                setBlocked(blockedSide, false);
+                transferSubs.unsubscribe();
+                transferSubs = null;
             }
         }
     }

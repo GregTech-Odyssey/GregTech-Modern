@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -413,7 +412,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
                 workingSound = null;
             }
             if (sound != null) {
-                workingSound = sound.playAutoReleasedSound(() -> machine.shouldWorkingPlaySound() && isWorking() && !getMachine().isInValid() && getMachine().getLevel().isLoaded(getMachine().getPos()) && MetaMachine.getMachine(getMachine().getLevel(), getMachine().getPos()) == getMachine(), getMachine().getPos(), true, 0, 1, 1);
+                workingSound = sound.playAutoReleasedSound(() -> machine.shouldWorkingPlaySound() && isWorking() && !getMachine().isInValid() && getMachine().getLevel().isLoaded(getMachine().getPos()), getMachine().getPos(), true, 0, 1, 1);
             }
         } else if (workingSound instanceof AutoReleasedSound soundEntry) {
             soundEntry.release();

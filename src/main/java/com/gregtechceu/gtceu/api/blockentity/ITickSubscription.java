@@ -15,7 +15,11 @@ public interface ITickSubscription {
     @Nullable
     TickableSubscription subscribeServerTick(Runnable runnable);
 
-    void unsubscribe(@Nullable TickableSubscription current);
+    default void unsubscribe(@Nullable TickableSubscription current) {
+        if (current != null) {
+            current.unsubscribe();
+        }
+    }
 
     @Nullable
     default TickableSubscription subscribeServerTick(@Nullable TickableSubscription last, Runnable runnable) {

@@ -124,7 +124,7 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
                     }
                 } else {
                     var items = recipe.getInputContents(ItemRecipeCapability.CAP);
-                    if (!RecipeHelper.handleRecipe(this.machine, recipe, io, Map.of(ItemRecipeCapability.CAP, items), chanceCaches, false, false)) {
+                    if (!RecipeHelper.handleRecipe(this.machine, recipe, io, Map.of(ItemRecipeCapability.CAP, items), chanceCaches, false)) {
                         return false;
                     }
                 }
@@ -132,7 +132,7 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
                     return consumeOrderedFluidInputs(recipe);
                 } else {
                     var fluids = recipe.getInputContents(FluidRecipeCapability.CAP);
-                    return RecipeHelper.handleRecipe(this.machine, recipe, io, Map.of(FluidRecipeCapability.CAP, fluids), chanceCaches, false, false);
+                    return RecipeHelper.handleRecipe(this.machine, recipe, io, Map.of(FluidRecipeCapability.CAP, fluids), chanceCaches, false);
                 }
             } else {
                 return super.handleRecipeIO(recipe, io);

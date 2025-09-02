@@ -38,6 +38,7 @@ import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
+import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
@@ -119,7 +120,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     protected final List<MachineTrait> traits = new ObjectArrayList<>();
     private final List<TickableSubscription> serverTicks = new ObjectArrayList<>();
     private final List<TickableSubscription> waitingToAdd = new ObjectArrayList<>();
-    private TickableSubscription serverTick;
+    private ISubscription serverTickSubscription;
 
     protected final DirectionCache<IItemHandlerModifiable> itemHandlerModifiableCache = DirectionCache.create();
     protected final DirectionCache<IFluidHandlerModifiable> fluidHandlerModifiableCache = DirectionCache.create();
@@ -210,9 +211,8 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     @MustBeInvokedByOverriders
     public void onUnload() {
-        if (serverTick != null) {
-            serverTick.unsubscribe();
-            serverTick = null;
+        if (serverTickSubscription != null) {
+            serverTickSubscription.unsubscribe();
         }
         traits.forEach(MachineTrait::onMachineUnLoad);
         coverContainer.onUnload();
@@ -226,6 +226,10 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     @MustBeInvokedByOverriders
     public void onLoad() {
+        if (serverTickSubscription != null) {
+            serverTickSubscription.unsubscribe();
+        }
+        serverTicks.clear();
         blockEntityDirectionCache.clearCache();
         clearDirectionCache();
         traits.forEach(MachineTrait::onMachineLoad);
@@ -262,8 +266,39 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         if (getLevel() instanceof ServerLevel serverLevel) {
             var subscription = new TickableSubscription(runnable);
             waitingToAdd.add(subscription);
-            if (serverTick == null || !serverTick.isStillSubscribed()) {
-                serverTick = TaskHandler.enqueueServerTick(serverLevel, this::serverTick, 0);
+            if (serverTickSubscription == null) {
+                serverTickSubscription = TaskHandler.enqueueServerTick(serverLevel, () -> {
+                    if (!waitingToAdd.isEmpty()) {
+                        serverTicks.addAll(waitingToAdd);
+                        waitingToAdd.clear();
+                    }
+                    if (serverTicks.isEmpty()) {
+                        serverTickSubscription.unsubscribe();
+                        averageTickTime = 0;
+                    } else {
+                        offsetTimer = holder.getOffsetTimer();
+                        boolean observe = OBSERVE || this.observe;
+                        long currentTime = 0;
+                        if (observe) currentTime = System.nanoTime();
+                        for (var iter = serverTicks.listIterator(0); iter.hasNext();) {
+                            var tickable = iter.next();
+                            if (tickable.isStillSubscribed()) {
+                                tickable.run();
+                            } else {
+                                iter.remove();
+                            }
+                        }
+                        if (observe) {
+                            totaTickCount += System.nanoTime() - currentTime;
+                            if (offsetTimer % 40 == 0) {
+                                this.observe = false;
+                                averageTickTime = (int) (totaTickCount / 40000);
+                                totaTickCount = 0;
+                            }
+                            if (OBSERVE) PERFORMANCE_MAP.put(this, averageTickTime);
+                        }
+                    }
+                }, () -> serverTickSubscription = null, 0)::unsubscribe;
             }
             return subscription;
         } else if (getLevel() instanceof DummyWorld) {
@@ -272,48 +307,6 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
             return subscription;
         }
         return null;
-    }
-
-    public void unsubscribe(@Nullable TickableSubscription current) {
-        if (current != null) {
-            current.unsubscribe();
-        }
-    }
-
-    public void serverTick() {
-        if (!waitingToAdd.isEmpty()) {
-            serverTicks.addAll(waitingToAdd);
-            waitingToAdd.clear();
-        }
-        if (serverTicks.isEmpty()) {
-            if (!OBSERVE) {
-                serverTick.unsubscribe();
-                serverTick = null;
-            }
-            averageTickTime = 0;
-        } else {
-            offsetTimer = holder.getOffsetTimer();
-            boolean observe = OBSERVE || this.observe;
-            long currentTime = 0;
-            if (observe) currentTime = System.nanoTime();
-            for (var iter = serverTicks.listIterator(0); iter.hasNext();) {
-                var tickable = iter.next();
-                if (tickable.isStillSubscribed()) {
-                    tickable.run();
-                } else {
-                    iter.remove();
-                }
-            }
-            if (observe) {
-                totaTickCount += System.nanoTime() - currentTime;
-                if (offsetTimer % 40 == 0) {
-                    this.observe = false;
-                    averageTickTime = (int) (totaTickCount / 40000);
-                    totaTickCount = 0;
-                }
-                if (OBSERVE) PERFORMANCE_MAP.put(this, averageTickTime);
-            }
-        }
     }
 
     public boolean isFirstDummyWorldTick = true;

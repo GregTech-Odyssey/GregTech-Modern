@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.stack.ItemMaterialInfo;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
-import com.gregtechceu.gtceu.api.data.tag.TagUtil;
 import com.gregtechceu.gtceu.api.item.component.IDataItem;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
@@ -28,7 +27,6 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.ResearchManager;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -42,7 +40,6 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
 import dev.ftb.mods.ftbquests.quest.QuestObjectBase;
@@ -388,16 +385,16 @@ public class GTRecipeBuilder {
             tempItemMaterialStacks.add(new MaterialStack(material, tagPrefix.getMaterialAmount(material) * count));
             tagPrefix.secondaryMaterials().forEach(mat -> tempItemMaterialStacks.add(mat.multiply(count)));
         }
-        TagKey<Item> tag = ChemicalHelper.getTag(tagPrefix, material);
-        if (tag != null) {
-            return inputItems(tag, count);
-        } else {
-            var item = ChemicalHelper.get(tagPrefix, material, count);
-            if (item.isEmpty()) {
-                GTCEu.LOGGER.error("Tried to set input item stack that doesn\'t exist, id: {}, TagPrefix: {}, Material: {}, Count: {}", id, tagPrefix, material, count);
+        var item = ChemicalHelper.get(tagPrefix, material, count);
+        if (item.isEmpty()) {
+            TagKey<Item> tag = ChemicalHelper.getTag(tagPrefix, material);
+            if (tag != null) {
+                return inputItems(tag, count);
             }
+        } else {
             return input(ItemRecipeCapability.CAP, SizedIngredient.create(item));
         }
+        return this;
     }
 
     public GTRecipeBuilder inputItems(MachineDefinition machine) {
@@ -570,7 +567,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder notConsumableFluid(FluidStack fluid) {
-        return notConsumableFluid(FluidIngredient.of(TagUtil.createFluidTag(BuiltInRegistries.FLUID.getKey(fluid.getFluid()).getPath()), fluid.getAmount()));
+        return notConsumableFluid(FluidIngredient.of(fluid));
     }
 
     public GTRecipeBuilder notConsumableFluid(FluidIngredient ingredient) {
@@ -764,7 +761,7 @@ public class GTRecipeBuilder {
         if (!matStack.isNull() && chance != 0 && chance == maxChance) {
             tempFluidStacks.add(new MaterialStack(matStack, input.getAmount() * GTValues.M / GTValues.L));
         }
-        return input(FluidRecipeCapability.CAP, FluidIngredient.of(TagUtil.createFluidTag(BuiltInRegistries.FLUID.getKey(input.getFluid()).getPath()), input.getAmount(), input.getTag()));
+        return input(FluidRecipeCapability.CAP, FluidIngredient.of(input));
     }
 
     public GTRecipeBuilder inputFluids(FluidStack... inputs) {
@@ -780,8 +777,7 @@ public class GTRecipeBuilder {
                         tempFluidStacks.add(new MaterialStack(matStack, fluid.getAmount() * GTValues.M / GTValues.L));
                     }
                 }
-                TagKey<Fluid> tag = TagUtil.createFluidTag(BuiltInRegistries.FLUID.getKey(fluid.getFluid()).getPath());
-                ingredients.add(FluidIngredient.of(tag, fluid.getAmount(), fluid.getTag()));
+                ingredients.add(FluidIngredient.of(fluid));
             }
         }
         return input(FluidRecipeCapability.CAP, ingredients.toArray(FluidIngredient[]::new));
@@ -1081,6 +1077,7 @@ public class GTRecipeBuilder {
             } else if (recipeCategory != GTRecipeCategory.DEFAULT && recipeCategory.getRecipeType() != recipeType) {
                 GTCEu.LOGGER.error("Cannot apply Category with incompatible RecipeType", new IllegalArgumentException());
             }
+            recipeCategory.addRecipe(recipe);
         }
         if (removePreviousMatInfo) {
             removeExistingMaterialInfo();

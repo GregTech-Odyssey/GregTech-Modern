@@ -44,8 +44,8 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
     @DescSynced
     @RequireRerender
     @UpdateListener(methodName = "onControllersUpdated")
-    protected final Set<Long> controllerPositions = new LongOpenHashSet(8);
-    protected final SortedSet<IMultiController> controllers = new ReferenceLinkedOpenHashSet<>(8);
+    protected final Set<Long> controllerPositions = new LongOpenHashSet(1);
+    protected final SortedSet<IMultiController> controllers = new ReferenceLinkedOpenHashSet<>(1);
 
     private @Nullable RecipeHandlerList handlerList;
 

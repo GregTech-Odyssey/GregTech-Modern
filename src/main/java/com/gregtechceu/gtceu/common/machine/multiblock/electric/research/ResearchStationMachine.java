@@ -119,13 +119,13 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
 
         protected boolean matchRecipeNoOutput(GTRecipe recipe) {
             if (!machine.hasCapabilityProxies()) return false;
-            return RecipeHelper.handleRecipe(machine, recipe, IO.IN, recipe.inputs, Collections.emptyMap(), false, true);
+            return RecipeHelper.handleRecipe(machine, recipe, IO.IN, recipe.inputs, Collections.emptyMap(), true);
         }
 
         protected boolean matchTickRecipeNoOutput(GTRecipe recipe) {
             if (recipe.hasTick()) {
                 if (!machine.hasCapabilityProxies()) return false;
-                return RecipeHelper.handleRecipe(machine, recipe, IO.IN, recipe.tickInputs, Collections.emptyMap(), false, true);
+                return RecipeHelper.handleRecipe(machine, recipe, IO.IN, recipe.tickInputs, Collections.emptyMap(), true);
             }
             return true;
         }

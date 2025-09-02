@@ -171,11 +171,6 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
     }
 
     @Override
-    public void unsubscribe(@Nullable TickableSubscription current) {
-        pipeTile.unsubscribe(current);
-    }
-
-    @Override
     public IItemHandlerModifiable getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
         if (pipeTile instanceof ItemPipeBlockEntity itemPipe && getLevel() instanceof ServerLevel && itemPipe.getHandler(side, useCoverCapability) instanceof IItemHandlerModifiable itemHandlerModifiable) {
             return itemHandlerModifiable;

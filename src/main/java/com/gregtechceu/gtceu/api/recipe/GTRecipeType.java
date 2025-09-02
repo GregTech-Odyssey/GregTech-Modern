@@ -152,7 +152,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
 
     @NotNull
     public Iterator<GTRecipe> searchRecipe(IRecipeCapabilityHolder holder, Predicate<GTRecipe> canHandle) {
-        return recipes.values().parallelStream().filter(canHandle).toList().iterator();
+        return recipes.values().parallelStream().filter(canHandle).iterator();
     }
 
     public int getMaxInputs(RecipeCapability<?> cap) {

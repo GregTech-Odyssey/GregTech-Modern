@@ -32,9 +32,17 @@ public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait imple
     }
 
     @Override
+    public void onMachineLoad() {
+        super.onMachineLoad();
+        listeners.clear();
+        notify = null;
+    }
+
+    @Override
     public void onMachineUnLoad() {
         super.onMachineUnLoad();
         listeners.clear();
+        notify = null;
     }
 
     @Override
@@ -45,12 +53,9 @@ public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait imple
 
     public void notifyListeners() {
         if (notify == null) {
-            notify = () -> {
-                listeners.forEach(Runnable::run);
-                notify = null;
-            };
             if (machine.getLevel() instanceof ServerLevel serverLevel) {
-                TaskHandler.enqueueServerTask(serverLevel, notify, 0);
+                notify = () -> listeners.forEach(Runnable::run);
+                TaskHandler.enqueueServerTask(serverLevel, notify, () -> notify = null, 0);
             }
         }
     }

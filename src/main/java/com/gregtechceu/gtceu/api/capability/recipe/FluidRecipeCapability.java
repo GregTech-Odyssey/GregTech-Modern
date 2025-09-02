@@ -142,11 +142,7 @@ public class FluidRecipeCapability extends RecipeCapability<FluidIngredient> {
         FluidTagList tags = new FluidTagList();
         FluidStackList fluids = new FluidStackList();
         for (FluidIngredient.Value value : ingredient.values) {
-            if (value instanceof FluidIngredient.TagValue tagValue) {
-                tags.add(tagValue.getTag(), amount, ingredient.getNbt());
-            } else {
-                fluids.addAll(value.getFluids().stream().map(fluid -> new FluidStack(fluid, amount, tag)).toList());
-            }
+            fluids.addAll(value.getFluids().stream().map(fluid -> new FluidStack(fluid, amount, tag)).toList());
         }
         if (!tags.isEmpty()) {
             return tags;

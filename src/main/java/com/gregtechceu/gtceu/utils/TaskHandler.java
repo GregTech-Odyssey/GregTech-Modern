@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.utils;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 
 import net.minecraft.server.level.ServerLevel;
@@ -36,12 +35,11 @@ public class TaskHandler {
                     task.delay--;
                 } else {
                     if (task.isStillSubscribed()) {
-                        try {
-                            task.run();
-                        } catch (Exception e) {
-                            GTCEu.LOGGER.error("error while run gregtech task", e);
+                        task.run();
+                        if (task.task) {
+                            task.unsubscribeCallback.run();
+                            iter.remove();
                         }
-                        if (task.task) iter.remove();
                     } else {
                         iter.remove();
                     }
@@ -65,15 +63,18 @@ public class TaskHandler {
     }
 
     public static void enqueueServerTask(ServerLevel level, Runnable task, int delay) {
-        var entry = new RunnableEntry(task, delay);
-        entry.task = true;
+        enqueueServerTask(level, task, GTUtil.NOOP, delay);
+    }
+
+    public static void enqueueServerTask(ServerLevel level, Runnable task, Runnable unsubscribeCallback, int delay) {
+        var entry = new RunnableEntry(task, unsubscribeCallback, true, delay);
         synchronized (waitToAddTasks) {
             waitToAddTasks.computeIfAbsent(level, key -> new ObjectArrayList<>()).add(entry);
         }
     }
 
-    public static TickableSubscription enqueueServerTick(ServerLevel level, Runnable runnable, int delay) {
-        var entry = new RunnableEntry(runnable, delay);
+    public static TickableSubscription enqueueServerTick(ServerLevel level, Runnable runnable, Runnable unsubscribeCallback, int delay) {
+        var entry = new RunnableEntry(runnable, unsubscribeCallback, false, delay);
         synchronized (waitToAddTasks) {
             waitToAddTasks.computeIfAbsent(level, key -> new ObjectArrayList<>()).add(entry);
             return entry;
@@ -82,12 +83,21 @@ public class TaskHandler {
 
     private static class RunnableEntry extends TickableSubscription {
 
-        private boolean task;
+        private final Runnable unsubscribeCallback;
+        private final boolean task;
         private int delay;
 
-        public RunnableEntry(Runnable runnable, int delay) {
+        public RunnableEntry(Runnable runnable, Runnable unsubscribeCallback, boolean task, int delay) {
             super(runnable);
+            this.unsubscribeCallback = unsubscribeCallback;
+            this.task = task;
             this.delay = delay;
+        }
+
+        @Override
+        public void unsubscribe() {
+            stillSubscribed = false;
+            unsubscribeCallback.run();
         }
     }
 }
