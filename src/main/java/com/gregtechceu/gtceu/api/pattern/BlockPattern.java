@@ -123,9 +123,7 @@ public class BlockPattern {
                         worldState.setError(null);
                         if (predicate != null) {
                             BlockPos pos = setActualRelativeOffset(x, y, z, frontFacing, upwardsFacing, isFlipped).offset(centerPos.getX(), centerPos.getY(), centerPos.getZ());
-                            if (!worldState.update(pos, predicate)) {
-                                return false;
-                            }
+                            worldState.update(pos, predicate);
                             long posLong = pos.asLong();
                             worldState.addPosCache(posLong);
 
@@ -137,6 +135,10 @@ public class BlockPattern {
                                 if (worldState.getBlockState().getBlock() instanceof ActiveBlock) {
                                     matchContext.vaBlocks.add(posLong);
                                 } else if (worldState.getTileEntity() instanceof MetaMachineBlockEntity machineBlockEntity && machineBlockEntity.getMetaMachine() instanceof IMultiPart part) {
+                                    if (!worldState.world.isLoaded(pos)) {
+                                        worldState.setError(MultiblockState.UNLOAD_ERROR);
+                                        return false;
+                                    }
                                     // add detected parts
                                     if (part.isFormed() && !part.canShared() && !part.hasController(worldState.controllerPos)) {
                                         // check part can be shared

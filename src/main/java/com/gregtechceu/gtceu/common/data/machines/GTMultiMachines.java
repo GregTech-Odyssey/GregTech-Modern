@@ -331,7 +331,7 @@ public class GTMultiMachines {
             .additionalDisplay((controller, components) -> {
                 if (controller instanceof CoilWorkableElectricMultiblockMachine coilMachine && controller.isFormed()) {
                     components.add(Component.translatable("gtceu.multiblock.cracking_unit.energy",
-                            100 - 10 * coilMachine.getCoilTier()));
+                            Math.max(20, 100 - 10 * coilMachine.getCoilTier())));
                 }
             })
             .register();

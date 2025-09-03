@@ -34,14 +34,12 @@ public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait imple
     @Override
     public void onMachineLoad() {
         super.onMachineLoad();
-        listeners.clear();
         notify = null;
     }
 
     @Override
     public void onMachineUnLoad() {
         super.onMachineUnLoad();
-        listeners.clear();
         notify = null;
     }
 

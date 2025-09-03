@@ -61,7 +61,7 @@ public class GTRecipeModifiers {
                 coilMachine.getOverclockVoltage());
         if (coilMachine.getCoilTier() > 0) {
             var coilModifier = ModifierFunction.builder()
-                    .eutMultiplier(1.0 - coilMachine.getCoilTier() * 0.1)
+                    .eutMultiplier(Math.max(0.2, 1.0 - coilMachine.getCoilTier() * 0.1))
                     .build();
             oc = oc.andThen(coilModifier);
         }

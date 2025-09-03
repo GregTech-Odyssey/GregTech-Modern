@@ -95,18 +95,13 @@ public class MultiblockState {
         this.tileEntityInitialized = false;
     }
 
-    public boolean update(BlockPos posIn, TraceabilityPredicate predicate) {
+    public void update(BlockPos posIn, TraceabilityPredicate predicate) {
         this.pos = posIn;
         this.blockState = null;
         this.tileEntity = null;
         this.tileEntityInitialized = false;
         this.predicate = predicate;
         this.error = null;
-        if (!world.isLoaded(posIn)) {
-            error = UNLOAD_ERROR;
-            return false;
-        }
-        return true;
     }
 
     public boolean hasError() {
