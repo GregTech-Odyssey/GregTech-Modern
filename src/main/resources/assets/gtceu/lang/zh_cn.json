@@ -4357,7 +4357,7 @@
     "item.gtceu.talc_dust": "滑石",
     "item.gtceu.tantalum_capacitor": "钽电容",
     "item.gtceu.terminal": "终端",
-    "item.gtceu.terminal.tooltip": "潜行右击多方块控制器以自动搭建此多方块结构",
+    "item.gtceu.terminal.tooltip": "右击多方块控制器以预览结构，潜行右击自动搭建此多方块结构",
     "item.gtceu.tiny_ash_dust": "小撮灰烬",
     "item.gtceu.tiny_basaltic_mineral_sand_dust": "小撮玄武岩矿砂",
     "item.gtceu.tiny_bentonite_dust": "小撮膨润土",

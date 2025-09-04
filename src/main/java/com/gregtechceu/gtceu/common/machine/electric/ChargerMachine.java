@@ -179,7 +179,7 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
         }
 
         @Override
-        public long acceptEnergyFromNetwork(@Nullable Direction side, long voltage, long energyToAdd) {
+        public long acceptEnergyFromNetwork(Object o, @Nullable Direction side, long voltage, long energyToAdd) {
             if (side == null || inputsEnergy(side)) {
                 long canAccept = Math.min(energyToAdd, getEnergyCapacity() - getEnergyStored());
                 if (canAccept == 0) return 0;

@@ -41,7 +41,7 @@ public class EUToFEProvider extends CapabilityCompatProvider {
         }
 
         @Override
-        public long acceptEnergyFromNetwork(Direction facing, long voltage, long energyToAdd) {
+        public long acceptEnergyFromNetwork(Object o, Direction facing, long voltage, long energyToAdd) {
             int receive = energyStorage.receiveEnergy(GTMath.saturatedCast(FeCompat.toFeLong(energyToAdd, FeCompat.ratio(false))), false);
             return FeCompat.toEu(receive, FeCompat.ratio(true));
         }

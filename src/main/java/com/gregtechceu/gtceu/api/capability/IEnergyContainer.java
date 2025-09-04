@@ -12,7 +12,7 @@ public interface IEnergyContainer extends IEnergyInfoProvider {
      * 
      * @return amount of energy added
      */
-    long acceptEnergyFromNetwork(Direction side, long voltage, long energyToAdd);
+    long acceptEnergyFromNetwork(Object sender, Direction side, long voltage, long energyToAdd);
 
     /**
      * @return if this container accepts energy from the given side
@@ -29,7 +29,7 @@ public interface IEnergyContainer extends IEnergyInfoProvider {
     /**
      * This changes the amount stored.
      * <b>This should only be used internally</b> (f.e. draining while working or filling while generating).
-     * For transfer between blocks use {@link #acceptEnergyFromNetwork(Direction, long, long)}!!!
+     * For transfer between blocks use {@link #acceptEnergyFromNetwork(Object, Direction, long, long)}!!!
      *
      * @param differenceAmount amount of energy to add (>0) or remove (<0)
      * @return amount of energy added or removed

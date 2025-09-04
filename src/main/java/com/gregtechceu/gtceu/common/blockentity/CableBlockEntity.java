@@ -116,7 +116,9 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
         if (isRemote()) return IEnergyContainer.DEFAULT;
         if (handlers.isEmpty()) initHandlers();
         checkNetwork();
-        return handlers.getOrDefault(side, defaultHandler);
+        var container = handlers.getOrDefault(side, defaultHandler);
+        if (container == null) return IEnergyContainer.DEFAULT;
+        return container;
     }
 
     @Override
@@ -136,14 +138,20 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
     }
 
     @Override
-    public void onLoad() {
-        super.onLoad();
+    public void clearRemoved() {
+        super.clearRemoved();
         if (!level.isClientSide) {
             setTemperature(temperature);
             if (temperature > getDefaultTemp()) {
                 subscribeHeat();
             }
         }
+    }
+
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+        unsubscribeHeat();
     }
 
     private void subscribeHeat() {

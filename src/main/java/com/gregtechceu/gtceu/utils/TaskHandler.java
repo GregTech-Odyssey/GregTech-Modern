@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.utils;
 
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
+import com.gregtechceu.gtceu.core.ILevel;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.event.TickEvent;
@@ -14,14 +15,13 @@ import java.util.Map;
 public class TaskHandler {
 
     private static final Map<ServerLevel, List<RunnableEntry>> serverTasks = new Reference2ReferenceOpenHashMap<>();
-    private static final Map<ServerLevel, List<RunnableEntry>> waitToAddTasks = new Reference2ReferenceOpenHashMap<>();
 
     // schedule tick event here
     public static void onTickUpdate(TickEvent.LevelTickEvent event) {
         if (event.phase == TickEvent.Phase.END && event.level instanceof ServerLevel level) {
-            synchronized (waitToAddTasks) {
-                var list = waitToAddTasks.get(level);
-                if (list != null && !list.isEmpty()) {
+            var list = ILevel.getTasks(level);
+            synchronized (list) {
+                if (!list.isEmpty()) {
                     serverTasks.computeIfAbsent(level, k -> new ObjectArrayList<>()).addAll(list);
                     list.clear();
                 }
@@ -54,11 +54,9 @@ public class TaskHandler {
         if (tasks != null) {
             tasks.forEach(TickableSubscription::unsubscribe);
         }
-        synchronized (waitToAddTasks) {
-            tasks = waitToAddTasks.remove(level);
-            if (tasks != null) {
-                tasks.forEach(TickableSubscription::unsubscribe);
-            }
+        var list = ILevel.getTasks(level);
+        synchronized (list) {
+            list.forEach(TickableSubscription::unsubscribe);
         }
     }
 
@@ -68,26 +66,28 @@ public class TaskHandler {
 
     public static void enqueueServerTask(ServerLevel level, Runnable task, Runnable unsubscribeCallback, int delay) {
         var entry = new RunnableEntry(task, unsubscribeCallback, true, delay);
-        synchronized (waitToAddTasks) {
-            waitToAddTasks.computeIfAbsent(level, key -> new ObjectArrayList<>()).add(entry);
+        var list = ILevel.getTasks(level);
+        synchronized (list) {
+            list.add(entry);
         }
     }
 
     public static TickableSubscription enqueueServerTick(ServerLevel level, Runnable runnable, Runnable unsubscribeCallback, int delay) {
         var entry = new RunnableEntry(runnable, unsubscribeCallback, false, delay);
-        synchronized (waitToAddTasks) {
-            waitToAddTasks.computeIfAbsent(level, key -> new ObjectArrayList<>()).add(entry);
+        var list = ILevel.getTasks(level);
+        synchronized (list) {
+            list.add(entry);
             return entry;
         }
     }
 
-    private static class RunnableEntry extends TickableSubscription {
+    public static class RunnableEntry extends TickableSubscription {
 
         private final Runnable unsubscribeCallback;
         private final boolean task;
         private int delay;
 
-        public RunnableEntry(Runnable runnable, Runnable unsubscribeCallback, boolean task, int delay) {
+        private RunnableEntry(Runnable runnable, Runnable unsubscribeCallback, boolean task, int delay) {
             super(runnable);
             this.unsubscribeCallback = unsubscribeCallback;
             this.task = task;

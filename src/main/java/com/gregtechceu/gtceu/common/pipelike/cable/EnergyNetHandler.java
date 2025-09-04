@@ -34,7 +34,7 @@ public class EnergyNetHandler implements IEnergyContainer {
     }
 
     @Override
-    public long acceptEnergyFromNetwork(Direction side, long voltage, long energyToAdd) {
+    public long acceptEnergyFromNetwork(Object o, Direction side, long voltage, long energyToAdd) {
         if (transfer) return 0;
         if (side == null) {
             if (facing == null) return 0;
@@ -64,13 +64,13 @@ public class EnergyNetHandler implements IEnergyContainer {
             Direction facing = path.getTargetFacing().getOpposite();
             if (!dest.inputsEnergy(facing) || dest.getEnergyCanBeInserted() <= 0) continue;
             transfer = true;
-            long accept = dest.acceptEnergyFromNetwork(facing, voltage - loss, energy);
+            long accept = dest.acceptEnergyFromNetwork(o, facing, voltage - loss, energy);
             transfer = false;
             if (accept == 0) continue;
             energyUsed += accept + loss;
             for (var c : path.getPath()) {
                 var v = Math.min(voltage, c.getMaxVoltage());
-                c.incrementAmperage(v, 100 * accept / v);
+                c.incrementAmperage(v, dest == o ? 1000000 : 100 * accept / v);
             }
         }
         return energyUsed;

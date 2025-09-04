@@ -221,11 +221,11 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                 if (stored > 0) {
                     var voltage = getOutputVoltage();
                     var canOutput = Math.min(stored, getOutputAmperage() * voltage);
-                    out = energyContainer.acceptEnergyFromNetwork(outFacing.getOpposite(), voltage, canOutput);
+                    out = energyContainer.acceptEnergyFromNetwork(this, outFacing.getOpposite(), voltage, canOutput);
                     if (out == 0) return;
 
                 }
-                long distributed = (long) (out / batteries.size() + 0.5);
+                long distributed = (long) ((out / batteries.size()) + 1);
                 boolean changed = false;
                 for (IElectricItem electricItem : batteries) {
                     var charged = electricItem.discharge(distributed, getTier(), false, true, false);
@@ -242,7 +242,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
         }
 
         @Override
-        public long acceptEnergyFromNetwork(@Nullable Direction side, long voltage, long energyToAdd) {
+        public long acceptEnergyFromNetwork(Object o, @Nullable Direction side, long voltage, long energyToAdd) {
             if (side == null || inputsEnergy(side)) {
                 long canAccept = Math.min(energyToAdd, getEnergyCapacity() - getEnergyStored());
                 if (canAccept == 0) return 0;

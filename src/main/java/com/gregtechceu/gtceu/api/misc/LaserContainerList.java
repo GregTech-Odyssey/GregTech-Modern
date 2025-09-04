@@ -16,10 +16,10 @@ public class LaserContainerList implements ILaserContainer {
     }
 
     @Override
-    public long acceptEnergyFromNetwork(Direction side, long voltage, long energyToAdd) {
+    public long acceptEnergyFromNetwork(Object o, Direction side, long voltage, long energyToAdd) {
         long energyAdded = 0L;
         for (IEnergyContainer iEnergyContainer : energyContainerList) {
-            energyAdded += iEnergyContainer.acceptEnergyFromNetwork(null, voltage, energyToAdd - energyAdded);
+            energyAdded += iEnergyContainer.acceptEnergyFromNetwork(o, null, voltage, energyToAdd - energyAdded);
             if (energyAdded == energyToAdd) {
                 return energyAdded;
             }

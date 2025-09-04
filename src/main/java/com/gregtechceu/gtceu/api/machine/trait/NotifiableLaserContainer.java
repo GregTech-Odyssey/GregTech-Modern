@@ -41,7 +41,7 @@ public class NotifiableLaserContainer extends NotifiableEnergyContainer implemen
                 var oppositeSide = side.getOpposite();
                 var energyContainer = GTCapabilityHelper.getLaser(machine.getNeighbor(side), oppositeSide);
                 if (energyContainer != null && canOutput >= energyContainer.getInputVoltage() && energyContainer.inputsEnergy(oppositeSide)) {
-                    energyUsed += energyContainer.acceptEnergyFromNetwork(oppositeSide, voltage, canOutput - energyUsed);
+                    energyUsed += energyContainer.acceptEnergyFromNetwork(this, oppositeSide, voltage, canOutput - energyUsed);
                     if (energyUsed == canOutput) break;
                 }
             }

@@ -51,11 +51,11 @@ public class LaserNetHandler implements ILaserContainer {
     }
 
     @Override
-    public long acceptEnergyFromNetwork(Direction side, long voltage, long energyToAdd) {
+    public long acceptEnergyFromNetwork(Object o, Direction side, long voltage, long energyToAdd) {
         ILaserContainer handler = getInnerContainer();
-        if (handler == null) return 0;
+        if (handler == null || handler == o) return 0;
         setPipesActive();
-        return handler.acceptEnergyFromNetwork(side, voltage, energyToAdd);
+        return handler.acceptEnergyFromNetwork(o, side, voltage, energyToAdd);
     }
 
     @Override

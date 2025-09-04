@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.machine.multiblock.primitive;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.item.ComponentItem;
+import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
@@ -50,7 +51,7 @@ import java.util.List;
 
 import static com.gregtechceu.gtceu.api.pattern.util.RelativeDirection.*;
 
-public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine {
+public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implements IInteractedMachine {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
             CharcoalPileIgniterMachine.class,
@@ -323,7 +324,7 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine {
     public InteractionResult onUse(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
                                    BlockHitResult hit) {
         if (!isFormed() || hasAir) {
-            return super.onUse(state, level, pos, player, hand, hit);
+            return IInteractedMachine.super.onUse(state, level, pos, player, hand, hit);
         }
         ItemStack stack = player.getItemInHand(hand);
         if (!stack.is(CustomTags.TOOLS_IGNITER)) {
@@ -358,7 +359,7 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine {
                 return InteractionResult.CONSUME;
             }
         }
-        return super.onUse(state, level, pos, player, hand, hit);
+        return IInteractedMachine.super.onUse(state, level, pos, player, hand, hit);
     }
 
     public static class CharcoalRecipeLogic extends RecipeLogic {

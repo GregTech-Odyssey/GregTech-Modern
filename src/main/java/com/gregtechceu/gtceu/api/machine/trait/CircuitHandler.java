@@ -52,7 +52,7 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     @Override
     public boolean isEmpty() {
         if (isEmpty == null) {
-            isEmpty = storage.getStackInSlot(0).isEmpty();
+            isEmpty = storage.stacks[0].isEmpty();
         }
         return isEmpty;
     }
@@ -65,7 +65,7 @@ public class CircuitHandler extends NotifiableItemStackHandler {
         if (changed) {
             changed = false;
             itemMap.clear();
-            ItemStack stored = storage.getStackInSlot(0);
+            ItemStack stored = storage.stacks[0];
             int count = stored.getCount();
             boolean empty = count < 1;
             isEmpty = empty;
@@ -78,7 +78,7 @@ public class CircuitHandler extends NotifiableItemStackHandler {
 
     @Override
     public double getTotalContentAmount() {
-        return storage.getStackInSlot(0).getCount();
+        return storage.stacks[0].getCount();
     }
 
     @NotNull
@@ -95,7 +95,7 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     @Override
     public List<Ingredient> handleRecipeInner(IO io, GTRecipe recipe, List<Ingredient> left, boolean simulate) {
         if (simulate && io == IO.IN) {
-            ItemStack stored = storage.getStackInSlot(0);
+            ItemStack stored = storage.stacks[0];
             int count = stored.getCount();
             if (count == 1) {
                 left = new ObjectArrayList<>(left);

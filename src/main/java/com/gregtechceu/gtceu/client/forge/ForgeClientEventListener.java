@@ -30,8 +30,7 @@ public class ForgeClientEventListener {
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES) {
             // to render the preview after block entities, before the translucent. so it can be seen through the
             // transparent blocks.
-            MultiblockInWorldPreviewRenderer.renderInWorldPreview(event.getPoseStack(), event.getCamera(),
-                    event.getPartialTick());
+            MultiblockInWorldPreviewRenderer.renderInWorldPreview(event.getPoseStack(), event.getCamera());
         }
     }
 

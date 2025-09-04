@@ -2,6 +2,8 @@ package com.gregtechceu.gtceu.core.mixins;
 
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldSavedData;
+import com.gregtechceu.gtceu.core.ILevel;
+import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.async.AsyncThreadData;
 
@@ -14,6 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
@@ -21,8 +24,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.List;
+
 @Mixin(Level.class)
-public abstract class LevelMixin implements LevelAccessor {
+public abstract class LevelMixin implements LevelAccessor, ILevel {
 
     @Shadow
     @Final
@@ -34,6 +39,15 @@ public abstract class LevelMixin implements LevelAccessor {
 
     @Shadow
     public abstract LevelChunk getChunk(int chunkX, int chunkZ);
+
+    @Unique
+    private List<TaskHandler.RunnableEntry> gtceu$tasks;
+
+    @Override
+    public @NotNull List<TaskHandler.RunnableEntry> gtceu$getTasks() {
+        if (gtceu$tasks == null) gtceu$tasks = new ObjectArrayList<>();
+        return gtceu$tasks;
+    }
 
     @Unique
     private @Nullable ChunkAccess gtceu$maybeGetChunkAsync(int chunkX, int chunkZ) {
