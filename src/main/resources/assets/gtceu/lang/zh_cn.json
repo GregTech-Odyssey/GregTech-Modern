@@ -2973,6 +2973,7 @@
     "gtceu.machine.research_station.tooltip.3": "提供更多的算力可以使研究进展的更快。",
     "gtceu.machine.rotor_holder.tooltip.0": "为多方块结构固定转子，",
     "gtceu.machine.rotor_holder.tooltip.1": "使其不能飞走",
+    "gtceu.machine.rotor_holder.tooltip.2": "必须独占5x5区域",
     "gtceu.machine.steam.steam_hatch.tooltip": "§e接受流体：§f蒸汽",
     "gtceu.machine.steam_boiler.heat_amount": "热容：%s %%",
     "gtceu.machine.steam_bus.tooltip": "无法作用于非蒸汽驱动的多方块结构",

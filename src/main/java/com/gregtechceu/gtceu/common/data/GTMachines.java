@@ -938,6 +938,7 @@ public class GTMachines {
                     .renderer(() -> new RotorHolderMachineRenderer(tier))
                     .tooltips(LangHandler.getFromMultiLang("gtceu.machine.rotor_holder.tooltip", 0),
                             LangHandler.getFromMultiLang("gtceu.machine.rotor_holder.tooltip", 1),
+                            LangHandler.getFromMultiLang("gtceu.machine.rotor_holder.tooltip", 2),
                             Component.translatable("gtceu.part_sharing.disabled"))
                     .register(),
             GTValues.tiersBetween(HV, GTCEuAPI.isHighTier() ? OpV : UV));
