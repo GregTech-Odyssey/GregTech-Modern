@@ -802,8 +802,7 @@ public class MachineLang {
                 "§oME Input Hatch Configuration Data");
 
         multiLang(provider, "gtceu.machine.rotor_holder.tooltip", "Rotor Holder for Multiblocks",
-                "Holds Rotor in place so it will not fly away");
-
+                "Holds Rotor in place so it will not fly away", "Requires exclusive 5x5 space");
         // Maintenance tooltips
         provider.add("gtceu.machine.maintenance_hatch.tooltip", "For maintaining Multiblocks");
         multilineLang(provider, "gtceu.machine.maintenance_hatch_configurable.tooltip",
