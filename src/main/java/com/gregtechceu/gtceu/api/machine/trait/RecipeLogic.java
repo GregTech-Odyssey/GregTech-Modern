@@ -97,6 +97,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     @SuppressWarnings("unused")
     protected void onStatusSynced(Status newValue, Status oldValue) {
         getMachine().scheduleRenderUpdate();
+        machine.notifyStatusChanged(this.status, status);
         updateSound();
     }
 

@@ -60,12 +60,12 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     protected MultiblockState[] subMultiblockState = null;
     protected boolean[] formeds;
     protected int formedCount;
-    private final List<IMultiPart> parts = new ObjectArrayList<>();
+    protected final List<IMultiPart> parts = new ObjectArrayList<>();
     @Nullable
-    private IParallelHatch parallelHatch = null;
+    protected IParallelHatch parallelHatch = null;
     @DescSynced
     @UpdateListener(methodName = "onPartsUpdated")
-    private BlockPos[] partPositions = new BlockPos[0];
+    protected BlockPos[] partPositions = new BlockPos[0];
     @DescSynced
     @RequireRerender
     protected boolean isFormed;
@@ -73,13 +73,13 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @DescSynced
     protected boolean isFlipped;
 
-    private boolean simpleLock;
+    protected boolean simpleLock;
 
-    private boolean checking;
+    protected boolean checking;
 
-    private int waitingTime;
+    protected int waitingTime;
 
-    private boolean toldNotFormed = false;
+    protected boolean toldNotFormed = false;
 
     /**
      * Cache for rendering highlight boxes on client side.

@@ -26,8 +26,11 @@ public class TerminalBehavior implements IInteractionItem {
             if (MetaMachine.getMachine(level, blockPos) instanceof IMultiController controller) {
                 if (context.getPlayer().isShiftKeyDown()) {
                     if (!level.isClientSide) {
+                        controller.requestCheck();
+                        controller.setWaitingTime(10);
                         controller.getPattern().autoBuild(context.getPlayer(), controller.getMultiblockState());
                         controller.getMultiblockState().cleanCache();
+                        controller.setWaitingTime(0);
                     }
                     return InteractionResult.sidedSuccess(level.isClientSide);
                 } else {

@@ -47,7 +47,7 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
     protected final Set<Long> controllerPositions = new LongOpenHashSet(1);
     protected final SortedSet<IMultiController> controllers = new ReferenceLinkedOpenHashSet<>(1);
 
-    private @Nullable RecipeHandlerList handlerList;
+    protected @Nullable RecipeHandlerList handlerList;
 
     public MultiblockPartMachine(MetaMachineBlockEntity holder) {
         super(holder);

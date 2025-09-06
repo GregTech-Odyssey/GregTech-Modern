@@ -25,7 +25,7 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Block;
 
-import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -42,13 +43,13 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(WorkableMultiblockMachine.class, MultiblockControllerMachine.MANAGED_FIELD_HOLDER);
     @Nullable
-    private ICleanroomProvider cleanroom;
+    protected ICleanroomProvider cleanroom;
     @Persisted
     @DescSynced
     public final RecipeLogic recipeLogic;
-    private final GTRecipeType[] recipeTypes;
+    protected final GTRecipeType[] recipeTypes;
     @Persisted
-    private int activeRecipeType;
+    protected int activeRecipeType;
     protected final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
     protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
     protected final List<ISubscription> traitSubscriptions;
@@ -56,8 +57,8 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @DescSynced
     protected boolean isMuffled;
     protected boolean previouslyMuffled = true;
-    @Nullable
-    protected LongSet activeBlocks;
+    @DescSynced
+    protected final Set<Long> activeBlocks = new LongOpenHashSet();
     protected RecipeHandlerList currentHandlerList;
     protected boolean contentChange = true;
 
@@ -98,7 +99,8 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     public void onStructureFormed() {
         super.onStructureFormed();
         // attach parts' traits
-        activeBlocks = getMultiblockState().getMatchContext().vaBlocks;
+        activeBlocks.clear();
+        activeBlocks.addAll(getMultiblockState().getMatchContext().vaBlocks);
         capabilitiesProxy.clear();
         capabilitiesFlat.clear();
         traitSubscriptions.forEach(ISubscription::unsubscribe);
@@ -127,7 +129,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     public void onStructureInvalid() {
         super.onStructureInvalid();
         updateActiveBlocks(false);
-        activeBlocks = null;
+        activeBlocks.clear();
         capabilitiesProxy.clear();
         capabilitiesFlat.clear();
         traitSubscriptions.forEach(ISubscription::unsubscribe);
@@ -140,7 +142,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     public void onPartUnload() {
         super.onPartUnload();
         updateActiveBlocks(false);
-        activeBlocks = null;
+        activeBlocks.clear();
         capabilitiesProxy.clear();
         capabilitiesFlat.clear();
         traitSubscriptions.forEach(ISubscription::unsubscribe);
@@ -179,15 +181,13 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     }
 
     public void updateActiveBlocks(boolean active) {
-        if (activeBlocks != null) {
-            for (long pos : activeBlocks) {
-                var blockPos = BlockPos.of(pos);
-                var blockState = getLevel().getBlockState(blockPos);
-                if (blockState.hasProperty(ActiveBlock.ACTIVE)) {
-                    var newState = blockState.setValue(ActiveBlock.ACTIVE, active);
-                    if (newState != blockState) {
-                        getLevel().setBlock(blockPos, newState, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
-                    }
+        for (long pos : activeBlocks) {
+            var blockPos = BlockPos.of(pos);
+            var blockState = getLevel().getBlockState(blockPos);
+            if (blockState.hasProperty(ActiveBlock.ACTIVE)) {
+                var newState = blockState.setValue(ActiveBlock.ACTIVE, active);
+                if (newState != blockState) {
+                    getLevel().setBlock(blockPos, newState, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
                 }
             }
         }
@@ -201,7 +201,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void notifyStatusChanged(RecipeLogic.Status oldStatus, RecipeLogic.Status newStatus) {
         IWorkableMultiController.super.notifyStatusChanged(oldStatus, newStatus);
-        if (newStatus == RecipeLogic.Status.WORKING || oldStatus == RecipeLogic.Status.WORKING) {
+        if (isRemote() && (newStatus == RecipeLogic.Status.WORKING || oldStatus == RecipeLogic.Status.WORKING)) {
             updateActiveBlocks(newStatus == RecipeLogic.Status.WORKING);
         }
     }
@@ -213,9 +213,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Override
     public void afterWorking() {
-        for (IMultiPart part : getParts()) {
-            part.afterWorking(this);
-        }
+        getParts().forEach(part -> part.afterWorking(this));
         IWorkableMultiController.super.afterWorking();
     }
 
@@ -241,18 +239,14 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Override
     public void onWaiting() {
-        for (IMultiPart part : getParts()) {
-            part.onWaiting(this);
-        }
+        getParts().forEach(part -> part.onWaiting(this));
         IWorkableMultiController.super.onWaiting();
     }
 
     @Override
     public void setWorkingEnabled(boolean isWorkingAllowed) {
         if (!isWorkingAllowed) {
-            for (IMultiPart part : getParts()) {
-                part.onPaused(this);
-            }
+            getParts().forEach(part -> part.onPaused(this));
         }
         IWorkableMultiController.super.setWorkingEnabled(isWorkingAllowed);
     }
@@ -323,11 +317,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     public void setMuffled(final boolean isMuffled) {
         this.isMuffled = isMuffled;
-    }
-
-    @Nullable
-    public LongSet getActiveBlocks() {
-        return this.activeBlocks;
     }
 
     @Override

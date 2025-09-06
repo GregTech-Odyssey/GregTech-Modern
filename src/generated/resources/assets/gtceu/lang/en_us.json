@@ -2969,6 +2969,7 @@
   "gtceu.machine.research_station.tooltip.3": "Providing more Computation allows the recipe to run faster.",
   "gtceu.machine.rotor_holder.tooltip.0": "Rotor Holder for Multiblocks",
   "gtceu.machine.rotor_holder.tooltip.1": "Holds Rotor in place so it will not fly away",
+  "gtceu.machine.rotor_holder.tooltip.2": "Requires exclusive 5x5 space",
   "gtceu.machine.steam.steam_hatch.tooltip": "§eAccepted Fluid: §fSteam",
   "gtceu.machine.steam_boiler.heat_amount": "Heat Capacity: %s %%",
   "gtceu.machine.steam_bus.tooltip": "Does not work with non-steam multiblocks",
