@@ -188,7 +188,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
                 var newState = blockState.setValue(ActiveBlock.ACTIVE, active);
                 if (newState != blockState) {
                     getLevel().setBlock(blockPos, newState, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
-                }
+                } else break;
             }
         }
     }
@@ -201,7 +201,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void notifyStatusChanged(RecipeLogic.Status oldStatus, RecipeLogic.Status newStatus) {
         IWorkableMultiController.super.notifyStatusChanged(oldStatus, newStatus);
-        if (isRemote() && (newStatus == RecipeLogic.Status.WORKING || oldStatus == RecipeLogic.Status.WORKING)) {
+        if (isRemote()) {
             updateActiveBlocks(newStatus == RecipeLogic.Status.WORKING);
         }
     }

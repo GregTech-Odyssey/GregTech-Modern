@@ -37,8 +37,8 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -85,7 +85,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
      * Cache for rendering highlight boxes on client side.
      * rendering is done in GTOCore
      */
-    public static final ObjectOpenHashSet<BlockPos> HIGHLIGHT_CACHE = new ObjectOpenHashSet<>();
+    public static final LongOpenHashSet HIGHLIGHT_CACHE = new LongOpenHashSet();
     public static final Multimap<UUID, Component> MESSAGE_CACHE = HashMultimap.create();
     public static boolean sendMessage;
 
@@ -119,18 +119,11 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         super.onUnload();
         if (getLevel() instanceof ServerLevel serverLevel) {
             MultiblockWorldSavedData.getOrCreate(serverLevel).removeAsyncLogic(this);
-        } else HIGHLIGHT_CACHE.remove(getPos());
-    }
-
-    @Override
-    public void onMachineRemoved() {
-        IMachineLife.super.onMachineRemoved();
-        if (isRemote()) HIGHLIGHT_CACHE.remove(getPos());
+        } else HIGHLIGHT_CACHE.remove(getPos().asLong());
     }
 
     @Override
     public void onMachinePlaced(@Nullable LivingEntity player, ItemStack stack) {
-        IMachineLife.super.onMachinePlaced(player, stack);
         toldNotFormed = true; // newly placed machine won't tell invalid structure
     }
 
@@ -461,9 +454,9 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         super.clientTick();
         if (getLevel() != null && getOffsetTimer() % 20 == 0) {
             if (!isFormed) {
-                HIGHLIGHT_CACHE.add(getPos());
+                HIGHLIGHT_CACHE.add(getPos().asLong());
             } else {
-                HIGHLIGHT_CACHE.remove(getPos());
+                HIGHLIGHT_CACHE.remove(getPos().asLong());
             }
         }
     }
