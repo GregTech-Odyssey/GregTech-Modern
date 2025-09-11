@@ -33,7 +33,7 @@ public class ToolDefinitionBuilder {
     private int baseDurability = 0;
     private float durabilityMultiplier = 1.0F;
     private int baseQuality = 0;
-    private float attackDamage = 0.0F;
+    private float attackDamage = 1.0F;
     private float baseEfficiency = 4.0F;
     private float efficiencyMultiplier = 1.0F;
     private boolean isEnchantable;
@@ -76,7 +76,7 @@ public class ToolDefinitionBuilder {
      * material stats, which MC will not see as a valid weapon.
      */
     public ToolDefinitionBuilder cannotAttack() {
-        this.attackDamage = Float.MIN_VALUE;
+        this.attackDamage = -1.0F;
         return this;
     }
 

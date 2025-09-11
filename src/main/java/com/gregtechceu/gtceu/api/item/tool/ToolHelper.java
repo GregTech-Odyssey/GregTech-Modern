@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.ToolProperty;
 import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.tool.aoe.AoESymmetrical;
+import com.gregtechceu.gtceu.api.item.tool.behavior.IToolBehavior;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
@@ -88,31 +89,13 @@ public class ToolHelper {
 
     // Keys that resides in tool tag
     public static final String DURABILITY_KEY = ItemStack.TAG_DAMAGE;
-    public static final String MAX_DURABILITY_KEY = "MaxDamage";
-    public static final String TOOL_SPEED_KEY = "ToolSpeed";
-    public static final String ATTACK_DAMAGE_KEY = "AttackDamage";
-    public static final String ATTACK_SPEED_KEY = "AttackSpeed";
-    public static final String ENCHANTABILITY_KEY = "Enchantability";
-    public static final String HARVEST_LEVEL_KEY = "HarvestLevel";
-    public static final String LAST_CRAFTING_USE_KEY = "LastCraftingUse";
 
     // Keys that resides in behaviours tag
 
     // AoE
-    public static final String MAX_AOE_COLUMN_KEY = "MaxAoEColumn";
-    public static final String MAX_AOE_ROW_KEY = "MaxAoERow";
-    public static final String MAX_AOE_LAYER_KEY = "MaxAoELayer";
     public static final String AOE_COLUMN_KEY = "AoEColumn";
     public static final String AOE_ROW_KEY = "AoERow";
     public static final String AOE_LAYER_KEY = "AoELayer";
-
-    // Others
-    public static final String HARVEST_ICE_KEY = "HarvestIce";
-    public static final String TORCH_PLACING_KEY = "TorchPlacing";
-    public static final String TORCH_PLACING_CACHE_SLOT_KEY = "TorchPlacing$Slot";
-    public static final String DISABLE_SHIELDS_KEY = "DisableShields";
-    public static final String RELOCATE_MINED_BLOCKS_KEY = "RelocateMinedBlocks";
-    public static final String RELOCATE_MOB_DROPS_KEY = "RelocateMobDrops";
 
     // Crafting Symbols
     private static final Char2ReferenceMap<GTToolType> symbols = new Char2ReferenceOpenHashMap<>();
@@ -159,6 +142,17 @@ public class ToolHelper {
             }
         }
         return ItemStack.EMPTY;
+    }
+
+    public static boolean hasBehavior(ItemStack stack, IToolBehavior behavior) {
+        if (stack.getItem() instanceof IGTTool tool) {
+            return tool.getToolStats().getBehaviors().contains(behavior);
+        }
+        return false;
+    }
+
+    public static boolean isMagnetic(ItemStack tool) {
+        return tool.getItem() instanceof IGTTool g && g.isMagnetic();
     }
 
     public static boolean is(ItemStack stack, GTToolType toolType) {
@@ -235,11 +229,6 @@ public class ToolHelper {
         if (tool == null) return ItemStack.EMPTY;
         ItemStack stack = tool.get().getRaw();
         stack.getOrCreateTag().putInt(HIDE_FLAGS, 2);
-        CompoundTag toolTag = getToolTag(stack);
-        toolTag.putInt(MAX_DURABILITY_KEY, maxDurability);
-        toolTag.putInt(HARVEST_LEVEL_KEY, harvestLevel);
-        toolTag.putFloat(TOOL_SPEED_KEY, toolSpeed);
-        toolTag.putFloat(ATTACK_DAMAGE_KEY, attackDamage);
         ToolProperty toolProperty = material.getProperty(PropertyKey.TOOL);
         if (toolProperty != null) {
             for (var entry : Object2IntMaps.fastIterable(toolProperty.getEnchantments())) {
@@ -281,7 +270,7 @@ public class ToolHelper {
     }
 
     public static AoESymmetrical getMaxAoEDefinition(ItemStack stack) {
-        return AoESymmetrical.readMax(getBehaviorsTag(stack));
+        return AoESymmetrical.readMax(stack);
     }
 
     public static AoESymmetrical getAoEDefinition(ItemStack stack) {
@@ -301,21 +290,21 @@ public class ToolHelper {
         Direction sideDirection = hitFace;
         // Special case for any additional row > 1: https://i.imgur.com/Dvcx7Vg.png
         // Same behaviour as the Flux Bore
-        int aoeRowStart = aoeDefinition.row == 0 ? 0 : -1;
-        int aoeRowEnd = aoeDefinition.row == 0 ? 0 : aoeDefinition.row * 2 - 1;
+        int aoeRowStart = aoeDefinition.row() == 0 ? 0 : -1;
+        int aoeRowEnd = aoeDefinition.row() == 0 ? 0 : aoeDefinition.row() * 2 - 1;
 
         if (hitFace.getAxis().isVertical()) {
             topDirection = playerFacing;
             sideDirection = playerFacing;
-            aoeRowStart = -aoeDefinition.row;
-            aoeRowEnd = aoeDefinition.row;
+            aoeRowStart = -aoeDefinition.row();
+            aoeRowEnd = aoeDefinition.row();
         }
         sideDirection = sideDirection.getClockWise();
 
         List<BlockPos> validPositions = new ObjectArrayList<>();
-        for (int depth = 0; depth <= aoeDefinition.layer; depth++) {
+        for (int depth = 0; depth <= aoeDefinition.layer(); depth++) {
             for (int top = aoeRowEnd; top >= aoeRowStart; top--) {
-                for (int side = -aoeDefinition.column; side <= aoeDefinition.column; side++) {
+                for (int side = -aoeDefinition.column(); side <= aoeDefinition.column(); side++) {
                     var pos = context.getClickedPos()
                             .relative(depthDirection, depth)
                             .relative(topDirection, top)
@@ -615,8 +604,7 @@ public class ToolHelper {
                 if (shearable.isShearable(tool, world, pos)) {
                     List<ItemStack> shearedDrops = shearable.onSheared(player, tool, world, pos,
                             tool.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE));
-                    boolean relocateMinedBlocks = hasBehaviorsTag(tool) &&
-                            getBehaviorsTag(tool).getBoolean(RELOCATE_MINED_BLOCKS_KEY);
+                    boolean relocateMinedBlocks = isMagnetic(tool);
                     Iterator<ItemStack> iter = shearedDrops.iterator();
                     while (iter.hasNext()) {
                         ItemStack stack = iter.next();

@@ -129,7 +129,7 @@ public interface IToolBehavior {
 
     /**
      * Add the necessary NBT information to the tool
-     * 
+     *
      * @param stack the tool
      * @param tag   the nbt tag to add to
      */

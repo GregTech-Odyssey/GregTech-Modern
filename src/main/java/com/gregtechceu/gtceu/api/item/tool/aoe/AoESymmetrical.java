@@ -1,27 +1,19 @@
 package com.gregtechceu.gtceu.api.item.tool.aoe;
 
+import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.world.item.ItemStack;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Nullable;
 
-public class AoESymmetrical {
-
-    public final int column, row, layer;
+public record AoESymmetrical(int column, int row, int layer) {
 
     private AoESymmetrical() {
-        this.column = 0;
-        this.row = 0;
-        this.layer = 0;
-    }
-
-    private AoESymmetrical(int column, int row, int layer) {
-        this.column = column;
-        this.row = row;
-        this.layer = layer;
+        this(0, 0, 0);
     }
 
     public static final AoESymmetrical ZERO = new AoESymmetrical();
@@ -37,18 +29,8 @@ public class AoESymmetrical {
         return column == 0 && row == 0 && layer == 0 ? ZERO : new AoESymmetrical(column, row, layer);
     }
 
-    public static AoESymmetrical readMax(CompoundTag tag) {
-        int column = 0, row = 0, layer = 0;
-        if (tag.contains(ToolHelper.MAX_AOE_COLUMN_KEY, Tag.TAG_INT)) {
-            column = tag.getInt(ToolHelper.MAX_AOE_COLUMN_KEY);
-        }
-        if (tag.contains(ToolHelper.MAX_AOE_ROW_KEY, Tag.TAG_INT)) {
-            row = tag.getInt(ToolHelper.MAX_AOE_ROW_KEY);
-        }
-        if (tag.contains(ToolHelper.MAX_AOE_LAYER_KEY, Tag.TAG_INT)) {
-            layer = tag.getInt(ToolHelper.MAX_AOE_LAYER_KEY);
-        }
-        return column == 0 && row == 0 && layer == 0 ? ZERO : AoESymmetrical.of(column, row, layer);
+    public static AoESymmetrical readMax(ItemStack stack) {
+        return ((IGTTool) stack.getItem()).getToolStats().getAoEDefinition(stack);
     }
 
     public static AoESymmetrical read(CompoundTag tag, @Nullable AoESymmetrical defaultDefinition) {

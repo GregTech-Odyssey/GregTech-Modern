@@ -32,7 +32,6 @@ public class ToolModeSwitchBehavior implements IToolBehavior {
         if (toolTypes.contains(GTToolType.WRENCH)) {
             tag.putByte("Mode", (byte) WrenchModeType.BOTH.ordinal());
         }
-        IToolBehavior.super.addBehaviorNBT(stack, tag);
     }
 
     @Override
