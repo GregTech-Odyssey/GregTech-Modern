@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.common.item;
 
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.item.IComponentItem;
 import com.gregtechceu.gtceu.api.item.component.IMaterialPartItem;
 
@@ -17,24 +16,21 @@ import java.util.List;
 public class TurbineRotorBehaviour implements IMaterialPartItem {
 
     public int getRotorPower(ItemStack stack) {
-        var property = getPartMaterial(stack).getProperty(PropertyKey.ROTOR);
-        return property == null ? -1 : property.getPower();
+        return stack.getItem() instanceof GTTurbineItem t ? t.getPower() : -1;
     }
 
     public int getRotorEfficiency(ItemStack stack) {
-        var property = getPartMaterial(stack).getProperty(PropertyKey.ROTOR);
-        return property == null ? -1 : property.getEfficiency();
+        return stack.getItem() instanceof GTTurbineItem t ? t.getEfficiency() : -1;
     }
 
     @Override
     public int getPartMaxDurability(ItemStack itemStack) {
-        var property = getPartMaterial(itemStack).getProperty(PropertyKey.ROTOR);
-        return property == null ? -1 : 800 * (int) Math.pow(property.getDurability(), 0.65);
+        return itemStack.getMaxDamage();
     }
 
-    public float getDamage(ItemStack itemStack) {
-        var property = getPartMaterial(itemStack).getProperty(PropertyKey.ROTOR);
-        return property == null ? -1 : property.getDamage();
+    // 把手伸进去所造成的伤害
+    public float getDamage(ItemStack stack) {
+        return stack.getItem() instanceof GTTurbineItem t ? t.getDoDamageToEntity() : 0;
     }
 
     public int getRotorDurabilityPercent(ItemStack itemStack) {

@@ -36,6 +36,10 @@ public interface IGTToolDefinition {
 
     boolean isSuitableForCrafting(ItemStack stack);
 
+    default boolean canAttack(ItemStack stack) {
+        return getBaseDamage(stack) > 0F;
+    }
+
     default int getToolDamagePerBlockBreak(ItemStack stack) {
         int action = getDamagePerAction(stack);
         return isSuitableForBlockBreak(stack) ? action : action * 2;

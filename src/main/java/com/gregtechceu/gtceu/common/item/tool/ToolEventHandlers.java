@@ -6,9 +6,9 @@ import com.gregtechceu.gtceu.api.capability.IElectricItem;
 import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.capability.ElectricItem;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
+import com.gregtechceu.gtceu.common.item.tool.behavior.HarvestIceBehavior;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
@@ -114,11 +114,9 @@ public class ToolEventHandlers {
             ToolHelper.applyHammerDropConversion(level, pos, tool, state, drops, fortuneLevel, dropChance,
                     player.getRandom());
         }
-        if (!ToolHelper.hasBehaviorsTag(tool)) return drops;
 
-        CompoundTag behaviorTag = ToolHelper.getBehaviorsTag(tool);
         Block block = state.getBlock();
-        if (!isSilkTouch && state.is(BlockTags.ICE) && behaviorTag.getBoolean(ToolHelper.HARVEST_ICE_KEY)) {
+        if (!isSilkTouch && state.is(BlockTags.ICE) && ToolHelper.hasBehavior(tool, HarvestIceBehavior.INSTANCE)) {
             Item iceBlock = block.asItem();
             if (drops.stream().noneMatch(drop -> drop.getItem() == iceBlock)) {
                 drops.add(new ItemStack(iceBlock));
@@ -135,7 +133,7 @@ public class ToolEventHandlers {
                 ((IGTTool) tool.getItem()).playSound(player);
             }
         }
-        if (behaviorTag.getBoolean(ToolHelper.RELOCATE_MINED_BLOCKS_KEY)) {
+        if (ToolHelper.isMagnetic(tool)) {
             drops = new ObjectArrayList<>(drops);
             Iterator<ItemStack> dropItr = drops.iterator();
             while (dropItr.hasNext()) {
@@ -196,19 +194,15 @@ public class ToolEventHandlers {
 
     public static Collection<ItemEntity> onPlayerKilledEntity(ItemStack tool, Player player,
                                                               Collection<ItemEntity> drops) {
-        if (!ToolHelper.hasBehaviorsTag(tool)) return drops;
-        CompoundTag behaviorTag = ToolHelper.getBehaviorsTag(tool);
+        if (!ToolHelper.isMagnetic(tool)) return drops;
+        Iterator<ItemEntity> dropItr = drops.iterator();
 
-        if (behaviorTag.getBoolean(ToolHelper.RELOCATE_MOB_DROPS_KEY)) {
-            Iterator<ItemEntity> dropItr = drops.iterator();
+        while (dropItr.hasNext()) {
+            ItemEntity drop = dropItr.next();
+            ItemStack dropStack = drop.getItem();
 
-            while (dropItr.hasNext()) {
-                ItemEntity drop = dropItr.next();
-                ItemStack dropStack = drop.getItem();
-
-                if (fireItemPickupEvent(drop, player) == -1 || player.addItem(dropStack)) {
-                    dropItr.remove();
-                }
+            if (fireItemPickupEvent(drop, player) == -1 || player.addItem(dropStack)) {
+                dropItr.remove();
             }
         }
         return drops;

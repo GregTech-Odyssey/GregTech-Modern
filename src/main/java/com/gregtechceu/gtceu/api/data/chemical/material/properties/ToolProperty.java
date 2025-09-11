@@ -3,12 +3,14 @@ package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.item.tool.MaterialToolTier;
+import com.gregtechceu.gtceu.api.item.tool.behavior.IToolBehavior;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.ReferenceSet;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.Arrays;
@@ -80,6 +82,12 @@ public class ToolProperty implements IMaterialProperty {
      * Enchantment to be applied to tools made from this Material.
      */
     private final Object2IntMap<Enchantment> enchantments = new Object2IntArrayMap<>();
+
+    public ReferenceSet<IToolBehavior> getBehaviors() {
+        return behaviors;
+    }
+
+    private final ReferenceSet<IToolBehavior> behaviors = new it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet<>();
 
     public ToolProperty(float harvestSpeed, float attackDamage, int durability, int harvestLevel, GTToolType[] types) {
         this.harvestSpeed = harvestSpeed;
@@ -195,6 +203,11 @@ public class ToolProperty implements IMaterialProperty {
 
         public Builder durabilityMultiplier(int multiplier) {
             toolProperty.durabilityMultiplier = multiplier;
+            return this;
+        }
+
+        public Builder behaviors(IToolBehavior... behaviors) {
+            toolProperty.behaviors.addAll(Arrays.asList(behaviors));
             return this;
         }
 

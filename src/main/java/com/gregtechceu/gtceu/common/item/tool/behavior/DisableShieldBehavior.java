@@ -1,9 +1,7 @@
 package com.gregtechceu.gtceu.common.item.tool.behavior;
 
-import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.api.item.tool.behavior.IToolBehavior;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -24,11 +22,6 @@ public class DisableShieldBehavior implements IToolBehavior {
     @Override
     public boolean canDisableShield(ItemStack stack, ItemStack shield, LivingEntity entity, LivingEntity attacker) {
         return true;
-    }
-
-    @Override
-    public void addBehaviorNBT(@NotNull ItemStack stack, @NotNull CompoundTag tag) {
-        tag.putBoolean(ToolHelper.DISABLE_SHIELDS_KEY, true);
     }
 
     @Override

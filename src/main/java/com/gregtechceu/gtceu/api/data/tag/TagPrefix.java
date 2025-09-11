@@ -19,6 +19,8 @@ import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.common.item.GTTurbineItem;
+import com.gregtechceu.gtceu.common.item.GTTurbineItemCoated;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.integration.xei.widgets.GTOreByProduct;
@@ -173,6 +175,34 @@ public class TagPrefix {
     public static final TagPrefix toolHeadWireCutter = new TagPrefix("wireCutterHead").itemTable(() -> GTMaterialItems.MATERIAL_ITEMS).langValue("%s Wire Cutter Head").materialAmount(GTValues.M * 4).maxStackSize(16).materialIconType(MaterialIconType.toolHeadWireCutter).unificationEnabled(true).enableRecycling().generateItem(true).generationCondition(hasNoCraftingToolProperty.and(mat -> mat.hasFlag(MaterialFlags.GENERATE_PLATE)).and(mat -> mat.getProperty(PropertyKey.TOOL).hasType(GTToolType.WIRE_CUTTER_LV)));
     // made of 5 Ingots.
     public static final TagPrefix turbineBlade = new TagPrefix("turbineBlade").itemTable(() -> GTMaterialItems.MATERIAL_ITEMS).langValue("%s Turbine Blade").materialAmount(GTValues.M * 10).materialIconType(MaterialIconType.turbineBlade).unificationEnabled(true).enableRecycling().generateItem(true).generationCondition(hasRotorProperty.and(m -> m.hasFlags(MaterialFlags.GENERATE_BOLT_SCREW, MaterialFlags.GENERATE_PLATE) && !m.hasProperty(PropertyKey.GEM)));
+    // this is turbine rotor
+    public static final TagPrefix turbineRotor = new TagPrefix("turbine_rotor")
+            .idPattern("%s_turbine_rotor")
+            .defaultTagPath("turbine_rotors/%s")
+            .unformattedTagPath("turbine_rotors")
+            .itemTable(() -> GTMaterialItems.MATERIAL_ITEMS)
+            .materialAmount(GTValues.M * 44)
+            .materialIconType(MaterialIconType.turbineRotor)
+            .unificationEnabled(true)
+            .generateItem(true)
+            .maxStackSize(1)
+            .generationCondition(hasRotorProperty.and(m -> m.hasFlags(MaterialFlags.GENERATE_BOLT_SCREW, MaterialFlags.GENERATE_PLATE) && !m.hasProperty(PropertyKey.GEM)))
+            .maxDamage(GTTurbineItem::getRotorMaxDamage)
+            .itemConstructor(GTTurbineItem::new);
+    public static final TagPrefix turbineRotorCoated = new TagPrefix("turbine_rotor_coated")
+            .idPattern("%s_turbine_rotor_coated")
+            .langValue("Turbine Rotor")
+            .defaultTagPath("turbine_rotors/%s_coated")
+            .unformattedTagPath("turbine_rotors")
+            .materialIconType(MaterialIconType.turbineRotor)
+            .itemTable(() -> GTMaterialItems.MATERIAL_ITEMS)
+            .materialAmount(GTValues.M * 48)
+            .unificationEnabled(true)
+            .generateItem(true)
+            .maxStackSize(1)
+            .generationCondition(hasRotorProperty.and(m -> m.hasFlags(MaterialFlags.GENERATE_BOLT_SCREW, MaterialFlags.GENERATE_PLATE) && !m.hasProperty(PropertyKey.GEM)))
+            .maxDamage(GTTurbineItem::getRotorMaxDamage)
+            .itemConstructor(GTTurbineItemCoated::new);
     // Storage Block consisting out of 9 Ingots/Gems/Dusts.
     public static final TagPrefix block = new TagPrefix("block").defaultTagPath("storage_blocks/%s").unformattedTagPath("storage_blocks").langValue("Block of %s").materialAmount(GTValues.M * 9).materialIconType(MaterialIconType.block).miningToolTag(BlockTags.MINEABLE_WITH_PICKAXE).generateBlock(true).generationCondition(material -> material.hasProperty(PropertyKey.INGOT) || material.hasProperty(PropertyKey.GEM) || material.hasFlag(MaterialFlags.FORCE_GENERATE_BLOCK)).unificationEnabled(true).enableRecycling();
     public static final TagPrefix log = new TagPrefix("log").unformattedTagPath("logs", true);
@@ -256,6 +286,7 @@ public class TagPrefix {
     private final Map<Material, Supplier<? extends ItemLike>[]> ignoredMaterials = new Reference2ObjectOpenHashMap<>();
     private final Reference2FloatMap<Material> materialAmounts = new Reference2FloatOpenHashMap<>();
     private int maxStackSize = 64;
+    private ToIntFunction<Material> maxDamageProvider;
     private final List<MaterialStack> secondaryMaterials = new ObjectArrayList<>();
     protected final Set<TagKey<Block>> miningToolTag = new ObjectOpenHashSet<>();
 
@@ -273,6 +304,18 @@ public class TagPrefix {
 
     public static TagPrefix oreTagPrefix(String name, TagKey<Block> miningToolTag) {
         return new TagPrefix(name).defaultTagPath("ores/%s").prefixOnlyTagPath("ores_in_ground/%s").unformattedTagPath("ores").materialIconType(MaterialIconType.ore).miningToolTag(miningToolTag).unificationEnabled(true).blockConstructor(OreBlock::new).generationCondition(hasOreProperty);
+    }
+
+    public ToIntFunction<Material> getMaxDamageProvider() {
+        return this.maxDamageProvider;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public TagPrefix maxDamage(final ToIntFunction<Material> maxDamageProvider) {
+        this.maxDamageProvider = maxDamageProvider;
+        return this;
     }
 
     public void addSecondaryMaterial(MaterialStack secondaryMaterial) {

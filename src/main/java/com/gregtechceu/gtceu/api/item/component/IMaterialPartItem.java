@@ -1,21 +1,21 @@
 package com.gregtechceu.gtceu.api.item.component;
 
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.item.IComponentItem;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.common.item.GTTurbineItem;
+import com.gregtechceu.gtceu.common.item.tool.CoatedTurbineRotorBehaviour;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.color.item.ItemColor;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -24,47 +24,17 @@ public interface IMaterialPartItem extends IDurabilityBar, IAddInformation, ICus
 
     int getPartMaxDurability(ItemStack itemStack);
 
-    @Nullable
-    default CompoundTag getPartStatsTag(ItemStack itemStack) {
-        return itemStack.getTagElement("GT.PartStats");
-    }
-
-    default CompoundTag getOrCreatePartStatsTag(ItemStack itemStack) {
-        return itemStack.getOrCreateTagElement("GT.PartStats");
-    }
-
     default Material getPartMaterial(ItemStack itemStack) {
-        var compound = getPartStatsTag(itemStack);
         var defaultMaterial = GTMaterials.Neutronium;
-        if (compound == null || !compound.contains("Material", Tag.TAG_STRING)) {
-            return defaultMaterial;
-        }
-        var materialName = compound.getString("Material");
-        var material = GTMaterials.get(materialName);
-        if (material.isNull() || !material.hasProperty(PropertyKey.INGOT)) {
-            return defaultMaterial;
-        }
-        return material;
-    }
-
-    default void setPartMaterial(ItemStack itemStack, @NotNull Material material) {
-        if (!material.hasProperty(PropertyKey.INGOT))
-            throw new IllegalArgumentException("Part material must have an Ingot!");
-        var compound = getOrCreatePartStatsTag(itemStack);
-        compound.putString("Material", material.getResourceLocation().toString());
+        return itemStack.getItem() instanceof GTTurbineItem t ? t.getMaterial() : defaultMaterial;
     }
 
     default int getPartDamage(ItemStack itemStack) {
-        var compound = getPartStatsTag(itemStack);
-        if (compound == null || !compound.contains("Damage", Tag.TAG_ANY_NUMERIC)) {
-            return 0;
-        }
-        return compound.getInt("Damage");
+        return itemStack.getDamageValue();
     }
 
     default void setPartDamage(ItemStack itemStack, int damage) {
-        var compound = getOrCreatePartStatsTag(itemStack);
-        compound.putInt("Damage", Math.min(getPartMaxDurability(itemStack), damage));
+        itemStack.setDamageValue(damage);
     }
 
     @Override
@@ -80,8 +50,16 @@ public interface IMaterialPartItem extends IDurabilityBar, IAddInformation, ICus
         var material = getPartMaterial(stack);
         var maxDurability = getPartMaxDurability(stack);
         var damage = getPartDamage(stack);
+        MutableComponent c = Component.translatable("metaitem.tool.tooltip.durability", maxDurability - damage, maxDurability);
+        if (this instanceof CoatedTurbineRotorBehaviour ct) {
+            var coatMaxDmg = ct.getCoatMaxDamage(stack);
+            var coatDmg = ct.getCoatDamage(stack);
+            c.withStyle(ChatFormatting.WHITE).append(" + (").withStyle(ChatFormatting.GREEN)
+                    .append(Component.translatable("metaitem.tool.tooltip.rotor.coating_durability", coatMaxDmg - coatDmg, coatMaxDmg)).withStyle(ChatFormatting.GREEN)
+                    .append(")").withStyle(ChatFormatting.GREEN);
+        }
         tooltipComponents
-                .add(Component.translatable("metaitem.tool.tooltip.durability", maxDurability - damage, maxDurability));
+                .add(c);
         tooltipComponents
                 .add(Component.translatable("metaitem.tool.tooltip.primary_material", material.getLocalizedName()));
     }

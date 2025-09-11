@@ -7,7 +7,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.registry.MaterialRegistr
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.item.IGTTool;
-import com.gregtechceu.gtceu.api.item.TagPrefixItem;
+import com.gregtechceu.gtceu.api.item.ITagPrefixItem;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 
@@ -83,7 +83,7 @@ public class GTMaterialItems {
                 .transform(GTItems.unificationItem(tagPrefix, material))
                 .properties(p -> p.stacksTo(tagPrefix.maxStackSize()))
                 .model(NonNullBiConsumer.noop())
-                .color(() -> () -> TagPrefixItem.tintColor(material))
+                .color(() -> () -> ITagPrefixItem.tintColor(material))
                 .onRegister(GTItems::cauldronInteraction)
                 .register());
     }

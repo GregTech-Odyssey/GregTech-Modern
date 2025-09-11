@@ -2187,12 +2187,13 @@ public class GTItems {
         }
     }
 
+    @Deprecated
     public static ItemEntry<ComponentItem> TURBINE_ROTOR = REGISTRATE.item("turbine_rotor", ComponentItem::create)
             .lang("%s Turbine Rotor")
             .properties(p -> p.stacksTo(1))
-            .model((ctx, prov) -> createTextureModel(ctx, prov, GTCEu.id("item/tools/turbine")))
+            .model((ctx, prov) -> createTextureModel(ctx, prov, GTCEu.id("item/material_sets/dull/turbine_rotor")))
             .color(() -> IMaterialPartItem::getItemStackColor)
-            .onRegister(attach(new TurbineRotorBehaviour())).register();
+            .onRegister(attach(new TurbineRotorBehaviourLegacy())).register();
 
     public static ItemEntry<Item> NEURO_PROCESSOR = REGISTRATE.item("neuro_processing_unit", Item::new)
             .lang("Neuro Processing Unit").register();

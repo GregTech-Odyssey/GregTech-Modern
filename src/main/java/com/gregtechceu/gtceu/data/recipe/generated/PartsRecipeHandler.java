@@ -6,9 +6,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.common.data.GTItems;
-import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTRecipeCategories;
-import com.gregtechceu.gtceu.common.item.TurbineRotorBehaviour;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
@@ -575,17 +573,17 @@ public final class PartsRecipeHandler {
             return;
         }
 
-        ItemStack rotorStack = GTItems.TURBINE_ROTOR.asStack();
+        // ItemStack rotorStack = GTItems.TURBINE_ROTOR.asStack();
         // noinspection ConstantConditions
-        TurbineRotorBehaviour.getBehaviour(rotorStack).setPartMaterial(rotorStack, material);
+        // TurbineRotorBehaviour.getBehaviour(rotorStack).setPartMaterial(rotorStack, material);
 
-        ASSEMBLER_RECIPES.recipeBuilder("assemble_" + material.getName() + "_turbine_blade")
-                .inputItems(turbineBlade, material, 8)
-                .inputItems(rodLong, GTMaterials.Magnalium)
-                .outputItems(rotorStack)
-                .duration(200)
-                .EUt(400)
-                .save();
+        // ASSEMBLER_RECIPES.recipeBuilder("assemble_" + material.getName() + "_turbine_blade")
+        // .inputItems(turbineBlade, material, 8)
+        // .inputItems(rodLong, GTMaterials.Magnalium)
+        // .outputItems(rotorStack)
+        // .duration(200)
+        // .EUt(400)
+        // .save();
 
         FORMING_PRESS_RECIPES.recipeBuilder("press_" + material.getName() + "_turbine_rotor")
                 .inputItems(plateDouble, material, 5)

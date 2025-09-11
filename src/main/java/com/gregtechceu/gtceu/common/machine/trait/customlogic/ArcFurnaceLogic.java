@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.item.TurbineRotorBehaviour;
@@ -96,23 +95,23 @@ public enum ArcFurnaceLogic implements GTRecipeType.ICustomRecipeLogic {
 
     @Override
     public void buildRepresentativeRecipes() {
-        ItemStack stack = GTItems.TURBINE_ROTOR.asStack();
-        stack.setHoverName(Component.translatable("gtceu.auto_decomp.rotor"));
-        GTRecipe rotorRecipe;
+        // ItemStack stack = GTItems.TURBINE_ROTOR.asStack();
+        // stack.setHoverName(Component.translatable("gtceu.auto_decomp.rotor"));
+        // GTRecipe rotorRecipe;
         GTRecipe pickaxeRecipe;
         float durability = 0.69f;
-        var turbineBehaviour = TurbineRotorBehaviour.getBehaviour(stack);
-        assert turbineBehaviour != null : "Default Turbine Stack doesn't have Turbine Behaviour";
-        turbineBehaviour.setPartMaterial(stack, GTMaterials.Iron);
-        turbineBehaviour.setPartDamage(stack, 8928);
-
-        rotorRecipe = applyDurabilityRecipe("rotor_decomp", stack, turbineBehaviour.getPartMaterial(stack),
-                (float) (turbineBlade.materialAmount() * 8) / GTValues.M, durability, GTValues.VH[GTValues.EV], 1);
-        assert rotorRecipe != null : "Default Turbine Decomp recipe couldn't be generated";
-        rotorRecipe.setId(rotorRecipe.getId().withPrefix("/"));
+        // var turbineBehaviour = TurbineRotorBehaviour.getBehaviour(stack);
+        // assert turbineBehaviour != null : "Default Turbine Stack doesn't have Turbine Behaviour";
+        // turbineBehaviour.setPartMaterial(stack, GTMaterials.Iron);
+        // turbineBehaviour.setPartDamage(stack, 8928);
+        //
+        // rotorRecipe = applyDurabilityRecipe("rotor_decomp", stack, turbineBehaviour.getPartMaterial(stack),
+        // (float) (turbineBlade.materialAmount() * 8) / GTValues.M, durability, GTValues.VH[GTValues.EV], 1);
+        // assert rotorRecipe != null : "Default Turbine Decomp recipe couldn't be generated";
+        // rotorRecipe.setId(rotorRecipe.getId().withPrefix("/"));
 
         // noinspection DataFlowIssue
-        stack = GTMaterialItems.TOOL_ITEMS.get(GTMaterials.Iron, GTToolType.PICKAXE).asStack();
+        ItemStack stack = GTMaterialItems.TOOL_ITEMS.get(GTMaterials.Iron, GTToolType.PICKAXE).asStack();
         stack.setHoverName(Component.translatable("gtceu.auto_decomp.tool"));
         stack.setDamageValue(79);
         pickaxeRecipe = applyDurabilityRecipe("tool_decomp", stack, GTMaterials.Iron,
@@ -122,6 +121,6 @@ public enum ArcFurnaceLogic implements GTRecipeType.ICustomRecipeLogic {
         assert pickaxeRecipe != null : "Default Tool Decomp recipe couldn't be generated";
         pickaxeRecipe.setId(pickaxeRecipe.getId().withPrefix("/"));
         ARC_FURNACE_RECYCLING.addRecipe(pickaxeRecipe);
-        ARC_FURNACE_RECYCLING.addRecipe(rotorRecipe);
+        // ARC_FURNACE_RECYCLING.addRecipe(rotorRecipe);
     }
 }

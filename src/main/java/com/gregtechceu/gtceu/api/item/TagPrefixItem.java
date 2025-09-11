@@ -11,7 +11,6 @@ import com.gregtechceu.gtceu.client.renderer.item.TagPrefixItemRenderer;
 import com.gregtechceu.gtceu.common.data.GTDamageTypes;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.client.color.item.ItemColor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -21,8 +20,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +29,17 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class TagPrefixItem extends Item {
+public class TagPrefixItem extends Item implements ITagPrefixItem {
+
+    @Override
+    public TagPrefix getTagPrefix() {
+        return tagPrefix;
+    }
+
+    @Override
+    public Material getMaterial() {
+        return material;
+    }
 
     public final TagPrefix tagPrefix;
     public final Material material;
@@ -49,40 +56,6 @@ public class TagPrefixItem extends Item {
     @Override
     public int getBurnTime(ItemStack itemStack, @Nullable RecipeType<?> recipeType) {
         return getItemBurnTime();
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static ItemColor tintColor(Material material) {
-        return (itemStack, index) -> material.getLayerARGB(index);
-    }
-
-    @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
-                                TooltipFlag isAdvanced) {
-        super.appendHoverText(stack, level, tooltipComponents, isAdvanced);
-        if (this.tagPrefix.tooltip() != null) {
-            this.tagPrefix.tooltip().accept(material, tooltipComponents);
-        }
-    }
-
-    @Override
-    public String getDescriptionId() {
-        return tagPrefix.getUnlocalizedName(material);
-    }
-
-    @Override
-    public String getDescriptionId(ItemStack stack) {
-        return tagPrefix.getUnlocalizedName(material);
-    }
-
-    @Override
-    public Component getDescription() {
-        return tagPrefix.getLocalizedName(material);
-    }
-
-    @Override
-    public Component getName(ItemStack stack) {
-        return getDescription();
     }
 
     @Override
@@ -112,6 +85,27 @@ public class TagPrefixItem extends Item {
         if (property != null)
             return (int) (property.getBurnTime() * tagPrefix.getMaterialAmount(material) / GTValues.M);
         return -1;
+    }
+
+    @Override
+    public Component getName(ItemStack stack) {
+        return ITagPrefixItem.super.getName(stack);
+    }
+
+    @Override
+    public String getDescriptionId(ItemStack stack) {
+        return ITagPrefixItem.super.getDescriptionId(stack);
+    }
+
+    @Override
+    public Component getDescription() {
+        return ITagPrefixItem.super.getDescription();
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
+        super.appendHoverText(stack, level, tooltipComponents, isAdvanced);
+        ITagPrefixItem.super.appendHoverText(stack, level, tooltipComponents, isAdvanced);
     }
 
     // TODO BEACON PAYMENT

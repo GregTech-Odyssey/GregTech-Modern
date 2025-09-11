@@ -68,10 +68,8 @@ import it.unimi.dsi.fastutil.objects.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static com.gregtechceu.gtceu.api.item.tool.ToolHelper.*;
@@ -124,22 +122,6 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
         // Set other tool stats (durability)
         ToolProperty toolProperty = this.getMaterial().getProperty(PropertyKey.TOOL);
 
-        // Durability formula we are working with:
-        // Final Durability = (material durability * material durability multiplier) + (tool definition durability *
-        // definition durability multiplier) - 1
-        // Subtracts 1 internally since Minecraft treats "0" as a valid durability, but we don't want to display this.
-
-        int durability = toolProperty.getDurability() * toolProperty.getDurabilityMultiplier();
-
-        // Most Tool Definitions do not set a base durability, which will lead to ignoring the multiplier if present. So
-        // apply the multiplier to the material durability if that would happen
-        if (toolStats.getBaseDurability(stack) == 0) {
-            durability *= toolStats.getDurabilityMultiplier(stack);
-        } else {
-            durability += toolStats.getBaseDurability(stack) * toolStats.getDurabilityMultiplier(stack);
-        }
-
-        toolTag.putInt(MAX_DURABILITY_KEY, durability - 1);
         toolTag.putInt(DURABILITY_KEY, 0);
         if (toolProperty.isUnbreakable()) {
             stackCompound.putBoolean(UNBREAKABLE_KEY, true);
@@ -160,20 +142,16 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
         getToolStats().getBehaviors().forEach(behavior -> behavior.addBehaviorNBT(stack, behaviourTag));
 
         if (!aoeDefinition.isZero()) {
-            behaviourTag.putInt(MAX_AOE_COLUMN_KEY, aoeDefinition.column);
-            behaviourTag.putInt(MAX_AOE_ROW_KEY, aoeDefinition.row);
-            behaviourTag.putInt(MAX_AOE_LAYER_KEY, aoeDefinition.layer);
-            behaviourTag.putInt(AOE_COLUMN_KEY, aoeDefinition.column);
-            behaviourTag.putInt(AOE_ROW_KEY, aoeDefinition.row);
-            behaviourTag.putInt(AOE_LAYER_KEY, aoeDefinition.layer);
-        }
-
-        if (toolProperty.isMagnetic()) {
-            behaviourTag.putBoolean(RELOCATE_MINED_BLOCKS_KEY, true);
-            behaviourTag.putBoolean(RELOCATE_MOB_DROPS_KEY, true);
+            behaviourTag.putInt(AOE_COLUMN_KEY, aoeDefinition.column());
+            behaviourTag.putInt(AOE_ROW_KEY, aoeDefinition.row());
+            behaviourTag.putInt(AOE_LAYER_KEY, aoeDefinition.layer());
         }
 
         return stack;
+    }
+
+    default boolean isMagnetic() {
+        return getMaterial().getProperty(PropertyKey.TOOL).isMagnetic();
     }
 
     default ItemStack get(long defaultCharge, long defaultMaxCharge) {
@@ -261,78 +239,33 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
     }
 
     default float getTotalToolSpeed(ItemStack stack) {
-        CompoundTag toolTag = getToolTag(stack);
-        if (toolTag.contains(TOOL_SPEED_KEY, Tag.TAG_FLOAT)) {
-            return toolTag.getFloat(TOOL_SPEED_KEY);
-        }
-        float toolSpeed = getToolStats().getEfficiencyMultiplier(stack) * getMaterialToolSpeed(stack) +
+        return getToolStats().getEfficiencyMultiplier(stack) * getMaterialToolSpeed(stack) +
                 getToolStats().getBaseEfficiency(stack);
-        toolTag.putFloat(TOOL_SPEED_KEY, toolSpeed);
-        return toolSpeed;
     }
 
     default float getTotalAttackDamage(ItemStack stack) {
-        CompoundTag toolTag = getToolTag(stack);
-        if (toolTag.contains(ATTACK_DAMAGE_KEY, Tag.TAG_FLOAT)) {
-            return toolTag.getFloat(ATTACK_DAMAGE_KEY);
-        }
         float baseDamage = getToolStats().getBaseDamage(stack);
-        float attackDamage = 0;
-        // represents a tool that should always have an attack damage value of 0
-        if (baseDamage != Float.MIN_VALUE) {
-            attackDamage = getMaterialAttackDamage(stack) + baseDamage;
-        }
-        toolTag.putFloat(ATTACK_DAMAGE_KEY, attackDamage);
-        return attackDamage;
+        return baseDamage < 0F ? 0F : getMaterialAttackDamage(stack) + baseDamage;
     }
 
     default float getTotalAttackSpeed(ItemStack stack) {
-        CompoundTag toolTag = getToolTag(stack);
-        if (toolTag.contains(ATTACK_SPEED_KEY, Tag.TAG_FLOAT)) {
-            return toolTag.getFloat(ATTACK_SPEED_KEY);
-        }
-        float attackSpeed = getMaterialAttackSpeed(stack) + getToolStats().getAttackSpeed(stack);
-        toolTag.putFloat(ATTACK_SPEED_KEY, attackSpeed);
-        return attackSpeed;
+        return getMaterialAttackSpeed(stack) + getToolStats().getAttackSpeed(stack);
     }
 
     default int getTotalMaxDurability(ItemStack stack) {
-        CompoundTag toolTag = getToolTag(stack);
-        if (toolTag.contains(MAX_DURABILITY_KEY, Tag.TAG_INT)) {
-            return toolTag.getInt(MAX_DURABILITY_KEY);
-        }
-
         IGTToolDefinition toolStats = getToolStats();
         int maxDurability = getMaterialDurability(stack);
         int builderDurability = (int) (toolStats.getBaseDurability(stack) * toolStats.getDurabilityMultiplier(stack));
-
-        // If there is no durability set in the tool builder, multiply the builder AOE multiplier to the material
-        // durability
-        maxDurability = builderDurability == 0 ? (int) (maxDurability * toolStats.getDurabilityMultiplier(stack)) :
+        return builderDurability == 0 ? (int) (maxDurability * toolStats.getDurabilityMultiplier(stack)) :
                 maxDurability + builderDurability;
-
-        toolTag.putInt(MAX_DURABILITY_KEY, maxDurability);
-        return maxDurability;
     }
 
     default int getTotalEnchantability(ItemStack stack) {
-        CompoundTag toolTag = getToolTag(stack);
-        if (toolTag.contains(ENCHANTABILITY_KEY, Tag.TAG_INT)) {
-            return toolTag.getInt(ENCHANTABILITY_KEY);
-        }
-        int enchantability = getMaterialEnchantability(stack);
-        toolTag.putInt(ENCHANTABILITY_KEY, enchantability);
-        return enchantability;
+        return getMaterialEnchantability(stack);
     }
 
     default int getTotalHarvestLevel(ItemStack stack) {
-        CompoundTag toolTag = getToolTag(stack);
-        if (toolTag.contains(HARVEST_LEVEL_KEY, Tag.TAG_INT)) {
-            return toolTag.getInt(HARVEST_LEVEL_KEY);
-        }
-        int harvestLevel = getMaterialHarvestLevel(stack) + getToolStats().getBaseQuality(stack);
-        toolTag.putInt(HARVEST_LEVEL_KEY, harvestLevel);
-        return harvestLevel;
+        return getMaterialHarvestLevel(stack) + getToolStats().getBaseQuality(stack);
     }
 
     // Item.class methods
@@ -676,11 +609,10 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
         if (!aoeDefinition.isZero()) {
             addedBehaviorNewLine = tooltip.add(CommonComponents.EMPTY);
             tooltip.add(Component.translatable("item.gtceu.tool.behavior.aoe_mining",
-                    aoeDefinition.column * 2 + 1, aoeDefinition.row * 2 + 1, aoeDefinition.layer + 1));
+                    aoeDefinition.column() * 2 + 1, aoeDefinition.row() * 2 + 1, aoeDefinition.layer() + 1));
         }
 
-        CompoundTag behaviorsTag = getBehaviorsTag(stack);
-        if (behaviorsTag.getBoolean(RELOCATE_MINED_BLOCKS_KEY)) {
+        if (isMagnetic()) {
             if (!addedBehaviorNewLine) {
                 addedBehaviorNewLine = true;
                 tooltip.add(CommonComponents.EMPTY);
@@ -791,19 +723,10 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
     default void playCraftingSound(Player player, ItemStack stack) {
         // player null check for things like auto-crafters
         if (ConfigHolder.INSTANCE.client.toolCraftingSounds && getSound() != null && player != null) {
-            if (canPlaySound(stack)) {
-                setLastCraftingSoundTime(stack);
+            if (canPlaySound(player, getToolType())) {
                 playSound(player);
             }
         }
-    }
-
-    default void setLastCraftingSoundTime(ItemStack stack) {
-        getToolTag(stack).putInt(LAST_CRAFTING_USE_KEY, (int) System.currentTimeMillis());
-    }
-
-    default boolean canPlaySound(ItemStack stack) {
-        return Math.abs((int) System.currentTimeMillis() - getToolTag(stack).getInt(LAST_CRAFTING_USE_KEY)) > 1000;
     }
 
     default void playSound(Player player) {
@@ -888,5 +811,20 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
             }
             return -1;
         };
+    }
+
+    record PlaySound(UUID playerUUID, GTToolType toolType) {}
+
+    Map<PlaySound, Long> PLAYED_SOUNDS = new ConcurrentHashMap<>();
+
+    static boolean canPlaySound(Player player, GTToolType toolType) {
+        PlaySound key = new PlaySound(player.getUUID(), toolType);
+        long currentTime = System.currentTimeMillis();
+        Long lastTime = PLAYED_SOUNDS.get(key);
+        if (lastTime == null || Math.abs(currentTime - lastTime) > 1000) {
+            PLAYED_SOUNDS.put(key, currentTime);
+            return true;
+        }
+        return false;
     }
 }
