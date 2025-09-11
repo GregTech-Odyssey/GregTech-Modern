@@ -42,14 +42,16 @@ public class SteamItemBusPartMachine extends ItemBusPartMachine {
                 .widget(new ToggleButtonWidget(7 + xOffset, 18 + 18 * rowSize, 18, 18,
                         GuiTextures.BUTTON_ITEM_OUTPUT, this::isWorkingEnabled, this::setWorkingEnabled)
                         .setShouldUseBaseBackground() // TODO: Steamify background
-                        .setTooltipText(autoTooltipKey))
-                .widget(new ToggleButtonWidget(7 + 18 + 3 * xOffset, 18 + 18 * rowSize, 18, 18,
-                        GuiTextures.LOCK_WHITE.scale(0.9f), this::isInputLimit, this::setInputLimit)
-                        .setShouldUseBaseBackground()
-                        .setTooltipText(inputLimitTooltipKey))
-                .widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(),
-                        GuiTextures.SLOT_STEAM.get(ConfigHolder.INSTANCE.machines.steelSteamMultiblocks),
-                        7 + xOffset, 18 + 18 * rowSize + 24, true));
+                        .setTooltipText(autoTooltipKey));
+        if (this.io == IO.IN) {
+            modular.widget(new ToggleButtonWidget(7 + 18 + 3 * xOffset, 18 + 18 * rowSize, 18, 18,
+                    GuiTextures.LOCK_WHITE.scale(0.9f), this::isInputLimit, this::setInputLimit)
+                    .setShouldUseBaseBackground()
+                    .setTooltipText(inputLimitTooltipKey));
+        }
+        modular.widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(),
+                GuiTextures.SLOT_STEAM.get(ConfigHolder.INSTANCE.machines.steelSteamMultiblocks),
+                7 + xOffset, 18 + 18 * rowSize + 24, true));
 
         for (int y = 0; y < rowSize; y++) {
             for (int x = 0; x < rowSize; x++) {

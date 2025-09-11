@@ -85,7 +85,6 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
         var count = stack.getCount();
         if (count < 1) return ItemStack.EMPTY;
         if (!isItemValid(slot, stack)) return stack;
-        if (isInputLimited && limitedInsert(slot, stack)) return stack;
         ItemStack existing = this.stacks[slot];
         var stored = existing.getCount();
         int limit = getStackLimit(slot, stack) - stored;
@@ -109,7 +108,7 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
      * @return Remaining amount.
      **/
     public int insertItemFast(int slot, @NotNull ItemStack stack, int count, boolean simulate) {
-        if (!isItemValid(slot, stack)) return count;
+        if (!filter.test(stack)) return count;
         ItemStack existing = this.stacks[slot];
         var stored = existing.getCount();
         int limit = getStackLimit(slot, stack) - stored;
@@ -195,7 +194,7 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
 
     @Override
     public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-        return filter.test(stack);
+        return filter.test(stack) && !(isInputLimited && limitedInsert(slot, stack));
     }
 
     public void onContentsChanged(int slot) {

@@ -62,6 +62,10 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     protected RecipeHandlerList currentHandlerList;
     protected boolean contentChange = true;
 
+    @Persisted
+    @DescSynced
+    protected VoidingMode voidingMode = VoidingMode.VOID_NONE;
+
     public WorkableMultiblockMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder);
         this.recipeTypes = getDefinition().getRecipeTypes();
@@ -322,5 +326,15 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public boolean regressWhenWaiting() {
         return !getDefinition().isGenerator();
+    }
+
+    @Override
+    public void setVoidingMode(VoidingMode mode) {
+        this.voidingMode = mode;
+    }
+
+    @Override
+    public VoidingMode getVoidingMode() {
+        return this.voidingMode;
     }
 }

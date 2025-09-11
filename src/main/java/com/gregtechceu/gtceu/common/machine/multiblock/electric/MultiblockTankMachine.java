@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.fluids.PropertyFluidFilter;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
+import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
@@ -91,6 +92,7 @@ public class MultiblockTankMachine extends MultiblockControllerMachine implement
         group.addWidget(new LabelWidget(8, 8, "gtceu.gui.fluid_amount"));
         group.addWidget(new LabelWidget(8, 18, this::getFluidLabel).setTextColor(-1).setDropShadow(true));
         group.addWidget(new TankWidget(tank.getStorages()[0], 68, 23, true, true).setBackground(GuiTextures.FLUID_SLOT));
+        group.addWidget(new ToggleButtonWidget(6, 40, 18, 18, GuiTextures.BUTTON_VOID, () -> tank.isVoiding, b -> tank.isVoiding = b).setShouldUseBaseBackground().setTooltipText("gtceu.gui.fluid_voiding_partial.tooltip"));
         return group;
     }
 

@@ -48,9 +48,8 @@ import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
 import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
@@ -95,7 +94,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     private GTRecipeType[] recipeTypes;
     // getter for KJS
     private int tier;
-    private Object2IntMap<RecipeCapability<?>> recipeOutputLimits = new Object2IntOpenHashMap<>();
+    private Reference2IntOpenHashMap<RecipeCapability<?>> recipeOutputLimits = new Reference2IntOpenHashMap<>();
     private int paintingColor = Long.decode(ConfigHolder.INSTANCE.client.defaultPaintingColor).intValue();
     private BiFunction<ItemStack, Integer, Integer> itemColor = ((itemStack, tintIndex) -> tintIndex == 2 ? GTValues.VC[tier] : tintIndex == 1 ? paintingColor : -1);
     private PartAbility[] abilities = new PartAbility[0];
@@ -479,7 +478,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     /**
      * @return {@code this}.
      */
-    public MachineBuilder<DEFINITION> recipeOutputLimits(final Object2IntMap<RecipeCapability<?>> recipeOutputLimits) {
+    public MachineBuilder<DEFINITION> recipeOutputLimits(final Reference2IntOpenHashMap<RecipeCapability<?>> recipeOutputLimits) {
         this.recipeOutputLimits = recipeOutputLimits;
         return this;
     }

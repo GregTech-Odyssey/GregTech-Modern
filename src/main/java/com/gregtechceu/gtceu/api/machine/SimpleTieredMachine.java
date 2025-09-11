@@ -17,6 +17,7 @@ import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputBoth;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.machine.trait.CircuitHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
@@ -102,6 +103,10 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     protected ISubscription exportFluidSubs;
     @Nullable
     protected ISubscription energySubs;
+
+    @Persisted
+    @DescSynced
+    protected VoidingMode voidingMode = VoidingMode.VOID_NONE;
 
     public SimpleTieredMachine(MetaMachineBlockEntity holder, int tier, Int2IntFunction tankScalingFunction, Object... args) {
         super(holder, tier, tankScalingFunction, args);
@@ -300,6 +305,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     //////////////////////////////////////
     @Override
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
+        IVoidable.attachConfigurators(configuratorPanel, this);
         IFancyUIMachine.super.attachConfigurators(configuratorPanel);
         configuratorPanel.attachConfigurators(new CircuitFancyConfigurator(circuitInventory.storage));
     }
@@ -422,5 +428,15 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
 
     public NotifiableItemStackHandler getCircuitInventory() {
         return this.circuitInventory;
+    }
+
+    @Override
+    public void setVoidingMode(VoidingMode mode) {
+        this.voidingMode = mode;
+    }
+
+    @Override
+    public VoidingMode getVoidingMode() {
+        return this.voidingMode;
     }
 }

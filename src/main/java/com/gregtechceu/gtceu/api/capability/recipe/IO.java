@@ -5,6 +5,8 @@ import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * The capability can be input or output or both
  */
@@ -12,8 +14,20 @@ public enum IO implements EnumSelectorWidget.SelectableEnum {
 
     IN("gtceu.io.import", "import"),
     OUT("gtceu.io.export", "export"),
-    BOTH("gtceu.io.both", "both"),
-    NONE("gtceu.io.none", "none");
+    BOTH("gtceu.io.both", "both") {
+
+        @Override
+        public boolean support(IO io) {
+            return true;
+        }
+    },
+    NONE("gtceu.io.none", "none") {
+
+        @Override
+        public boolean support(IO io) {
+            return false;
+        }
+    };
 
     public final String tooltip;
     public final IGuiTexture icon;
@@ -24,16 +38,14 @@ public enum IO implements EnumSelectorWidget.SelectableEnum {
     }
 
     public boolean support(IO io) {
-        if (io == this) return true;
-        if (io == NONE) return false;
-        return this == BOTH;
+        return this == io;
     }
 
-    public String getTooltip() {
+    public @NotNull String getTooltip() {
         return this.tooltip;
     }
 
-    public IGuiTexture getIcon() {
+    public @NotNull IGuiTexture getIcon() {
         return this.icon;
     }
 }

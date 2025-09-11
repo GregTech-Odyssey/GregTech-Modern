@@ -10,10 +10,7 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.*;
-import com.gregtechceu.gtceu.api.machine.feature.IComputationContainerMachine;
-import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
-import com.gregtechceu.gtceu.api.machine.feature.IOverclockMachine;
-import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
+import com.gregtechceu.gtceu.api.machine.feature.*;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.misc.ComputationProviderList;
@@ -144,6 +141,7 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
 
     @Override
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
+        IVoidable.attachConfigurators(configuratorPanel, this);
         configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(GuiTextures.BUTTON_BATCH.getSubTexture(0, 0, 1, 0.5), GuiTextures.BUTTON_BATCH.getSubTexture(0, 0.5, 1, 0.5), this::isBatchEnabled, (cd, p) -> batchEnabled = p).setTooltipsSupplier(p -> List.of(Component.translatable("gtceu.machine.batch_" + (p ? "enabled" : "disabled")))));
         IFancyUIMachine.super.attachConfigurators(configuratorPanel);
     }

@@ -41,6 +41,8 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     @Persisted
     @DescSynced
     protected final CustomFluidTank lockedFluid = new CustomFluidTank(FluidType.BUCKET_VOLUME);
+    @Persisted
+    public boolean isVoiding;
     protected Predicate<FluidStack> filter = GTUtil.FAVORABLE;
 
     protected Object2LongOpenHashMap<FluidStack> fluidMap;
@@ -340,7 +342,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
         } else {
             copied.shrink(existingStorage.fill(copied.copy(), action));
         }
-        return resource.getAmount() - copied.getAmount();
+        return resource.getAmount() - (isVoiding ? 0 : copied.getAmount());
     }
 
     @NotNull

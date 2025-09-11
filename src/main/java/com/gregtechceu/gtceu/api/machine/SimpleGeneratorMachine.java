@@ -108,7 +108,7 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine implements IFa
 
     @Override
     public boolean canVoidRecipeOutputs(RecipeCapability<?> capability) {
-        return capability != EURecipeCapability.CAP;
+        return true;
     }
 
     //////////////////////////////////////

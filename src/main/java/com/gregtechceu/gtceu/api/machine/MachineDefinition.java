@@ -25,8 +25,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,7 +74,7 @@ public class MachineDefinition implements Supplier<IMachineBlock> {
     private boolean allowCoverOnFront;
     @Nullable
     private EditableMachineUI editableUI;
-    private Object2IntMap<RecipeCapability<?>> recipeOutputLimits = new Object2IntOpenHashMap<>();
+    private Reference2IntOpenHashMap<RecipeCapability<?>> recipeOutputLimits;
 
     protected MachineDefinition(ResourceLocation id) {
         this.id = id;
@@ -355,11 +354,11 @@ public class MachineDefinition implements Supplier<IMachineBlock> {
         this.editableUI = editableUI;
     }
 
-    public Object2IntMap<RecipeCapability<?>> getRecipeOutputLimits() {
+    public Reference2IntOpenHashMap<RecipeCapability<?>> getRecipeOutputLimits() {
         return this.recipeOutputLimits;
     }
 
-    public void setRecipeOutputLimits(final Object2IntMap<RecipeCapability<?>> recipeOutputLimits) {
+    public void setRecipeOutputLimits(final Reference2IntOpenHashMap<RecipeCapability<?>> recipeOutputLimits) {
         this.recipeOutputLimits = recipeOutputLimits;
     }
 }
