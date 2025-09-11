@@ -192,14 +192,9 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
                 var newState = blockState.setValue(ActiveBlock.ACTIVE, active);
                 if (newState != blockState) {
                     getLevel().setBlock(blockPos, newState, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
-                } else break;
+                }
             }
         }
-    }
-
-    @Override
-    public boolean keepSubscribing() {
-        return false;
     }
 
     @Override
