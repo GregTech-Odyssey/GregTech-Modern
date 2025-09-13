@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.SharedConstants;
@@ -17,7 +18,6 @@ import net.minecraft.server.packs.resources.IoSupplier;
 
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
@@ -41,13 +41,13 @@ import static com.gregtechceu.gtceu.data.pack.GTDynamicDataPack.writeJson;
 @ParametersAreNonnullByDefault
 public class GTDynamicResourcePack implements PackResources {
 
-    protected static final ObjectSet<String> CLIENT_DOMAINS = new ObjectOpenHashSet<>();
+    protected static final ObjectSet<String> CLIENT_DOMAINS = new OpenCacheHashSet<>();
     protected static final GTDynamicPackContents CONTENTS = new GTDynamicPackContents();
 
     private final String name;
 
     static {
-        CLIENT_DOMAINS.addAll(Sets.newHashSet(GTCEu.MOD_ID, "minecraft", "forge", "c"));
+        CLIENT_DOMAINS.addAll(Sets.newHashSet(GTCEu.MOD_ID, "minecraft", "forge"));
     }
 
     public GTDynamicResourcePack(String name) {

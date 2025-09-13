@@ -14,6 +14,8 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
@@ -39,7 +41,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
@@ -52,8 +53,8 @@ public abstract class ProspectorMode<T> {
 
     public static ProspectorMode<String> ORE = new ProspectorMode<>("metaitem.prospector.mode.ores", 16) {
 
-        private final Map<BlockState, String> BLOCK_CACHE = new Object2ObjectOpenHashMap<>();
-        private final Map<String, IGuiTexture> ICON_CACHE = new Object2ObjectOpenHashMap<>();
+        private final Map<BlockState, String> BLOCK_CACHE = new O2OOpenCacheHashMap<>();
+        private final Map<String, IGuiTexture> ICON_CACHE = new O2OOpenCacheHashMap<>();
 
         @Override
         public void scan(String[][][] storage, LevelChunk chunk) {
@@ -143,7 +144,7 @@ public abstract class ProspectorMode<T> {
 
         @Override
         public void appendTooltips(List<String[]> items, List<Component> tooltips, String selected) {
-            Object2IntOpenHashMap<String> counter = new Object2IntOpenHashMap<>();
+            Object2IntOpenHashMap<String> counter = new O2IOpenCacheHashMap<>();
             for (var array : items) {
                 for (String item : array) {
                     if (ProspectingTexture.SELECTED_ALL.equals(selected) || selected.equals(getUniqueID(item))) {

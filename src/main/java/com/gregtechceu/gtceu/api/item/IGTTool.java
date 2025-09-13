@@ -23,6 +23,8 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -128,7 +130,7 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
         }
 
         // Set tool and material enchantments
-        Object2IntMap<Enchantment> enchantments = new Object2IntOpenHashMap<>(toolProperty.getEnchantments());
+        Object2IntMap<Enchantment> enchantments = new O2IOpenCacheHashMap<>(toolProperty.getEnchantments());
         enchantments.putAll(toolStats.getDefaultEnchantments(stack));
         for (var entry : Object2IntMaps.fastIterable(enchantments)) {
             var enchantment = entry.getKey();
@@ -410,8 +412,8 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
             CompoundTag newTag = newStack.getTag();
             CompoundTag oldTag = oldStack.getTag();
             if (newTag != null && oldTag != null) {
-                Set<String> newKeys = new ObjectOpenHashSet<>(newTag.getAllKeys());
-                Set<String> oldKeys = new ObjectOpenHashSet<>(oldTag.getAllKeys());
+                Set<String> newKeys = new OpenCacheHashSet<>(newTag.getAllKeys());
+                Set<String> oldKeys = new OpenCacheHashSet<>(oldTag.getAllKeys());
                 newKeys.remove(ItemStack.TAG_DAMAGE);
                 oldKeys.remove(ItemStack.TAG_DAMAGE);
                 newKeys.remove(CHARGE_KEY);

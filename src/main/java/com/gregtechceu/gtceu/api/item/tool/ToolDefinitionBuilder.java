@@ -42,7 +42,7 @@ public class ToolDefinitionBuilder {
     private boolean sneakBypassUse = false;
     private Supplier<ItemStack> brokenStack = () -> ItemStack.EMPTY;
     private AoESymmetrical aoe = AoESymmetrical.ZERO;
-    private final Set<Block> effectiveBlocks = new ObjectOpenHashSet<>();
+    private final Set<Block> effectiveBlocks = new ReferenceOpenHashSet<>();
     private Predicate<BlockState> effectiveStates;
     private final Object2IntMap<Enchantment> defaultEnchantments = new Object2IntArrayMap<>();
 

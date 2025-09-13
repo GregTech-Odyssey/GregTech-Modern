@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.pipenet;
 
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.PosUtils;
+import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
 
 import com.lowdragmc.lowdraglib.syncdata.ITagSerializable;
 
@@ -18,7 +19,6 @@ import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -335,7 +335,7 @@ public abstract class PipeNet<NodeDataType> implements ITagSerializable<Compound
         CompoundTag compound = new CompoundTag();
         ListTag allNodesList = new ListTag();
         ListTag wirePropertiesList = new ListTag();
-        Object2IntMap<NodeDataType> alreadyWritten = new Object2IntOpenHashMap<>();
+        Object2IntMap<NodeDataType> alreadyWritten = new O2IOpenCacheHashMap<>();
         int currentIndex = 0;
 
         for (var entry : allNodes.long2ObjectEntrySet()) {

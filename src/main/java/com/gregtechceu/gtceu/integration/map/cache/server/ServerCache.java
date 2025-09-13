@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.common.network.packets.prospecting.SPacketProspectO
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.integration.map.cache.DimensionCache;
 import com.gregtechceu.gtceu.integration.map.cache.WorldCache;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
@@ -17,7 +18,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.util.List;
@@ -27,7 +27,7 @@ public class ServerCache extends WorldCache {
 
     public static final ServerCache instance = new ServerCache();
 
-    private final Map<ResourceKey<Level>, ServerCacheSavedData> saveData = new Object2ObjectOpenHashMap<>();
+    private final Map<ResourceKey<Level>, ServerCacheSavedData> saveData = new O2OOpenCacheHashMap<>();
 
     public void maybeInitWorld(ServerLevel world) {
         ResourceKey<Level> dim = world.dimension();

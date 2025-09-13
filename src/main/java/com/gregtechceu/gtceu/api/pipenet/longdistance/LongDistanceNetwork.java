@@ -1,6 +1,8 @@
 package com.gregtechceu.gtceu.api.pipenet.longdistance;
 
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -26,7 +28,7 @@ import java.util.List;
 public class LongDistanceNetwork {
 
     // all pipes and endpoints in this net
-    private final ObjectOpenHashSet<BlockPos> longDistancePipeBlocks = new ObjectOpenHashSet<>();
+    private final OpenCacheHashSet<BlockPos> longDistancePipeBlocks = new OpenCacheHashSet<>();
     private final LongDistancePipeType pipeType;
     private final WorldData world;
     // stores all connected endpoints, but only the first two are being used
@@ -293,7 +295,7 @@ public class LongDistanceNetwork {
         // A chunk pos to block pos to network map map
         private final Long2ObjectMap<Object2ObjectMap<BlockPos, LongDistanceNetwork>> networks = new Long2ObjectOpenHashMap<>();
         // All existing networks in this world
-        private final ObjectOpenHashSet<LongDistanceNetwork> networkList = new ObjectOpenHashSet<>();
+        private final OpenCacheHashSet<LongDistanceNetwork> networkList = new OpenCacheHashSet<>();
         private WeakReference<ServerLevel> worldRef = new WeakReference<>(null);
 
         public WorldData() {
@@ -343,7 +345,7 @@ public class LongDistanceNetwork {
             long chunkPos = getChunkPos(pos);
             Object2ObjectMap<BlockPos, LongDistanceNetwork> chunkNetworks = this.networks.get(chunkPos);
             if (chunkNetworks == null) {
-                chunkNetworks = new Object2ObjectOpenHashMap<>();
+                chunkNetworks = new O2OOpenCacheHashMap<>();
                 this.networks.put(chunkPos, chunkNetworks);
             }
             chunkNetworks.put(pos, network);

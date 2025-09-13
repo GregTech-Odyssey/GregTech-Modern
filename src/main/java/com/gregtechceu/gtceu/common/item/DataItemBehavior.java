@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IDataStickInteractable;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 import com.gregtechceu.gtceu.utils.ResearchManager;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.Tag;
@@ -19,7 +20,6 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -59,7 +59,7 @@ public class DataItemBehavior implements IInteractionItem, IAddInformation, IDat
             Collection<GTRecipe> recipes = researchData.recipeType().getDataStickEntry(researchData.researchId());
             if (recipes != null && !recipes.isEmpty()) {
                 tooltipComponents.add(Component.translatable("behavior.data_item.assemblyline.title"));
-                Collection<ItemStack> added = new ObjectOpenHashSet<>();
+                Collection<ItemStack> added = new OpenCacheHashSet<>();
                 outer:
                 for (GTRecipe recipe : recipes) {
                     ItemStack output = ItemRecipeCapability.CAP

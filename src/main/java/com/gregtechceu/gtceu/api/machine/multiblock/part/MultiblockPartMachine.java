@@ -21,8 +21,8 @@ import net.minecraft.server.level.ServerLevel;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
@@ -141,7 +141,7 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
         super.onUnload();
         if (getLevel() instanceof ServerLevel serverLevel) {
             // Need to copy if > 1 so that we can call removedFromController safely without CME
-            Set<IMultiController> toIter = controllers.size() > 1 ? new ObjectOpenHashSet<>(controllers) : controllers;
+            Set<IMultiController> toIter = controllers.size() > 1 ? new ReferenceOpenHashSet<>(controllers) : controllers;
             for (IMultiController controller : toIter) {
                 if (serverLevel.isLoaded(controller.self().getPos())) {
                     removedFromController(controller);

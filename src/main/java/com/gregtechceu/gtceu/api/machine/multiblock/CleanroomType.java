@@ -1,7 +1,8 @@
 package com.gregtechceu.gtceu.api.machine.multiblock;
 
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
+
 import com.mojang.serialization.Codec;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,7 +12,7 @@ import java.util.Set;
 
 public class CleanroomType {
 
-    private static final Map<String, CleanroomType> CLEANROOM_TYPES = new Object2ObjectOpenHashMap<>();
+    private static final Map<String, CleanroomType> CLEANROOM_TYPES = new O2OOpenCacheHashMap<>();
 
     public static final CleanroomType CLEANROOM = new CleanroomType("cleanroom", "gtceu.recipe.cleanroom.display_name");
     public static final CleanroomType STERILE_CLEANROOM = new CleanroomType("sterile_cleanroom",

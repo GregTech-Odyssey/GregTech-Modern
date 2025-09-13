@@ -20,7 +20,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidType;
 
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -30,7 +30,7 @@ public class SteamLiquidBoilerMachine extends SteamBoilerMachine {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
             SteamLiquidBoilerMachine.class, SteamBoilerMachine.MANAGED_FIELD_HOLDER);
-    public static final ObjectOpenHashSet<Fluid> FUEL_CACHE = new ObjectOpenHashSet<>();
+    public static final ReferenceOpenHashSet<Fluid> FUEL_CACHE = new ReferenceOpenHashSet<>();
 
     @Persisted
     public final NotifiableFluidTank fuelTank;

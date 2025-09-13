@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid;
 import com.gregtechceu.gtceu.api.data.worldgen.BiomeWeightModifier;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.utils.RegistryUtil;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
@@ -13,8 +14,6 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.material.Fluid;
-
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -140,7 +139,7 @@ public class BedrockFluidDefinition {
         }
 
         public Builder dimensions(String... dimensions) {
-            return this.dimensions(new ObjectOpenHashSet<>(RegistryUtil.resolveResourceKeys(Registries.DIMENSION, dimensions)));
+            return this.dimensions(new OpenCacheHashSet<>(RegistryUtil.resolveResourceKeys(Registries.DIMENSION, dimensions)));
         }
 
         public BedrockFluidDefinition register() {

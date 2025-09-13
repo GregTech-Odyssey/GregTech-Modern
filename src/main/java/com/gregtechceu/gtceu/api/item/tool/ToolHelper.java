@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
@@ -55,7 +56,6 @@ import it.unimi.dsi.fastutil.chars.Char2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.chars.CharSet;
 import it.unimi.dsi.fastutil.chars.CharSets;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
@@ -68,7 +68,7 @@ import java.util.function.Supplier;
 
 public class ToolHelper {
 
-    public static final Map<TagKey<Item>, ItemStack> HAMMER_DROP = new Object2ObjectOpenHashMap<>();
+    public static final Map<TagKey<Item>, ItemStack> HAMMER_DROP = new O2OOpenCacheHashMap<>();
 
     public static final String TOOL_TAG_KEY = "GT.Tool";
     public static final String BEHAVIOURS_TAG_KEY = "GT.Behaviours";

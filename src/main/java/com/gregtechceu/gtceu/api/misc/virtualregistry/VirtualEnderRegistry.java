@@ -1,12 +1,12 @@
 package com.gregtechceu.gtceu.api.misc.virtualregistry;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,7 +21,7 @@ public class VirtualEnderRegistry extends SavedData {
     private static final String PUBLIC_KEY = "Public";
     private static final String PRIVATE_KEY = "Private";
     private static volatile VirtualEnderRegistry data;
-    private final Map<UUID, VirtualRegistryMap> VIRTUAL_REGISTRIES = new Object2ObjectOpenHashMap<>();
+    private final Map<UUID, VirtualRegistryMap> VIRTUAL_REGISTRIES = new O2OOpenCacheHashMap<>();
 
     public VirtualEnderRegistry() {}
 

@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
+import com.gregtechceu.gtceu.utils.collection.O2LOpenCustomCacheHashMap;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -60,7 +61,7 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     @Override
     public @Nullable Object2LongOpenCustomHashMap<ItemStack> getItemMap() {
         if (itemMap == null) {
-            itemMap = new Object2LongOpenCustomHashMap<>(ItemStackHashStrategy.ITEM);
+            itemMap = new O2LOpenCustomCacheHashMap<>(ItemStackHashStrategy.ITEM);
         }
         if (changed) {
             changed = false;

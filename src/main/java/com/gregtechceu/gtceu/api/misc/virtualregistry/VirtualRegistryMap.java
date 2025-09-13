@@ -1,10 +1,11 @@
 package com.gregtechceu.gtceu.api.misc.virtualregistry;
 
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
+
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.util.INBTSerializable;
 
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +52,7 @@ public class VirtualRegistryMap implements INBTSerializable<CompoundTag> {
     }
 
     public Set<String> getEntryNames(EntryTypes<?> type) {
-        return new ObjectOpenHashSet<>(registryMap.getOrDefault(type, Collections.emptyMap()).keySet());
+        return new OpenCacheHashSet<>(registryMap.getOrDefault(type, Collections.emptyMap()).keySet());
     }
 
     @Override

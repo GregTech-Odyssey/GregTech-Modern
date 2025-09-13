@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 import com.gregtechceu.gtceu.api.recipe.content.IContentSerializer;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
+import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
@@ -19,7 +20,6 @@ import net.minecraft.network.chat.MutableComponent;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -197,7 +197,7 @@ public abstract class RecipeCapability<T> {
      * @return a map of this capability's content type -> integer
      */
     public Object2IntMap<T> makeChanceCache() {
-        return new Object2IntOpenHashMap<>();
+        return new O2IOpenCacheHashMap<>();
     }
 
     public boolean isTickSlot(int index, IO io, GTRecipe recipe) {

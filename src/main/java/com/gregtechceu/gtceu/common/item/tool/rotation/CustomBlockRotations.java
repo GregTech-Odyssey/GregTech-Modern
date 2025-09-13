@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.common.item.tool.rotation;
 
 import com.gregtechceu.gtceu.api.capability.ICoverable;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -9,14 +10,13 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Map;
 
 public class CustomBlockRotations {
 
-    private static final Map<Block, ICustomRotationBehavior> CUSTOM_BEHAVIOR_MAP = new Object2ObjectOpenHashMap<>();
+    private static final Map<Block, ICustomRotationBehavior> CUSTOM_BEHAVIOR_MAP = new O2OOpenCacheHashMap<>();
 
     @ApiStatus.Internal
     public static void init() {

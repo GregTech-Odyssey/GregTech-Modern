@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.ITagPrefixItem;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -22,7 +23,6 @@ import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.util.entry.ItemEntry;
 import com.tterrag.registrate.util.entry.ItemProviderEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 
 import java.util.Map;
@@ -40,7 +40,7 @@ public class GTMaterialItems {
             .builder();
 
     // Reference Maps
-    public static final Map<MaterialEntry, Supplier<? extends ItemLike>> toUnify = new Object2ObjectOpenHashMap<>();
+    public static final Map<MaterialEntry, Supplier<? extends ItemLike>> toUnify = new O2OOpenCacheHashMap<>();
     public static final Map<TagPrefix, TagPrefix> purifyMap = new Reference2ReferenceOpenHashMap<>();
 
     static {

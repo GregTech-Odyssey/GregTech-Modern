@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.utils.FacingPos;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.LazyOptionalUtil;
+import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -26,7 +27,6 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.EmptyHandler;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,7 +37,7 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
 
     protected WeakReference<ItemPipeNet> currentItemPipeNet = new WeakReference<>(null);
     private final EnumMap<Direction, ItemNetHandler> handlers = new EnumMap<>(Direction.class);
-    private final Object2IntMap<FacingPos> transferred = new Object2IntOpenHashMap<>();
+    private final Object2IntMap<FacingPos> transferred = new O2IOpenCacheHashMap<>();
     private ItemNetHandler defaultHandler;
     private int transferredItems = 0;
     private long timer = 0;

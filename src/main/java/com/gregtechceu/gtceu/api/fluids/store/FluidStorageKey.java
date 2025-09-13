@@ -3,12 +3,12 @@ package com.gregtechceu.gtceu.api.fluids.store;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconType;
 import com.gregtechceu.gtceu.api.fluids.FluidState;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.material.Fluid;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,7 +18,7 @@ import java.util.function.Function;
 
 public final class FluidStorageKey {
 
-    private static final Map<ResourceLocation, FluidStorageKey> keys = new Object2ObjectOpenHashMap<>();
+    private static final Map<ResourceLocation, FluidStorageKey> keys = new O2OOpenCacheHashMap<>();
     private final ResourceLocation resourceLocation;
     private final TagKey<Fluid> extraTag;
     private final MaterialIconType iconType;

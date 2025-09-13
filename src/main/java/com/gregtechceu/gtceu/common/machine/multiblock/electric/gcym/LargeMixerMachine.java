@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric.gcym;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
@@ -11,8 +12,6 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 import java.util.Set;
 
@@ -25,7 +24,7 @@ public class LargeMixerMachine extends WorkableElectricMultiblockMachine {
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(LargeMixerMachine.class, WorkableElectricMultiblockMachine.MANAGED_FIELD_HOLDER);
     @DescSynced
     @RequireRerender
-    private final Set<BlockPos> fluidBlockOffsets = new ObjectOpenHashSet<>();
+    private final Set<BlockPos> fluidBlockOffsets = new OpenCacheHashSet<>();
 
     public LargeMixerMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder, args);

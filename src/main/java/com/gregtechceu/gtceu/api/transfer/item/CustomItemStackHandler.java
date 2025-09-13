@@ -180,7 +180,7 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
 
     @Override
     public void deserializeNBT(CompoundTag nbt) {
-        setSize(nbt.contains("Size", Tag.TAG_INT) ? nbt.getInt("Size") : size);
+        setSize(Math.max(size, nbt.getInt("Size")));
         ListTag tagList = nbt.getList("Items", Tag.TAG_COMPOUND);
         for (int i = 0; i < tagList.size(); i++) {
             CompoundTag itemTags = tagList.getCompound(i);

@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.capability;
 import com.gregtechceu.gtceu.api.capability.IMedicalConditionTracker;
 import com.gregtechceu.gtceu.api.data.medicalcondition.MedicalCondition;
 import com.gregtechceu.gtceu.api.data.medicalcondition.Symptom;
+import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -24,7 +25,7 @@ public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSe
     private final Reference2FloatMap<MedicalCondition> medicalConditions = new Reference2FloatOpenHashMap<>();
     private final Set<MedicalCondition> permanentConditions = new ReferenceOpenHashSet<>();
     private final Reference2IntMap<Symptom.ConfiguredSymptom> activeSymptoms = new Reference2IntOpenHashMap<>();
-    private final Object2IntMap<MobEffect> activeMobEffects = new Object2IntOpenHashMap<>();
+    private final Object2IntMap<MobEffect> activeMobEffects = new O2IOpenCacheHashMap<>();
     private final Set<MedicalCondition> flaggedForRemoval = new ReferenceOpenHashSet<>();
     private int maxAirSupply = -1;
     private final Player player;

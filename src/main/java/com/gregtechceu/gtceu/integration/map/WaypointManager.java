@@ -5,13 +5,13 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.integration.map.xaeros.XaeroWaypointHandler;
 import com.gregtechceu.gtceu.utils.GTMath;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
@@ -31,7 +31,7 @@ public class WaypointManager {
     }
 
     private static final Set<IWaypointHandler> handlers = new ReferenceOpenHashSet<>();
-    private static final Object2ObjectMap<String, WaypointKey> waypoints = new Object2ObjectArrayMap<>();
+    private static final Object2ObjectMap<String, WaypointKey> waypoints = new O2OOpenCacheHashMap<>();
 
     public static void updateDimension(LevelAccessor dim) {
         if (dim instanceof ClientLevel level) {

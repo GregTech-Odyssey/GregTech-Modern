@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.data.damagesource.DamageTypeData;
 import com.gregtechceu.gtceu.common.capability.MedicalConditionTracker;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 import com.gregtechceu.gtceu.data.recipe.misc.AirScrubberRecipes;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageScaling;
@@ -11,7 +12,6 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.level.Level;
 
 import com.mojang.serialization.Codec;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 
 public class MedicalCondition {
 
-    public static final Map<String, MedicalCondition> CONDITIONS = new Object2ObjectOpenHashMap<>();
+    public static final Map<String, MedicalCondition> CONDITIONS = new O2OOpenCacheHashMap<>();
     public static final Codec<MedicalCondition> CODEC = Codec.STRING.xmap(MedicalCondition.CONDITIONS::get, MedicalCondition::getName);
     public final String name;
     public final int color;

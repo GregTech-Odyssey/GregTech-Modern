@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.data.worldgen.WorldGeneratorUtils;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTMath;
+import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -20,7 +21,6 @@ import net.minecraft.world.level.saveddata.SavedData;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -36,7 +36,7 @@ public class BedrockOreVeinSavedData extends SavedData {
     public final Long2ObjectOpenHashMap<OreVeinWorldEntry> veinOres = new Long2ObjectOpenHashMap<>();
 
     // runtime
-    private final Object2IntMap<Holder<Biome>> biomeWeights = new Object2IntOpenHashMap<>();
+    private final Object2IntMap<Holder<Biome>> biomeWeights = new O2IOpenCacheHashMap<>();
 
     private final ServerLevel serverLevel;
 

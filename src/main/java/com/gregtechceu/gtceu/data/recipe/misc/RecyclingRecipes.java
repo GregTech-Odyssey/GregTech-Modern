@@ -14,6 +14,8 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTRecipeCategories;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
+import com.gregtechceu.gtceu.utils.collection.O2LOpenCacheHashMap;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -23,7 +25,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -430,7 +431,7 @@ public class RecyclingRecipes {
      */
     private static List<MaterialStack> combineStacks(List<MaterialStack> rawList) {
         // Combine any stacks in the List that have the same Item.
-        Object2LongOpenHashMap<Material> materialStacksExploded = new Object2LongOpenHashMap<>();
+        Object2LongOpenHashMap<Material> materialStacksExploded = new O2LOpenCacheHashMap<>();
         for (MaterialStack ms : rawList) {
             materialStacksExploded.addTo(ms.material(), ms.amount());
         }
@@ -484,7 +485,7 @@ public class RecyclingRecipes {
         // cut the nuggets out to favor the newer item instead of having 2 slots occupied by Steel.
         //
         // There is probably a better way to do this.
-        Map<MaterialStack, ItemStack> temp = new Object2ObjectOpenHashMap<>();
+        Map<MaterialStack, ItemStack> temp = new O2OOpenCacheHashMap<>();
         for (Tuple<ItemStack, MaterialStack> t : outputs) {
             boolean isInMap = false;
             for (MaterialStack ms : temp.keySet()) {

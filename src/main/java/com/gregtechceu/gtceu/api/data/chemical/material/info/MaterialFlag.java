@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import java.util.Arrays;
@@ -48,8 +47,8 @@ public class MaterialFlag {
 
         final String name;
 
-        final Set<MaterialFlag> requiredFlags = new ObjectOpenHashSet<>();
-        final Set<PropertyKey<?>> requiredProperties = new ObjectOpenHashSet<>();
+        final Set<MaterialFlag> requiredFlags = new ReferenceOpenHashSet<>();
+        final Set<PropertyKey<?>> requiredProperties = new ReferenceOpenHashSet<>();
 
         public Builder(String name) {
             this.name = name;

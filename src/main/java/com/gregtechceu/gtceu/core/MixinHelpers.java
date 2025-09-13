@@ -17,6 +17,7 @@ import com.gregtechceu.gtceu.api.registry.registrate.forge.GTClientFluidTypeExte
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -32,7 +33,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 
@@ -60,7 +60,7 @@ public class MixinHelpers {
     }
 
     public static void registryGTDynamicTags() {
-        var itemTags = DYNAMIC_TAG_CACHE.computeIfAbsent(BuiltInRegistries.ITEM, path -> new Object2ObjectOpenHashMap<>());
+        var itemTags = DYNAMIC_TAG_CACHE.computeIfAbsent(BuiltInRegistries.ITEM, path -> new O2OOpenCacheHashMap<>());
         ItemMaterialData.MATERIAL_ENTRY_ITEM_MAP.forEach((entry, itemLikes) -> {
             if (itemLikes.isEmpty()) return;
             var material = entry.material();
@@ -110,7 +110,7 @@ public class MixinHelpers {
                 itemTags.computeIfAbsent(p2pFluidAttunements, path -> new ObjectArrayList<>()).add(entry);
             }
         }
-        var blockTags = DYNAMIC_TAG_CACHE.computeIfAbsent(BuiltInRegistries.BLOCK, path -> new Object2ObjectOpenHashMap<>());
+        var blockTags = DYNAMIC_TAG_CACHE.computeIfAbsent(BuiltInRegistries.BLOCK, path -> new O2OOpenCacheHashMap<>());
         ItemMaterialData.MATERIAL_ENTRY_BLOCK_MAP.forEach((entry, blocks) -> {
             if (blocks.isEmpty()) return;
             var material = entry.material();
@@ -149,7 +149,7 @@ public class MixinHelpers {
             tagList.add(makeTagEntry(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WRENCH));
             tagList.add(makeTagEntry(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WIRE_CUTTER));
         }
-        var fluidTags = DYNAMIC_TAG_CACHE.computeIfAbsent(BuiltInRegistries.FLUID, path -> new Object2ObjectOpenHashMap<>());
+        var fluidTags = DYNAMIC_TAG_CACHE.computeIfAbsent(BuiltInRegistries.FLUID, path -> new O2OOpenCacheHashMap<>());
         for (Material material : GTCEuAPI.materialManager.getRegisteredMaterials()) {
             FluidProperty property = material.getProperty(PropertyKey.FLUID);
             if (property == null) continue;

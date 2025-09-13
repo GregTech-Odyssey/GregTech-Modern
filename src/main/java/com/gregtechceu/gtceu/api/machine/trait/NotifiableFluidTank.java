@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
 import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.collection.O2LOpenCacheHashMap;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
@@ -208,7 +209,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     @Override
     public @Nullable Object2LongOpenHashMap<FluidStack> getFluidMap() {
         if (fluidMap == null) {
-            fluidMap = new Object2LongOpenHashMap<>();
+            fluidMap = new O2LOpenCacheHashMap<>();
         }
         if (changed) {
             changed = false;
