@@ -197,11 +197,6 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
         }
     }
 
-    @Override
-    public boolean keepSubscribing() {
-        return false;
-    }
-
     @NotNull
     public GTRecipeType getRecipeType() {
         return recipeTypes[activeRecipeType];

@@ -71,7 +71,7 @@ public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IWorkable,
      * again.
      */
     default boolean keepSubscribing() {
-        return true;
+        return false;
     }
 
     /**
