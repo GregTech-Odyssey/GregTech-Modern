@@ -54,9 +54,9 @@ public interface IMaterialPartItem extends IDurabilityBar, IAddInformation, ICus
         if (this instanceof CoatedTurbineRotorBehaviour ct) {
             var coatMaxDmg = ct.getCoatMaxDamage(stack);
             var coatDmg = ct.getCoatDamage(stack);
-            c.withStyle(ChatFormatting.WHITE).append(" + (").withStyle(ChatFormatting.GREEN)
+            c.append(Component.empty().append(" + (").withStyle(ChatFormatting.GREEN)
                     .append(Component.translatable("metaitem.tool.tooltip.rotor.coating_durability", coatMaxDmg - coatDmg, coatMaxDmg)).withStyle(ChatFormatting.GREEN)
-                    .append(")").withStyle(ChatFormatting.GREEN);
+                    .append(")").withStyle(ChatFormatting.GREEN));
         }
         tooltipComponents
                 .add(c);

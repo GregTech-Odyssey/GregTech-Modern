@@ -30,6 +30,9 @@ public record AoESymmetrical(int column, int row, int layer) {
     }
 
     public static AoESymmetrical readMax(ItemStack stack) {
+        if (stack.isEmpty() || !(stack.getItem() instanceof IGTTool)) {
+            return ZERO;
+        }
         return ((IGTTool) stack.getItem()).getToolStats().getAoEDefinition(stack);
     }
 
