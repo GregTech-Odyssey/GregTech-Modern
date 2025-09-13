@@ -61,7 +61,7 @@ public class CoatedTurbineRotorBehaviour extends TurbineRotorBehaviour implement
             return;
         }
         var compound = getOrCreatePartStatsTag(itemStack);
-        compound.putString("Coating", coating.getName());
+        compound.putString("Coating", coating.getResourceLocation().toString());
 
         var bonusDurability = getRotorMaxDamage(coating);
         var originalDurability = behaviour.getPartMaxDurability(itemStack);

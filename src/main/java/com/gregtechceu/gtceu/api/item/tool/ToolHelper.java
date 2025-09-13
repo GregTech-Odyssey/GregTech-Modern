@@ -274,6 +274,7 @@ public class ToolHelper {
     }
 
     public static AoESymmetrical getAoEDefinition(ItemStack stack) {
+        if (!hasBehaviorsTag(stack)) return AoESymmetrical.ZERO;
         return AoESymmetrical.read(getBehaviorsTag(stack), getMaxAoEDefinition(stack));
     }
 
