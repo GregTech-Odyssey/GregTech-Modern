@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.data.worldgen.ores;
 
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -16,7 +17,6 @@ import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -66,8 +66,8 @@ public class OrePlacer {
         }));
     }
 
-    private Object2ObjectOpenHashMap<SectionPos, Long2ObjectOpenHashMap<OreBlockPlacer>> resolvePlacerLists(long chunk, GeneratedVein vein) {
-        Object2ObjectOpenHashMap<SectionPos, Long2ObjectOpenHashMap<OreBlockPlacer>> groupedMap = new Object2ObjectOpenHashMap<>();
+    private O2OOpenCacheHashMap<SectionPos, Long2ObjectOpenHashMap<OreBlockPlacer>> resolvePlacerLists(long chunk, GeneratedVein vein) {
+        O2OOpenCacheHashMap<SectionPos, Long2ObjectOpenHashMap<OreBlockPlacer>> groupedMap = new O2OOpenCacheHashMap<>();
         for (var entry : vein.consumeOres(chunk).long2ObjectEntrySet()) {
             var pos = entry.getLongKey();
             groupedMap.computeIfAbsent(SectionPos.of(BlockPos.getX(pos) >> 4, BlockPos.getY(pos) >> 4, BlockPos.getZ(pos) >> 4), k -> new Long2ObjectOpenHashMap<>()).put(pos, entry.getValue());

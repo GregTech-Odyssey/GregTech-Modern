@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.registry;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.StringTag;
@@ -14,7 +15,6 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,7 +25,7 @@ import java.util.Set;
 
 public abstract class GTRegistry<K, V> implements Iterable<V> {
 
-    public static final Map<ResourceLocation, GTRegistry<?, ?>> REGISTERED = new Object2ObjectOpenHashMap<>();
+    public static final Map<ResourceLocation, GTRegistry<?, ?>> REGISTERED = new O2OOpenCacheHashMap<>();
     protected final BiMap<K, V> registry;
     protected final ResourceLocation registryName;
     protected boolean frozen = true;

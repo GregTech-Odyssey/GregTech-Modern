@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.gui.editor;
 
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import com.lowdragmc.lowdraglib.LDLib;
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
@@ -24,7 +25,6 @@ import net.minecraft.nbt.NbtIo;
 import net.minecraft.resources.ResourceLocation;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -125,7 +125,7 @@ public class MachineUIProject extends UIProject {
                 }
             }
             categories.forEach((groupName, definitions) -> menu.branch(groupName, m -> {
-                Set<EditableMachineUI> addedSet = new ObjectOpenHashSet<>();
+                Set<EditableMachineUI> addedSet = new OpenCacheHashSet<>();
                 for (var definition : definitions) {
                     var editableUI = definition.getEditableUI();
                     if (editableUI != null && addedSet.add(editableUI)) {

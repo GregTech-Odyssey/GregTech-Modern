@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.machine.owner;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -11,7 +12,6 @@ import net.minecraftforge.common.UsernameCache;
 import net.minecraftforge.fml.ModLoader;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
@@ -26,8 +26,8 @@ public abstract sealed class MachineOwner permits PlayerOwner, FTBOwner {
 
     private static Function<UUID, MachineOwner> machineOwnerGenerator;
     public static final UUID EMPTY = new UUID(0, 0);
-    protected static final Map<UUID, MachineOwner> MACHINE_OWNERS = new Object2ObjectOpenHashMap<>();
-    protected static final Map<UUID, PlayerOwner> PLAYER_OWNERS = new Object2ObjectOpenHashMap<>();
+    protected static final Map<UUID, MachineOwner> MACHINE_OWNERS = new O2OOpenCacheHashMap<>();
+    protected static final Map<UUID, PlayerOwner> PLAYER_OWNERS = new O2OOpenCacheHashMap<>();
     @NotNull
     protected final UUID playerUUID;
 

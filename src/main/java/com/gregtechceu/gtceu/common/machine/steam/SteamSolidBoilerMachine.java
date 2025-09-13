@@ -26,7 +26,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidUtil;
 
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import java.util.Collections;
 
@@ -38,7 +38,7 @@ public class SteamSolidBoilerMachine extends SteamBoilerMachine {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
             SteamSolidBoilerMachine.class, SteamBoilerMachine.MANAGED_FIELD_HOLDER);
-    public static final ObjectOpenHashSet<Item> FUEL_CACHE = new ObjectOpenHashSet<>();
+    public static final ReferenceOpenHashSet<Item> FUEL_CACHE = new ReferenceOpenHashSet<>();
 
     @Persisted
     public final NotifiableItemStackHandler fuelHandler, ashHandler;

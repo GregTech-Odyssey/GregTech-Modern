@@ -26,6 +26,8 @@ import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.integration.xei.widgets.GTOreByProduct;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
 
 import net.minecraft.client.renderer.RenderType;
@@ -63,7 +65,7 @@ import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.Conditions.*;
 @SuppressWarnings("unused")
 public class TagPrefix {
 
-    public static final Map<String, TagPrefix> PREFIXES = new Object2ObjectOpenHashMap<>();
+    public static final Map<String, TagPrefix> PREFIXES = new O2OOpenCacheHashMap<>();
     public static final Map<TagPrefix, OreType> ORES = new Reference2ObjectLinkedOpenHashMap<>();
     public static final Codec<TagPrefix> CODEC = Codec.STRING.flatXmap(str -> Optional.ofNullable(get(str)).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "invalid TagPrefix: " + str)), prefix -> DataResult.success(prefix.name));
 
@@ -288,7 +290,7 @@ public class TagPrefix {
     private int maxStackSize = 64;
     private ToIntFunction<Material> maxDamageProvider;
     private final List<MaterialStack> secondaryMaterials = new ObjectArrayList<>();
-    protected final Set<TagKey<Block>> miningToolTag = new ObjectOpenHashSet<>();
+    protected final Set<TagKey<Block>> miningToolTag = new OpenCacheHashSet<>();
 
     protected TagPrefix(String name) {
         this(name, false);

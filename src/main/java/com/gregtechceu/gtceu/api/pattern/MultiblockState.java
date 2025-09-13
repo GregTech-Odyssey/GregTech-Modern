@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.pattern.error.PatternError;
 import com.gregtechceu.gtceu.api.pattern.error.PatternStringError;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.PatternMatchContext;
+import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -32,8 +33,8 @@ public class MultiblockState {
     public BlockState blockState;
     public BlockEntity tileEntity;
     public boolean tileEntityInitialized;
-    public final Object2IntOpenHashMap<SimplePredicate> globalCount = new Object2IntOpenHashMap<>();
-    public final Object2IntOpenHashMap<SimplePredicate> layerCount = new Object2IntOpenHashMap<>();
+    public final Object2IntOpenHashMap<SimplePredicate> globalCount = new O2IOpenCacheHashMap<>();
+    public final Object2IntOpenHashMap<SimplePredicate> layerCount = new O2IOpenCacheHashMap<>();
     public TraceabilityPredicate predicate;
     public PatternError error;
     public boolean neededFlip = false;

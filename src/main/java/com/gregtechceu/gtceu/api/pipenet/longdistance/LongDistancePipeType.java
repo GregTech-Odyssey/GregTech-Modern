@@ -2,11 +2,11 @@ package com.gregtechceu.gtceu.api.pipenet.longdistance;
 
 import com.gregtechceu.gtceu.common.pipelike.fluid.longdistance.LDFluidPipeType;
 import com.gregtechceu.gtceu.common.pipelike.item.longdistance.LDItemPipeType;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -16,7 +16,7 @@ import java.util.Objects;
  */
 public abstract class LongDistancePipeType {
 
-    private static final Object2ObjectOpenHashMap<String, LongDistancePipeType> PIPE_TYPES = new Object2ObjectOpenHashMap<>();
+    private static final O2OOpenCacheHashMap<String, LongDistancePipeType> PIPE_TYPES = new O2OOpenCacheHashMap<>();
 
     private final String name;
 

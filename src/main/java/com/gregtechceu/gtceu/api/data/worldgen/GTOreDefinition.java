@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.data.worldgen.generator.indicators.SurfaceIndic
 import com.gregtechceu.gtceu.api.data.worldgen.generator.veins.*;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreVeinUtil;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Holder;
@@ -27,7 +28,6 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.ints.IntIntPair;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -45,7 +45,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class GTOreDefinition {
 
     public static final Codec<GTOreDefinition> CODEC = ResourceLocation.CODEC.flatXmap(rl -> Optional.ofNullable(GTRegistries.ORE_VEINS.get(rl)).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "No GTOreDefinition with id " + rl + " registered")), obj -> Optional.ofNullable(GTRegistries.ORE_VEINS.getKey(obj)).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "GTOreDefinition " + obj + " not registered")));
-    public static final Codec<GTOreDefinition> FULL_CODEC = RecordCodecBuilder.create(instance -> instance.group(IntProvider.NON_NEGATIVE_CODEC.fieldOf("cluster_size").forGetter(ft -> ft.clusterSize), Codec.floatRange(0.0F, 1.0F).fieldOf("density").forGetter(ft -> ft.density), Codec.INT.fieldOf("weight").forGetter(ft -> ft.weight), IWorldGenLayer.CODEC.fieldOf("layer").forGetter(ft -> ft.layer), ResourceKey.codec(Registries.DIMENSION).listOf().fieldOf("dimension_filter").forGetter(ft -> new ObjectArrayList<>(ft.dimensionFilter)), HeightRangePlacement.CODEC.fieldOf("height_range").forGetter(ft -> ft.range), Codec.floatRange(0.0F, 1.0F).fieldOf("discard_chance_on_air_exposure").forGetter(ft -> ft.discardChanceOnAirExposure), RegistryCodecs.homogeneousList(Registries.BIOME).optionalFieldOf("biomes", HolderSet.direct()).forGetter(ext -> ext.biomes == null ? HolderSet.direct() : ext.biomes.get()), BiomeWeightModifier.CODEC.optionalFieldOf("weight_modifier", BiomeWeightModifier.EMPTY).forGetter(ext -> ext.biomeWeightModifier), VeinGenerator.DIRECT_CODEC.fieldOf("generator").forGetter(ft -> ft.veinGenerator), Codec.list(IndicatorGenerator.DIRECT_CODEC).fieldOf("indicators").forGetter(ft -> ft.indicatorGenerators)).apply(instance, (clusterSize, density, weight, layer, dimensionFilter, range, discardChanceOnAirExposure, biomes, biomeWeightModifier, veinGenerator, indicatorGenerators) -> new GTOreDefinition(clusterSize, density, weight, layer, new ObjectOpenHashSet<>(dimensionFilter), range, discardChanceOnAirExposure, biomes == null ? HolderSet::direct : () -> biomes, biomeWeightModifier, veinGenerator, indicatorGenerators)));
+    public static final Codec<GTOreDefinition> FULL_CODEC = RecordCodecBuilder.create(instance -> instance.group(IntProvider.NON_NEGATIVE_CODEC.fieldOf("cluster_size").forGetter(ft -> ft.clusterSize), Codec.floatRange(0.0F, 1.0F).fieldOf("density").forGetter(ft -> ft.density), Codec.INT.fieldOf("weight").forGetter(ft -> ft.weight), IWorldGenLayer.CODEC.fieldOf("layer").forGetter(ft -> ft.layer), ResourceKey.codec(Registries.DIMENSION).listOf().fieldOf("dimension_filter").forGetter(ft -> new ObjectArrayList<>(ft.dimensionFilter)), HeightRangePlacement.CODEC.fieldOf("height_range").forGetter(ft -> ft.range), Codec.floatRange(0.0F, 1.0F).fieldOf("discard_chance_on_air_exposure").forGetter(ft -> ft.discardChanceOnAirExposure), RegistryCodecs.homogeneousList(Registries.BIOME).optionalFieldOf("biomes", HolderSet.direct()).forGetter(ext -> ext.biomes == null ? HolderSet.direct() : ext.biomes.get()), BiomeWeightModifier.CODEC.optionalFieldOf("weight_modifier", BiomeWeightModifier.EMPTY).forGetter(ext -> ext.biomeWeightModifier), VeinGenerator.DIRECT_CODEC.fieldOf("generator").forGetter(ft -> ft.veinGenerator), Codec.list(IndicatorGenerator.DIRECT_CODEC).fieldOf("indicators").forGetter(ft -> ft.indicatorGenerators)).apply(instance, (clusterSize, density, weight, layer, dimensionFilter, range, discardChanceOnAirExposure, biomes, biomeWeightModifier, veinGenerator, indicatorGenerators) -> new GTOreDefinition(clusterSize, density, weight, layer, new OpenCacheHashSet<>(dimensionFilter), range, discardChanceOnAirExposure, biomes == null ? HolderSet::direct : () -> biomes, biomeWeightModifier, veinGenerator, indicatorGenerators)));
     private final InferredProperties inferredProperties = new InferredProperties();
     private IntProvider clusterSize;
     private float density;

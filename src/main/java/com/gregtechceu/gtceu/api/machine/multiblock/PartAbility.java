@@ -9,7 +9,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.Collection;
@@ -74,7 +74,7 @@ public class PartAbility {
     }
 
     public void register(int tier, Block block) {
-        registry.computeIfAbsent(tier, T -> new ObjectOpenHashSet<>()).add(block);
+        registry.computeIfAbsent(tier, T -> new ReferenceOpenHashSet<>()).add(block);
     }
 
     public Collection<Block> getAllBlocks() {

@@ -12,6 +12,7 @@ import com.gregtechceu.gtceu.api.pattern.error.SinglePredicateError;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.PatternMatchContext;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
+import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
 
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
@@ -359,7 +360,7 @@ public class BlockPattern {
     }
 
     public BlockInfo[][][] getPreview(int[] repetition) {
-        Object2IntOpenHashMap<SimplePredicate> cacheGlobal = new Object2IntOpenHashMap<>();
+        Object2IntOpenHashMap<SimplePredicate> cacheGlobal = new O2IOpenCacheHashMap<>();
         Long2ObjectOpenHashMap<BlockInfo> blocks = new Long2ObjectOpenHashMap<>();
         int minX = Integer.MAX_VALUE;
         int minY = Integer.MAX_VALUE;
@@ -370,7 +371,7 @@ public class BlockPattern {
         for (int l = 0, x = 0; l < this.fingerLength; l++) {
             for (int r = 0; r < repetition[l]; r++) {
                 // Checking single slice
-                Object2IntOpenHashMap<SimplePredicate> cacheLayer = new Object2IntOpenHashMap<>();
+                Object2IntOpenHashMap<SimplePredicate> cacheLayer = new O2IOpenCacheHashMap<>();
                 for (int y = 0; y < this.thumbLength; y++) {
                     for (int z = 0; z < this.palmLength; z++) {
                         TraceabilityPredicate predicate = this.blockMatches[l][y][z];

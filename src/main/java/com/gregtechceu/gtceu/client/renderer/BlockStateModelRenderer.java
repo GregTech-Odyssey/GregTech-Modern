@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.client.renderer;
 
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
+
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -12,8 +14,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +24,7 @@ public class BlockStateModelRenderer implements IRenderer {
     private final Map<BlockState, IRenderer> models;
 
     public BlockStateModelRenderer(Block block, Function<BlockState, IRenderer> predicate) {
-        this.models = new Object2ObjectOpenHashMap<>();
+        this.models = new O2OOpenCacheHashMap<>();
         for (BlockState state : block.getStateDefinition().getPossibleStates()) {
             models.put(state, predicate.apply(state));
         }

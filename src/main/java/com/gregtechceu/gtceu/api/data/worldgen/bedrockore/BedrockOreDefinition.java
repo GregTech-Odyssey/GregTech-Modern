@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.worldgen.BiomeWeightModifier;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.utils.RegistryUtil;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
@@ -19,7 +20,6 @@ import net.minecraft.world.level.biome.Biome;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -157,7 +157,7 @@ public class BedrockOreDefinition {
         }
 
         public Builder dimensions(String... dimensions) {
-            return this.dimensions(new ObjectOpenHashSet<>(RegistryUtil.resolveResourceKeys(Registries.DIMENSION, dimensions)));
+            return this.dimensions(new OpenCacheHashSet<>(RegistryUtil.resolveResourceKeys(Registries.DIMENSION, dimensions)));
         }
 
         public BedrockOreDefinition register() {

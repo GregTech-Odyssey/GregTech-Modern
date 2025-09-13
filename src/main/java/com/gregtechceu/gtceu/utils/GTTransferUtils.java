@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.utils;
 
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerList;
+import com.gregtechceu.gtceu.utils.collection.O2IOpenCustomCacheHashMap;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -178,7 +179,7 @@ public class GTTransferUtils {
         // determine if there is sufficient room to insert all items into the target inventory
         if (simulate) {
             OverlayedItemHandler overlayedItemHandler = new OverlayedItemHandler(handler);
-            Object2IntMap<ItemStack> stackKeyMap = GTHashMaps.fromItemStackCollection(items);
+            Object2IntMap<ItemStack> stackKeyMap = new O2IOpenCustomCacheHashMap<>(ItemStackHashStrategy.ITEM_AND_TAG);
 
             for (Object2IntMap.Entry<ItemStack> entry : stackKeyMap.object2IntEntrySet()) {
                 int amountToInsert = entry.getIntValue();

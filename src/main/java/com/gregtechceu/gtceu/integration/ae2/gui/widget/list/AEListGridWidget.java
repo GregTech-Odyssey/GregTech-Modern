@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.integration.ae2.gui.widget.list;
 
 import com.gregtechceu.gtceu.integration.ae2.utils.KeyStorage;
+import com.gregtechceu.gtceu.utils.collection.O2LOpenCacheHashMap;
 
 import com.lowdragmc.lowdraglib.gui.widget.DraggableScrollableWidgetGroup;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -16,7 +17,6 @@ import appeng.api.stacks.AEKey;
 import appeng.api.stacks.GenericStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
-import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.util.List;
@@ -34,7 +34,7 @@ public abstract class AEListGridWidget extends DraggableScrollableWidgetGroup {
     protected final static int ROW_CHANGE_ID = 2;
     protected final static int CONTENT_CHANGE_ID = 3;
 
-    protected final Object2LongMap<AEKey> changeMap = new Object2LongOpenHashMap<>();
+    protected final Object2LongMap<AEKey> changeMap = new O2LOpenCacheHashMap<>();
     protected final KeyStorage cached = new KeyStorage();
     protected final List<GenericStack> displayList = new ObjectArrayList<>();
 

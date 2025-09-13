@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.recipe.ingredient.SizedIngredient;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
+import com.gregtechceu.gtceu.utils.collection.O2LOpenCustomCacheHashMap;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
@@ -167,7 +168,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     @Override
     public @Nullable Object2LongOpenCustomHashMap<ItemStack> getItemMap() {
         if (itemMap == null) {
-            itemMap = new Object2LongOpenCustomHashMap<>(ItemStackHashStrategy.ITEM_AND_TAG);
+            itemMap = new O2LOpenCustomCacheHashMap<>(ItemStackHashStrategy.ITEM_AND_TAG);
         }
         if (changed) {
             changed = false;

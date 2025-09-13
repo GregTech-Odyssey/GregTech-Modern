@@ -20,6 +20,7 @@ import com.gregtechceu.gtceu.common.machine.multiblock.electric.research.DataBan
 import com.gregtechceu.gtceu.common.recipe.condition.ResearchCondition;
 import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 import com.gregtechceu.gtceu.utils.ResearchManager;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
@@ -35,7 +36,6 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,7 +59,7 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
     public DataAccessHatchMachine(MetaMachineBlockEntity holder, int tier, boolean isCreative) {
         super(holder, tier);
         this.isCreative = isCreative;
-        this.recipes = isCreative ? Collections.emptySet() : new ObjectOpenHashSet<>();
+        this.recipes = isCreative ? Collections.emptySet() : new OpenCacheHashSet<>();
         this.importItems = createImportItemHandler();
     }
 

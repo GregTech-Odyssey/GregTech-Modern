@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.pattern.util;
 
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -16,11 +17,11 @@ import java.util.function.Supplier;
 public class PatternMatchContext {
 
     public final LongOpenHashSet vaBlocks = new LongOpenHashSet();
-    public final ObjectOpenHashSet<IMultiPart> parts = new ObjectOpenHashSet<>();
+    public final ReferenceOpenHashSet<IMultiPart> parts = new ReferenceOpenHashSet<>();
 
     private Long2ObjectOpenHashMap<TraceabilityPredicate> predicates;
 
-    private Object2ObjectOpenHashMap<Object, Object> data = new Object2ObjectOpenHashMap<>();
+    private O2OOpenCacheHashMap<Object, Object> data = new O2OOpenCacheHashMap<>();
 
     public Long2ObjectOpenHashMap<TraceabilityPredicate> getPredicates() {
         if (predicates == null) predicates = new Long2ObjectOpenHashMap<>();
@@ -29,7 +30,7 @@ public class PatternMatchContext {
 
     public void mergeData(PatternMatchContext state) {
         if (state.data != null) {
-            if (data == null) data = new Object2ObjectOpenHashMap<>();
+            if (data == null) data = new O2OOpenCacheHashMap<>();
             data.putAll(state.data);
         }
     }
@@ -51,7 +52,7 @@ public class PatternMatchContext {
     }
 
     public void set(Object key, Object value) {
-        if (data == null) data = new Object2ObjectOpenHashMap<>();
+        if (data == null) data = new O2OOpenCacheHashMap<>();
         this.data.put(key, value);
     }
 
@@ -69,13 +70,13 @@ public class PatternMatchContext {
 
     @SuppressWarnings("unchecked")
     public <T> T getOrCreate(Object key, Supplier<T> creator) {
-        if (data == null) data = new Object2ObjectOpenHashMap<>();
+        if (data == null) data = new O2OOpenCacheHashMap<>();
         return (T) data.computeIfAbsent(key, k -> creator.get());
     }
 
     @SuppressWarnings("unchecked")
     public <T> T getOrPut(Object key, T initialValue) {
-        if (data == null) data = new Object2ObjectOpenHashMap<>();
+        if (data == null) data = new O2OOpenCacheHashMap<>();
         return (T) data.computeIfAbsent(key, k -> initialValue);
     }
 

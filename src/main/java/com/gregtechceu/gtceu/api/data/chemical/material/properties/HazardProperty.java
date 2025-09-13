@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.entity.LivingEntity;
@@ -21,7 +22,6 @@ import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
 
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotResult;
@@ -108,7 +108,7 @@ public class HazardProperty implements IMaterialProperty {
             if (!GTCEu.Mods.isCuriosLoaded() || this.curioSlots.isEmpty()) {
                 return correctArmorItems.containsAll(equipmentTypes);
             }
-            Set<String> correctCurios = new ObjectOpenHashSet<>();
+            Set<String> correctCurios = new OpenCacheHashSet<>();
             ICuriosItemHandler curiosInventory = CuriosApi.getCuriosInventory(livingEntity)
                     .resolve()
                     .orElse(null);

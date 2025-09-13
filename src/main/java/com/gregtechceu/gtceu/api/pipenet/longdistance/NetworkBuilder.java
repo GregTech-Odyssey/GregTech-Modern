@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.pipenet.longdistance;
 
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -15,7 +16,6 @@ import net.minecraft.world.level.chunk.ChunkStatus;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 import java.util.Collection;
 import java.util.List;
@@ -32,7 +32,7 @@ public class NetworkBuilder extends Thread {
     private LongDistanceNetwork network;
     private final ServerLevel world;
     private final ObjectList<BlockPos> currentPoints = new ObjectArrayList<>();
-    private final ObjectOpenHashSet<BlockPos> walked = new ObjectOpenHashSet<>();
+    private final OpenCacheHashSet<BlockPos> walked = new OpenCacheHashSet<>();
     private final List<BlockPos> pipes = new ObjectArrayList<>();
     private final List<ILDEndpoint> endpoints = new ObjectArrayList<>();
     private final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();

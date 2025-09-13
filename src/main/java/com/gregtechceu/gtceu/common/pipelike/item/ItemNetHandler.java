@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.common.cover.RobotArmCover;
 import com.gregtechceu.gtceu.common.cover.data.DistributionMode;
 import com.gregtechceu.gtceu.common.cover.data.FilterMode;
 import com.gregtechceu.gtceu.utils.FacingPos;
+import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -36,7 +37,7 @@ public class ItemNetHandler implements IItemHandlerModifiable {
     private ItemPipeNet net;
     private final ItemPipeBlockEntity pipe;
     private final Direction facing;
-    private final Object2IntOpenHashMap<FacingPos> simulatedTransfersGlobalRoundRobin = new Object2IntOpenHashMap<>();
+    private final Object2IntOpenHashMap<FacingPos> simulatedTransfersGlobalRoundRobin = new O2IOpenCacheHashMap<>();
     private int simulatedTransfers = 0;
     private final ItemStackHandler testHandler = new ItemStackHandler(1);
 

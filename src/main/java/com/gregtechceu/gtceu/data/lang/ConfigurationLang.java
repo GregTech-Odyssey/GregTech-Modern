@@ -2,13 +2,13 @@ package com.gregtechceu.gtceu.data.lang;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import com.tterrag.registrate.providers.RegistrateLangProvider;
 import dev.toma.configuration.Configuration;
 import dev.toma.configuration.config.format.ConfigFormats;
 import dev.toma.configuration.config.value.ConfigValue;
 import dev.toma.configuration.config.value.ObjectValue;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 import java.util.Map;
 import java.util.Set;
@@ -16,7 +16,7 @@ import java.util.Set;
 public class ConfigurationLang {
 
     public static void init(RegistrateLangProvider provider) {
-        dfs(provider, new ObjectOpenHashSet<>(),
+        dfs(provider, new OpenCacheHashSet<>(),
                 Configuration.registerConfig(ConfigHolder.class, ConfigFormats.yaml()).getValueMap());
     }
 

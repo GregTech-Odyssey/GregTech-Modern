@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.item.tool.behavior.LighterBehavior;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
@@ -43,7 +44,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import it.unimi.dsi.fastutil.longs.Long2BooleanMap;
 import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -60,7 +60,7 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
     private static final int MIN_RADIUS = 1;
     private static final int MIN_DEPTH = 2;
 
-    private final Collection<BlockPos> logPos = new ObjectOpenHashSet<>();
+    private final Collection<BlockPos> logPos = new OpenCacheHashSet<>();
 
     @DescSynced
     private int lDist = 0;

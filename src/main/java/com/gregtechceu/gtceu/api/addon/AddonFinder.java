@@ -1,9 +1,10 @@
 package com.gregtechceu.gtceu.api.addon;
 
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
+
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.forgespi.language.ModFileScanData;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,7 +18,7 @@ public class AddonFinder {
 
     private static final Logger LOGGER = LogManager.getLogger();
     protected static List<IGTAddon> cache = null;
-    protected static Map<String, IGTAddon> modIdMap = new Object2ObjectOpenHashMap<>();
+    protected static Map<String, IGTAddon> modIdMap = new O2OOpenCacheHashMap<>();
 
     public static List<IGTAddon> getAddons() {
         if (cache == null) {

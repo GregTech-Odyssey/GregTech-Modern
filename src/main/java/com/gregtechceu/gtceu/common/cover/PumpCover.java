@@ -20,6 +20,7 @@ import com.gregtechceu.gtceu.api.transfer.fluid.ModifiableFluidHandlerWrapper;
 import com.gregtechceu.gtceu.common.cover.data.BucketMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
+import com.gregtechceu.gtceu.utils.collection.O2LOpenCacheHashMap;
 
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -40,7 +41,6 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
-import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -222,7 +222,7 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
 
     protected Object2LongMap<FluidStack> enumerateDistinctFluids(IFluidHandlerModifiable fluidHandler, TransferDirection direction) {
         // Long map because we could have multiple tanks of the same fluid summing up to > Integer.MAX_VALUE
-        var summedFluids = new Object2LongOpenHashMap<FluidStack>();
+        var summedFluids = new O2LOpenCacheHashMap<FluidStack>();
         for (int tank = 0; tank < fluidHandler.getTanks(); tank++) {
             if (!canTransfer(fluidHandler, direction, tank)) continue;
             FluidStack fluidStack = fluidHandler.getFluidInTank(tank);

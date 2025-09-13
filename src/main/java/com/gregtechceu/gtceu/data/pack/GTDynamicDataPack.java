@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.common.data.GTRecipes;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.data.recipes.FinishedRecipe;
@@ -20,7 +21,6 @@ import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
@@ -44,7 +44,7 @@ public class GTDynamicDataPack implements PackResources {
 
     public static final Consumer<FinishedRecipe> CONSUMER = GTDynamicDataPack::addRecipe;
 
-    protected static final ObjectSet<String> SERVER_DOMAINS = new ObjectOpenHashSet<>();
+    protected static final ObjectSet<String> SERVER_DOMAINS = new OpenCacheHashSet<>();
     protected static final GTDynamicPackContents CONTENTS = new GTDynamicPackContents();
 
     private final String name;

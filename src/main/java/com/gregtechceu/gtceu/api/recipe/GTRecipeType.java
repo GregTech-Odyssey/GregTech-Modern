@@ -9,6 +9,8 @@ import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 import com.gregtechceu.gtceu.api.sound.SoundEntry;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture;
@@ -51,12 +53,12 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     protected boolean hasResearchSlot;
     protected final Map<RecipeType<?>, List<GTRecipe>> proxyRecipes;
     protected final GTRecipeCategory category;
-    protected final Map<GTRecipeCategory, Set<GTRecipe>> categoryMap = new Object2ObjectOpenHashMap<>();
+    protected final Map<GTRecipeCategory, Set<GTRecipe>> categoryMap = new O2OOpenCacheHashMap<>();
     protected boolean offsetVoltageText = false;
     protected int voltageTextOffset = 20;
-    protected final Map<String, Collection<GTRecipe>> researchEntries = new Object2ObjectOpenHashMap<>();
+    protected final Map<String, Collection<GTRecipe>> researchEntries = new O2OOpenCacheHashMap<>();
     protected final List<ICustomRecipeLogic> customRecipeLogicRunners = new ObjectArrayList<>();
-    public final Map<ResourceLocation, GTRecipe> recipes = new Object2ReferenceOpenHashMap<>();
+    public final Map<ResourceLocation, GTRecipe> recipes = new O2OOpenCacheHashMap<>();
 
     public GTRecipeType(ResourceLocation registryName, String group, RecipeType<?>... proxyRecipes) {
         this.registryName = registryName;
@@ -64,7 +66,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         this.category = GTRecipeCategory.registerDefault(this);
         recipeBuilder = new GTRecipeBuilder(registryName, this);
         // must be linked to stop json contents from shuffling
-        Map<RecipeType<?>, List<GTRecipe>> map = new Object2ObjectLinkedOpenHashMap<>();
+        Map<RecipeType<?>, List<GTRecipe>> map = new O2OOpenCacheHashMap<>();
         for (RecipeType<?> proxyRecipe : proxyRecipes) {
             map.put(proxyRecipe, new ObjectArrayList<>());
         }
@@ -201,7 +203,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     }
 
     public void addDataStickEntry(@NotNull String researchId, @NotNull GTRecipe recipe) {
-        Collection<GTRecipe> collection = researchEntries.computeIfAbsent(researchId, k -> new ObjectOpenHashSet<>());
+        Collection<GTRecipe> collection = researchEntries.computeIfAbsent(researchId, k -> new OpenCacheHashSet<>());
         collection.add(recipe);
     }
 

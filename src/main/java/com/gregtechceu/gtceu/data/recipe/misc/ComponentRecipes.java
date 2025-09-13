@@ -4,10 +4,9 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.world.item.Items;
-
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.util.Map;
 
@@ -152,7 +151,7 @@ public class ComponentRecipes {
 
         // Conveyors
         // Start-----------------------------------------------------------------------------------------------
-        final Map<String, Material> rubberMaterials = new Object2ObjectOpenHashMap<>();
+        final Map<String, Material> rubberMaterials = new O2OOpenCacheHashMap<>();
         rubberMaterials.put("rubber", Rubber);
         rubberMaterials.put("silicone_rubber", SiliconeRubber);
         rubberMaterials.put("styrene_butadiene_rubber", StyreneButadieneRubber);

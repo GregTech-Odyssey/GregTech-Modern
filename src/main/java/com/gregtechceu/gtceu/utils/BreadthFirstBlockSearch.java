@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.utils;
 
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Tuple;
@@ -8,7 +10,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.TriPredicate;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +23,7 @@ import java.util.function.Predicate;
 public class BreadthFirstBlockSearch {
 
     public static Set<BlockPos> search(Predicate<BlockPos> value, BlockPos start, int limit) {
-        Set<BlockPos> alreadyVisited = new ObjectOpenHashSet<>();
+        Set<BlockPos> alreadyVisited = new OpenCacheHashSet<>();
         Set<BlockPos> valid = new LinkedHashSet<>();
         int iteration = 0;
 

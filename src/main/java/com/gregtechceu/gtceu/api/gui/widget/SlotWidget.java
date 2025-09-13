@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.integration.xei.entry.item.ItemStackList;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemTagList;
 import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemEntryHandler;
 import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemStackHandler;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import com.lowdragmc.lowdraglib.gui.editor.annotation.LDLRegister;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.ConfiguratorGroup;
@@ -28,7 +29,6 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -188,7 +188,7 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
                 this.overlay = SlotWidget.this.overlay;
             }
         }.setCanPutItems(false).setCanTakeItems(false).setHandlerSlot(handler, 0)));
-        ConfiguratorParser.createConfigurators(father, new Object2ObjectOpenHashMap<>(), getClass(), this);
+        ConfiguratorParser.createConfigurators(father, new O2OOpenCacheHashMap<>(), getClass(), this);
     }
 
     @Nullable

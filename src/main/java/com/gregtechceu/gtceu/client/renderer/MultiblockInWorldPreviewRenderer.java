@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.block.IMachineBlock;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import com.lowdragmc.lowdraglib.client.scene.WorldSceneRenderer;
 import com.lowdragmc.lowdraglib.client.scene.forge.WorldSceneRendererImpl;
@@ -31,7 +32,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
 
@@ -94,7 +94,7 @@ public class MultiblockInWorldPreviewRenderer {
      * Show the multiblock preview in the world by the given pos, side, and shape info.
      */
     public static void showPreview(BlockPos pos, Direction front, Direction up, MultiblockShapeInfo shapeInfo, int duration) {
-        Map<BlockPos, BlockInfo> blockMap = new Object2ObjectOpenHashMap<>(shapeInfo.amount);
+        Map<BlockPos, BlockInfo> blockMap = new O2OOpenCacheHashMap<>(shapeInfo.amount);
         LEVEL = new TrackedDummyWorld();
         var blocks = shapeInfo.getBlocks();
         BlockPos controllerPatternPos = null;

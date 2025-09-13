@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IItemLifeCycle;
 import com.gregtechceu.gtceu.api.item.component.IItemUIFactory;
 import com.gregtechceu.gtceu.common.data.GTItems;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -44,7 +45,6 @@ import net.minecraftforge.event.entity.player.PlayerXpEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import com.tterrag.registrate.util.entry.ItemEntry;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import oshi.util.tuples.Triplet;
@@ -73,7 +73,7 @@ public class ItemMagnetBehavior implements IItemLifeCycle, IAddInformation, IIte
         var held = holder.getHeld();
         var tag = held.getOrCreateTag();
         var selected = Filter.get(tag.getInt(FILTER_ORDINAL_TAG));
-        var widgets = new ObjectOpenHashSet<Triplet<Filter, Widget, Widget>>();
+        var widgets = new OpenCacheHashSet<Triplet<Filter, Widget, Widget>>();
         var stacks = new EnumMap<Filter, ItemStack>(Filter.class);
         var ui = new ModularUI(176, 157, holder, entityPlayer)
                 .background(GuiTextures.BACKGROUND)

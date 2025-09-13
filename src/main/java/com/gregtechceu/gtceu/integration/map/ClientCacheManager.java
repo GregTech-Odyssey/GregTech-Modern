@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.integration.map;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.integration.map.cache.client.IClientCache;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
@@ -13,7 +14,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import org.apache.commons.io.FileUtils;
@@ -193,8 +193,8 @@ public class ClientCacheManager {
 
         public ClientCacheInfo(String key) {
             this.key = key;
-            dimFilePrefixes = new ObjectOpenHashSet<>();
-            singleFiles = new ObjectOpenHashSet<>();
+            dimFilePrefixes = new OpenCacheHashSet<>();
+            singleFiles = new OpenCacheHashSet<>();
         }
     }
 

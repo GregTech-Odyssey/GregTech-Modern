@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.integration.map;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
+
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.Map;
 
 public class ButtonState {
 
-    private static final Map<String, Button> buttons = new Object2ObjectOpenHashMap<>();
+    private static final Map<String, Button> buttons = new O2OOpenCacheHashMap<>();
     private static List<Button> sortedButtons;
 
     public static void toggleButton(Button button) {

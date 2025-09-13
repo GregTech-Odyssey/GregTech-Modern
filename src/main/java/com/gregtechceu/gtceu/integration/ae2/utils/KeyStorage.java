@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.integration.ae2.utils;
 
+import com.gregtechceu.gtceu.utils.collection.O2LOpenCacheHashMap;
+
 import com.lowdragmc.lowdraglib.syncdata.IContentChangeAware;
 import com.lowdragmc.lowdraglib.syncdata.ITagSerializable;
 
@@ -27,7 +29,7 @@ public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAwar
 
     public final ReentrantLock lock = new ReentrantLock();
 
-    public final Object2LongOpenHashMap<AEKey> storage = new Object2LongOpenHashMap<>();
+    public final Object2LongOpenHashMap<AEKey> storage = new O2LOpenCacheHashMap<>();
 
     // not
     @Nullable

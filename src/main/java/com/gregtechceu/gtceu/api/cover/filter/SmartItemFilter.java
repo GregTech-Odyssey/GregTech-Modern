@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
+import com.gregtechceu.gtceu.utils.collection.O2IOpenCustomCacheHashMap;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -106,7 +107,7 @@ public class SmartItemFilter implements ItemFilter {
         private static final SmartFilteringMode[] VALUES = values();
         private final String localeName;
         private final GTRecipeType lookup;
-        private final Object2IntOpenCustomHashMap<ItemStack> cache = new Object2IntOpenCustomHashMap<>(
+        private final Object2IntOpenCustomHashMap<ItemStack> cache = new O2IOpenCustomCacheHashMap<>(
                 ItemStackHashStrategy.ITEM_AND_TAG);
 
         SmartFilteringMode(String localeName, GTRecipeType type) {

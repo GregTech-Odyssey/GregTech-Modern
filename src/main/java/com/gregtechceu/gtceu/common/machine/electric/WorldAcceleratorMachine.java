@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.common.data.machines.GTMachineUtils;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
@@ -35,7 +36,6 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import it.unimi.dsi.fastutil.objects.Object2BooleanFunction;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +45,7 @@ import java.util.Set;
 
 public class WorldAcceleratorMachine extends TieredEnergyMachine implements IControllable {
 
-    private static final Map<String, Class<?>> blacklistedClasses = new Object2ObjectOpenHashMap<>();
+    private static final Map<String, Class<?>> blacklistedClasses = new O2OOpenCacheHashMap<>();
     private static final Object2BooleanFunction<Class<? extends BlockEntity>> blacklistCache = new Object2BooleanOpenHashMap<>();
     private static boolean gatheredClasses = false;
     // Hard-coded blacklist for blockentities

@@ -4,12 +4,12 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 
-import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -18,7 +18,7 @@ import static com.gregtechceu.gtceu.api.GTValues.V;
 
 public class CraftingComponent {
 
-    public static final Map<String, CraftingComponent> ALL_COMPONENTS = new Object2ReferenceOpenHashMap<>();
+    public static final Map<String, CraftingComponent> ALL_COMPONENTS = new O2OOpenCacheHashMap<>();
     public static final CraftingComponent EMPTY = CraftingComponent.of("empty", ItemStack.EMPTY);
     private final Object[] values = new Object[V.length];
     @NotNull

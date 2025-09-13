@@ -12,6 +12,8 @@ import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemStackHandler;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import com.lowdragmc.lowdraglib.client.scene.WorldSceneRenderer;
 import com.lowdragmc.lowdraglib.client.utils.RenderUtils;
@@ -49,9 +51,7 @@ import dev.emi.emi.screen.RecipeScreen;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.longs.LongSets;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
@@ -171,7 +171,7 @@ public class PatternPreviewWidget extends WidgetGroup {
                         .setDropShadow(true)));
 
         this.patterns = CACHE.computeIfAbsent(controllerDefinition, definition -> {
-            Set<ItemStackKey> drops = new ObjectOpenHashSet<>();
+            Set<ItemStackKey> drops = new OpenCacheHashSet<>();
             drops.add(new ItemStackKey(this.controllerDefinition.asStack()));
             return controllerDefinition.getMatchingShapes().stream()
                     .map(it -> initializePattern(it, drops))
@@ -351,7 +351,7 @@ public class PatternPreviewWidget extends WidgetGroup {
     }
 
     private MBPattern initializePattern(MultiblockShapeInfo shapeInfo, Set<ItemStackKey> blockDrops) {
-        Map<BlockPos, BlockInfo> blockMap = new Object2ObjectOpenHashMap<>();
+        Map<BlockPos, BlockInfo> blockMap = new O2OOpenCacheHashMap<>();
         IMultiController controllerBase = null;
         BlockPos multiPos = locateNextRegion(500);
         BlockPos center = BlockPos.ZERO;
@@ -432,7 +432,7 @@ public class PatternPreviewWidget extends WidgetGroup {
     }
 
     private Map<ItemStackKey, PartInfo> gatherBlockDrops(Map<BlockPos, BlockInfo> blocks) {
-        Map<ItemStackKey, PartInfo> partsMap = new Object2ObjectOpenHashMap<>();
+        Map<ItemStackKey, PartInfo> partsMap = new O2OOpenCacheHashMap<>();
         for (Map.Entry<BlockPos, BlockInfo> entry : blocks.entrySet()) {
             BlockPos pos = entry.getKey();
             BlockState blockState = PatternPreviewWidget.LEVEL.getBlockState(pos);

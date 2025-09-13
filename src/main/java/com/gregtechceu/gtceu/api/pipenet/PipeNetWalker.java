@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.pipenet;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -10,7 +11,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -128,7 +128,7 @@ public abstract class PipeNetWalker<T extends PipeBlockEntity<?, ?>, NodeDataTyp
     public void traversePipeNet(int maxWalks) {
         if (invalid) throw new IllegalStateException("This walker already walked. Create a new one if you want to walk again");
         root = this;
-        walked = new ObjectOpenHashSet<>();
+        walked = new OpenCacheHashSet<>();
         int i = 0;
         running = true;
         while (running && !walk() && i++ < maxWalks);

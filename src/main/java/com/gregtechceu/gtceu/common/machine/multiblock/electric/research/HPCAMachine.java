@@ -49,7 +49,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -236,8 +236,8 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         private final HPCAMachine controller;
         // structure info
         private final List<IHPCAComponentHatch> components = new ObjectArrayList<>();
-        private final Set<IHPCACoolantProvider> coolantProviders = new ObjectOpenHashSet<>();
-        private final Set<IHPCAComputationProvider> computationProviders = new ObjectOpenHashSet<>();
+        private final Set<IHPCACoolantProvider> coolantProviders = new ReferenceOpenHashSet<>();
+        private final Set<IHPCAComputationProvider> computationProviders = new ReferenceOpenHashSet<>();
         private int numBridges;
         // transaction info
         /**

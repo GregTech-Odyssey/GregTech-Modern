@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -44,7 +45,6 @@ import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import net.minecraftforge.fluids.capability.wrappers.BucketPickupHandlerWrapper;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 import java.util.*;
 
@@ -59,7 +59,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
     public static final int BASE_PUMP_RADIUS = 16;
     public static final int EXTRA_PUMP_RADIUS = 4;
     public static final int PUMP_SPEED_BASE = 80;
-    private final Set<BlockPos> forbiddenBlocks = new ObjectOpenHashSet<>();
+    private final Set<BlockPos> forbiddenBlocks = new OpenCacheHashSet<>();
     private PumpQueue pumpQueue = null;
     @Persisted
     private int pumpHeadY;
@@ -249,7 +249,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
      * one that has a source at a higher location. If it cannot find one, it will return the original path.
      */
     private PumpQueue buildPumpQueue(Level level, BlockPos headPos, FluidType fluidType, int queueSourceAmount, boolean upSources) {
-        Set<BlockPos> checked = new ObjectOpenHashSet<>();
+        Set<BlockPos> checked = new OpenCacheHashSet<>();
         BlockPos headPosBelow = headPos.below();
         checked.add(headPos);
         checked.add(headPosBelow);

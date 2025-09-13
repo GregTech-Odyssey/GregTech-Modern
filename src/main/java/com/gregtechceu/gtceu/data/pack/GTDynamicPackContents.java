@@ -1,10 +1,11 @@
 package com.gregtechceu.gtceu.data.pack;
 
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
+
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.resources.IoSupplier;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
@@ -26,7 +27,7 @@ public class GTDynamicPackContents {
         /**
          * Holds either a IoSupplier<InputStream> with the data for a given location, or a map of string -> Node.
          */
-        Object contents = new Object2ObjectOpenHashMap<>();
+        Object contents = new O2OOpenCacheHashMap<>();
 
         void collectResources(String namespace, String[] pathComponents, int curIndex,
                               PackResources.ResourceOutput output) {

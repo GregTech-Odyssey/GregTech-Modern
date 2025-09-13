@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.utils.PosUtils;
 import com.gregtechceu.gtceu.utils.WeightedEntry;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -25,7 +26,6 @@ import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.util.*;
@@ -58,7 +58,7 @@ public class WorldGeneratorUtils {
     private static class WorldOreVeinCache {
 
         private final List<GTOreDefinition> worldVeins;
-        private final Map<Holder<Biome>, List<WeightedVein>> biomeVeins = new Object2ObjectOpenHashMap<>();
+        private final Map<Holder<Biome>, List<WeightedVein>> biomeVeins = new O2OOpenCacheHashMap<>();
 
         public WorldOreVeinCache(ServerLevel level) {
             this.worldVeins = GTRegistries.ORE_VEINS.values().stream()
