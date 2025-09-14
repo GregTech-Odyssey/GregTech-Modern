@@ -175,6 +175,7 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
         CompoundTag nbt = new CompoundTag();
         nbt.put("Items", nbtTagList);
         nbt.putInt("Size", size);
+        nbt.putBoolean("il", isInputLimited);
         return nbt;
     }
 
@@ -190,6 +191,7 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
                 stacks[slot] = ItemStack.of(itemTags);
             }
         }
+        isInputLimited = nbt.getBoolean("il");
     }
 
     @Override

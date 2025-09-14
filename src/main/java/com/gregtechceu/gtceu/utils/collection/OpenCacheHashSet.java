@@ -35,8 +35,7 @@ public class OpenCacheHashSet<K> extends ObjectOpenHashSet<K> {
     }
 
     public OpenCacheHashSet(final Collection<? extends K> c) {
-        super(c, DEFAULT_LOAD_FACTOR);
-        hash = new int[n + 1];
+        this(c, DEFAULT_LOAD_FACTOR);
     }
 
     public OpenCacheHashSet(final ObjectCollection<? extends K> c, final float f) {
@@ -46,8 +45,7 @@ public class OpenCacheHashSet<K> extends ObjectOpenHashSet<K> {
     }
 
     public OpenCacheHashSet(final ObjectCollection<? extends K> c) {
-        super(c, DEFAULT_LOAD_FACTOR);
-        hash = new int[n + 1];
+        this(c, DEFAULT_LOAD_FACTOR);
     }
 
     public OpenCacheHashSet(final Iterator<? extends K> i, final float f) {
@@ -57,23 +55,26 @@ public class OpenCacheHashSet<K> extends ObjectOpenHashSet<K> {
     }
 
     public OpenCacheHashSet(final Iterator<? extends K> i) {
-        super(i, DEFAULT_LOAD_FACTOR);
+        this(i, DEFAULT_LOAD_FACTOR);
+    }
+
+    public OpenCacheHashSet(final K[] a, final int offset, final int length, final float f) {
+        super(Math.max(length, 0), f);
         hash = new int[n + 1];
+        ObjectArrays.ensureOffsetLength(a, offset, length);
+        for (int i = 0; i < length; i++) add(a[offset + i]);
     }
 
     public OpenCacheHashSet(final K[] a, final int offset, final int length) {
-        super(a, offset, length, DEFAULT_LOAD_FACTOR);
-        hash = new int[n + 1];
+        this(a, offset, length, DEFAULT_LOAD_FACTOR);
     }
 
     public OpenCacheHashSet(final K[] a, final float f) {
-        super(a, 0, a.length, f);
-        hash = new int[n + 1];
+        this(a, 0, a.length, f);
     }
 
     public OpenCacheHashSet(final K[] a) {
-        super(a, DEFAULT_LOAD_FACTOR);
-        hash = new int[n + 1];
+        this(a, 0, a.length, DEFAULT_LOAD_FACTOR);
     }
 
     private int realSize() {
@@ -91,10 +92,10 @@ public class OpenCacheHashSet<K> extends ObjectOpenHashSet<K> {
             final K[] key = this.key;
             final int[] hash = this.hash;
             int pos, ch;
-            if (!((curr = key[pos = HashCommon.mix(h) & mask]) == null)) {
+            if ((curr = key[pos = HashCommon.mix(h) & mask]) != null) {
                 ch = hash[pos];
                 do if (ch == h && curr.equals(k)) return false;
-                while (!((curr = key[pos = (pos + 1) & mask]) == null));
+                while ((curr = key[pos = (pos + 1) & mask]) != null);
             }
             key[pos] = k;
             hash[pos] = h;
@@ -114,10 +115,10 @@ public class OpenCacheHashSet<K> extends ObjectOpenHashSet<K> {
             final K[] key = this.key;
             final int[] hash = this.hash;
             int pos, ch;
-            if (!((curr = key[pos = HashCommon.mix(h) & mask]) == null)) {
+            if ((curr = key[pos = HashCommon.mix(h) & mask]) != null) {
                 ch = hash[pos];
                 do if (ch == h && curr.equals(k)) return curr;
-                while (!((curr = key[pos = (pos + 1) & mask]) == null));
+                while ((curr = key[pos = (pos + 1) & mask]) != null);
             }
             key[pos] = k;
             hash[pos] = h;
@@ -164,7 +165,7 @@ public class OpenCacheHashSet<K> extends ObjectOpenHashSet<K> {
 
     @Override
     public boolean remove(final Object k) {
-        if ((k == null)) {
+        if (k == null) {
             if (containsNull) return removeNullEntry();
             return false;
         }
@@ -246,7 +247,7 @@ public class OpenCacheHashSet<K> extends ObjectOpenHashSet<K> {
             while ((k = key[--i]) == null);
             h = hash[i];
             pos = HashCommon.mix(h) & mask;
-            if (!(newKey[pos] == null)) while (!((newKey[pos = (pos + 1) & mask]) == null));
+            if (newKey[pos] != null) while ((newKey[pos = (pos + 1) & mask]) != null);
             newKey[pos] = k;
             newHash[pos] = h;
         }
@@ -270,7 +271,7 @@ public class OpenCacheHashSet<K> extends ObjectOpenHashSet<K> {
         final K[] key = this.key;
         final int[] hash = this.hash;
         for (int j = realSize(), i = 0; j-- != 0;) {
-            while (((key[i]) == null)) i++;
+            while (key[i] == null) i++;
             if (this != key[i]) h += hash[i];
             i++;
         }
@@ -304,7 +305,7 @@ public class OpenCacheHashSet<K> extends ObjectOpenHashSet<K> {
                     last = Integer.MIN_VALUE;
                     return wrapped.get(-pos - 1);
                 }
-                if (!((key[pos]) == null)) return key[last = pos];
+                if (key[pos] != null) return key[last = pos];
             }
         }
 
@@ -366,7 +367,7 @@ public class OpenCacheHashSet<K> extends ObjectOpenHashSet<K> {
                     last = Integer.MIN_VALUE;
                     action.accept(wrapped.get(-pos - 1));
                     c--;
-                } else if (!((key[pos]) == null)) {
+                } else if (key[pos] != null) {
                     action.accept(key[last = pos]);
                     c--;
                 }
@@ -402,7 +403,7 @@ public class OpenCacheHashSet<K> extends ObjectOpenHashSet<K> {
             }
             final K[] key = OpenCacheHashSet.this.key;
             while (pos < max) {
-                if (!((key[pos]) == null)) {
+                if (key[pos] != null) {
                     ++c;
                     action.accept(key[pos++]);
                     return true;
@@ -422,7 +423,7 @@ public class OpenCacheHashSet<K> extends ObjectOpenHashSet<K> {
                 ++c;
             }
             while (pos < max) {
-                if (!((key[pos]) == null)) {
+                if (key[pos] != null) {
                     action.accept(key[pos]);
                     ++c;
                 }
@@ -469,7 +470,7 @@ public class OpenCacheHashSet<K> extends ObjectOpenHashSet<K> {
             }
             final K[] key = OpenCacheHashSet.this.key;
             while (pos < max && n > 0) {
-                if (!((key[pos++]) == null)) {
+                if (key[pos++] != null) {
                     ++skipped;
                     --n;
                 }

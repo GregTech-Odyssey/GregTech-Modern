@@ -200,7 +200,7 @@ public class O2OOpenCustomCacheHashMap<K, V> extends Object2ObjectOpenCustomHash
         K fk = (K) k;
         final K[] key = this.key;
         final int[] hash = this.hash;
-        final int h = strategy.hashCode(fk);;
+        final int h = strategy.hashCode(fk);
         int pos;
         if ((curr = key[pos = HashCommon.mix(h) & mask]) == null) return defaultValue;
         if (hash[pos] == h && strategy.equals(fk, curr)) return value[pos];
@@ -237,7 +237,7 @@ public class O2OOpenCustomCacheHashMap<K, V> extends Object2ObjectOpenCustomHash
         K fk = (K) k;
         final K[] key = this.key;
         final int[] hash = this.hash;
-        final int h = strategy.hashCode(fk);;
+        final int h = strategy.hashCode(fk);
         int pos;
         if ((curr = key[pos = HashCommon.mix(h) & mask]) == null) return false;
         if (hash[pos] == h && strategy.equals(fk, curr) && Objects.equals(v, value[pos])) {

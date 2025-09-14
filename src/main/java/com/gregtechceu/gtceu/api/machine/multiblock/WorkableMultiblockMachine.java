@@ -24,6 +24,8 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Block;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -65,6 +67,10 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Persisted
     @DescSynced
     protected VoidingMode voidingMode = VoidingMode.VOID_NONE;
+
+    @DescSynced
+    protected boolean activated;
+    protected boolean previouslyActivated = true;
 
     public WorkableMultiblockMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder);
@@ -132,7 +138,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void onStructureInvalid() {
         super.onStructureInvalid();
-        updateActiveBlocks(false);
         activeBlocks.clear();
         capabilitiesProxy.clear();
         capabilitiesFlat.clear();
@@ -145,7 +150,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void onPartUnload() {
         super.onPartUnload();
-        updateActiveBlocks(false);
         activeBlocks.clear();
         capabilitiesProxy.clear();
         capabilitiesFlat.clear();
@@ -167,6 +171,11 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
             previouslyMuffled = isMuffled;
             if (recipeLogic != null) recipeLogic.updateSound();
         }
+        boolean ac = activated || (isFormed && getRecipeLogic().isWorking());
+        if (ac != previouslyActivated) {
+            previouslyActivated = ac;
+            updateActiveBlocks(ac);
+        }
     }
 
     @Nullable
@@ -184,24 +193,17 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         return self().getDefinition().getRecipeModifier().applyModifier(self(), recipe);
     }
 
-    public void updateActiveBlocks(boolean active) {
+    @OnlyIn(Dist.CLIENT)
+    protected void updateActiveBlocks(boolean active) {
         for (long pos : activeBlocks) {
             var blockPos = BlockPos.of(pos);
             var blockState = getLevel().getBlockState(blockPos);
             if (blockState.hasProperty(ActiveBlock.ACTIVE)) {
                 var newState = blockState.setValue(ActiveBlock.ACTIVE, active);
                 if (newState != blockState) {
-                    getLevel().setBlock(blockPos, newState, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+                    getLevel().setBlock(blockPos, newState, Block.UPDATE_KNOWN_SHAPE);
                 }
             }
-        }
-    }
-
-    @Override
-    public void notifyStatusChanged(RecipeLogic.Status oldStatus, RecipeLogic.Status newStatus) {
-        IWorkableMultiController.super.notifyStatusChanged(oldStatus, newStatus);
-        if (isRemote()) {
-            updateActiveBlocks(newStatus == RecipeLogic.Status.WORKING);
         }
     }
 
