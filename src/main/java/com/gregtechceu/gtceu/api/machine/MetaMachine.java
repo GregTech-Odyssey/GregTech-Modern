@@ -274,7 +274,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
                         waitingToAdd.clear();
                     }
                     if (serverTicks.isEmpty()) {
-                        serverTickSubscription.unsubscribe();
+                        if (serverTickSubscription != null) serverTickSubscription.unsubscribe();
                         averageTickTime = 0;
                     } else {
                         offsetTimer = holder.getOffsetTimer();

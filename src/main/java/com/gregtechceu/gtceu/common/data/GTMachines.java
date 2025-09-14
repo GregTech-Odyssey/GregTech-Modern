@@ -287,11 +287,6 @@ public class GTMachines {
     public static final MachineDefinition[] HI_AMP_TRANSFORMER_4A = registerTransformerMachines("Hi-Amp (4x) ", 4);
     public static final MachineDefinition[] POWER_TRANSFORMER = registerTransformerMachines("Power ", 16);
 
-    public static final MachineDefinition[] ENERGY_CONVERTER_1A = registerConverter(1);
-    public static final MachineDefinition[] ENERGY_CONVERTER_4A = registerConverter(4);
-    public static final MachineDefinition[] ENERGY_CONVERTER_8A = registerConverter(8);
-    public static final MachineDefinition[] ENERGY_CONVERTER_16A = registerConverter(16);
-
     public static final MachineDefinition LONG_DIST_ITEM_ENDPOINT = REGISTRATE
             .machine("long_distance_item_pipeline_endpoint", LDItemEndpointMachine::new)
             .langValue("Long Distance Item Pipeline Endpoint")
