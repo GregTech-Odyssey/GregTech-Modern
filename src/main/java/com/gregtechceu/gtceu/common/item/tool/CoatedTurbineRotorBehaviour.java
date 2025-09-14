@@ -1,8 +1,11 @@
 package com.gregtechceu.gtceu.common.item.tool;
 
+import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
+import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
-import com.gregtechceu.gtceu.api.item.component.IMaterialPartItem;
+import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
+import com.gregtechceu.gtceu.api.item.component.ITurbineRotorBehavior;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.item.TurbineRotorBehaviour;
 
@@ -20,7 +23,7 @@ import java.util.List;
 
 import static com.gregtechceu.gtceu.common.item.GTTurbineItem.getRotorMaxDamage;
 
-public class CoatedTurbineRotorBehaviour extends TurbineRotorBehaviour implements IMaterialPartItem {
+public class CoatedTurbineRotorBehaviour extends TurbineRotorBehaviour implements ITurbineRotorBehavior {
 
     private final RandomSource rd = RandomSource.create();
 
@@ -30,15 +33,24 @@ public class CoatedTurbineRotorBehaviour extends TurbineRotorBehaviour implement
         super.appendHoverText(stack, level, tooltipComponents, isAdvanced);
         tooltipComponents
                 .add(Component.translatable("metaitem.tool.tooltip.rotor.coating", getCoatMaterial(stack).getLocalizedName()));
+        int i = 0;
+        boolean isMagic = isCoatingMagical(stack);
         // 机制说明标题
         tooltipComponents
-                .add(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip.0"));
+                .add(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip." + i++ + (isMagic ? ".magic" : "")));
         // 当转子A有镀层B，镀层B的耐久为max(B/10, min(B, A + B/2))，
         tooltipComponents
-                .add(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip.1"));
+                .add(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip." + i++ + (isMagic ? ".magic" : "")));
         // 每次转子损坏时95%概率优先消耗镀层耐久，镀层耐久耗尽后再消耗本体耐久
         tooltipComponents
-                .add(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip.2"));
+                .add(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip." + i++ + (isMagic ? ".magic" : "")));
+        if (isMagic) {
+            tooltipComponents.add(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip.3.magic"));
+        }
+    }
+
+    public static boolean isCoatingMagical(ItemStack itemStack) {
+        return getCoatMaterial(itemStack).hasFlag(MaterialFlags.MAGICAL);
     }
 
     public static Material getCoatMaterial(ItemStack itemStack) {
@@ -53,6 +65,26 @@ public class CoatedTurbineRotorBehaviour extends TurbineRotorBehaviour implement
             return defaultMaterial;
         }
         return material;
+    }
+
+    @Override
+    public int getRotorEfficiency(ItemStack stack) {
+        return super.getRotorEfficiency(stack) + getRotorBonusEfficiency(stack);
+    }
+
+    @Override
+    public int getRotorPower(ItemStack stack) {
+        return super.getRotorPower(stack) + getRotorBonusPower(stack);
+    }
+
+    public int getRotorBonusPower(ItemStack stack) {
+        return (isCoatingMagical(stack) ?
+                (int) ((getCoatMaterial(stack).getProperty(PropertyKey.ROTOR).getPower() - 100) * 0.3f) : 0);
+    }
+
+    public int getRotorBonusEfficiency(ItemStack stack) {
+        return (isCoatingMagical(stack) ?
+                (int) ((getCoatMaterial(stack).getProperty(PropertyKey.ROTOR).getEfficiency() - 100) * 0.3f) : 0);
     }
 
     public static void setCoatMaterial(ItemStack itemStack, Material coating) {
@@ -105,10 +137,29 @@ public class CoatedTurbineRotorBehaviour extends TurbineRotorBehaviour implement
     public void setPartDamage(ItemStack itemStack, int resultDamage) {
         if (resultDamage > getDamage(itemStack) &&
                 getCoatDamage(itemStack) < getCoatMaxDamage(itemStack) &&
-                rd.nextInt(100) < 95) {
+                rd.nextInt(100) < 95 && !isCoatingMagical(itemStack)) {
             setCoatDamage(itemStack, (int) Math.min(getCoatDamage(itemStack) + resultDamage - getDamage(itemStack), getCoatMaxDamage(itemStack)));
             return;
+        } else if (isCoatingMagical(itemStack)) {
+            // 魔法镀层与本体耐久同时损失
+            setCoatDamage(itemStack, (int) (getCoatDamage(itemStack) + resultDamage - getDamage(itemStack)));
         }
         super.setPartDamage(itemStack, resultDamage);
+    }
+
+    @Override
+    public ItemStack applyRotorDamage(ItemStack itemStack, int damageApplied) {
+        var stack = super.applyRotorDamage(itemStack, damageApplied);
+        if (!stack.isEmpty() && getCoatDamage(itemStack) >= getCoatMaxDamage(itemStack)) {
+            return removePlating(stack);
+        }
+        return stack;
+    }
+
+    private ItemStack removePlating(ItemStack itemStack) {
+        var damage = getPartDamage(itemStack);
+        var newItem = ChemicalHelper.get(TagPrefix.turbineRotor, getPartMaterial(itemStack));
+        newItem.setDamageValue(damage);
+        return newItem;
     }
 }

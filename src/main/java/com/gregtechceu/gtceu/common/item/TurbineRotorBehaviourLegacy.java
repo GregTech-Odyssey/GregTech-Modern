@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 @Deprecated
-public class TurbineRotorBehaviourLegacy implements IMaterialPartItem {
+public class TurbineRotorBehaviourLegacy implements ITurbineRotorBehavior {
 
     public int getRotorPower(ItemStack stack) {
         var property = getPartMaterial(stack).getProperty(PropertyKey.ROTOR);
@@ -40,7 +40,7 @@ public class TurbineRotorBehaviourLegacy implements IMaterialPartItem {
     @Override
     public void appendHoverText(ItemStack stack, @org.jetbrains.annotations.Nullable Level level,
                                 List<Component> tooltipComponents, TooltipFlag isAdvanced) {
-        IMaterialPartItem.super.appendHoverText(stack, level, tooltipComponents, isAdvanced);
+        ITurbineRotorBehavior.super.appendHoverText(stack, level, tooltipComponents, isAdvanced);
         tooltipComponents
                 .add(Component.translatable("metaitem.tool.tooltip.rotor.efficiency", getRotorEfficiency(stack)));
         tooltipComponents.add(Component.translatable("metaitem.tool.tooltip.rotor.power", getRotorPower(stack)));

@@ -133,8 +133,7 @@ public interface IRotorHolderMachine extends IMultiPart {
         var stack = getRotorStack();
         var behavior = TurbineRotorBehaviour.getBehaviour(stack);
         if (behavior != null) {
-            behavior.applyRotorDamage(stack, damageAmount);
-            setRotorStack(stack);
+            setRotorStack(behavior.applyRotorDamage(stack, damageAmount));
         }
     }
 
