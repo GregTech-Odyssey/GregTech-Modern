@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public interface IMaterialPartItem extends IDurabilityBar, IAddInformation, ICustomDescriptionId {
+public interface ITurbineRotorBehavior extends IDurabilityBar, IAddInformation, ICustomDescriptionId {
 
     int getPartMaxDurability(ItemStack itemStack);
 
@@ -69,7 +69,7 @@ public interface IMaterialPartItem extends IDurabilityBar, IAddInformation, ICus
         return (itemStack, i) -> {
             if (itemStack.getItem() instanceof IComponentItem componentItem) {
                 for (IItemComponent component : componentItem.getComponents()) {
-                    if (component instanceof IMaterialPartItem materialPartItem) {
+                    if (component instanceof ITurbineRotorBehavior materialPartItem) {
                         return materialPartItem.getPartMaterial(itemStack).getMaterialARGB();
                     }
                 }

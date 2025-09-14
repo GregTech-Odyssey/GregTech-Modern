@@ -2192,7 +2192,7 @@ public class GTItems {
             .lang("%s Turbine Rotor")
             .properties(p -> p.stacksTo(1))
             .model((ctx, prov) -> createTextureModel(ctx, prov, GTCEu.id("item/material_sets/dull/turbine_rotor")))
-            .color(() -> IMaterialPartItem::getItemStackColor)
+            .color(() -> ITurbineRotorBehavior::getItemStackColor)
             .onRegister(attach(new TurbineRotorBehaviourLegacy())).register();
 
     public static ItemEntry<Item> NEURO_PROCESSOR = REGISTRATE.item("neuro_processing_unit", Item::new)

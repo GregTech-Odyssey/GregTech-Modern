@@ -263,6 +263,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
      */
     @Nullable
     public TickableSubscription subscribeServerTick(Runnable runnable) {
+        if (holder.isRemoved()) return null;
         if (getLevel() instanceof ServerLevel serverLevel) {
             var subscription = new TickableSubscription(runnable);
             waitingToAdd.add(subscription);

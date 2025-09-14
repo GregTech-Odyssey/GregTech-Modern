@@ -314,4 +314,10 @@ public class MaterialFlags {
     public static final MaterialFlag HIGH_SIFTER_OUTPUT = new MaterialFlag.Builder("high_sifter_output")
             .requireProps(PropertyKey.GEM, PropertyKey.ORE)
             .build();
+
+    ///////////////////
+    // SPECIAL //
+    ///////////////////
+    public static final MaterialFlag MAGICAL = new MaterialFlag.Builder("magical")
+            .build();
 }
