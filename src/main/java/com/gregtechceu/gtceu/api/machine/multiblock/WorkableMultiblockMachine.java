@@ -70,7 +70,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @DescSynced
     protected boolean activated;
-    protected boolean previouslyActivated = true;
+    protected Boolean previouslyActivated = null;
 
     public WorkableMultiblockMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder);
@@ -91,8 +91,15 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     }
 
     @Override
+    public void onLoad() {
+        super.onLoad();
+        previouslyActivated = null;
+    }
+
+    @Override
     public void onUnload() {
         super.onUnload();
+        previouslyActivated = null;
         traitSubscriptions.forEach(ISubscription::unsubscribe);
         traitSubscriptions.clear();
     }
@@ -172,7 +179,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
             if (recipeLogic != null) recipeLogic.updateSound();
         }
         boolean ac = activated || (isFormed && getRecipeLogic().isWorking());
-        if (ac != previouslyActivated) {
+        if (previouslyActivated == null || ac != previouslyActivated) {
             previouslyActivated = ac;
             updateActiveBlocks(ac);
         }

@@ -44,6 +44,13 @@ public class CustomFluidTank extends FluidTank implements IFluidHandlerModifiabl
     }
 
     @Override
+    public CompoundTag writeToNBT(CompoundTag nbt) {
+        if (fluid.isEmpty()) return nbt;
+        fluid.writeToNBT(nbt);
+        return nbt;
+    }
+
+    @Override
     public CompoundTag serializeNBT() {
         return writeToNBT(new CompoundTag());
     }
