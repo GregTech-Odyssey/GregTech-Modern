@@ -32,6 +32,12 @@ public class LampBlockItem extends BlockItem implements IItemRendererProvider {
         return (LampBlock) super.getBlock();
     }
 
+    @NotNull
+    @Override
+    public ItemStack getDefaultInstance() {
+        return getBlock().getStackFromIndex(0);
+    }
+
     @Nullable
     @Override
     protected BlockState getPlacementState(BlockPlaceContext context) {

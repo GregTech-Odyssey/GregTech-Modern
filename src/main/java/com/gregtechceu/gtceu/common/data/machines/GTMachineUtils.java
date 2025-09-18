@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.compat.FeCompat;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
@@ -33,7 +32,6 @@ import com.gregtechceu.gtceu.common.block.BoilerFireboxType;
 import com.gregtechceu.gtceu.common.data.*;
 import com.gregtechceu.gtceu.common.machine.electric.BatteryBufferMachine;
 import com.gregtechceu.gtceu.common.machine.electric.ChargerMachine;
-import com.gregtechceu.gtceu.common.machine.electric.ConverterMachine;
 import com.gregtechceu.gtceu.common.machine.electric.TransformerMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.MultiblockTankMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.generator.LargeCombustionEngineMachine;
@@ -79,7 +77,6 @@ import static com.gregtechceu.gtceu.api.GTValues.*;
 import static com.gregtechceu.gtceu.api.capability.recipe.IO.IN;
 import static com.gregtechceu.gtceu.api.pattern.Predicates.*;
 import static com.gregtechceu.gtceu.common.data.GTBlocks.ALL_FIREBOXES;
-import static com.gregtechceu.gtceu.common.data.GTCreativeModeTabs.MACHINE;
 import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.DUMMY_RECIPES;
 import static com.gregtechceu.gtceu.common.machine.storage.QuantumTankMachine.TANK_CAPACITY;
 import static com.gregtechceu.gtceu.common.registry.GTRegistration.REGISTRATE;
@@ -297,37 +294,6 @@ public class GTMachineUtils {
                                         itemSlotSize * ChargerMachine.AMPS_PER_ITEM))
                         .register(),
                 ALL_TIERS);
-    }
-
-    public static MachineDefinition[] registerConverter(int amperage) {
-        if (!ConfigHolder.INSTANCE.compat.energy.enableFEConverters) {
-            REGISTRATE.creativeModeTab(() -> null);
-        }
-
-        MachineDefinition[] converters = registerTieredMachines(amperage + "a_energy_converter",
-                (holder, tier) -> new ConverterMachine(holder, tier, amperage),
-                (tier, builder) -> builder
-                        .allRotation()
-                        .langValue("%s %s§eA§r Energy Converter".formatted(VCF[tier] + VN[tier] + ChatFormatting.RESET,
-                                amperage))
-                        .renderer(() -> new ConverterRenderer(tier, amperage))
-                        .tooltips(Component.translatable("gtceu.machine.energy_converter.description"),
-                                Component.translatable("gtceu.machine.energy_converter.tooltip_tool_usage"),
-                                Component.translatable("gtceu.machine.energy_converter.tooltip_conversion_native",
-                                        FeCompat.toFeLong(V[tier] * amperage,
-                                                FeCompat.ratio(true)),
-                                        amperage, V[tier], GTValues.VNF[tier]),
-                                Component.translatable("gtceu.machine.energy_converter.tooltip_conversion_eu", amperage,
-                                        V[tier], GTValues.VNF[tier],
-                                        FeCompat.toFeLong(V[tier] * amperage,
-                                                FeCompat.ratio(false))))
-                        .register(),
-                ALL_TIERS);
-
-        if (!ConfigHolder.INSTANCE.compat.energy.enableFEConverters) {
-            REGISTRATE.creativeModeTab(() -> MACHINE);
-        }
-        return converters;
     }
 
     public static MachineDefinition[] registerLaserHatch(IO io, int amperage, PartAbility ability) {

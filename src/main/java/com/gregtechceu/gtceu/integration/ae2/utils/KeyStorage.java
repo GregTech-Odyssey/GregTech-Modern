@@ -76,6 +76,7 @@ public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAwar
         try {
             for (Object2LongMap.Entry<AEKey> entry : this) {
                 var tag = new CompoundTag();
+                if (entry == null) continue;
                 tag.put("key", entry.getKey().toTagGeneric());
                 tag.putLong("value", entry.getLongValue());
                 list.add(tag);
@@ -91,6 +92,7 @@ public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAwar
         for (int i = 0; i < tags.size(); i++) {
             var tag = tags.getCompound(i);
             var key = AEKey.fromTagGeneric(tag.getCompound("key"));
+            if (key == null) continue;
             long value = tag.getLong("value");
             lock.lock();
             try {
