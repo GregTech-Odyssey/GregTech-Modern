@@ -72,7 +72,7 @@ public class TagItemFilter extends TagFilter<ItemStack, ItemFilter> implements I
         return false;
     }
 
-    protected static class PhantomSlot extends PhantomSlotWidget implements StackHandlerWidget<ItemStack, ItemFilter> {
+    public static class PhantomSlot extends PhantomSlotWidget implements StackHandlerWidget<ItemStack, ItemFilter> {
 
         final CustomItemStackHandler handler;
 

@@ -74,7 +74,7 @@ public class TagFluidFilter extends TagFilter<FluidStack, FluidFilter> implement
         return false;
     }
 
-    protected static class TankSlot extends ScrollablePhantomFluidWidget implements StackHandlerWidget<FluidStack, FluidFilter> {
+    public static class TankSlot extends ScrollablePhantomFluidWidget implements StackHandlerWidget<FluidStack, FluidFilter> {
 
         CustomFluidTank fluidTank;
 
