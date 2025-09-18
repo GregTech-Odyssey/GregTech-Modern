@@ -291,9 +291,9 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
                         }
                         if (observe) {
                             totaTickCount += System.nanoTime() - currentTime;
-                            if (offsetTimer % 40 == 0) {
+                            if ((offsetTimer & 127) == 0) {
                                 this.observe = false;
-                                averageTickTime = (int) (totaTickCount / 40000);
+                                averageTickTime = (int) (totaTickCount / 128000);
                                 totaTickCount = 0;
                             }
                             if (OBSERVE) PERFORMANCE_MAP.put(this, averageTickTime);

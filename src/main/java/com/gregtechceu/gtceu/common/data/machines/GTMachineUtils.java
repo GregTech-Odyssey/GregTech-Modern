@@ -431,7 +431,7 @@ public class GTMachineUtils {
                         .aisle("CCC", "CCC", "CCC")
                         .aisle("CCC", "C#C", "CCC")
                         .aisle("CCC", "CSC", "CCC")
-                        .where('S', controller(blocks(definition.get())))
+                        .where('S', controller(definition))
                         .where('C', blocks(casing.get())
                                 .or(blocks(valve.get()).setMaxGlobalLimited(2, 0)))
                         .where('#', air())
@@ -503,7 +503,7 @@ public class GTMachineUtils {
                             .aisle("XXX", "CCC", "CCC", "CCC")
                             .aisle("XXX", "CPC", "CPC", "CCC")
                             .aisle("XXX", "CSC", "CCC", "CCC")
-                            .where('S', Predicates.controller(blocks(definition.getBlock())))
+                            .where('S', Predicates.controller(definition))
                             .where('P', blocks(pipe.get()))
                             .where('X', fireboxPred)
                             .where('C', blocks(casing.get()).setMinGlobalLimited(20)
@@ -557,7 +557,7 @@ public class GTMachineUtils {
                         .where('A',
                                 blocks(intake.get())
                                         .addTooltips(Component.translatable("gtceu.multiblock.pattern.clear_amount_1")))
-                        .where('Y', controller(blocks(definition.getBlock())))
+                        .where('Y', controller(definition))
                         .build())
                 .recoveryItems(
                         () -> GTMaterialItems.MATERIAL_ITEMS.get(TagPrefix.dustTiny, GTMaterials.Ash).get())
@@ -598,7 +598,7 @@ public class GTMachineUtils {
                         .aisle("CCCC", "CHHC", "CCCC")
                         .aisle("CHHC", "RGGR", "CHHC")
                         .aisle("CCCC", "CSHC", "CCCC")
-                        .where('S', controller(blocks(definition.getBlock())))
+                        .where('S', controller(definition))
                         .where('G', blocks(gear.get()))
                         .where('C', blocks(casing.get()))
                         .where('R',

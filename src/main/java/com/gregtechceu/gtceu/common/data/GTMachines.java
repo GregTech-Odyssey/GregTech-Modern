@@ -877,6 +877,13 @@ public class GTMachines {
             .overlayTieredHullRenderer("reservoir_hatch")
             .register();
 
+    public static final MachineDefinition CONTROL_HATCH = REGISTRATE
+            .machine("control_hatch", ControlPartMachine::new)
+            .allRotation()
+            .tier(2)
+            .overlayTieredHullRenderer("hull")
+            .register();
+
     public static final MachineDefinition[] DUAL_IMPORT_HATCH = registerTieredMachines(
             "dual_input_hatch",
             (holder, tier) -> new DualHatchPartMachine(holder, tier, IN),

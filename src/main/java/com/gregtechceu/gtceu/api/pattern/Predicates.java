@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
+import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblock.IBatteryData;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.pattern.error.PatternStringError;
@@ -20,6 +21,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.common.block.BatteryBlock;
 import com.gregtechceu.gtceu.common.block.CoilBlock;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
+import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.PowerSubstationMachine;
 import com.gregtechceu.gtceu.config.ConfigHolder;
@@ -45,6 +47,10 @@ import java.util.function.Supplier;
 import static com.gregtechceu.gtceu.common.machine.multiblock.electric.PowerSubstationMachine.PMC_BATTERY_HEADER;
 
 public class Predicates {
+
+    public static TraceabilityPredicate controller(MachineDefinition definition) {
+        return blocks(definition.getBlock()).setController();
+    }
 
     public static TraceabilityPredicate controller(TraceabilityPredicate predicate) {
         return predicate.setController();
@@ -102,7 +108,7 @@ public class Predicates {
                                                       boolean checkItemOut,
                                                       boolean checkFluidIn,
                                                       boolean checkFluidOut) {
-        TraceabilityPredicate predicate = new TraceabilityPredicate();
+        TraceabilityPredicate predicate = blocks(GTMachines.CONTROL_HATCH.getBlock());
 
         if (checkEnergyIn) {
             for (var type : recipeType) {
