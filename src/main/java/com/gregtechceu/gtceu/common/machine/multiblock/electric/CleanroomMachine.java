@@ -386,7 +386,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         // very center floor, needed for height check
         // walls
         // floor edges
-        FactoryBlockPattern.start(LEFT, FRONT, UP).aisle(f).aisle(m).setRepeatable(wallLayers.size()).aisle(c).where('C', Predicates.controller(Predicates.blocks(this.getDefinition().get()))).where('F', Predicates.cleanroomFilters()).where('D', blocks(getCasingState())).where(' ', INNER_PREDICATE).where('E', wallPredicate.or(basePredicate).or(getValidFloorBlocks().setMaxGlobalLimited(4))).where('K', wallPredicate.or(getValidFloorBlocks())).where('W', wallPredicate.or(basePredicate).or(doorPredicate().setMaxGlobalLimited(8))).where('A', wallPredicate.or(basePredicate)).build();
+        FactoryBlockPattern.start(LEFT, FRONT, UP).aisle(f).aisle(m).setRepeatable(wallLayers.size()).aisle(c).where('C', Predicates.controller(getDefinition())).where('F', Predicates.cleanroomFilters()).where('D', blocks(getCasingState())).where(' ', INNER_PREDICATE).where('E', wallPredicate.or(basePredicate).or(getValidFloorBlocks().setMaxGlobalLimited(4))).where('K', wallPredicate.or(getValidFloorBlocks())).where('W', wallPredicate.or(basePredicate).or(doorPredicate().setMaxGlobalLimited(8))).where('A', wallPredicate.or(basePredicate)).build();
     }
 
     // protected to allow easy addition of addon "cleanrooms"
