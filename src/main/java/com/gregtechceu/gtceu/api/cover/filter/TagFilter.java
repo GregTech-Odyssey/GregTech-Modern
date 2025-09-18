@@ -178,7 +178,7 @@ public abstract class TagFilter<T, S extends Filter<T, S>> implements Filter<T, 
         return this.oreDictFilterExpression;
     }
 
-    protected interface StackHandlerWidget<STACK, FILTER extends Filter<STACK, FILTER>> {
+    public interface StackHandlerWidget<STACK, FILTER extends Filter<STACK, FILTER>> {
 
         STACK getStack();
 
