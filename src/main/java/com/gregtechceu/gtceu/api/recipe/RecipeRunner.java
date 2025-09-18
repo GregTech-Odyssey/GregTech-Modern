@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import static com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerGroupDistinctness.BUS_DISTINCT;
 import static com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerGroupDistinctness.BYPASS_DISTINCT;
@@ -48,8 +49,9 @@ public class RecipeRunner {
     }
 
     @NotNull
-    public ActionResult handle(Map<RecipeCapability<?>, List<Content>> entries) {
-        fillContentMatchList(entries);
+    public ActionResult handle(Map<RecipeCapability<?>, List<Content>> entries,
+                               Predicate<RecipeCapability<?>> canVoid) {
+        fillContentMatchList(entries, canVoid);
 
         if (searchRecipeContents.isEmpty()) {
             return ActionResult.PASS_NO_CONTENTS;
@@ -61,13 +63,15 @@ public class RecipeRunner {
     /**
      * Populates the content match list to know if conditions are satisfied.
      */
-    private void fillContentMatchList(Map<RecipeCapability<?>, List<Content>> entries) {
+    private void fillContentMatchList(Map<RecipeCapability<?>, List<Content>> entries,
+                                      Predicate<RecipeCapability<?>> canVoid) {
         ChanceBoostFunction function = recipe.getType().getChanceFunction();
         int recipeTier = RecipeHelper.getPreOCRecipeEuTier(recipe);
         int chanceTier = recipeTier + recipe.ocLevel;
         for (var entry : entries.entrySet()) {
             RecipeCapability<?> cap = entry.getKey();
             if (!cap.doMatchInRecipe()) continue;
+            if (simulated && io == IO.OUT && canVoid.test(cap)) continue;
 
             ChanceLogic logic = recipe.getChanceLogicForCapability(cap, this.io, this.isTick);
             List<Content> chancedContents = new ArrayList<>();

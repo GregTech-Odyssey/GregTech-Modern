@@ -78,6 +78,12 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Getter
     protected LongSet activeBlocks;
 
+    @Getter
+    @Setter
+    @Persisted
+    @DescSynced
+    protected VoidingMode voidingMode = VoidingMode.VOID_NONE;
+
     public WorkableMultiblockMachine(IMachineBlockEntity holder, Object... args) {
         super(holder);
         this.recipeTypes = getDefinition().getRecipeTypes();

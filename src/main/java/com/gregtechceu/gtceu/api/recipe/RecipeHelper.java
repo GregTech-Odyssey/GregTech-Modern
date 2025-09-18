@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.recipe;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
+import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerGroup;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerGroupColor;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerGroupDistinctness;
@@ -21,6 +22,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.Contract;
@@ -219,7 +221,8 @@ public class RecipeHelper {
                                             Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches,
                                             boolean isTick, boolean simulated) {
         RecipeRunner runner = new RecipeRunner(recipe, io, isTick, holder, chanceCaches, simulated);
-        var result = runner.handle(contents);
+        var result = runner.handle(contents,
+                cap -> holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(cap));
 
         if (result.isSuccess() || result.capability() == null) return result;
 
@@ -281,7 +284,7 @@ public class RecipeHelper {
      * Returns the recipe itself if no valid trim limits are passed
      */
     @Contract(pure = true)
-    public static GTRecipe trimRecipeOutputs(GTRecipe recipe, Object2IntMap<RecipeCapability<?>> trimLimits) {
+    public static GTRecipe trimRecipeOutputs(GTRecipe recipe, Reference2IntMap<RecipeCapability<?>> trimLimits) {
         // Fast return early if no trimming desired
         if (trimLimits.isEmpty() || trimLimits.values().intStream().allMatch(integer -> integer == -1)) {
             return recipe;
@@ -307,7 +310,7 @@ public class RecipeHelper {
      */
     @Contract(pure = true)
     public static Map<RecipeCapability<?>, List<Content>> doTrim(Map<RecipeCapability<?>, List<Content>> current,
-                                                                 Object2IntMap<RecipeCapability<?>> trimLimits) {
+                                                                 Reference2IntMap<RecipeCapability<?>> trimLimits) {
         Map<RecipeCapability<?>, List<Content>> outputs = new Reference2ObjectOpenHashMap<>(current.size());
 
         for (var entry : current.entrySet()) {
