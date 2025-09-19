@@ -79,7 +79,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     protected LongSet activeBlocks;
 
     @Getter
-    @Setter
     @Persisted
     @DescSynced
     protected VoidingMode voidingMode = VoidingMode.VOID_NONE;
@@ -317,5 +316,11 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @VisibleForTesting
     public void setRecipeType(GTRecipeType newType) {
         recipeTypes[activeRecipeType] = newType;
+    }
+
+    @Override
+    public void setVoidingMode(VoidingMode mode) {
+        voidingMode = mode;
+        getRecipeLogic().updateTickSubscription();
     }
 }
