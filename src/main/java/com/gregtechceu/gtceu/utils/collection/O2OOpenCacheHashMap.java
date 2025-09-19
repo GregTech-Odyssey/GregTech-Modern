@@ -727,15 +727,17 @@ public class O2OOpenCacheHashMap<K, V> extends Object2ObjectOpenHashMap<K, V> {
             final Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
             final K k = ((K) e.getKey());
             final V v = ((V) e.getValue());
-            if (((k) == null)) return O2OOpenCacheHashMap.this.containsNullKey && Objects.equals(value[n], v);
+            if (k == null) return O2OOpenCacheHashMap.this.containsNullKey && Objects.equals(value[n], v);
             K curr;
             final K[] key = O2OOpenCacheHashMap.this.key;
+            final int[] hash = O2OOpenCacheHashMap.this.hash;
+            final int h = k.hashCode();
             int pos;
-            if (((curr = key[pos = (HashCommon.mix((k).hashCode())) & mask]) == null)) return false;
-            if (((k).equals(curr))) return Objects.equals(value[pos], v);
+            if ((curr = key[pos = HashCommon.mix(h) & mask]) == null) return false;
+            if (h == hash[pos] && k.equals(curr)) return Objects.equals(value[pos], v);
             while (true) {
-                if (((curr = key[pos = (pos + 1) & mask]) == null)) return false;
-                if (((k).equals(curr))) return Objects.equals(value[pos], v);
+                if ((curr = key[pos = (pos + 1) & mask]) == null) return false;
+                if (h == hash[pos] && k.equals(curr)) return Objects.equals(value[pos], v);
             }
         }
 
@@ -746,7 +748,7 @@ public class O2OOpenCacheHashMap<K, V> extends Object2ObjectOpenHashMap<K, V> {
             final Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
             final K k = ((K) e.getKey());
             final V v = ((V) e.getValue());
-            if (((k) == null)) {
+            if (k == null) {
                 if (containsNullKey && Objects.equals(value[n], v)) {
                     removeNullEntry();
                     return true;
@@ -755,9 +757,11 @@ public class O2OOpenCacheHashMap<K, V> extends Object2ObjectOpenHashMap<K, V> {
             }
             K curr;
             final K[] key = O2OOpenCacheHashMap.this.key;
+            final int[] hash = O2OOpenCacheHashMap.this.hash;
+            final int h = k.hashCode();
             int pos;
-            if (((curr = key[pos = (HashCommon.mix((k).hashCode())) & mask]) == null)) return false;
-            if (((curr).equals(k))) {
+            if ((curr = key[pos = HashCommon.mix(h) & mask]) == null) return false;
+            if (h == hash[pos] && k.equals(curr)) {
                 if (Objects.equals(value[pos], v)) {
                     removeEntry(pos);
                     return true;
@@ -765,8 +769,8 @@ public class O2OOpenCacheHashMap<K, V> extends Object2ObjectOpenHashMap<K, V> {
                 return false;
             }
             while (true) {
-                if (((curr = key[pos = (pos + 1) & mask]) == null)) return false;
-                if (((curr).equals(k))) {
+                if ((curr = key[pos = (pos + 1) & mask]) == null) return false;
+                if (h == hash[pos] && k.equals(curr)) {
                     if (Objects.equals(value[pos], v)) {
                         removeEntry(pos);
                         return true;
