@@ -51,7 +51,8 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
     @NotNull
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         if (cap == GTCapability.CAPABILITY_LASER) {
-            if (getLevel().isClientSide() || (side != null && isConnected(side))) return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> ILaserContainer.DEFAULT));
+            if (getLevel().isClientSide()) return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> ILaserContainer.DEFAULT));
+            if (side != null && !isConnected(side)) return LazyOptional.empty();
             if (handlers.isEmpty()) {
                 initHandlers();
             }
