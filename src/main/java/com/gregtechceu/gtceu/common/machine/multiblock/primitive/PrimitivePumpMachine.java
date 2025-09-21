@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.primitive;
 
+import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
@@ -90,7 +91,7 @@ public class PrimitivePumpMachine extends MultiblockControllerMachine {
     }
 
     private void resetState() {
-        unsubscribe(produceWaterSubscription);
+        ITickSubscription.unsubscribe(produceWaterSubscription);
         hatchModifier = 0;
         fluidTank = null;
     }

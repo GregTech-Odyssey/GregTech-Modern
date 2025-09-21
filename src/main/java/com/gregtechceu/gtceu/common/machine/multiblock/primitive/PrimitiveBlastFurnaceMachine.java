@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.primitive;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
@@ -57,7 +58,7 @@ public class PrimitiveBlastFurnaceMachine extends PrimitiveWorkableMachine imple
     @Override
     public void onUnload() {
         super.onUnload();
-        unsubscribe(hurtSubscription);
+        ITickSubscription.unsubscribe(hurtSubscription);
     }
 
     @Override
@@ -69,7 +70,7 @@ public class PrimitiveBlastFurnaceMachine extends PrimitiveWorkableMachine imple
     @Override
     public void onStructureInvalid() {
         super.onStructureInvalid();
-        unsubscribe(hurtSubscription);
+        ITickSubscription.unsubscribe(hurtSubscription);
     }
 
     @Override

@@ -211,13 +211,11 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     @MustBeInvokedByOverriders
     public void onUnload() {
-        if (serverTickSubscription != null) {
-            serverTickSubscription.unsubscribe();
-        }
+        serverTickSubscription = ITickSubscription.unsubscribe(serverTickSubscription);
         traits.forEach(MachineTrait::onMachineUnLoad);
         coverContainer.onUnload();
         for (TickableSubscription serverTick : serverTicks) {
-            serverTick.unsubscribe();
+            if (serverTick != null) serverTick.unsubscribe();
         }
         serverTicks.clear();
         blockEntityDirectionCache.clearCache();
@@ -226,9 +224,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     @MustBeInvokedByOverriders
     public void onLoad() {
-        if (serverTickSubscription != null) {
-            serverTickSubscription.unsubscribe();
-        }
+        serverTickSubscription = ITickSubscription.unsubscribe(serverTickSubscription);
         serverTicks.clear();
         blockEntityDirectionCache.clearCache();
         clearDirectionCache();
@@ -274,7 +270,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
                         waitingToAdd.clear();
                     }
                     if (serverTicks.isEmpty()) {
-                        if (serverTickSubscription != null) serverTickSubscription.unsubscribe();
+                        serverTickSubscription = ITickSubscription.unsubscribe(serverTickSubscription);
                         averageTickTime = 0;
                     } else {
                         offsetTimer = holder.getOffsetTimer();
@@ -283,9 +279,14 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
                         if (observe) currentTime = System.nanoTime();
                         for (var iter = serverTicks.listIterator(0); iter.hasNext();) {
                             var tickable = iter.next();
+                            if (tickable == null) {
+                                continue;
+                            }
                             if (tickable.isStillSubscribed()) {
                                 tickable.run();
-                            } else {
+                            }
+                            if (holder.isRemoved()) break;
+                            if (!tickable.isStillSubscribed()) {
                                 iter.remove();
                             }
                         }
@@ -299,7 +300,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
                             if (OBSERVE) PERFORMANCE_MAP.put(this, averageTickTime);
                         }
                     }
-                }, () -> serverTickSubscription = null, 0)::unsubscribe;
+                }, () -> serverTickSubscription = null, 0);
             }
             return subscription;
         } else if (getLevel() instanceof DummyWorld) {
@@ -326,12 +327,16 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
             }
             for (var iter = serverTicks.listIterator(0); iter.hasNext();) {
                 var tickable = iter.next();
+                if (tickable == null) {
+                    continue;
+                }
                 if (tickable.isStillSubscribed()) {
                     tickable.run();
-                } else {
+                }
+                if (holder.isRemoved()) break;
+                if (!tickable.isStillSubscribed()) {
                     iter.remove();
                 }
-                if (isInValid()) break;
             }
         }
     }

@@ -152,9 +152,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     @Override
     public void setRemoved() {
         super.setRemoved();
-        if (serverTickSubscription != null) {
-            serverTickSubscription.unsubscribe();
-        }
+        serverTickSubscription = ITickSubscription.unsubscribe(serverTickSubscription);
         coverContainer.onUnload();
         blockEntityDirectionCache.clearCache();
         if (transferSubs != null) {
@@ -165,9 +163,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
 
     @Override
     public void clearRemoved() {
-        if (serverTickSubscription != null) {
-            serverTickSubscription.unsubscribe();
-        }
+        serverTickSubscription = ITickSubscription.unsubscribe(serverTickSubscription);
         serverTicks.clear();
         blockEntityDirectionCache.clearCache();
         super.clearRemoved();
@@ -239,18 +235,23 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
                         waitingToAdd.clear();
                     }
                     if (serverTicks.isEmpty()) {
-                        serverTickSubscription.unsubscribe();
+                        serverTickSubscription = ITickSubscription.unsubscribe(serverTickSubscription);
                     } else {
                         for (var iter = serverTicks.listIterator(0); iter.hasNext();) {
                             var tickable = iter.next();
+                            if (tickable == null) {
+                                continue;
+                            }
                             if (tickable.isStillSubscribed()) {
                                 tickable.run();
-                            } else {
+                            }
+                            if (isRemoved()) break;
+                            if (!tickable.isStillSubscribed()) {
                                 iter.remove();
                             }
                         }
                     }
-                }, () -> serverTickSubscription = null, 0)::unsubscribe;
+                }, () -> serverTickSubscription = null, 0);
             }
             return subscription;
         }
