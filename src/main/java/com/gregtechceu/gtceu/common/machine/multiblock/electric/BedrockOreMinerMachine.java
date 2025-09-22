@@ -3,20 +3,15 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockore.WeightedMaterial;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.machine.trait.BedrockOreMinerLogic;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
-import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -36,11 +31,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class BedrockOreMinerMachine extends WorkableElectricMultiblockMachine {
 
-    private final int tier;
+    private final int t;
 
     public BedrockOreMinerMachine(MetaMachineBlockEntity holder, int tier) {
         super(holder);
-        this.tier = tier;
+        this.t = tier;
     }
 
     @Override
@@ -54,9 +49,7 @@ public class BedrockOreMinerMachine extends WorkableElectricMultiblockMachine {
     }
 
     public int getEnergyTier() {
-        var energyContainer = this.getCapabilitiesFlat(IO.IN, EURecipeCapability.CAP);
-        var energyCont = new EnergyContainerList(energyContainer.stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).toList());
-        return Math.min(this.tier + 1, Math.max(this.tier, GTUtil.getFloorTierByVoltage(energyCont.getInputVoltage())));
+        return Math.min(this.t + 1, super.tier);
     }
 
     @Override
@@ -124,6 +117,6 @@ public class BedrockOreMinerMachine extends WorkableElectricMultiblockMachine {
     }
 
     public int getTier() {
-        return this.tier;
+        return this.t;
     }
 }

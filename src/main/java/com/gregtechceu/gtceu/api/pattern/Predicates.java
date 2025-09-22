@@ -108,7 +108,7 @@ public class Predicates {
                                                       boolean checkItemOut,
                                                       boolean checkFluidIn,
                                                       boolean checkFluidOut) {
-        TraceabilityPredicate predicate = blocks(GTMachines.CONTROL_HATCH.getBlock());
+        TraceabilityPredicate predicate = blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0);
 
         if (checkEnergyIn) {
             for (var type : recipeType) {

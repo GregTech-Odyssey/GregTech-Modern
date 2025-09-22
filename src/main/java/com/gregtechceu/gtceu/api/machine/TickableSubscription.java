@@ -1,6 +1,8 @@
 package com.gregtechceu.gtceu.api.machine;
 
-public class TickableSubscription {
+import com.lowdragmc.lowdraglib.syncdata.ISubscription;
+
+public class TickableSubscription implements ISubscription {
 
     protected final Runnable runnable;
     protected boolean stillSubscribed;
@@ -14,6 +16,7 @@ public class TickableSubscription {
         runnable.run();
     }
 
+    @Override
     public void unsubscribe() {
         stillSubscribed = false;
     }

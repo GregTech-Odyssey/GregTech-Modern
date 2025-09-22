@@ -467,6 +467,10 @@ public class ConfigHolder {
         public boolean enableMaintenance = true;
 
         @Configurable
+        @Configurable.Comment({ "Dual chamber pressurization mode. Simple:1 Normal:2 Expert:3", "Default: 2" })
+        public int dualChamberPressurizationMode = 2;
+
+        @Configurable
         @Configurable.Comment({
                 "Whether to enable World Accelerators, which accelerate ticks for surrounding Tile Entities, Crops, etc.",
                 "Default: true" })

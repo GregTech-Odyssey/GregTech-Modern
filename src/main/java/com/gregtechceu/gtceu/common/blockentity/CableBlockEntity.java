@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.common.blockentity;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
@@ -162,7 +163,7 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
 
     private void unsubscribeHeat() {
         if (this.heatSubs != null) {
-            this.unsubscribe(this.heatSubs);
+            ITickSubscription.unsubscribe(this.heatSubs);
             this.heatSubs = null;
         }
     }

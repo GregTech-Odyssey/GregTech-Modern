@@ -117,6 +117,9 @@ public interface IMultiController extends IMachineFeature {
     @NotNull
     MultiblockState getMultiblockState();
 
+    @Nullable
+    MultiblockState[] getSubMultiblockState();
+
     /**
      * Called in an async thread. It's unsafe, Don't modify anything of world but checking information.
      * It will be called per 10 tick.

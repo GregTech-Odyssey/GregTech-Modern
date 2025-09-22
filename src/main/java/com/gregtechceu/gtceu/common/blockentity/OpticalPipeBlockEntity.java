@@ -64,18 +64,20 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
     @Override
     public <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable Direction facing) {
         if (capability == GTCapability.CAPABILITY_DATA_ACCESS) {
-            if (level.isClientSide || (facing != null && isConnected(facing))) {
+            if (level.isClientSide) {
                 return GTCapability.CAPABILITY_DATA_ACCESS.orEmpty(capability, LazyOptional.of(() -> defaultDataHandler));
             }
+            if (facing != null && !isConnected(facing)) return LazyOptional.empty();
             if (handlers.isEmpty()) initHandlers();
             checkNetwork();
             var handler = handlers.getOrDefault(facing, defaultHandler);
             return GTCapability.CAPABILITY_DATA_ACCESS.orEmpty(capability, LazyOptional.of(() -> handler == null ? defaultDataHandler : handler));
         }
         if (capability == GTCapability.CAPABILITY_COMPUTATION_PROVIDER) {
-            if (level.isClientSide || (facing != null && isConnected(facing))) {
+            if (level.isClientSide) {
                 return GTCapability.CAPABILITY_COMPUTATION_PROVIDER.orEmpty(capability, LazyOptional.of(() -> ComputationProviderList.EMPTY));
             }
+            if (facing != null && !isConnected(facing)) return LazyOptional.empty();
             if (handlers.isEmpty()) initHandlers();
             checkNetwork();
             var handler = handlers.getOrDefault(facing, defaultHandler);

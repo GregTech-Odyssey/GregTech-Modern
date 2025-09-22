@@ -2,6 +2,8 @@ package com.gregtechceu.gtceu.api.blockentity;
 
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 
+import com.lowdragmc.lowdraglib.syncdata.ISubscription;
+
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import org.jetbrains.annotations.Nullable;
@@ -15,10 +17,11 @@ public interface ITickSubscription {
     @Nullable
     TickableSubscription subscribeServerTick(Runnable runnable);
 
-    default void unsubscribe(@Nullable TickableSubscription current) {
+    static ISubscription unsubscribe(@Nullable ISubscription current) {
         if (current != null) {
             current.unsubscribe();
         }
+        return null;
     }
 
     @Nullable

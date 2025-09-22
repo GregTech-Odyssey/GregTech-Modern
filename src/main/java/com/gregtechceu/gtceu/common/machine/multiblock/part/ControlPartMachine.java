@@ -94,7 +94,7 @@ public class ControlPartMachine extends MultiblockPartMachine implements IContro
         group.addWidget(new LabelWidget(10, 5, "cover.machine_controller.title"));
         group.addWidget(new IntInputWidget(10, 50, 131, 20, () -> minRedstoneStrength, this::setMinRedstoneStrength).setMin(1).setMax(15));
         group.addWidget(new ToggleButtonWidget(146, 50, 20, 20, GuiTextures.INVERT_REDSTONE_BUTTON, () -> isInverted, this::setInverted).isMultiLang().setTooltipText("cover.machine_controller.invert"));
-        group.addWidget(new ToggleButtonWidget(20, 20, 20, 20, GuiTextures.INVERT_REDSTONE_BUTTON, () -> isRed, this::setRed).setTooltipText("gui.tooltips.ae2.RedstoneMode"));
+        group.addWidget(new ToggleButtonWidget(20, 20, 20, 20, GuiTextures.INVERT_REDSTONE_BUTTON, () -> isRed, this::setRed).setTooltipText("gui.tooltips.redstone_mode"));
         return group;
     }
 }

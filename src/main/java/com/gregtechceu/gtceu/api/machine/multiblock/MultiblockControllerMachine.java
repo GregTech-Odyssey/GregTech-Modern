@@ -136,6 +136,11 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         return multiblockState;
     }
 
+    @Override
+    public MultiblockState[] getSubMultiblockState() {
+        return subMultiblockState;
+    }
+
     @SuppressWarnings("unused")
     protected void onPartsUpdated(BlockPos[] newValue, BlockPos[] oldValue) {
         parts.clear();
@@ -197,6 +202,9 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                     if (subPattern != null) {
                         formedCount = 0;
                         formeds = new boolean[subPattern.length];
+                        if (subMultiblockState == null) {
+                            subMultiblockState = new MultiblockState[subPattern.length];
+                        }
                         for (int i = 0; i < subPattern.length; i++) {
                             var subState = MultiblockState.copy(state);
                             if (subPattern[i].get().checkPatternAt(subState, false)) {
@@ -204,13 +212,9 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                                 formeds[i] = true;
                                 formedCount++;
                             }
-                            if (subMultiblockState != null) {
-                                subMultiblockState[i] = subState;
-                            }
+                            subMultiblockState[i] = subState;
                         }
-                        if (subMultiblockState != null) {
-                            for (var subState : subMultiblockState) subState.cleanCache();
-                        }
+                        for (var subState : subMultiblockState) subState.cleanCache();
                     }
                 }
                 state.cleanCache();

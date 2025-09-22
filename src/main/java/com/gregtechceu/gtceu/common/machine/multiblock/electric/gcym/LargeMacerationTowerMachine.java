@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.electric.gcym;
 
+import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
@@ -46,7 +47,7 @@ public class LargeMacerationTowerMachine extends WorkableElectricMultiblockMachi
     @Override
     public void onStructureInvalid() {
         super.onStructureInvalid();
-        unsubscribe(hurtSub);
+        ITickSubscription.unsubscribe(hurtSub);
         hurtSub = null;
         handlers.clear();
     }
@@ -54,7 +55,7 @@ public class LargeMacerationTowerMachine extends WorkableElectricMultiblockMachi
     @Override
     public void onUnload() {
         super.onUnload();
-        unsubscribe(hurtSub);
+        ITickSubscription.unsubscribe(hurtSub);
         hurtSub = null;
         handlers.clear();
     }
