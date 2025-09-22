@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.misc;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
+import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import net.minecraft.core.Direction;
 
@@ -10,6 +11,7 @@ import java.util.List;
 public class EnergyContainerList implements IEnergyContainer {
 
     public static final EnergyContainerList EMPTY = new EnergyContainerList();
+    private static final int dcpMode = ConfigHolder.INSTANCE.machines.dualChamberPressurizationMode;
 
     private final IEnergyContainer[] energyContainerList;
     private final long inputVoltage;
@@ -28,27 +30,34 @@ public class EnergyContainerList implements IEnergyContainer {
         this.energyContainerList = energyContainerList;
         long input = 0;
         long output = 0;
-        long recipe = 0;
+        long maxRecipe = 0;
+        long minRecipe = GTValues.V[GTValues.MAX];
         int count = 0;
+        int maxCount = 0;
         long capacity = 0;
         for (IEnergyContainer iEnergyContainer : energyContainerList) {
             capacity += iEnergyContainer.getEnergyCapacity();
             long voltage = iEnergyContainer.getInputVoltage();
             long amperage = iEnergyContainer.getInputAmperage();
             if (voltage > 0 && amperage > 0) {
-                if (recipe != 0 && recipe != voltage) {
-                    count = -1;
-                }
-                recipe = Math.max(recipe, voltage);
+                maxRecipe = Math.max(maxRecipe, voltage);
+                minRecipe = Math.min(minRecipe, voltage);
                 input += voltage * amperage;
-                if (count < 0) continue;
                 count++;
             } else {
                 output += iEnergyContainer.getOutputVoltage() * iEnergyContainer.getOutputAmperage();
             }
         }
-        if (count > 1) {
-            recipe <<= 2;
+        for (IEnergyContainer iEnergyContainer : energyContainerList) {
+            if (iEnergyContainer.getInputVoltage() == maxRecipe) maxCount++;
+        }
+        long recipe;
+        if (dcpMode == 1) {
+            recipe = maxCount > 1 ? maxRecipe << 2 : maxRecipe;
+        } else if (dcpMode == 2) {
+            recipe = maxRecipe == minRecipe && maxCount > 1 ? maxRecipe << 2 : maxRecipe;
+        } else {
+            recipe = count > 1 ? minRecipe << 2 : minRecipe;
         }
         this.capacity = capacity;
         this.inputVoltage = input;
