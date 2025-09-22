@@ -4,12 +4,12 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo;
+import com.gregtechceu.gtceu.api.registry.registrate.MultiblockMachineBuilder;
 import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
 
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -36,7 +36,7 @@ public class MultiblockMachineDefinition extends MachineDefinition {
     protected boolean allowFlip;
     protected boolean renderXEIPreview;
     @Nullable
-    protected Supplier<ItemStack> recoveryItems;
+    protected MultiblockMachineBuilder.MufflerProductionGenerator recoveryItems;
     protected TriFunction<IMultiController, IMultiPart, Direction, BlockState> partAppearance;
     protected BiConsumer<IMultiController, List<Component>> additionalDisplay;
 
@@ -137,12 +137,12 @@ public class MultiblockMachineDefinition extends MachineDefinition {
         this.renderXEIPreview = renderXEIPreview;
     }
 
-    public void setRecoveryItems(@Nullable final Supplier<ItemStack> recoveryItems) {
-        this.recoveryItems = GTMemoizer.memoize(recoveryItems);
+    public void setRecoveryItems(@Nullable final MultiblockMachineBuilder.MufflerProductionGenerator recoveryItems) {
+        this.recoveryItems = recoveryItems;
     }
 
     @Nullable
-    public Supplier<ItemStack> getRecoveryItems() {
+    public MultiblockMachineBuilder.MufflerProductionGenerator getRecoveryItems() {
         return this.recoveryItems;
     }
 

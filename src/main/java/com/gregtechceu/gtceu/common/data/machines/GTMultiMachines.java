@@ -138,7 +138,7 @@ public class GTMultiMachines {
                     .where('C', heatingCoils())
                     .where('#', air())
                     .build())
-            .recoveryItems(() -> GTMaterialItems.MATERIAL_ITEMS.get(TagPrefix.dustTiny, GTMaterials.Ash).get())
+            .recoveryStaticItems(() -> GTMaterialItems.MATERIAL_ITEMS.get(TagPrefix.dustTiny, GTMaterials.Ash).get())
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_heatproof"),
                     GTCEu.id("block/multiblock/electric_blast_furnace"))
             .tooltips(Component.translatable("gtceu.machine.electric_blast_furnace.tooltip.0"),
@@ -294,7 +294,7 @@ public class GTMultiMachines {
                     .where('C', heatingCoils())
                     .where('#', air())
                     .build())
-            .recoveryItems(
+            .recoveryStaticItems(
                     () -> GTMaterialItems.MATERIAL_ITEMS.get(TagPrefix.dustTiny, GTMaterials.Ash).get())
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_heatproof"),
                     GTCEu.id("block/multiblock/multi_furnace"))

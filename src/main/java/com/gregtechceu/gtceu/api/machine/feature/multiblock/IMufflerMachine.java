@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.registry.registrate.MultiblockMachineBuilder;
 import com.gregtechceu.gtceu.common.data.GTParticleTypes;
 
 import net.minecraft.ChatFormatting;
@@ -65,9 +66,9 @@ public interface IMufflerMachine extends IMultiPart {
 
     @Override
     default boolean afterWorking(IWorkableMultiController controller) {
-        var supplier = controller.self().getDefinition().getRecoveryItems();
+        MultiblockMachineBuilder.MufflerProductionGenerator supplier = controller.self().getDefinition().getRecoveryItems();
         if (supplier != null) {
-            recoverItemsTable(supplier.get());
+            recoverItemsTable(supplier.getMuffledProduction(controller.self(), controller.getRecipeLogic().getLastRecipe()));
         }
         return IMultiPart.super.afterWorking(controller);
     }

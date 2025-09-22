@@ -19,6 +19,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
+import com.gregtechceu.gtceu.utils.memoization.MemoizedSupplier;
 
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 
@@ -29,7 +30,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -65,7 +65,7 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
      * Set this to false only if your multiblock is set up such that it could have a wall-shared controller.
      */
     private boolean allowFlip = true;
-    private Supplier<ItemStack> recoveryItems;
+    private MufflerProductionGenerator recoveryItems;
     private TriFunction<IMultiController, IMultiPart, Direction, BlockState> partAppearance;
     private BiConsumer<IMultiController, List<Component>> additionalDisplay = (m, l) -> {};
 
@@ -89,12 +89,12 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
         return this;
     }
 
-    public MultiblockMachineBuilder recoveryItems(Supplier<ItemLike> item) {
-        this.recoveryItems = () -> new ItemStack(item.get());
+    public MultiblockMachineBuilder recoveryStaticItems(Supplier<Item> item) {
+        this.recoveryItems = ofMemorized(item);
         return this;
     }
 
-    public MultiblockMachineBuilder recoveryStacks(Supplier<ItemStack> stack) {
+    public MultiblockMachineBuilder recoveryStacks(MufflerProductionGenerator stack) {
         this.recoveryItems = stack;
         return this;
     }
@@ -364,7 +364,7 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
         definition.setShapes(() -> shapeInfos.stream().map(factory -> factory.apply(definition)).flatMap(Collection::stream).toList());
         definition.setAllowFlip(allowFlip);
         if (recoveryItems != null) {
-            definition.setRecoveryItems(GTMemoizer.memoize(recoveryItems));
+            definition.setRecoveryItems(recoveryItems);
         }
         if (partAppearance == null) {
             partAppearance = (controller, part, side) -> definition.getAppearance().get();
@@ -429,5 +429,16 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
     public MultiblockMachineBuilder additionalDisplay(final BiConsumer<IMultiController, List<Component>> additionalDisplay) {
         this.additionalDisplay = additionalDisplay;
         return this;
+    }
+
+    @FunctionalInterface
+    public interface MufflerProductionGenerator {
+
+        ItemStack getMuffledProduction(MetaMachine machine, @Nullable GTRecipe recipe);
+    }
+
+    static MufflerProductionGenerator ofMemorized(Supplier<Item> item) {
+        final MemoizedSupplier<ItemStack> memorized = GTMemoizer.memoize(() -> new ItemStack(item.get()));
+        return ((machine1, recipe) -> memorized.get());
     }
 }
