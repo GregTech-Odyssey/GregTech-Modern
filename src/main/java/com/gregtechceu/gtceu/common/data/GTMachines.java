@@ -879,6 +879,7 @@ public class GTMachines {
 
     public static final MachineDefinition CONTROL_HATCH = REGISTRATE
             .machine("control_hatch", ControlPartMachine::new)
+            .langValue("Machine Control Hatch")
             .allRotation()
             .tier(2)
             .overlayTieredHullRenderer("hull")

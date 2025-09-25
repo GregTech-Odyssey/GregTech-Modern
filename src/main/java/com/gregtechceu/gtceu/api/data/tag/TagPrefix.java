@@ -193,7 +193,7 @@ public class TagPrefix {
             .itemConstructor(GTTurbineItem::new);
     public static final TagPrefix turbineRotorCoated = new TagPrefix("turbine_rotor_coated")
             .idPattern("%s_turbine_rotor_coated")
-            .langValue("Turbine Rotor")
+            .langValue("%s Turbine Rotor")
             .defaultTagPath("turbine_rotors/%s_coated")
             .unformattedTagPath("turbine_rotors")
             .materialIconType(MaterialIconType.turbineRotor)

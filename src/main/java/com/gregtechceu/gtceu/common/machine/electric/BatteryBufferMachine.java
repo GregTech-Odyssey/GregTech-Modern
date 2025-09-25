@@ -48,12 +48,22 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
     @Persisted
     protected final CustomItemStackHandler batteryInventory;
 
+    protected long buffer;
+    private ObjectArrayList<Object> allBatteries;
+    private ObjectArrayList<IElectricItem> nonEmptyBatteries;
+    private ObjectArrayList<Object> nonFullBatteries;
+
     public BatteryBufferMachine(MetaMachineBlockEntity holder, int tier, int inventorySize, Object... args) {
         super(holder, tier, inventorySize);
         this.isWorkingEnabled = true;
         this.inventorySize = inventorySize;
         this.batteryInventory = createBatteryInventory(args);
-        this.batteryInventory.setOnContentsChanged(energyContainer::checkOutputSubscription);
+        this.batteryInventory.setOnContentsChanged(() -> {
+            allBatteries = null;
+            nonEmptyBatteries = null;
+            nonFullBatteries = null;
+            energyContainer.checkOutputSubscription();
+        });
     }
 
     //////////////////////////////////////
@@ -133,55 +143,61 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
     }
 
     private List<Object> getNonFullBatteries() {
-        List<Object> batteries = new ObjectArrayList<>();
-        for (int i = 0; i < batteryInventory.getSlots(); i++) {
-            var batteryStack = batteryInventory.getStackInSlot(i);
-            var electricItem = GTCapabilityHelper.getElectricItem(batteryStack);
-            if (electricItem != null) {
-                if (electricItem.getCharge() < electricItem.getMaxCharge()) {
-                    batteries.add(electricItem);
-                }
-            } else if (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE) {
-                IEnergyStorage energyStorage = GTCapabilityHelper.getForgeEnergyItem(batteryStack);
-                if (energyStorage != null) {
-                    if (energyStorage.getEnergyStored() < energyStorage.getMaxEnergyStored()) {
-                        batteries.add(energyStorage);
+        if (nonFullBatteries == null) {
+            nonFullBatteries = new ObjectArrayList<>();
+            for (int i = 0; i < batteryInventory.getSlots(); i++) {
+                var batteryStack = batteryInventory.getStackInSlot(i);
+                var electricItem = GTCapabilityHelper.getElectricItem(batteryStack);
+                if (electricItem != null) {
+                    if (electricItem.getCharge() < electricItem.getMaxCharge()) {
+                        nonFullBatteries.add(electricItem);
+                    }
+                } else if (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE) {
+                    IEnergyStorage energyStorage = GTCapabilityHelper.getForgeEnergyItem(batteryStack);
+                    if (energyStorage != null) {
+                        if (energyStorage.getEnergyStored() < energyStorage.getMaxEnergyStored()) {
+                            nonFullBatteries.add(energyStorage);
+                        }
                     }
                 }
             }
         }
-        return batteries;
+        return nonFullBatteries;
     }
 
     private List<IElectricItem> getNonEmptyBatteries() {
-        List<IElectricItem> batteries = new ObjectArrayList<>();
-        for (int i = 0; i < batteryInventory.getSlots(); i++) {
-            var batteryStack = batteryInventory.getStackInSlot(i);
-            var electricItem = GTCapabilityHelper.getElectricItem(batteryStack);
-            if (electricItem != null) {
-                if (electricItem.canProvideChargeExternally() && electricItem.getCharge() > 0) {
-                    batteries.add(electricItem);
+        if (nonEmptyBatteries == null) {
+            nonEmptyBatteries = new ObjectArrayList<>();
+            for (int i = 0; i < batteryInventory.getSlots(); i++) {
+                var batteryStack = batteryInventory.getStackInSlot(i);
+                var electricItem = GTCapabilityHelper.getElectricItem(batteryStack);
+                if (electricItem != null) {
+                    if (electricItem.canProvideChargeExternally() && electricItem.getCharge() > 0) {
+                        nonEmptyBatteries.add(electricItem);
+                    }
                 }
             }
         }
-        return batteries;
+        return nonEmptyBatteries;
     }
 
     private List<Object> getAllBatteries() {
-        List<Object> batteries = new ObjectArrayList<>();
-        for (int i = 0; i < batteryInventory.getSlots(); i++) {
-            var batteryStack = batteryInventory.getStackInSlot(i);
-            var electricItem = GTCapabilityHelper.getElectricItem(batteryStack);
-            if (electricItem != null) {
-                batteries.add(electricItem);
-            } else if (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE) {
-                IEnergyStorage energyStorage = GTCapabilityHelper.getForgeEnergyItem(batteryStack);
-                if (energyStorage != null) {
-                    batteries.add(energyStorage);
+        if (allBatteries == null) {
+            allBatteries = new ObjectArrayList<>();
+            for (int i = 0; i < batteryInventory.getSlots(); i++) {
+                var batteryStack = batteryInventory.getStackInSlot(i);
+                var electricItem = GTCapabilityHelper.getElectricItem(batteryStack);
+                if (electricItem != null) {
+                    allBatteries.add(electricItem);
+                } else if (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE) {
+                    IEnergyStorage energyStorage = GTCapabilityHelper.getForgeEnergyItem(batteryStack);
+                    if (energyStorage != null) {
+                        allBatteries.add(energyStorage);
+                    }
                 }
             }
         }
-        return batteries;
+        return allBatteries;
     }
 
     @Override
@@ -251,8 +267,17 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                     return 0;
                 }
                 var batteries = getNonFullBatteries();
+                var size = batteries.size();
                 long energyAdded = 0;
-                long distributed = canAccept / batteries.size();
+                long distributed = canAccept / size;
+                if (distributed == 0) {
+                    buffer += canAccept % size;
+                    if (buffer > size) {
+                        distributed = buffer / size;
+                        buffer %= size;
+                    }
+                }
+                if (distributed == 0) return 0;
                 boolean changed = false;
                 for (Object item : batteries) {
                     long charged = 0;
