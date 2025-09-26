@@ -8,11 +8,11 @@ import net.minecraftforge.fluids.FluidStack;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenCustomHashMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
 
 public interface IRecipeHandler<K> extends IFilteredHandler<K> {
 
@@ -49,9 +49,18 @@ public interface IRecipeHandler<K> extends IFilteredHandler<K> {
         return -1;
     }
 
-    @NotNull
-    default Object[] getContents() {
-        return new Object[0];
+    /**
+     * @return interruption
+     */
+    default boolean forEachInputItems(Predicate<ItemStack> function) {
+        return false;
+    }
+
+    /**
+     * @return interruption
+     */
+    default boolean forEachInputFluids(Predicate<FluidStack> function) {
+        return false;
     }
 
     default @Nullable Object2LongOpenCustomHashMap<ItemStack> getItemMap() {

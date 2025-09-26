@@ -258,20 +258,22 @@ public enum BreweryLogic implements GTRecipeType.ICustomRecipeLogic {
                                    List<ItemStack> itemStacks, List<FluidStack> fluidStacks) {
         for (var handler : itemHandlers) {
             if (!handler.shouldSearchContent()) continue;
-            for (var content : handler.getContents()) {
-                if (content instanceof ItemStack stack && !stack.isEmpty()) {
+            handler.forEachInputItems(stack -> {
+                if (!stack.isEmpty()) {
                     itemStacks.add(stack);
                 }
-            }
+                return false;
+            });
         }
 
         for (var handler : fluidHandlers) {
             if (!handler.shouldSearchContent()) continue;
-            for (var content : handler.getContents()) {
-                if (content instanceof FluidStack stack && !stack.isEmpty()) {
+            handler.forEachInputFluids(stack -> {
+                if (!stack.isEmpty()) {
                     fluidStacks.add(stack);
                 }
-            }
+                return false;
+            });
         }
 
         return !(itemStacks.isEmpty() || fluidStacks.isEmpty());

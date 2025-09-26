@@ -19,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.IntFunction;
+import java.util.function.Predicate;
 
 public class CircuitHandler extends NotifiableItemStackHandler {
 
@@ -75,6 +76,11 @@ public class CircuitHandler extends NotifiableItemStackHandler {
             }
         }
         return isEmpty ? null : itemMap;
+    }
+
+    @Override
+    public boolean forEachInputItems(Predicate<ItemStack> function) {
+        return function.test(storage.stacks[0]);
     }
 
     @Override

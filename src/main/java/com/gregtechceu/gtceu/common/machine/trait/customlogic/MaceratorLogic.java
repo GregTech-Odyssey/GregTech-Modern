@@ -20,6 +20,8 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.*;
 import static com.gregtechceu.gtceu.common.data.GTRecipeCategories.MACERATOR_RECYCLING;
 import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.MACERATOR_RECIPES;
@@ -31,14 +33,15 @@ public enum MaceratorLogic implements GTRecipeType.ICustomRecipeLogic {
     @Override
     public @Nullable GTRecipe createCustomRecipe(IRecipeCapabilityHolder holder) {
         var recipeHandlers = holder.getCapabilitiesFlat(IO.IN, ItemRecipeCapability.CAP);
+        AtomicReference<GTRecipe> recipe = new AtomicReference<>();
         for (var handler : recipeHandlers) {
             if (!handler.shouldSearchContent()) continue;
-            for (var content : handler.getContents()) {
-                if (!(content instanceof ItemStack stack)) continue;
-                if (stack.isEmpty()) continue;
-                var recipe = search(stack);
-                if (recipe != null) return recipe;
-            }
+            handler.forEachInputItems(stack -> {
+                if (stack.isEmpty()) return false;
+                recipe.set(search(stack));
+                return recipe.get() != null;
+            });
+            if (recipe.get() != null) return recipe.get();
         }
         return null;
     }

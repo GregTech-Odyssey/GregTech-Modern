@@ -186,9 +186,11 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     }
 
     @Override
-    @NotNull
-    public Object[] getContents() {
-        return storage.stacks;
+    public boolean forEachInputItems(Predicate<ItemStack> function) {
+        for (int i = 0; i < storage.size; ++i) {
+            if (function.test(storage.stacks[i])) return true;
+        }
+        return false;
     }
 
     @Override

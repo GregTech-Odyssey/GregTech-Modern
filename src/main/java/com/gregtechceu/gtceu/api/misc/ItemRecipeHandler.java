@@ -11,9 +11,8 @@ import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
+import java.util.function.Predicate;
 
 public class ItemRecipeHandler implements IRecipeHandler<Ingredient> {
 
@@ -31,15 +30,17 @@ public class ItemRecipeHandler implements IRecipeHandler<Ingredient> {
     }
 
     @Override
-    @NotNull
-    public Object[] getContents() {
-        return storage.stacks;
+    public boolean forEachInputItems(Predicate<ItemStack> function) {
+        for (int i = 0; i < storage.size; ++i) {
+            if (function.test(storage.stacks[i])) return true;
+        }
+        return false;
     }
 
     @Override
     public double getTotalContentAmount() {
         long amount = 0;
-        for (int i = 0; i < storage.getSlots(); ++i) {
+        for (int i = 0; i < storage.size; ++i) {
             ItemStack stack = storage.getStackInSlot(i);
             if (!stack.isEmpty()) {
                 amount += stack.getCount();
@@ -50,7 +51,7 @@ public class ItemRecipeHandler implements IRecipeHandler<Ingredient> {
 
     @Override
     public int getSize() {
-        return this.storage.getSlots();
+        return this.storage.size;
     }
 
     @Override

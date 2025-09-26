@@ -106,11 +106,12 @@ public enum FormingPressLogic implements GTRecipeType.ICustomRecipeLogic {
         List<ItemStack> list = new ObjectArrayList<>();
         for (var handler : handlers) {
             if (!handler.shouldSearchContent()) continue;
-            for (var content : handler.getContents()) {
-                if (content instanceof ItemStack stack && !stack.isEmpty()) {
+            handler.forEachInputItems(stack -> {
+                if (!stack.isEmpty()) {
                     list.add(stack);
                 }
-            }
+                return false;
+            });
         }
         return list;
     }

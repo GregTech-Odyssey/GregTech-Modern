@@ -228,14 +228,12 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     }
 
     @Override
-    @NotNull
-    public Object[] getContents() {
+    public boolean forEachInputFluids(Predicate<FluidStack> function) {
         var tanks = getTanks();
-        var ingredients = new Object[tanks];
-        for (int i = 0; i < getTanks(); ++i) {
-            ingredients[i] = getFluidInTank(i);
+        for (int i = 0; i < tanks; ++i) {
+            if (function.test(getFluidInTank(i))) return true;
         }
-        return ingredients;
+        return false;
     }
 
     @Override
