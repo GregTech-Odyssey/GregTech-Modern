@@ -58,7 +58,6 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     protected boolean isMuffled;
     protected boolean previouslyMuffled = true;
     protected RecipeHandlerList currentHandlerList;
-    protected boolean contentChange = true;
 
     public WorkableTieredMachine(MetaMachineBlockEntity holder, int tier, Int2IntFunction tankScalingFunction, Object... args) {
         super(holder, tier, args);
@@ -229,16 +228,6 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
 
     public void setCleanroom(@Nullable final ICleanroomProvider cleanroom) {
         this.cleanroom = cleanroom;
-    }
-
-    @Override
-    public boolean isChange() {
-        return contentChange;
-    }
-
-    @Override
-    public void setChange(boolean cache) {
-        this.contentChange = cache;
     }
 
     @Override

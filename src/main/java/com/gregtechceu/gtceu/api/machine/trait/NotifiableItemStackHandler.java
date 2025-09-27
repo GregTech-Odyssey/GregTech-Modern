@@ -3,13 +3,14 @@ package com.gregtechceu.gtceu.api.machine.trait;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.function.ItemConsumer;
+import com.gregtechceu.gtceu.api.capability.recipe.function.ItemPredicate;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.ingredient.SizedIngredient;
+import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
-import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
-import com.gregtechceu.gtceu.utils.collection.O2LOpenCustomCacheHashMap;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
@@ -20,7 +21,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import it.unimi.dsi.fastutil.objects.Object2LongOpenCustomHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +44,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     protected Boolean isEmpty;
     protected boolean changed = true;
 
-    protected Object2LongOpenCustomHashMap<ItemStack> itemMap;
+    protected final IntIngredientMap intIngredientMap = new IntIngredientMap();
 
     public NotifiableItemStackHandler(MetaMachine machine, int slots, @NotNull IO handlerIO, @NotNull IO capabilityIO, IntFunction<CustomItemStackHandler> storageFactory) {
         super(machine);
@@ -166,45 +166,45 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     }
 
     @Override
-    public @Nullable Object2LongOpenCustomHashMap<ItemStack> getItemMap() {
-        if (itemMap == null) {
-            itemMap = new O2LOpenCustomCacheHashMap<>(ItemStackHashStrategy.ITEM_AND_TAG);
-        }
-        if (changed) {
-            changed = false;
-            itemMap.clear();
-            for (int i = 0; i < storage.size; ++i) {
-                ItemStack stack = storage.stacks[i];
-                var count = stack.getCount();
-                if (count > 0) {
-                    itemMap.addTo(stack, count);
-                }
-            }
-            isEmpty = itemMap.isEmpty();
-        }
-        return isEmpty ? null : itemMap;
-    }
-
-    @Override
-    public boolean forEachInputItems(Predicate<ItemStack> function) {
+    public boolean forEachItems(ItemPredicate function) {
         for (int i = 0; i < storage.size; ++i) {
-            if (function.test(storage.stacks[i])) return true;
+            var stack = storage.stacks[i];
+            var amount = stack.getCount();
+            if (amount > 0) {
+                if (function.test(stack, amount)) return true;
+            }
         }
         return false;
     }
 
     @Override
-    public double getTotalContentAmount() {
-        long amount = 0;
+    public void fastForEachItems(ItemConsumer function) {
         for (int i = 0; i < storage.size; ++i) {
-            ItemStack stack = storage.stacks[i];
-            if (!stack.isEmpty()) {
-                amount += stack.getCount();
+            var stack = storage.stacks[i];
+            var amount = stack.getCount();
+            if (amount > 0) {
+                function.accept(stack, amount);
             }
         }
-        return amount;
     }
 
+    @Override
+    public IntIngredientMap getIngredientMap() {
+        if (changed) {
+            changed = false;
+            intIngredientMap.clear();
+            for (int i = 0; i < storage.size; ++i) {
+                var stack = storage.stacks[i];
+                var amount = stack.getCount();
+                if (amount > 0) {
+                    IntIngredientMap.ITEM_CONVERSION.convert(stack, amount, intIngredientMap);
+                }
+            }
+        }
+        return intIngredientMap;
+    }
+
+    @Override
     public boolean isEmpty() {
         if (isEmpty == null) {
             isEmpty = true;

@@ -36,12 +36,13 @@ public enum ArcFurnaceLogic implements GTRecipeType.ICustomRecipeLogic {
         AtomicReference<GTRecipe> recipe = new AtomicReference<>();
         for (var handler : recipeHandlers) {
             if (!handler.shouldSearchContent()) continue;
-            handler.forEachInputItems(stack -> {
+            if (handler.forEachItems((stack, amount) -> {
                 if (stack.isEmpty()) return false;
                 recipe.set(search(stack));
                 return recipe.get() != null;
-            });
-            if (recipe.get() != null) return recipe.get();
+            })) {
+                return recipe.get();
+            }
         }
         return null;
     }

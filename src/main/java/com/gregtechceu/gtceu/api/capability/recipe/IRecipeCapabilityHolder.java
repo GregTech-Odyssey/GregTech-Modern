@@ -18,12 +18,6 @@ public interface IRecipeCapabilityHolder {
         return !getCapabilitiesProxy().isEmpty();
     }
 
-    default boolean isChange() {
-        return true;
-    }
-
-    default void setChange(boolean cache) {}
-
     @Nullable
     default RecipeHandlerList getCurrentHandlerList() {
         return null;

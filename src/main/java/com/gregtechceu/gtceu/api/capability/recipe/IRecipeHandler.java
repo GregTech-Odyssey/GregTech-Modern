@@ -1,33 +1,17 @@
 package com.gregtechceu.gtceu.api.capability.recipe;
 
+import com.gregtechceu.gtceu.api.capability.recipe.function.FluidConsumer;
+import com.gregtechceu.gtceu.api.capability.recipe.function.FluidPredicate;
+import com.gregtechceu.gtceu.api.capability.recipe.function.ItemConsumer;
+import com.gregtechceu.gtceu.api.capability.recipe.function.ItemPredicate;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
 
-import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fluids.FluidStack;
-
-import it.unimi.dsi.fastutil.objects.Object2LongOpenCustomHashMap;
-import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.function.Predicate;
 
 public interface IRecipeHandler<K> extends IFilteredHandler<K> {
-
-    /**
-     * Comparator for entries that can be used in insertion logic
-     */
-    Comparator<IRecipeHandler<?>> ENTRY_COMPARATOR = (o1, o2) -> {
-        // #1: Filter priority, like locked slots, first
-        int prio = IFilteredHandler.PRIORITY_COMPARATOR.compare(o1, o2);
-        if (prio != 0) return prio;
-        // #2: Then use non-empty storage
-        boolean empty1 = o1.getTotalContentAmount() <= 0;
-        boolean empty2 = o2.getTotalContentAmount() <= 0;
-        return Boolean.compare(empty1, empty2);
-    };
 
     /**
      * matching or handling the given recipe.
@@ -52,23 +36,27 @@ public interface IRecipeHandler<K> extends IFilteredHandler<K> {
     /**
      * @return interruption
      */
-    default boolean forEachInputItems(Predicate<ItemStack> function) {
+    default boolean forEachItems(ItemPredicate function) {
         return false;
     }
 
     /**
      * @return interruption
      */
-    default boolean forEachInputFluids(Predicate<FluidStack> function) {
+    default boolean forEachFluids(FluidPredicate function) {
         return false;
     }
 
-    default @Nullable Object2LongOpenCustomHashMap<ItemStack> getItemMap() {
-        return null;
+    default void fastForEachItems(ItemConsumer function) {}
+
+    default void fastForEachFluids(FluidConsumer function) {}
+
+    default IntIngredientMap getIngredientMap() {
+        return IntIngredientMap.EMPTY;
     }
 
-    default @Nullable Object2LongOpenHashMap<FluidStack> getFluidMap() {
-        return null;
+    default boolean isEmpty() {
+        return true;
     }
 
     default boolean isNotConsumable() {
@@ -82,8 +70,6 @@ public interface IRecipeHandler<K> extends IFilteredHandler<K> {
     default boolean isRecipeOnly() {
         return false;
     }
-
-    double getTotalContentAmount();
 
     /**
      * Whether the content of same capability can only be handled distinct.

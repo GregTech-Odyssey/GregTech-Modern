@@ -3,14 +3,16 @@ package com.gregtechceu.gtceu.api.machine.trait;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.function.FluidConsumer;
+import com.gregtechceu.gtceu.api.capability.recipe.function.FluidPredicate;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
+import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
 import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
 import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.collection.O2LOpenCacheHashMap;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
@@ -20,7 +22,6 @@ import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
 
-import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +47,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     public boolean isVoiding;
     protected Predicate<FluidStack> filter = GTUtil.FAVORABLE;
 
-    protected Object2LongOpenHashMap<FluidStack> fluidMap;
+    protected final IntIngredientMap intIngredientMap = new IntIngredientMap();
 
     public NotifiableFluidTank(MetaMachine machine, int slots, int capacity, IO io, IO capabilityIO) {
         super(machine);
@@ -207,47 +208,48 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     }
 
     @Override
-    public @Nullable Object2LongOpenHashMap<FluidStack> getFluidMap() {
-        if (fluidMap == null) {
-            fluidMap = new O2LOpenCacheHashMap<>();
-        }
-        if (changed) {
-            changed = false;
-            fluidMap.clear();
-            var tanks = getTanks();
-            for (int i = 0; i < tanks; ++i) {
-                FluidStack stack = getFluidInTank(i);
-                var amount = stack.getAmount();
-                if (amount > 0) {
-                    fluidMap.addTo(stack, amount);
-                }
-            }
-            isEmpty = fluidMap.isEmpty();
-        }
-        return isEmpty ? null : fluidMap;
-    }
-
-    @Override
-    public boolean forEachInputFluids(Predicate<FluidStack> function) {
+    public boolean forEachFluids(FluidPredicate function) {
         var tanks = getTanks();
         for (int i = 0; i < tanks; ++i) {
-            if (function.test(getFluidInTank(i))) return true;
+            var stack = getFluidInTank(i);
+            var amount = stack.getAmount();
+            if (amount > 0) {
+                if (function.test(stack, amount)) return true;
+            }
         }
         return false;
     }
 
     @Override
-    public double getTotalContentAmount() {
-        long amount = 0;
-        for (int i = 0; i < getTanks(); ++i) {
-            FluidStack stack = getFluidInTank(i);
-            if (!stack.isEmpty()) {
-                amount += stack.getAmount();
+    public void fastForEachFluids(FluidConsumer function) {
+        var tanks = getTanks();
+        for (int i = 0; i < tanks; ++i) {
+            var stack = getFluidInTank(i);
+            var amount = stack.getAmount();
+            if (amount > 0) {
+                function.accept(stack, amount);
             }
         }
-        return amount;
     }
 
+    @Override
+    public IntIngredientMap getIngredientMap() {
+        if (changed) {
+            changed = false;
+            intIngredientMap.clear();
+            var tanks = getTanks();
+            for (int i = 0; i < tanks; ++i) {
+                var stack = getFluidInTank(i);
+                var amount = stack.getAmount();
+                if (amount > 0) {
+                    IntIngredientMap.FLUID_CONVERSION.convert(stack, amount, intIngredientMap);
+                }
+            }
+        }
+        return intIngredientMap;
+    }
+
+    @Override
     public boolean isEmpty() {
         if (isEmpty == null) {
             isEmpty = true;

@@ -1,8 +1,10 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.*;
+import com.gregtechceu.gtceu.api.capability.recipe.function.FluidConsumer;
+import com.gregtechceu.gtceu.api.capability.recipe.function.FluidPredicate;
+import com.gregtechceu.gtceu.api.capability.recipe.function.ItemConsumer;
+import com.gregtechceu.gtceu.api.capability.recipe.function.ItemPredicate;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
 
@@ -62,26 +64,20 @@ public class RecipeHandlerList {
         return rhl;
     }
 
-    public void addHandler(IRecipeHandler<?> handler) {
-        addHandlers(List.of(handler));
-    }
-
     public void addHandlers(IRecipeHandler<?>... handlers) {
         addHandlers(Arrays.asList(handlers));
     }
 
     public void addHandlers(Iterable<IRecipeHandler<?>> handlers) {
         for (var handler : handlers) {
+            if (allHandlers.contains(handler)) continue;
             handlerMap.computeIfAbsent(handler.getCapability(), c -> new ObjectArrayList<>()).add(handler);
             allHandlers.add(handler);
             if (handler instanceof NotifiableRecipeHandlerTrait<?> rht) allHandlerTraits.add(rht);
         }
-        if (handlerIO == IO.OUT) sort();
-    }
-
-    private void sort() {
+        allHandlers.sort(IRecipeHandler.PRIORITY_COMPARATOR);
         for (var list : handlerMap.values()) {
-            list.sort(IRecipeHandler.ENTRY_COMPARATOR);
+            list.sort(IRecipeHandler.PRIORITY_COMPARATOR);
         }
     }
 
@@ -129,18 +125,10 @@ public class RecipeHandlerList {
         return (extIO == IO.BOTH || handlerIO == IO.BOTH || extIO == handlerIO);
     }
 
-    private record Subscription(List<ISubscription> subs) implements ISubscription {
-
-        @Override
-        public void unsubscribe() {
-            subs.forEach(ISubscription::unsubscribe);
-        }
-    }
-
     public ISubscription subscribe(Runnable listener) {
         List<ISubscription> subs = new ObjectArrayList<>(allHandlerTraits.size());
         allHandlerTraits.forEach(rht -> subs.add(rht.addChangedListener(listener)));
-        return new Subscription(subs);
+        return () -> subs.forEach(ISubscription::unsubscribe);
     }
 
     public ISubscription subscribe(Runnable listener, RecipeCapability<?> cap) {
@@ -151,7 +139,7 @@ public class RecipeHandlerList {
                 subs.add(trait.addChangedListener(listener));
             }
         }
-        return new Subscription(subs);
+        return () -> subs.forEach(ISubscription::unsubscribe);
     }
 
     public IO getHandlerIO() {
@@ -160,5 +148,44 @@ public class RecipeHandlerList {
 
     public int getColor() {
         return this.color;
+    }
+
+    public IntIngredientMap getIngredientMap() {
+        intIngredientMap.clear();
+        allHandlers.forEach(handler -> handler.getIngredientMap().int2LongEntrySet().fastForEach(entry -> intIngredientMap.add(entry.getIntKey(), entry.getLongValue())));
+        return intIngredientMap;
+    }
+
+    public boolean forEachItems(ItemPredicate function) {
+        for (var handler : getCapability(ItemRecipeCapability.CAP)) {
+            if (handler.forEachItems(function)) return true;
+        }
+        return false;
+    }
+
+    public boolean forEachFluids(FluidPredicate function) {
+        for (var handler : getCapability(FluidRecipeCapability.CAP)) {
+            if (handler.forEachFluids(function)) return true;
+        }
+        return false;
+    }
+
+    public void fastForEachItems(ItemConsumer function) {
+        for (var handler : getCapability(ItemRecipeCapability.CAP)) {
+            handler.fastForEachItems(function);
+        }
+    }
+
+    public void fastForEachFluids(FluidConsumer function) {
+        for (var handler : getCapability(FluidRecipeCapability.CAP)) {
+            handler.fastForEachFluids(function);
+        }
+    }
+
+    public void fastForEach(ItemConsumer itemFunction, FluidConsumer FluidFunction) {
+        for (var handler : allHandlerTraits) {
+            handler.fastForEachItems(itemFunction);
+            handler.fastForEachFluids(FluidFunction);
+        }
     }
 }

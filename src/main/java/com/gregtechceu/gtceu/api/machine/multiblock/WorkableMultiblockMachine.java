@@ -62,7 +62,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @DescSynced
     protected final Set<Long> activeBlocks = new LongOpenHashSet();
     protected RecipeHandlerList currentHandlerList;
-    protected boolean contentChange = true;
 
     @DescSynced
     protected boolean activated;
@@ -109,9 +108,13 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     }
 
     @Override
+    protected void onFormedUpdated(boolean newValue, boolean oldValue) {
+        previouslyActivated = null;
+    }
+
+    @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        previouslyActivated = null;
         // attach parts' traits
         activeBlocks.clear();
         activeBlocks.addAll(getMultiblockState().getMatchContext().vaBlocks);
@@ -142,7 +145,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void onStructureInvalid() {
         super.onStructureInvalid();
-        previouslyActivated = null;
         activeBlocks.clear();
         capabilitiesProxy.clear();
         capabilitiesFlat.clear();
@@ -155,7 +157,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void onPartUnload() {
         super.onPartUnload();
-        previouslyActivated = null;
         activeBlocks.clear();
         capabilitiesProxy.clear();
         capabilitiesFlat.clear();
@@ -288,16 +289,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     public int getActiveRecipeType() {
         return this.activeRecipeType;
-    }
-
-    @Override
-    public boolean isChange() {
-        return contentChange;
-    }
-
-    @Override
-    public void setChange(boolean cache) {
-        this.contentChange = cache;
     }
 
     @Override

@@ -4,15 +4,14 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.function.ItemPredicate;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
 import java.util.List;
-import java.util.function.Predicate;
 
 public class ItemRecipeHandler implements IRecipeHandler<Ingredient> {
 
@@ -30,23 +29,15 @@ public class ItemRecipeHandler implements IRecipeHandler<Ingredient> {
     }
 
     @Override
-    public boolean forEachInputItems(Predicate<ItemStack> function) {
+    public boolean forEachItems(ItemPredicate function) {
         for (int i = 0; i < storage.size; ++i) {
-            if (function.test(storage.stacks[i])) return true;
-        }
-        return false;
-    }
-
-    @Override
-    public double getTotalContentAmount() {
-        long amount = 0;
-        for (int i = 0; i < storage.size; ++i) {
-            ItemStack stack = storage.getStackInSlot(i);
-            if (!stack.isEmpty()) {
-                amount += stack.getCount();
+            var stack = storage.stacks[i];
+            var amount = stack.getCount();
+            if (amount > 0) {
+                if (function.test(stack, amount)) return true;
             }
         }
-        return amount;
+        return false;
     }
 
     @Override

@@ -159,33 +159,20 @@ public enum CannerLogic implements GTRecipeType.ICustomRecipeLogic {
     }
 
     private static boolean collect(RecipeHandlerList rhl, List<ItemStack> itemStacks, List<FluidStack> fluidStacks) {
-        return collect(rhl.getCapability(ItemRecipeCapability.CAP),
-                rhl.getCapability(FluidRecipeCapability.CAP),
-                itemStacks, fluidStacks);
+        rhl.fastForEach((stack, amount) -> itemStacks.add(stack), (stack, amount) -> fluidStacks.add(stack));
+        return !(itemStacks.isEmpty() || fluidStacks.isEmpty());
     }
 
-    private static boolean collect(List<IRecipeHandler<?>> itemHandlers, List<IRecipeHandler<?>> fluidHandlers,
-                                   List<ItemStack> itemStacks, List<FluidStack> fluidStacks) {
+    private static void collect(List<IRecipeHandler<?>> itemHandlers, List<IRecipeHandler<?>> fluidHandlers,
+                                List<ItemStack> itemStacks, List<FluidStack> fluidStacks) {
         for (var handler : itemHandlers) {
             if (!handler.shouldSearchContent()) continue;
-            handler.forEachInputItems(stack -> {
-                if (!stack.isEmpty()) {
-                    itemStacks.add(stack);
-                }
-                return false;
-            });
+            handler.fastForEachItems((stack, amount) -> itemStacks.add(stack));
         }
 
         for (var handler : fluidHandlers) {
             if (!handler.shouldSearchContent()) continue;
-            handler.forEachInputFluids(stack -> {
-                if (!stack.isEmpty()) {
-                    fluidStacks.add(stack);
-                }
-                return false;
-            });
+            handler.fastForEachFluids((stack, amount) -> fluidStacks.add(stack));
         }
-
-        return !(itemStacks.isEmpty() || fluidStacks.isEmpty());
     }
 }

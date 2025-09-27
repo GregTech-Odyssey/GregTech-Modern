@@ -162,7 +162,6 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     }
 
     public void serverTick() {
-        machine.setChange(true);
         if (isSuspend()) {
             unsubscribe();
         } else if (!isIdle() && lastRecipe != null) {

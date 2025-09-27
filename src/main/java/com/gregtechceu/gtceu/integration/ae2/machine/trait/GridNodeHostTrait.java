@@ -41,7 +41,7 @@ public class GridNodeHostTrait extends MachineTrait implements IGridConnectedBlo
 
     @Override
     public AECableType getCableConnectionType(Direction dir) {
-        return AECableType.SMART;
+        return AECableType.DENSE_SMART;
     }
 
     @Override

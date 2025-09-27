@@ -1,25 +1,23 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
+import com.gregtechceu.gtceu.api.capability.recipe.function.ItemConsumer;
+import com.gregtechceu.gtceu.api.capability.recipe.function.ItemPredicate;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
-import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
-import com.gregtechceu.gtceu.utils.collection.O2LOpenCustomCacheHashMap;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
-import it.unimi.dsi.fastutil.objects.Object2LongOpenCustomHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.IntFunction;
-import java.util.function.Predicate;
 
 public class CircuitHandler extends NotifiableItemStackHandler {
 
@@ -60,32 +58,36 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     }
 
     @Override
-    public @Nullable Object2LongOpenCustomHashMap<ItemStack> getItemMap() {
-        if (itemMap == null) {
-            itemMap = new O2LOpenCustomCacheHashMap<>(ItemStackHashStrategy.ITEM);
+    public boolean forEachItems(ItemPredicate function) {
+        var stack = storage.stacks[0];
+        var amount = stack.getCount();
+        if (amount > 0) {
+            return function.test(stack, amount);
         }
+        return false;
+    }
+
+    @Override
+    public void fastForEachItems(ItemConsumer function) {
+        var stack = storage.stacks[0];
+        var amount = stack.getCount();
+        if (amount > 0) {
+            function.accept(stack, amount);
+        }
+    }
+
+    @Override
+    public IntIngredientMap getIngredientMap() {
         if (changed) {
             changed = false;
-            itemMap.clear();
-            ItemStack stored = storage.stacks[0];
-            int count = stored.getCount();
-            boolean empty = count < 1;
-            isEmpty = empty;
-            if (!empty) {
-                itemMap.put(stored, count);
+            intIngredientMap.clear();
+            var stack = storage.stacks[0];
+            var amount = stack.getCount();
+            if (amount > 0) {
+                IntIngredientMap.ITEM_CONVERSION.convert(stack, amount, intIngredientMap);
             }
         }
-        return isEmpty ? null : itemMap;
-    }
-
-    @Override
-    public boolean forEachInputItems(Predicate<ItemStack> function) {
-        return function.test(storage.stacks[0]);
-    }
-
-    @Override
-    public double getTotalContentAmount() {
-        return storage.stacks[0].getCount();
+        return intIngredientMap;
     }
 
     @NotNull
