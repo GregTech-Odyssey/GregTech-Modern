@@ -64,7 +64,7 @@ public class EnergyContainerList implements IEnergyContainer {
         this.outputVoltage = output;
         this.inputAmperage = inputVoltage > 0 ? 1 : 0;
         this.outputAmperage = outputVoltage > 0 ? 1 : 0;
-        if (recipe == 0 && outputAmperage > 0) {
+        if (outputAmperage > 0) {
             recipe = outputVoltage;
             overclockVoltage = outputVoltage;
         } else {
