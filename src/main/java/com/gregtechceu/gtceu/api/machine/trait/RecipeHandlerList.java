@@ -152,7 +152,7 @@ public class RecipeHandlerList {
 
     public IntIngredientMap getIngredientMap() {
         intIngredientMap.clear();
-        allHandlers.forEach(handler -> handler.getIngredientMap().int2LongEntrySet().fastForEach(entry -> intIngredientMap.add(entry.getIntKey(), entry.getLongValue())));
+        allHandlers.forEach(handler -> handler.getIngredientMap().embed(intIngredientMap));
         return intIngredientMap;
     }
 

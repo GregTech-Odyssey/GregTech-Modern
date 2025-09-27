@@ -5,12 +5,6 @@ import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap;
-import it.unimi.dsi.fastutil.objects.AbstractObjectSet;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
-import it.unimi.dsi.fastutil.objects.ObjectIterators;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.function.Consumer;
 
 import static it.unimi.dsi.fastutil.HashCommon.arraySize;
 
@@ -20,9 +14,10 @@ public class IntIngredientMap extends Int2LongOpenHashMap {
 
     public static FluidConversion FLUID_CONVERSION = (stack, amount, map) -> map.add(stack.getFluid().hashCode(), amount);
 
-    private static final MapEntrySet ENTRIES = new MapEntrySet();
-
     public static final IntIngredientMap EMPTY = new IntIngredientMap(0) {
+
+        @Override
+        public void embed(IntIngredientMap map) {}
 
         @Override
         public void add(final int k, final long incr) {}
@@ -30,11 +25,6 @@ public class IntIngredientMap extends Int2LongOpenHashMap {
         @Override
         public int[] toIntArray() {
             return new int[0];
-        }
-
-        @Override
-        public FastEntrySet int2LongEntrySet() {
-            return ENTRIES;
         }
     };
 
@@ -56,9 +46,14 @@ public class IntIngredientMap extends Int2LongOpenHashMap {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public FastEntrySet int2LongEntrySet() {
-        return size == 0 ? ENTRIES : super.int2LongEntrySet();
+    public void embed(IntIngredientMap map) {
+        int pos = n;
+        while (pos-- != 0) {
+            int k = key[pos];
+            if (k != 0) {
+                map.add(k, value[pos]);
+            }
+        }
     }
 
     public void add(final int k, final long incr) {
@@ -98,26 +93,5 @@ public class IntIngredientMap extends Int2LongOpenHashMap {
     public interface FluidConversion {
 
         void convert(FluidStack stack, long amount, IntIngredientMap map);
-    }
-
-    private static final class MapEntrySet extends AbstractObjectSet<Entry> implements FastEntrySet {
-
-        @Override
-        public ObjectIterator<Entry> fastIterator() {
-            return ObjectIterators.emptyIterator();
-        }
-
-        @Override
-        public @NotNull ObjectIterator<Entry> iterator() {
-            return ObjectIterators.emptyIterator();
-        }
-
-        @Override
-        public int size() {
-            return 0;
-        }
-
-        @Override
-        public void fastForEach(final Consumer<? super Entry> consumer) {}
     }
 }
