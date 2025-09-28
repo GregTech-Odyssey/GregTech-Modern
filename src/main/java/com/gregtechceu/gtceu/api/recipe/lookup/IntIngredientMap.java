@@ -50,11 +50,14 @@ public class IntIngredientMap extends Int2LongOpenHashMap {
     }
 
     public void fill(IntIngredientMap map) {
+        if (size == 0) return;
         int pos = n;
+        int i = 0;
         while (pos-- != 0) {
             int k = key[pos];
             if (k != 0) {
                 map.add(k, value[pos]);
+                if (++i == size) break;
             }
         }
     }
@@ -83,8 +86,9 @@ public class IntIngredientMap extends Int2LongOpenHashMap {
         while (pos-- != 0) {
             int k = this.key[pos];
             if (k != 0) {
-                key[i++] = k;
+                key[i] = k;
                 value[i] = this.value[pos];
+                if (++i == size) break;
             }
         }
     }
@@ -96,7 +100,8 @@ public class IntIngredientMap extends Int2LongOpenHashMap {
         while (pos-- != 0) {
             int k = key[pos];
             if (k != 0) {
-                a[i++] = k;
+                a[i] = k;
+                if (++i == size) break;
             }
         }
         return a;

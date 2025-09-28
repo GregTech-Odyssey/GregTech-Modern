@@ -175,7 +175,7 @@ public class GTMachineUtils {
         return registerTieredMachines(name,
                 (holder, tier) -> new FluidHatchPartMachine(holder, tier, io, initialCapacity, slots),
                 (tier, builder) -> {
-                    builder.langValue(VNF[tier] + ' ' + displayname)
+                    builder.langValue(VNF[tier] + ChatFormatting.RESET + ' ' + displayname)
                             .allRotation()
                             .overlayTieredHullRenderer(model)
                             .abilities(abilities)

@@ -1,8 +1,11 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.capability.recipe.*;
+import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
+import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
+import com.gregtechceu.gtceu.api.recipe.modifier.ParallelFunction;
 import com.gregtechceu.gtceu.utils.function.ObjectLongConsumer;
 import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
 
@@ -21,6 +24,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class RecipeHandlerList {
+
+    public static ParallelFunction<RecipeHandlerList> ITEM_PARALLEL = (holder, contents, parallelAmount, args) -> parallelAmount;
+    public static ParallelFunction<RecipeHandlerList> FLUID_PARALLEL = (holder, contents, parallelAmount, args) -> parallelAmount;
 
     public static final RecipeHandlerList NO_DATA = new RecipeHandlerList(IO.NONE);
 
@@ -149,6 +155,14 @@ public class RecipeHandlerList {
 
     public int getColor() {
         return this.color;
+    }
+
+    public long getInputItemParallel(IRecipeLogicMachine holder, List<Content> contents, long parallelAmount) {
+        return ITEM_PARALLEL.getParallel(holder, contents, parallelAmount, this);
+    }
+
+    public long getInputFluidParallel(IRecipeLogicMachine holder, List<Content> contents, long parallelAmount) {
+        return FLUID_PARALLEL.getParallel(holder, contents, parallelAmount, this);
     }
 
     public IntIngredientMap getIngredientMap() {
