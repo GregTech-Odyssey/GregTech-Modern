@@ -1,11 +1,12 @@
 package com.gregtechceu.gtceu.api.capability.recipe;
 
-import com.gregtechceu.gtceu.api.capability.recipe.function.FluidConsumer;
-import com.gregtechceu.gtceu.api.capability.recipe.function.FluidPredicate;
-import com.gregtechceu.gtceu.api.capability.recipe.function.ItemConsumer;
-import com.gregtechceu.gtceu.api.capability.recipe.function.ItemPredicate;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
+import com.gregtechceu.gtceu.utils.function.ObjectLongConsumer;
+import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
+
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -36,20 +37,20 @@ public interface IRecipeHandler<K> extends IFilteredHandler<K> {
     /**
      * @return interruption
      */
-    default boolean forEachItems(ItemPredicate function) {
+    default boolean forEachItems(ObjectLongPredicate<ItemStack> function) {
         return false;
     }
 
     /**
      * @return interruption
      */
-    default boolean forEachFluids(FluidPredicate function) {
+    default boolean forEachFluids(ObjectLongPredicate<FluidStack> function) {
         return false;
     }
 
-    default void fastForEachItems(ItemConsumer function) {}
+    default void fastForEachItems(ObjectLongConsumer<ItemStack> function) {}
 
-    default void fastForEachFluids(FluidConsumer function) {}
+    default void fastForEachFluids(ObjectLongConsumer<FluidStack> function) {}
 
     default IntIngredientMap getIngredientMap() {
         return IntIngredientMap.EMPTY;

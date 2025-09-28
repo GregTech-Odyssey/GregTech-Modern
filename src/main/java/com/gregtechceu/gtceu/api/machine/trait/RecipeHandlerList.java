@@ -1,14 +1,15 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.capability.recipe.*;
-import com.gregtechceu.gtceu.api.capability.recipe.function.FluidConsumer;
-import com.gregtechceu.gtceu.api.capability.recipe.function.FluidPredicate;
-import com.gregtechceu.gtceu.api.capability.recipe.function.ItemConsumer;
-import com.gregtechceu.gtceu.api.capability.recipe.function.ItemPredicate;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
+import com.gregtechceu.gtceu.utils.function.ObjectLongConsumer;
+import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
+
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
@@ -152,37 +153,37 @@ public class RecipeHandlerList {
 
     public IntIngredientMap getIngredientMap() {
         intIngredientMap.clear();
-        allHandlers.forEach(handler -> handler.getIngredientMap().embed(intIngredientMap));
+        allHandlers.forEach(handler -> handler.getIngredientMap().fill(intIngredientMap));
         return intIngredientMap;
     }
 
-    public boolean forEachItems(ItemPredicate function) {
+    public boolean forEachItems(ObjectLongPredicate<ItemStack> function) {
         for (var handler : getCapability(ItemRecipeCapability.CAP)) {
             if (handler.forEachItems(function)) return true;
         }
         return false;
     }
 
-    public boolean forEachFluids(FluidPredicate function) {
+    public boolean forEachFluids(ObjectLongPredicate<FluidStack> function) {
         for (var handler : getCapability(FluidRecipeCapability.CAP)) {
             if (handler.forEachFluids(function)) return true;
         }
         return false;
     }
 
-    public void fastForEachItems(ItemConsumer function) {
+    public void fastForEachItems(ObjectLongConsumer<ItemStack> function) {
         for (var handler : getCapability(ItemRecipeCapability.CAP)) {
             handler.fastForEachItems(function);
         }
     }
 
-    public void fastForEachFluids(FluidConsumer function) {
+    public void fastForEachFluids(ObjectLongConsumer<FluidStack> function) {
         for (var handler : getCapability(FluidRecipeCapability.CAP)) {
             handler.fastForEachFluids(function);
         }
     }
 
-    public void fastForEach(ItemConsumer itemFunction, FluidConsumer FluidFunction) {
+    public void fastForEach(ObjectLongConsumer<ItemStack> itemFunction, ObjectLongConsumer<FluidStack> FluidFunction) {
         for (var handler : allHandlerTraits) {
             handler.fastForEachItems(itemFunction);
             handler.fastForEachFluids(FluidFunction);

@@ -4,11 +4,12 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.function.ItemPredicate;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
 
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
 import java.util.List;
@@ -29,7 +30,7 @@ public class ItemRecipeHandler implements IRecipeHandler<Ingredient> {
     }
 
     @Override
-    public boolean forEachItems(ItemPredicate function) {
+    public boolean forEachItems(ObjectLongPredicate<ItemStack> function) {
         for (int i = 0; i < storage.size; ++i) {
             var stack = storage.stacks[i];
             var amount = stack.getCount();

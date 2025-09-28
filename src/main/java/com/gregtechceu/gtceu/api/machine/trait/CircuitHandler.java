@@ -1,14 +1,14 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.capability.recipe.function.ItemConsumer;
-import com.gregtechceu.gtceu.api.capability.recipe.function.ItemPredicate;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
+import com.gregtechceu.gtceu.utils.function.ObjectLongConsumer;
+import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -58,7 +58,7 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     }
 
     @Override
-    public boolean forEachItems(ItemPredicate function) {
+    public boolean forEachItems(ObjectLongPredicate<ItemStack> function) {
         var stack = storage.stacks[0];
         var amount = stack.getCount();
         if (amount > 0) {
@@ -68,7 +68,7 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     }
 
     @Override
-    public void fastForEachItems(ItemConsumer function) {
+    public void fastForEachItems(ObjectLongConsumer<ItemStack> function) {
         var stack = storage.stacks[0];
         var amount = stack.getCount();
         if (amount > 0) {

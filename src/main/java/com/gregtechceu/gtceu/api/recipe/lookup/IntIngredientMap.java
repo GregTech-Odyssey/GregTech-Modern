@@ -10,17 +10,20 @@ import static it.unimi.dsi.fastutil.HashCommon.arraySize;
 
 public class IntIngredientMap extends Int2LongOpenHashMap {
 
-    public static ItemConversion ITEM_CONVERSION = (stack, amount, map) -> map.add(stack.getItem().hashCode(), amount);
+    public static Conversion<ItemStack> ITEM_CONVERSION = (stack, amount, map) -> map.add(stack.getItem().hashCode(), amount);
 
-    public static FluidConversion FLUID_CONVERSION = (stack, amount, map) -> map.add(stack.getFluid().hashCode(), amount);
+    public static Conversion<FluidStack> FLUID_CONVERSION = (stack, amount, map) -> map.add(stack.getFluid().hashCode(), amount);
 
     public static final IntIngredientMap EMPTY = new IntIngredientMap(0) {
 
         @Override
-        public void embed(IntIngredientMap map) {}
+        public void fill(IntIngredientMap map) {}
 
         @Override
         public void add(final int k, final long incr) {}
+
+        @Override
+        public void fillArray(int[] key, long[] value) {}
 
         @Override
         public int[] toIntArray() {
@@ -46,7 +49,7 @@ public class IntIngredientMap extends Int2LongOpenHashMap {
         throw new UnsupportedOperationException();
     }
 
-    public void embed(IntIngredientMap map) {
+    public void fill(IntIngredientMap map) {
         int pos = n;
         while (pos-- != 0) {
             int k = key[pos];
@@ -60,16 +63,30 @@ public class IntIngredientMap extends Int2LongOpenHashMap {
         if (k == 0 || incr == 0) return;
         int pos;
         int curr;
-        if (!((curr = key[pos = HashCommon.mix(k) & mask]) == 0)) {
+        if ((curr = key[pos = HashCommon.mix(k) & mask]) != 0) {
             do if (curr == k) {
-                value[pos] = value[pos] + incr;
+                var v = value[pos] + incr;
+                if (v < 0) v = Long.MAX_VALUE;
+                value[pos] = v;
                 return;
             }
-            while (!((curr = key[pos = (pos + 1) & mask]) == 0));
+            while ((curr = key[pos = (pos + 1) & mask]) != 0);
         }
         key[pos] = k;
         value[pos] = incr;
         if (size++ >= maxFill) rehash(arraySize(size + 1, f));
+    }
+
+    public void fillArray(int[] key, long[] value) {
+        int pos = n;
+        int i = 0;
+        while (pos-- != 0) {
+            int k = this.key[pos];
+            if (k != 0) {
+                key[i++] = k;
+                value[i] = this.value[pos];
+            }
+        }
     }
 
     public int[] toIntArray() {
@@ -85,13 +102,8 @@ public class IntIngredientMap extends Int2LongOpenHashMap {
         return a;
     }
 
-    public interface ItemConversion {
+    public interface Conversion<T> {
 
-        void convert(ItemStack stack, long amount, IntIngredientMap map);
-    }
-
-    public interface FluidConversion {
-
-        void convert(FluidStack stack, long amount, IntIngredientMap map);
+        void convert(T stack, long amount, IntIngredientMap map);
     }
 }
