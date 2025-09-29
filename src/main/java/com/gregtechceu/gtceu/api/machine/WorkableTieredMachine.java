@@ -103,19 +103,27 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     }
 
     protected NotifiableItemStackHandler createImportItemHandler(Object... args) {
-        return new NotifiableItemStackHandler(this, getRecipeType().getMaxInputs(ItemRecipeCapability.CAP), IO.IN);
+        var handler = new NotifiableItemStackHandler(this, getRecipeType().getMaxInputs(ItemRecipeCapability.CAP), IO.IN);
+        if (handler.storage.size == 0) handler.setAvailable(false);
+        return handler;
     }
 
     protected NotifiableItemStackHandler createExportItemHandler(Object... args) {
-        return new NotifiableItemStackHandler(this, getRecipeType().getMaxOutputs(ItemRecipeCapability.CAP), IO.OUT);
+        var handler = new NotifiableItemStackHandler(this, getRecipeType().getMaxOutputs(ItemRecipeCapability.CAP), IO.OUT);
+        if (handler.storage.size == 0) handler.setAvailable(false);
+        return handler;
     }
 
     protected NotifiableFluidTank createImportFluidHandler(Object... args) {
-        return new NotifiableFluidTank(this, getRecipeType().getMaxInputs(FluidRecipeCapability.CAP), this.tankScalingFunction.applyAsInt(this.getTier()), IO.IN);
+        var handler = new NotifiableFluidTank(this, getRecipeType().getMaxInputs(FluidRecipeCapability.CAP), this.tankScalingFunction.applyAsInt(this.getTier()), IO.IN);
+        if (handler.getStorages().length == 0) handler.setAvailable(false);
+        return handler;
     }
 
     protected NotifiableFluidTank createExportFluidHandler(Object... args) {
-        return new NotifiableFluidTank(this, getRecipeType().getMaxOutputs(FluidRecipeCapability.CAP), this.tankScalingFunction.applyAsInt(this.getTier()), IO.OUT);
+        var handler = new NotifiableFluidTank(this, getRecipeType().getMaxOutputs(FluidRecipeCapability.CAP), this.tankScalingFunction.applyAsInt(this.getTier()), IO.OUT);
+        if (handler.getStorages().length == 0) handler.setAvailable(false);
+        return handler;
     }
 
     @Override
@@ -124,7 +132,7 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
         // attach self traits
         Map<IO, List<IRecipeHandler<?>>> ioTraits = new EnumMap<>(IO.class);
         for (MachineTrait trait : getTraits()) {
-            if (trait instanceof IRecipeHandlerTrait<?> handlerTrait) {
+            if (trait instanceof IRecipeHandlerTrait<?> handlerTrait && handlerTrait.isAvailable() && handlerTrait.getHandlerIO() != IO.NONE) {
                 ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ObjectArrayList<>()).add(handlerTrait);
             }
         }

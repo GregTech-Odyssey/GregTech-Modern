@@ -33,4 +33,10 @@ public class ActiveBlock extends AppearanceBlock {
                                          BlockState sourceState, BlockPos sourcePos) {
         return defaultBlockState();
     }
+
+    public enum State {
+        UNKNOWN,
+        ACTIVE,
+        NON_ACTIVE
+    }
 }

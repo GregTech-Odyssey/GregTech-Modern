@@ -65,7 +65,8 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @DescSynced
     protected boolean activated;
-    protected Boolean previouslyActivated = null;
+    @DescSynced
+    protected ActiveBlock.State activeState = ActiveBlock.State.UNKNOWN;
 
     public WorkableMultiblockMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder);
@@ -88,13 +89,13 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void onLoad() {
         super.onLoad();
-        previouslyActivated = null;
+        if (isRemote()) activeState = ActiveBlock.State.UNKNOWN;
     }
 
     @Override
     public void onUnload() {
         super.onUnload();
-        previouslyActivated = null;
+        if (isRemote()) activeState = ActiveBlock.State.UNKNOWN;
         traitSubscriptions.forEach(ISubscription::unsubscribe);
         traitSubscriptions.clear();
     }
@@ -108,13 +109,9 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     }
 
     @Override
-    protected void onFormedUpdated(boolean newValue, boolean oldValue) {
-        previouslyActivated = null;
-    }
-
-    @Override
     public void onStructureFormed() {
         super.onStructureFormed();
+        activeState = ActiveBlock.State.UNKNOWN;
         // attach parts' traits
         activeBlocks.clear();
         activeBlocks.addAll(getMultiblockState().getMatchContext().vaBlocks);
@@ -131,7 +128,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         // attach self traits
         Map<IO, List<IRecipeHandler<?>>> ioTraits = new EnumMap<>(IO.class);
         for (MachineTrait trait : getTraits()) {
-            if (trait instanceof IRecipeHandlerTrait<?> handlerTrait && handlerTrait.getHandlerIO() != IO.NONE) {
+            if (trait instanceof IRecipeHandlerTrait<?> handlerTrait && handlerTrait.isAvailable() && handlerTrait.getHandlerIO() != IO.NONE) {
                 ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ObjectArrayList<>()).add(handlerTrait);
             }
         }
@@ -145,6 +142,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void onStructureInvalid() {
         super.onStructureInvalid();
+        activeState = ActiveBlock.State.UNKNOWN;
         activeBlocks.clear();
         capabilitiesProxy.clear();
         capabilitiesFlat.clear();
@@ -178,10 +176,11 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
             previouslyMuffled = isMuffled;
             if (recipeLogic != null) recipeLogic.updateSound();
         }
-        boolean ac = activated || (isFormed && getRecipeLogic().isWorking());
-        if (previouslyActivated == null || ac != previouslyActivated) {
-            previouslyActivated = ac;
-            updateActiveBlocks(ac);
+        var shouldActive = activated || (isFormed && getRecipeLogic().isWorking());
+        var state = shouldActive ? ActiveBlock.State.ACTIVE : ActiveBlock.State.NON_ACTIVE;
+        if (activeState.ordinal() == 0 || state != activeState) {
+            activeState = state;
+            updateActiveBlocks(shouldActive);
         }
     }
 

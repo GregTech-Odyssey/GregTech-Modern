@@ -44,6 +44,8 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     protected Boolean isEmpty;
     protected boolean changed = true;
 
+    protected boolean isAvailable = true;
+
     protected final IntIngredientMap intIngredientMap = new IntIngredientMap();
 
     public NotifiableItemStackHandler(MetaMachine machine, int slots, @NotNull IO handlerIO, @NotNull IO capabilityIO, IntFunction<CustomItemStackHandler> storageFactory) {
@@ -243,7 +245,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     @Override
     public boolean hasCapability(@Nullable Direction side) {
         if (capabilityIO == IO.NONE) return false;
-        return capabilityValidator.test(side);
+        return isAvailable && capabilityValidator.test(side);
     }
 
     @NotNull
@@ -310,6 +312,16 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
      */
     public NotifiableItemStackHandler shouldSearchContent(final boolean shouldSearchContent) {
         this.shouldSearchContent = shouldSearchContent;
+        return this;
+    }
+
+    @Override
+    public boolean isAvailable() {
+        return this.isAvailable;
+    }
+
+    public NotifiableItemStackHandler setAvailable(boolean available) {
+        this.isAvailable = available;
         return this;
     }
 }

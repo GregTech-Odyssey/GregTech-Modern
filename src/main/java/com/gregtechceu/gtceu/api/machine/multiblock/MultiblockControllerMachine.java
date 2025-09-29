@@ -68,7 +68,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     protected BlockPos[] partPositions = new BlockPos[0];
     @DescSynced
     @RequireRerender
-    @UpdateListener(methodName = "onFormedUpdated")
     protected boolean isFormed;
     @Persisted
     @DescSynced
@@ -151,9 +150,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             }
         }
     }
-
-    @SuppressWarnings("unused")
-    protected void onFormedUpdated(boolean newValue, boolean oldValue) {}
 
     protected void updatePartPositions() {
         this.partPositions = this.parts.isEmpty() ? new BlockPos[0] : this.parts.stream().map(part -> part.self().getPos()).toArray(BlockPos[]::new);

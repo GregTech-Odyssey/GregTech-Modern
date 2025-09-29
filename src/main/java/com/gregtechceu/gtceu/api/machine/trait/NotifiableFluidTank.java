@@ -47,6 +47,8 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     public boolean isVoiding;
     protected Predicate<FluidStack> filter = GTUtil.FAVORABLE;
 
+    protected boolean isAvailable = true;
+
     protected final IntIngredientMap intIngredientMap = new IntIngredientMap();
 
     public NotifiableFluidTank(MetaMachine machine, int slots, int capacity, IO io, IO capabilityIO) {
@@ -288,7 +290,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     @Override
     public boolean hasCapability(@Nullable Direction side) {
         if (capabilityIO == IO.NONE) return false;
-        return capabilityValidator.test(side);
+        return isAvailable && capabilityValidator.test(side);
     }
 
     @NotNull
@@ -425,5 +427,15 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
 
     public Predicate<FluidStack> getFilter() {
         return this.filter;
+    }
+
+    @Override
+    public boolean isAvailable() {
+        return this.isAvailable;
+    }
+
+    public NotifiableFluidTank setAvailable(boolean available) {
+        this.isAvailable = available;
+        return this;
     }
 }

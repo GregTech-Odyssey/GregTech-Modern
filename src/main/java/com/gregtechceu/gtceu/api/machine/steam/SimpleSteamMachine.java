@@ -72,12 +72,16 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
         return new NotifiableFluidTank(this, 1, 16 * FluidType.BUCKET_VOLUME, IO.IN);
     }
 
-    protected NotifiableItemStackHandler createImportItemHandler(@SuppressWarnings("unused") Object... args) {
-        return new NotifiableItemStackHandler(this, getRecipeType().getMaxInputs(ItemRecipeCapability.CAP), IO.IN);
+    protected NotifiableItemStackHandler createImportItemHandler(Object... args) {
+        var handler = new NotifiableItemStackHandler(this, getRecipeType().getMaxInputs(ItemRecipeCapability.CAP), IO.IN);
+        if (handler.storage.size == 0) handler.setAvailable(false);
+        return handler;
     }
 
-    protected NotifiableItemStackHandler createExportItemHandler(@SuppressWarnings("unused") Object... args) {
-        return new NotifiableItemStackHandler(this, getRecipeType().getMaxOutputs(ItemRecipeCapability.CAP), IO.OUT);
+    protected NotifiableItemStackHandler createExportItemHandler(Object... args) {
+        var handler = new NotifiableItemStackHandler(this, getRecipeType().getMaxOutputs(ItemRecipeCapability.CAP), IO.OUT);
+        if (handler.storage.size == 0) handler.setAvailable(false);
+        return handler;
     }
 
     @Override

@@ -56,6 +56,10 @@ public interface IRecipeHandler<K> extends IFilteredHandler<K> {
         return IntIngredientMap.EMPTY;
     }
 
+    default boolean isAvailable() {
+        return true;
+    }
+
     default boolean isEmpty() {
         return true;
     }
