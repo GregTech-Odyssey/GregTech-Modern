@@ -8,21 +8,35 @@ import com.gregtechceu.gtceu.client.TooltipsHandler;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemUtils;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BucketPickup;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fluids.FluidActionResult;
 import net.minecraftforge.fluids.FluidUtil;
+import net.minecraftforge.fluids.IFluidBlock;
+import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class ThermalFluidStats implements IComponentCapability, IAddInformation {
+public class ThermalFluidStats implements IComponentCapability, IAddInformation, IInteractionItem {
 
     public final int capacity;
     public final boolean gasProof;
@@ -82,5 +96,33 @@ public class ThermalFluidStats implements IComponentCapability, IAddInformation 
         } else if (gasProof || plasmaProof) {
             tooltipComponents.add(Component.translatable("gtceu.tooltip.fluid_pipe_hold_shift"));
         }
+    }
+
+    @Override
+    public @NotNull InteractionResultHolder<ItemStack> use(Item item, @NotNull Level level, @NotNull Player player, InteractionHand usedHand) {
+        ItemStack itemStack = player.getItemInHand(usedHand);
+        IFluidHandlerItem fluidHandler = FluidUtil.getFluidHandler(itemStack).resolve().orElse(null);
+        if (fluidHandler == null) {
+            return InteractionResultHolder.pass(itemStack);
+        }
+        BlockHitResult blockhitresult = IInteractionItem.getPlayerPOVHitResult(level, player, ClipContext.Fluid.SOURCE_ONLY);
+        if (blockhitresult.getType() == HitResult.Type.MISS) {
+            return InteractionResultHolder.pass(itemStack);
+        } else if (blockhitresult.getType() != HitResult.Type.BLOCK) {
+            return InteractionResultHolder.pass(itemStack);
+        }
+        BlockPos blockpos = blockhitresult.getBlockPos();
+        if (level.mayInteract(player, blockpos)) {
+            BlockState blockstate1 = level.getBlockState(blockpos);
+            if (blockstate1.getBlock() instanceof BucketPickup || blockstate1.getBlock() instanceof IFluidBlock) {
+                ItemStack itemStack1 = itemStack.copyWithCount(1);
+                FluidActionResult pickUpResult = FluidUtil.tryPickUpFluid(itemStack1, player, level, blockpos, blockhitresult.getDirection());
+                if (pickUpResult.isSuccess()) {
+                    ItemStack itemStack2 = ItemUtils.createFilledResult(itemStack, player, pickUpResult.getResult());
+                    return InteractionResultHolder.success(itemStack2);
+                }
+            }
+        }
+        return IInteractionItem.super.use(item, level, player, usedHand);
     }
 }
