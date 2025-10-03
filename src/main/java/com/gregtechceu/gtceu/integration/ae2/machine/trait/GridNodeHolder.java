@@ -36,7 +36,7 @@ public class GridNodeHolder extends MachineTrait {
     }
 
     protected SerializableManagedGridNode createManagedNode() {
-        return (SerializableManagedGridNode) new SerializableManagedGridNode((IGridConnectedBlockEntity) machine, BlockEntityNodeListener.INSTANCE).setFlags(GridFlags.DENSE_CAPACITY, GridFlags.REQUIRE_CHANNEL).setVisualRepresentation(machine.getDefinition().getItem()).setIdlePowerUsage(ConfigHolder.INSTANCE.compat.ae2.meHatchEnergyUsage).setInWorldNode(true).setExposedOnSides(machine.hasFrontFacing() ? EnumSet.of(machine.getFrontFacing()) : EnumSet.allOf(Direction.class)).setTagName("proxy");
+        return (SerializableManagedGridNode) new SerializableManagedGridNode((IGridConnectedBlockEntity) machine, BlockEntityNodeListener.INSTANCE).setFlags(GridFlags.DENSE_CAPACITY, GridFlags.REQUIRE_CHANNEL).setVisualRepresentation(machine.getDefinition().asItem()).setIdlePowerUsage(ConfigHolder.INSTANCE.compat.ae2.meHatchEnergyUsage).setInWorldNode(true).setExposedOnSides(machine.hasFrontFacing() ? EnumSet.of(machine.getFrontFacing()) : EnumSet.allOf(Direction.class)).setTagName("proxy");
     }
 
     protected void createMainNode() {

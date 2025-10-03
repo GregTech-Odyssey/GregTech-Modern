@@ -33,17 +33,17 @@ public class BlastingRecipeBuilder {
         this.id = id;
     }
 
-    public BlastingRecipeBuilder input(TagKey<Item> itemStack) {
-        return input(Ingredient.of(itemStack));
+    public BlastingRecipeBuilder input(TagKey<Item> tagKey) {
+        return input(ShapedRecipeBuilder.INGREDIENT_TAG_FUNCTION.apply(tagKey));
     }
 
     public BlastingRecipeBuilder input(ItemStack itemStack) {
-        input = itemStack.hasTag() ? StrictNBTIngredient.of(itemStack) : Ingredient.of(itemStack);
+        input = itemStack.hasTag() ? StrictNBTIngredient.of(itemStack) : ShapedRecipeBuilder.INGREDIENT_ITEM_FUNCTION.apply(itemStack.getItem());
         return this;
     }
 
     public BlastingRecipeBuilder input(ItemLike itemLike) {
-        return input(Ingredient.of(itemLike));
+        return input(ShapedRecipeBuilder.INGREDIENT_ITEM_FUNCTION.apply(itemLike.asItem()));
     }
 
     public BlastingRecipeBuilder input(Ingredient ingredient) {

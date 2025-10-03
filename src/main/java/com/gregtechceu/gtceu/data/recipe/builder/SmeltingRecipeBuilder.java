@@ -33,17 +33,17 @@ public class SmeltingRecipeBuilder {
         this.id = id;
     }
 
-    public SmeltingRecipeBuilder input(TagKey<Item> itemStack) {
-        return input(Ingredient.of(itemStack));
+    public SmeltingRecipeBuilder input(TagKey<Item> tagKey) {
+        return input(ShapedRecipeBuilder.INGREDIENT_TAG_FUNCTION.apply(tagKey));
     }
 
     public SmeltingRecipeBuilder input(ItemStack itemStack) {
-        input = itemStack.hasTag() ? StrictNBTIngredient.of(itemStack) : Ingredient.of(itemStack);
+        input = itemStack.hasTag() ? StrictNBTIngredient.of(itemStack) : ShapedRecipeBuilder.INGREDIENT_ITEM_FUNCTION.apply(itemStack.getItem());
         return this;
     }
 
     public SmeltingRecipeBuilder input(ItemLike itemLike) {
-        return input(Ingredient.of(itemLike));
+        return input(ShapedRecipeBuilder.INGREDIENT_ITEM_FUNCTION.apply(itemLike.asItem()));
     }
 
     public SmeltingRecipeBuilder input(Ingredient ingredient) {

@@ -68,10 +68,6 @@ public interface IRecipeHandler<K> extends IFilteredHandler<K> {
         return false;
     }
 
-    default boolean skipParallelComputing() {
-        return false;
-    }
-
     default boolean isRecipeOnly() {
         return false;
     }

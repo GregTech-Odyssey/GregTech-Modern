@@ -23,7 +23,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Function;
+
 public class ShapedRecipeBuilder extends Builder<Ingredient, ShapedRecipeBuilder> {
+
+    public static Function<Item, Ingredient> INGREDIENT_ITEM_FUNCTION = Ingredient::of;
+    public static Function<TagKey<Item>, Ingredient> INGREDIENT_TAG_FUNCTION = Ingredient::of;
 
     protected ItemStack output = ItemStack.EMPTY;
     protected ResourceLocation id;
@@ -42,16 +47,16 @@ public class ShapedRecipeBuilder extends Builder<Ingredient, ShapedRecipeBuilder
         return aisle(slice);
     }
 
-    public ShapedRecipeBuilder define(char cha, TagKey<Item> itemStack) {
-        return where(cha, Ingredient.of(itemStack));
+    public ShapedRecipeBuilder define(char cha, TagKey<Item> tagKey) {
+        return where(cha, INGREDIENT_TAG_FUNCTION.apply(tagKey));
     }
 
     public ShapedRecipeBuilder define(char cha, ItemStack itemStack) {
-        return where(cha, itemStack.hasTag() ? StrictNBTIngredient.of(itemStack) : Ingredient.of(itemStack));
+        return where(cha, itemStack.hasTag() ? StrictNBTIngredient.of(itemStack) : INGREDIENT_ITEM_FUNCTION.apply(itemStack.getItem()));
     }
 
     public ShapedRecipeBuilder define(char cha, ItemLike itemLike) {
-        return where(cha, Ingredient.of(itemLike));
+        return where(cha, INGREDIENT_ITEM_FUNCTION.apply(itemLike.asItem()));
     }
 
     public ShapedRecipeBuilder define(char cha, Ingredient ingredient) {

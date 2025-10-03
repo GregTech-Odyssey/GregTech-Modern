@@ -37,17 +37,17 @@ public class ShapelessRecipeBuilder {
         this.id = id;
     }
 
-    public ShapelessRecipeBuilder requires(TagKey<Item> itemStack) {
-        return requires(Ingredient.of(itemStack));
+    public ShapelessRecipeBuilder requires(TagKey<Item> tagKey) {
+        return requires(ShapedRecipeBuilder.INGREDIENT_TAG_FUNCTION.apply(tagKey));
     }
 
     public ShapelessRecipeBuilder requires(ItemStack itemStack) {
-        requires(itemStack.hasTag() ? StrictNBTIngredient.of(itemStack) : Ingredient.of(itemStack));
+        requires(itemStack.hasTag() ? StrictNBTIngredient.of(itemStack) : ShapedRecipeBuilder.INGREDIENT_ITEM_FUNCTION.apply(itemStack.getItem()));
         return this;
     }
 
     public ShapelessRecipeBuilder requires(ItemLike itemLike) {
-        return requires(Ingredient.of(itemLike));
+        return requires(ShapedRecipeBuilder.INGREDIENT_ITEM_FUNCTION.apply(itemLike.asItem()));
     }
 
     public ShapelessRecipeBuilder requires(Ingredient ingredient) {

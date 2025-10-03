@@ -93,7 +93,7 @@ public interface IFancyUIMachine extends IUIMachine, IFancyUIProvider {
 
     @Override
     default IGuiTexture getTabIcon() {
-        return new ItemStackTexture(self().getDefinition().getItem());
+        return new ItemStackTexture(self().getDefinition().asItem());
     }
 
     @Override

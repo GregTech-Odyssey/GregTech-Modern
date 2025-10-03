@@ -44,16 +44,16 @@ public class ShapedEnergyTransferRecipeBuilder extends Builder<Ingredient, Shape
         return aisle(slice);
     }
 
-    public ShapedEnergyTransferRecipeBuilder define(char cha, TagKey<Item> itemStack) {
-        return where(cha, Ingredient.of(itemStack));
+    public ShapedEnergyTransferRecipeBuilder define(char cha, TagKey<Item> tagKey) {
+        return where(cha, ShapedRecipeBuilder.INGREDIENT_TAG_FUNCTION.apply(tagKey));
     }
 
     public ShapedEnergyTransferRecipeBuilder define(char cha, ItemStack itemStack) {
-        return where(cha, itemStack.hasTag() ? StrictNBTIngredient.of(itemStack) : Ingredient.of(itemStack));
+        return where(cha, itemStack.hasTag() ? StrictNBTIngredient.of(itemStack) : ShapedRecipeBuilder.INGREDIENT_ITEM_FUNCTION.apply(itemStack.getItem()));
     }
 
     public ShapedEnergyTransferRecipeBuilder define(char cha, ItemLike itemLike) {
-        return where(cha, Ingredient.of(itemLike));
+        return where(cha, ShapedRecipeBuilder.INGREDIENT_ITEM_FUNCTION.apply(itemLike.asItem()));
     }
 
     public ShapedEnergyTransferRecipeBuilder define(char cha, Ingredient ingredient) {

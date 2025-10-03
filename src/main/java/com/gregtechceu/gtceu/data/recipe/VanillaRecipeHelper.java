@@ -188,8 +188,24 @@ public class VanillaRecipeHelper {
      * @see #addShapedRecipe(boolean, boolean, ResourceLocation, ItemStack, Object...)
      */
     public static void addShapedRecipe(@NotNull String regName,
+                                       @NotNull ItemLike result, @NotNull Object... recipe) {
+        addShapedRecipe(GTCEu.id(regName), result, recipe);
+    }
+
+    /**
+     * @see #addShapedRecipe(boolean, boolean, ResourceLocation, ItemStack, Object...)
+     */
+    public static void addShapedRecipe(@NotNull String regName,
                                        @NotNull ItemStack result, @NotNull Object... recipe) {
         addShapedRecipe(GTCEu.id(regName), result, recipe);
+    }
+
+    /**
+     * @see #addShapedRecipe(boolean, boolean, ResourceLocation, ItemStack, Object...)
+     */
+    public static void addShapedRecipe(@NotNull ResourceLocation regName,
+                                       @NotNull ItemLike result, @NotNull Object... recipe) {
+        addShapedRecipe(false, regName, result, recipe);
     }
 
     /**
@@ -309,8 +325,25 @@ public class VanillaRecipeHelper {
      * @see #addShapedRecipe(boolean, boolean, ResourceLocation, ItemStack, Object...)
      */
     public static void addShapedRecipe(boolean setMaterialInfoData,
+                                       @NotNull String regName, @NotNull ItemLike result, @NotNull Object... recipe) {
+        addShapedRecipe(setMaterialInfoData, GTCEu.id(regName), new ItemStack(result), recipe);
+    }
+
+    /**
+     * @see #addShapedRecipe(boolean, boolean, ResourceLocation, ItemStack, Object...)
+     */
+    public static void addShapedRecipe(boolean setMaterialInfoData,
                                        @NotNull String regName, @NotNull ItemStack result, @NotNull Object... recipe) {
         addShapedRecipe(setMaterialInfoData, GTCEu.id(regName), result, recipe);
+    }
+
+    /**
+     * @see #addShapedRecipe(boolean, boolean, ResourceLocation, ItemStack, Object...)
+     */
+    public static void addShapedRecipe(boolean setMaterialInfoData,
+                                       @NotNull ResourceLocation regName, @NotNull ItemLike result,
+                                       @NotNull Object... recipe) {
+        addShapedRecipe(setMaterialInfoData, false, regName, new ItemStack(result.asItem()), recipe);
     }
 
     /**
@@ -504,6 +537,11 @@ public class VanillaRecipeHelper {
                                                      @NotNull ItemStack result,
                                                      @NotNull Object... recipe) {
         addShapelessRecipe(regName, result, recipe);
+    }
+
+    public static void addShapelessRecipe(@NotNull ResourceLocation regName,
+                                          @NotNull ItemLike result, @NotNull Object... recipe) {
+        addShapelessRecipe(regName, new ItemStack(result), recipe);
     }
 
     public static void addShapelessRecipe(@NotNull ResourceLocation regName,

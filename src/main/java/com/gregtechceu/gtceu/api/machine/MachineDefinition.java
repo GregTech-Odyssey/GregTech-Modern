@@ -18,6 +18,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -37,7 +38,7 @@ import java.util.function.*;
 /**
  * Representing basic information of a machine.
  */
-public class MachineDefinition implements Supplier<IMachineBlock> {
+public class MachineDefinition implements Supplier<IMachineBlock>, ItemLike {
 
     private final ResourceLocation id;
     // This is only stored here for KJS use.
@@ -88,7 +89,8 @@ public class MachineDefinition implements Supplier<IMachineBlock> {
         return blockSupplier.get();
     }
 
-    public MetaMachineItem getItem() {
+    @Override
+    public @NotNull MetaMachineItem asItem() {
         return itemSupplier.get();
     }
 
@@ -101,11 +103,11 @@ public class MachineDefinition implements Supplier<IMachineBlock> {
     }
 
     public ItemStack asStack() {
-        return new ItemStack(getItem());
+        return new ItemStack(asItem());
     }
 
     public ItemStack asStack(int count) {
-        return new ItemStack(getItem(), count);
+        return new ItemStack(asItem(), count);
     }
 
     public VoxelShape getShape(Direction direction) {
