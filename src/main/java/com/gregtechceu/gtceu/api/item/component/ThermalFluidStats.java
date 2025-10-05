@@ -101,6 +101,8 @@ public class ThermalFluidStats implements IComponentCapability, IAddInformation,
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(Item item, @NotNull Level level, @NotNull Player player, InteractionHand usedHand) {
         ItemStack itemStack = player.getItemInHand(usedHand);
+        if (level.isClientSide()) return InteractionResultHolder.consume(itemStack);
+
         IFluidHandlerItem fluidHandler = FluidUtil.getFluidHandler(itemStack).resolve().orElse(null);
         if (fluidHandler == null) {
             return InteractionResultHolder.pass(itemStack);
@@ -111,10 +113,11 @@ public class ThermalFluidStats implements IComponentCapability, IAddInformation,
         } else if (blockhitresult.getType() != HitResult.Type.BLOCK) {
             return InteractionResultHolder.pass(itemStack);
         }
+
         BlockPos blockpos = blockhitresult.getBlockPos();
         if (level.mayInteract(player, blockpos)) {
-            BlockState blockstate1 = level.getBlockState(blockpos);
-            if (blockstate1.getBlock() instanceof BucketPickup || blockstate1.getBlock() instanceof IFluidBlock) {
+            BlockState blockState = level.getBlockState(blockpos);
+            if (blockState.getBlock() instanceof BucketPickup || blockState.getBlock() instanceof IFluidBlock) {
                 ItemStack itemStack1 = itemStack.copyWithCount(1);
                 FluidActionResult pickUpResult = FluidUtil.tryPickUpFluid(itemStack1, player, level, blockpos, blockhitresult.getDirection());
                 if (pickUpResult.isSuccess()) {
