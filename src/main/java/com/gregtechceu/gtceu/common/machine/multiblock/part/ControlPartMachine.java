@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.IntInputWidget;
 import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
@@ -56,6 +57,12 @@ public class ControlPartMachine extends MultiblockPartMachine implements IContro
                 controllable.setWorkingEnabled(isWorkingAllowed);
             }
         }
+    }
+
+    @Override
+    public void addedToController(IMultiController controller) {
+        super.addedToController(controller);
+        updateInput();
     }
 
     @Override
