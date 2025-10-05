@@ -13,7 +13,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.state.BlockState;
 
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.List;
 import java.util.SortedSet;
@@ -36,14 +35,6 @@ public interface IMultiPart extends IFancyUIMachine {
      * Whether it belongs to a formed Multiblock.
      */
     boolean isFormed();
-
-    /**
-     * Get this MultiPart's controllers
-     * 
-     * @return An Unmodifiable View of the part's controllers
-     */
-    @UnmodifiableView
-    SortedSet<IMultiController> getUnmodifiableControllers();
 
     /**
      * Get this MultiPart's controllers
@@ -79,7 +70,7 @@ public interface IMultiPart extends IFancyUIMachine {
      */
     @Nullable
     default BlockState getFormedAppearance(BlockState sourceState, BlockPos sourcePos, Direction side) {
-        for (IMultiController controller : getUnmodifiableControllers()) {
+        for (IMultiController controller : getControllers()) {
             var appearance = controller.getPartAppearance(this, side, sourceState, sourcePos);
             if (appearance != null) return appearance;
         }

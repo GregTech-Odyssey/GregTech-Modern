@@ -25,7 +25,6 @@ import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +44,7 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
     @RequireRerender
     @UpdateListener(methodName = "onControllersUpdated")
     protected final Set<Long> controllerPositions = new LongOpenHashSet(1);
-    protected final SortedSet<IMultiController> controllers = new ReferenceLinkedOpenHashSet<>(1);
+    protected final SortedSet<IMultiController> controllers = Collections.synchronizedSortedSet(new ReferenceLinkedOpenHashSet<>(1));
 
     protected @Nullable RecipeHandlerList handlerList;
 
@@ -84,25 +83,13 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
 
     // Not sure if necessary, but added to match the Controller class
     @SuppressWarnings("unused")
-    public void onControllersUpdated(Set<Long> newPositions, Set<BlockPos> old) {
-        synchronized (controllers) {
-            controllers.clear();
-            for (var pos : newPositions) {
-                if (MetaMachine.getMachine(getLevel(), BlockPos.of(pos)) instanceof IMultiController controller) {
-                    controllers.add(controller);
-                }
+    public synchronized void onControllersUpdated(Set<Long> newPositions, Set<BlockPos> old) {
+        controllers.clear();
+        for (var pos : newPositions) {
+            if (MetaMachine.getMachine(getLevel(), BlockPos.of(pos)) instanceof IMultiController controller) {
+                controllers.add(controller);
             }
         }
-    }
-
-    @Override
-    @UnmodifiableView
-    public SortedSet<IMultiController> getUnmodifiableControllers() {
-        // Necessary to rebuild the set of controllers on client-side
-        if (controllers.size() != controllerPositions.size()) {
-            onControllersUpdated(controllerPositions, Collections.emptySet());
-        }
-        return Collections.unmodifiableSortedSet(controllers);
     }
 
     @Override

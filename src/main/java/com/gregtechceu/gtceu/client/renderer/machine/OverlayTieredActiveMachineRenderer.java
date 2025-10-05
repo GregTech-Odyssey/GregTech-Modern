@@ -46,7 +46,7 @@ public class OverlayTieredActiveMachineRenderer extends TieredHullMachineRendere
                 return;
             }
         } else if (machine instanceof IMultiPart part) {
-            if (part.getUnmodifiableControllers().stream()
+            if (part.getControllers().stream()
                     .anyMatch(controller -> controller instanceof IRecipeLogicMachine rlm && rlm.isActive())) {
                 quads.addAll(activeOverlayModel.getRotatedModel(frontFacing).getQuads(definition.defaultBlockState(),
                         side, rand));

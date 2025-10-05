@@ -604,7 +604,9 @@ public class VanillaRecipeHelper {
             // Should never happen if recipe is formatted correctly
             // In the case that it isn't, this error should be handled
             // by an earlier method call parsing the recipe.
-            if (lastChar == ' ') return null;
+            if (lastChar == ' ') {
+                throw new IllegalArgumentException("Invalid recipe format, no symbol found for ingredient: " + ingredient);
+            }
 
             ItemLike itemLike;
             if (ingredient instanceof Ingredient ingr) {
