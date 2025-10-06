@@ -183,7 +183,10 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
     }
 
     public void setActiveRecipeType(final int activeRecipeType) {
-        this.activeRecipeType = activeRecipeType;
+        if (this.activeRecipeType != activeRecipeType) {
+            getRecipeLogic().markLastRecipeDirty();
+            getRecipeLogic().updateTickSubscription();
+        }
     }
 
     public Direction getOutputFacing() {

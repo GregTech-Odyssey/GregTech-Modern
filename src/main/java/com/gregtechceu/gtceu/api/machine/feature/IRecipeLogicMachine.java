@@ -32,6 +32,20 @@ public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IWorkable,
 
     void setActiveRecipeType(int type);
 
+    default void setRecipeType(GTRecipeType type) {
+        var types = getRecipeTypes();
+        if (types.length > 1 && getRecipeType() != type) {
+            int i = 0;
+            for (var t : types) {
+                if (t == type) {
+                    setActiveRecipeType(i);
+                    break;
+                }
+                i++;
+            }
+        }
+    }
+
     /**
      * Called when recipe logic status changed
      */

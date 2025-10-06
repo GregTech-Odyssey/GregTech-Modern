@@ -222,7 +222,10 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     }
 
     public void setActiveRecipeType(final int activeRecipeType) {
-        this.activeRecipeType = activeRecipeType;
+        if (this.activeRecipeType != activeRecipeType) {
+            getRecipeLogic().markLastRecipeDirty();
+            getRecipeLogic().updateTickSubscription();
+        }
     }
 
     public Int2IntFunction getTankScalingFunction() {

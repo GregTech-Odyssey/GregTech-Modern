@@ -265,8 +265,11 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Override
     public void setActiveRecipeType(final int activeRecipeType) {
+        if (this.activeRecipeType != activeRecipeType) {
+            getRecipeLogic().markLastRecipeDirty();
+            getRecipeLogic().updateTickSubscription();
+        }
         this.activeRecipeType = activeRecipeType;
-        getRecipeLogic().markLastRecipeDirty();
     }
 
     @Nullable
