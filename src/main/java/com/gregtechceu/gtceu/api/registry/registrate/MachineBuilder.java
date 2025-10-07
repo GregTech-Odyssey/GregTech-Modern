@@ -115,6 +115,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     private Consumer<IRecipeLogicMachine> afterWorking = machine -> {};
     private boolean regressWhenWaiting = true;
     private boolean allowCoverOnFront = false;
+    private boolean disabledCombined =false;
     private Supplier<BlockState> appearance;
     // getter for KJS
     @Nullable
@@ -243,6 +244,11 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
         return this;
     }
 
+    public MachineBuilder<DEFINITION> disabledCombined() {
+        this.disabledCombined =true;
+        return this;
+    }
+
     public MachineBuilder<DEFINITION> multiblockPreviewRenderer(boolean multiBlockWorldPreview, boolean multiBlockXEIPreview) {
         this.renderMultiblockWorldPreview = multiBlockWorldPreview;
         this.renderMultiblockXEIPreview = multiBlockXEIPreview;
@@ -274,7 +280,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
             blockEntityBuilder = blockEntityBuilder.renderer(() -> GTRendererProvider::getOrCreate);
         }
         var blockEntity = blockEntityBuilder.register();
-        if(recipeTypes.length>1){
+        if(!disabledCombined &&recipeTypes != null && recipeTypes.length>1){
             var tmp=new ArrayList<GTRecipeType>();
             tmp.add(COMBINED_RECIPES);
             tmp.addAll(Arrays.stream(recipeTypes).toList());
