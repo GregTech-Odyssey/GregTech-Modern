@@ -55,7 +55,7 @@ public class GTRecipeTypes {
     public static final String GENERATOR = "generator";
     public static final String MULTIBLOCK = "multiblock";
     public static final String DUMMY = "dummy";
-    public static final String COMBINED="combined";
+    public static final String COMBINED = "combined";
 
     static {
         GTRegistries.RECIPE_TYPES.unfreeze();

@@ -11,19 +11,22 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.sound.AutoReleasedSound;
+
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.annotation.UpdateListener;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -231,8 +234,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
                         Iterator<GTRecipe> iterator = recipeType.searchRecipe(machine, this::matchRecipe);
                         return StreamSupport.stream(
                                 Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED),
-                                false
-                        );
+                                false);
                     })
                     .iterator();
         }
