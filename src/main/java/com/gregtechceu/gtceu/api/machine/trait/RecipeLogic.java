@@ -11,29 +11,26 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.sound.AutoReleasedSound;
-
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.annotation.UpdateListener;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
-
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.StreamSupport;
+
+import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.COMBINED_RECIPES;
 
 public class RecipeLogic extends MachineTrait implements IWorkable, IFancyTooltip {
 
@@ -225,7 +222,20 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
 
     @NotNull
     public Iterator<GTRecipe> searchRecipe() {
-        return machine.getRecipeType().searchRecipe(machine, this::matchRecipe);
+        if (machine.getRecipeType() != COMBINED_RECIPES)
+            return machine.getRecipeType().searchRecipe(machine, this::matchRecipe);
+        else {
+            return Arrays.stream(machine.getRecipeTypes())
+                    .filter(gtRecipeType -> gtRecipeType != COMBINED_RECIPES)
+                    .flatMap(recipeType -> {
+                        Iterator<GTRecipe> iterator = recipeType.searchRecipe(machine, this::matchRecipe);
+                        return StreamSupport.stream(
+                                Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED),
+                                false
+                        );
+                    })
+                    .iterator();
+        }
     }
 
     public void findAndHandleRecipe() {

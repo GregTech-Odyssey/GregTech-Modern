@@ -55,6 +55,7 @@ public class GTRecipeTypes {
     public static final String GENERATOR = "generator";
     public static final String MULTIBLOCK = "multiblock";
     public static final String DUMMY = "dummy";
+    public static final String COMBINED="combined";
 
     static {
         GTRegistries.RECIPE_TYPES.unfreeze();
@@ -667,6 +668,8 @@ public class GTRecipeTypes {
             .setUiBuilder(FusionReactorMachine::addEUToStartLabel);
 
     public static final GTRecipeType DUMMY_RECIPES = register("dummy", DUMMY)
+            .setXEIVisible(false);
+    public static final GTRecipeType COMBINED_RECIPES = register("combined", COMBINED)
             .setXEIVisible(false);
 
     public static GTRecipeType register(String name, String group, RecipeType<?>... proxyRecipes) {
