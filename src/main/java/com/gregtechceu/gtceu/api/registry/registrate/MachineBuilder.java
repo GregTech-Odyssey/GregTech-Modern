@@ -282,8 +282,8 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
         var blockEntity = blockEntityBuilder.register();
         if(!disabledCombined &&recipeTypes != null && recipeTypes.length>1){
             var tmp=new ArrayList<GTRecipeType>();
-            tmp.add(COMBINED_RECIPES);
             tmp.addAll(Arrays.stream(recipeTypes).toList());
+            tmp.add(COMBINED_RECIPES);
             recipeTypes=tmp.toArray(GTRecipeType[]::new);
         }
         definition.setRecipeTypes(recipeTypes);
