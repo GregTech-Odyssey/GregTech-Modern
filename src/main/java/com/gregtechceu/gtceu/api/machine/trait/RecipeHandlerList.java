@@ -40,8 +40,8 @@ public class RecipeHandlerList {
     public final List<NotifiableRecipeHandlerTrait<?>> allHandlerTraits = new ObjectArrayList<>();
     private final IO handlerIO;
     private int color = -1;
+    public GTRecipeType recipeType= GTRecipeTypes.COMBINED_RECIPES;
     private boolean isDistinct;
-    private GTRecipeType recipeType= GTRecipeTypes.COMBINED_RECIPES;
 
     public final IntIngredientMap intIngredientMap = new IntIngredientMap();
 
