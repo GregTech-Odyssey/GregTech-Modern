@@ -3,9 +3,12 @@ package com.gregtechceu.gtceu.api.machine.trait;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
+import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelFunction;
+import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.utils.function.ObjectLongConsumer;
 import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
 
@@ -38,6 +41,7 @@ public class RecipeHandlerList {
     private final IO handlerIO;
     private int color = -1;
     private boolean isDistinct;
+    private GTRecipeType recipeType= GTRecipeTypes.COMBINED_RECIPES;
 
     public final IntIngredientMap intIngredientMap = new IntIngredientMap();
 
@@ -117,6 +121,15 @@ public class RecipeHandlerList {
         if (notify && part != null) {
             NOTIFY.accept(part);
         }
+    }
+
+    public void setRecipeType(GTRecipeType type){
+        recipeType=type;
+    }
+
+
+    public GTRecipeType getRecipeType() {
+        return recipeType;
     }
 
     public boolean hasCapability(RecipeCapability<?> cap) {
