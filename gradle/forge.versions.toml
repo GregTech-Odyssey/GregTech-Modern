@@ -14,7 +14,7 @@ jade = "11.6.3"
 embeddium = "0.3.19+mc1.20.1"
 
 ## cursemaven ##
-configuration = "4710266"
+configuration = "5840405"
 ldlib = "6899193"
 shimmer = "5685940"
 xaerosWorldMap = "5658224"
