@@ -3,8 +3,10 @@ package com.gregtechceu.gtceu.api.machine.trait;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
+import com.gregtechceu.gtceu.api.recipe.lookup.SearchFunction;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelFunction;
 import com.gregtechceu.gtceu.utils.function.ObjectLongConsumer;
 import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
@@ -20,11 +22,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class RecipeHandlerList {
 
+    public static SearchFunction SEARCH = (holder, type, handlerList, searchFunction) -> Collections.emptyIterator();
     public static ParallelFunction<RecipeHandlerList> ITEM_PARALLEL = (holder, contents, parallelAmount, args) -> parallelAmount;
     public static ParallelFunction<RecipeHandlerList> FLUID_PARALLEL = (holder, contents, parallelAmount, args) -> parallelAmount;
 
@@ -38,6 +43,10 @@ public class RecipeHandlerList {
     private final IO handlerIO;
     private int color = -1;
     private boolean isDistinct;
+
+    public RecipeHandlerList external = this;
+
+    public GTRecipeType recipeType;
 
     public final IntIngredientMap intIngredientMap = new IntIngredientMap();
 
@@ -155,6 +164,10 @@ public class RecipeHandlerList {
 
     public int getColor() {
         return this.color;
+    }
+
+    public <T, R> Iterator<R> searchRecipe(IRecipeCapabilityHolder holder, T type, Predicate<R> canHandle) {
+        return SEARCH.search(holder, type, this, canHandle);
     }
 
     public long getInputItemParallel(IRecipeLogicMachine holder, List<Content> contents, long parallelAmount) {
