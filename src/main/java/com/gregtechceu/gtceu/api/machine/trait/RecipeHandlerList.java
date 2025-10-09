@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
 import com.gregtechceu.gtceu.api.recipe.lookup.SearchFunction;
@@ -178,7 +177,7 @@ public class RecipeHandlerList {
         return this.color;
     }
 
-    public <T, R> Iterator<R> searchRecipe(IRecipeCapabilityHolder holder, T type, Predicate<R> canHandle) {
+    public <T extends GTRecipeType, R extends GTRecipe> Iterator<R> searchRecipe(IRecipeCapabilityHolder holder, T type, Predicate<R> canHandle) {
         return SEARCH.search(holder, type, this, canHandle);
     }
 
