@@ -17,14 +17,10 @@ import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.SmeltingRecipe;
 
 import it.unimi.dsi.fastutil.objects.*;
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +62,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         this.category = GTRecipeCategory.registerDefault(this);
         recipeBuilder = new GTRecipeBuilder(registryName, this);
         // must be linked to stop json contents from shuffling
-        Map<RecipeType<?>, List<GTRecipe>> map = new O2OOpenCacheHashMap<>();
+        Map<RecipeType<?>, List<GTRecipe>> map = new Reference2ReferenceOpenHashMap<>();
         for (RecipeType<?> proxyRecipe : proxyRecipes) {
             map.put(proxyRecipe, new ObjectArrayList<>());
         }
@@ -210,30 +206,6 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     @Nullable
     public Collection<GTRecipe> getDataStickEntry(@NotNull String researchId) {
         return researchEntries.get(researchId);
-    }
-
-    public boolean removeDataStickEntry(@NotNull String researchId, @NotNull GTRecipe recipe) {
-        Collection<GTRecipe> collection = researchEntries.get(researchId);
-        if (collection == null) return false;
-        if (collection.remove(recipe)) {
-            if (collection.isEmpty()) {
-                return researchEntries.remove(researchId) != null;
-            }
-            return true;
-        }
-        return false;
-    }
-
-    public GTRecipe toGTrecipe(ResourceLocation id, Recipe<?> recipe) {
-        var builder = recipeBuilder(id);
-        for (var ingredient : recipe.getIngredients()) {
-            builder.inputItems(ingredient);
-        }
-        builder.outputItems(recipe.getResultItem(RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY)));
-        if (recipe instanceof SmeltingRecipe smeltingRecipe) {
-            builder.duration(smeltingRecipe.getCookingTime());
-        }
-        return builder.buildRawRecipe();
     }
 
     public void buildRepresentativeRecipes() {

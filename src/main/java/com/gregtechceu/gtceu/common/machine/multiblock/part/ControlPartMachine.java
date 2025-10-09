@@ -15,6 +15,8 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.TickTask;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
@@ -62,7 +64,9 @@ public class ControlPartMachine extends MultiblockPartMachine implements IContro
     @Override
     public void addedToController(IMultiController controller) {
         super.addedToController(controller);
-        updateInput();
+        if (getLevel() instanceof ServerLevel serverLevel) {
+            serverLevel.getServer().tell(new TickTask(0, this::updateInput));
+        }
     }
 
     @Override

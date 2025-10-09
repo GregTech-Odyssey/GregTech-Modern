@@ -128,10 +128,12 @@ public class MultiblockWorldSavedData extends SavedData {
                 try {
                     controller.asyncCheckPattern(this);
                 } catch (Throwable e) {
+                    e.printStackTrace();
                     GTCEu.LOGGER.error("Error while assembling multiblock {}: {}", controller, e.getMessage());
                 }
             }
         } catch (Throwable e) {
+            e.printStackTrace();
             GTCEu.LOGGER.error("Error while assembling multiblocks: {}", e.getMessage());
         } finally {
             IN_SERVICE.set(false);
