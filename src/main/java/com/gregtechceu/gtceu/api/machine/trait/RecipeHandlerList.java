@@ -48,7 +48,7 @@ public class RecipeHandlerList {
 
     public RecipeHandlerList external = this;
 
-    public GTRecipeType recipeType= GTRecipeTypes.COMBINED_RECIPES;
+    public GTRecipeType recipeType = GTRecipeTypes.COMBINED_RECIPES;
 
     public final IntIngredientMap intIngredientMap = new IntIngredientMap();
 
@@ -130,10 +130,9 @@ public class RecipeHandlerList {
         }
     }
 
-    public void setRecipeType(GTRecipeType type){
-        recipeType=type;
+    public void setRecipeType(GTRecipeType type) {
+        recipeType = type;
     }
-
 
     public GTRecipeType getRecipeType() {
         return recipeType;
