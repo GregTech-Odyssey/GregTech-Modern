@@ -17,18 +17,18 @@ import java.util.Objects;
 public interface ISlotWidget {
 
     static void drawBackgroundAEStyle(@NotNull GuiGraphics graphics, ItemStack itemStack, Position pos) {
-        // DrawerHelper.drawItemStack(graphics, itemStack, pos.x + 1, pos.y + 1, -1, (String)null);
+        // DrawerHelper.drawItemStack(graphics, itemStack, pos.x, pos.y, -1, (String)null);
         var minecraft = Minecraft.getInstance();
         var gStack = Objects.requireNonNull(GenericStack.fromItemStack(itemStack), "Not a valid ItemStack: " + itemStack);
         AEKeyRendering.drawInGui(
                 minecraft,
                 graphics,
-                pos.x + 1,
-                pos.y + 1, gStack.what());
+                pos.x,
+                pos.y, gStack.what());
 
         if (gStack.amount() > 0) {
             String amtText = gStack.what().formatAmount(gStack.amount(), AmountFormat.SLOT);
-            StackSizeRenderer.renderSizeLabel(graphics, minecraft.font, pos.x + 1, pos.y + 1, amtText, false);
+            StackSizeRenderer.renderSizeLabel(graphics, minecraft.font, pos.x, pos.y, amtText, false);
         }
     }
 

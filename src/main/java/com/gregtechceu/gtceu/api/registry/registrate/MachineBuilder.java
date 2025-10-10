@@ -280,6 +280,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
             blockEntityBuilder = blockEntityBuilder.renderer(() -> GTRendererProvider::getOrCreate);
         }
         var blockEntity = blockEntityBuilder.register();
+        definition.setDisabledCombined(disabledCombined);
         if (!disabledCombined && recipeTypes != null && recipeTypes.length > 1) {
             var tmp = new ArrayList<>(Arrays.stream(recipeTypes).toList());
             tmp.add(COMBINED_RECIPES);
