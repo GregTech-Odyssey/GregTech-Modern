@@ -87,7 +87,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
                     .filter(gtRecipeType -> gtRecipeType != GTRecipeTypes.COMBINED_RECIPES)
                     .toList().toArray(new GTRecipeType[0]);
         } else {
-            return List.of(types).toArray(new GTRecipeType[0]);
+            return List.of(selected_type).toArray(new GTRecipeType[0]);
         }
     }
 
