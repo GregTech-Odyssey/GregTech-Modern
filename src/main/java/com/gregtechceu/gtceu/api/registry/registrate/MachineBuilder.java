@@ -55,15 +55,12 @@ import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.*;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-
-import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.COMBINED_RECIPES;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
@@ -280,11 +277,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
             blockEntityBuilder = blockEntityBuilder.renderer(() -> GTRendererProvider::getOrCreate);
         }
         var blockEntity = blockEntityBuilder.register();
-        if (!disabledCombined && recipeTypes != null && recipeTypes.length > 1) {
-            var tmp = new ArrayList<>(Arrays.stream(recipeTypes).toList());
-            tmp.add(COMBINED_RECIPES);
-            recipeTypes = tmp.toArray(GTRecipeType[]::new);
-        }
+        definition.setDisabledCombined(disabledCombined);
         definition.setRecipeTypes(recipeTypes);
         definition.setBlockSupplier(block);
         definition.setItemSupplier(item);

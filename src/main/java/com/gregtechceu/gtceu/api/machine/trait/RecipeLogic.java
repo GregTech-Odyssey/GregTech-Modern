@@ -31,9 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.StreamSupport;
-
-import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.COMBINED_RECIPES;
 
 public class RecipeLogic extends MachineTrait implements IWorkable, IFancyTooltip {
 
@@ -225,19 +222,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
 
     @NotNull
     public Iterator<GTRecipe> searchRecipe() {
-        if (machine.getRecipeType() != COMBINED_RECIPES)
-            return machine.getRecipeType().searchRecipe(machine, this::matchRecipe);
-        else {
-            return Arrays.stream(machine.getRecipeTypes())
-                    .filter(gtRecipeType -> gtRecipeType != COMBINED_RECIPES)
-                    .flatMap(recipeType -> {
-                        Iterator<GTRecipe> iterator = recipeType.searchRecipe(machine, this::matchRecipe);
-                        return StreamSupport.stream(
-                                Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED),
-                                false);
-                    })
-                    .iterator();
-        }
+        return machine.getRecipeType().searchRecipe(machine, this::matchRecipe);
     }
 
     public void findAndHandleRecipe() {

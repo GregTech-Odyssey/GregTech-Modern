@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
 import com.gregtechceu.gtceu.api.recipe.lookup.SearchFunction;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelFunction;
-import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.utils.function.ObjectLongConsumer;
 import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
 
@@ -48,7 +47,7 @@ public class RecipeHandlerList {
 
     public RecipeHandlerList external = this;
 
-    public GTRecipeType recipeType = GTRecipeTypes.COMBINED_RECIPES;
+    public GTRecipeType recipeType;
 
     public final IntIngredientMap intIngredientMap = new IntIngredientMap();
 
@@ -128,14 +127,6 @@ public class RecipeHandlerList {
         if (notify && part != null) {
             NOTIFY.accept(part);
         }
-    }
-
-    public void setRecipeType(GTRecipeType type) {
-        recipeType = type;
-    }
-
-    public GTRecipeType getRecipeType() {
-        return recipeType;
     }
 
     public boolean hasCapability(RecipeCapability<?> cap) {
