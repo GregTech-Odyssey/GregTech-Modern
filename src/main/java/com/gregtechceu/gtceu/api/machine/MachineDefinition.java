@@ -76,6 +76,7 @@ public class MachineDefinition implements Supplier<IMachineBlock>, ItemLike {
     @Nullable
     private EditableMachineUI editableUI;
     private Reference2IntOpenHashMap<RecipeCapability<?>> recipeOutputLimits;
+    private boolean disabledCombined;
 
     protected MachineDefinition(ResourceLocation id) {
         this.id = id;
@@ -362,5 +363,13 @@ public class MachineDefinition implements Supplier<IMachineBlock>, ItemLike {
 
     public void setRecipeOutputLimits(final Reference2IntOpenHashMap<RecipeCapability<?>> recipeOutputLimits) {
         this.recipeOutputLimits = recipeOutputLimits;
+    }
+
+    public boolean disabledCombined() {
+        return disabledCombined;
+    }
+
+    public void setDisabledCombined(boolean disabledCombined) {
+        this.disabledCombined = disabledCombined;
     }
 }
