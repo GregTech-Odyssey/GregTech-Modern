@@ -3,10 +3,12 @@ package com.gregtechceu.gtceu.api.recipe;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.gui.SteamTexture;
+import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.chance.boost.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 import com.gregtechceu.gtceu.api.sound.SoundEntry;
+import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
@@ -67,6 +69,30 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
             map.put(proxyRecipe, new ObjectArrayList<>());
         }
         this.proxyRecipes = map;
+    }
+
+    public static boolean available(GTRecipeType recipeType, GTRecipeType... types) {
+        if (recipeType == null || recipeType == GTRecipeTypes.COMBINED_RECIPES ||
+                types[0] == GTRecipeTypes.COMBINED_RECIPES)
+            return true;
+        for (var type : types) {
+            if (recipeType == type || type.getProxyRecipes().containsKey(recipeType)) return true;
+        }
+        return false;
+    }
+
+    public static GTRecipeType[] getAvailableTypes(GTRecipeType[] types, GTRecipeType selected_type) {
+        if (selected_type == GTRecipeTypes.COMBINED_RECIPES) {
+            return Arrays.stream(types)
+                    .filter(gtRecipeType -> gtRecipeType != GTRecipeTypes.COMBINED_RECIPES)
+                    .toList().toArray(new GTRecipeType[0]);
+        } else {
+            return List.of(types).toArray(new GTRecipeType[0]);
+        }
+    }
+
+    public static GTRecipeType[] getAvailableTypes(IRecipeLogicMachine machine) {
+        return getAvailableTypes(machine.getCombinedTypes(), machine.getRecipeType());
     }
 
     public GTRecipeType setMaxIOSize(int maxInputs, int maxOutputs, int maxFluidInputs, int maxFluidOutputs) {
