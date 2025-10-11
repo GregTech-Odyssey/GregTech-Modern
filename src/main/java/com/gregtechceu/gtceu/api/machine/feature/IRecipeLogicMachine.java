@@ -99,7 +99,7 @@ public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IWorkable,
      * Called in {@link RecipeLogic#setupRecipe(GTRecipe)} ()}
      */
     default boolean beforeWorking(@Nullable GTRecipe recipe) {
-        return self().getDefinition().getBeforeWorking().test(this, recipe);
+        return true;
     }
 
     /**
@@ -112,16 +112,12 @@ public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IWorkable,
     /**
      * Called per tick in {@link RecipeLogic#handleRecipeWorking()}
      */
-    default void onWaiting() {
-        self().getDefinition().getOnWaiting().accept(this);
-    }
+    default void onWaiting() {}
 
     /**
      * Called in {@link RecipeLogic#onRecipeFinish()} before outputs are produced
      */
-    default void afterWorking() {
-        self().getDefinition().getAfterWorking().accept(this);
-    }
+    default void afterWorking() {}
 
     default void onRecipeFinish() {}
 

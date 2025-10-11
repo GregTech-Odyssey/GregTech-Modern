@@ -310,23 +310,8 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
     }
 
     @Override
-    public MultiblockMachineBuilder beforeWorking(BiPredicate<IRecipeLogicMachine, GTRecipe> beforeWorking) {
-        return (MultiblockMachineBuilder) super.beforeWorking(beforeWorking);
-    }
-
-    @Override
     public MultiblockMachineBuilder onWorking(Predicate<IRecipeLogicMachine> onWorking) {
         return (MultiblockMachineBuilder) super.onWorking(onWorking);
-    }
-
-    @Override
-    public MultiblockMachineBuilder onWaiting(Consumer<IRecipeLogicMachine> onWaiting) {
-        return (MultiblockMachineBuilder) super.onWaiting(onWaiting);
-    }
-
-    @Override
-    public MultiblockMachineBuilder afterWorking(Consumer<IRecipeLogicMachine> afterWorking) {
-        return (MultiblockMachineBuilder) super.afterWorking(afterWorking);
     }
 
     @Override

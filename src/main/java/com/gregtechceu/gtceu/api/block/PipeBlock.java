@@ -135,33 +135,6 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
 
     protected abstract PipeModel getPipeModel();
 
-    @Override
-    public void onNeighborChange(BlockState state, LevelReader level, BlockPos pos, BlockPos neighbor) {
-        if (level.isClientSide()) return;
-        PipeBlockEntity<PipeType, NodeDataType> pipeTile = getPipeTile(level, pos);
-
-        if (pipeTile != null) {
-            pipeTile.onNeighborChanged();
-            Direction facing = GTUtil.getFacingToNeighbor(pos, neighbor);
-            if (facing == null) return;
-            CoverBehavior cover = pipeTile.getCoverContainer().getCoverAtSide(facing);
-            if (!ConfigHolder.INSTANCE.machines.gt6StylePipesCables) {
-                boolean open = pipeTile.isConnected(facing);
-                boolean canConnect = cover != null ||
-                        canConnect(pipeTile, facing);
-                if (!open && canConnect)
-                    pipeTile.setConnection(facing, true, false);
-                if (open && !canConnect)
-                    pipeTile.setConnection(facing, false, false);
-            }
-            PipeNet<NodeDataType> net = pipeTile.getPipeNet();
-            if (net != null) {
-                pipeTile.getPipeNet().onNeighbourUpdate(neighbor);
-            }
-            if (cover != null) cover.onNeighborChanged(state.getBlock(), pos, false);
-        }
-    }
-
     /**
      * Get pipe nodes with the same pipe type.
      */
@@ -232,15 +205,21 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
             pipeTile.onNeighborChanged();
             Direction facing = GTUtil.getFacingToNeighbor(pos, fromPos);
             if (facing == null) return;
+            CoverBehavior cover = pipeTile.getCoverContainer().getCoverAtSide(facing);
             if (!ConfigHolder.INSTANCE.machines.gt6StylePipesCables) {
                 boolean open = pipeTile.isConnected(facing);
-                boolean canConnect = pipeTile.getCoverContainer().getCoverAtSide(facing) != null ||
-                        this.canConnect(pipeTile, facing);
-                if (!open && canConnect && state.getBlock() != block)
+                boolean canConnect = cover != null ||
+                        canConnect(pipeTile, facing);
+                if (!open && canConnect)
                     pipeTile.setConnection(facing, true, false);
                 if (open && !canConnect)
                     pipeTile.setConnection(facing, false, false);
             }
+            PipeNet<NodeDataType> net = pipeTile.getPipeNet();
+            if (net != null) {
+                pipeTile.getPipeNet().onNeighbourUpdate(fromPos);
+            }
+            if (cover != null) cover.onNeighborChanged(state.getBlock(), pos, false);
         }
     }
 

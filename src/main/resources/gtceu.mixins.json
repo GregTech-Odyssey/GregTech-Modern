@@ -31,7 +31,6 @@
     "ITrunkPlacerTypeAccessor",
     "LevelMixin",
     "LootPoolAccessor",
-    "OreConfigurationMixin",
     "OreVeinifierMixin",
     "PartialNBTIngredientAccessor",
     "PotionBrewingAccessor",

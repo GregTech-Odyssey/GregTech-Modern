@@ -284,7 +284,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
 
     @Override
     public List<IFancyUIProvider> getSubTabs() {
-        return getParts().stream().filter(IFancyUIProvider.class::isInstance).map(IFancyUIProvider.class::cast).toList();
+        return Arrays.stream(getParts()).filter(IFancyUIProvider.class::isInstance).map(IFancyUIProvider.class::cast).toList();
     }
 
     @Override
