@@ -52,10 +52,10 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(CableBlockEntity.class, PipeBlockEntity.MANAGED_FIELD_HOLDER);
     protected WeakReference<EnergyNet> currentEnergyNet = new WeakReference<>(null);
     private static final int meltTemp = 3000;
-    private final EnumMap<Direction, EnergyNetHandler> handlers = new EnumMap<>(Direction.class);
+    private final EnumMap<Direction, LazyOptional<EnergyNetHandler>> handlers = new EnumMap<>(Direction.class);
     private final PerTickLongCounter voltageCounter = new PerTickLongCounter(true);
     private final PerTickLongCounter amperageCounter = new PerTickLongCounter(false);
-    private EnergyNetHandler defaultHandler;
+    private LazyOptional<EnergyNetHandler> defaultHandler;
     private int heatQueue;
     @Persisted
     @DescSynced
@@ -76,7 +76,7 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
         if (cap == GTCapability.CAPABILITY_ENERGY_CONTAINER) {
             var container = getEnergyContainer(side);
             if (container != null) {
-                return GTCapability.CAPABILITY_ENERGY_CONTAINER.orEmpty(cap, LazyOptional.of(() -> container));
+                return container;
             }
             return LazyOptional.empty();
         } else if (cap == GTCapability.CAPABILITY_COVERABLE) {
@@ -101,24 +101,24 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
     public void checkNetwork() {
         if (defaultHandler != null) {
             EnergyNet current = getEnergyNet();
-            if (defaultHandler.getNet() != current) {
-                defaultHandler.updateNetwork(current);
-                for (EnergyNetHandler handler : handlers.values()) {
-                    handler.updateNetwork(current);
+            if (defaultHandler.orElse(null).getNet() != current) {
+                defaultHandler.orElse(null).updateNetwork(current);
+                for (var handler : handlers.values()) {
+                    handler.orElse(null).updateNetwork(current);
                 }
             }
         }
     }
 
     @Nullable
-    public IEnergyContainer getEnergyContainer(@Nullable Direction side) {
+    public LazyOptional getEnergyContainer(@Nullable Direction side) {
         if (side != null && !isConnected(side)) return null;
         // the EnergyNetHandler can only be created on the server, so we have an empty placeholder for the client
-        if (isRemote()) return IEnergyContainer.DEFAULT;
+        if (isRemote()) return LazyOptional.of(() -> IEnergyContainer.DEFAULT);
         if (handlers.isEmpty()) initHandlers();
         checkNetwork();
         var container = handlers.getOrDefault(side, defaultHandler);
-        if (container == null) return IEnergyContainer.DEFAULT;
+        if (container == null) return LazyOptional.of(() -> IEnergyContainer.DEFAULT);
         return container;
     }
 
@@ -133,9 +133,9 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
             return;
         }
         for (Direction facing : GTUtil.DIRECTIONS) {
-            handlers.put(facing, new EnergyNetHandler(net, this, facing));
+            handlers.put(facing, LazyOptional.of(() -> new EnergyNetHandler(net, this, facing)));
         }
-        defaultHandler = new EnergyNetHandler(net, this, null);
+        defaultHandler = LazyOptional.of(() -> new EnergyNetHandler(net, this, null));
     }
 
     @Override

@@ -29,6 +29,7 @@ import net.minecraft.world.entity.player.Player;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -136,7 +137,7 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
 
     @Override
     public List<IFancyUIProvider> getSubTabs() {
-        return getParts().stream().filter(Objects::nonNull).map(IFancyUIProvider.class::cast).toList();
+        return Arrays.stream(getParts()).filter(Objects::nonNull).map(IFancyUIProvider.class::cast).toList();
     }
 
     @Override

@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.Block;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -110,7 +111,7 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
 
     @NotNull
     private List<IMultiPart> getPrioritySortedParts() {
-        return getParts().stream().sorted(Comparator.comparingInt(part -> {
+        return Arrays.stream(getParts()).sorted(Comparator.comparingInt(part -> {
             if (part instanceof MetaMachine partMachine) {
                 Block partBlock = partMachine.getBlockState().getBlock();
 

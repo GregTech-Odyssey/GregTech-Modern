@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
 import com.gregtechceu.gtceu.api.item.MetaMachineItem;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -53,13 +52,7 @@ public class MachineDefinition implements Supplier<IMachineBlock>, ItemLike {
     private int defaultPaintingColor;
     private RecipeModifier recipeModifier;
     @NotNull
-    private BiPredicate<IRecipeLogicMachine, GTRecipe> beforeWorking = (machine, recipe) -> true;
-    @NotNull
     private Predicate<IRecipeLogicMachine> onWorking = GTUtil.FAVORABLE;
-    @NotNull
-    private Consumer<IRecipeLogicMachine> onWaiting = machine -> {};
-    @NotNull
-    private Consumer<IRecipeLogicMachine> afterWorking = machine -> {};
     private boolean regressWhenWaiting = true;
     /**
      * Whether this machine can be rotated or face upwards.
@@ -226,52 +219,13 @@ public class MachineDefinition implements Supplier<IMachineBlock>, ItemLike {
         this.recipeModifier = recipeModifier;
     }
 
-    @NotNull
-    public BiPredicate<IRecipeLogicMachine, GTRecipe> getBeforeWorking() {
-        return this.beforeWorking;
-    }
-
-    public void setBeforeWorking(@NotNull final BiPredicate<IRecipeLogicMachine, GTRecipe> beforeWorking) {
-        if (beforeWorking == null) {
-            throw new NullPointerException("beforeWorking is marked non-null but is null");
-        }
-        this.beforeWorking = beforeWorking;
+    public void setOnWorking(@NotNull final Predicate<IRecipeLogicMachine> onWorking) {
+        this.onWorking = onWorking;
     }
 
     @NotNull
     public Predicate<IRecipeLogicMachine> getOnWorking() {
         return this.onWorking;
-    }
-
-    public void setOnWorking(@NotNull final Predicate<IRecipeLogicMachine> onWorking) {
-        if (onWorking == null) {
-            throw new NullPointerException("onWorking is marked non-null but is null");
-        }
-        this.onWorking = onWorking;
-    }
-
-    @NotNull
-    public Consumer<IRecipeLogicMachine> getOnWaiting() {
-        return this.onWaiting;
-    }
-
-    public void setOnWaiting(@NotNull final Consumer<IRecipeLogicMachine> onWaiting) {
-        if (onWaiting == null) {
-            throw new NullPointerException("onWaiting is marked non-null but is null");
-        }
-        this.onWaiting = onWaiting;
-    }
-
-    @NotNull
-    public Consumer<IRecipeLogicMachine> getAfterWorking() {
-        return this.afterWorking;
-    }
-
-    public void setAfterWorking(@NotNull final Consumer<IRecipeLogicMachine> afterWorking) {
-        if (afterWorking == null) {
-            throw new NullPointerException("afterWorking is marked non-null but is null");
-        }
-        this.afterWorking = afterWorking;
     }
 
     public boolean isRegressWhenWaiting() {

@@ -12,7 +12,6 @@ import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifierList;
@@ -106,13 +105,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     private RecipeModifier recipeModifier = new RecipeModifierList(GTRecipeModifiers.OC_NON_PERFECT);
 
     @NotNull
-    private BiPredicate<IRecipeLogicMachine, GTRecipe> beforeWorking = (machine, recipe) -> true;
-    @NotNull
     private Predicate<IRecipeLogicMachine> onWorking = GTUtil.FAVORABLE;
-    @NotNull
-    private Consumer<IRecipeLogicMachine> onWaiting = machine -> {};
-    @NotNull
-    private Consumer<IRecipeLogicMachine> afterWorking = machine -> {};
     private boolean regressWhenWaiting = true;
     private boolean allowCoverOnFront = false;
     private boolean disabledCombined = false;
@@ -298,10 +291,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
             if (tooltipBuilder != null) tooltipBuilder.accept(itemStack, components);
         });
         definition.setRecipeModifier(recipeModifier);
-        definition.setBeforeWorking(this.beforeWorking);
         definition.setOnWorking(this.onWorking);
-        definition.setOnWaiting(this.onWaiting);
-        definition.setAfterWorking(this.afterWorking);
         definition.setRegressWhenWaiting(this.regressWhenWaiting);
         definition.setAllowCoverOnFront(this.allowCoverOnFront);
         if (renderer == null) {
@@ -522,72 +512,12 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
         return this;
     }
 
-    @NotNull
-    public BiPredicate<IRecipeLogicMachine, GTRecipe> beforeWorking() {
-        return this.beforeWorking;
-    }
-
-    /**
-     * @return {@code this}.
-     */
-    public MachineBuilder<DEFINITION> beforeWorking(@NotNull final BiPredicate<IRecipeLogicMachine, GTRecipe> beforeWorking) {
-        if (beforeWorking == null) {
-            throw new NullPointerException("beforeWorking is marked non-null but is null");
-        }
-        this.beforeWorking = beforeWorking;
-        return this;
-    }
-
-    @NotNull
-    public Predicate<IRecipeLogicMachine> onWorking() {
-        return this.onWorking;
-    }
-
     /**
      * @return {@code this}.
      */
     public MachineBuilder<DEFINITION> onWorking(@NotNull final Predicate<IRecipeLogicMachine> onWorking) {
-        if (onWorking == null) {
-            throw new NullPointerException("onWorking is marked non-null but is null");
-        }
         this.onWorking = onWorking;
         return this;
-    }
-
-    @NotNull
-    public Consumer<IRecipeLogicMachine> onWaiting() {
-        return this.onWaiting;
-    }
-
-    /**
-     * @return {@code this}.
-     */
-    public MachineBuilder<DEFINITION> onWaiting(@NotNull final Consumer<IRecipeLogicMachine> onWaiting) {
-        if (onWaiting == null) {
-            throw new NullPointerException("onWaiting is marked non-null but is null");
-        }
-        this.onWaiting = onWaiting;
-        return this;
-    }
-
-    @NotNull
-    public Consumer<IRecipeLogicMachine> afterWorking() {
-        return this.afterWorking;
-    }
-
-    /**
-     * @return {@code this}.
-     */
-    public MachineBuilder<DEFINITION> afterWorking(@NotNull final Consumer<IRecipeLogicMachine> afterWorking) {
-        if (afterWorking == null) {
-            throw new NullPointerException("afterWorking is marked non-null but is null");
-        }
-        this.afterWorking = afterWorking;
-        return this;
-    }
-
-    public boolean regressWhenWaiting() {
-        return this.regressWhenWaiting;
     }
 
     /**

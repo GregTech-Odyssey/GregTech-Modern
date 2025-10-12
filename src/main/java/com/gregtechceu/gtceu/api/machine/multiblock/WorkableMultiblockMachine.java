@@ -220,7 +220,9 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Override
     public void afterWorking() {
-        getParts().forEach(part -> part.afterWorking(this));
+        for (var part : getParts()) {
+            part.afterWorking(this);
+        }
         IWorkableMultiController.super.afterWorking();
     }
 
@@ -246,14 +248,18 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Override
     public void onWaiting() {
-        getParts().forEach(part -> part.onWaiting(this));
+        for (var part : getParts()) {
+            part.onWaiting(this);
+        }
         IWorkableMultiController.super.onWaiting();
     }
 
     @Override
     public void setWorkingEnabled(boolean isWorkingAllowed) {
         if (!isWorkingAllowed) {
-            getParts().forEach(part -> part.onPaused(this));
+            for (var part : getParts()) {
+                part.onPaused(this);
+            }
         }
         IWorkableMultiController.super.setWorkingEnabled(isWorkingAllowed);
     }

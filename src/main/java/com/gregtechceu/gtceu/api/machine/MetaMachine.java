@@ -7,10 +7,7 @@ import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.IPaintable;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
-import com.gregtechceu.gtceu.api.capability.IControllable;
-import com.gregtechceu.gtceu.api.capability.ICoverable;
-import com.gregtechceu.gtceu.api.capability.IToolable;
+import com.gregtechceu.gtceu.api.capability.*;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.data.RotationState;
@@ -71,8 +68,10 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import com.mojang.datafixers.util.Pair;
@@ -127,14 +126,18 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     protected final DirectionCache<IItemHandlerModifiable> itemHandlerModifiableCoverCache = DirectionCache.create();
     protected final DirectionCache<IFluidHandlerModifiable> fluidHandlerModifiableCoverCache = DirectionCache.create();
 
+    public final DirectionCache<LazyOptional<IItemHandler>> itemCapDirectionCache = DirectionCache.create();
+    public final DirectionCache<LazyOptional<IFluidHandler>> fluidCapDirectionCache = DirectionCache.create();
+    public final DirectionCache<LazyOptional<IEnergyContainer>> energyDirectionCache = DirectionCache.create();
+
     protected final DirectionCache<BlockState> blockStateDirectionCache = DirectionCache.create();
     protected final DirectionCache<FluidState> fluidStateDirectionCache = DirectionCache.create();
 
     public final BlockEntityDirectionCache blockEntityDirectionCache = BlockEntityDirectionCache.create();
 
-    private boolean sync = true;
+    protected boolean sync = true;
 
-    private long offsetTimer;
+    protected long offsetTimer;
 
     private int averageTickTime;
 
@@ -527,6 +530,9 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         itemHandlerModifiableCoverCache.clearCache();
         fluidHandlerModifiableCache.clearCache();
         fluidHandlerModifiableCoverCache.clearCache();
+        itemCapDirectionCache.clearCache();
+        fluidCapDirectionCache.clearCache();
+        energyDirectionCache.clearCache();
     }
 
     public void clearInventory(IItemHandlerModifiable inventory) {
@@ -674,14 +680,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     public void onRotated(Direction oldFacing, Direction newFacing) {
         if (oldFacing != newFacing) {
-            itemHandlerModifiableCache.remove(oldFacing);
-            itemHandlerModifiableCoverCache.remove(oldFacing);
-            fluidHandlerModifiableCache.remove(oldFacing);
-            fluidHandlerModifiableCoverCache.remove(oldFacing);
-            itemHandlerModifiableCache.remove(newFacing);
-            itemHandlerModifiableCoverCache.remove(newFacing);
-            fluidHandlerModifiableCache.remove(newFacing);
-            fluidHandlerModifiableCoverCache.remove(newFacing);
+            clearDirectionCache();
             for (var trait : traits) {
                 trait.onMachineRotated(oldFacing, newFacing);
             }
@@ -913,6 +912,9 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         itemHandlerModifiableCoverCache.remove(side);
         fluidHandlerModifiableCache.remove(side);
         fluidHandlerModifiableCoverCache.remove(side);
+        itemCapDirectionCache.remove(side);
+        fluidCapDirectionCache.remove(side);
+        energyDirectionCache.remove(side);
     }
 
     public FieldManagedStorage getSyncStorage() {

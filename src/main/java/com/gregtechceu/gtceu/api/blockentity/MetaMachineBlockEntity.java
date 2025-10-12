@@ -133,19 +133,52 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
     @Nullable
     public static <T> LazyOptional<T> getCapability(MetaMachine machine, @NotNull Capability<T> cap, @Nullable Direction side) {
         if (cap == ForgeCapabilities.ITEM_HANDLER) {
-            var handler = machine.getItemHandlerCap(side, true);
-            if (handler != null) {
-                return ForgeCapabilities.ITEM_HANDLER.orEmpty(cap, LazyOptional.of(() -> handler));
-            }
-            return LazyOptional.empty();
+            return machine.itemCapDirectionCache.getOrSet(side, () -> {
+                var handler = machine.getItemHandlerCap(side, true);
+                if (handler != null) {
+                    return LazyOptional.of(() -> handler);
+                }
+                return LazyOptional.empty();
+            }).cast();
         } else if (cap == ForgeCapabilities.FLUID_HANDLER) {
-            var handler = machine.getFluidHandlerCap(side, true);
-            if (handler != null) {
-                return ForgeCapabilities.FLUID_HANDLER.orEmpty(cap, LazyOptional.of(() -> handler));
-            }
-            return LazyOptional.empty();
+            return machine.fluidCapDirectionCache.getOrSet(side, () -> {
+                var handler = machine.getFluidHandlerCap(side, true);
+                if (handler != null) {
+                    return LazyOptional.of(() -> handler);
+                }
+                return LazyOptional.empty();
+            }).cast();
         } else if (cap == GTCapability.CAPABILITY_COVERABLE) {
             return GTCapability.CAPABILITY_COVERABLE.orEmpty(cap, LazyOptional.of(machine::getCoverContainer));
+        } else if (cap == GTCapability.CAPABILITY_ENERGY_CONTAINER) {
+            return machine.energyDirectionCache.getOrSet(side, () -> {
+                if (machine instanceof IEnergyContainer energyContainer) {
+                    return LazyOptional.of(() -> energyContainer);
+                }
+                var list = getCapabilitiesFromTraits(machine.getTraits(), side, IEnergyContainer.class);
+                if (!list.isEmpty()) {
+                    return LazyOptional.of(() -> list.size() == 1 ? list.get(0) : new EnergyContainerList(list));
+                }
+                return LazyOptional.empty();
+            }).cast();
+        } else if (cap == GTCapability.CAPABILITY_LASER) {
+            if (machine instanceof ILaserContainer energyContainer) {
+                return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> energyContainer));
+            }
+            var list = getCapabilitiesFromTraits(machine.getTraits(), side, ILaserContainer.class);
+            if (!list.isEmpty()) {
+                return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> list.size() == 1 ? list.get(0) : new LaserContainerList(list)));
+            }
+            return LazyOptional.empty();
+        } else if (cap == GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER) {
+            if (machine instanceof IEnergyInfoProvider energyInfoProvider) {
+                return GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER.orEmpty(cap, LazyOptional.of(() -> energyInfoProvider));
+            }
+            var list = getCapabilitiesFromTraits(machine.getTraits(), side, IEnergyInfoProvider.class);
+            if (!list.isEmpty()) {
+                return GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER.orEmpty(cap, LazyOptional.of(() -> list.size() == 1 ? list.get(0) : new EnergyInfoProviderList(list)));
+            }
+            return LazyOptional.empty();
         } else if (cap == GTCapability.CAPABILITY_WORKABLE) {
             if (machine instanceof IWorkable workable) {
                 return GTCapability.CAPABILITY_WORKABLE.orEmpty(cap, LazyOptional.of(() -> workable));
@@ -164,33 +197,6 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
                 if (trait instanceof IControllable controllable) {
                     return GTCapability.CAPABILITY_CONTROLLABLE.orEmpty(cap, LazyOptional.of(() -> controllable));
                 }
-            }
-            return LazyOptional.empty();
-        } else if (cap == GTCapability.CAPABILITY_ENERGY_CONTAINER) {
-            if (machine instanceof IEnergyContainer energyContainer) {
-                return GTCapability.CAPABILITY_ENERGY_CONTAINER.orEmpty(cap, LazyOptional.of(() -> energyContainer));
-            }
-            var list = getCapabilitiesFromTraits(machine.getTraits(), side, IEnergyContainer.class);
-            if (!list.isEmpty()) {
-                return GTCapability.CAPABILITY_ENERGY_CONTAINER.orEmpty(cap, LazyOptional.of(() -> list.size() == 1 ? list.get(0) : new EnergyContainerList(list)));
-            }
-            return LazyOptional.empty();
-        } else if (cap == GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER) {
-            if (machine instanceof IEnergyInfoProvider energyInfoProvider) {
-                return GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER.orEmpty(cap, LazyOptional.of(() -> energyInfoProvider));
-            }
-            var list = getCapabilitiesFromTraits(machine.getTraits(), side, IEnergyInfoProvider.class);
-            if (!list.isEmpty()) {
-                return GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER.orEmpty(cap, LazyOptional.of(() -> list.size() == 1 ? list.get(0) : new EnergyInfoProviderList(list)));
-            }
-            return LazyOptional.empty();
-        } else if (cap == GTCapability.CAPABILITY_LASER) {
-            if (machine instanceof ILaserContainer energyContainer) {
-                return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> energyContainer));
-            }
-            var list = getCapabilitiesFromTraits(machine.getTraits(), side, ILaserContainer.class);
-            if (!list.isEmpty()) {
-                return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> list.size() == 1 ? list.get(0) : new LaserContainerList(list)));
             }
             return LazyOptional.empty();
         }

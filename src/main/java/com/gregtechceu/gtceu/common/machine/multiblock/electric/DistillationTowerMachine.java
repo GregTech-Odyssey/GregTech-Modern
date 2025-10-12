@@ -76,7 +76,7 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
     public void onStructureFormed() {
         super.onStructureFormed();
         final int startY = getPos().getY() + yOffset;
-        List<IMultiPart> parts = getParts().stream().filter(part -> PartAbility.EXPORT_FLUIDS.isApplicable(part.self().getBlockState().getBlock())).filter(part -> part.self().getPos().getY() >= startY).toList();
+        List<IMultiPart> parts = Arrays.stream(getParts()).filter(part -> PartAbility.EXPORT_FLUIDS.isApplicable(part.self().getBlockState().getBlock())).filter(part -> part.self().getPos().getY() >= startY).toList();
         if (!parts.isEmpty()) {
             // Loop from controller y + offset -> the highest output hatch
             int maxY = parts.get(parts.size() - 1).self().getPos().getY();

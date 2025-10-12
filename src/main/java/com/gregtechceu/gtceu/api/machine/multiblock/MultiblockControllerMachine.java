@@ -43,7 +43,7 @@ import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -60,7 +60,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     protected MultiblockState[] subMultiblockState = null;
     protected boolean[] formeds;
     protected int formedCount;
-    protected final List<IMultiPart> parts = new ObjectArrayList<>();
+    protected IMultiPart[] parts = new IMultiPart[0];
     @Nullable
     protected IParallelHatch parallelHatch = null;
     @DescSynced
@@ -143,28 +143,30 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
 
     @SuppressWarnings("unused")
     protected void onPartsUpdated(BlockPos[] newValue, BlockPos[] oldValue) {
-        parts.clear();
+        var list = new ObjectArrayList<IMultiPart>();
         for (var pos : newValue) {
             if (getMachine(getLevel(), pos) instanceof IMultiPart part) {
-                parts.add(part);
+                list.add(part);
             }
         }
+        parts = list.toArray(new IMultiPart[0]);
     }
 
     protected void updatePartPositions() {
-        this.partPositions = this.parts.isEmpty() ? new BlockPos[0] : this.parts.stream().map(part -> part.self().getPos()).toArray(BlockPos[]::new);
+        this.partPositions = this.parts.length == 0 ? new BlockPos[0] : Arrays.stream(this.parts).map(part -> part.self().getPos()).toArray(BlockPos[]::new);
     }
 
     @Override
-    public List<IMultiPart> getParts() {
+    public IMultiPart[] getParts() {
         // for the client side, when the chunk unloaded
-        if (parts.size() != this.partPositions.length) {
-            parts.clear();
+        if (parts.length != this.partPositions.length) {
+            var list = new ObjectArrayList<IMultiPart>();
             for (var pos : this.partPositions) {
                 if (getMachine(getLevel(), pos) instanceof IMultiPart part) {
-                    parts.add(part);
+                    list.add(part);
                 }
             }
+            parts = list.toArray(new IMultiPart[0]);
         }
         return this.parts;
     }
@@ -280,15 +282,16 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             serverLevel.getServer().tell(new TickTask(1, this::onStructureFormedAfter));
         }
         isFormed = true;
-        this.parts.clear();
+        var list = new ObjectArrayList<IMultiPart>();
         for (IMultiPart part : getMultiblockState().getMatchContext().parts) {
             if (shouldAddPartToController(part)) {
-                this.parts.add(part);
+                list.add(part);
             }
         }
+        parts = list.toArray(new IMultiPart[0]);
         var sorter = getPartSorter();
         if (sorter != null) {
-            this.parts.sort(sorter);
+            Arrays.sort(parts, sorter);
         }
         for (var part : parts) {
             if (part instanceof IParallelHatch pHatch) {
@@ -307,7 +310,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             part.removedFromController(this);
         }
         parallelHatch = null;
-        parts.clear();
+        this.parts = new IMultiPart[0];
         updatePartPositions();
     }
 
@@ -320,7 +323,9 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @Override
     @MustBeInvokedByOverriders
     public void onPartUnload() {
-        parts.removeIf(part -> part.self().isInValid());
+        var list = new ObjectArrayList<>(parts);
+        list.removeIf(part -> part.self().isInValid());
+        parts = list.toArray(new IMultiPart[0]);
         getMultiblockState().setError(MultiblockState.UNLOAD_ERROR);
         if (getLevel() instanceof ServerLevel serverLevel) {
             MultiblockWorldSavedData.getOrCreate(serverLevel).addAsyncLogic(this);

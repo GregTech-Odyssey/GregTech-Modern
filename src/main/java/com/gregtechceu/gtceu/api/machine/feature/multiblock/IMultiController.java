@@ -15,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
@@ -158,7 +157,7 @@ public interface IMultiController extends IMachineFeature {
     /**
      * Get all parts
      */
-    List<IMultiPart> getParts();
+    IMultiPart[] getParts();
 
     /**
      * The instance of {@link IParallelHatch} attached to this Controller.

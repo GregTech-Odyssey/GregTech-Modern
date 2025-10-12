@@ -5,6 +5,7 @@ import net.minecraft.core.Direction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.function.Supplier;
 
 @SuppressWarnings("unchecked")
@@ -17,12 +18,7 @@ public class DirectionCache<T> {
     static final Object NULL = new Object();
 
     private Object any;
-    private Object down;
-    private Object up;
-    private Object north;
-    private Object south;
-    private Object west;
-    private Object east;
+    private final Object[] array = new Object[6];
 
     public T getOrSet(@Nullable Direction direction, @NotNull Supplier<T> supplier) {
         var cache = getCache(direction);
@@ -39,14 +35,7 @@ public class DirectionCache<T> {
         if (direction == null) {
             return any;
         } else {
-            return switch (direction.ordinal()) {
-                case 0 -> down;
-                case 1 -> up;
-                case 2 -> north;
-                case 3 -> south;
-                case 4 -> west;
-                default -> east;
-            };
+            return array[direction.ordinal()];
         }
     }
 
@@ -54,14 +43,7 @@ public class DirectionCache<T> {
         if (direction == null) {
             any = value;
         } else {
-            switch (direction.ordinal()) {
-                case 0 -> down = value;
-                case 1 -> up = value;
-                case 2 -> north = value;
-                case 3 -> south = value;
-                case 4 -> west = value;
-                case 5 -> east = value;
-            }
+            array[direction.ordinal()] = value;
         }
     }
 
@@ -71,11 +53,6 @@ public class DirectionCache<T> {
 
     public void clearCache() {
         any = null;
-        down = null;
-        up = null;
-        north = null;
-        south = null;
-        west = null;
-        east = null;
+        Arrays.fill(array, null);
     }
 }
