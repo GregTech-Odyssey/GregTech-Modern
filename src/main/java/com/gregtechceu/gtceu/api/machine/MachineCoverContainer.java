@@ -34,8 +34,8 @@ import java.util.List;
 
 public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MachineCoverContainer.class);
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
+    private final ManagedFieldHolder managedFieldHolder = MetaMachine.getManagedFieldHolder(getClass());
     private final MetaMachine machine;
     @DescSynced
     @Persisted
@@ -72,16 +72,16 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
         this.machine = machine;
     }
 
+    @Override
+    public final ManagedFieldHolder getFieldHolder() {
+        return managedFieldHolder;
+    }
+
     @SuppressWarnings("unused")
     private void onCoverSet(CoverBehavior newValue, CoverBehavior oldValue) {
         if (newValue != oldValue && (newValue == null || oldValue == null)) {
             scheduleRenderUpdate();
         }
-    }
-
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     @Override

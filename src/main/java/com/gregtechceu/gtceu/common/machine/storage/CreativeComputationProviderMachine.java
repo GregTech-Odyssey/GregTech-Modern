@@ -15,7 +15,6 @@ import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.SwitchWidget;
 import com.lowdragmc.lowdraglib.gui.widget.TextFieldWidget;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.entity.player.Player;
@@ -28,7 +27,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class CreativeComputationProviderMachine extends MetaMachine implements IUIMachine, IOpticalComputationHatch {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(CreativeComputationProviderMachine.class, MetaMachine.MANAGED_FIELD_HOLDER);
     @Persisted
     private long maxCWUt;
     private long lastRequestedCWUt;
@@ -88,11 +86,6 @@ public class CreativeComputationProviderMachine extends MetaMachine implements I
     @Override
     public ModularUI createUI(Player entityPlayer) {
         return new ModularUI(140, 95, this, entityPlayer).background(GuiTextures.BACKGROUND).widget(new LabelWidget(7, 7, "CWUt")).widget(new TextFieldWidget(9, 20, 122, 16, () -> String.valueOf(maxCWUt), value -> maxCWUt = Long.parseLong(value)).setNumbersOnly(0, Long.MAX_VALUE)).widget(new LabelWidget(7, 42, "gtceu.creative.computation.average")).widget(new LabelWidget(7, 54, () -> String.valueOf(lastRequestedCWUt))).widget(new SwitchWidget(9, 66, 122, 20, (clickData, value) -> setActive(value)).setSupplier(this::isActive).setTexture(new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, new TextTexture("gtceu.creative.activity.off")), new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, new TextTexture("gtceu.creative.activity.on"))));
-    }
-
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     public boolean isActive() {

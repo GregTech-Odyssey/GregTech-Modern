@@ -14,7 +14,6 @@ import com.lowdragmc.lowdraglib.gui.widget.ProgressWidget;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.util.Mth;
@@ -25,8 +24,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class TieredEnergyMachine extends TieredMachine implements IExplosionMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(TieredEnergyMachine.class,
-            MetaMachine.MANAGED_FIELD_HOLDER);
     @Persisted
     @DescSynced
     public final NotifiableEnergyContainer energyContainer;
@@ -36,14 +33,6 @@ public class TieredEnergyMachine extends TieredMachine implements IExplosionMach
     public TieredEnergyMachine(MetaMachineBlockEntity holder, int tier, Object... args) {
         super(holder, tier);
         energyContainer = createEnergyContainer(args);
-    }
-
-    //////////////////////////////////////
-    // ***** Initialization ******//
-    //////////////////////////////////////
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     protected NotifiableEnergyContainer createEnergyContainer(Object... args) {

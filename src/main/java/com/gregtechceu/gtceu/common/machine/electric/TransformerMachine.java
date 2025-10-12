@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.annotation.UpdateListener;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
@@ -25,7 +24,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class TransformerMachine extends TieredEnergyMachine implements IControllable {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(TransformerMachine.class, TieredEnergyMachine.MANAGED_FIELD_HOLDER);
     @Persisted
     @DescSynced
     @UpdateListener(methodName = "onTransformUpdated")
@@ -38,14 +36,6 @@ public class TransformerMachine extends TieredEnergyMachine implements IControll
         super(holder, tier, baseAmp, args);
         this.isWorkingEnabled = true;
         this.baseAmp = baseAmp;
-    }
-
-    //////////////////////////////////////
-    // ***** Initialization ******//
-    //////////////////////////////////////
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     @SuppressWarnings("unused")

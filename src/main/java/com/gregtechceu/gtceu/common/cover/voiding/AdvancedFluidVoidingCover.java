@@ -15,7 +15,6 @@ import com.gregtechceu.gtceu.utils.GTMath;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
@@ -144,27 +143,5 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
         if (this.voidingMode == VoidingMode.VOID_ANY) return false;
         if (!this.filterHandler.isFilterPresent()) return true;
         return this.filterHandler.getFilter().isBlackList();
-    }
-
-    //////////////////////////////////////
-    // ***** LDLib SyncData ******//
-    //////////////////////////////////////
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(AdvancedFluidVoidingCover.class, FluidVoidingCover.MANAGED_FIELD_HOLDER);
-
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
-    }
-
-    public VoidingMode getVoidingMode() {
-        return this.voidingMode;
-    }
-
-    public int getGlobalTransferSizeMillibuckets() {
-        return this.globalTransferSizeMillibuckets;
-    }
-
-    public BucketMode getTransferBucketMode() {
-        return this.transferBucketMode;
     }
 }

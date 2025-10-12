@@ -25,7 +25,6 @@ import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.widget.*;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
@@ -45,7 +44,6 @@ import java.util.List;
 
 public class PowerSubstationMachine extends WorkableMultiblockMachine implements IEnergyInfoProvider, IFancyUIMachine, IDisplayUIMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(PowerSubstationMachine.class, WorkableMultiblockMachine.MANAGED_FIELD_HOLDER);
     // Structure Constants
     public static final int MAX_BATTERY_LAYERS = 18;
     public static final int MIN_CASINGS = 14;
@@ -264,12 +262,6 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
     }
 
     @Override
-    @NotNull
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
-    }
-
-    @Override
     public Widget createUIWidget() {
         var group = new WidgetGroup(0, 0, 182 + 8, 117 + 8);
         group.addWidget(new DraggableScrollableWidgetGroup(4, 4, 182, 117).setBackground(getScreenTexture()).addWidget(new LabelWidget(4, 5, self().getBlockState().getBlock().getDescriptionId())).addWidget(new ComponentPanelWidget(4, 17, this::addDisplayText).setMaxWidthLimit(150).clickHandler(this::handleDisplayClick)));
@@ -309,7 +301,6 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
 
     public static class PowerStationEnergyBank extends MachineTrait {
 
-        protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(PowerSubstationMachine.PowerStationEnergyBank.class);
         private static final String NBT_SIZE = "Size";
         private static final String NBT_STORED = "Stored";
         private static final String NBT_MAX = "Max";
@@ -469,11 +460,6 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
             maximumsExcl = Arrays.copyOf(maximumsExcl, index);
             BigInteger capacityExcl = summarize(maximumsExcl);
             return capacityExcl.divide(BigInteger.valueOf(PASSIVE_DRAIN_DIVISOR)).add(BigInteger.valueOf(PASSIVE_DRAIN_MAX_PER_STORAGE * numExcl)).longValue();
-        }
-
-        @Override
-        public ManagedFieldHolder getFieldHolder() {
-            return MANAGED_FIELD_HOLDER;
         }
 
         public BigInteger getCapacity() {

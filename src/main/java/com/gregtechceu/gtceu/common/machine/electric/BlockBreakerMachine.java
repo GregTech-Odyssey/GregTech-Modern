@@ -27,7 +27,6 @@ import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -61,7 +60,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOutputItem, IFancyUIMachine, IMachineLife, IControllable {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(BlockBreakerMachine.class, TieredEnergyMachine.MANAGED_FIELD_HOLDER);
     @Persisted
     @DescSynced
     @RequireRerender
@@ -111,14 +109,6 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
         else if (efficiencyMultiplier < 0.1F) efficiencyMultiplier = 0.1F;
         efficiencyMultiplier = 1.0F - efficiencyMultiplier;
         return efficiencyMultiplier;
-    }
-
-    //////////////////////////////////////
-    // ***** Initialization *****//
-    //////////////////////////////////////
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     protected CustomItemStackHandler createChargerItemHandler() {

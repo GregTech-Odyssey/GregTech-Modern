@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.common.machine.multiblock.electric.CleanroomMachine
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -18,7 +17,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class CleanroomLogic extends RecipeLogic {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(CleanroomLogic.class, RecipeLogic.MANAGED_FIELD_HOLDER);
     public static final int BASE_CLEAN_AMOUNT = 2;
     @Nullable
     private IMaintenanceMachine maintenanceMachine;
@@ -37,11 +35,6 @@ public class CleanroomLogic extends RecipeLogic {
     @Override
     public CleanroomMachine getMachine() {
         return (CleanroomMachine) machine;
-    }
-
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     /**

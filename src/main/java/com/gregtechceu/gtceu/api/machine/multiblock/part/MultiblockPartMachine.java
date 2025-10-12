@@ -12,7 +12,6 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 import com.lowdragmc.lowdraglib.syncdata.annotation.UpdateListener;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -37,9 +36,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MultiblockPartMachine.class,
-            MetaMachine.MANAGED_FIELD_HOLDER);
-
     @DescSynced
     @RequireRerender
     @UpdateListener(methodName = "onControllersUpdated")
@@ -50,15 +46,6 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
 
     public MultiblockPartMachine(MetaMachineBlockEntity holder) {
         super(holder);
-    }
-
-    //////////////////////////////////////
-    // ***** Initialization ******//
-    //////////////////////////////////////
-
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     @Override

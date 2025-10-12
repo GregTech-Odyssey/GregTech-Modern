@@ -33,7 +33,6 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -67,7 +66,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class QuantumTankMachine extends TieredMachine implements IAutoOutputFluid, IInteractedMachine, IControllable, IDropSaveMachine, IFancyUIMachine {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(QuantumTankMachine.class, MetaMachine.MANAGED_FIELD_HOLDER);
     public static Object2LongMap<MachineDefinition> TANK_CAPACITY = new O2LOpenCacheHashMap<>();
     @Persisted
     @DescSynced
@@ -98,14 +96,6 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         this.maxAmount = maxAmount;
         this.cache = createCacheFluidHandler(args);
         this.lockedFluid = new CustomFluidTank(1000);
-    }
-
-    //////////////////////////////////////
-    // ***** Initialization ******//
-    //////////////////////////////////////
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     protected FluidCache createCacheFluidHandler(Object... args) {
@@ -414,11 +404,6 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
                 var filter = getMachine().getFluidCapFilter(facing, IO.OUT);
                 blockEntityDirectionCache.getAdjacentFluidHandler(level, pos, facing).ifPresent(adj -> GTTransferUtils.transferFluidsFiltered(this, adj, filter));
             }
-        }
-
-        @Override
-        public ManagedFieldHolder getFieldHolder() {
-            return MANAGED_FIELD_HOLDER;
         }
     }
 

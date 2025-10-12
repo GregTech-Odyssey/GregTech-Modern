@@ -15,7 +15,7 @@ embeddium = "0.3.19+mc1.20.1"
 
 ## cursemaven ##
 configuration = "5840405"
-ldlib = "6899193"
+ldlib = "6995785"
 shimmer = "5685940"
 xaerosWorldMap = "5658224"
 xaerosMinimap = "5773012"

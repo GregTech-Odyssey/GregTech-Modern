@@ -28,7 +28,6 @@ import com.lowdragmc.lowdraglib.gui.widget.ProgressWidget;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.resources.language.I18n;
@@ -63,7 +62,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public abstract class SteamBoilerMachine extends SteamWorkableMachine implements IUIMachine, IExplosionMachine, IDataInfoProvider {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(SteamBoilerMachine.class, SteamWorkableMachine.MANAGED_FIELD_HOLDER);
     @Persisted
     public final NotifiableFluidTank waterTank;
     @Persisted
@@ -85,14 +83,6 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
         super(holder, isHighPressure, args);
         this.waterTank = createWaterTank(args);
         this.waterTank.setFilter(fluid -> fluid.getFluid() == Fluids.WATER);
-    }
-
-    //////////////////////////////////////
-    // ***** Initialization *****//
-    //////////////////////////////////////
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     @Override

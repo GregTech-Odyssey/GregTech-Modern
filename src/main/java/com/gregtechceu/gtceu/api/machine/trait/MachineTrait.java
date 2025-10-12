@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
 import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
+import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -21,6 +22,7 @@ import java.util.function.Predicate;
 public abstract class MachineTrait implements IEnhancedManaged {
 
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
+    private final ManagedFieldHolder managedFieldHolder = MetaMachine.getManagedFieldHolder(getClass());
     protected final MetaMachine machine;
     protected Predicate<@Nullable Direction> capabilityValidator;
 
@@ -28,6 +30,11 @@ public abstract class MachineTrait implements IEnhancedManaged {
         this.machine = machine;
         this.capabilityValidator = GTUtil.FAVORABLE;
         machine.attachTraits(this);
+    }
+
+    @Override
+    public final ManagedFieldHolder getFieldHolder() {
+        return managedFieldHolder;
     }
 
     public boolean hasCapability(@Nullable Direction side) {

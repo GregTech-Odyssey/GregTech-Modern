@@ -28,6 +28,10 @@ public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IWorkable,
     @NotNull
     GTRecipeType getRecipeType();
 
+    default boolean disabledCombined() {
+        return self().getDefinition().disabledCombined();
+    }
+
     int getActiveRecipeType();
 
     void setActiveRecipeType(int type);

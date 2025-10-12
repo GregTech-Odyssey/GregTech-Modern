@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -29,7 +28,6 @@ import java.util.List;
 
 public class LargeMinerLogic extends MinerLogic {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(LargeMinerLogic.class, MinerLogic.MANAGED_FIELD_HOLDER);
     private static final int CHUNK_LENGTH = 16;
     private static final LootItemFunction DROP_MULTIPLIER = ApplyBonusCount.addOreBonusCount(Enchantments.BLOCK_FORTUNE).build();
     private int voltageTier;
@@ -49,11 +47,6 @@ public class LargeMinerLogic extends MinerLogic {
      */
     public LargeMinerLogic(IRecipeLogicMachine machine, int fortune, int speed, int maximumRadius) {
         super(machine, fortune, speed, maximumRadius);
-    }
-
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     @Override

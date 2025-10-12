@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
@@ -34,8 +35,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(PipeCoverContainer.class);
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
+    private final ManagedFieldHolder managedFieldHolder = MetaMachine.getManagedFieldHolder(getClass());
     private final PipeBlockEntity<?, ?> pipeTile;
     @DescSynced
     @Persisted
@@ -72,16 +73,16 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
         this.pipeTile = pipeTile;
     }
 
+    @Override
+    public final ManagedFieldHolder getFieldHolder() {
+        return managedFieldHolder;
+    }
+
     @SuppressWarnings("unused")
     private void onCoverSet(CoverBehavior newValue, CoverBehavior oldValue) {
         if (newValue != oldValue && (newValue == null || oldValue == null)) {
             scheduleRenderUpdate();
         }
-    }
-
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     @Override

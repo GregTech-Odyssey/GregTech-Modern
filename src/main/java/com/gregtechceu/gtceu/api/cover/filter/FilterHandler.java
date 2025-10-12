@@ -32,6 +32,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhancedManaged {
 
     private final IEnhancedManaged container;
+    private final ManagedFieldHolder managedFieldHolder = MetaMachine.getManagedFieldHolder(getClass());
     @Persisted
     @DescSynced
     @NotNull
@@ -51,6 +52,11 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhan
 
     public FilterHandler(IEnhancedManaged container) {
         this.container = container;
+    }
+
+    @Override
+    public final ManagedFieldHolder getFieldHolder() {
+        return managedFieldHolder;
     }
 
     protected abstract F loadFilter(ItemStack filterItem);
@@ -166,13 +172,7 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhan
     //////////////////////////////////////
     // ***** LDLib SyncData ******//
     //////////////////////////////////////
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(FilterHandler.class);
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
-
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
-    }
 
     @Override
     public void onChanged() {

@@ -35,6 +35,7 @@ import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
+import com.lowdragmc.lowdraglib.syncdata.IManaged;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
@@ -81,6 +82,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -97,12 +99,33 @@ import static com.gregtechceu.gtceu.api.item.tool.ToolHelper.getBehaviorsTag;
 @MethodsReturnNonnullByDefault
 public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscription, IAppearance, IToolGridHighlight, IFancyTooltip, IPaintable, IRedstoneSignalMachine {
 
+    private static final Map<Class<?>, ManagedFieldHolder> MANAGED_FIELD_MAP = new ConcurrentHashMap<>();
+
+    public static @NotNull ManagedFieldHolder getManagedFieldHolder(Class<? extends IManaged> clazz) {
+        var holder = MANAGED_FIELD_MAP.get(clazz);
+        if (holder == null) {
+            Class sc = clazz.getSuperclass();
+            if (sc != null && sc != Object.class) {
+                var sh = getManagedFieldHolder(sc);
+                holder = new ManagedFieldHolder(clazz, sh);
+                if (holder.getFields().length == sh.getFields().length) {
+                    holder = sh;
+                }
+            }
+            if (holder == null) {
+                holder = new ManagedFieldHolder(clazz);
+            }
+            MANAGED_FIELD_MAP.put(clazz, holder);
+        }
+        return holder;
+    }
+
     public static boolean OBSERVE = false;
 
     protected static final Map<MetaMachine, Integer> PERFORMANCE_MAP = new WeakHashMap<>();
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MetaMachine.class);
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
+    private final ManagedFieldHolder managedFieldHolder = getManagedFieldHolder(getClass());
     protected final MachineDefinition definition;
     @Persisted
     @DescSynced
@@ -155,8 +178,8 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
     // ***** Initialization ******//
     //////////////////////////////////////
     @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
+    public final ManagedFieldHolder getFieldHolder() {
+        return managedFieldHolder;
     }
 
     @Override

@@ -12,7 +12,6 @@ import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.TickTask;
@@ -20,12 +19,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
-import org.jetbrains.annotations.NotNull;
-
 public class ControlPartMachine extends MultiblockPartMachine implements IControllable {
-
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ControlPartMachine.class,
-            MultiblockPartMachine.MANAGED_FIELD_HOLDER);
 
     @Persisted
     private boolean isInverted = false;
@@ -39,11 +33,6 @@ public class ControlPartMachine extends MultiblockPartMachine implements IContro
 
     public ControlPartMachine(MetaMachineBlockEntity holder) {
         super(holder);
-    }
-
-    @Override
-    public @NotNull ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     @Override

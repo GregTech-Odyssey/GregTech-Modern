@@ -12,9 +12,7 @@ import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.function.ObjectLongConsumer;
 import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
 
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -34,11 +32,9 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
         return new NotifiableItemStackHandler(machine, 0, IO.NONE).shouldSearchContent(false);
     }
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(NotifiableItemStackHandler.class, NotifiableRecipeHandlerTrait.MANAGED_FIELD_HOLDER);
     public final IO handlerIO;
     public final IO capabilityIO;
     @Persisted
-    @DescSynced
     public final CustomItemStackHandler storage;
     private boolean shouldSearchContent = true;
     protected Boolean isEmpty;
@@ -74,11 +70,6 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
         changed = true;
         machine.onChanged();
         notifyListeners();
-    }
-
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     @Override

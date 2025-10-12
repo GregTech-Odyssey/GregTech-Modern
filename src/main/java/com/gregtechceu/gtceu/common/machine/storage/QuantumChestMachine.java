@@ -31,7 +31,6 @@ import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -66,7 +65,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class QuantumChestMachine extends TieredMachine implements IAutoOutputItem, IInteractedMachine, IControllable, IDropSaveMachine, IFancyUIMachine {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(QuantumChestMachine.class, MetaMachine.MANAGED_FIELD_HOLDER);
     /**
      * Sourced from FunctionalStorage's
      * <a
@@ -108,10 +106,6 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     //////////////////////////////////////
     // ***** Initialization ******//
     //////////////////////////////////////
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
-    }
 
     protected ItemCache createCacheItemHandler(Object... args) {
         return new ItemCache(this);
@@ -469,11 +463,6 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
 
         public boolean canInsert(ItemStack stack) {
             return filter.test(stack) && (insertItem(0, stack, true).getCount() != stack.getCount());
-        }
-
-        @Override
-        public ManagedFieldHolder getFieldHolder() {
-            return MANAGED_FIELD_HOLDER;
         }
     }
 

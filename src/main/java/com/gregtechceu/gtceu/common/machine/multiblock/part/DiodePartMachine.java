@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
@@ -25,7 +24,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class DiodePartMachine extends TieredIOPartMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(DiodePartMachine.class, TieredIOPartMachine.MANAGED_FIELD_HOLDER);
     public static int MAX_AMPS = 16;
     @Persisted
     protected NotifiableEnergyContainer energyContainer;
@@ -92,11 +90,6 @@ public class DiodePartMachine extends TieredIOPartMachine {
         }
         playerIn.sendSystemMessage(Component.translatable("gtceu.machine.diode.message", amps));
         return InteractionResult.CONSUME;
-    }
-
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     public int getAmps() {

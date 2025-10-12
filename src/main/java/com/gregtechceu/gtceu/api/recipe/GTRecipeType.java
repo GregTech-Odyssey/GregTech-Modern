@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.chance.boost.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 import com.gregtechceu.gtceu.api.sound.SoundEntry;
+import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
@@ -67,6 +68,14 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
             map.put(proxyRecipe, new ObjectArrayList<>());
         }
         this.proxyRecipes = map;
+    }
+
+    public static boolean available(GTRecipeType recipeType, GTRecipeType... types) {
+        if (recipeType == null || recipeType == GTRecipeTypes.DUMMY_RECIPES) return true;
+        for (var type : types) {
+            if (recipeType == type || type.proxyRecipes.containsKey(recipeType)) return true;
+        }
+        return false;
     }
 
     public GTRecipeType setMaxIOSize(int maxInputs, int maxOutputs, int maxFluidInputs, int maxFluidOutputs) {

@@ -16,7 +16,6 @@ import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.annotation.UpdateListener;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.TickTask;
@@ -46,7 +45,6 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
 
     public static int SEARCH_MAX_INTERVAL = 20;
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(RecipeLogic.class);
     public final IRecipeLogicMachine machine;
     @Persisted
     @DescSynced
@@ -389,11 +387,6 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
             progress = 0;
             duration = 0;
         }
-    }
-
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     //////////////////////////////////////

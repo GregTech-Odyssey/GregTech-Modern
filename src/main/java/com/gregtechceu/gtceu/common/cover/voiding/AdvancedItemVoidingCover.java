@@ -11,7 +11,6 @@ import com.gregtechceu.gtceu.common.cover.data.VoidingMode;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
@@ -126,23 +125,5 @@ public class AdvancedItemVoidingCover extends ItemVoidingCover {
         if (this.voidingMode == VoidingMode.VOID_ANY) return false;
         if (!this.filterHandler.isFilterPresent()) return true;
         return this.filterHandler.getFilter().isBlackList();
-    }
-
-    //////////////////////////////////////
-    // ***** LDLib SyncData ******//
-    //////////////////////////////////////
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(AdvancedItemVoidingCover.class, ItemVoidingCover.MANAGED_FIELD_HOLDER);
-
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
-    }
-
-    public VoidingMode getVoidingMode() {
-        return this.voidingMode;
-    }
-
-    public int getGlobalVoidingLimit() {
-        return this.globalVoidingLimit;
     }
 }

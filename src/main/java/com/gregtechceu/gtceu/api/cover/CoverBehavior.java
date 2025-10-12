@@ -48,7 +48,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighlight {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(CoverBehavior.class);
+    private final ManagedFieldHolder managedFieldHolder = MetaMachine.getManagedFieldHolder(getClass());
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
     public final CoverDefinition coverDefinition;
     public final ICoverable coverHolder;
@@ -74,8 +74,8 @@ public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighli
     }
 
     @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
+    public final ManagedFieldHolder getFieldHolder() {
+        return managedFieldHolder;
     }
 
     @Override

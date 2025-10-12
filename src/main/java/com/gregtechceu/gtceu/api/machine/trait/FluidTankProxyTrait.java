@@ -5,8 +5,6 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
-
 import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
 
@@ -15,18 +13,12 @@ import org.jetbrains.annotations.Nullable;
 
 public class FluidTankProxyTrait extends MachineTrait implements IFluidHandlerModifiable, ICapabilityTrait {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(FluidTankProxyTrait.class);
     public final IO capabilityIO;
     public IFluidHandlerModifiable proxy;
 
     public FluidTankProxyTrait(MetaMachine machine, IO capabilityIO) {
         super(machine);
         this.capabilityIO = capabilityIO;
-    }
-
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     //////////////////////////////////////

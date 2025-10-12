@@ -18,7 +18,6 @@ import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
@@ -31,7 +30,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class EnderFluidLinkCover extends AbstractEnderLinkCover<VirtualTank> {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(EnderFluidLinkCover.class, AbstractEnderLinkCover.MANAGED_FIELD_HOLDER);
     public static final int TRANSFER_RATE = 8000; // mB/t
     @Persisted
     @DescSynced
@@ -100,12 +98,6 @@ public class EnderFluidLinkCover extends AbstractEnderLinkCover<VirtualTank> {
             };
         }
         return 0;
-    }
-
-    @Override
-    @NotNull
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     //////////////////////////////////////

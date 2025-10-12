@@ -14,7 +14,6 @@ import com.gregtechceu.gtceu.common.cover.data.TransferMode;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
@@ -30,7 +29,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class FluidRegulatorCover extends PumpCover {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(FluidRegulatorCover.class, PumpCover.MANAGED_FIELD_HOLDER);
     private static final int MAX_STACK_SIZE = 2048000000; // Capacity of quantum tank IX
     @Persisted
     @DescSynced
@@ -51,11 +49,6 @@ public class FluidRegulatorCover extends PumpCover {
 
     public FluidRegulatorCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide, int tier) {
         this(definition, coverHolder, attachedSide, tier, PUMP_SCALING.applyAsInt(tier));
-    }
-
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     //////////////////////////////////////

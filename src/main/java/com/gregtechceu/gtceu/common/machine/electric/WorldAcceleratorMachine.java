@@ -19,7 +19,6 @@ import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -50,7 +49,6 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
     private static boolean gatheredClasses = false;
     // Hard-coded blacklist for blockentities
     private static final List<String> blockEntityClassNamesBlackList = new ObjectArrayList<>();
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(WorldAcceleratorMachine.class, TieredEnergyMachine.MANAGED_FIELD_HOLDER);
     private static final long blockEntityAmperage = 6;
     private static final long randomTickAmperage = 3;
     // Variables for Random Tick mode optimization
@@ -83,12 +81,6 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
     protected NotifiableEnergyContainer createEnergyContainer(Object @NotNull... args) {
         long tierVoltage = GTValues.V[getTier()];
         return new NotifiableEnergyContainer(this, tierVoltage * 256L, tierVoltage, 8, 0L, 0L);
-    }
-
-    @Override
-    @NotNull
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     public void updateSubscription() {
