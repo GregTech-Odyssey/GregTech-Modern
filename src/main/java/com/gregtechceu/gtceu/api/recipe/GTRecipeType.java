@@ -81,20 +81,6 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         return false;
     }
 
-    public static GTRecipeType[] getAvailableTypes(GTRecipeType[] types, GTRecipeType selected_type) {
-        if (selected_type == GTRecipeTypes.COMBINED_RECIPES) {
-            return Arrays.stream(types)
-                    .filter(gtRecipeType -> gtRecipeType != GTRecipeTypes.COMBINED_RECIPES)
-                    .toList().toArray(new GTRecipeType[0]);
-        } else {
-            return List.of(selected_type).toArray(new GTRecipeType[0]);
-        }
-    }
-
-    public static GTRecipeType[] getAvailableTypes(IRecipeLogicMachine machine) {
-        return getAvailableTypes(machine.getCombinedTypes(), machine.getRecipeType());
-    }
-
     public GTRecipeType setMaxIOSize(int maxInputs, int maxOutputs, int maxFluidInputs, int maxFluidOutputs) {
         return setMaxSize(IO.IN, ItemRecipeCapability.CAP, maxInputs).setMaxSize(IO.IN, FluidRecipeCapability.CAP, maxFluidInputs).setMaxSize(IO.OUT, ItemRecipeCapability.CAP, maxOutputs).setMaxSize(IO.OUT, FluidRecipeCapability.CAP, maxFluidOutputs);
     }
