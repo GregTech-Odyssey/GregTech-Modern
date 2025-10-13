@@ -640,6 +640,11 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         return false;
     }
 
+    public static boolean isFacingValid(MetaMachineBlock machineBlock, BlockState blockState, Direction facing) {
+        if (machineBlock.getRotationState() != RotationState.NONE && facing == machineBlock.getFrontFacing(blockState)) return false;
+        return machineBlock.rotationState.test(facing);
+    }
+
     public boolean isFacingValid(Direction facing) {
         if (hasFrontFacing() && facing == getFrontFacing()) return false;
         var coverContainer = getCoverContainer();

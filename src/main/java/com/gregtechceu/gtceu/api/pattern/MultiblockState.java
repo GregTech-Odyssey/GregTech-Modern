@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.pattern.error.PatternError;
 import com.gregtechceu.gtceu.api.pattern.error.PatternStringError;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.PatternMatchContext;
-import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -16,8 +15,8 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -33,8 +32,8 @@ public class MultiblockState {
     public BlockState blockState;
     public BlockEntity tileEntity;
     public boolean tileEntityInitialized;
-    public final Object2IntOpenHashMap<SimplePredicate> globalCount = new O2IOpenCacheHashMap<>();
-    public final Object2IntOpenHashMap<SimplePredicate> layerCount = new O2IOpenCacheHashMap<>();
+    public final Reference2IntOpenHashMap<SimplePredicate> globalCount = new Reference2IntOpenHashMap<>();
+    public final Reference2IntOpenHashMap<SimplePredicate> layerCount = new Reference2IntOpenHashMap<>();
     public TraceabilityPredicate predicate;
     public PatternError error;
     public boolean neededFlip = false;
@@ -178,11 +177,11 @@ public class MultiblockState {
         return this.matchContext;
     }
 
-    public Object2IntOpenHashMap<SimplePredicate> getGlobalCount() {
+    public Reference2IntOpenHashMap<SimplePredicate> getGlobalCount() {
         return this.globalCount;
     }
 
-    public Object2IntOpenHashMap<SimplePredicate> getLayerCount() {
+    public Reference2IntOpenHashMap<SimplePredicate> getLayerCount() {
         return this.layerCount;
     }
 

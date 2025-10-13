@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.block.ActiveBlock;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.pattern.error.PatternError;
@@ -38,10 +39,7 @@ import net.minecraftforge.items.IItemHandler;
 import it.unimi.dsi.fastutil.ints.IntObjectPair;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import it.unimi.dsi.fastutil.objects.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -171,7 +169,7 @@ public class BlockPattern {
                 findFirstAisle = true;
                 z++;
                 // Check layer-local matcher predicate
-                for (ObjectIterator<Object2IntMap.Entry<SimplePredicate>> it = layerCount.object2IntEntrySet().fastIterator(); it.hasNext();) {
+                for (var it = layerCount.reference2IntEntrySet().fastIterator(); it.hasNext();) {
                     var entry = it.next();
                     if (entry.getIntValue() < entry.getKey().minLayerCount) {
                         worldState.setError(new SinglePredicateError(entry.getKey(), 3));
@@ -191,7 +189,7 @@ public class BlockPattern {
             formedRepetitionCount[c] = validRepetitions;
         }
         // Check count matches amount
-        for (ObjectIterator<Object2IntMap.Entry<SimplePredicate>> it = globalCount.object2IntEntrySet().fastIterator(); it.hasNext();) {
+        for (var it = globalCount.reference2IntEntrySet().fastIterator(); it.hasNext();) {
             var entry = it.next();
             if (entry.getIntValue() < entry.getKey().minCount) {
                 worldState.setError(new SinglePredicateError(entry.getKey(), 1));
@@ -213,9 +211,9 @@ public class BlockPattern {
         Direction facing = controller.self().getFrontFacing();
         Direction upwardsFacing = controller.self().getUpwardsFacing();
         boolean isFlipped = controller.self().isFlipped();
-        Object2IntOpenHashMap<SimplePredicate> cacheGlobal = worldState.getGlobalCount();
-        Object2IntOpenHashMap<SimplePredicate> cacheLayer = worldState.getLayerCount();
-        Long2ObjectOpenHashMap<Object> blocks = new Long2ObjectOpenHashMap<>();
+        var cacheGlobal = worldState.getGlobalCount();
+        var cacheLayer = worldState.getLayerCount();
+        Long2ObjectOpenHashMap<Object> blocks = new Long2ObjectOpenHashMap<>(1024, 0.5F);
         LongOpenHashSet placeBlockPos = new LongOpenHashSet();
         blocks.put(centerPos.asLong(), controller);
         for (int c = 0, z = minZ++, r; c < this.fingerLength; c++) {
@@ -336,7 +334,7 @@ public class BlockPattern {
             }
         }
         Direction frontFacing = controller.self().getFrontFacing();
-        for (var entry : blocks.long2ObjectEntrySet()) {
+        blocks.long2ObjectEntrySet().fastForEach(entry -> {
             Object block = entry.getValue();
             if (!(block instanceof IMultiController)) {
                 long posLong = entry.getLongKey();
@@ -356,12 +354,12 @@ public class BlockPattern {
                     }, state -> world.setBlock(pos, state, 3));
                 }
             }
-        }
+        });
     }
 
     public BlockInfo[][][] getPreview(int[] repetition) {
-        Object2IntOpenHashMap<SimplePredicate> cacheGlobal = new O2IOpenCacheHashMap<>();
-        Long2ObjectOpenHashMap<BlockInfo> blocks = new Long2ObjectOpenHashMap<>();
+        Reference2IntOpenHashMap<SimplePredicate> cacheGlobal = new Reference2IntOpenHashMap<>();
+        Long2ObjectOpenHashMap<BlockInfo> blocks = new Long2ObjectOpenHashMap<>(1024, 0.5F);
         int minX = Integer.MAX_VALUE;
         int minY = Integer.MAX_VALUE;
         int minZ = Integer.MAX_VALUE;
@@ -492,29 +490,23 @@ public class BlockPattern {
         int finalMinX = minX;
         int finalMinY = minY;
         int finalMinZ = minZ;
-        for (var e : blocks.long2ObjectEntrySet()) {
-            var blockPos = e.getLongKey();
+        blocks.long2ObjectEntrySet().fastForEach(entry -> {
+            var blockPos = entry.getLongKey();
             var pos = BlockPos.of(blockPos);
-            var info = e.getValue();
-            resetFacing(pos, info.getBlockState(), null, (p, f) -> {
+            var info = entry.getValue();
+            var blockState = info.getBlockState();
+            resetFacing(pos, blockState, null, (p, f) -> {
                 BlockInfo blockInfo = blocks.get(p.relative(f).asLong());
                 if (blockInfo == null || blockInfo.getBlockState().getBlock() == Blocks.AIR) {
-                    if (blocks.get(blockPos).getBlockState().getBlock() instanceof MetaMachineBlock machineBlock) {
-                        if (machineBlock.newBlockEntity(BlockPos.ZERO, machineBlock.defaultBlockState()) instanceof MetaMachineBlockEntity machineBlockEntity) {
-                            var machine = machineBlockEntity.getMetaMachine();
-                            if (machine instanceof IMultiController) {
-                                return false;
-                            } else {
-                                return machine.isFacingValid(f);
-                            }
-                        }
+                    if (blockState.getBlock() instanceof MetaMachineBlock machineBlock && !(machineBlock.definition instanceof MultiblockMachineDefinition)) {
+                        return MetaMachine.isFacingValid(machineBlock, blockState, f);
                     }
                     return true;
                 }
                 return false;
             }, info::setBlockState);
             result[pos.getX() - finalMinX][pos.getY() - finalMinY][pos.getZ() - finalMinZ] = info;
-        }
+        });
         return result;
     }
 

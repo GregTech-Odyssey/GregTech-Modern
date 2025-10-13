@@ -47,15 +47,13 @@ import java.util.stream.Collectors;
 @SuppressWarnings("deprecation")
 public class MixinHelpers {
 
-    public static final Map<Registry<?>, Map<ResourceLocation, Collection<?>>> TAG_CACHE = new Reference2ReferenceOpenHashMap<>();
-    public static final Map<Registry<?>, Map<ResourceLocation, List<TagLoader.EntryWithSource>>> DYNAMIC_TAG_CACHE = new Reference2ReferenceOpenHashMap<>();
+    public static final Reference2ReferenceOpenHashMap<Registry<?>, Map<ResourceLocation, Collection<?>>> TAG_CACHE = new Reference2ReferenceOpenHashMap<>();
+    public static final Reference2ReferenceOpenHashMap<Registry<?>, O2OOpenCacheHashMap<ResourceLocation, List<TagLoader.EntryWithSource>>> DYNAMIC_TAG_CACHE = new Reference2ReferenceOpenHashMap<>();
 
     public static <T> void generateGTDynamicTags(Map<ResourceLocation, List<TagLoader.EntryWithSource>> tagMap, Registry<T> registry) {
         var tags = DYNAMIC_TAG_CACHE.get(registry);
         if (tags == null) return;
-        for (Map.Entry<ResourceLocation, List<TagLoader.EntryWithSource>> entry : tags.entrySet()) {
-            tagMap.computeIfAbsent(entry.getKey(), path -> new ObjectArrayList<>()).addAll(entry.getValue());
-        }
+        tags.object2ObjectEntrySet().fastForEach(entry -> tagMap.computeIfAbsent(entry.getKey(), path -> new ObjectArrayList<>()).addAll(entry.getValue()));
         DYNAMIC_TAG_CACHE.remove(registry);
     }
 

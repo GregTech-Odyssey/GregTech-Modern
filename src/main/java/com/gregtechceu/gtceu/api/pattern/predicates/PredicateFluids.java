@@ -26,7 +26,7 @@ public class PredicateFluids extends SimplePredicate {
         if (fluid == null) fluid = Fluids.WATER;
         predicate = state -> state.getBlockState().getFluidState().getType() == fluid;
         candidates = () -> block == null ? block = new Block[] { fluid.defaultFluidState().createLegacyBlock().getBlock() } : block;
-        blockInfo = () -> new BlockInfo(candidates.get()[0]);
+        blockInfo = () -> BlockInfo.fromBlock(candidates.get()[0]);
         return this;
     }
 }

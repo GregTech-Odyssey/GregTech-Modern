@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.machine.feature.*;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachine;
 import com.gregtechceu.gtceu.api.machine.trait.*;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
@@ -27,7 +28,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class WorkableTieredMachine extends TieredEnergyMachine implements IRecipeLogicMachine, IMachineLife, IMufflableMachine, IOverclockMachine {
+public abstract class WorkableTieredMachine extends TieredEnergyMachine implements IRecipeLogicMachine, IMachineLife, IMufflableMachine, IOverclockMachine, IInputLimitableMachine {
 
     @Persisted
     @DescSynced
@@ -259,5 +260,15 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
 
     public void setMuffled(final boolean isMuffled) {
         this.isMuffled = isMuffled;
+    }
+
+    @Override
+    public void setInputLimit(boolean inputLimit) {
+        this.importItems.storage.isInputLimited = inputLimit;
+    }
+
+    @Override
+    public boolean isInputLimit() {
+        return this.importItems.storage.isInputLimited;
     }
 }

@@ -296,6 +296,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
         configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(GuiTextures.BUTTON_POWER.getSubTexture(0, 0, 1, 0.5), GuiTextures.BUTTON_POWER.getSubTexture(0, 0.5, 1, 0.5), this::isWorkingEnabled, (clickData, pressed) -> this.setWorkingEnabled(pressed)).setTooltipsSupplier(pressed -> List.of(Component.translatable(pressed ? "behaviour.soft_hammer.enabled" : "behaviour.soft_hammer.disabled"))));
         IVoidable.attachConfigurators(configuratorPanel, this);
+        super.attachConfigurators(configuratorPanel);
         configuratorPanel.attachConfigurators(new CircuitFancyConfigurator(circuitInventory.storage));
         for (Direction direction : Direction.values()) {
             if (self().getCoverContainer().hasCover(direction)) {
