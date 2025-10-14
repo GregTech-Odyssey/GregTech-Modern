@@ -1,5 +1,5 @@
 {
-  "parent": "overlay/front",
+  "parent": "gtceu:block/overlay/front",
   "textures": {
     "overlay_color": "gtceu:block/overlay/machine/overlay_color"
   },

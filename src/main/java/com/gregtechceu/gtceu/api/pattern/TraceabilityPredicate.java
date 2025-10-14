@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 
@@ -13,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -48,6 +50,7 @@ public class TraceabilityPredicate {
 
     public List<SimplePredicate> common = new ObjectArrayList<>();
     public List<SimplePredicate> limited = new ObjectArrayList<>();
+    public Function<MultiblockState, Direction> direction = s -> null;
     public boolean isController;
 
     public TraceabilityPredicate() {}
@@ -56,6 +59,7 @@ public class TraceabilityPredicate {
         common.addAll(predicate.common);
         limited.addAll(predicate.limited);
         isController = predicate.isController;
+        direction = predicate.direction;
     }
 
     public TraceabilityPredicate(Predicate<MultiblockState> predicate, Supplier<BlockInfo> blockInfo, @Nullable Supplier<Block[]> candidates) {

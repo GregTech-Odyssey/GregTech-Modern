@@ -13,10 +13,8 @@ import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblock.IBatteryData;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.pattern.error.PatternStringError;
-import com.gregtechceu.gtceu.api.pattern.predicates.PredicateBlockTag;
-import com.gregtechceu.gtceu.api.pattern.predicates.PredicateBlocks;
-import com.gregtechceu.gtceu.api.pattern.predicates.PredicateFluids;
-import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
+import com.gregtechceu.gtceu.api.pattern.predicates.*;
+import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.common.block.BatteryBlock;
 import com.gregtechceu.gtceu.common.block.CoilBlock;
@@ -66,6 +64,16 @@ public class Predicates {
         if (blocks.length == 0) return any();
         return new TraceabilityPredicate(
                 new PredicateBlocks(Arrays.stream(blocks).map(IMachineBlock::self).toArray(Block[]::new)));
+    }
+
+    public static TraceabilityPredicate blockDirection(Block block, RelativeDirection... directions) {
+        var predicate = new TraceabilityPredicate(new PredicateDirections(block, directions));
+        predicate.direction = s -> {
+            if (s.controller == null) return directions[0].equivalentGlobal;
+            var controller = s.controller.self();
+            return directions[0].getRelative(controller.getFrontFacing(), controller.getUpwardsFacing(), controller.isFlipped());
+        };
+        return predicate;
     }
 
     public static TraceabilityPredicate blockTag(TagKey<Block> tag) {

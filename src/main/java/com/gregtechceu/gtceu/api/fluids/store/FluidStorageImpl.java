@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.fluids.store;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.fluids.FluidBuilder;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
@@ -77,15 +76,8 @@ public class FluidStorageImpl implements FluidStorage {
         toRegister.entrySet().stream()
                 .sorted(Comparator.comparingInt(e -> -e.getKey().getRegistrationPriority()))
                 .forEach(entry -> {
-                    if (map.containsKey(entry.getKey())) {
-                        GTCEu.LOGGER.warn("{} already has an associated fluid for material {}", entry.getKey(),
-                                material);
-                        return;
-                    }
-                    Supplier<? extends Fluid> fluid = entry.getValue().build(material, entry.getKey(), registrate);
-                    if (!storeNoOverwrites(entry.getKey(), fluid, entry.getValue())) {
-                        GTCEu.LOGGER.error("{} already has an associated fluid for material {}", material, material);
-                    }
+                    if (map.containsKey(entry.getKey())) return;
+                    store(entry.getKey(), entry.getValue().build(material, entry.getKey(), registrate), entry.getValue());
                 });
         toRegister = null;
         registered = true;
@@ -102,31 +94,11 @@ public class FluidStorageImpl implements FluidStorage {
     }
 
     public @Nullable FluidEntry getEntry(@NotNull FluidStorageKey key) {
-        return map.getOrDefault(key, null);
-    }
-
-    /**
-     * Will do nothing if an existing fluid association would be overwritten.
-     *
-     * @param key   the key to associate with the fluid
-     * @param fluid the fluid to associate with the key
-     * @return if the associations were successfully updated
-     */
-    private boolean storeNoOverwrites(@NotNull FluidStorageKey key, @NotNull Supplier<? extends Fluid> fluid,
-                                      @Nullable FluidBuilder builder) {
-        if (map.containsKey(key)) {
-            return false;
-        }
-        store(key, fluid, builder);
-        return true;
+        return map.get(key);
     }
 
     @Override
-    public void store(@NotNull FluidStorageKey key, @NotNull Supplier<? extends Fluid> fluid,
-                      @Nullable FluidBuilder builder) {
-        if (map.containsKey(key)) {
-            throw new IllegalArgumentException(key + " already has an associated fluid");
-        }
+    public void store(@NotNull FluidStorageKey key, @NotNull Supplier<? extends Fluid> fluid, @Nullable FluidBuilder builder) {
         if (builder != null) {
             map.put(key, new FluidEntry(fluid, builder));
         } else {

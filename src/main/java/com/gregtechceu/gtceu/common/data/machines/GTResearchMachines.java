@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo;
+import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.registry.registrate.MachineBuilder;
 import com.gregtechceu.gtceu.client.renderer.machine.HPCAPartRenderer;
 import com.gregtechceu.gtceu.client.renderer.machine.OverlayTieredActiveMachineRenderer;
@@ -80,7 +81,7 @@ public class GTResearchMachines {
                             .or(abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1).setMaxGlobalLimited(2, 1))
                             .or(abilities(PartAbility.COMPUTATION_DATA_RECEPTION).setExactLimit(1))
                             .or(autoAbilities(true, false, false)))
-                    .where('H', abilities(PartAbility.OBJECT_HOLDER))
+                    .where('H', blockDirection(GTResearchMachines.OBJECT_HOLDER.getBlock(), RelativeDirection.BACK))
                     .build())
             .shapeInfo(definition -> MultiblockShapeInfo.builder()
                     .aisle("---", "XXX", "---", "---", "---", "XXX", "---")
@@ -112,7 +113,6 @@ public class GTResearchMachines {
             .langValue("Object Holder")
             .tier(ZPM)
             .allRotation()
-            .abilities(PartAbility.OBJECT_HOLDER)
             .renderer(() -> new OverlayTieredActiveMachineRenderer(ZPM, GTCEu.id("block/machine/part/object_holder"),
                     GTCEu.id("block/machine/part/object_holder_active")))
             .register();

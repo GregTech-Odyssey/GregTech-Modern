@@ -55,27 +55,15 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
         super.onStructureFormed();
         for (IMultiPart part : getParts()) {
             if (part instanceof IObjectHolder iObjectHolder) {
-                if (iObjectHolder.getFrontFacing() != getFrontFacing().getOpposite()) {
-                    onStructureInvalid();
-                    return;
-                }
                 this.objectHolder = iObjectHolder;
                 addHandlerList(RecipeHandlerList.of(IO.IN, iObjectHolder.getAsHandler()));
+                break;
             }
         }
         // should never happen, but would rather do this than have an obscure NPE
         if (objectHolder == null) {
             onStructureInvalid();
         }
-    }
-
-    @Override
-    public boolean checkPattern() {
-        boolean isFormed = super.checkPattern();
-        if (isFormed && objectHolder != null && objectHolder.getFrontFacing() != getFrontFacing().getOpposite()) {
-            onStructureInvalid();
-        }
-        return isFormed;
     }
 
     @Override

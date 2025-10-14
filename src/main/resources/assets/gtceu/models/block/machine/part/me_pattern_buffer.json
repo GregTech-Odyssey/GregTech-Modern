@@ -1,5 +1,5 @@
 {
-	"parent": "gtceu:block/overlay/front",
+	"parent": "gtceu:block/overlay/front_color_ring",
 	"textures": {
 		"overlay": "gtceu:block/overlay/appeng/me_buffer_hatch"
 	}
