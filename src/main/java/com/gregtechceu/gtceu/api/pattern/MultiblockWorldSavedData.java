@@ -11,12 +11,10 @@ import net.minecraft.world.level.saveddata.SavedData;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.concurrent.*;
@@ -33,16 +31,11 @@ public class MultiblockWorldSavedData extends SavedData {
     }
 
     /**
-     * Store all formed multiblocks' structure info
-     */
-    public final Long2ReferenceOpenHashMap<MultiblockState> mapping;
-    /**
      * Chunk pos mapping.
      */
-    public final Long2ObjectOpenHashMap<Set<MultiblockState>> chunkPosMapping;
+    private final Long2ObjectOpenHashMap<Set<MultiblockState>> chunkPosMapping;
 
     private MultiblockWorldSavedData() {
-        this.mapping = new Long2ReferenceOpenHashMap<>();
         this.chunkPosMapping = new Long2ObjectOpenHashMap<>();
     }
 
@@ -50,21 +43,29 @@ public class MultiblockWorldSavedData extends SavedData {
         this();
     }
 
-    public Set<MultiblockState> getControllersInChunk(ChunkPos chunkPos) {
-        return chunkPosMapping.getOrDefault(chunkPos.toLong(), Collections.emptySet());
+    public MultiblockState[] getControllersInChunk(ChunkPos chunkPos) {
+        synchronized (chunkPosMapping) {
+            var states = chunkPosMapping.get(chunkPos.toLong());
+            if (states != null) {
+                return states.toArray(MultiblockState[]::new);
+            }
+            return null;
+        }
     }
 
     public void addMapping(MultiblockState state) {
-        this.mapping.put(state.controllerPos.asLong(), state);
-        for (var blockPos : state.cache) {
-            chunkPosMapping.computeIfAbsent(PosUtils.getChunkLong(blockPos), c -> new ReferenceOpenHashSet<>()).add(state);
+        synchronized (chunkPosMapping) {
+            for (var blockPos : state.cache) {
+                chunkPosMapping.computeIfAbsent(PosUtils.getChunkLong(blockPos), c -> new ReferenceOpenHashSet<>()).add(state);
+            }
         }
     }
 
     public void removeMapping(MultiblockState state) {
-        this.mapping.remove(state.controllerPos.asLong());
-        for (Set<MultiblockState> set : chunkPosMapping.values()) {
-            set.remove(state);
+        synchronized (chunkPosMapping) {
+            for (Set<MultiblockState> set : chunkPosMapping.values()) {
+                set.remove(state);
+            }
         }
     }
 

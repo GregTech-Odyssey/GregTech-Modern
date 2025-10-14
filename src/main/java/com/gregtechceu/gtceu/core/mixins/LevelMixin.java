@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.core.mixins;
 
-import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldSavedData;
 import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.utils.TaskHandler;
@@ -117,9 +116,9 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
         if (((Object) this) instanceof ServerLevel serverLevel) {
             var cache = serverLevel.getDataStorage().cache.get(MultiblockWorldSavedData.DATA_NAME);
             if (cache != null) {
-                var states = ((MultiblockWorldSavedData) cache).chunkPosMapping.get(chunk.getPos().toLong());
+                var states = ((MultiblockWorldSavedData) cache).getControllersInChunk(chunk.getPos());
                 if (states != null) {
-                    for (var structure : states.toArray(MultiblockState[]::new)) {
+                    for (var structure : states) {
                         if (structure.isPosInCache(pos)) {
                             serverLevel.getServer().executeBlocking(() -> structure.onBlockStateChanged(pos, newState));
                         }
