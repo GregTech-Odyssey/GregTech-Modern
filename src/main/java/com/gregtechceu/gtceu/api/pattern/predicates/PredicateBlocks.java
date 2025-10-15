@@ -37,7 +37,7 @@ public class PredicateBlocks extends SimplePredicate {
             throw new IllegalArgumentException("Empty predicate: " + Arrays.toString(blocks));
         }
         blocks = filteredBlocks.toArray(new Block[0]);
-        blockInfo = () -> BlockInfo.fromBlock(blocks[0]);
+        blockInfo = () -> BlockInfo.fromBlock(blocks[0]);//TODO render
         predicate = state -> ArrayUtils.contains(blocks, state.getBlockState().getBlock());
         candidates = () -> blocks;
         return this;

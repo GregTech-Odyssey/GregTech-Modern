@@ -40,7 +40,7 @@ public class PredicateBlockTag extends SimplePredicate {
                 .flatMap(HolderSet.Named::stream)
                 .map(Holder::value)
                 .toArray(Block[]::new) : blocks;
-        blockInfo = () -> new BlockInfo(candidates.get()[0]);
+        blockInfo = () -> new BlockInfo(candidates.get()[0]);//TODO render
         return this;
     }
 }
