@@ -5,8 +5,7 @@ import java.util.function.Supplier;
 public class MemoizedSupplier<T> implements Supplier<T> {
 
     protected T value = null;
-    protected boolean initialized = false;
-    protected final Supplier<T> delegate;
+    protected Supplier<T> delegate;
 
     protected MemoizedSupplier(Supplier<T> delegate) {
         this.delegate = delegate;
@@ -14,20 +13,10 @@ public class MemoizedSupplier<T> implements Supplier<T> {
 
     @Override
     public T get() {
-        if (!initialized) {
+        if (delegate != null) {
             value = delegate.get();
-            initialized = true;
+            delegate = null;
         }
         return value;
-    }
-
-    public void invalidate() {
-        initialized = false;
-        value = null;
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + "(" + (initialized ? value : "Uninitialized") + ")";
     }
 }

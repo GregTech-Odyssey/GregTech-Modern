@@ -1642,8 +1642,6 @@
     "config.gtceu.option.doSuperflatOres": "超平坦世界生成矿石",
     "config.gtceu.option.doesExplosionDamagesTerrain": "机器爆炸是否破坏地形",
     "config.gtceu.option.dualChamberPressurizationMode": "双仓升压模式",
-    "config.gtceu.option.dumpAssets": "导出资源",
-    "config.gtceu.option.dumpRecipes": "导出配方",
     "config.gtceu.option.enableCleanroom": "启用超净间",
     "config.gtceu.option.enableFEConverters": "启用FE转换器",
     "config.gtceu.option.enableMaintenance": "启用维护仓",

@@ -3,8 +3,8 @@ package com.gregtechceu.gtceu.client.model;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.memoization.CleanableMemoizedSupplier;
 import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
-import com.gregtechceu.gtceu.utils.memoization.MemoizedSupplier;
 
 import com.lowdragmc.lowdraglib.client.bakedpipeline.FaceQuad;
 import com.lowdragmc.lowdraglib.client.model.ModelFactory;
@@ -90,12 +90,12 @@ public class PipeModel {
     public final float thickness;
     public final AABB coreCube;
     public final Map<Direction, AABB> sideCubes;
-    public MemoizedSupplier<ResourceLocation> sideTexture;
-    public MemoizedSupplier<ResourceLocation> endTexture;
+    public CleanableMemoizedSupplier<ResourceLocation> sideTexture;
+    public CleanableMemoizedSupplier<ResourceLocation> endTexture;
     @Nullable
-    public MemoizedSupplier<@Nullable ResourceLocation> secondarySideTexture;
+    public CleanableMemoizedSupplier<@Nullable ResourceLocation> secondarySideTexture;
     @Nullable
-    public MemoizedSupplier<@Nullable ResourceLocation> secondaryEndTexture;
+    public CleanableMemoizedSupplier<@Nullable ResourceLocation> secondaryEndTexture;
     public ResourceLocation sideOverlayTexture;
     public ResourceLocation endOverlayTexture;
     @OnlyIn(Dist.CLIENT)
@@ -112,10 +112,10 @@ public class PipeModel {
     TextureAtlasSprite endOverlaySprite;
 
     public PipeModel(float thickness, Supplier<ResourceLocation> sideTexture, Supplier<ResourceLocation> endTexture, @Nullable Supplier<@Nullable ResourceLocation> secondarySideTexture, @Nullable Supplier<@Nullable ResourceLocation> secondaryEndTexture) {
-        this.sideTexture = GTMemoizer.memoize(sideTexture);
-        this.endTexture = GTMemoizer.memoize(endTexture);
-        this.secondarySideTexture = secondarySideTexture != null ? GTMemoizer.memoize(secondarySideTexture) : null;
-        this.secondaryEndTexture = secondaryEndTexture != null ? GTMemoizer.memoize(secondaryEndTexture) : null;
+        this.sideTexture = GTMemoizer.memoizeCleanable(sideTexture);
+        this.endTexture = GTMemoizer.memoizeCleanable(endTexture);
+        this.secondarySideTexture = secondarySideTexture != null ? GTMemoizer.memoizeCleanable(secondarySideTexture) : null;
+        this.secondaryEndTexture = secondaryEndTexture != null ? GTMemoizer.memoizeCleanable(secondaryEndTexture) : null;
         this.thickness = thickness;
         double min = (1.0 - thickness) / 2;
         double max = min + thickness;

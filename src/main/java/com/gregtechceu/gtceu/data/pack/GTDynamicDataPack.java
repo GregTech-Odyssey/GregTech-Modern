@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.common.data.GTRecipes;
-import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.SharedConstants;
@@ -32,7 +31,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -50,7 +48,7 @@ public class GTDynamicDataPack implements PackResources {
     private final String name;
 
     static {
-        SERVER_DOMAINS.addAll(Sets.newHashSet(GTCEu.MOD_ID, "minecraft", "forge", "c"));
+        SERVER_DOMAINS.addAll(Sets.newHashSet(GTCEu.MOD_ID, "minecraft", "forge"));
     }
 
     public GTDynamicDataPack(String name) {
@@ -66,26 +64,9 @@ public class GTDynamicDataPack implements PackResources {
         CONTENTS.clearData();
     }
 
-    private static void addToData(ResourceLocation location, byte[] bytes) {
-        CONTENTS.addToData(location, bytes);
-    }
-
     public static void addRecipe(FinishedRecipe recipe) {
-        JsonObject recipeJson = recipe.serializeRecipe();
-        Path parent = GTCEu.getGameDir().resolve("gtceu/dumped/data");
         ResourceLocation recipeId = recipe.getId();
-        if (ConfigHolder.INSTANCE.dev.dumpRecipes) {
-            writeJson(recipeId, "recipes", parent, recipeJson);
-        }
-        addToData(getRecipeLocation(recipeId), recipeJson.toString().getBytes(StandardCharsets.UTF_8));
-        if (recipe.serializeAdvancement() != null) {
-            JsonObject advancement = recipe.serializeAdvancement();
-            if (ConfigHolder.INSTANCE.dev.dumpRecipes) {
-                writeJson(recipe.getAdvancementId(), "advancements", parent, advancement);
-            }
-            addToData(getAdvancementLocation(Objects.requireNonNull(recipe.getAdvancementId())),
-                    advancement.toString().getBytes(StandardCharsets.UTF_8));
-        }
+        CONTENTS.addToData(getRecipeLocation(recipeId), () -> recipe.serializeRecipe().toString().getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -114,11 +95,6 @@ public class GTDynamicDataPack implements PackResources {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public static void addAdvancement(ResourceLocation loc, JsonObject obj) {
-        ResourceLocation l = getAdvancementLocation(loc);
-        addToData(l, obj.toString().getBytes(StandardCharsets.UTF_8));
     }
 
     @Nullable
@@ -185,11 +161,6 @@ public class GTDynamicDataPack implements PackResources {
 
     public static ResourceLocation getRecipeLocation(ResourceLocation recipeId) {
         return new ResourceLocation(recipeId.getNamespace(), String.join("", "recipes/", recipeId.getPath(), ".json"));
-    }
-
-    public static ResourceLocation getAdvancementLocation(ResourceLocation advancementId) {
-        return new ResourceLocation(advancementId.getNamespace(),
-                String.join("", "advancements/", advancementId.getPath(), ".json"));
     }
 
     public static ResourceLocation getTagLocation(String identifier, ResourceLocation tagId) {

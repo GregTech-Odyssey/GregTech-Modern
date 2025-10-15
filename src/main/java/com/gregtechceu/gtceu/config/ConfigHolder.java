@@ -770,12 +770,6 @@ public class ConfigHolder {
         @Configurable
         @Configurable.Comment({ "Generate ores in superflat worlds?", "Default: false" })
         public boolean doSuperflatOres = false;
-        @Configurable
-        @Configurable.Comment({ "Dump all registered GT recipes?", "Default: false" })
-        public boolean dumpRecipes = false;
-        @Configurable
-        @Configurable.Comment({ "Dump all registered GT models/blockstates/etc?", "Default: false" })
-        public boolean dumpAssets = false;
     }
 
     public static class RendererConfigs {

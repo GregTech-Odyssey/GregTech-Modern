@@ -3,7 +3,12 @@ package com.gregtechceu.gtceu.data.pack;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
-import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.client.renderer.block.MaterialBlockRenderer;
+import com.gregtechceu.gtceu.client.renderer.block.OreBlockRenderer;
+import com.gregtechceu.gtceu.client.renderer.block.SurfaceRockRenderer;
+import com.gregtechceu.gtceu.client.renderer.item.TagPrefixItemRenderer;
+import com.gregtechceu.gtceu.client.renderer.item.ToolItemRenderer;
+import com.gregtechceu.gtceu.common.data.GTModels;
 import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -15,19 +20,15 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
 import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
 import net.minecraft.server.packs.resources.IoSupplier;
+import net.minecraftforge.fml.ModLoader;
 
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -35,14 +36,13 @@ import java.util.stream.Collectors;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import static com.gregtechceu.gtceu.data.pack.GTDynamicDataPack.writeJson;
-
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class GTDynamicResourcePack implements PackResources {
 
     protected static final ObjectSet<String> CLIENT_DOMAINS = new OpenCacheHashSet<>();
     protected static final GTDynamicPackContents CONTENTS = new GTDynamicPackContents();
+    protected static boolean loaded;
 
     private final String name;
 
@@ -59,85 +59,30 @@ public class GTDynamicResourcePack implements PackResources {
         CLIENT_DOMAINS.addAll(domains);
     }
 
-    public static void clearClient() {
-        CONTENTS.clearData();
-    }
-
-    public static void addBlockModel(ResourceLocation loc, JsonElement obj) {
-        ResourceLocation l = getModelLocation(loc);
-        if (ConfigHolder.INSTANCE.dev.dumpAssets) {
-            Path parent = GTCEu.getGameDir().resolve("gtceu/dumped/assets");
-            writeJson(l, null, parent, obj);
-        }
-        CONTENTS.addToData(l, obj.toString().getBytes(StandardCharsets.UTF_8));
+    public static void load() {
+        if (loaded) return;
+        if (!ModLoader.isLoadingStateValid()) return;
+        loaded = true;
+        long startTime = System.currentTimeMillis();
+        MaterialBlockRenderer.reinitModels();
+        TagPrefixItemRenderer.reinitModels();
+        OreBlockRenderer.reinitModels();
+        ToolItemRenderer.reinitModels();
+        SurfaceRockRenderer.reinitModels();
+        GTModels.registerMaterialFluidModels();
+        GTCEu.LOGGER.info("GregTech Model loading took {}ms", System.currentTimeMillis() - startTime);
     }
 
     public static void addBlockModel(ResourceLocation loc, Supplier<JsonElement> obj) {
-        addBlockModel(loc, obj.get());
-    }
-
-    public static void addItemModel(ResourceLocation loc, JsonElement obj) {
-        ResourceLocation l = getItemModelLocation(loc);
-        if (ConfigHolder.INSTANCE.dev.dumpAssets) {
-            Path parent = GTCEu.getGameDir().resolve("gtceu/dumped/assets");
-            writeJson(l, null, parent, obj);
-        }
-        CONTENTS.addToData(l, obj.toString().getBytes(StandardCharsets.UTF_8));
+        CONTENTS.addToData(getModelLocation(loc), () -> obj.get().toString().getBytes(StandardCharsets.UTF_8));
     }
 
     public static void addItemModel(ResourceLocation loc, Supplier<JsonElement> obj) {
-        addItemModel(loc, obj.get());
+        CONTENTS.addToData(getItemModelLocation(loc), () -> obj.get().toString().getBytes(StandardCharsets.UTF_8));
     }
 
-    public static void addBlockState(ResourceLocation loc, JsonElement stateJson) {
-        ResourceLocation l = getBlockStateLocation(loc);
-        if (ConfigHolder.INSTANCE.dev.dumpAssets) {
-            Path parent = GTCEu.getGameDir().resolve("gtceu/dumped/assets");
-            writeJson(l, null, parent, stateJson);
-        }
-        CONTENTS.addToData(l, stateJson.toString().getBytes(StandardCharsets.UTF_8));
-    }
-
-    public static void addBlockState(ResourceLocation loc, Supplier<JsonElement> generator) {
-        addBlockState(loc, generator.get());
-    }
-
-    public static void addBlockTexture(ResourceLocation loc, byte[] data) {
-        ResourceLocation l = getTextureLocation("block", loc);
-        if (ConfigHolder.INSTANCE.dev.dumpAssets) {
-            Path parent = GTCEu.getGameDir().resolve("gtceu/dumped/assets");
-            writeByteArray(l, null, parent, data);
-        }
-        CONTENTS.addToData(l, data);
-    }
-
-    public static void addItemTexture(ResourceLocation loc, byte[] data) {
-        ResourceLocation l = getTextureLocation("item", loc);
-        if (ConfigHolder.INSTANCE.dev.dumpAssets) {
-            Path parent = GTCEu.getGameDir().resolve("gtceu/dumped/assets");
-            writeByteArray(l, null, parent, data);
-        }
-        CONTENTS.addToData(l, data);
-    }
-
-    @ApiStatus.Internal
-    public static void writeByteArray(ResourceLocation id, @Nullable String subdir, Path parent, byte[] data) {
-        try {
-            Path file;
-            if (subdir != null) {
-                // assume PNG
-                file = parent.resolve(id.getNamespace()).resolve(subdir).resolve(id.getPath() + ".png");
-            } else {
-                // assume the file type is also appended if a full path is given.
-                file = parent.resolve(id.getNamespace()).resolve(id.getPath());
-            }
-            Files.createDirectories(file.getParent());
-            try (OutputStream output = Files.newOutputStream(file)) {
-                output.write(data);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public static void addBlockState(ResourceLocation loc, Supplier<JsonElement> obj) {
+        CONTENTS.addToData(getBlockStateLocation(loc), () -> obj.get().toString().getBytes(StandardCharsets.UTF_8));
     }
 
     @Nullable
@@ -201,13 +146,5 @@ public class GTDynamicResourcePack implements PackResources {
 
     public static ResourceLocation getItemModelLocation(ResourceLocation itemId) {
         return new ResourceLocation(itemId.getNamespace(), String.join("", "models/item/", itemId.getPath(), ".json"));
-    }
-
-    public static ResourceLocation getTextureLocation(@Nullable String path, ResourceLocation tagId) {
-        if (path == null) {
-            return new ResourceLocation(tagId.getNamespace(), String.join("", "textures/", tagId.getPath(), ".png"));
-        }
-        return new ResourceLocation(tagId.getNamespace(),
-                String.join("", "textures/", path, "/", tagId.getPath(), ".png"));
     }
 }

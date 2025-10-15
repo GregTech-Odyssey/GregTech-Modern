@@ -3,8 +3,6 @@ package com.gregtechceu.gtceu.common.data;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.addon.AddonFinder;
-import com.gregtechceu.gtceu.api.addon.events.MaterialCasingCollectionEvent;
 import com.gregtechceu.gtceu.api.block.ActiveBlock;
 import com.gregtechceu.gtceu.api.block.ICoilType;
 import com.gregtechceu.gtceu.api.block.IFilterType;
@@ -239,10 +237,6 @@ public class GTBlocks {
         builder.put(GTMaterials.TitaniumTungstenCarbide, CASING_LASER_SAFE_ENGRAVING);
         builder.put(GTMaterials.Stellite100, CASING_LARGE_SCALE_ASSEMBLING);
         builder.put(GTMaterials.HastelloyC276, CASING_SHOCK_PROOF);
-
-        MaterialCasingCollectionEvent event = new MaterialCasingCollectionEvent(builder);
-        AddonFinder.getAddons().forEach(addon -> addon.collectMaterialCasings(event));
-
         MATERIALS_TO_CASINGS = builder.build();
     }
 

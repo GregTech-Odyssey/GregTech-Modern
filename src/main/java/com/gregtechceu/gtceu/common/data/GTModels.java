@@ -331,25 +331,25 @@ public class GTModels {
                 // bucket models.
                 Fluid fluid = storage.get(key);
                 if (fluid instanceof GTFluid gtFluid) {
-                    // read the base bucket model JSON
-                    JsonObject original;
-                    try (BufferedReader reader = Minecraft.getInstance().getResourceManager()
-                            .openAsReader(GTCEu.id("models/item/bucket/bucket.json"))) {
-                        original = GsonHelper.parse(reader, true);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+                    GTDynamicResourcePack.addItemModel(BuiltInRegistries.ITEM.getKey(gtFluid.getBucket()), () -> {
+                        JsonObject original;
+                        try (BufferedReader reader = Minecraft.getInstance().getResourceManager()
+                                .openAsReader(GTCEu.id("models/item/bucket/bucket.json"))) {
+                            original = GsonHelper.parse(reader, true);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
 
-                    JsonObject newJson = original.deepCopy();
-                    newJson.addProperty("fluid", BuiltInRegistries.FLUID.getKey(gtFluid).toString());
-                    if (gtFluid.getFluidType().isLighterThanAir()) {
-                        newJson.addProperty("flip_gas", true);
-                    }
-                    if (gtFluid.getFluidType().getLightLevel() > 0) {
-                        newJson.addProperty("apply_fluid_luminosity", true);
-                    }
-
-                    GTDynamicResourcePack.addItemModel(BuiltInRegistries.ITEM.getKey(gtFluid.getBucket()), newJson);
+                        JsonObject newJson = original.deepCopy();
+                        newJson.addProperty("fluid", BuiltInRegistries.FLUID.getKey(gtFluid).toString());
+                        if (gtFluid.getFluidType().isLighterThanAir()) {
+                            newJson.addProperty("flip_gas", true);
+                        }
+                        if (gtFluid.getFluidType().getLightLevel() > 0) {
+                            newJson.addProperty("apply_fluid_luminosity", true);
+                        }
+                        return newJson;
+                    });
                 }
             }
         }

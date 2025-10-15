@@ -1,13 +1,7 @@
 package com.gregtechceu.gtceu.api.addon;
 
-import com.gregtechceu.gtceu.api.addon.events.MaterialCasingCollectionEvent;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 
-import net.minecraft.resources.ResourceLocation;
-
-import java.util.function.Consumer;
-
-@SuppressWarnings("unused")
 public interface IGTAddon {
 
     /**
@@ -15,11 +9,6 @@ public interface IGTAddon {
      *         remember to call{@link GTRegistrate#registerRegistrate} in your mod class!
      */
     GTRegistrate getRegistrate();
-
-    /**
-     * This runs after GTCEu has setup it's content.
-     */
-    void initializeAddon();
 
     /**
      * this addon's Mod id.
@@ -40,11 +29,7 @@ public interface IGTAddon {
 
     /**
      * Call init on your custom Material class(es) here
-     * 
-     * @deprecated use {@link com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialRegistryEvent} and
-     *             {@link com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialEvent} instead.
      */
-    @Deprecated(forRemoval = true, since = "1.0.21")
     default void registerMaterials() {}
 
     /**
@@ -76,13 +61,6 @@ public interface IGTAddon {
      * Call init on your custom IndicatorGenerator class(es) here
      */
     default void registerIndicatorGenerators() {}
-
-    default void removeRecipes(Consumer<ResourceLocation> consumer) {}
-
-    /**
-     * Register Material -> Casing block mappings here
-     */
-    default void collectMaterialCasings(MaterialCasingCollectionEvent event) {}
 
     /**
      * Does this addon require high-tier content to be enabled?

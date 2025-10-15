@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.forge;
 
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.api.data.chemical.material.event.PostMaterialEvent;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.AlloyBlastProperty;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.BlastProperty;
@@ -14,8 +13,6 @@ import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.data.recipe.misc.alloyblast.CustomAlloyBlastRecipeProducer;
 
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -25,8 +22,7 @@ import java.util.List;
  */
 public class AlloyBlastPropertyAddition {
 
-    @SubscribeEvent
-    public static void addAlloyBlastProperties(PostMaterialEvent event) {
+    public static void addAlloyBlastProperties() {
         for (Material material : GTCEuAPI.materialManager.getRegisteredMaterials()) {
             if (!material.hasFlag(MaterialFlags.DISABLE_ALLOY_PROPERTY)) {
                 addAlloyBlastProperty(material);

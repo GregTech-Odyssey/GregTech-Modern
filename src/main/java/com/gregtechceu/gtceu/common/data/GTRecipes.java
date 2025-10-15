@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.common.data;
 
 import com.gregtechceu.gtceu.api.GTCEuAPI;
-import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.data.chemical.material.ItemMaterialData;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags;
@@ -92,8 +91,6 @@ public class GTRecipes {
      */
     public static void recipeRemoval() {
         RECIPE_FILTERS.clear();
-
         RecipeRemoval.init(RECIPE_FILTERS::add);
-        AddonFinder.getAddons().forEach(addon -> addon.removeRecipes(RECIPE_FILTERS::add));
     }
 }

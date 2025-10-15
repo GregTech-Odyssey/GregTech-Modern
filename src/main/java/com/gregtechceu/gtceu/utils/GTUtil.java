@@ -49,12 +49,15 @@ import org.lwjgl.glfw.GLFW;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey.HAZARD;
 
 public class GTUtil {
+
+    public static final Map EMPTY_MAP = Map.of();
 
     public static final Runnable NOOP = () -> {};
 

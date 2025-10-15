@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.data.pack;
 
 import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
+import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
@@ -13,6 +14,7 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 
 /**
  * Stores contents of a dynamic resource pack in a tree-style format for efficient traversal. This class can safely
@@ -90,8 +92,9 @@ public class GTDynamicPackContents {
     private final Node root = new Node();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    public void addToData(ResourceLocation location, byte[] bytes) {
-        addToData(location, () -> new ByteArrayInputStream(bytes));
+    public void addToData(ResourceLocation location, Supplier<byte[]> supplier) {
+        var finalSupplier = GTMemoizer.memoize(supplier);
+        addToData(location, () -> new ByteArrayInputStream(finalSupplier.get()));
     }
 
     public void addToData(ResourceLocation location, IoSupplier<InputStream> supplier) {

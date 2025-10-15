@@ -17,6 +17,10 @@ public class GTMemoizer {
         return new MemoizedSupplier<>(delegate);
     }
 
+    public static <T> CleanableMemoizedSupplier<T> memoizeCleanable(Supplier<T> delegate) {
+        return new CleanableMemoizedSupplier<>(delegate);
+    }
+
     public static <T extends Block> MemoizedBlockSupplier<T> memoizeBlockSupplier(Supplier<T> delegate) {
         return new MemoizedBlockSupplier<>(delegate);
     }

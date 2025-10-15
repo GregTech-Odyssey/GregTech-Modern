@@ -6,9 +6,6 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
-import com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialEvent;
-import com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialRegistryEvent;
-import com.gregtechceu.gtceu.api.data.chemical.material.event.PostMaterialEvent;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconSet;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconType;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
@@ -33,6 +30,7 @@ import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.registry.GTRegistration;
 import com.gregtechceu.gtceu.common.unification.material.MaterialRegistryManager;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.core.MixinHelpers;
 import com.gregtechceu.gtceu.core.mixins.AbstractRegistrateAccessor;
 import com.gregtechceu.gtceu.data.GregTechDatagen;
 import com.gregtechceu.gtceu.data.lang.MaterialLangGenerator;
@@ -58,9 +56,7 @@ import net.minecraftforge.event.AddPackFindersEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.ModLoader;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLConstructModEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.javafmlmod.FMLModContainer;
 import net.minecraftforge.registries.RegisterEvent;
@@ -79,7 +75,6 @@ public class CommonProxy {
         // used for forge events (ClientProxy + CommonProxy)
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         eventBus.register(this);
-        eventBus.addListener(AlloyBlastPropertyAddition::addAlloyBlastProperties);
         // must be set here because of KubeJS compat
         // trying to read this before the pre-init stage
         GTCEuAPI.materialManager = MaterialRegistryManager.getInstance();
@@ -97,6 +92,7 @@ public class CommonProxy {
         GTMobEffects.init(eventBus);
         GTParticleTypes.init(eventBus);
         ForgeCommonEventListener.init();
+        init();
     }
 
     public static void init() {
@@ -132,7 +128,6 @@ public class CommonProxy {
         GTDimensionMarkers.init();
         ChanceLogic.init();
         WaypointManager.init();
-        AddonFinder.getAddons().forEach(IGTAddon::initializeAddon);
 
         // fabric exclusive, squeeze this in here to register before stuff is used
         GTRegistration.REGISTRATE.registerRegistrate();
@@ -179,45 +174,21 @@ public class CommonProxy {
     }
 
     private static void initMaterials() {
-        // First, register other mods' Registries
         MaterialRegistryManager managerInternal = (MaterialRegistryManager) GTCEuAPI.materialManager;
-
         GTCEu.LOGGER.info("Registering material registries");
-        ModLoader.get().postEvent(new MaterialRegistryEvent());
-
-        // First, register CEu Materials
         managerInternal.unfreezeRegistries();
-        GTCEu.LOGGER.info("Registering GTCEu Materials");
         GTMaterials.init();
-        MaterialRegistryManager.getInstance()
-                .getRegistry(GTCEu.MOD_ID)
-                .setFallbackMaterial(GTMaterials.Aluminium);
-
-        // Then, register addon Materials
-        GTCEu.LOGGER.info("Registering addon Materials");
-        MaterialEvent materialEvent = new MaterialEvent();
-        ModLoader.get().postEvent(materialEvent);
-
-        // Fire Post-Material event, intended for when Materials need to be iterated over in-full before freezing
-        // Block entirely new Materials from being added in the Post event
+        MaterialRegistryManager.getInstance().getRegistry(GTCEu.MOD_ID).setFallbackMaterial(GTMaterials.Aluminium);
+        AddonFinder.getAddons().forEach(IGTAddon::registerMaterials);
         managerInternal.closeRegistries();
-        ModLoader.get().postEvent(new PostMaterialEvent());
-
-        // Freeze Material Registry before processing Items, Blocks, and Fluids
+        AlloyBlastPropertyAddition.addAlloyBlastProperties();
         managerInternal.freezeRegistries();
-        /* End Material Registration */
     }
 
     @SubscribeEvent
     public void register(RegisterEvent event) {
         if (event.getRegistryKey().equals(BuiltInRegistries.LOOT_FUNCTION_TYPE.key()))
             ChestGenHooks.RandomWeightLootFunction.init();
-    }
-
-    @SubscribeEvent
-    public void modConstruct(FMLConstructModEvent event) {
-        // this is done to delay initialization of content to be after KJS has set up.
-        event.enqueueWork(CommonProxy::init);
     }
 
     @SubscribeEvent
@@ -239,9 +210,6 @@ public class CommonProxy {
     @SubscribeEvent
     public void registerPackFinders(AddPackFindersEvent event) {
         if (event.getPackType() == PackType.CLIENT_RESOURCES) {
-            // Clear old data
-            GTDynamicResourcePack.clearClient();
-
             event.addRepositorySource(new GTPackSource("gtceu:dynamic_assets",
                     event.getPackType(),
                     Pack.Position.BOTTOM,
@@ -251,6 +219,7 @@ public class CommonProxy {
             GTRecipes.recipeRemoval();
             // Initialize dungeon loot additions
             DungeonLootLoader.init();
+            MixinHelpers.registryGTDynamicTags();
             GTCEu.LOGGER.info("GregTech Data loading took {}ms", System.currentTimeMillis() - startTime);
 
             event.addRepositorySource(new GTPackSource("gtceu:dynamic_data",

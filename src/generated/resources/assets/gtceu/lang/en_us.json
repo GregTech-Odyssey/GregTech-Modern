@@ -1642,8 +1642,6 @@
   "config.gtceu.option.doSuperflatOres": "doSuperflatOres",
   "config.gtceu.option.doesExplosionDamagesTerrain": "doesExplosionDamagesTerrain",
   "config.gtceu.option.dualChamberPressurizationMode": "dualChamberPressurizationMode",
-  "config.gtceu.option.dumpAssets": "dumpAssets",
-  "config.gtceu.option.dumpRecipes": "dumpRecipes",
   "config.gtceu.option.enableCleanroom": "enableCleanroom",
   "config.gtceu.option.enableFEConverters": "enableFEConverters",
   "config.gtceu.option.enableMaintenance": "enableMaintenance",

@@ -17,6 +17,7 @@ import com.gregtechceu.gtceu.api.registry.registrate.forge.GTClientFluidTypeExte
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
+import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.core.Registry;
@@ -51,6 +52,7 @@ public class MixinHelpers {
     public static final Reference2ReferenceOpenHashMap<Registry<?>, O2OOpenCacheHashMap<ResourceLocation, List<TagLoader.EntryWithSource>>> DYNAMIC_TAG_CACHE = new Reference2ReferenceOpenHashMap<>();
 
     public static <T> void generateGTDynamicTags(Map<ResourceLocation, List<TagLoader.EntryWithSource>> tagMap, Registry<T> registry) {
+        if (tagMap == GTUtil.EMPTY_MAP) return;
         var tags = DYNAMIC_TAG_CACHE.get(registry);
         if (tags == null) return;
         tags.object2ObjectEntrySet().fastForEach(entry -> tagMap.computeIfAbsent(entry.getKey(), path -> new ObjectArrayList<>()).addAll(entry.getValue()));
