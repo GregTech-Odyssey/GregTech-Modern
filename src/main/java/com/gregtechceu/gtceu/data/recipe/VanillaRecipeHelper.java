@@ -17,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 
@@ -304,7 +305,7 @@ public class VanillaRecipeHelper {
                     TagKey<Item> tag = ChemicalHelper.getTag(entry.tagPrefix(), entry.material());
                     if (tag != null) {
                         builder.define(sign, tag);
-                    } else builder.define(sign, ChemicalHelper.get(entry.tagPrefix(), entry.material()));
+                    } else builder.define(sign, ChemicalHelper.getItem(entry.tagPrefix(), entry.material()));
                 } else if (content instanceof ItemProviderEntry<?> entry) {
                     builder.define(sign, entry.asStack());
                 }
@@ -413,7 +414,7 @@ public class VanillaRecipeHelper {
                     TagKey<Item> tag = ChemicalHelper.getTag(entry.tagPrefix(), entry.material());
                     if (tag != null) {
                         builder.define(sign, tag);
-                    } else builder.define(sign, ChemicalHelper.get(entry.tagPrefix(), entry.material()));
+                    } else builder.define(sign, ChemicalHelper.getItem(entry.tagPrefix(), entry.material()));
                 } else if (content instanceof ItemProviderEntry<?> entry) {
                     builder.define(sign, entry.asStack());
                 }
@@ -485,7 +486,7 @@ public class VanillaRecipeHelper {
                     TagKey<Item> tag = ChemicalHelper.getTag(entry.tagPrefix(), entry.material());
                     if (tag != null) {
                         builder.define(sign, tag);
-                    } else builder.define(sign, ChemicalHelper.get(entry.tagPrefix(), entry.material()));
+                    } else builder.define(sign, ChemicalHelper.getItem(entry.tagPrefix(), entry.material()));
                 } else if (content instanceof ItemProviderEntry<?> entry) {
                     builder.define(sign, entry.asStack());
                 }
@@ -560,7 +561,7 @@ public class VanillaRecipeHelper {
                 TagKey<Item> tag = ChemicalHelper.getTag(entry.tagPrefix(), entry.material());
                 if (tag != null) {
                     builder.requires(tag);
-                } else builder.requires(ChemicalHelper.get(entry.tagPrefix(), entry.material()));
+                } else builder.requires(ChemicalHelper.getItem(entry.tagPrefix(), entry.material()));
             } else if (content instanceof ItemProviderEntry<?> entry) {
                 builder.requires(entry.asStack());
             } else if (content instanceof Character c) {
@@ -622,9 +623,8 @@ public class VanillaRecipeHelper {
             } else if (ingredient instanceof ItemLike) {
                 itemLike = (ItemLike) ingredient;
             } else if (ingredient instanceof MaterialEntry entry) {
-                ItemStack stack = ChemicalHelper.get(entry.tagPrefix(), entry.material());
-                if (stack == ItemStack.EMPTY) continue;
-                itemLike = stack.getItem();
+                itemLike = ChemicalHelper.getItem(entry.tagPrefix(), entry.material());
+                if (itemLike == Items.AIR) continue;
             } else if (ingredient instanceof ItemProviderEntry<?> entry) {
                 itemLike = entry.asItem();
             } else continue; // throw out bad entries

@@ -47,7 +47,9 @@ public class ItemMaterialData {
     public static final Map<Fluid, Material> FLUID_MATERIAL = new Reference2ReferenceOpenHashMap<>();
     /** Mapping of all items that represent a "prefix, material" pair */
     public static final Map<MaterialEntry, List<Supplier<? extends Item>>> MATERIAL_ENTRY_ITEM_MAP = new O2OOpenCacheHashMap<>();
+    public static final Map<MaterialEntry, List<Item>> MATERIAL_ENTRY_ITEM_LIKE_MAP = new O2OOpenCacheHashMap<>();
     public static final Map<MaterialEntry, List<Supplier<? extends Block>>> MATERIAL_ENTRY_BLOCK_MAP = new O2OOpenCacheHashMap<>();
+    public static final Map<MaterialEntry, List<Block>> MATERIAL_ENTRY_BLOCK_LIKE_MAP = new O2OOpenCacheHashMap<>();
     /** Mapping of stone type blockState to "prefix, material" */
     public static final Map<Supplier<BlockState>, TagPrefix> ORES_INVERSE = new Reference2ReferenceOpenHashMap<>();
 

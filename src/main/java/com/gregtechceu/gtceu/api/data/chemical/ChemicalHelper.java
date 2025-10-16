@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.api.data.tag.TagUtil;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKey;
 import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Holder;
@@ -21,6 +22,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
@@ -105,7 +107,7 @@ public class ChemicalHelper {
                     FluidStorageKey.allKeys().stream()
                             .map(property::get)
                             .filter(Objects::nonNull)
-                            .map(f -> Pair.of(f, TagUtil.createFluidTag(BuiltInRegistries.FLUID.getKey(f).getPath())))
+                            .map(f -> Pair.of(f, TagUtil.createFluidTag(GTUtil.FLUID_ID.apply(f).getPath())))
                             .filter(pair -> allFluidTags.contains(pair.getSecond()))
                             .forEach(pair -> {
                                 allFluidTags.remove(pair.getSecond());
@@ -196,21 +198,35 @@ public class ChemicalHelper {
         return materialEntry;
     }
 
-    public static List<ItemLike> getItems(MaterialEntry materialEntry) {
+    public static List<Item> getItems(MaterialEntry materialEntry) {
         if (materialEntry.material().isNull()) return Collections.emptyList();
-        return MATERIAL_ENTRY_ITEM_MAP.computeIfAbsent(materialEntry, entry -> {
+        return MATERIAL_ENTRY_ITEM_LIKE_MAP.computeIfAbsent(materialEntry, entry -> {
+            var items = MATERIAL_ENTRY_ITEM_MAP.get(materialEntry);
+            if (items != null) {
+                return (List<Item>) items.stream().map(Supplier::get).toList();
+            }
             TagPrefix prefix = entry.tagPrefix();
-            var items = new ObjectArrayList<Supplier<? extends Item>>();
+            items = new ObjectArrayList<>();
             for (TagKey<Item> tag : prefix.getItemTags(entry.material())) {
                 for (Holder<Item> itemHolder : BuiltInRegistries.ITEM.getTagOrEmpty(tag)) {
                     items.add(itemHolder::value);
                 }
             }
             if (items.isEmpty() && prefix.hasItemTable() && prefix.doGenerateItem(entry.material())) {
-                return List.of(() -> prefix.getItemFromTable(entry.material()).get().asItem());
+                return Collections.singletonList(prefix.getItemFromTable(entry.material()).get().asItem());
             }
-            return items;
-        }).stream().map(Supplier::get).collect(Collectors.toList());
+            return (List<Item>) items.stream().map(Supplier::get).toList();
+        });
+    }
+
+    public static Item getItem(MaterialEntry MaterialEntry) {
+        var list = getItems(MaterialEntry);
+        if (list.isEmpty()) return Items.AIR;
+        return list.getFirst().asItem();
+    }
+
+    public static Item getItem(TagPrefix tagPrefix, @NotNull Material material) {
+        return getItem(new MaterialEntry(tagPrefix, material));
     }
 
     public static ItemStack get(MaterialEntry materialEntry, int size) {
@@ -231,9 +247,13 @@ public class ChemicalHelper {
 
     public static List<Block> getBlocks(MaterialEntry materialEntry) {
         if (materialEntry.isEmpty()) return Collections.emptyList();
-        return MATERIAL_ENTRY_BLOCK_MAP.computeIfAbsent(materialEntry, entry -> {
+        return MATERIAL_ENTRY_BLOCK_LIKE_MAP.computeIfAbsent(materialEntry, entry -> {
+            var blocks = MATERIAL_ENTRY_BLOCK_MAP.get(entry);
+            if (blocks != null) {
+                return (List<Block>) blocks.stream().map(Supplier::get).toList();
+            }
             TagPrefix prefix = entry.tagPrefix();
-            var blocks = new ObjectArrayList<Supplier<? extends Block>>();
+            blocks = new ObjectArrayList<>();
             for (TagKey<Block> tag : prefix.getBlockTags(entry.material())) {
                 for (Holder<Block> itemHolder : BuiltInRegistries.BLOCK.getTagOrEmpty(tag)) {
                     blocks.add(itemHolder::value);
@@ -242,11 +262,11 @@ public class ChemicalHelper {
             if (blocks.isEmpty() && prefix.hasItemTable() && prefix.doGenerateBlock(entry.material())) {
                 var blockSupplier = ItemMaterialData.convertToBlock(prefix.getItemFromTable(entry.material()));
                 if (blockSupplier != null) {
-                    return Collections.singletonList(blockSupplier);
+                    return Collections.singletonList(blockSupplier.get());
                 }
             }
-            return blocks;
-        }).stream().map(Supplier::get).collect(Collectors.toList());
+            return (List<Block>) blocks.stream().map(Supplier::get).toList();
+        });
     }
 
     @Nullable

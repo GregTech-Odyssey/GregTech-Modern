@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.core.mixins.LootPoolAccessor;
 import com.gregtechceu.gtceu.utils.GTMath;
+import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
@@ -85,7 +86,7 @@ public final class ChestGenHooks {
 
     public static void addItem(@NotNull ResourceLocation lootTable, @NotNull ItemStack stack, int minAmount, int maxAmount, int weight) {
         RandomWeightLootFunction lootFunction = new RandomWeightLootFunction(stack, minAmount, maxAmount);
-        String modid = Objects.requireNonNull(BuiltInRegistries.ITEM.getKey(stack.getItem())).getNamespace();
+        String modid = Objects.requireNonNull(GTUtil.ITEM_ID.apply(stack.getItem())).getNamespace();
         String entryName = createEntryName(stack, modid, weight, lootFunction);
         GTLootEntryItem itemEntry = new GTLootEntryItem(stack, weight, lootFunction, entryName);
         lootEntryItems.computeIfAbsent(lootTable, $ -> new ObjectArrayList<>()).add(itemEntry);

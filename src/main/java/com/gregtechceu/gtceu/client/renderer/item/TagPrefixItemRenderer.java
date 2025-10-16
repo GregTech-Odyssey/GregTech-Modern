@@ -3,8 +3,8 @@ package com.gregtechceu.gtceu.client.renderer.item;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconSet;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconType;
 import com.gregtechceu.gtceu.data.pack.GTDynamicResourcePack;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.models.model.DelegatedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -23,9 +23,9 @@ public class TagPrefixItemRenderer {
 
     public static void reinitModels() {
         for (TagPrefixItemRenderer model : MODELS) {
-            ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(model.item);
+            ResourceLocation itemId = GTUtil.ITEM_ID.apply(model.item);
             GTDynamicResourcePack.addItemModel(itemId,
-                    new DelegatedModel(model.type.getItemModelPath(model.iconSet, true)));
+                    () -> new DelegatedModel(model.type.getItemModelPath(model.iconSet, true)).get());
             // ModelTemplates.FLAT_ITEM.create(GTDynamicResourcePack.getItemModelLocation(itemId),
             // TextureMapping.layer0(itemId.withPrefix("item/")), GTDynamicResourcePack::addItemModel);
         }

@@ -38,6 +38,7 @@ import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.platform.InputConstants;
@@ -50,12 +51,16 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey.HAZARD;
 
 public class GTUtil {
+
+    public static Function<Item, ResourceLocation> ITEM_ID = ForgeRegistries.ITEMS::getKey;
+    public static Function<Fluid, ResourceLocation> FLUID_ID = ForgeRegistries.FLUIDS::getKey;
 
     public static final Map EMPTY_MAP = Map.of();
 
@@ -461,7 +466,7 @@ public class GTUtil {
     }
 
     public static CompoundTag saveItemStack(ItemStack itemStack, CompoundTag compoundTag) {
-        ResourceLocation resourceLocation = BuiltInRegistries.ITEM.getKey(itemStack.getItem());
+        ResourceLocation resourceLocation = GTUtil.ITEM_ID.apply(itemStack.getItem());
         compoundTag.putString("id", resourceLocation.toString());
         compoundTag.putInt("Count", itemStack.getCount());
         if (itemStack.getTag() != null) {

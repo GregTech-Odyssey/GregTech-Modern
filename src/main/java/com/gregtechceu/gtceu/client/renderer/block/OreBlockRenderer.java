@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.OreProperty;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.data.pack.GTDynamicResourcePack;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
@@ -45,7 +46,7 @@ public class OreBlockRenderer {
             ResourceLocation modelId = blockId.withPrefix("block/");
             OreBlockRenderer.cloneBlockModel(modelId, model.block.tagPrefix, model.block.material);
             GTDynamicResourcePack.addBlockState(blockId, BlockModelGenerators.createSimpleBlock(model.block, modelId));
-            GTDynamicResourcePack.addItemModel(BuiltInRegistries.ITEM.getKey(model.block.asItem()),
+            GTDynamicResourcePack.addItemModel(GTUtil.ITEM_ID.apply(model.block.asItem()),
                     new DelegatedModel(ModelLocationUtils.getModelLocation(model.block)));
         }
     }

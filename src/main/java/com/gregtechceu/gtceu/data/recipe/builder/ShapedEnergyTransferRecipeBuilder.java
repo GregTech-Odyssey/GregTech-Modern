@@ -3,11 +3,11 @@ package com.gregtechceu.gtceu.data.recipe.builder;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.recipe.ShapedEnergyTransferRecipe;
 import com.gregtechceu.gtceu.data.pack.GTDynamicDataPack;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.utils.Builder;
 import com.lowdragmc.lowdraglib.utils.NBTToJsonConverter;
 
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -149,7 +149,7 @@ public class ShapedEnergyTransferRecipeBuilder extends Builder<Ingredient, Shape
             throw new IllegalArgumentException(id + ": output items is empty");
         } else {
             JsonObject result = new JsonObject();
-            result.addProperty("item", BuiltInRegistries.ITEM.getKey(output.getItem()).toString());
+            result.addProperty("item", GTUtil.ITEM_ID.apply(output.getItem()).toString());
             if (output.getCount() > 1) {
                 result.addProperty("count", output.getCount());
             }
@@ -161,7 +161,7 @@ public class ShapedEnergyTransferRecipeBuilder extends Builder<Ingredient, Shape
     }
 
     protected ResourceLocation defaultId() {
-        return BuiltInRegistries.ITEM.getKey(output.getItem());
+        return GTUtil.ITEM_ID.apply(output.getItem());
     }
 
     public void save() {

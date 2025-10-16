@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.client.renderer.block;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconSet;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconType;
 import com.gregtechceu.gtceu.data.pack.GTDynamicResourcePack;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.models.BlockModelGenerators;
@@ -29,9 +30,9 @@ public class MaterialBlockRenderer {
             ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(model.block);
             ResourceLocation modelId = blockId.withPrefix("block/");
             GTDynamicResourcePack.addBlockModel(modelId,
-                    new DelegatedModel(model.type.getBlockModelPath(model.iconSet, true)));
-            GTDynamicResourcePack.addBlockState(blockId, BlockModelGenerators.createSimpleBlock(model.block, modelId));
-            GTDynamicResourcePack.addItemModel(BuiltInRegistries.ITEM.getKey(model.block.asItem()),
+                    () -> new DelegatedModel(model.type.getBlockModelPath(model.iconSet, true)).get());
+            GTDynamicResourcePack.addBlockState(blockId, () -> BlockModelGenerators.createSimpleBlock(model.block, modelId).get());
+            GTDynamicResourcePack.addItemModel(GTUtil.ITEM_ID.apply(model.block.asItem()),
                     new DelegatedModel(ModelLocationUtils.getModelLocation(model.block)));
         }
     }

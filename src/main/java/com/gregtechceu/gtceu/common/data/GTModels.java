@@ -15,9 +15,9 @@ import com.gregtechceu.gtceu.api.machine.multiblock.IBatteryData;
 import com.gregtechceu.gtceu.common.block.*;
 import com.gregtechceu.gtceu.core.MixinHelpers;
 import com.gregtechceu.gtceu.data.pack.GTDynamicResourcePack;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.BlockItem;
@@ -331,7 +331,7 @@ public class GTModels {
                 // bucket models.
                 Fluid fluid = storage.get(key);
                 if (fluid instanceof GTFluid gtFluid) {
-                    GTDynamicResourcePack.addItemModel(BuiltInRegistries.ITEM.getKey(gtFluid.getBucket()), () -> {
+                    GTDynamicResourcePack.addItemModel(GTUtil.ITEM_ID.apply(gtFluid.getBucket()), () -> {
                         JsonObject original;
                         try (BufferedReader reader = Minecraft.getInstance().getResourceManager()
                                 .openAsReader(GTCEu.id("models/item/bucket/bucket.json"))) {
@@ -341,7 +341,7 @@ public class GTModels {
                         }
 
                         JsonObject newJson = original.deepCopy();
-                        newJson.addProperty("fluid", BuiltInRegistries.FLUID.getKey(gtFluid).toString());
+                        newJson.addProperty("fluid", GTUtil.FLUID_ID.apply(gtFluid).toString());
                         if (gtFluid.getFluidType().isLighterThanAir()) {
                             newJson.addProperty("flip_gas", true);
                         }

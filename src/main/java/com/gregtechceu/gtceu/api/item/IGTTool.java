@@ -50,6 +50,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -657,7 +658,7 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
                         repairItems.add(TagPrefix.gem.getLocalizedName(material));
                     }
                 }
-                if (!ChemicalHelper.get(TagPrefix.plate, material).isEmpty()) {
+                if (ChemicalHelper.getItem(TagPrefix.plate, material) != Items.AIR) {
                     repairItems.add(TagPrefix.plate.getLocalizedName(material));
                 }
                 if (!repairItems.isEmpty()) {

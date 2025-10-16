@@ -17,9 +17,9 @@ import com.gregtechceu.gtceu.common.item.ItemMagnetBehavior;
 import com.gregtechceu.gtceu.data.pack.GTDynamicDataPack;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
+import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.ToolItemHelper;
 
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.SpecialRecipeBuilder;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Item;
@@ -105,8 +105,8 @@ public final class CustomToolRecipes {
                     ItemStack powerUnitStack = ToolItemHelper.getMaxChargeOverrideStack(powerUnitItems.get(tier).get(),
                             maxCharge);
                     String recipeName = String.format("%s_%s",
-                            BuiltInRegistries.ITEM.getKey(powerUnitItems.get(tier).get()).getPath(),
-                            BuiltInRegistries.ITEM.getKey(batteryItem.get()).getPath());
+                            GTUtil.ITEM_ID.apply(powerUnitItems.get(tier).get()).getPath(),
+                            GTUtil.ITEM_ID.apply(batteryItem.get()).getPath());
 
                     VanillaRecipeHelper.addShapedEnergyTransferRecipe(true, false, true, recipeName,
                             Ingredient.of(batteryStack), powerUnitStack,

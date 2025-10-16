@@ -25,9 +25,8 @@ public class GTClientCommands {
                         .then(argument("player", EntityArgument.player())
                                 .executes(ctx -> {
                                     Player player = EntityArgument.getPlayer(ctx, "player");
-                                    Thread sendThread = new Thread(new ProspectingShareTask(
+                                    Thread.startVirtualThread(new ProspectingShareTask(
                                             ctx.getSource().getPlayerOrException().getUUID(), player.getUUID()));
-                                    sendThread.start();
                                     return 1;
                                 }))));
     }

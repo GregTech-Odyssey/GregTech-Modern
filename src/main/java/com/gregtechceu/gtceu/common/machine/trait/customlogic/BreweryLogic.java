@@ -9,9 +9,9 @@ import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.common.fluid.potion.PotionFluidHelper;
 import com.gregtechceu.gtceu.core.mixins.PotionBrewingAccessor;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.Util;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
@@ -44,7 +44,7 @@ public enum BreweryLogic implements GTRecipeType.ICustomRecipeLogic {
     INSTANCE;
 
     private static final Function<Fluid, TagKey<Fluid>> FLUID_TAGS = Util
-            .memoize(fluid -> TagUtil.createFluidTag(BuiltInRegistries.FLUID.getKey(fluid).getPath()));
+            .memoize(fluid -> TagUtil.createFluidTag(GTUtil.FLUID_ID.apply(fluid).getPath()));
     private static final Function<PotionBrewing.Mix<Potion>, FluidStack> MIX_INPUTS = Util
             .memoize(mix -> PotionFluidHelper.getFluidFromPotion(mix.from.get(), PotionFluidHelper.MB_PER_RECIPE));
     private static final Function<BrewingRecipe, FluidIngredient> BREW_INGREDIENTS = Util.memoize(

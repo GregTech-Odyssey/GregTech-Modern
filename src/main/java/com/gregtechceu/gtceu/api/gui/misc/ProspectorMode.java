@@ -171,7 +171,7 @@ public abstract class ProspectorMode<T> {
 
         public CompoundTag toNbt() {
             CompoundTag tag = new CompoundTag();
-            tag.putString("fluid", BuiltInRegistries.FLUID.getKey(fluid).toString());
+            tag.putString("fluid", GTUtil.FLUID_ID.apply(fluid).toString());
             tag.putInt("left", left);
             tag.putInt("yield", yield);
             return tag;
@@ -244,12 +244,12 @@ public abstract class ProspectorMode<T> {
 
         @Override
         public String getUniqueID(FluidInfo item) {
-            return BuiltInRegistries.FLUID.getKey(item.fluid).toString();
+            return GTUtil.FLUID_ID.apply(item.fluid).toString();
         }
 
         @Override
         public void serialize(FluidInfo item, FriendlyByteBuf buf) {
-            buf.writeResourceLocation(BuiltInRegistries.FLUID.getKey(item.fluid));
+            buf.writeResourceLocation(GTUtil.FLUID_ID.apply(item.fluid));
             buf.writeVarInt(item.yield);
             buf.writeVarInt(item.left);
         }

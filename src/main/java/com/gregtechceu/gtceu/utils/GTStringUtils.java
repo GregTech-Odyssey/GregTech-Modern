@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.utils;
 
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
@@ -18,13 +17,13 @@ public class GTStringUtils {
      */
     @NotNull
     public static String itemStackToString(@NotNull ItemStack stack) {
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        ResourceLocation itemId = GTUtil.ITEM_ID.apply(stack.getItem());
         return stack.getCount() + "x_" + itemId.getNamespace() + "_" + itemId.getPath();
     }
 
     @NotNull
     public static String fluidStackToString(@NotNull FluidStack stack) {
-        ResourceLocation fluidId = BuiltInRegistries.FLUID.getKey(stack.getFluid());
+        ResourceLocation fluidId = GTUtil.FLUID_ID.apply(stack.getFluid());
         return stack.getAmount() + "x_" + fluidId.getNamespace() + "_" + fluidId.getPath();
     }
 }
