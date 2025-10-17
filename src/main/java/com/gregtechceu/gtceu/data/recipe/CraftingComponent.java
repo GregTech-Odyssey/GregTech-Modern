@@ -8,7 +8,8 @@ import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -19,7 +20,7 @@ import static com.gregtechceu.gtceu.api.GTValues.V;
 public class CraftingComponent {
 
     public static final Map<String, CraftingComponent> ALL_COMPONENTS = new O2OOpenCacheHashMap<>();
-    public static final CraftingComponent EMPTY = CraftingComponent.of("empty", ItemStack.EMPTY);
+    public static final CraftingComponent EMPTY = CraftingComponent.of("empty", Items.AIR);
     private final Object[] values = new Object[V.length];
     @NotNull
     private Object fallback;
@@ -46,7 +47,7 @@ public class CraftingComponent {
 
     @NotNull
     public Object get(int tier) {
-        if (this == EMPTY) return ItemStack.EMPTY;
+        if (this == EMPTY) return Items.AIR;
         if (tier < 0 || tier >= values.length) throw new IllegalArgumentException("Tier out of range of ULV-MAX, tier: " + tier);
         var val = values[tier];
         return val == null ? fallback : val;
@@ -76,8 +77,8 @@ public class CraftingComponent {
             if (!tag.isFor(BuiltInRegistries.ITEM.key())) {
                 throw new IllegalArgumentException("TagKey must be of type TagKey<Item>");
             }
-        } else if (!(o instanceof ItemStack || o instanceof MaterialEntry)) {
-            throw new IllegalArgumentException("Object is not of type ItemStack, MaterialEntry or TagKey<Item>");
+        } else if (!(o instanceof Item || o instanceof MaterialEntry)) {
+            throw new IllegalArgumentException("Object is not of type Item, MaterialEntry or TagKey<Item>");
         }
     }
 

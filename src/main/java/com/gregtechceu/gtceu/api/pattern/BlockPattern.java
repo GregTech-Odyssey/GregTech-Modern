@@ -496,8 +496,8 @@ public class BlockPattern {
             var blockState = info.getBlockState();
             if (blockState.getBlock() instanceof MetaMachineBlock machineBlock) {
                 resetFacing(pos, blockState, null, (p, f) -> {
-                    BlockInfo blockInfo = blocks.get(p.relative(f).asLong());
-                    if (blockInfo == null || blockInfo.getBlockState().getBlock() == Blocks.AIR) {
+                    var rp = p.relative(f).asLong();
+                    if (blocks.get(rp) == null && machines.get(rp) == null) {
                         if (machineBlock.definition instanceof MultiblockMachineDefinition) {
                             return false;
                         } else {

@@ -162,11 +162,11 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     protected long offsetTimer;
 
-    private int averageTickTime;
+    protected int averageTickTime;
 
-    private long totaTickCount;
+    protected long totaTickCount;
 
-    private boolean observe;
+    public boolean observe;
 
     public MetaMachine(MetaMachineBlockEntity holder) {
         this.definition = holder.definition;

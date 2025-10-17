@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 
-import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,11 +11,6 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 public record MaterialEntry(@NotNull TagPrefix tagPrefix, @NotNull Material material) {
-
-    public MaterialEntry {
-        Preconditions.checkNotNull(tagPrefix, "MaterialEntry TagPrefix cannot be null!");
-        Preconditions.checkNotNull(material, "MaterialEntry Material cannot be null!");
-    }
 
     public static final MaterialEntry NULL_ENTRY = new MaterialEntry(TagPrefix.NULL_PREFIX, GTMaterials.NULL);
 
@@ -32,6 +26,14 @@ public record MaterialEntry(@NotNull TagPrefix tagPrefix, @NotNull Material mate
 
     public boolean isIgnored() {
         return tagPrefix().isIgnored(material());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof MaterialEntry(TagPrefix prefix, Material mat)) {
+            return mat == material && prefix == tagPrefix;
+        }
+        return false;
     }
 
     @Override

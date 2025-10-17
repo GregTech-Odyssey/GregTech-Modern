@@ -275,42 +275,42 @@ public class GTCraftingComponents {
                 .add(UV, cableGtHex, Europium)
                 .add(UHV, cableGtHex, Europium);
 
-        HULL = CraftingComponent.of("hull", GTMachines.HULL[ULV].asStack())
-                .add(ULV, GTMachines.HULL[ULV].asStack())
-                .add(LV, GTMachines.HULL[LV].asStack())
-                .add(MV, GTMachines.HULL[MV].asStack())
-                .add(HV, GTMachines.HULL[HV].asStack())
-                .add(EV, GTMachines.HULL[EV].asStack())
-                .add(IV, GTMachines.HULL[IV].asStack())
-                .add(LuV, GTMachines.HULL[LuV].asStack())
-                .add(ZPM, GTMachines.HULL[ZPM].asStack())
-                .add(UV, GTMachines.HULL[UV].asStack())
-                .add(UHV, GTMachines.HULL[UHV].asStack());
+        HULL = CraftingComponent.of("hull", GTMachines.HULL[ULV].asItem())
+                .add(ULV, GTMachines.HULL[ULV].asItem())
+                .add(LV, GTMachines.HULL[LV].asItem())
+                .add(MV, GTMachines.HULL[MV].asItem())
+                .add(HV, GTMachines.HULL[HV].asItem())
+                .add(EV, GTMachines.HULL[EV].asItem())
+                .add(IV, GTMachines.HULL[IV].asItem())
+                .add(LuV, GTMachines.HULL[LuV].asItem())
+                .add(ZPM, GTMachines.HULL[ZPM].asItem())
+                .add(UV, GTMachines.HULL[UV].asItem())
+                .add(UHV, GTMachines.HULL[UHV].asItem());
         if (GTCEuAPI.isHighTier()) {
-            HULL.add(UEV, GTMachines.HULL[UEV].asStack())
-                    .add(UIV, GTMachines.HULL[UIV].asStack())
-                    .add(UXV, GTMachines.HULL[UXV].asStack())
-                    .add(OpV, GTMachines.HULL[OpV].asStack())
-                    .add(MAX, GTMachines.HULL[MAX].asStack());
+            HULL.add(UEV, GTMachines.HULL[UEV].asItem())
+                    .add(UIV, GTMachines.HULL[UIV].asItem())
+                    .add(UXV, GTMachines.HULL[UXV].asItem())
+                    .add(OpV, GTMachines.HULL[OpV].asItem())
+                    .add(MAX, GTMachines.HULL[MAX].asItem());
         }
 
-        CASING = CraftingComponent.of("casing", GTBlocks.MACHINE_CASING_ULV.asStack())
-                .add(ULV, GTBlocks.MACHINE_CASING_ULV.asStack())
-                .add(LV, GTBlocks.MACHINE_CASING_LV.asStack())
-                .add(MV, GTBlocks.MACHINE_CASING_MV.asStack())
-                .add(HV, GTBlocks.MACHINE_CASING_HV.asStack())
-                .add(EV, GTBlocks.MACHINE_CASING_EV.asStack())
-                .add(IV, GTBlocks.MACHINE_CASING_IV.asStack())
-                .add(LuV, GTBlocks.MACHINE_CASING_LuV.asStack())
-                .add(ZPM, GTBlocks.MACHINE_CASING_ZPM.asStack())
-                .add(UV, GTBlocks.MACHINE_CASING_UV.asStack())
-                .add(UHV, GTBlocks.MACHINE_CASING_UHV.asStack());
+        CASING = CraftingComponent.of("casing", GTBlocks.MACHINE_CASING_ULV.asItem())
+                .add(ULV, GTBlocks.MACHINE_CASING_ULV.asItem())
+                .add(LV, GTBlocks.MACHINE_CASING_LV.asItem())
+                .add(MV, GTBlocks.MACHINE_CASING_MV.asItem())
+                .add(HV, GTBlocks.MACHINE_CASING_HV.asItem())
+                .add(EV, GTBlocks.MACHINE_CASING_EV.asItem())
+                .add(IV, GTBlocks.MACHINE_CASING_IV.asItem())
+                .add(LuV, GTBlocks.MACHINE_CASING_LuV.asItem())
+                .add(ZPM, GTBlocks.MACHINE_CASING_ZPM.asItem())
+                .add(UV, GTBlocks.MACHINE_CASING_UV.asItem())
+                .add(UHV, GTBlocks.MACHINE_CASING_UHV.asItem());
         if (GTCEuAPI.isHighTier()) {
-            CASING.add(UEV, GTBlocks.MACHINE_CASING_UEV.asStack())
-                    .add(UIV, GTBlocks.MACHINE_CASING_UIV.asStack())
-                    .add(UXV, GTBlocks.MACHINE_CASING_UXV.asStack())
-                    .add(OpV, GTBlocks.MACHINE_CASING_OpV.asStack())
-                    .add(MAX, GTBlocks.MACHINE_CASING_MAX.asStack());
+            CASING.add(UEV, GTBlocks.MACHINE_CASING_UEV.asItem())
+                    .add(UIV, GTBlocks.MACHINE_CASING_UIV.asItem())
+                    .add(UXV, GTBlocks.MACHINE_CASING_UXV.asItem())
+                    .add(OpV, GTBlocks.MACHINE_CASING_OpV.asItem())
+                    .add(MAX, GTBlocks.MACHINE_CASING_MAX.asItem());
         }
 
         PIPE_NORMAL = CraftingComponent.of("normal_pipe", pipeNormalFluid, Bronze)
@@ -355,13 +355,13 @@ public class GTCraftingComponents {
                 .add(ULV, Tags.Items.GLASS)
                 .add(LV, Tags.Items.GLASS)
                 .add(MV, Tags.Items.GLASS)
-                .add(HV, GTBlocks.CASING_TEMPERED_GLASS.asStack())
-                .add(EV, GTBlocks.CASING_TEMPERED_GLASS.asStack())
-                .add(IV, GTBlocks.CASING_LAMINATED_GLASS.asStack())
-                .add(LuV, GTBlocks.CASING_LAMINATED_GLASS.asStack())
-                .add(ZPM, GTBlocks.FUSION_GLASS.asStack())
-                .add(UV, GTBlocks.FUSION_GLASS.asStack())
-                .add(UHV, GTBlocks.FUSION_GLASS.asStack());
+                .add(HV, GTBlocks.CASING_TEMPERED_GLASS.asItem())
+                .add(EV, GTBlocks.CASING_TEMPERED_GLASS.asItem())
+                .add(IV, GTBlocks.CASING_LAMINATED_GLASS.asItem())
+                .add(LuV, GTBlocks.CASING_LAMINATED_GLASS.asItem())
+                .add(ZPM, GTBlocks.FUSION_GLASS.asItem())
+                .add(UV, GTBlocks.FUSION_GLASS.asItem())
+                .add(UHV, GTBlocks.FUSION_GLASS.asItem());
 
         PLATE = CraftingComponent.of("plate", plate, Iron)
                 .add(ULV, plate, WroughtIron)
@@ -403,13 +403,13 @@ public class GTCraftingComponents {
                 .add(ULV, gem, Diamond)
                 .add(LV, gem, Diamond)
                 .add(MV, gem, Diamond)
-                .add(HV, GTItems.COMPONENT_GRINDER_DIAMOND.asStack())
-                .add(EV, GTItems.COMPONENT_GRINDER_DIAMOND.asStack())
-                .add(IV, GTItems.COMPONENT_GRINDER_TUNGSTEN.asStack())
-                .add(LuV, GTItems.COMPONENT_GRINDER_TUNGSTEN.asStack())
-                .add(ZPM, GTItems.COMPONENT_GRINDER_TUNGSTEN.asStack())
-                .add(UV, GTItems.COMPONENT_GRINDER_TUNGSTEN.asStack())
-                .add(UHV, GTItems.COMPONENT_GRINDER_TUNGSTEN.asStack());
+                .add(HV, GTItems.COMPONENT_GRINDER_DIAMOND.asItem())
+                .add(EV, GTItems.COMPONENT_GRINDER_DIAMOND.asItem())
+                .add(IV, GTItems.COMPONENT_GRINDER_TUNGSTEN.asItem())
+                .add(LuV, GTItems.COMPONENT_GRINDER_TUNGSTEN.asItem())
+                .add(ZPM, GTItems.COMPONENT_GRINDER_TUNGSTEN.asItem())
+                .add(UV, GTItems.COMPONENT_GRINDER_TUNGSTEN.asItem())
+                .add(UHV, GTItems.COMPONENT_GRINDER_TUNGSTEN.asItem());
 
         SAWBLADE = CraftingComponent.of("sawblade", toolHeadBuzzSaw, Bronze)
                 .add(ULV, toolHeadBuzzSaw, Bronze)
@@ -423,141 +423,141 @@ public class GTCraftingComponents {
                 .add(UV, toolHeadBuzzSaw, Duranium)
                 .add(UHV, toolHeadBuzzSaw, Duranium);
 
-        MOTOR = CraftingComponent.of("motor", GTItems.ELECTRIC_MOTOR_LV.asStack())
-                .add(LV, GTItems.ELECTRIC_MOTOR_LV.asStack())
-                .add(MV, GTItems.ELECTRIC_MOTOR_MV.asStack())
-                .add(HV, GTItems.ELECTRIC_MOTOR_HV.asStack())
-                .add(EV, GTItems.ELECTRIC_MOTOR_EV.asStack())
-                .add(IV, GTItems.ELECTRIC_MOTOR_IV.asStack())
-                .add(LuV, GTItems.ELECTRIC_MOTOR_LuV.asStack())
-                .add(ZPM, GTItems.ELECTRIC_MOTOR_ZPM.asStack())
-                .add(UV, GTItems.ELECTRIC_MOTOR_UV.asStack());
+        MOTOR = CraftingComponent.of("motor", GTItems.ELECTRIC_MOTOR_LV.asItem())
+                .add(LV, GTItems.ELECTRIC_MOTOR_LV.asItem())
+                .add(MV, GTItems.ELECTRIC_MOTOR_MV.asItem())
+                .add(HV, GTItems.ELECTRIC_MOTOR_HV.asItem())
+                .add(EV, GTItems.ELECTRIC_MOTOR_EV.asItem())
+                .add(IV, GTItems.ELECTRIC_MOTOR_IV.asItem())
+                .add(LuV, GTItems.ELECTRIC_MOTOR_LuV.asItem())
+                .add(ZPM, GTItems.ELECTRIC_MOTOR_ZPM.asItem())
+                .add(UV, GTItems.ELECTRIC_MOTOR_UV.asItem());
         if (GTCEuAPI.isHighTier()) {
-            MOTOR.add(UHV, GTItems.ELECTRIC_MOTOR_UHV.asStack())
-                    .add(UEV, GTItems.ELECTRIC_MOTOR_UEV.asStack())
-                    .add(UIV, GTItems.ELECTRIC_MOTOR_UIV.asStack())
-                    .add(UXV, GTItems.ELECTRIC_MOTOR_UXV.asStack())
-                    .add(OpV, GTItems.ELECTRIC_MOTOR_OpV.asStack());
+            MOTOR.add(UHV, GTItems.ELECTRIC_MOTOR_UHV.asItem())
+                    .add(UEV, GTItems.ELECTRIC_MOTOR_UEV.asItem())
+                    .add(UIV, GTItems.ELECTRIC_MOTOR_UIV.asItem())
+                    .add(UXV, GTItems.ELECTRIC_MOTOR_UXV.asItem())
+                    .add(OpV, GTItems.ELECTRIC_MOTOR_OpV.asItem());
         }
 
-        PUMP = CraftingComponent.of("pump", GTItems.ELECTRIC_PUMP_LV.asStack())
-                .add(LV, GTItems.ELECTRIC_PUMP_LV.asStack())
-                .add(MV, GTItems.ELECTRIC_PUMP_MV.asStack())
-                .add(HV, GTItems.ELECTRIC_PUMP_HV.asStack())
-                .add(EV, GTItems.ELECTRIC_PUMP_EV.asStack())
-                .add(IV, GTItems.ELECTRIC_PUMP_IV.asStack())
-                .add(LuV, GTItems.ELECTRIC_PUMP_LuV.asStack())
-                .add(ZPM, GTItems.ELECTRIC_PUMP_ZPM.asStack())
-                .add(UV, GTItems.ELECTRIC_PUMP_UV.asStack());
+        PUMP = CraftingComponent.of("pump", GTItems.ELECTRIC_PUMP_LV.asItem())
+                .add(LV, GTItems.ELECTRIC_PUMP_LV.asItem())
+                .add(MV, GTItems.ELECTRIC_PUMP_MV.asItem())
+                .add(HV, GTItems.ELECTRIC_PUMP_HV.asItem())
+                .add(EV, GTItems.ELECTRIC_PUMP_EV.asItem())
+                .add(IV, GTItems.ELECTRIC_PUMP_IV.asItem())
+                .add(LuV, GTItems.ELECTRIC_PUMP_LuV.asItem())
+                .add(ZPM, GTItems.ELECTRIC_PUMP_ZPM.asItem())
+                .add(UV, GTItems.ELECTRIC_PUMP_UV.asItem());
         if (GTCEuAPI.isHighTier()) {
-            PUMP.add(UHV, GTItems.ELECTRIC_PUMP_UHV.asStack())
-                    .add(UEV, GTItems.ELECTRIC_PUMP_UEV.asStack())
-                    .add(UIV, GTItems.ELECTRIC_PUMP_UIV.asStack())
-                    .add(UXV, GTItems.ELECTRIC_PUMP_UXV.asStack())
-                    .add(OpV, GTItems.ELECTRIC_PUMP_OpV.asStack());
+            PUMP.add(UHV, GTItems.ELECTRIC_PUMP_UHV.asItem())
+                    .add(UEV, GTItems.ELECTRIC_PUMP_UEV.asItem())
+                    .add(UIV, GTItems.ELECTRIC_PUMP_UIV.asItem())
+                    .add(UXV, GTItems.ELECTRIC_PUMP_UXV.asItem())
+                    .add(OpV, GTItems.ELECTRIC_PUMP_OpV.asItem());
         }
 
-        PISTON = CraftingComponent.of("piston", GTItems.ELECTRIC_PISTON_LV.asStack())
-                .add(LV, GTItems.ELECTRIC_PISTON_LV.asStack())
-                .add(MV, GTItems.ELECTRIC_PISTON_MV.asStack())
-                .add(HV, GTItems.ELECTRIC_PISTON_HV.asStack())
-                .add(EV, GTItems.ELECTRIC_PISTON_EV.asStack())
-                .add(IV, GTItems.ELECTRIC_PISTON_IV.asStack())
-                .add(LuV, GTItems.ELECTRIC_PISTON_LuV.asStack())
-                .add(ZPM, GTItems.ELECTRIC_PISTON_ZPM.asStack())
-                .add(UV, GTItems.ELECTRIC_PISTON_UV.asStack());
+        PISTON = CraftingComponent.of("piston", GTItems.ELECTRIC_PISTON_LV.asItem())
+                .add(LV, GTItems.ELECTRIC_PISTON_LV.asItem())
+                .add(MV, GTItems.ELECTRIC_PISTON_MV.asItem())
+                .add(HV, GTItems.ELECTRIC_PISTON_HV.asItem())
+                .add(EV, GTItems.ELECTRIC_PISTON_EV.asItem())
+                .add(IV, GTItems.ELECTRIC_PISTON_IV.asItem())
+                .add(LuV, GTItems.ELECTRIC_PISTON_LuV.asItem())
+                .add(ZPM, GTItems.ELECTRIC_PISTON_ZPM.asItem())
+                .add(UV, GTItems.ELECTRIC_PISTON_UV.asItem());
         if (GTCEuAPI.isHighTier()) {
-            PISTON.add(UHV, GTItems.ELECTRIC_PISTON_UHV.asStack())
-                    .add(UEV, GTItems.ELECTRIC_PISTON_UEV.asStack())
-                    .add(UIV, GTItems.ELECTRIC_PISTON_UIV.asStack())
-                    .add(UXV, GTItems.ELECTRIC_PISTON_UXV.asStack())
-                    .add(OpV, GTItems.ELECTRIC_PISTON_OpV.asStack());
+            PISTON.add(UHV, GTItems.ELECTRIC_PISTON_UHV.asItem())
+                    .add(UEV, GTItems.ELECTRIC_PISTON_UEV.asItem())
+                    .add(UIV, GTItems.ELECTRIC_PISTON_UIV.asItem())
+                    .add(UXV, GTItems.ELECTRIC_PISTON_UXV.asItem())
+                    .add(OpV, GTItems.ELECTRIC_PISTON_OpV.asItem());
         }
 
-        EMITTER = CraftingComponent.of("emitter", GTItems.EMITTER_LV.asStack())
-                .add(LV, GTItems.EMITTER_LV.asStack())
-                .add(MV, GTItems.EMITTER_MV.asStack())
-                .add(HV, GTItems.EMITTER_HV.asStack())
-                .add(EV, GTItems.EMITTER_EV.asStack())
-                .add(IV, GTItems.EMITTER_IV.asStack())
-                .add(LuV, GTItems.EMITTER_LuV.asStack())
-                .add(ZPM, GTItems.EMITTER_ZPM.asStack())
-                .add(UV, GTItems.EMITTER_UV.asStack());
+        EMITTER = CraftingComponent.of("emitter", GTItems.EMITTER_LV.asItem())
+                .add(LV, GTItems.EMITTER_LV.asItem())
+                .add(MV, GTItems.EMITTER_MV.asItem())
+                .add(HV, GTItems.EMITTER_HV.asItem())
+                .add(EV, GTItems.EMITTER_EV.asItem())
+                .add(IV, GTItems.EMITTER_IV.asItem())
+                .add(LuV, GTItems.EMITTER_LuV.asItem())
+                .add(ZPM, GTItems.EMITTER_ZPM.asItem())
+                .add(UV, GTItems.EMITTER_UV.asItem());
 
         if (GTCEuAPI.isHighTier()) {
-            EMITTER.add(UHV, GTItems.EMITTER_UHV.asStack())
-                    .add(UEV, GTItems.EMITTER_UEV.asStack())
-                    .add(UIV, GTItems.EMITTER_UIV.asStack())
-                    .add(UXV, GTItems.EMITTER_UXV.asStack())
-                    .add(OpV, GTItems.EMITTER_OpV.asStack());
+            EMITTER.add(UHV, GTItems.EMITTER_UHV.asItem())
+                    .add(UEV, GTItems.EMITTER_UEV.asItem())
+                    .add(UIV, GTItems.EMITTER_UIV.asItem())
+                    .add(UXV, GTItems.EMITTER_UXV.asItem())
+                    .add(OpV, GTItems.EMITTER_OpV.asItem());
         }
 
-        SENSOR = CraftingComponent.of("sensor", GTItems.SENSOR_LV.asStack())
-                .add(LV, GTItems.SENSOR_LV.asStack())
-                .add(MV, GTItems.SENSOR_MV.asStack())
-                .add(HV, GTItems.SENSOR_HV.asStack())
-                .add(EV, GTItems.SENSOR_EV.asStack())
-                .add(IV, GTItems.SENSOR_IV.asStack())
-                .add(LuV, GTItems.SENSOR_LuV.asStack())
-                .add(ZPM, GTItems.SENSOR_ZPM.asStack())
-                .add(UV, GTItems.SENSOR_UV.asStack());
+        SENSOR = CraftingComponent.of("sensor", GTItems.SENSOR_LV.asItem())
+                .add(LV, GTItems.SENSOR_LV.asItem())
+                .add(MV, GTItems.SENSOR_MV.asItem())
+                .add(HV, GTItems.SENSOR_HV.asItem())
+                .add(EV, GTItems.SENSOR_EV.asItem())
+                .add(IV, GTItems.SENSOR_IV.asItem())
+                .add(LuV, GTItems.SENSOR_LuV.asItem())
+                .add(ZPM, GTItems.SENSOR_ZPM.asItem())
+                .add(UV, GTItems.SENSOR_UV.asItem());
         if (GTCEuAPI.isHighTier()) {
-            SENSOR.add(UHV, GTItems.SENSOR_UHV.asStack())
-                    .add(UEV, GTItems.SENSOR_UEV.asStack())
-                    .add(UIV, GTItems.SENSOR_UIV.asStack())
-                    .add(UXV, GTItems.SENSOR_UXV.asStack())
-                    .add(OpV, GTItems.SENSOR_OpV.asStack());
+            SENSOR.add(UHV, GTItems.SENSOR_UHV.asItem())
+                    .add(UEV, GTItems.SENSOR_UEV.asItem())
+                    .add(UIV, GTItems.SENSOR_UIV.asItem())
+                    .add(UXV, GTItems.SENSOR_UXV.asItem())
+                    .add(OpV, GTItems.SENSOR_OpV.asItem());
         }
 
-        CONVEYOR = CraftingComponent.of("conveyor", GTItems.CONVEYOR_MODULE_LV.asStack())
-                .add(LV, GTItems.CONVEYOR_MODULE_LV.asStack())
-                .add(MV, GTItems.CONVEYOR_MODULE_MV.asStack())
-                .add(HV, GTItems.CONVEYOR_MODULE_HV.asStack())
-                .add(EV, GTItems.CONVEYOR_MODULE_EV.asStack())
-                .add(IV, GTItems.CONVEYOR_MODULE_IV.asStack())
-                .add(LuV, GTItems.CONVEYOR_MODULE_LuV.asStack())
-                .add(ZPM, GTItems.CONVEYOR_MODULE_ZPM.asStack())
-                .add(UV, GTItems.CONVEYOR_MODULE_UV.asStack());
+        CONVEYOR = CraftingComponent.of("conveyor", GTItems.CONVEYOR_MODULE_LV.asItem())
+                .add(LV, GTItems.CONVEYOR_MODULE_LV.asItem())
+                .add(MV, GTItems.CONVEYOR_MODULE_MV.asItem())
+                .add(HV, GTItems.CONVEYOR_MODULE_HV.asItem())
+                .add(EV, GTItems.CONVEYOR_MODULE_EV.asItem())
+                .add(IV, GTItems.CONVEYOR_MODULE_IV.asItem())
+                .add(LuV, GTItems.CONVEYOR_MODULE_LuV.asItem())
+                .add(ZPM, GTItems.CONVEYOR_MODULE_ZPM.asItem())
+                .add(UV, GTItems.CONVEYOR_MODULE_UV.asItem());
         if (GTCEuAPI.isHighTier()) {
-            CONVEYOR.add(UHV, GTItems.CONVEYOR_MODULE_UHV.asStack())
-                    .add(UEV, GTItems.CONVEYOR_MODULE_UEV.asStack())
-                    .add(UIV, GTItems.CONVEYOR_MODULE_UIV.asStack())
-                    .add(UXV, GTItems.CONVEYOR_MODULE_UXV.asStack())
-                    .add(OpV, GTItems.CONVEYOR_MODULE_OpV.asStack());
+            CONVEYOR.add(UHV, GTItems.CONVEYOR_MODULE_UHV.asItem())
+                    .add(UEV, GTItems.CONVEYOR_MODULE_UEV.asItem())
+                    .add(UIV, GTItems.CONVEYOR_MODULE_UIV.asItem())
+                    .add(UXV, GTItems.CONVEYOR_MODULE_UXV.asItem())
+                    .add(OpV, GTItems.CONVEYOR_MODULE_OpV.asItem());
         }
 
-        ROBOT_ARM = CraftingComponent.of("robot_arm", GTItems.ROBOT_ARM_LV.asStack())
-                .add(LV, GTItems.ROBOT_ARM_LV.asStack())
-                .add(MV, GTItems.ROBOT_ARM_MV.asStack())
-                .add(HV, GTItems.ROBOT_ARM_HV.asStack())
-                .add(EV, GTItems.ROBOT_ARM_EV.asStack())
-                .add(IV, GTItems.ROBOT_ARM_IV.asStack())
-                .add(LuV, GTItems.ROBOT_ARM_LuV.asStack())
-                .add(ZPM, GTItems.ROBOT_ARM_ZPM.asStack())
-                .add(UV, GTItems.ROBOT_ARM_UV.asStack());
+        ROBOT_ARM = CraftingComponent.of("robot_arm", GTItems.ROBOT_ARM_LV.asItem())
+                .add(LV, GTItems.ROBOT_ARM_LV.asItem())
+                .add(MV, GTItems.ROBOT_ARM_MV.asItem())
+                .add(HV, GTItems.ROBOT_ARM_HV.asItem())
+                .add(EV, GTItems.ROBOT_ARM_EV.asItem())
+                .add(IV, GTItems.ROBOT_ARM_IV.asItem())
+                .add(LuV, GTItems.ROBOT_ARM_LuV.asItem())
+                .add(ZPM, GTItems.ROBOT_ARM_ZPM.asItem())
+                .add(UV, GTItems.ROBOT_ARM_UV.asItem());
         if (GTCEuAPI.isHighTier()) {
-            ROBOT_ARM.add(UHV, GTItems.ROBOT_ARM_UHV.asStack())
-                    .add(UEV, GTItems.ROBOT_ARM_UEV.asStack())
-                    .add(UIV, GTItems.ROBOT_ARM_UIV.asStack())
-                    .add(UXV, GTItems.ROBOT_ARM_UXV.asStack())
-                    .add(OpV, GTItems.ROBOT_ARM_OpV.asStack());
+            ROBOT_ARM.add(UHV, GTItems.ROBOT_ARM_UHV.asItem())
+                    .add(UEV, GTItems.ROBOT_ARM_UEV.asItem())
+                    .add(UIV, GTItems.ROBOT_ARM_UIV.asItem())
+                    .add(UXV, GTItems.ROBOT_ARM_UXV.asItem())
+                    .add(OpV, GTItems.ROBOT_ARM_OpV.asItem());
         }
 
-        FIELD_GENERATOR = CraftingComponent.of("field_generator", GTItems.FIELD_GENERATOR_LV.asStack())
-                .add(LV, GTItems.FIELD_GENERATOR_LV.asStack())
-                .add(MV, GTItems.FIELD_GENERATOR_MV.asStack())
-                .add(HV, GTItems.FIELD_GENERATOR_HV.asStack())
-                .add(EV, GTItems.FIELD_GENERATOR_EV.asStack())
-                .add(IV, GTItems.FIELD_GENERATOR_IV.asStack())
-                .add(LuV, GTItems.FIELD_GENERATOR_LuV.asStack())
-                .add(ZPM, GTItems.FIELD_GENERATOR_ZPM.asStack())
-                .add(UV, GTItems.FIELD_GENERATOR_UV.asStack());
+        FIELD_GENERATOR = CraftingComponent.of("field_generator", GTItems.FIELD_GENERATOR_LV.asItem())
+                .add(LV, GTItems.FIELD_GENERATOR_LV.asItem())
+                .add(MV, GTItems.FIELD_GENERATOR_MV.asItem())
+                .add(HV, GTItems.FIELD_GENERATOR_HV.asItem())
+                .add(EV, GTItems.FIELD_GENERATOR_EV.asItem())
+                .add(IV, GTItems.FIELD_GENERATOR_IV.asItem())
+                .add(LuV, GTItems.FIELD_GENERATOR_LuV.asItem())
+                .add(ZPM, GTItems.FIELD_GENERATOR_ZPM.asItem())
+                .add(UV, GTItems.FIELD_GENERATOR_UV.asItem());
         if (GTCEuAPI.isHighTier()) {
-            FIELD_GENERATOR.add(UHV, GTItems.FIELD_GENERATOR_UHV.asStack())
-                    .add(UEV, GTItems.FIELD_GENERATOR_UEV.asStack())
-                    .add(UIV, GTItems.FIELD_GENERATOR_UIV.asStack())
-                    .add(UXV, GTItems.FIELD_GENERATOR_UXV.asStack())
-                    .add(OpV, GTItems.FIELD_GENERATOR_OpV.asStack());
+            FIELD_GENERATOR.add(UHV, GTItems.FIELD_GENERATOR_UHV.asItem())
+                    .add(UEV, GTItems.FIELD_GENERATOR_UEV.asItem())
+                    .add(UIV, GTItems.FIELD_GENERATOR_UIV.asItem())
+                    .add(UXV, GTItems.FIELD_GENERATOR_UXV.asItem())
+                    .add(OpV, GTItems.FIELD_GENERATOR_OpV.asItem());
         }
 
         COIL_HEATING = CraftingComponent.of("coil_heating", wireGtDouble, Copper)
@@ -652,26 +652,26 @@ public class GTCraftingComponents {
                 .add(UV, pipeHugeFluid, Polytetrafluoroethylene)
                 .add(UHV, pipeNormalFluid, Polybenzimidazole);
 
-        POWER_COMPONENT = CraftingComponent.of("power_component", GTItems.ULTRA_LOW_POWER_INTEGRATED_CIRCUIT.asStack())
-                .add(MV, GTItems.ULTRA_LOW_POWER_INTEGRATED_CIRCUIT.asStack())
-                .add(HV, GTItems.LOW_POWER_INTEGRATED_CIRCUIT.asStack())
-                .add(EV, GTItems.POWER_INTEGRATED_CIRCUIT.asStack())
-                .add(IV, GTItems.HIGH_POWER_INTEGRATED_CIRCUIT.asStack())
-                .add(LuV, GTItems.HIGH_POWER_INTEGRATED_CIRCUIT.asStack())
-                .add(ZPM, GTItems.ULTRA_HIGH_POWER_INTEGRATED_CIRCUIT.asStack())
-                .add(UV, GTItems.ULTRA_HIGH_POWER_INTEGRATED_CIRCUIT.asStack())
-                .add(UHV, GTItems.ULTRA_HIGH_POWER_INTEGRATED_CIRCUIT.asStack());
+        POWER_COMPONENT = CraftingComponent.of("power_component", GTItems.ULTRA_LOW_POWER_INTEGRATED_CIRCUIT.asItem())
+                .add(MV, GTItems.ULTRA_LOW_POWER_INTEGRATED_CIRCUIT.asItem())
+                .add(HV, GTItems.LOW_POWER_INTEGRATED_CIRCUIT.asItem())
+                .add(EV, GTItems.POWER_INTEGRATED_CIRCUIT.asItem())
+                .add(IV, GTItems.HIGH_POWER_INTEGRATED_CIRCUIT.asItem())
+                .add(LuV, GTItems.HIGH_POWER_INTEGRATED_CIRCUIT.asItem())
+                .add(ZPM, GTItems.ULTRA_HIGH_POWER_INTEGRATED_CIRCUIT.asItem())
+                .add(UV, GTItems.ULTRA_HIGH_POWER_INTEGRATED_CIRCUIT.asItem())
+                .add(UHV, GTItems.ULTRA_HIGH_POWER_INTEGRATED_CIRCUIT.asItem());
 
-        VOLTAGE_COIL = CraftingComponent.of("voltage_coil", GTItems.VOLTAGE_COIL_ULV.asStack())
-                .add(ULV, GTItems.VOLTAGE_COIL_ULV.asStack())
-                .add(LV, GTItems.VOLTAGE_COIL_LV.asStack())
-                .add(MV, GTItems.VOLTAGE_COIL_MV.asStack())
-                .add(HV, GTItems.VOLTAGE_COIL_HV.asStack())
-                .add(EV, GTItems.VOLTAGE_COIL_EV.asStack())
-                .add(IV, GTItems.VOLTAGE_COIL_IV.asStack())
-                .add(LuV, GTItems.VOLTAGE_COIL_LuV.asStack())
-                .add(ZPM, GTItems.VOLTAGE_COIL_ZPM.asStack())
-                .add(UV, GTItems.VOLTAGE_COIL_UV.asStack());
+        VOLTAGE_COIL = CraftingComponent.of("voltage_coil", GTItems.VOLTAGE_COIL_ULV.asItem())
+                .add(ULV, GTItems.VOLTAGE_COIL_ULV.asItem())
+                .add(LV, GTItems.VOLTAGE_COIL_LV.asItem())
+                .add(MV, GTItems.VOLTAGE_COIL_MV.asItem())
+                .add(HV, GTItems.VOLTAGE_COIL_HV.asItem())
+                .add(EV, GTItems.VOLTAGE_COIL_EV.asItem())
+                .add(IV, GTItems.VOLTAGE_COIL_IV.asItem())
+                .add(LuV, GTItems.VOLTAGE_COIL_LuV.asItem())
+                .add(ZPM, GTItems.VOLTAGE_COIL_ZPM.asItem())
+                .add(UV, GTItems.VOLTAGE_COIL_UV.asItem());
 
         SPRING = CraftingComponent.of("spring", spring, Lead)
                 .add(ULV, spring, Lead)
@@ -687,27 +687,27 @@ public class GTCraftingComponents {
 
         CRATE = CraftingComponent.of("crate", Tags.Items.CHESTS_WOODEN)
                 .add(ULV, Tags.Items.CHESTS_WOODEN)
-                .add(LV, GTMachines.WOODEN_CRATE.asStack())
-                .add(MV, GTMachines.BRONZE_CRATE.asStack())
-                .add(HV, GTMachines.STEEL_CRATE.asStack())
-                .add(EV, GTMachines.ALUMINIUM_CRATE.asStack())
-                .add(IV, GTMachines.STAINLESS_STEEL_CRATE.asStack())
-                .add(LuV, GTMachines.TITANIUM_CRATE.asStack())
-                .add(ZPM, GTMachines.TUNGSTENSTEEL_CRATE.asStack())
-                .add(UV, GTMachines.SUPER_CHEST[1].asStack())
-                .add(UHV, GTMachines.SUPER_CHEST[2].asStack());
+                .add(LV, GTMachines.WOODEN_CRATE.asItem())
+                .add(MV, GTMachines.BRONZE_CRATE.asItem())
+                .add(HV, GTMachines.STEEL_CRATE.asItem())
+                .add(EV, GTMachines.ALUMINIUM_CRATE.asItem())
+                .add(IV, GTMachines.STAINLESS_STEEL_CRATE.asItem())
+                .add(LuV, GTMachines.TITANIUM_CRATE.asItem())
+                .add(ZPM, GTMachines.TUNGSTENSTEEL_CRATE.asItem())
+                .add(UV, GTMachines.SUPER_CHEST[1].asItem())
+                .add(UHV, GTMachines.SUPER_CHEST[2].asItem());
 
         DRUM = CraftingComponent.of("drum", Tags.Items.GLASS)
                 .add(ULV, Tags.Items.GLASS)
-                .add(LV, GTMachines.WOODEN_DRUM.asStack())
-                .add(MV, GTMachines.BRONZE_DRUM.asStack())
-                .add(HV, GTMachines.STEEL_DRUM.asStack())
-                .add(EV, GTMachines.ALUMINIUM_DRUM.asStack())
-                .add(IV, GTMachines.STAINLESS_STEEL_DRUM.asStack())
-                .add(LuV, GTMachines.TITANIUM_DRUM.asStack())
-                .add(ZPM, GTMachines.TUNGSTENSTEEL_DRUM.asStack())
-                .add(UV, GTMachines.SUPER_TANK[1].asStack())
-                .add(UHV, GTMachines.SUPER_TANK[2].asStack());
+                .add(LV, GTMachines.WOODEN_DRUM.asItem())
+                .add(MV, GTMachines.BRONZE_DRUM.asItem())
+                .add(HV, GTMachines.STEEL_DRUM.asItem())
+                .add(EV, GTMachines.ALUMINIUM_DRUM.asItem())
+                .add(IV, GTMachines.STAINLESS_STEEL_DRUM.asItem())
+                .add(LuV, GTMachines.TITANIUM_DRUM.asItem())
+                .add(ZPM, GTMachines.TUNGSTENSTEEL_DRUM.asItem())
+                .add(UV, GTMachines.SUPER_TANK[1].asItem())
+                .add(UHV, GTMachines.SUPER_TANK[2].asItem());
 
         FRAME = CraftingComponent.of("frame", frameGt, Wood)
                 .add(ULV, frameGt, Wood)
