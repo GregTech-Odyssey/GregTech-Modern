@@ -217,7 +217,7 @@ public class ArmorUtils {
             for (int i = 0; i < stringAmount; i++) {
                 IntIntPair coords = this.getStringCoord(i);
                 poseStack.drawString(mc.font, stringList.get(i), coords.firstInt(), coords.secondInt(), 0xFFFFFF,
-                        false);
+                        true);
             }
         }
 
