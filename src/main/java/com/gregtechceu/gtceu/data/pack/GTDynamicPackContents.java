@@ -51,11 +51,11 @@ public class GTDynamicPackContents {
         }
 
         @SuppressWarnings("unchecked")
-        private Map<String, Node> getChildren() {
+        private O2OOpenCacheHashMap<String, Node> getChildren() {
             if (!(contents instanceof Map<?, ?>)) {
                 throw new IllegalStateException("attempting to get children on a terminal node");
             }
-            return (Map<String, Node>) contents;
+            return (O2OOpenCacheHashMap<String, Node>) contents;
         }
 
         void outputResources(String namespace, String path, PackResources.ResourceOutput output) {

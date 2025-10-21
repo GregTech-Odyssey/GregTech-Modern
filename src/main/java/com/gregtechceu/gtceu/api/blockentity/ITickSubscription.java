@@ -26,7 +26,7 @@ public interface ITickSubscription {
 
     @Nullable
     default TickableSubscription subscribeServerTick(@Nullable TickableSubscription last, Runnable runnable) {
-        if (last == null || !last.isStillSubscribed()) {
+        if (last == null || !last.stillSubscribed) {
             return subscribeServerTick(runnable);
         }
         return last;

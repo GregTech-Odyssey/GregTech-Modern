@@ -308,11 +308,11 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
                             if (tickable == null) {
                                 continue;
                             }
-                            if (tickable.isStillSubscribed()) {
-                                tickable.run();
+                            if (tickable.stillSubscribed) {
+                                tickable.runnable.run();
                             }
                             if (holder.isRemoved()) break;
-                            if (!tickable.isStillSubscribed()) {
+                            if (!tickable.stillSubscribed) {
                                 iter.remove();
                             }
                         }
@@ -356,11 +356,11 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
                 if (tickable == null) {
                     continue;
                 }
-                if (tickable.isStillSubscribed()) {
-                    tickable.run();
+                if (tickable.stillSubscribed) {
+                    tickable.runnable.run();
                 }
                 if (holder.isRemoved()) break;
-                if (!tickable.isStillSubscribed()) {
+                if (!tickable.stillSubscribed) {
                     iter.remove();
                 }
             }

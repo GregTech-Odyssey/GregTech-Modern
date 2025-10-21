@@ -13,7 +13,7 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
+import com.gregtechceu.gtceu.api.misc.EnergyContainerInfoList;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -37,14 +37,14 @@ import static com.gregtechceu.gtceu.api.pattern.Predicates.abilities;
 public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
                                       implements IExplosionMachine {
 
-    private IEnergyContainer powerOutput;
-    private IEnergyContainer powerInput;
+    private EnergyContainerInfoList powerOutput;
+    private EnergyContainerInfoList powerInput;
     protected ConditionalSubscriptionHandler converterSubscription;
 
     public ActiveTransformerMachine(MetaMachineBlockEntity holder) {
         super(holder);
-        this.powerOutput = EnergyContainerList.EMPTY;
-        this.powerInput = EnergyContainerList.EMPTY;
+        this.powerOutput = EnergyContainerInfoList.EMPTY;
+        this.powerInput = EnergyContainerInfoList.EMPTY;
 
         this.converterSubscription = new ConditionalSubscriptionHandler(this, this::convertEnergyTick,
                 this::isSubscriptionActive);
@@ -103,9 +103,10 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
             this.onStructureInvalid();
         }
 
-        this.powerOutput = new EnergyContainerList(powerOutput);
-        this.powerInput = new EnergyContainerList(powerInput);
-
+        this.powerOutput = new EnergyContainerInfoList(this, powerOutput);
+        this.powerInput = new EnergyContainerInfoList(this, powerInput);
+        this.powerOutput.onMachineLoad();
+        this.powerInput.onMachineLoad();
         converterSubscription.updateSubscription();
     }
 
@@ -136,10 +137,26 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
             doExplosion(6f + getTier());
         }
         super.onStructureInvalid();
-        this.powerOutput = EnergyContainerList.EMPTY;
-        this.powerInput = EnergyContainerList.EMPTY;
+        this.powerOutput.onMachineUnLoad();
+        this.powerInput.onMachineUnLoad();
+        this.powerOutput = EnergyContainerInfoList.EMPTY;
+        this.powerInput = EnergyContainerInfoList.EMPTY;
         getRecipeLogic().setStatus(RecipeLogic.Status.SUSPEND);
         converterSubscription.unsubscribe();
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        this.powerOutput.onMachineLoad();
+        this.powerInput.onMachineLoad();
+    }
+
+    @Override
+    public void onUnload() {
+        super.onUnload();
+        this.powerOutput.onMachineUnLoad();
+        this.powerInput.onMachineUnLoad();
     }
 
     public static TraceabilityPredicate getHatchPredicates() {

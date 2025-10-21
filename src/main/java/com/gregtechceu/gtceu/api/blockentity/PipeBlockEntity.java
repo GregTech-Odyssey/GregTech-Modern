@@ -243,11 +243,11 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
                             if (tickable == null) {
                                 continue;
                             }
-                            if (tickable.isStillSubscribed()) {
-                                tickable.run();
+                            if (tickable.stillSubscribed) {
+                                tickable.runnable.run();
                             }
                             if (isRemoved()) break;
-                            if (!tickable.isStillSubscribed()) {
+                            if (!tickable.stillSubscribed) {
                                 iter.remove();
                             }
                         }

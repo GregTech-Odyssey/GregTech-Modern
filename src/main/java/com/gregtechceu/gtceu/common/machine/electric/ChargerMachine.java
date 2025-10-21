@@ -188,7 +188,6 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
                         changed = true;
                     }
                     energyAdded += charged;
-                    energyInputPerSec += charged;
                 }
                 if (changed) {
                     ChargerMachine.this.onChanged();

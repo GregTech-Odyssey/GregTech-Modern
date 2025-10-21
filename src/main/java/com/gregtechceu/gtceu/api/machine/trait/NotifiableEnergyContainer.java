@@ -46,10 +46,6 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
     protected TickableSubscription outputSubs;
     @Nullable
     protected TickableSubscription updateSubs;
-    protected long lastEnergyInputPerSec = 0;
-    protected long lastEnergyOutputPerSec = 0;
-    protected long energyInputPerSec = 0;
-    protected long energyOutputPerSec = 0;
     protected boolean checkOutput;
     protected boolean notify;
 
@@ -120,23 +116,8 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
         }
     }
 
-    @Override
-    public long getInputPerSec() {
-        return lastEnergyInputPerSec;
-    }
-
-    @Override
-    public long getOutputPerSec() {
-        return lastEnergyOutputPerSec;
-    }
-
     public void setEnergyStored(long energyStored) {
         if (this.energyStored == energyStored) return;
-        if (energyStored > this.energyStored) {
-            energyInputPerSec += energyStored - this.energyStored;
-        } else {
-            energyOutputPerSec += this.energyStored - energyStored;
-        }
         this.energyStored = energyStored;
         notifyOutputSubscription();
         notify = true;
@@ -151,10 +132,6 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
                 notify = false;
                 notifyListeners();
             }
-            lastEnergyOutputPerSec = energyOutputPerSec;
-            lastEnergyInputPerSec = energyInputPerSec;
-            energyOutputPerSec = 0;
-            energyInputPerSec = 0;
         }
     }
 

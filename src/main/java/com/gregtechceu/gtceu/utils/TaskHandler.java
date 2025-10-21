@@ -4,45 +4,41 @@ import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.core.ILevel;
 
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.event.TickEvent;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 
 import java.util.List;
-import java.util.Map;
 
 public class TaskHandler {
 
-    private static final Map<ServerLevel, List<RunnableEntry>> serverTasks = new Reference2ReferenceOpenHashMap<>();
+    private static final Reference2ReferenceOpenHashMap<ServerLevel, List<RunnableEntry>> serverTasks = new Reference2ReferenceOpenHashMap<>();
 
     // schedule tick event here
-    public static void onTickUpdate(TickEvent.LevelTickEvent event) {
-        if (event.phase == TickEvent.Phase.END && event.level instanceof ServerLevel level) {
-            var list = ILevel.getTasks(level);
-            synchronized (list) {
-                if (!list.isEmpty()) {
-                    serverTasks.computeIfAbsent(level, k -> new ObjectArrayList<>()).addAll(list);
-                    list.clear();
-                }
+    public static void onTickUpdate(ServerLevel level) {
+        var list = ILevel.getTasks(level);
+        synchronized (list) {
+            if (!list.isEmpty()) {
+                serverTasks.computeIfAbsent(level, k -> new ObjectArrayList<>()).addAll(list);
+                list.clear();
             }
-            var tasks = serverTasks.get(level);
-            if (tasks == null || tasks.isEmpty()) return;
-            var iter = tasks.listIterator(0);
-            while (iter.hasNext()) {
-                var task = iter.next();
-                if (task.delay > 0) {
-                    task.delay--;
-                } else {
-                    if (task.isStillSubscribed()) {
-                        task.run();
-                        if (task.task) {
-                            task.unsubscribeCallback.run();
-                            iter.remove();
-                        }
-                    } else {
+        }
+        var tasks = serverTasks.get(level);
+        if (tasks == null || tasks.isEmpty()) return;
+        var iter = tasks.listIterator(0);
+        while (iter.hasNext()) {
+            var task = iter.next();
+            if (task.delay > 0) {
+                task.delay--;
+            } else {
+                if (task.stillSubscribed) {
+                    task.runnable.run();
+                    if (task.task) {
+                        task.unsubscribeCallback.run();
                         iter.remove();
                     }
+                } else {
+                    iter.remove();
                 }
             }
         }

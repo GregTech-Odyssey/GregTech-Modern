@@ -347,7 +347,7 @@ public class RecipeHelper {
     @Contract(pure = true)
     public static Map<RecipeCapability<?>, List<Content>> doTrim(Map<RecipeCapability<?>, List<Content>> current,
                                                                  Reference2IntOpenHashMap<RecipeCapability<?>> trimLimits) {
-        Map<RecipeCapability<?>, List<Content>> outputs = new Reference2ObjectOpenHashMap<>(current.size());
+        Reference2ObjectOpenHashMap<RecipeCapability<?>, List<Content>> outputs = new Reference2ObjectOpenHashMap<>(current.size());
 
         for (var entry : current.entrySet()) {
             var cap = entry.getKey();
