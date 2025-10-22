@@ -8,6 +8,9 @@ import com.lowdragmc.lowdraglib.gui.util.ClickData;
 
 import net.minecraft.network.chat.Component;
 
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -17,7 +20,10 @@ public class FancySelectorConfigurator<T extends Enum<T> & EnumSelectorWidget.Se
                                       implements IFancyConfiguratorButton {
 
     private final EnumSelectorWidget<T> widget;
-    private Function<T, Component> tooltip = t -> Component.empty();
+
+    @Setter
+    @Accessors(chain = true)
+    private Function<T, List<Component>> tooltip = t -> Collections.singletonList(Component.empty());
 
     public FancySelectorConfigurator(T[] values, T initialValue, Consumer<T> onChanged) {
         this.widget = new EnumSelectorWidget<>(0, 0, 20, 20, values, initialValue, onChanged);
@@ -30,12 +36,7 @@ public class FancySelectorConfigurator<T extends Enum<T> & EnumSelectorWidget.Se
 
     @Override
     public List<Component> getTooltips() {
-        return Collections.singletonList(this.tooltip.apply(widget.getCurrentValue()));
-    }
-
-    public FancySelectorConfigurator<?> setTooltip(final Function<T, Component> tooltip) {
-        this.tooltip = tooltip;
-        return this;
+        return this.tooltip.apply(widget.getCurrentValue());
     }
 
     @Override

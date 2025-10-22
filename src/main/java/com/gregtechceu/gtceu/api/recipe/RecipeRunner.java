@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.recipe;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeCapabilityHolder;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
+import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerGroup;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.recipe.chance.boost.ChanceBoostFunction;
@@ -34,6 +35,7 @@ public class RecipeRunner {
     private final boolean simulated;
     private Map<RecipeCapability<?>, List<Object>> recipeContents;
     private final Map<RecipeCapability<?>, List<Object>> searchRecipeContents;
+    private final Predicate<RecipeCapability<?>> outputVoid;
 
     public RecipeRunner(GTRecipe recipe, IO io, boolean isTick,
                         IRecipeCapabilityHolder holder, Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches,
@@ -46,12 +48,12 @@ public class RecipeRunner {
         this.recipeContents = new Reference2ObjectOpenHashMap<>();
         this.searchRecipeContents = simulated ? recipeContents : new Reference2ObjectOpenHashMap<>();
         this.simulated = simulated;
+        this.outputVoid = cap -> holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(cap);
     }
 
     @NotNull
-    public ActionResult handle(Map<RecipeCapability<?>, List<Content>> entries,
-                               Predicate<RecipeCapability<?>> canVoid) {
-        fillContentMatchList(entries, canVoid);
+    public ActionResult handle(Map<RecipeCapability<?>, List<Content>> entries) {
+        fillContentMatchList(entries);
 
         if (searchRecipeContents.isEmpty()) {
             return ActionResult.PASS_NO_CONTENTS;
@@ -63,15 +65,14 @@ public class RecipeRunner {
     /**
      * Populates the content match list to know if conditions are satisfied.
      */
-    private void fillContentMatchList(Map<RecipeCapability<?>, List<Content>> entries,
-                                      Predicate<RecipeCapability<?>> canVoid) {
+    private void fillContentMatchList(Map<RecipeCapability<?>, List<Content>> entries) {
         ChanceBoostFunction function = recipe.getType().getChanceFunction();
         int recipeTier = RecipeHelper.getPreOCRecipeEuTier(recipe);
         int chanceTier = recipeTier + recipe.ocLevel;
         for (var entry : entries.entrySet()) {
             RecipeCapability<?> cap = entry.getKey();
             if (!cap.doMatchInRecipe()) continue;
-            if (simulated && io == IO.OUT && canVoid.test(cap)) continue;
+            if (simulated && io == IO.OUT && outputVoid.test(cap)) continue;
 
             ChanceLogic logic = recipe.getChanceLogicForCapability(cap, this.io, this.isTick);
             List<Content> chancedContents = new ArrayList<>();

@@ -7,16 +7,17 @@ import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.FancySelectorConfigurator;
+import com.gregtechceu.gtceu.data.lang.LangHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 
-import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringRepresentable;
 
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 public interface IVoidable extends IMachineFeature {
@@ -39,15 +40,15 @@ public interface IVoidable extends IMachineFeature {
     static void attachConfigurators(ConfiguratorPanel configuratorPanel, IVoidable controller) {
         configuratorPanel
                 .attachConfigurators(new FancySelectorConfigurator<>(VoidingMode.VALUES, controller.getVoidingMode(),
-                        controller::setVoidingMode).setTooltip(m -> Component.translatable(m.localeName)));
+                        controller::setVoidingMode).setTooltip(m -> (List) LangHandler.getMultiLang(m.localeName)));
     }
 
     enum VoidingMode implements StringRepresentable, EnumSelectorWidget.SelectableEnum {
 
-        VOID_NONE("gtceu.gui.multiblock_no_voiding.0", cap -> false),
-        VOID_ITEMS("gtceu.gui.multiblock_item_voiding.1", cap -> cap == ItemRecipeCapability.CAP),
-        VOID_FLUIDS("gtceu.gui.multiblock_fluid_voiding.1", cap -> cap == FluidRecipeCapability.CAP),
-        VOID_BOTH("gtceu.gui.multiblock_item_fluid_voiding.1", cap -> true);
+        VOID_NONE("gtceu.gui.multiblock_no_voiding", cap -> false),
+        VOID_ITEMS("gtceu.gui.multiblock_item_voiding", cap -> cap == ItemRecipeCapability.CAP),
+        VOID_FLUIDS("gtceu.gui.multiblock_fluid_voiding", cap -> cap == FluidRecipeCapability.CAP),
+        VOID_ALL("gtceu.gui.multiblock_all_voiding", cap -> true);
 
         public static final VoidingMode[] VALUES = values();
 
