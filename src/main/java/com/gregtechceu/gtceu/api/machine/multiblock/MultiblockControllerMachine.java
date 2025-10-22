@@ -235,7 +235,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             data.removeAsyncLogic(this);
             return;
         }
-        if ((getHolder().getOffset() + data.periodID) % 4 == 0 && getLevel() instanceof ServerLevel serverLevel) {
+        if ((holder.offset + data.periodID) % 4 == 0 && getLevel() instanceof ServerLevel serverLevel) {
             simpleLock = true;
             if (checkPatternWithTryLock()) {
                 serverLevel.getServer().execute(() -> {

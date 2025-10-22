@@ -42,7 +42,7 @@ public class GTValues {
     // public static final short W = OreDictionary.WILDCARD_VALUE;
 
     /** Current time on the Client. Will always be zero on the server. */
-    public static long CLIENT_TIME = 0;
+    public static int CLIENT_TIME = 0;
 
     /**
      * The Voltage Tiers. Use this Array instead of the old named Voltage Variables

@@ -38,6 +38,11 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
     }
 
     @Override
+    public boolean hasBatchConfig() {
+        return false;
+    }
+
+    @Override
     protected void onStructureFormedAfter() {
         super.onStructureFormedAfter();
         updateTickSubscription();

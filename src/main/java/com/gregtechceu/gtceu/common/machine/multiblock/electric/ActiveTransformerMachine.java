@@ -75,6 +75,11 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
     }
 
     @Override
+    public boolean hasBatchConfig() {
+        return false;
+    }
+
+    @Override
     public void onStructureFormed() {
         super.onStructureFormed();
         // capture all energy containers

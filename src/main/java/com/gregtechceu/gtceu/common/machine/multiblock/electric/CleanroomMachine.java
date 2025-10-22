@@ -125,6 +125,11 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         super(metaTileEntityId);
     }
 
+    @Override
+    public boolean hasBatchConfig() {
+        return false;
+    }
+
     public RecipeLogic createRecipeLogic(Object... args) {
         return new CleanroomLogic(this);
     }

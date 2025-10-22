@@ -495,7 +495,7 @@ public class ToolHelper {
                                     @NotNull Level level, @NotNull Vec3 pos) {
         IGTTool tool = (IGTTool) stack.getItem();
         ToolHelper.damageItem(stack, player);
-        if (tool.getSound() != null) {
+        if (tool.getSound() != null && IGTTool.canPlaySound(player)) {
             level.playSound(player, pos.x, pos.y, pos.z, tool.getSound().getMainEvent(),
                     SoundSource.PLAYERS, 1.0F, 1.0F);
         }

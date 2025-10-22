@@ -83,6 +83,11 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     }
 
     @Override
+    public boolean hasBatchConfig() {
+        return false;
+    }
+
+    @Override
     protected void onStructureFormedAfter() {
         super.onStructureFormedAfter();
         updateTickSubscription();

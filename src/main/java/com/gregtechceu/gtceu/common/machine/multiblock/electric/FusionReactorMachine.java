@@ -88,6 +88,11 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     }
 
     @Override
+    public boolean hasBatchConfig() {
+        return false;
+    }
+
+    @Override
     public void onLoad() {
         super.onLoad();
         if (!isRemote()) {

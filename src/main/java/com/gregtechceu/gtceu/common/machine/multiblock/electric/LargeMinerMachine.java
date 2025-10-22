@@ -65,6 +65,11 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
         this.drillingFluidConsumePerTick = drillingFluidConsumePerTick;
     }
 
+    @Override
+    public boolean hasBatchConfig() {
+        return false;
+    }
+
     //////////////////////////////////////
     // ***** Initialization ******//
     //////////////////////////////////////
