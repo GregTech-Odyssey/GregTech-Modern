@@ -1,18 +1,11 @@
 package com.gregtechceu.gtceu.api.recipe.lookup;
 
-import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fluids.FluidStack;
-
 import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap;
 
 import static it.unimi.dsi.fastutil.HashCommon.arraySize;
 
 public class IntIngredientMap extends Int2LongOpenHashMap {
-
-    public static Conversion<ItemStack> ITEM_CONVERSION = (stack, amount, map) -> map.add(stack.getItem().hashCode(), amount);
-
-    public static Conversion<FluidStack> FLUID_CONVERSION = (stack, amount, map) -> map.add(stack.getFluid().hashCode(), amount);
 
     public static final IntIngredientMap EMPTY = new IntIngredientMap(0) {
 
@@ -105,10 +98,5 @@ public class IntIngredientMap extends Int2LongOpenHashMap {
             }
         }
         return a;
-    }
-
-    public interface Conversion<T> {
-
-        void convert(T stack, long amount, IntIngredientMap map);
     }
 }
