@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.machine.trait;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
@@ -77,14 +78,14 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     }
 
     @Override
-    public IntIngredientMap getIngredientMap() {
+    public IntIngredientMap getIngredientMap(@NotNull GTRecipeType type) {
         if (changed) {
             changed = false;
             intIngredientMap.clear();
             var stack = storage.stacks[0];
             var amount = stack.getCount();
             if (amount > 0) {
-                IntIngredientMap.ITEM_CONVERSION.convert(stack, amount, intIngredientMap);
+                type.convertItem(stack, amount, intIngredientMap);
             }
         }
         return intIngredientMap;

@@ -179,9 +179,9 @@ public class RecipeHandlerList {
         return FLUID_PARALLEL.getParallel(holder, contents, parallelAmount, this);
     }
 
-    public IntIngredientMap getIngredientMap() {
+    public IntIngredientMap getIngredientMap(@NotNull GTRecipeType type) {
         intIngredientMap.clear();
-        allHandlers.forEach(handler -> handler.getIngredientMap().fill(intIngredientMap));
+        allHandlers.forEach(handler -> handler.getIngredientMap(type).fill(intIngredientMap));
         return intIngredientMap;
     }
 

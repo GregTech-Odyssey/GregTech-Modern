@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.capability.recipe;
 
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
 import com.gregtechceu.gtceu.utils.function.ObjectLongConsumer;
 import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
@@ -9,6 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -52,7 +54,7 @@ public interface IRecipeHandler<K> extends IFilteredHandler<K> {
 
     default void fastForEachFluids(ObjectLongConsumer<FluidStack> function) {}
 
-    default IntIngredientMap getIngredientMap() {
+    default IntIngredientMap getIngredientMap(@NotNull GTRecipeType type) {
         return IntIngredientMap.EMPTY;
     }
 
