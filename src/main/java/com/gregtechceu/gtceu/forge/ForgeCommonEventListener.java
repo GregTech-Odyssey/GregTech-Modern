@@ -52,6 +52,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.entity.living.MobEffectEvent;
@@ -75,7 +76,11 @@ public class ForgeCommonEventListener {
 
     public static void init() {
         MinecraftForge.EVENT_BUS.register(ForgeCommonEventListener.class);
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGH, TaskHandler::onTickUpdate);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGH, (TickEvent.LevelTickEvent event) -> {
+            if (event.phase == TickEvent.Phase.END && event.level instanceof ServerLevel serverLevel) {
+                TaskHandler.onTickUpdate(serverLevel);
+            }
+        });
     }
 
     @SubscribeEvent

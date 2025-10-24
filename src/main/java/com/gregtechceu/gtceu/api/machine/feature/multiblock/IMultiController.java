@@ -176,6 +176,10 @@ public interface IMultiController extends IMachineFeature {
         return false;
     }
 
+    default boolean hasBatchConfig() {
+        return true;
+    }
+
     /**
      * Called from part, when part is invalid due to chunk unload or broken.
      */

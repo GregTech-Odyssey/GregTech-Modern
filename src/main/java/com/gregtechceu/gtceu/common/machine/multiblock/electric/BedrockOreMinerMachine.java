@@ -39,6 +39,11 @@ public class BedrockOreMinerMachine extends WorkableElectricMultiblockMachine {
     }
 
     @Override
+    public boolean hasBatchConfig() {
+        return false;
+    }
+
+    @Override
     public RecipeLogic createRecipeLogic(Object... args) {
         return new BedrockOreMinerLogic(this);
     }

@@ -205,15 +205,15 @@ public class ChemicalHelper {
             if (items != null) {
                 return (List<Item>) items.stream().map(Supplier::get).toList();
             }
-            TagPrefix prefix = entry.tagPrefix();
+            TagPrefix prefix = materialEntry.tagPrefix();
             items = new ObjectArrayList<>();
-            for (TagKey<Item> tag : prefix.getItemTags(entry.material())) {
+            for (TagKey<Item> tag : prefix.getItemTags(materialEntry.material())) {
                 for (Holder<Item> itemHolder : BuiltInRegistries.ITEM.getTagOrEmpty(tag)) {
                     items.add(itemHolder::value);
                 }
             }
-            if (items.isEmpty() && prefix.hasItemTable() && prefix.doGenerateItem(entry.material())) {
-                return Collections.singletonList(prefix.getItemFromTable(entry.material()).get().asItem());
+            if (items.isEmpty() && prefix.hasItemTable() && prefix.doGenerateItem(materialEntry.material())) {
+                return Collections.singletonList(prefix.getItemFromTable(materialEntry.material()).get().asItem());
             }
             return (List<Item>) items.stream().map(Supplier::get).toList();
         });
@@ -252,15 +252,15 @@ public class ChemicalHelper {
             if (blocks != null) {
                 return (List<Block>) blocks.stream().map(Supplier::get).toList();
             }
-            TagPrefix prefix = entry.tagPrefix();
+            TagPrefix prefix = materialEntry.tagPrefix();
             blocks = new ObjectArrayList<>();
-            for (TagKey<Block> tag : prefix.getBlockTags(entry.material())) {
+            for (TagKey<Block> tag : prefix.getBlockTags(materialEntry.material())) {
                 for (Holder<Block> itemHolder : BuiltInRegistries.BLOCK.getTagOrEmpty(tag)) {
                     blocks.add(itemHolder::value);
                 }
             }
-            if (blocks.isEmpty() && prefix.hasItemTable() && prefix.doGenerateBlock(entry.material())) {
-                var blockSupplier = ItemMaterialData.convertToBlock(prefix.getItemFromTable(entry.material()));
+            if (blocks.isEmpty() && prefix.hasItemTable() && prefix.doGenerateBlock(materialEntry.material())) {
+                var blockSupplier = ItemMaterialData.convertToBlock(prefix.getItemFromTable(materialEntry.material()));
                 if (blockSupplier != null) {
                     return Collections.singletonList(blockSupplier.get());
                 }

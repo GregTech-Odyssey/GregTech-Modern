@@ -726,14 +726,12 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
     default void playCraftingSound(Player player, ItemStack stack) {
         // player null check for things like auto-crafters
         if (ConfigHolder.INSTANCE.client.toolCraftingSounds && getSound() != null && player != null) {
-            if (canPlaySound(player, getToolType())) {
-                playSound(player);
-            }
+            playSound(player);
         }
     }
 
     default void playSound(Player player) {
-        if (ConfigHolder.INSTANCE.client.toolUseSounds && getSound() != null) {
+        if (ConfigHolder.INSTANCE.client.toolUseSounds && getSound() != null && canPlaySound(player)) {
             player.level().playSound(null, player.position().x, player.position().y, player.position().z,
                     getSound().getMainEvent(), SoundSource.PLAYERS, 1F, 1F);
         }
@@ -816,16 +814,13 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
         };
     }
 
-    record PlaySound(UUID playerUUID, GTToolType toolType) {}
+    Map<UUID, Long> PLAYED_SOUNDS = new ConcurrentHashMap<>();
 
-    Map<PlaySound, Long> PLAYED_SOUNDS = new ConcurrentHashMap<>();
-
-    static boolean canPlaySound(Player player, GTToolType toolType) {
-        PlaySound key = new PlaySound(player.getUUID(), toolType);
+    static boolean canPlaySound(Player player) {
         long currentTime = System.currentTimeMillis();
-        Long lastTime = PLAYED_SOUNDS.get(key);
-        if (lastTime == null || Math.abs(currentTime - lastTime) > 1000) {
-            PLAYED_SOUNDS.put(key, currentTime);
+        Long lastTime = PLAYED_SOUNDS.get(player.getUUID());
+        if (lastTime == null || Math.abs(currentTime - lastTime) > 100) {
+            PLAYED_SOUNDS.put(player.getUUID(), currentTime);
             return true;
         }
         return false;

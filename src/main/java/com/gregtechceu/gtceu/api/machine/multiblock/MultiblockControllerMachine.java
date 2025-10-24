@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldSavedData;
+import com.gregtechceu.gtceu.core.ILevel;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
@@ -36,7 +37,6 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
@@ -83,7 +83,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
      * Cache for rendering highlight boxes on client side.
      * rendering is done in GTOCore
      */
-    public static final LongOpenHashSet HIGHLIGHT_CACHE = new LongOpenHashSet();
     public static final Multimap<UUID, Component> MESSAGE_CACHE = HashMultimap.create();
     public static boolean sendMessage;
 
@@ -109,7 +108,9 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         super.onUnload();
         if (getLevel() instanceof ServerLevel serverLevel) {
             MultiblockWorldSavedData.getOrCreate(serverLevel).removeAsyncLogic(this);
-        } else HIGHLIGHT_CACHE.remove(getPos().asLong());
+        } else {
+            ILevel.getHighlightCache(getLevel()).remove(getPos().asLong());
+        }
     }
 
     @Override
@@ -234,7 +235,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             data.removeAsyncLogic(this);
             return;
         }
-        if ((getHolder().getOffset() + data.periodID) % 4 == 0 && getLevel() instanceof ServerLevel serverLevel) {
+        if ((holder.offset + data.periodID) % 4 == 0 && getLevel() instanceof ServerLevel serverLevel) {
             simpleLock = true;
             if (checkPatternWithTryLock()) {
                 serverLevel.getServer().execute(() -> {
@@ -453,9 +454,9 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         super.clientTick();
         if (getLevel() != null && getOffsetTimer() % 20 == 0) {
             if (!isFormed) {
-                HIGHLIGHT_CACHE.add(getPos().asLong());
+                ILevel.getHighlightCache(getLevel()).add(getPos().asLong());
             } else {
-                HIGHLIGHT_CACHE.remove(getPos().asLong());
+                ILevel.getHighlightCache(getLevel()).remove(getPos().asLong());
             }
         }
     }

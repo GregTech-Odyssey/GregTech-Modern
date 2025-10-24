@@ -17,6 +17,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,10 +51,19 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
     @Unique
     private List<TaskHandler.RunnableEntry> gtceu$tasks;
 
+    @Unique
+    private LongOpenHashSet gtceu$highlightCache;
+
     @Override
     public @NotNull List<TaskHandler.RunnableEntry> gtceu$getTasks() {
         if (gtceu$tasks == null) gtceu$tasks = new ObjectArrayList<>();
         return gtceu$tasks;
+    }
+
+    @Override
+    public LongOpenHashSet gtceu$getHighlightCache() {
+        if (gtceu$highlightCache == null) gtceu$highlightCache = new LongOpenHashSet();
+        return gtceu$highlightCache;
     }
 
     @Unique

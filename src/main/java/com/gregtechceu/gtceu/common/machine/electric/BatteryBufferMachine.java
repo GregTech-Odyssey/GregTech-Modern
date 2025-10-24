@@ -238,7 +238,6 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                     if (charged > 0) {
                         changed = true;
                     }
-                    energyOutputPerSec += charged;
                 }
                 if (changed) {
                     BatteryBufferMachine.this.onChanged();
@@ -280,7 +279,6 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                         changed = true;
                     }
                     energyAdded += charged;
-                    energyInputPerSec += charged;
                     if (energyAdded == canAccept) break;
                 }
                 if (changed) {

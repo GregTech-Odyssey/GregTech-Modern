@@ -7,14 +7,16 @@ import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.FancySelectorConfigurator;
+import com.gregtechceu.gtceu.data.lang.LangHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 
-import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringRepresentable;
 
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public interface IVoidable extends IMachineFeature {
 
@@ -33,27 +35,27 @@ public interface IVoidable extends IMachineFeature {
     }
 
     static void attachConfigurators(ConfiguratorPanel configuratorPanel, IVoidable controller) {
-        configuratorPanel.attachConfigurators(new FancySelectorConfigurator<>(VoidingMode.VALUES, controller.getVoidingMode(), controller::setVoidingMode).setTooltip(m -> Component.translatable(m.localeName)));
+        configuratorPanel.attachConfigurators(new FancySelectorConfigurator<>(VoidingMode.VALUES, controller.getVoidingMode(), controller::setVoidingMode).setTooltip(m -> (List) LangHandler.getMultiLang(m.localeName)));
     }
 
     enum VoidingMode implements StringRepresentable, EnumSelectorWidget.SelectableEnum {
 
-        VOID_NONE("gtceu.gui.multiblock_no_voiding.0"),
-        VOID_ITEMS("gtceu.gui.multiblock_item_voiding.1") {
+        VOID_NONE("gtceu.gui.multiblock_no_voiding"),
+        VOID_ITEMS("gtceu.gui.multiblock_item_voiding") {
 
             @Override
             public boolean canVoid(RecipeCapability<?> capability) {
                 return capability == ItemRecipeCapability.CAP;
             }
         },
-        VOID_FLUIDS("gtceu.gui.multiblock_fluid_voiding.1") {
+        VOID_FLUIDS("gtceu.gui.multiblock_fluid_voiding") {
 
             @Override
             public boolean canVoid(RecipeCapability<?> capability) {
                 return capability == FluidRecipeCapability.CAP;
             }
         },
-        VOID_BOTH("gtceu.gui.multiblock_item_fluid_voiding.1") {
+        VOID_BOTH("gtceu.gui.multiblock_item_fluid_voiding") {
 
             @Override
             public boolean canVoid(RecipeCapability<?> capability) {

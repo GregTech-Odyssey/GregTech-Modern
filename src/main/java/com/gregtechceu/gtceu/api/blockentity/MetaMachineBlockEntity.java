@@ -54,7 +54,7 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
 
     public final MetaMachine metaMachine;
     public final MachineDefinition definition;
-    protected final long offset = GTValues.RNG.nextInt(20);
+    public final int offset = GTValues.RNG.nextInt(20);
     protected boolean asyncSyncing;
     protected LevelChunk chunk;
 
@@ -295,16 +295,11 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
         }
     }
 
-    public long getOffset() {
-        return offset;
-    }
-
-    public long getOffsetTimer() {
+    public int getOffsetTimer() {
         if (level == null) return offset;
-        else if (level.isClientSide()) return GTValues.CLIENT_TIME + offset;
         var server = level.getServer();
         if (server != null) return server.getTickCount() + offset;
-        return offset;
+        return GTValues.CLIENT_TIME + offset;
     }
 
     public MetaMachine getMetaMachine() {

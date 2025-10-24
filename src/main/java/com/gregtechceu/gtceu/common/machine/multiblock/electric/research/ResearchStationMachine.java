@@ -51,6 +51,11 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
     }
 
     @Override
+    public boolean hasBatchConfig() {
+        return false;
+    }
+
+    @Override
     public void onStructureFormed() {
         super.onStructureFormed();
         for (IMultiPart part : getParts()) {

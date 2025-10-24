@@ -116,24 +116,6 @@ public class EnergyContainerList implements IEnergyContainer {
         return false;
     }
 
-    @Override
-    public long getInputPerSec() {
-        long sum = 0;
-        for (IEnergyContainer iEnergyContainer : energyContainerList) {
-            sum += iEnergyContainer.getInputPerSec();
-        }
-        return sum;
-    }
-
-    @Override
-    public long getOutputPerSec() {
-        long sum = 0;
-        for (IEnergyContainer iEnergyContainer : energyContainerList) {
-            sum += iEnergyContainer.getOutputPerSec();
-        }
-        return sum;
-    }
-
     public long getInputVoltage() {
         return this.inputVoltage;
     }

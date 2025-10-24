@@ -16,7 +16,7 @@ import java.util.function.Function;
 public class FancySelectorConfigurator<T extends Enum<T> & EnumSelectorWidget.SelectableEnum> implements IFancyConfiguratorButton {
 
     private final EnumSelectorWidget<T> widget;
-    private Function<T, Component> tooltip = t -> Component.empty();
+    private Function<T, List<Component>> tooltip = t -> Collections.singletonList(Component.empty());
 
     public FancySelectorConfigurator(T[] values, T initialValue, Consumer<T> onChanged) {
         this.widget = new EnumSelectorWidget<>(0, 0, 20, 20, values, initialValue, onChanged);
@@ -29,10 +29,10 @@ public class FancySelectorConfigurator<T extends Enum<T> & EnumSelectorWidget.Se
 
     @Override
     public List<Component> getTooltips() {
-        return Collections.singletonList(this.tooltip.apply(widget.getCurrentValue()));
+        return this.tooltip.apply(widget.getCurrentValue());
     }
 
-    public FancySelectorConfigurator<?> setTooltip(final Function<T, Component> tooltip) {
+    public FancySelectorConfigurator<?> setTooltip(final Function<T, List<Component>> tooltip) {
         this.tooltip = tooltip;
         return this;
     }
