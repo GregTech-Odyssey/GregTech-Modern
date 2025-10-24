@@ -67,6 +67,11 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @DescSynced
     @RequireRerender
     protected boolean isFormed;
+    @DescSynced
+    protected boolean[] clientKnownFormeds = new boolean[getSubPattern() == null ? 0 : getSubPattern().length];
+
+    @DescSynced
+    protected boolean[] isFormedsFlipped = new boolean[getSubPattern() == null ? 0 : getSubPattern().length];
     @Persisted
     @DescSynced
     protected boolean isFlipped;
@@ -173,7 +178,14 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     private final Lock patternLock = new ReentrantLock();
 
     public boolean @Nullable [] getSubFormed() {
+        if (isRemote()) {
+            return clientKnownFormeds;
+        }
         return formeds;
+    }
+
+    public boolean[] getIsFormedsFlipped() {
+        return isFormedsFlipped;
     }
 
     public int getSubFormedAmount() {
@@ -195,6 +207,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                     if (subPattern != null) {
                         formedCount = 0;
                         formeds = new boolean[subPattern.length];
+                        isFormedsFlipped = new boolean[subPattern.length];
                         if (subMultiblockState == null) {
                             subMultiblockState = new MultiblockState[subPattern.length];
                         }
@@ -204,10 +217,12 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                                 state.merge(subState);
                                 formeds[i] = true;
                                 formedCount++;
+                                isFormedsFlipped[i] = subState.isNeededFlip();
                             }
                             subMultiblockState[i] = subState;
                         }
                         for (var subState : subMultiblockState) subState.cleanCache();
+                        clientKnownFormeds = formeds.clone();
                     }
                 }
                 state.cleanCache();
@@ -303,6 +318,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         parallelHatch = null;
         this.parts = new IMultiPart[0];
         updatePartPositions();
+        Arrays.fill(clientKnownFormeds, false);
     }
 
     /**
