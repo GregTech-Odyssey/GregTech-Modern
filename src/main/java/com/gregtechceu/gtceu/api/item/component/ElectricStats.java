@@ -161,8 +161,8 @@ public class ElectricStats implements IInteractionItem, IAddInformation, IItemLi
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
-                                TooltipFlag isAdvanced) {
+    public void appendTooltips(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
+                               TooltipFlag isAdvanced) {
         IElectricItem electricItem = GTCapabilityHelper.getElectricItem(stack);
         if (electricItem == null) return;
         addCurrentChargeTooltip(tooltipComponents, electricItem.getCharge(), electricItem.getMaxCharge(),

@@ -106,8 +106,8 @@ public class ProspectorScannerBehavior implements IItemUIFactory, IAddInformatio
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
-                                TooltipFlag isAdvanced) {
+    public void appendTooltips(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
+                               TooltipFlag isAdvanced) {
         tooltipComponents.add(Component.translatable("metaitem.prospector.tooltip.radius", radius));
         tooltipComponents.add(Component.translatable("metaitem.prospector.tooltip.modes"));
         for (ProspectorMode<?> mode : modes) {

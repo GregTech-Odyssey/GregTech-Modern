@@ -11,6 +11,6 @@ import java.util.List;
 
 public interface IAddInformation extends IItemComponent {
 
-    void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
-                         TooltipFlag isAdvanced);
+    void appendTooltips(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
+                        TooltipFlag isAdvanced);
 }

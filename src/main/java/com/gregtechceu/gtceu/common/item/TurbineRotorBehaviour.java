@@ -52,9 +52,9 @@ public class TurbineRotorBehaviour implements ITurbineRotorBehavior {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @org.jetbrains.annotations.Nullable Level level,
-                                List<Component> tooltipComponents, TooltipFlag isAdvanced) {
-        ITurbineRotorBehavior.super.appendHoverText(stack, level, tooltipComponents, isAdvanced);
+    public void appendTooltips(ItemStack stack, @org.jetbrains.annotations.Nullable Level level,
+                               List<Component> tooltipComponents, TooltipFlag isAdvanced) {
+        ITurbineRotorBehavior.super.appendTooltips(stack, level, tooltipComponents, isAdvanced);
         MutableComponent eff, pow;
         if (this instanceof CoatedTurbineRotorBehaviour ct && CoatedTurbineRotorBehaviour.isCoatingMagical(stack)) {
             eff = Component.translatable("metaitem.tool.tooltip.rotor.efficiency", getRotorEfficiency(stack) - ct.getRotorBonusEfficiency(stack))

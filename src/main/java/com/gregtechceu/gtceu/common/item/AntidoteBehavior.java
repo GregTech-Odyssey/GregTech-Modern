@@ -66,7 +66,7 @@ public record AntidoteBehavior(Set<MedicalCondition> types, int removePercent)
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
+    public void appendTooltips(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
         if (GTUtil.isShiftDown()) {
             tooltipComponents.add(Component.translatable("gtceu.medical_condition.antidote.description_shift"));
             for (var type : types) {

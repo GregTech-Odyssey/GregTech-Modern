@@ -258,8 +258,8 @@ public class PowerlessJetpack implements IArmorLogic, IJetpack, IItemHUDProvider
         }
 
         @Override
-        public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
-                                    TooltipFlag isAdvanced) {
+        public void appendTooltips(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
+                                   TooltipFlag isAdvanced) {
             CompoundTag data = stack.getOrCreateTag();
             Component state;
             boolean enabled = !data.contains("enabled") || data.getBoolean("enabled");

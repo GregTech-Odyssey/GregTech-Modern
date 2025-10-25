@@ -28,9 +28,9 @@ public class CoatedTurbineRotorBehaviour extends TurbineRotorBehaviour implement
     private final RandomSource rd = RandomSource.create();
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level,
-                                List<Component> tooltipComponents, TooltipFlag isAdvanced) {
-        super.appendHoverText(stack, level, tooltipComponents, isAdvanced);
+    public void appendTooltips(ItemStack stack, @Nullable Level level,
+                               List<Component> tooltipComponents, TooltipFlag isAdvanced) {
+        super.appendTooltips(stack, level, tooltipComponents, isAdvanced);
         tooltipComponents
                 .add(Component.translatable("metaitem.tool.tooltip.rotor.coating", getCoatMaterial(stack).getLocalizedName()));
         int i = 0;

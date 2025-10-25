@@ -43,8 +43,8 @@ public class DataItemBehavior implements IInteractionItem, IAddInformation, IDat
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
-                                TooltipFlag isAdvanced) {
+    public void appendTooltips(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
+                               TooltipFlag isAdvanced) {
         ResearchManager.ResearchItem researchData = ResearchManager.readResearchId(stack);
         if (researchData == null) {
             if (stack.getOrCreateTag().contains("pos", Tag.TAG_INT_ARRAY) && stack.hasTag()) {

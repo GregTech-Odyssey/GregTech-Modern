@@ -68,8 +68,8 @@ public class FoodStats implements IEdibleItem, IInteractionItem, IAddInformation
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
-                                TooltipFlag isAdvanced) {
+    public void appendTooltips(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
+                               TooltipFlag isAdvanced) {
         GTUtil.addPotionTooltip(properties.getEffects(), tooltipComponents);
     }
 

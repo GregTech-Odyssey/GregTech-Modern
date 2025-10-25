@@ -38,8 +38,8 @@ public class FilteredFluidContainer implements IComponentCapability, IAddInforma
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
-                                TooltipFlag isAdvanced) {
+    public void appendTooltips(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
+                               TooltipFlag isAdvanced) {
         FluidUtil.getFluidContained(stack).ifPresent(fluid -> tooltipComponents
                 .add(Component.translatable("gtceu.universal.tooltip.fluid_stored", fluid.getDisplayName(),
                         fluid.getAmount())));

@@ -150,7 +150,7 @@ public class ArmorComponentItem extends ArmorItem implements IComponentItem {
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
         for (IItemComponent component : components) {
             if (component instanceof IAddInformation addInformation) {
-                addInformation.appendHoverText(stack, level, tooltipComponents, isAdvanced);
+                addInformation.appendTooltips(stack, level, tooltipComponents, isAdvanced);
             }
         }
     }

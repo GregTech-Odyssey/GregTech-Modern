@@ -276,8 +276,8 @@ public class ItemMagnetBehavior implements IItemLifeCycle, IAddInformation, IIte
     }
 
     @Override
-    public void appendHoverText(ItemStack itemStack, @Nullable Level level, List<Component> lines,
-                                TooltipFlag isAdvanced) {
+    public void appendTooltips(ItemStack itemStack, @Nullable Level level, List<Component> lines,
+                               TooltipFlag isAdvanced) {
         lines.add(Component
                 .translatable(isActive(itemStack) ? "behavior.item_magnet.enabled" : "behavior.item_magnet.disabled"));
     }

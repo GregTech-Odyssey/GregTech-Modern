@@ -45,8 +45,8 @@ public interface ITurbineRotorBehavior extends IDurabilityBar, IAddInformation, 
     }
 
     @Override
-    default void appendHoverText(ItemStack stack, @org.jetbrains.annotations.Nullable Level level,
-                                 List<Component> tooltipComponents, TooltipFlag isAdvanced) {
+    default void appendTooltips(ItemStack stack, @org.jetbrains.annotations.Nullable Level level,
+                                List<Component> tooltipComponents, TooltipFlag isAdvanced) {
         var material = getPartMaterial(stack);
         var maxDurability = getPartMaxDurability(stack);
         var damage = getPartDamage(stack);
