@@ -44,7 +44,7 @@ public interface IMultiController extends IMachineFeature {
         return self().getDefinition().checkPriority();
     }
 
-    boolean @Nullable [] getSubFormed();
+    boolean @NotNull [] getSubFormed();
 
     int getSubFormedAmount();
 
