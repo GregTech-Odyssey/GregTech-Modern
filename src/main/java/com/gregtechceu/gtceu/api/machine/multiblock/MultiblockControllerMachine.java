@@ -56,7 +56,8 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
 
     protected MultiblockState multiblockState;
     protected MultiblockState[] subMultiblockState = null;
-    protected boolean[] formeds;
+    @DescSynced
+    protected final boolean[] formeds = new boolean[getSubPattern() == null ? 0 : getSubPattern().length];
     protected int formedCount;
     protected IMultiPart[] parts = new IMultiPart[0];
     @Nullable
@@ -67,6 +68,9 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @DescSynced
     @RequireRerender
     protected boolean isFormed;
+
+    @DescSynced
+    protected final boolean[] isFormedsFlipped = new boolean[getSubPattern() == null ? 0 : getSubPattern().length];
     @Persisted
     @DescSynced
     protected boolean isFlipped;
@@ -172,8 +176,12 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     //////////////////////////////////////
     private final Lock patternLock = new ReentrantLock();
 
-    public boolean @Nullable [] getSubFormed() {
+    public boolean @NotNull [] getSubFormed() {
         return formeds;
+    }
+
+    public boolean[] getIsFormedsFlipped() {
+        return isFormedsFlipped;
     }
 
     public int getSubFormedAmount() {
@@ -194,7 +202,8 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                     var subPattern = getSubPattern();
                     if (subPattern != null) {
                         formedCount = 0;
-                        formeds = new boolean[subPattern.length];
+                        Arrays.fill(formeds, false);
+                        Arrays.fill(isFormedsFlipped, false);
                         if (subMultiblockState == null) {
                             subMultiblockState = new MultiblockState[subPattern.length];
                         }
@@ -204,6 +213,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                                 state.merge(subState);
                                 formeds[i] = true;
                                 formedCount++;
+                                isFormedsFlipped[i] = subState.isNeededFlip();
                             }
                             subMultiblockState[i] = subState;
                         }
@@ -297,6 +307,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @MustBeInvokedByOverriders
     public void onStructureInvalid() {
         isFormed = false;
+        Arrays.fill(formeds, false);
         for (IMultiPart part : parts) {
             part.removedFromController(this);
         }
