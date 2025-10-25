@@ -2,7 +2,10 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric.research;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.*;
+import com.gregtechceu.gtceu.api.capability.IHPCAComponentHatch;
+import com.gregtechceu.gtceu.api.capability.IHPCAComputationProvider;
+import com.gregtechceu.gtceu.api.capability.IHPCACoolantProvider;
+import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;

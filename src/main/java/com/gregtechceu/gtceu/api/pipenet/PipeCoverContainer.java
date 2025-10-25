@@ -116,7 +116,7 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
     }
 
     @Override
-    public long getOffsetTimer() {
+    public int getOffsetTimer() {
         return pipeTile.getOffsetTimer();
     }
 

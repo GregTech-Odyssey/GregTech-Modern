@@ -115,7 +115,7 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
     }
 
     @Override
-    public long getOffsetTimer() {
+    public int getOffsetTimer() {
         return machine.getOffsetTimer();
     }
 

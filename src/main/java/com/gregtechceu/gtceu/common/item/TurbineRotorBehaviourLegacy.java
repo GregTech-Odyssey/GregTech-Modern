@@ -3,7 +3,7 @@ package com.gregtechceu.gtceu.common.item;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.item.IComponentItem;
-import com.gregtechceu.gtceu.api.item.component.*;
+import com.gregtechceu.gtceu.api.item.component.ITurbineRotorBehavior;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 
 import net.minecraft.nbt.CompoundTag;

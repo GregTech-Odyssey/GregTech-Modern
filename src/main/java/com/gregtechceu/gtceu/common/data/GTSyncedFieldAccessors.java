@@ -10,7 +10,8 @@ import com.lowdragmc.lowdraglib.syncdata.payload.NbtTagPayload;
 
 import net.minecraftforge.fluids.FluidStack;
 
-import static com.lowdragmc.lowdraglib.syncdata.TypedPayloadRegistries.*;
+import static com.lowdragmc.lowdraglib.syncdata.TypedPayloadRegistries.register;
+import static com.lowdragmc.lowdraglib.syncdata.TypedPayloadRegistries.registerSimple;
 
 public class GTSyncedFieldAccessors {
 

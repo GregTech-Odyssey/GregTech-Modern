@@ -70,7 +70,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
 
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
     private final ManagedFieldHolder managedFieldHolder = MetaMachine.getManagedFieldHolder(getClass());
-    private final long offset = GTValues.RNG.nextInt(20);
+    private final int offset = GTValues.RNG.nextInt(20);
     @DescSynced
     @Persisted(key = "cover")
     protected final PipeCoverContainer coverContainer;
@@ -146,7 +146,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
         return chunk;
     }
 
-    public long getOffsetTimer() {
+    public int getOffsetTimer() {
         return level == null ? offset : (level.getServer().getTickCount() + offset);
     }
 

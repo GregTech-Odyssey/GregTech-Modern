@@ -160,7 +160,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     protected boolean sync = true;
 
-    protected long offsetTimer;
+    protected int offsetTimer;
 
     protected int averageTickTime;
 
@@ -227,7 +227,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     public void onPaintingColorChanged(int color) {}
 
-    public long getOffsetTimer() {
+    public int getOffsetTimer() {
         return offsetTimer;
     }
 

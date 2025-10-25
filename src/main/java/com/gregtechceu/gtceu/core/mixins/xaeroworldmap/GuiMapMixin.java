@@ -19,7 +19,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xaero.map.MapProcessor;
-import xaero.map.gui.*;
+import xaero.map.gui.CursorBox;
+import xaero.map.gui.GuiMap;
+import xaero.map.gui.IRightClickableElement;
+import xaero.map.gui.ScreenBase;
 
 @Mixin(value = GuiMap.class, remap = false)
 public abstract class GuiMapMixin extends ScreenBase implements IRightClickableElement {

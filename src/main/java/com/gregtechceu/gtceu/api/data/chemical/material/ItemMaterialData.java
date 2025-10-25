@@ -25,7 +25,9 @@ import net.minecraftforge.registries.RegistryObject;
 
 import com.mojang.datafixers.util.Pair;
 import com.tterrag.registrate.util.entry.RegistryEntry;
-import it.unimi.dsi.fastutil.objects.*;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
