@@ -57,7 +57,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     protected MultiblockState multiblockState;
     protected MultiblockState[] subMultiblockState = null;
     @DescSynced
-    protected boolean[] formeds = new boolean[getSubPattern() == null ? 0 : getSubPattern().length];
+    protected final boolean[] formeds = new boolean[getSubPattern() == null ? 0 : getSubPattern().length];
     protected int formedCount;
     protected IMultiPart[] parts = new IMultiPart[0];
     @Nullable
@@ -70,7 +70,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     protected boolean isFormed;
 
     @DescSynced
-    protected boolean[] isFormedsFlipped = new boolean[getSubPattern() == null ? 0 : getSubPattern().length];
+    protected final boolean[] isFormedsFlipped = new boolean[getSubPattern() == null ? 0 : getSubPattern().length];
     @Persisted
     @DescSynced
     protected boolean isFlipped;
@@ -203,7 +203,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                     if (subPattern != null) {
                         formedCount = 0;
                         Arrays.fill(formeds, false);
-                        isFormedsFlipped = new boolean[subPattern.length];
+                        Arrays.fill(isFormedsFlipped, false);
                         if (subMultiblockState == null) {
                             subMultiblockState = new MultiblockState[subPattern.length];
                         }
