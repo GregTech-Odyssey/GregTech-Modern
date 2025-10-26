@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.MaterialPipeBlock;
 import com.gregtechceu.gtceu.api.block.PipeBlock;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
-import com.gregtechceu.gtceu.api.capability.IToolable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
@@ -66,7 +65,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDataType>, NodeDataType> extends BlockEntity implements ITickSubscription, IPaintable, IEnhancedManaged, IAsyncAutoSyncBlockEntity, IAutoPersistBlockEntity, IToolGridHighlight, IToolable {
+public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDataType>, NodeDataType> extends BlockEntity implements ITickSubscription, IPaintable, IEnhancedManaged, IAsyncAutoSyncBlockEntity, IAutoPersistBlockEntity, IToolGridHighlight {
 
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
     private final ManagedFieldHolder managedFieldHolder = MetaMachine.getManagedFieldHolder(getClass());
@@ -415,7 +414,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
         return null;
     }
 
-    @Override
     public Pair<GTToolType, InteractionResult> onToolClick(Set<GTToolType> toolTypes, ItemStack itemStack, UseOnContext context) {
         // the side hit from the machine grid
         var playerIn = context.getPlayer();

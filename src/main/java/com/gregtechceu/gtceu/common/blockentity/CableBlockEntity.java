@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
+import com.gregtechceu.gtceu.api.capability.IWailaDisplayProvider;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.WireProperties;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
@@ -26,6 +27,8 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Blocks;
@@ -37,6 +40,9 @@ import net.minecraftforge.common.util.LazyOptional;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import snownee.jade.api.BlockAccessor;
+import snownee.jade.api.ITooltip;
+import snownee.jade.api.config.IPluginConfig;
 
 import java.lang.ref.WeakReference;
 import java.util.EnumMap;
@@ -44,9 +50,11 @@ import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import static com.gregtechceu.gtceu.utils.FormattingUtil.DECIMAL_FORMAT_1F;
+
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties> implements IDataInfoProvider {
+public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties> implements IDataInfoProvider, IWailaDisplayProvider {
 
     protected WeakReference<EnergyNet> currentEnergyNet = new WeakReference<>(null);
     private static final int meltTemp = 3000;
@@ -302,5 +310,36 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
 
     public int getTemperature() {
         return this.temperature;
+    }
+
+    @Override
+    public void appendWailaTooltip(CompoundTag data, ITooltip iTooltip, BlockAccessor blockAccessor, IPluginConfig iPluginConfig) {
+        if (data.contains("cableData", Tag.TAG_COMPOUND)) {
+            var tag = data.getCompound("cableData");
+            long voltage = tag.getLong("currentVoltage");
+            double amperage = tag.getDouble("currentAmperage");
+            iTooltip.add(Component.translatable("gtceu.top.cable_voltage"));
+            if (voltage != 0) {
+                iTooltip.append(Component.literal(GTValues.VNF[GTUtil.getTierByVoltage(voltage)]));
+                iTooltip.append(Component.literal(" / "));
+            }
+            iTooltip.append(Component.literal(GTValues.VNF[GTUtil.getTierByVoltage(tag.getLong("maxVoltage"))]));
+
+            iTooltip.add(Component.translatable("gtceu.top.cable_amperage"));
+            if (amperage != 0) {
+                iTooltip.append(Component.literal(DECIMAL_FORMAT_1F.format(amperage) + "A / "));
+            }
+            iTooltip.append(Component.literal(DECIMAL_FORMAT_1F.format(tag.getDouble("maxAmperage")) + "A"));
+        }
+    }
+
+    @Override
+    public void appendWailaData(CompoundTag data, BlockAccessor blockAccessor) {
+        var cableData = new CompoundTag();
+        cableData.putLong("maxVoltage", getMaxVoltage());
+        cableData.putLong("currentVoltage", getCurrentVoltage());
+        cableData.putDouble("maxAmperage", getMaxAmperage());
+        cableData.putDouble("currentAmperage", getCurrentAmperage());
+        data.put("cableData", cableData);
     }
 }

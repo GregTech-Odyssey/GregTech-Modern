@@ -46,6 +46,8 @@ public interface IMultiController extends IMachineFeature {
 
     boolean @NotNull [] getSubFormed();
 
+    int getSubPatternAmount();
+
     int getSubFormedAmount();
 
     /**
@@ -116,7 +118,7 @@ public interface IMultiController extends IMachineFeature {
     @NotNull
     MultiblockState getMultiblockState();
 
-    @Nullable
+    @NotNull
     MultiblockState[] getSubMultiblockState();
 
     /**

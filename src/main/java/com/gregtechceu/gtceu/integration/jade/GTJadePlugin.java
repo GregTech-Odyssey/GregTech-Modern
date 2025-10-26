@@ -23,7 +23,7 @@ public class GTJadePlugin implements IWailaPlugin {
 
     @Override
     public void register(IWailaCommonRegistration registration) {
-        registration.registerBlockDataProvider(new ElectricContainerBlockProvider(), BlockEntity.class);
+        registration.registerBlockDataProvider(BlockEntityProvider.INSTANCE, BlockEntity.class);
         registration.registerBlockDataProvider(new WorkableBlockProvider(), BlockEntity.class);
         registration.registerBlockDataProvider(new ControllableBlockProvider(), BlockEntity.class);
         registration.registerBlockDataProvider(new RecipeLogicProvider(), BlockEntity.class);
@@ -32,13 +32,9 @@ public class GTJadePlugin implements IWailaPlugin {
         registration.registerBlockDataProvider(new MultiblockStructureProvider(), BlockEntity.class);
         registration.registerBlockDataProvider(new MaintenanceBlockProvider(), BlockEntity.class);
         registration.registerBlockDataProvider(new ExhaustVentBlockProvider(), BlockEntity.class);
-        registration.registerBlockDataProvider(new SteamBoilerBlockProvider(), BlockEntity.class);
         registration.registerBlockDataProvider(new AutoOutputBlockProvider(), BlockEntity.class);
-        registration.registerBlockDataProvider(new CableBlockProvider(), BlockEntity.class);
         registration.registerBlockDataProvider(new MachineModeProvider(), BlockEntity.class);
         registration.registerBlockDataProvider(new StainedColorProvider(), BlockEntity.class);
-        registration.registerBlockDataProvider(new TransformerBlockProvider(), BlockEntity.class);
-        registration.registerBlockDataProvider(new PrimitivePumpBlockProvider(), BlockEntity.class);
 
         registration.registerItemStorage(GTItemStorageProvider.INSTANCE, MetaMachineBlockEntity.class);
         registration.registerFluidStorage(GTFluidStorageProvider.INSTANCE, MetaMachineBlockEntity.class);
@@ -46,7 +42,7 @@ public class GTJadePlugin implements IWailaPlugin {
 
     @Override
     public void registerClient(IWailaClientRegistration registration) {
-        registration.registerBlockComponent(new ElectricContainerBlockProvider(), Block.class);
+        registration.registerBlockComponent(BlockEntityProvider.INSTANCE, Block.class);
         registration.registerBlockComponent(new WorkableBlockProvider(), Block.class);
         registration.registerBlockComponent(new ControllableBlockProvider(), Block.class);
         registration.registerBlockComponent(new RecipeLogicProvider(), Block.class);
@@ -55,13 +51,9 @@ public class GTJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(new MultiblockStructureProvider(), Block.class);
         registration.registerBlockComponent(new MaintenanceBlockProvider(), Block.class);
         registration.registerBlockComponent(new ExhaustVentBlockProvider(), Block.class);
-        registration.registerBlockComponent(new SteamBoilerBlockProvider(), Block.class);
         registration.registerBlockComponent(new AutoOutputBlockProvider(), Block.class);
-        registration.registerBlockComponent(new CableBlockProvider(), Block.class);
         registration.registerBlockComponent(new MachineModeProvider(), Block.class);
         registration.registerBlockComponent(new StainedColorProvider(), Block.class);
-        registration.registerBlockComponent(new TransformerBlockProvider(), Block.class);
-        registration.registerBlockComponent(new PrimitivePumpBlockProvider(), Block.class);
 
         registration.registerItemStorageClient(GTItemStorageProvider.INSTANCE);
         registration.registerFluidStorageClient(GTFluidStorageProvider.INSTANCE);

@@ -1272,6 +1272,7 @@ public class LangHandler {
         provider.add("gtceu.key.tool_aoe_change", "Tool AoE Mode Switch");
         provider.add("gtceu.debug.f3_h.enabled",
                 "GregTech has modified the debug info! For Developers: enable the misc:debug config option in the GregTech config file to see more");
+        provider.add("config.jade.plugin_gtceu.block_entity_provider", "[GTCEu] Block Entity General");
         provider.add("config.jade.plugin_gtceu.controllable_provider", "[GTCEu] Controllable");
         provider.add("config.jade.plugin_gtceu.workable_provider", "[GTCEu] Workable");
         provider.add("config.jade.plugin_gtceu.electric_container_provider", "[GTCEu] Electric Container");
@@ -1281,13 +1282,10 @@ public class LangHandler {
         provider.add("config.jade.plugin_gtceu.auto_output_info", "[GTCEu] Auto Output Info");
         provider.add("config.jade.plugin_gtceu.cable_info", "[GTCEu] Cable Info");
         provider.add("config.jade.plugin_gtceu.exhaust_vent_info", "[GTCEu] Exhaust Vent Info");
-        provider.add("config.jade.plugin_gtceu.steam_boiler_info", "[GTCEu] Steam Boiler Info");
         provider.add("config.jade.plugin_gtceu.machine_mode", "[GTCEu] Machine Mode");
         provider.add("config.jade.plugin_gtceu.maintenance_info", "[GTCEu] Maintenance Info");
         provider.add("config.jade.plugin_gtceu.multiblock_structure", "[GTCEu] MultiBlock Structure");
         provider.add("config.jade.plugin_gtceu.parallel_info", "[GTCEu] Parallel Info");
-        provider.add("config.jade.plugin_gtceu.primitive_pump", "[GTCEu] Primitive Pump Info");
-        provider.add("config.jade.plugin_gtceu.transformer", "[GTCEu] Transformer Info");
         provider.add("config.jade.plugin_gtceu.stained_color", "[GTCEu] Stained Block Info");
         provider.add("config.jade.plugin_gtceu.me_pattern_buffer", "[GTCEu] Pattern Buffer Info");
         provider.add("config.jade.plugin_gtceu.me_pattern_buffer_proxy", "[GTCEu] Pattern Buffer Proxy Info");

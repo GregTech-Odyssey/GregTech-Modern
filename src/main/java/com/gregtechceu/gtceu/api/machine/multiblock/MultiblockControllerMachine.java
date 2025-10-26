@@ -55,10 +55,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class MultiblockControllerMachine extends MetaMachine implements IMultiController, IMachineLife {
 
     protected MultiblockState multiblockState;
-    protected MultiblockState[] subMultiblockState = null;
+    protected final int subPatternAmount = getSubPattern() == null ? 0 : getSubPattern().length;
+    protected MultiblockState[] subMultiblockState = new MultiblockState[subPatternAmount];
     @DescSynced
-    protected final boolean[] formeds = new boolean[getSubPattern() == null ? 0 : getSubPattern().length];
-    protected int formedCount;
+    protected final boolean[] formeds = new boolean[subPatternAmount];
+    protected int formedAmount;
     protected IMultiPart[] parts = new IMultiPart[0];
     @Nullable
     protected IParallelHatch parallelHatch = null;
@@ -70,7 +71,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     protected boolean isFormed;
 
     @DescSynced
-    protected final boolean[] isFormedsFlipped = new boolean[getSubPattern() == null ? 0 : getSubPattern().length];
+    protected final boolean[] isFormedsFlipped = new boolean[subPatternAmount];
     @Persisted
     @DescSynced
     protected boolean isFlipped;
@@ -184,8 +185,12 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         return isFormedsFlipped;
     }
 
+    public int getSubPatternAmount() {
+        return subPatternAmount;
+    }
+
     public int getSubFormedAmount() {
-        return formedCount;
+        return formedAmount;
     }
 
     @Override
@@ -201,18 +206,16 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                 if (result) {
                     var subPattern = getSubPattern();
                     if (subPattern != null) {
-                        formedCount = 0;
+                        formedAmount = 0;
                         Arrays.fill(formeds, false);
                         Arrays.fill(isFormedsFlipped, false);
-                        if (subMultiblockState == null) {
-                            subMultiblockState = new MultiblockState[subPattern.length];
-                        }
+                        Arrays.fill(subMultiblockState, null);
                         for (int i = 0; i < subPattern.length; i++) {
                             var subState = MultiblockState.copy(state);
                             if (subPattern[i].get().checkPatternAt(subState, false)) {
                                 state.merge(subState);
                                 formeds[i] = true;
-                                formedCount++;
+                                formedAmount++;
                                 isFormedsFlipped[i] = subState.isNeededFlip();
                             }
                             subMultiblockState[i] = subState;

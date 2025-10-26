@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.machine.steam;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.capability.IWailaDisplayProvider;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.UITemplate;
@@ -29,11 +30,13 @@ import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
@@ -52,6 +55,9 @@ import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import snownee.jade.api.BlockAccessor;
+import snownee.jade.api.ITooltip;
+import snownee.jade.api.config.IPluginConfig;
 
 import java.util.Collections;
 import java.util.List;
@@ -60,7 +66,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class SteamBoilerMachine extends SteamWorkableMachine implements IUIMachine, IExplosionMachine, IDataInfoProvider {
+public abstract class SteamBoilerMachine extends SteamWorkableMachine implements IUIMachine, IExplosionMachine, IDataInfoProvider, IWailaDisplayProvider {
 
     @Persisted
     public final NotifiableFluidTank waterTank;
@@ -315,5 +321,29 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
 
     public boolean isHasNoWater() {
         return this.hasNoWater;
+    }
+
+    @Override
+    public void appendWailaTooltip(CompoundTag data, ITooltip iTooltip, BlockAccessor blockAccessor, IPluginConfig iPluginConfig) {
+        var producing = data.getBoolean("producingSteam");
+        if (data.getBoolean("heatingUp")) {
+            iTooltip.add(Component.translatable("gtceu.machine.boiler.info.heating.up",
+                    producing ? Component.translatable("gtceu.machine.boiler.info.producing.steam") : ""));
+            var fillAmount = data.getInt("fillAmount");
+            if (fillAmount > 0) {
+                iTooltip.add(Component.translatable("gtceu.multiblock.large_boiler.steam_output", fillAmount).withStyle(ChatFormatting.GREEN));
+            }
+        } else if (data.getBoolean("coolingDown")) {
+            iTooltip.add(Component.translatable("gtceu.machine.boiler.info.cooling.down",
+                    producing ? Component.translatable("gtceu.machine.boiler.info.producing.steam") : ""));
+        }
+    }
+
+    @Override
+    public void appendWailaData(CompoundTag data, BlockAccessor blockAccessor) {
+        data.putInt("fillAmount", fillAmount / 10);
+        data.putBoolean("heatingUp", getRecipeLogic().isWorking());
+        data.putBoolean("coolingDown", currentTemperature > 0);
+        data.putBoolean("producingSteam", !hasNoWater && currentTemperature >= 100);
     }
 }

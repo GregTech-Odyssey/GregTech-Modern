@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.*;
+import com.gregtechceu.gtceu.api.gui.widget.CustomComponentPanelWidget;
 import com.gregtechceu.gtceu.api.machine.feature.IComputationContainerMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IOverclockMachine;
@@ -119,7 +120,8 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     @Override
     public Widget createUIWidget() {
         var group = new WidgetGroup(0, 0, 182 + 8, 117 + 8);
-        group.addWidget(new DraggableScrollableWidgetGroup(4, 4, 182, 117).setBackground(getScreenTexture()).addWidget(new LabelWidget(4, 5, self().getBlockState().getBlock().getDescriptionId())).addWidget(new ComponentPanelWidget(4, 17, this::addDisplayText).textSupplier(this.getLevel().isClientSide ? null : this::addDisplayText).setMaxWidthLimit(200).clickHandler(this::handleDisplayClick)));
+        group.addWidget(new DraggableScrollableWidgetGroup(4, 4, 182, 117).setBackground(getScreenTexture()).addWidget(new LabelWidget(4, 5, self().getBlockState().getBlock().getDescriptionId())).addWidget(new CustomComponentPanelWidget(4, 17)
+                .setTextDataReader(this::readClientTextData).setTextDataWriter(this::writeClientTextData).textSupplier(this.getLevel().isClientSide ? null : this::addDisplayText).setMaxWidthLimit(200).clickHandler(this::handleDisplayClick)));
         group.setBackground(GuiTextures.BACKGROUND_INVERSE);
         return group;
     }

@@ -51,6 +51,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -65,6 +66,7 @@ public class GTUtil {
     public static final Map EMPTY_MAP = Map.of();
 
     public static final Runnable NOOP = () -> {};
+    public static final Consumer NOOP_CONSUMER = o -> {};
 
     public static final Supplier NULL_SUPPLIER = () -> null;
 

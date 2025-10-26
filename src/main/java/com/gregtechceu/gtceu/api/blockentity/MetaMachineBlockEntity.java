@@ -45,12 +45,15 @@ import net.minecraftforge.common.util.LazyOptional;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import snownee.jade.api.BlockAccessor;
+import snownee.jade.api.ITooltip;
+import snownee.jade.api.config.IPluginConfig;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHighlight, IAsyncAutoSyncBlockEntity, IRPCBlockEntity, IAutoPersistBlockEntity, IPaintable {
+public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHighlight, IAsyncAutoSyncBlockEntity, IRPCBlockEntity, IAutoPersistBlockEntity, IPaintable, IWailaDisplayProvider {
 
     public final MetaMachine metaMachine;
     public final MachineDefinition definition;
@@ -331,5 +334,19 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
     @Override
     public int getDefaultPaintingColor() {
         return metaMachine.getDefaultPaintingColor();
+    }
+
+    @Override
+    public void appendWailaTooltip(CompoundTag data, ITooltip iTooltip, BlockAccessor blockAccessor, IPluginConfig iPluginConfig) {
+        if (metaMachine instanceof IWailaDisplayProvider provider) {
+            provider.appendWailaTooltip(data, iTooltip, blockAccessor, iPluginConfig);
+        }
+    }
+
+    @Override
+    public void appendWailaData(CompoundTag data, BlockAccessor blockAccessor) {
+        if (metaMachine instanceof IWailaDisplayProvider provider) {
+            provider.appendWailaData(data, blockAccessor);
+        }
     }
 }

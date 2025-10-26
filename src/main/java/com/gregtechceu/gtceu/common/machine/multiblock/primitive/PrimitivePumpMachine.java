@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.common.machine.multiblock.primitive;
 
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.capability.IWailaDisplayProvider;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
@@ -10,11 +11,18 @@ import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.biome.Biome.Precipitation;
 import net.minecraftforge.fluids.FluidType;
+
+import snownee.jade.api.BlockAccessor;
+import snownee.jade.api.ITooltip;
+import snownee.jade.api.config.IPluginConfig;
 
 import java.util.List;
 
@@ -22,7 +30,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class PrimitivePumpMachine extends MultiblockControllerMachine {
+public class PrimitivePumpMachine extends MultiblockControllerMachine implements IWailaDisplayProvider {
 
     private int biomeModifier = 0;
     private int hatchModifier = 0;
@@ -115,5 +123,17 @@ public class PrimitivePumpMachine extends MultiblockControllerMachine {
             value = value * 3 / 2;
         }
         return value;
+    }
+
+    @Override
+    public void appendWailaTooltip(CompoundTag data, ITooltip iTooltip, BlockAccessor blockAccessor, IPluginConfig iPluginConfig) {
+        long water = data.getLong("waterProduced");
+        iTooltip.add(Component.translatable("gtceu.top.primitive_pump_production",
+                FormattingUtil.formatNumbers(water)));
+    }
+
+    @Override
+    public void appendWailaData(CompoundTag data, BlockAccessor blockAccessor) {
+        data.putLong("waterProduced", getFluidProduction());
     }
 }

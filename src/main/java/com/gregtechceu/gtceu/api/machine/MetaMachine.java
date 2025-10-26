@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.machine;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.block.IAppearance;
 import com.gregtechceu.gtceu.api.block.IMachineBlock;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.IPaintable;
@@ -14,7 +13,6 @@ import com.gregtechceu.gtceu.api.data.RotationState;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.item.tool.IToolGridHighlight;
 import com.gregtechceu.gtceu.api.machine.feature.*;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
@@ -97,7 +95,7 @@ import static com.gregtechceu.gtceu.api.item.tool.ToolHelper.getBehaviorsTag;
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscription, IAppearance, IToolGridHighlight, IFancyTooltip, IPaintable, IRedstoneSignalMachine {
+public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyTooltip, IPaintable, IRedstoneSignalMachine {
 
     private static final Map<Class<?>, ManagedFieldHolder> MANAGED_FIELD_MAP = new ConcurrentHashMap<>();
 
@@ -376,7 +374,7 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
      * @return SUCCESS / CONSUME (will damage tool) / FAIL if something happened, so tools will get damaged and
      *         animations will be played
      */
-    @Override
+
     public Pair<GTToolType, InteractionResult> onToolClick(Set<@NotNull GTToolType> toolType, ItemStack itemStack, UseOnContext context) {
         // the side hit from the machine grid
         var playerIn = context.getPlayer();
@@ -568,7 +566,6 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         }
     }
 
-    @Override
     public boolean shouldRenderGrid(Player player, BlockPos pos, BlockState state, ItemStack held, Set<GTToolType> toolTypes) {
         if (toolTypes.contains(GTToolType.WRENCH)) return true;
         if (toolTypes.contains(GTToolType.SCREWDRIVER) && (this instanceof IAutoOutputItem || this instanceof IAutoOutputFluid)) return true;
@@ -578,7 +575,6 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
         return false;
     }
 
-    @Override
     public ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes, Direction side) {
         var cover = coverContainer.getCoverAtSide(side);
         if (cover != null) {
@@ -755,7 +751,6 @@ public class MetaMachine implements IEnhancedManaged, IToolable, ITickSubscripti
 
     public void animateTick(RandomSource random) {}
 
-    @Override
     @NotNull
     public BlockState getBlockAppearance(BlockState state, BlockAndTintGetter level, BlockPos pos, Direction side, BlockState sourceState, BlockPos sourcePos) {
         var appearance = getCoverContainer().getBlockAppearance(state, level, pos, side, sourceState, sourcePos);

@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.machine.electric;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IControllable;
+import com.gregtechceu.gtceu.api.capability.IWailaDisplayProvider;
 import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 
@@ -12,17 +13,22 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.UpdateListener;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
+import snownee.jade.api.BlockAccessor;
+import snownee.jade.api.ITooltip;
+import snownee.jade.api.config.IPluginConfig;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class TransformerMachine extends TieredEnergyMachine implements IControllable {
+public class TransformerMachine extends TieredEnergyMachine implements IControllable, IWailaDisplayProvider {
 
     @Persisted
     @DescSynced
@@ -123,5 +129,44 @@ public class TransformerMachine extends TieredEnergyMachine implements IControll
 
     public int getBaseAmp() {
         return this.baseAmp;
+    }
+
+    @Override
+    public void appendWailaTooltip(CompoundTag data, ITooltip iTooltip, BlockAccessor blockAccessor, IPluginConfig iPluginConfig) {
+        boolean transformUp = data.getBoolean("transformUp");
+        int voltage = data.getInt("baseVoltage");
+        int amp = data.getInt("baseAmp");
+        if (transformUp) {
+            iTooltip.add(Component.translatable("gtceu.top.transform_up",
+                    (GTValues.VNF[voltage] + " §r(" + amp * 4 + "A) -> " + GTValues.VNF[voltage + 1] + " §r(" +
+                            amp +
+                            "A)")));
+        } else {
+            iTooltip.add(Component.translatable("gtceu.top.transform_down",
+                    (GTValues.VNF[voltage + 1] + " §r(" + amp + "A) -> " + GTValues.VNF[voltage] + " §r(" +
+                            amp * 4 +
+                            "A)")));
+        }
+
+        if (blockAccessor.getHitResult().getDirection() ==
+                Direction.from3DDataValue(data.getInt("side"))) {
+            iTooltip.add(
+                    Component.translatable(
+                            (transformUp ? "gtceu.top.transform_output" : "gtceu.top.transform_input"),
+                            (GTValues.VNF[voltage + 1] + " §r(" + amp + "A)")));
+        } else {
+            iTooltip.add(
+                    Component.translatable(
+                            (transformUp ? "gtceu.top.transform_input" : "gtceu.top.transform_output"),
+                            (GTValues.VNF[voltage] + " §r(" + amp * 4 + "A)")));
+        }
+    }
+
+    @Override
+    public void appendWailaData(CompoundTag data, BlockAccessor blockAccessor) {
+        data.putInt("side", getFrontFacing().get3DDataValue());
+        data.putBoolean("transformUp", isTransformUp);
+        data.putInt("baseAmp", baseAmp);
+        data.putInt("baseVoltage", getTier());
     }
 }
