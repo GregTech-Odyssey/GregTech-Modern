@@ -6,8 +6,10 @@ import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
 import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
+import com.gregtechceu.gtceu.utils.asm.EmptyMethodChecker;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
@@ -20,6 +22,7 @@ import net.minecraft.server.level.ServerLevel;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
@@ -36,6 +39,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
 
+    private static final Reference2BooleanOpenHashMap<Class<?>> ON_WORKING_METHOD = new Reference2BooleanOpenHashMap<>();
+
     @DescSynced
     @RequireRerender
     @UpdateListener(methodName = "onControllersUpdated")
@@ -46,6 +51,17 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
 
     public MultiblockPartMachine(MetaMachineBlockEntity holder) {
         super(holder);
+    }
+
+    public boolean hasOnWorkingMethod() {
+        var c = getClass();
+        return ON_WORKING_METHOD.computeIfAbsent(c, k -> {
+            try {
+                return EmptyMethodChecker.isMethodBodyEmpty(c.getMethod("onWorking", IWorkableMultiController.class));
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
@@ -61,10 +77,8 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
     @Override
     public void onRotated(Direction oldFacing, Direction newFacing) {
         super.onRotated(oldFacing, newFacing);
-        if (oldFacing != newFacing) {
-            for (var controller : controllers) {
-                controller.requestCheck();
-            }
+        for (var controller : controllers) {
+            controller.requestCheck();
         }
     }
 

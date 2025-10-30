@@ -31,10 +31,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -60,6 +57,8 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @DescSynced
     protected final Set<Long> activeBlocks = new LongOpenHashSet();
     protected RecipeHandlerList currentHandlerList;
+
+    protected IMultiPart[] onWorkings = new IMultiPart[0];
 
     @DescSynced
     protected boolean activated;
@@ -101,6 +100,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
+        onWorkings = Arrays.stream(getParts()).filter(IMultiPart::hasOnWorkingMethod).toList().toArray(new IMultiPart[0]);
         activeState = ActiveBlock.State.UNKNOWN;
         // attach parts' traits
         activeBlocks.clear();
@@ -132,6 +132,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void onStructureInvalid() {
         super.onStructureInvalid();
+        onWorkings = new IMultiPart[0];
         activeState = ActiveBlock.State.UNKNOWN;
         activeBlocks.clear();
         capabilitiesProxy.clear();
@@ -228,7 +229,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Override
     public boolean onWorking() {
-        for (IMultiPart part : getParts()) {
+        for (IMultiPart part : onWorkings) {
             if (!part.onWorking(this)) {
                 return false;
             }

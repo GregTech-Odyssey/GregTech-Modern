@@ -98,10 +98,6 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
         }
     }
 
-    protected void notifyOutputSubscription() {
-        checkOutput = true;
-    }
-
     public void checkOutputSubscription() {
         checkOutput = false;
         if (machine.getLevel() instanceof ServerLevel) {
@@ -119,7 +115,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
     public void setEnergyStored(long energyStored) {
         if (this.energyStored == energyStored) return;
         this.energyStored = energyStored;
-        notifyOutputSubscription();
+        checkOutput = true;
         notify = true;
     }
 

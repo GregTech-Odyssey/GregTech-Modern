@@ -6,7 +6,10 @@ import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.IPaintable;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.*;
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
+import com.gregtechceu.gtceu.api.capability.IControllable;
+import com.gregtechceu.gtceu.api.capability.ICoverable;
+import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.data.RotationState;
@@ -155,6 +158,8 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     protected final DirectionCache<FluidState> fluidStateDirectionCache = DirectionCache.create();
 
     public final BlockEntityDirectionCache blockEntityDirectionCache = BlockEntityDirectionCache.create();
+
+    protected Direction frontFacing;
 
     protected boolean sync = true;
 
@@ -621,11 +626,14 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     }
 
     public Direction getFrontFacing() {
-        var blockState = getBlockState();
-        if (blockState.getBlock() instanceof MetaMachineBlock machineBlock) {
-            return machineBlock.getFrontFacing(blockState);
+        if (frontFacing == null) {
+            var blockState = getBlockState();
+            if (blockState.getBlock() instanceof MetaMachineBlock machineBlock) {
+                return frontFacing = machineBlock.getFrontFacing(blockState);
+            }
+            return frontFacing = Direction.NORTH;
         }
-        return Direction.NORTH;
+        return frontFacing;
     }
 
     public final boolean hasFrontFacing() {
@@ -703,12 +711,11 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     }
 
     public void onRotated(Direction oldFacing, Direction newFacing) {
-        if (oldFacing != newFacing) {
-            clearDirectionCache();
-            for (var trait : traits) {
-                trait.onMachineRotated(oldFacing, newFacing);
-            }
+        clearDirectionCache();
+        for (var trait : traits) {
+            trait.onMachineRotated(oldFacing, newFacing);
         }
+        frontFacing = null;
     }
 
     public boolean allowExtendedFacing() {

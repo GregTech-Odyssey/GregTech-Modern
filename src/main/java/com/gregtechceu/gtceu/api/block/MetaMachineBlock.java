@@ -101,7 +101,7 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
 
     @Override
     public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
-        return getRotationState() == RotationState.NONE ? definition.getShape(Direction.NORTH) : definition.getShape(pState.getValue(getRotationState().property));
+        return rotationState == RotationState.NONE ? definition.getShape(Direction.NORTH) : definition.getShape(pState.getValue(rotationState.property));
     }
 
     @Override
@@ -145,7 +145,7 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        RotationState rotationState = getRotationState();
+        RotationState rotationState = this.rotationState;
         var player = context.getPlayer();
         var blockPos = context.getClickedPos();
         var state = defaultBlockState();
@@ -165,7 +165,7 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
                     state = state.setValue(rotationState.property, Direction.DOWN);
                 }
             }
-            if (getDefinition().isAllowExtendedFacing()) {
+            if (definition.isAllowExtendedFacing()) {
                 Direction frontFacing = state.getValue(rotationState.property);
                 if (frontFacing == Direction.UP) {
                     state = state.setValue(IMachineBlock.UPWARDS_FACING_PROPERTY, player.getDirection());
@@ -178,7 +178,7 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
     }
 
     public Direction getFrontFacing(BlockState state) {
-        return getRotationState() == RotationState.NONE ? Direction.NORTH : state.getValue(getRotationState().property);
+        return rotationState == RotationState.NONE ? Direction.NORTH : state.getValue(rotationState.property);
     }
 
     @Override

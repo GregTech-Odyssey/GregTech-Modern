@@ -23,6 +23,7 @@ import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
+import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
@@ -52,7 +53,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -197,7 +197,7 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     }
 
     public void update() {
-        if (drainEnergy(false)) {
+        if (getOffsetTimer() % 20 == 0 && drainEnergy(false)) {
             if (aabb == null || rangeDirty) {
                 rangeDirty = false;
                 BlockPos pos1;
@@ -214,43 +214,17 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     public void moveItemsInRange() {
         ItemFilter filter = null;
         if (!filterInventory.getStackInSlot(0).isEmpty()) filter = ItemFilter.loadFilter(filterInventory.getStackInSlot(0));
-        BlockPos centerPos = self().getPos().above();
         List<ItemEntity> itemEntities = getLevel().getEntitiesOfClass(ItemEntity.class, aabb);
         for (ItemEntity itemEntity : itemEntities) {
             if (!itemEntity.isAlive()) continue;
             if (filter != null && !filter.test(itemEntity.getItem())) continue;
-            double distX = (centerPos.getX() + 0.5) - itemEntity.position().x;
-            double distZ = (centerPos.getZ() + 0.5) - itemEntity.position().z;
-            double dist = Math.sqrt(Math.pow(distX, 2) + Math.pow(distZ, 2));
-            if (dist >= 0.7F) {
-                if (itemEntity.pickupDelay == 32767) continue; // INFINITE_PICKUP_DELAY = 32767
-                double dirX = distX / dist;
-                double dirZ = distZ / dist;
-                Vec3 delta = itemEntity.getDeltaMovement();
-                itemEntity.setDeltaMovement(dirX * MOTION_MULTIPLIER * tier, delta.y, dirZ * MOTION_MULTIPLIER * tier);
-                itemEntity.setPickUpDelay(1);
-            } else {
-                ItemStack stack = itemEntity.getItem();
-                if (!canFillOutput(stack)) continue;
-                ItemStack remainder = fillOutput(stack);
+            ItemStack stack = itemEntity.getItem();
+            ItemStack remainder = GTTransferUtils.insertItem(output.storage, stack, false);
+            if (stack.getCount() > remainder.getCount()) {
                 if (remainder.isEmpty()) itemEntity.kill();
-                else if (stack.getCount() > remainder.getCount()) itemEntity.setItem(remainder);
+                else itemEntity.setItem(remainder);
             }
         }
-    }
-
-    private boolean canFillOutput(ItemStack stack) {
-        for (int i = 0; i < output.getSlots(); i++) {
-            if (output.insertItemInternal(i, stack, true).getCount() < stack.getCount()) return true;
-        }
-        return false;
-    }
-
-    private ItemStack fillOutput(ItemStack stack) {
-        for (int i = 0; i < output.getSlots(); i++) {
-            if (output.insertItemInternal(i, stack, true).getCount() < stack.getCount()) return output.insertItemInternal(i, stack, false);
-        }
-        return ItemStack.EMPTY;
     }
 
     public boolean drainEnergy(boolean simulate) {

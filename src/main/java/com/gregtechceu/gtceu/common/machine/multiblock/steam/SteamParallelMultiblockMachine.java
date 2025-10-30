@@ -19,7 +19,6 @@ import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
-import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -47,7 +46,7 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
 
     private int maxParallels = ConfigHolder.INSTANCE.machines.steamMultiParallelAmount;
     @Nullable
-    private SteamEnergyRecipeHandler steamEnergy = null;
+    protected SteamEnergyRecipeHandler steamEnergy = null;
     // if in millibuckets, this is 2.0, Meaning 2mb of steam -> 1 EU
     public static final double CONVERSION_RATE = 2.0;
 
@@ -61,6 +60,14 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
+        addSteamEnergy();
+        if (steamEnergy == null) {
+            // No steam hatch found
+            onStructureInvalid();
+        }
+    }
+
+    protected void addSteamEnergy() {
         for (var part : getParts()) {
             if (!PartAbility.STEAM.isApplicable(part.self().getDefinition().getBlock())) continue;
             var handlers = part.getRecipeHandlers();
@@ -68,17 +75,11 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
                 if (!hl.isValid(IO.IN)) continue;
                 for (var fluidHandler : hl.getCapability(FluidRecipeCapability.CAP)) {
                     if (!(fluidHandler instanceof NotifiableFluidTank nft)) continue;
-                    if (nft.isFluidValid(0, GTMaterials.Steam.getFluid(1))) {
-                        steamEnergy = new SteamEnergyRecipeHandler(nft, getConversionRate());
-                        addHandlerList(RecipeHandlerList.of(IO.IN, steamEnergy));
-                        return;
-                    }
+                    steamEnergy = new SteamEnergyRecipeHandler(nft, getConversionRate());
+                    addHandlerList(RecipeHandlerList.of(IO.IN, steamEnergy));
+                    return;
                 }
             }
-        }
-        if (steamEnergy == null) {
-            // No steam hatch found
-            onStructureInvalid();
         }
     }
 

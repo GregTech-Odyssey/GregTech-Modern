@@ -226,7 +226,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                 long stored = getEnergyStored();
                 if (stored > 0) {
                     var voltage = getOutputVoltage();
-                    var canOutput = Math.min(stored, getOutputAmperage() * voltage);
+                    var canOutput = Math.min(stored, batteries.size() * voltage);
                     out = energyContainer.acceptEnergyFromNetwork(this, outFacing.getOpposite(), voltage, canOutput);
                     if (out == 0) return;
 
@@ -241,7 +241,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                 }
                 if (changed) {
                     BatteryBufferMachine.this.onChanged();
-                    notifyOutputSubscription();
+                    checkOutput = true;
                 }
             }
         }
@@ -283,7 +283,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                 }
                 if (changed) {
                     BatteryBufferMachine.this.onChanged();
-                    notifyOutputSubscription();
+                    checkOutput = true;
                 }
                 return energyAdded;
             }

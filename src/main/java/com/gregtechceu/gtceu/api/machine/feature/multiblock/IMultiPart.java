@@ -19,6 +19,8 @@ import java.util.SortedSet;
 
 public interface IMultiPart extends IFancyUIMachine {
 
+    boolean hasOnWorkingMethod();
+
     /**
      * Can it be shared among multi multiblock.
      */
