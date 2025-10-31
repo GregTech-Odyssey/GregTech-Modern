@@ -44,6 +44,8 @@ import it.unimi.dsi.fastutil.bytes.Byte2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2IntAVLTreeMap;
 import it.unimi.dsi.fastutil.objects.Object2IntSortedMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,16 +58,25 @@ import java.util.function.DoubleSupplier;
 @SuppressWarnings("UnusedReturnValue")
 public class GTRecipeTypeUI {
 
+    @Getter
+    @Setter
     private Byte2ObjectMap<IGuiTexture> slotOverlays = new Byte2ObjectArrayMap<>();
     private final GTRecipeType recipeType;
+    @Getter
+    @Setter
     private ProgressTexture progressBarTexture = new ProgressTexture(GuiTextures.PROGRESS_BAR_ARROW.getSubTexture(0, 0, 1, 0.5), GuiTextures.PROGRESS_BAR_ARROW.getSubTexture(0, 0.5, 1, 0.5));
+    @Setter
     private SteamTexture steamProgressBarTexture = null;
+    @Setter
     private ProgressTexture.FillDirection steamMoveType = ProgressTexture.FillDirection.LEFT_TO_RIGHT;
     @Nullable
     protected BiConsumer<GTRecipe, WidgetGroup> uiBuilder;
+    @Getter
+    @Setter
     protected int maxTooltips = 3;
     private CompoundTag customUICache;
     private Size xeiSize;
+    @Getter
     private int originalWidth;
 
     /**
@@ -348,43 +359,7 @@ public class GTRecipeTypeUI {
         return this;
     }
 
-    public Byte2ObjectMap<IGuiTexture> getSlotOverlays() {
-        return this.slotOverlays;
-    }
-
-    public void setSlotOverlays(final Byte2ObjectMap<IGuiTexture> slotOverlays) {
-        this.slotOverlays = slotOverlays;
-    }
-
-    public ProgressTexture getProgressBarTexture() {
-        return this.progressBarTexture;
-    }
-
-    public void setProgressBarTexture(final ProgressTexture progressBarTexture) {
-        this.progressBarTexture = progressBarTexture;
-    }
-
-    public void setSteamProgressBarTexture(final SteamTexture steamProgressBarTexture) {
-        this.steamProgressBarTexture = steamProgressBarTexture;
-    }
-
-    public void setSteamMoveType(final ProgressTexture.FillDirection steamMoveType) {
-        this.steamMoveType = steamMoveType;
-    }
-
     public void setUiBuilder(@Nullable final BiConsumer<GTRecipe, WidgetGroup> uiBuilder) {
         this.uiBuilder = uiBuilder;
-    }
-
-    public void setMaxTooltips(final int maxTooltips) {
-        this.maxTooltips = maxTooltips;
-    }
-
-    public int getMaxTooltips() {
-        return this.maxTooltips;
-    }
-
-    public int getOriginalWidth() {
-        return this.originalWidth;
     }
 }

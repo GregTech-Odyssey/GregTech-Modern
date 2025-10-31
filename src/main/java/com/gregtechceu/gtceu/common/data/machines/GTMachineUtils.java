@@ -611,8 +611,7 @@ public class GTMachineUtils {
                                                                         .relative(rotorHolder.self().getFrontFacing()))
                                                                 .isAir(),
                                                 () -> BlockInfo.fromBlockState(GTMachines.ROTOR_HOLDER[HV].defaultBlockState()),
-                                                () -> PartAbility.ROTOR_HOLDER.getAllBlocks().stream()
-                                                        .toArray(Block[]::new)))
+                                                () -> PartAbility.ROTOR_HOLDER.getAllBlocks().toArray(Block[]::new)))
                                         .addTooltips(Component.translatable("gtceu.multiblock.pattern.clear_amount_3"))
                                         .addTooltips(Component.translatable("gtceu.multiblock.pattern.error.limited.1",
                                                 VN[tier]))

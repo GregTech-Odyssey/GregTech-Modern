@@ -20,6 +20,7 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.item.ItemStack;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -172,6 +173,7 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhan
     //////////////////////////////////////
     // ***** LDLib SyncData ******//
     //////////////////////////////////////
+    @Getter
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
 
     @Override
@@ -187,9 +189,5 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhan
     @NotNull
     public ItemStack getFilterItem() {
         return this.filterItem;
-    }
-
-    public FieldManagedStorage getSyncStorage() {
-        return this.syncStorage;
     }
 }

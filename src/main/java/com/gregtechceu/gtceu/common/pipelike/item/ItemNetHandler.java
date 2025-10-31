@@ -26,6 +26,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
@@ -34,8 +35,10 @@ import java.util.List;
 
 public class ItemNetHandler implements IItemHandlerModifiable {
 
+    @Getter
     private ItemPipeNet net;
     private final ItemPipeBlockEntity pipe;
+    @Getter
     private final Direction facing;
     private final Object2IntOpenHashMap<FacingPos> simulatedTransfersGlobalRoundRobin = new O2IOpenCacheHashMap<>();
     private int simulatedTransfers = 0;
@@ -418,13 +421,5 @@ public class ItemNetHandler implements IItemHandlerModifiable {
             this.transferred = transferred;
             this.routePath = routePath;
         }
-    }
-
-    public ItemPipeNet getNet() {
-        return this.net;
-    }
-
-    public Direction getFacing() {
-        return this.facing;
     }
 }

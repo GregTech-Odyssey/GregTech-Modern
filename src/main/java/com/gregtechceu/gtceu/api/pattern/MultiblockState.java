@@ -17,6 +17,8 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -28,20 +30,27 @@ public class MultiblockState {
     public static final PatternStringError UNLOAD_ERROR = new PatternStringError("multiblocked.pattern.error.chunk");
     public static final PatternStringError UNINIT_ERROR = new PatternStringError("multiblocked.pattern.error.init");
 
+    @Getter
     public BlockPos pos;
     public BlockState blockState;
     public BlockEntity tileEntity;
     public boolean tileEntityInitialized;
+    @Getter
     public final Reference2IntOpenHashMap<SimplePredicate> globalCount = new Reference2IntOpenHashMap<>();
+    @Getter
     public final Reference2IntOpenHashMap<SimplePredicate> layerCount = new Reference2IntOpenHashMap<>();
     public TraceabilityPredicate predicate;
     public PatternError error;
+    @Getter
+    @Setter
     public boolean neededFlip = false;
 
+    @Getter
     public final Level world;
     public final BlockPos controllerPos;
     public final IMultiController controller;
     // persist
+    @Getter
     public final PatternMatchContext matchContext;
     public final LongOpenHashSet cache = new LongOpenHashSet();
 
@@ -134,14 +143,6 @@ public class MultiblockState {
         return this.tileEntity;
     }
 
-    public BlockPos getPos() {
-        return this.pos;
-    }
-
-    public Level getWorld() {
-        return world;
-    }
-
     public void addPosCache(long pos) {
         cache.add(pos);
     }
@@ -171,25 +172,5 @@ public class MultiblockState {
                 }
             }
         }
-    }
-
-    public PatternMatchContext getMatchContext() {
-        return this.matchContext;
-    }
-
-    public Reference2IntOpenHashMap<SimplePredicate> getGlobalCount() {
-        return this.globalCount;
-    }
-
-    public Reference2IntOpenHashMap<SimplePredicate> getLayerCount() {
-        return this.layerCount;
-    }
-
-    public boolean isNeededFlip() {
-        return this.neededFlip;
-    }
-
-    public void setNeededFlip(final boolean neededFlip) {
-        this.neededFlip = neededFlip;
     }
 }

@@ -109,7 +109,7 @@ public class TagItemFilter extends TagFilter<ItemStack, ItemFilter> implements I
 
         @Override
         public Stream<TagKey<?>> getTags() {
-            return getStack().getTags().map(t -> (TagKey<?>) t);
+            return getStack().getTags().map(t -> t);
         }
     }
 }

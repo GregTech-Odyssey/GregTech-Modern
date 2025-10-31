@@ -57,7 +57,7 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
         var c = getClass();
         return ON_WORKING_METHOD.computeIfAbsent(c, k -> {
             try {
-                return EmptyMethodChecker.isMethodBodyEmpty(c.getMethod("onWorking", IWorkableMultiController.class));
+                return EmptyMethodChecker.hasMethodBody(c.getMethod("onWorking", IWorkableMultiController.class));
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }

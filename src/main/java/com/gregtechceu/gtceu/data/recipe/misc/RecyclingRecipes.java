@@ -133,10 +133,7 @@ public class RecyclingRecipes {
             builder.inputItems(inputTag);
         }
 
-        boolean recycle = true;
-        if (!entry.isEmpty() && entry.tagPrefix() == TagPrefix.ingot) {
-            recycle = false;
-        }
+        boolean recycle = entry.isEmpty() || entry.tagPrefix() != TagPrefix.ingot;
 
         if (recycle) {
             builder.category(GTRecipeCategories.MACERATOR_RECYCLING);
@@ -542,7 +539,6 @@ public class RecyclingRecipes {
         Material material = entry.material();
         long materialAmount = originalStack.getCount() * entry.tagPrefix().getMaterialAmount(material);
 
-        // noinspection ConstantConditions
         final List<TagPrefix> chosenList = material.hasProperty(PropertyKey.INGOT) ? INGOT_ORDER : DUST_ORDER;
 
         // Break materialAmount into a maximal stack

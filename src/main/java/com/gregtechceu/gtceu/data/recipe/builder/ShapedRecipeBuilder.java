@@ -65,13 +65,13 @@ public class ShapedRecipeBuilder extends Builder<Ingredient, ShapedRecipeBuilder
 
     public ShapedRecipeBuilder output(ItemStack itemStack) {
         this.output = itemStack.copy();
-        return (ShapedRecipeBuilder) this;
+        return this;
     }
 
     public ShapedRecipeBuilder output(ItemStack itemStack, int count) {
         this.output = itemStack.copy();
         this.output.setCount(count);
-        return (ShapedRecipeBuilder) this;
+        return this;
     }
 
     public ShapedRecipeBuilder output(ItemStack itemStack, int count, CompoundTag nbt) {

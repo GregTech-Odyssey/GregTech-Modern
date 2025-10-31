@@ -574,7 +574,6 @@ public final class PartsRecipeHandler {
         }
 
         // ItemStack rotorStack = GTItems.TURBINE_ROTOR.asStack();
-        // noinspection ConstantConditions
         // TurbineRotorBehaviour.getBehaviour(rotorStack).setPartMaterial(rotorStack, material);
 
         // ASSEMBLER_RECIPES.recipeBuilder("assemble_" + material.getName() + "_turbine_blade")

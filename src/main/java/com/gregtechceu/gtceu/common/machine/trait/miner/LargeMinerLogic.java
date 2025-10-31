@@ -22,15 +22,20 @@ import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+@Getter
 public class LargeMinerLogic extends MinerLogic {
 
     private static final int CHUNK_LENGTH = 16;
     private static final LootItemFunction DROP_MULTIPLIER = ApplyBonusCount.addOreBonusCount(Enchantments.BLOCK_FORTUNE).build();
+    @Setter
     private int voltageTier;
+    @Setter
     private int overclockAmount = 0;
     @Persisted
     private boolean isChunkMode;
@@ -128,29 +133,5 @@ public class LargeMinerLogic extends MinerLogic {
             }
             blockDrops.add(outputStack);
         }
-    }
-
-    public void setVoltageTier(final int voltageTier) {
-        this.voltageTier = voltageTier;
-    }
-
-    public int getVoltageTier() {
-        return this.voltageTier;
-    }
-
-    public int getOverclockAmount() {
-        return this.overclockAmount;
-    }
-
-    public void setOverclockAmount(final int overclockAmount) {
-        this.overclockAmount = overclockAmount;
-    }
-
-    public boolean isChunkMode() {
-        return this.isChunkMode;
-    }
-
-    public boolean isSilkTouchMode() {
-        return this.isSilkTouchMode;
     }
 }

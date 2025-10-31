@@ -18,6 +18,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
 
+import lombok.Getter;
+
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -59,8 +61,11 @@ public abstract class NumberInputWidget<T extends Number> extends WidgetGroup {
     private final ChangeValues<T> CHANGE_VALUES = getChangeValues();
     private final T ONE_POSITIVE = getOne(true);
     private final T ONE_NEGATIVE = getOne(false);
+    @Getter
     private final Supplier<T> valueSupplier;
+    @Getter
     private T min = defaultMin();
+    @Getter
     private T max = defaultMax();
     private final Consumer<T> onChanged;
     private TextFieldWidget textField;
@@ -163,17 +168,5 @@ public abstract class NumberInputWidget<T extends Number> extends WidgetGroup {
     protected void updateTextFieldRange() {
         setTextFieldRange(textField, min, max);
         this.setValue(clamp(valueSupplier.get(), min, max));
-    }
-
-    public Supplier<T> getValueSupplier() {
-        return this.valueSupplier;
-    }
-
-    public T getMin() {
-        return this.min;
-    }
-
-    public T getMax() {
-        return this.max;
     }
 }

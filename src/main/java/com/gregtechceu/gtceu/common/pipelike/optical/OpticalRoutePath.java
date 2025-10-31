@@ -14,6 +14,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.Capability;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,6 +22,7 @@ public class OpticalRoutePath implements IRoutePath<IOpticalComputationProvider>
 
     private final OpticalPipeBlockEntity targetPipe;
     private final Direction targetFacing;
+    @Getter
     private final int distance;
 
     public OpticalRoutePath(OpticalPipeBlockEntity targetPipe, Direction targetFacing, int distance) {
@@ -66,9 +68,5 @@ public class OpticalRoutePath implements IRoutePath<IOpticalComputationProvider>
 
     public @NotNull Direction getTargetFacing() {
         return this.targetFacing;
-    }
-
-    public int getDistance() {
-        return this.distance;
     }
 }

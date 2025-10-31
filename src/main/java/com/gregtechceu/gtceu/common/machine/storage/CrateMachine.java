@@ -32,6 +32,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -40,8 +41,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class CrateMachine extends MetaMachine implements IUIMachine, IMachineLife, IDropSaveMachine, IInteractedMachine {
 
+    @Getter
     private final Material material;
+    @Getter
     private final int inventorySize;
+    @Getter
     @RequireRerender
     @Persisted
     @DescSynced
@@ -122,17 +126,5 @@ public class CrateMachine extends MetaMachine implements IUIMachine, IMachineLif
     @Override
     public void onMachineRemoved() {
         if (!isTaped) clearInventory(inventory.storage);
-    }
-
-    public Material getMaterial() {
-        return this.material;
-    }
-
-    public int getInventorySize() {
-        return this.inventorySize;
-    }
-
-    public boolean isTaped() {
-        return this.isTaped;
     }
 }

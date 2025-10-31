@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,8 +19,11 @@ public class EnergyRoutePath implements IRoutePath<IEnergyContainer> {
     private PipeBlockEntity<?, ?> pipeBlockEntity;
     private final BlockPos targetPipePos;
     private final Direction targetFacing;
+    @Getter
     private final int distance;
+    @Getter
     private final CableBlockEntity[] path;
+    @Getter
     private final long maxLoss;
 
     public EnergyRoutePath(BlockPos targetPipePos, Direction targetFacing, CableBlockEntity[] path, int distance, long maxLoss) {
@@ -46,17 +50,5 @@ public class EnergyRoutePath implements IRoutePath<IEnergyContainer> {
 
     public @NotNull Direction getTargetFacing() {
         return this.targetFacing;
-    }
-
-    public int getDistance() {
-        return this.distance;
-    }
-
-    public CableBlockEntity[] getPath() {
-        return this.path;
-    }
-
-    public long getMaxLoss() {
-        return this.maxLoss;
     }
 }

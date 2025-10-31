@@ -36,6 +36,7 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -72,7 +73,7 @@ public final class ChestGenHooks {
                     entries = ArrayUtils.add(entries, entry);
                     ((LootPoolAccessor) mainPool).setEntries(entries);
                 } catch (RuntimeException e) {
-                    GTCEu.LOGGER.error("Couldn\'t add {} to lootTable {}: {}", entry, name, e.getMessage());
+                    GTCEu.LOGGER.error("Couldn't add {} to lootTable {}: {}", entry, name, e.getMessage());
                 }
             }
         }
@@ -130,7 +131,9 @@ public final class ChestGenHooks {
 
         public static final LootItemFunctionType TYPE = GTRegistries.register(BuiltInRegistries.LOOT_FUNCTION_TYPE, GTCEu.id("random_weight"), new LootItemFunctionType(new Serializer()));
         private final ItemStack stack;
+        @Getter
         private final int minAmount;
+        @Getter
         private final int maxAmount;
 
         public RandomWeightLootFunction(@NotNull ItemStack stack, int minAmount, int maxAmount) {
@@ -190,14 +193,6 @@ public final class ChestGenHooks {
                 int max = GsonHelper.getAsInt(object, "max");
                 return new RandomWeightLootFunction(stack, min, max);
             }
-        }
-
-        public int getMinAmount() {
-            return this.minAmount;
-        }
-
-        public int getMaxAmount() {
-            return this.maxAmount;
         }
     }
 }

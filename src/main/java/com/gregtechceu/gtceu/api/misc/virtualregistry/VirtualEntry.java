@@ -5,6 +5,7 @@ import com.lowdragmc.lowdraglib.syncdata.ITagSerializable;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.common.util.INBTSerializable;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
@@ -16,7 +17,9 @@ public abstract class VirtualEntry implements INBTSerializable<CompoundTag>, ITa
     protected static final String DESC_KEY = "description";
     @NotNull
     private String description = "";
+    @Getter
     private int color = -1;
+    @Getter
     private String colorStr = DEFAULT_COLOR;
 
     public abstract EntryTypes<? extends VirtualEntry> getType();
@@ -69,14 +72,6 @@ public abstract class VirtualEntry implements INBTSerializable<CompoundTag>, ITa
     @NotNull
     public String getDescription() {
         return this.description;
-    }
-
-    public int getColor() {
-        return this.color;
-    }
-
-    public String getColorStr() {
-        return this.colorStr;
     }
 
     /**

@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,11 +29,13 @@ import java.util.EnumMap;
 
 public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPipeProperties> {
 
+    @Getter
     protected final EnumMap<Direction, LaserNetHandler> handlers = new EnumMap<>(Direction.class);
     private WeakReference<LaserPipeNet> currentPipeNet = new WeakReference<>(null);
     protected LaserNetHandler defaultHandler;
     private int ticksActive = 0;
     private int activeDuration = 0;
+    @Getter
     @Persisted
     @DescSynced
     private boolean active = false;
@@ -156,13 +159,5 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
     @Override
     public GTToolType getPipeTuneTool() {
         return GTToolType.WIRE_CUTTER;
-    }
-
-    public EnumMap<Direction, LaserNetHandler> getHandlers() {
-        return this.handlers;
-    }
-
-    public boolean isActive() {
-        return this.active;
     }
 }

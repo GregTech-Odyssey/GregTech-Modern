@@ -12,13 +12,17 @@ import com.lowdragmc.lowdraglib.jei.IngredientIO;
 
 import net.minecraft.network.chat.Component;
 
+import lombok.Getter;
+
 import java.util.Collections;
 import java.util.List;
 
 public class FancyInvConfigurator implements IFancyConfigurator {
 
     private final CustomItemStackHandler inventory;
+    @Getter
     private final Component title;
+    @Getter
     private List<Component> tooltips = Collections.emptyList();
 
     public FancyInvConfigurator(CustomItemStackHandler inventory, Component title) {
@@ -50,14 +54,6 @@ public class FancyInvConfigurator implements IFancyConfigurator {
         container.setBackground(GuiTextures.BACKGROUND_INVERSE);
         group.addWidget(container);
         return group;
-    }
-
-    public Component getTitle() {
-        return this.title;
-    }
-
-    public List<Component> getTooltips() {
-        return this.tooltips;
     }
 
     /**

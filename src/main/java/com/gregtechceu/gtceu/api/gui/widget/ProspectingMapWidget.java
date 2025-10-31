@@ -33,6 +33,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -46,6 +47,7 @@ public class ProspectingMapWidget extends WidgetGroup implements SearchComponent
     private final int chunkRadius;
     private final ProspectorMode mode;
     private final int scanTick;
+    @Getter
     private boolean darkMode = false;
     protected final DraggableScrollableWidgetGroup itemList;
     @OnlyIn(Dist.CLIENT)
@@ -336,8 +338,4 @@ public class ProspectingMapWidget extends WidgetGroup implements SearchComponent
     }
 
     protected record WaypointItem(BlockPos position, String name, int color) {}
-
-    public boolean isDarkMode() {
-        return this.darkMode;
-    }
 }

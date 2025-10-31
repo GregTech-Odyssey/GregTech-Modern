@@ -21,11 +21,13 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class Content {
 
+    @Getter
     public final Object content;
     public final int chance;
     public final int maxChance;
@@ -138,9 +140,5 @@ public class Content {
     @Override
     public String toString() {
         return "Content{" + "content=" + content + ", chance=" + chance + ", maxChance=" + maxChance + ", tierChanceBoost=" + tierChanceBoost + '}';
-    }
-
-    public Object getContent() {
-        return this.content;
     }
 }

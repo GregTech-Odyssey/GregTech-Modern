@@ -41,6 +41,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -59,8 +60,10 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
     protected TickableSubscription autoIOSubs;
     @Nullable
     protected ISubscription tankSubs;
+    @Getter
     @Persisted
     protected final NotifiableItemStackHandler circuitInventory;
+    @Getter
     @Persisted
     @DescSynced
     private boolean isDistinct = false;
@@ -317,13 +320,5 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
         container.setBackground(GuiTextures.BACKGROUND_INVERSE);
         group.addWidget(container);
         return group;
-    }
-
-    public NotifiableItemStackHandler getCircuitInventory() {
-        return this.circuitInventory;
-    }
-
-    public boolean isDistinct() {
-        return this.isDistinct;
     }
 }

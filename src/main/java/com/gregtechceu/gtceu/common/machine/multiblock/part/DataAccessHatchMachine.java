@@ -34,6 +34,7 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,6 +50,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class DataAccessHatchMachine extends TieredPartMachine implements IMachineLife, IDataAccessHatch, IDataInfoProvider {
 
     private final Set<GTRecipe> recipes;
+    @Getter
     private final boolean isCreative;
     @Persisted
     public final NotifiableItemStackHandler importItems;
@@ -182,9 +184,5 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
         // hatches need to have the recipe available
         if (this.isRecipeAvailable(recipe)) return recipe;
         return null;
-    }
-
-    public boolean isCreative() {
-        return this.isCreative;
     }
 }

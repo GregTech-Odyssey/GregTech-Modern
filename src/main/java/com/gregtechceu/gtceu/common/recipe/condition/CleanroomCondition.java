@@ -19,8 +19,10 @@ import net.minecraft.util.GsonHelper;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+@Getter
 public class CleanroomCondition extends RecipeCondition {
 
     public static final Codec<CleanroomCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(CleanroomType.CODEC.fieldOf("cleanroom").forGetter(val -> val.cleanroom)).apply(instance, CleanroomCondition::new));
@@ -93,8 +95,4 @@ public class CleanroomCondition extends RecipeCondition {
     }
 
     public CleanroomCondition() {}
-
-    public CleanroomType getCleanroom() {
-        return this.cleanroom;
-    }
 }

@@ -129,7 +129,7 @@ public class OreVeinUtil {
         if (biomes.size() == 1)
             return new JsonPrimitive(biomes.get(0));
 
-        if (biomes.stream().anyMatch(filter -> filter.startsWith("#")))
+        if (biomes.stream().anyMatch(filter -> !filter.isEmpty() && filter.charAt(0) == '#'))
             throw new IllegalStateException(
                     "Cannot resolve biomes: You may use either a single tag or multiple individual biomes.");
 

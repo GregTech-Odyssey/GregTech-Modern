@@ -53,6 +53,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import dev.emi.emi.api.forge.ForgeEmiStack;
 import dev.emi.emi.api.stack.EmiIngredient;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,6 +70,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
     public static final ResourceBorderTexture FLUID_SLOT_TEXTURE = new ResourceBorderTexture("ldlib:textures/gui/fluid_slot.png", 18, 18, 1, 1);
     @Nullable
     protected IFluidHandler fluidTank;
+    @Getter
     protected int tank;
     @Configurable(name = "ldlib.gui.editor.name.showAmount")
     protected boolean showAmount;
@@ -83,7 +85,9 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
     @Configurable(name = "ldlib.gui.editor.name.fillDirection")
     protected ProgressTexture.FillDirection fillDirection = ProgressTexture.FillDirection.ALWAYS_FULL;
     protected BiConsumer<TankWidget, List<Component>> onAddedTooltips;
+    @Getter
     protected IngredientIO ingredientIO = IngredientIO.RENDER_ONLY;
+    @Getter
     protected float XEIChance = 1.0F;
     protected FluidStack lastFluidInTank;
     protected int lastTankCapacity;
@@ -574,10 +578,6 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
         return this.fluidTank;
     }
 
-    public int getTank() {
-        return this.tank;
-    }
-
     /**
      * @return {@code this}.
      */
@@ -642,20 +642,12 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
         return this;
     }
 
-    public IngredientIO getIngredientIO() {
-        return this.ingredientIO;
-    }
-
     /**
      * @return {@code this}.
      */
     public TankWidget setXEIChance(final float XEIChance) {
         this.XEIChance = XEIChance;
         return this;
-    }
-
-    public float getXEIChance() {
-        return this.XEIChance;
     }
 
     /**

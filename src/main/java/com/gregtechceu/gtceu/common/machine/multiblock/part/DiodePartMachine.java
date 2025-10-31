@@ -18,6 +18,8 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
+import lombok.Getter;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
@@ -27,6 +29,7 @@ public class DiodePartMachine extends TieredIOPartMachine {
     public static int MAX_AMPS = 16;
     @Persisted
     protected NotifiableEnergyContainer energyContainer;
+    @Getter
     @DescSynced
     @Persisted(key = "amp_mode")
     private int amps;
@@ -90,9 +93,5 @@ public class DiodePartMachine extends TieredIOPartMachine {
         }
         playerIn.sendSystemMessage(Component.translatable("gtceu.machine.diode.message", amps));
         return InteractionResult.CONSUME;
-    }
-
-    public int getAmps() {
-        return this.amps;
     }
 }

@@ -78,6 +78,7 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -125,21 +126,27 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
 
     protected static final Map<MetaMachine, Integer> PERFORMANCE_MAP = new WeakHashMap<>();
 
+    @Getter
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
     private final ManagedFieldHolder managedFieldHolder = getManagedFieldHolder(getClass());
+    @Getter
     protected final MachineDefinition definition;
     @Persisted
     @DescSynced
     @Nullable
     private UUID ownerUUID;
+    @Getter
     public final MetaMachineBlockEntity holder;
+    @Getter
     @DescSynced
     @Persisted(key = "cover")
     protected final MachineCoverContainer coverContainer;
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     private int paintingColor = -1;
+    @Getter
     protected final List<MachineTrait> traits = new ObjectArrayList<>();
     private final List<TickableSubscription> serverTicks = new ObjectArrayList<>();
     private final List<TickableSubscription> waitingToAdd = new ObjectArrayList<>();
@@ -163,6 +170,7 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
 
     protected boolean sync = true;
 
+    @Getter
     protected int offsetTimer;
 
     protected int averageTickTime;
@@ -229,10 +237,6 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     }
 
     public void onPaintingColorChanged(int color) {}
-
-    public int getOffsetTimer() {
-        return offsetTimer;
-    }
 
     public boolean isInValid() {
         return holder.isRemoved();
@@ -320,13 +324,7 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
                             }
                         }
                         if (observe) {
-                            totaTickCount += System.nanoTime() - currentTime;
-                            if ((offsetTimer & 63) == 0) {
-                                this.observe = false;
-                                averageTickTime = (int) (totaTickCount / 128000);
-                                totaTickCount = 0;
-                            }
-                            if (OBSERVE) PERFORMANCE_MAP.put(this, averageTickTime);
+                            putTickTime(currentTime);
                         }
                     }
                 }, () -> serverTickSubscription = null, 0);
@@ -338,6 +336,16 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
             return subscription;
         }
         return null;
+    }
+
+    protected void putTickTime(long currentTime) {
+        totaTickCount += System.nanoTime() - currentTime;
+        if ((offsetTimer & 63) == 0) {
+            this.observe = false;
+            averageTickTime = (int) (totaTickCount / 128000);
+            totaTickCount = 0;
+        }
+        if (OBSERVE) PERFORMANCE_MAP.put(this, averageTickTime);
     }
 
     public boolean isFirstDummyWorldTick = true;
@@ -602,10 +610,6 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
             }
         }
         return null;
-    }
-
-    public MachineDefinition getDefinition() {
-        return definition;
     }
 
     /**
@@ -947,10 +951,6 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
         energyDirectionCache.remove(side);
     }
 
-    public FieldManagedStorage getSyncStorage() {
-        return this.syncStorage;
-    }
-
     public void setOwnerUUID(@Nullable final UUID ownerUUID) {
         this.ownerUUID = ownerUUID;
     }
@@ -958,22 +958,6 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     @Nullable
     public UUID getOwnerUUID() {
         return this.ownerUUID;
-    }
-
-    public MetaMachineBlockEntity getHolder() {
-        return this.holder;
-    }
-
-    public MachineCoverContainer getCoverContainer() {
-        return this.coverContainer;
-    }
-
-    public int getPaintingColor() {
-        return this.paintingColor;
-    }
-
-    public List<MachineTrait> getTraits() {
-        return this.traits;
     }
 
     @Override

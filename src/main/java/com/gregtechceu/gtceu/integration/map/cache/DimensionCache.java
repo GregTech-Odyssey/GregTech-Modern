@@ -8,6 +8,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.ChunkPos;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import java.util.concurrent.ConcurrentMap;
 
 public class DimensionCache {
 
+    @Getter
     private final ConcurrentMap<GridPos, GridCache> cache = new ConcurrentHashMap<>();
     public boolean dirty;
 
@@ -84,9 +86,5 @@ public class DimensionCache {
         if (cache.containsKey(gPos)) {
             cache.get(gPos).removeVeinsMatching(vein -> pos.equals(vein.originChunk()));
         }
-    }
-
-    public ConcurrentMap<GridPos, GridCache> getCache() {
-        return this.cache;
     }
 }

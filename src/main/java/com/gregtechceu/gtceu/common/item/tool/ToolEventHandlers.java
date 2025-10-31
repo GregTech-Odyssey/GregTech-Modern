@@ -163,9 +163,7 @@ public class ToolEventHandlers {
             if (leftTool.getToolMaterial(left) != rightTool.getToolMaterial(right)) {
                 return false;
             }
-            if (leftTool.isElectric() || rightTool.isElectric()) {
-                return false;
-            }
+            return !leftTool.isElectric() && !rightTool.isElectric();
         }
         return true;
     }

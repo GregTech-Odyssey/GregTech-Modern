@@ -4,14 +4,63 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.utils.GTMath;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import static com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags.GENERATE_FOIL;
 
 public class WireProperties implements IMaterialProperty {
 
+    /**
+     * -- SETTER --
+     * Sets the current wire voltage
+     *
+     *
+     * -- GETTER --
+     * Retrieves the current wire voltage
+     *
+     * @param voltage The new wire voltage
+     * @return The current wire voltage
+     */
+    @Getter
+    @Setter
     private long voltage;
+    /**
+     * -- SETTER --
+     * Sets the current wire amperage
+     *
+     *
+     * -- GETTER --
+     * Retrieves the current wire amperage
+     *
+     * @param amperage The new current wire amperage
+     * @return The current wire amperage
+     */
+    @Getter
+    @Setter
     private int amperage;
+    /**
+     * -- GETTER --
+     * Retrieves the current wire loss per block
+     *
+     * @return The current wire loss per block
+     */
+    @Getter
     private final int lossPerBlock;
     private final int superconductorCriticalTemperature;
+    /**
+     * -- SETTER --
+     * Sets the current wire to a superconductor wire
+     *
+     *
+     * -- GETTER --
+     * If the current wire is a Superconductor wire
+     *
+     * @param isSuperconductor The new wire superconductor status
+     * @return {@code true} if the current wire is a Superconductor
+     */
+    @Getter
+    @Setter
     private boolean isSuperconductor;
 
     public WireProperties(long voltage, int baseAmperage, int lossPerBlock) {
@@ -40,69 +89,6 @@ public class WireProperties implements IMaterialProperty {
      */
     public WireProperties() {
         this(8, 1, 1, false);
-    }
-
-    /**
-     * Retrieves the current wire voltage
-     *
-     * @return The current wire voltage
-     */
-    public long getVoltage() {
-        return voltage;
-    }
-
-    /**
-     * Sets the current wire voltage
-     *
-     * @param voltage The new wire voltage
-     */
-    public void setVoltage(long voltage) {
-        this.voltage = voltage;
-    }
-
-    /**
-     * Retrieves the current wire amperage
-     *
-     * @return The current wire amperage
-     */
-    public int getAmperage() {
-        return amperage;
-    }
-
-    /**
-     * Sets the current wire amperage
-     *
-     * @param amperage The new current wire amperage
-     */
-    public void setAmperage(int amperage) {
-        this.amperage = amperage;
-    }
-
-    /**
-     * Retrieves the current wire loss per block
-     *
-     * @return The current wire loss per block
-     */
-    public int getLossPerBlock() {
-        return lossPerBlock;
-    }
-
-    /**
-     * If the current wire is a Superconductor wire
-     *
-     * @return {@code true} if the current wire is a Superconductor
-     */
-    public boolean isSuperconductor() {
-        return isSuperconductor;
-    }
-
-    /**
-     * Sets the current wire to a superconductor wire
-     *
-     * @param isSuperconductor The new wire superconductor status
-     */
-    public void setSuperconductor(boolean isSuperconductor) {
-        this.isSuperconductor = isSuperconductor;
     }
 
     @Override

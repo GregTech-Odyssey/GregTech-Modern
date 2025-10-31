@@ -15,6 +15,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.util.INBTSerializable;
 
 import it.unimi.dsi.fastutil.objects.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -22,12 +24,15 @@ import java.util.Set;
 
 public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSerializable<CompoundTag> {
 
+    @Getter
     private final Reference2FloatMap<MedicalCondition> medicalConditions = new Reference2FloatOpenHashMap<>();
     private final Set<MedicalCondition> permanentConditions = new ReferenceOpenHashSet<>();
     private final Reference2IntMap<Symptom.ConfiguredSymptom> activeSymptoms = new Reference2IntOpenHashMap<>();
     private final Object2IntMap<MobEffect> activeMobEffects = new O2IOpenCacheHashMap<>();
     private final Set<MedicalCondition> flaggedForRemoval = new ReferenceOpenHashSet<>();
+    @Setter
     private int maxAirSupply = -1;
+    @Getter
     private final Player player;
 
     public MedicalConditionTracker(Player player) {
@@ -194,17 +199,5 @@ public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSe
         for (int i = 0; i < permanentConditionsTag.size(); ++i) {
             permanentConditions.add(MedicalCondition.CONDITIONS.get(permanentConditionsTag.getString(i)));
         }
-    }
-
-    public Reference2FloatMap<MedicalCondition> getMedicalConditions() {
-        return this.medicalConditions;
-    }
-
-    public void setMaxAirSupply(final int maxAirSupply) {
-        this.maxAirSupply = maxAirSupply;
-    }
-
-    public Player getPlayer() {
-        return this.player;
     }
 }

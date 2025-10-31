@@ -13,12 +13,15 @@ import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 public class FluidNetHandler implements IFluidHandlerModifiable {
 
+    @Getter
     private FluidPipeNet net;
     private final FluidPipeBlockEntity pipe;
+    @Getter
     private final Direction facing;
     private int simulatedTransfers = 0;
 
@@ -146,13 +149,5 @@ public class FluidNetHandler implements IFluidHandlerModifiable {
     @Override
     public @NotNull FluidStack drain(int i, FluidAction fluidAction) {
         return FluidStack.EMPTY;
-    }
-
-    public FluidPipeNet getNet() {
-        return this.net;
-    }
-
-    public Direction getFacing() {
-        return this.facing;
     }
 }

@@ -60,7 +60,7 @@ public class MufflerParticle extends TextureSheetParticle {
         this.zo = this.z;
         this.setSpriteFromAge(this.sprites);
         if (this.age++ < this.lifetime && !(this.alpha <= 0.0F)) {
-            this.yd -= (double) this.gravity;
+            this.yd -= this.gravity;
             this.move(this.xd, this.yd, this.zd);
             if (this.age >= this.lifetime - 60 && this.alpha > 0.01F) {
                 this.alpha -= 0.015F;

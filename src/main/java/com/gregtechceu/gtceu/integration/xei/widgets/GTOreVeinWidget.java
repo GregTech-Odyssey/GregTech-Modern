@@ -35,12 +35,14 @@ import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import lombok.Getter;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+@Getter
 public class GTOreVeinWidget extends WidgetGroup {
 
     private final String name;
@@ -210,21 +212,5 @@ public class GTOreVeinWidget extends WidgetGroup {
     public static String getBedrockOreName(BedrockOreDefinition oreDefinition) {
         ResourceLocation id = GTRegistries.BEDROCK_ORE_DEFINITIONS.getKey(oreDefinition);
         return id.getPath();
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public int getWeight() {
-        return this.weight;
-    }
-
-    public String getRange() {
-        return this.range;
-    }
-
-    public Set<ResourceKey<Level>> getDimensionFilter() {
-        return this.dimensionFilter;
     }
 }

@@ -9,8 +9,11 @@ import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 
+import lombok.Getter;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@Getter
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class HPCACoolerPartMachine extends HPCAComponentPartMachine implements IHPCACoolantProvider {
@@ -50,9 +53,5 @@ public class HPCACoolerPartMachine extends HPCAComponentPartMachine implements I
     @Override
     public int getMaxCoolantPerTick() {
         return advanced ? 8 : 0;
-    }
-
-    public boolean isAdvanced() {
-        return this.advanced;
     }
 }

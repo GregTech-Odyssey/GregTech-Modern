@@ -25,6 +25,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -32,6 +35,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import static com.gregtechceu.gtceu.utils.RedstoneUtil.computeLatchedRedstoneBetweenValues;
 import static com.gregtechceu.gtceu.utils.RedstoneUtil.computeRedstoneBetweenValues;
 
+@Getter
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class AdvancedFluidDetectorCover extends FluidDetectorCover implements IUICover {
@@ -42,6 +46,7 @@ public class AdvancedFluidDetectorCover extends FluidDetectorCover implements IU
     private int minValue;
     @Persisted
     private int maxValue;
+    @Setter
     @Persisted
     @DescSynced
     private boolean isLatched;
@@ -108,25 +113,5 @@ public class AdvancedFluidDetectorCover extends FluidDetectorCover implements IU
         group.addWidget(filterHandler.createFilterSlotUI(148, 100));
         group.addWidget(filterHandler.createFilterConfigUI(10, 100, 156, 60));
         return group;
-    }
-
-    public int getMinValue() {
-        return this.minValue;
-    }
-
-    public int getMaxValue() {
-        return this.maxValue;
-    }
-
-    public boolean isLatched() {
-        return this.isLatched;
-    }
-
-    public void setLatched(final boolean isLatched) {
-        this.isLatched = isLatched;
-    }
-
-    public FilterHandler<FluidStack, FluidFilter> getFilterHandler() {
-        return this.filterHandler;
     }
 }

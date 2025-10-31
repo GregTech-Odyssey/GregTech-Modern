@@ -33,6 +33,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
@@ -43,28 +44,36 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class BufferMachine extends TieredMachine implements IMachineLife, IAutoOutputBoth, IFancyUIMachine {
 
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected Direction outputFacingItems;
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected Direction outputFacingFluids;
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected boolean autoOutputItems;
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected boolean autoOutputFluids;
+    @Getter
     @Persisted
     protected boolean allowInputFromOutputSideItems;
+    @Getter
     @Persisted
     protected boolean allowInputFromOutputSideFluids;
+    @Getter
     @Persisted
     protected final NotifiableItemStackHandler inventory;
+    @Getter
     @Persisted
     protected final NotifiableFluidTank tank;
     @Nullable
@@ -226,45 +235,13 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
         clearInventory(inventory.storage);
     }
 
-    public Direction getOutputFacingItems() {
-        return this.outputFacingItems;
-    }
-
-    public Direction getOutputFacingFluids() {
-        return this.outputFacingFluids;
-    }
-
-    public boolean isAutoOutputItems() {
-        return this.autoOutputItems;
-    }
-
-    public boolean isAutoOutputFluids() {
-        return this.autoOutputFluids;
-    }
-
-    public boolean isAllowInputFromOutputSideItems() {
-        return this.allowInputFromOutputSideItems;
-    }
-
     public void setAllowInputFromOutputSideItems(final boolean allowInputFromOutputSideItems) {
         clearDirectionCache();
         this.allowInputFromOutputSideItems = allowInputFromOutputSideItems;
     }
 
-    public boolean isAllowInputFromOutputSideFluids() {
-        return this.allowInputFromOutputSideFluids;
-    }
-
     public void setAllowInputFromOutputSideFluids(final boolean allowInputFromOutputSideFluids) {
         clearDirectionCache();
         this.allowInputFromOutputSideFluids = allowInputFromOutputSideFluids;
-    }
-
-    public NotifiableItemStackHandler getInventory() {
-        return this.inventory;
-    }
-
-    public NotifiableFluidTank getTank() {
-        return this.tank;
     }
 }

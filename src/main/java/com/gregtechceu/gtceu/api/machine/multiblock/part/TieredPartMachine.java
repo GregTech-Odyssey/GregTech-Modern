@@ -5,8 +5,11 @@ import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 
+import lombok.Getter;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@Getter
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class TieredPartMachine extends MultiblockPartMachine implements ITieredMachine {
@@ -16,9 +19,5 @@ public class TieredPartMachine extends MultiblockPartMachine implements ITieredM
     public TieredPartMachine(MetaMachineBlockEntity holder, int tier) {
         super(holder);
         this.tier = tier;
-    }
-
-    public int getTier() {
-        return this.tier;
     }
 }

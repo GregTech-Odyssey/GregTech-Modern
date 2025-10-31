@@ -36,6 +36,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,7 +48,9 @@ public class RotorHolderPartMachine extends TieredPartMachine implements IMachin
 
     @Persisted
     public final NotifiableItemStackHandler inventory;
+    @Getter
     public final int maxRotorHolderSpeed;
+    @Getter
     @Persisted
     @DescSynced
     public int rotorSpeed;
@@ -221,14 +224,6 @@ public class RotorHolderPartMachine extends TieredPartMachine implements IMachin
         container.setBackground(GuiTextures.BACKGROUND_INVERSE);
         group.addWidget(container);
         return group;
-    }
-
-    public int getMaxRotorHolderSpeed() {
-        return this.maxRotorHolderSpeed;
-    }
-
-    public int getRotorSpeed() {
-        return this.rotorSpeed;
     }
 
     public void setRotorMaterial(@NotNull final Material rotorMaterial) {

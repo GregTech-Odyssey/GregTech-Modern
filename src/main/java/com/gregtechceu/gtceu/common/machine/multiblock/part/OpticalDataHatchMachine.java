@@ -16,6 +16,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,6 +26,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class OpticalDataHatchMachine extends MultiblockPartMachine implements IOpticalDataAccessHatch {
 
+    @Getter
     private final boolean isTransmitter;
     private boolean call;
 
@@ -108,9 +110,5 @@ public class OpticalDataHatchMachine extends MultiblockPartMachine implements IO
             return blockEntity.getCapability(GTCapability.CAPABILITY_DATA_ACCESS, getFrontFacing().getOpposite()).orElse(null);
         }
         return null;
-    }
-
-    public boolean isTransmitter() {
-        return this.isTransmitter;
     }
 }

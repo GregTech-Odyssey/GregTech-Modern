@@ -7,6 +7,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.IntSupplier;
@@ -14,6 +15,7 @@ import java.util.function.IntSupplier;
 public class ColorBlockWidget extends Widget {
 
     private IntSupplier colorSupplier;
+    @Getter
     private int currentColor;
     private static boolean isShowAlpha = false;
 
@@ -70,9 +72,5 @@ public class ColorBlockWidget extends Widget {
     public ColorBlockWidget setCurrentColor(final int currentColor) {
         this.currentColor = currentColor;
         return this;
-    }
-
-    public int getCurrentColor() {
-        return this.currentColor;
     }
 }

@@ -44,6 +44,7 @@ import net.minecraftforge.items.ItemHandlerHelper;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,22 +61,28 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     public static final Int2IntFunction CONVEYOR_SCALING = tier -> 2 * (int) Math.pow(4, Math.min(tier, GTValues.LuV));
     public final int tier;
     public final int maxItemTransferRate;
+    @Getter
     @Persisted
     protected int transferRate;
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected IO io;
+    @Getter
     @Persisted
     @DescSynced
     protected DistributionMode distributionMode;
+    @Getter
     @Persisted
     @DescSynced
     protected ManualIOMode manualIOMode = ManualIOMode.DISABLED;
+    @Getter
     @Persisted
     @DescSynced
     protected boolean isWorkingEnabled = true;
     private Widget ioModeSwitch;
+    @Getter
     @Persisted
     @DescSynced
     protected final FilterHandler<ItemStack, ItemFilter> filterHandler;
@@ -451,29 +458,5 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
             }
             return super.extractItem(slot, amount, simulate);
         }
-    }
-
-    public int getTransferRate() {
-        return this.transferRate;
-    }
-
-    public IO getIo() {
-        return this.io;
-    }
-
-    public DistributionMode getDistributionMode() {
-        return this.distributionMode;
-    }
-
-    public ManualIOMode getManualIOMode() {
-        return this.manualIOMode;
-    }
-
-    public boolean isWorkingEnabled() {
-        return this.isWorkingEnabled;
-    }
-
-    public FilterHandler<ItemStack, ItemFilter> getFilterHandler() {
-        return this.filterHandler;
     }
 }

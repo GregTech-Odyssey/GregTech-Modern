@@ -1,31 +1,53 @@
 package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+@Getter
 public class RotorProperty implements IMaterialProperty {
 
     /**
      * Power of rotors made from this Material.
      * <p>
      * Default:
+     * -- GETTER --
+     * Power of rotors made from this Material.
+     * <p>
+     * Default:
+     * 
      */
     private int power;
     /**
      * Attack damage of rotors made from this Material
      * <p>
      * Default:
+     * -- GETTER --
+     * Attack damage of rotors made from this Material
+     * <p>
+     * Default:
+     * 
      */
     private float damage;
     /**
      * Durability of rotors made from this Material.
      * <p>
      * Default:
+     * -- GETTER --
+     * Durability of rotors made from this Material.
+     * <p>
+     * Default:
+     * 
      */
     private int durability;
     /**
      * Efficiency of rotors made from this Material
      * <p>
      * Default:
+     * -- GETTER --
+     * Efficiency of rotors made from this Material
+     * <p>
+     * Default:
+     * 
      */
     private int efficiency;
 
@@ -59,41 +81,5 @@ public class RotorProperty implements IMaterialProperty {
     @Override
     public void verifyProperty(@NotNull MaterialProperties properties) {
         properties.ensureSet(PropertyKey.INGOT, true);
-    }
-
-    /**
-     * Power of rotors made from this Material.
-     * <p>
-     * Default:
-     */
-    public int getPower() {
-        return this.power;
-    }
-
-    /**
-     * Attack damage of rotors made from this Material
-     * <p>
-     * Default:
-     */
-    public float getDamage() {
-        return this.damage;
-    }
-
-    /**
-     * Durability of rotors made from this Material.
-     * <p>
-     * Default:
-     */
-    public int getDurability() {
-        return this.durability;
-    }
-
-    /**
-     * Efficiency of rotors made from this Material
-     * <p>
-     * Default:
-     */
-    public int getEfficiency() {
-        return this.efficiency;
     }
 }

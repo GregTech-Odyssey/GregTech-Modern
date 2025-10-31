@@ -28,6 +28,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -35,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
+@Getter
 public class PipeBlockRenderer implements ICoverableRenderer {
 
     PipeModel pipeModel;
@@ -102,9 +104,5 @@ public class PipeBlockRenderer implements ICoverableRenderer {
         if (atlasName.equals(TextureAtlas.LOCATION_BLOCKS)) {
             pipeModel.registerTextureAtlas(register);
         }
-    }
-
-    public PipeModel getPipeModel() {
-        return this.pipeModel;
     }
 }

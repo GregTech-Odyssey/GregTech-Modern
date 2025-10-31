@@ -2,8 +2,10 @@ package com.gregtechceu.gtceu.api.fluids;
 
 import com.gregtechceu.gtceu.api.capability.IPropertyFluidFilter;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+@Getter
 public class PropertyFluidFilter implements IPropertyFluidFilter {
 
     private final boolean gasProof;
@@ -26,13 +28,5 @@ public class PropertyFluidFilter implements IPropertyFluidFilter {
     @Override
     public String toString() {
         return "SimplePropertyFluidFilter{" + ", gasProof=" + gasProof + ", plasmaProof=" + plasmaProof + '}';
-    }
-
-    public boolean isGasProof() {
-        return this.gasProof;
-    }
-
-    public boolean isPlasmaProof() {
-        return this.plasmaProof;
     }
 }

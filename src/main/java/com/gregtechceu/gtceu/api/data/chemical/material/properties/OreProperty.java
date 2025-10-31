@@ -7,6 +7,8 @@ import net.minecraft.util.Mth;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -19,25 +21,67 @@ public class OreProperty implements IMaterialProperty {
      * List of Ore byproducts.
      * <p>
      * Default: none, meaning only this property's Material.
+     * -- GETTER --
+     * List of Ore byproducts.
+     * <p>
+     * Default: none, meaning only this property's Material.
+     * 
      */
+    @Getter
     private final List<Material> oreByProducts = new ObjectArrayList<>();
     /**
      * Crushed Ore output amount multiplier during Maceration.
      * <p>
      * Default: 1 (no multiplier).
+     * -- SETTER --
+     * Crushed Ore output amount multiplier during Maceration.
+     * <p>
+     * Default: 1 (no multiplier).
+     * -- GETTER --
+     * Crushed Ore output amount multiplier during Maceration.
+     * <p>
+     * Default: 1 (no multiplier).
+     * 
+     * 
      */
+    @Getter
+    @Setter
     private int oreMultiplier;
     /**
      * Byproducts output amount multiplier during Maceration.
      * <p>
      * Default: 1 (no multiplier).
+     * -- SETTER --
+     * Byproducts output amount multiplier during Maceration.
+     * <p>
+     * Default: 1 (no multiplier).
+     * -- GETTER --
+     * Byproducts output amount multiplier during Maceration.
+     * <p>
+     * Default: 1 (no multiplier).
+     * 
+     * 
      */
+    @Getter
+    @Setter
     private int byProductMultiplier;
     /**
      * Should ore block use the emissive texture.
      * <p>
      * Default: false.
+     * -- SETTER --
+     * Should ore block use the emissive texture.
+     * <p>
+     * Default: false.
+     * -- GETTER --
+     * Should ore block use the emissive texture.
+     * <p>
+     * Default: false.
+     * 
+     * 
      */
+    @Getter
+    @Setter
     private boolean emissive;
     /**
      * Material to which smelting of this Ore will result.
@@ -69,7 +113,16 @@ public class OreProperty implements IMaterialProperty {
      * <p>
      * Material will have a Dust Property.
      * Default: none.
+     * -- GETTER --
+     * During Electromagnetic Separation, this Ore will be separated
+     * into this Material and the Material specified by this field.
+     * Limit 2 Materials
+     * <p>
+     * Material will have a Dust Property.
+     * Default: none.
+     * 
      */
+    @Getter
     private final List<Material> separatedInto = new ObjectArrayList<>();
 
     public OreProperty(int oreMultiplier, int byProductMultiplier) {
@@ -155,69 +208,6 @@ public class OreProperty implements IMaterialProperty {
     }
 
     /**
-     * List of Ore byproducts.
-     * <p>
-     * Default: none, meaning only this property's Material.
-     */
-    public List<Material> getOreByProducts() {
-        return this.oreByProducts;
-    }
-
-    /**
-     * Crushed Ore output amount multiplier during Maceration.
-     * <p>
-     * Default: 1 (no multiplier).
-     */
-    public int getOreMultiplier() {
-        return this.oreMultiplier;
-    }
-
-    /**
-     * Crushed Ore output amount multiplier during Maceration.
-     * <p>
-     * Default: 1 (no multiplier).
-     */
-    public void setOreMultiplier(final int oreMultiplier) {
-        this.oreMultiplier = oreMultiplier;
-    }
-
-    /**
-     * Byproducts output amount multiplier during Maceration.
-     * <p>
-     * Default: 1 (no multiplier).
-     */
-    public int getByProductMultiplier() {
-        return this.byProductMultiplier;
-    }
-
-    /**
-     * Byproducts output amount multiplier during Maceration.
-     * <p>
-     * Default: 1 (no multiplier).
-     */
-    public void setByProductMultiplier(final int byProductMultiplier) {
-        this.byProductMultiplier = byProductMultiplier;
-    }
-
-    /**
-     * Should ore block use the emissive texture.
-     * <p>
-     * Default: false.
-     */
-    public boolean isEmissive() {
-        return this.emissive;
-    }
-
-    /**
-     * Should ore block use the emissive texture.
-     * <p>
-     * Default: false.
-     */
-    public void setEmissive(final boolean emissive) {
-        this.emissive = emissive;
-    }
-
-    /**
      * Material to which smelting of this Ore will result.
      * <p>
      * Material will have a Dust Property.
@@ -252,17 +242,5 @@ public class OreProperty implements IMaterialProperty {
             throw new NullPointerException("washedIn is marked non-null but is null");
         }
         this.washedIn = washedIn;
-    }
-
-    /**
-     * During Electromagnetic Separation, this Ore will be separated
-     * into this Material and the Material specified by this field.
-     * Limit 2 Materials
-     * <p>
-     * Material will have a Dust Property.
-     * Default: none.
-     */
-    public List<Material> getSeparatedInto() {
-        return this.separatedInto;
     }
 }

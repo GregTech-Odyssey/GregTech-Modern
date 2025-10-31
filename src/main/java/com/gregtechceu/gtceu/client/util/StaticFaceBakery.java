@@ -174,7 +174,7 @@ public class StaticFaceBakery {
         Matrix3f matrix3f = new Matrix3f(matrix4f);
         Vector3f vector3f = matrix3f.transform(new Vector3f(Mth.cos(f12), Mth.sin(f12), 0.0F));
         int i = Math.floorMod(
-                -((int) Math.round(Math.toDegrees(Math.atan2((double) vector3f.y(), (double) vector3f.x())) / 90.0)) *
+                -((int) Math.round(Math.toDegrees(Math.atan2(vector3f.y(), vector3f.x())) / 90.0)) *
                         90,
                 360);
         return new BlockFaceUV(new float[] { f8, f10, f9, f11 }, i);

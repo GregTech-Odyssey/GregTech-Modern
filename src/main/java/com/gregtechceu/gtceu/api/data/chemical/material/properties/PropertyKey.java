@@ -1,5 +1,8 @@
 package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 
+import lombok.Getter;
+
+@Getter
 public class PropertyKey<T extends IMaterialProperty> {
 
     public static final PropertyKey<BlastProperty> BLAST = new PropertyKey<>("blast", BlastProperty.class);
@@ -50,13 +53,5 @@ public class PropertyKey<T extends IMaterialProperty> {
         public void verifyProperty(MaterialProperties properties) {
             // no-op
         }
-    }
-
-    public String getKey() {
-        return this.key;
-    }
-
-    public Class<T> getType() {
-        return this.type;
     }
 }

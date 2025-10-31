@@ -36,6 +36,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import it.unimi.dsi.fastutil.objects.Object2BooleanFunction;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -57,12 +58,15 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
     private final int speed;
     private final int successLimit;
     private final int randRange;
+    @Getter
     @Persisted
     @DescSynced
     private boolean isWorkingEnabled = true;
+    @Getter
     @Persisted
     @DescSynced
     private boolean isRandomTickMode = true;
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
@@ -227,17 +231,5 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
             }
             gatheredClasses = true;
         }
-    }
-
-    public boolean isWorkingEnabled() {
-        return this.isWorkingEnabled;
-    }
-
-    public boolean isRandomTickMode() {
-        return this.isRandomTickMode;
-    }
-
-    public boolean isActive() {
-        return this.active;
     }
 }

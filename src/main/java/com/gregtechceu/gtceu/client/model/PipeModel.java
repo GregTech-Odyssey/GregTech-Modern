@@ -29,6 +29,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -96,7 +97,9 @@ public class PipeModel {
     public CleanableMemoizedSupplier<@Nullable ResourceLocation> secondarySideTexture;
     @Nullable
     public CleanableMemoizedSupplier<@Nullable ResourceLocation> secondaryEndTexture;
+    @Setter
     public ResourceLocation sideOverlayTexture;
+    @Setter
     public ResourceLocation endOverlayTexture;
     @OnlyIn(Dist.CLIENT)
     TextureAtlasSprite sideSprite;
@@ -324,13 +327,5 @@ public class PipeModel {
         Border() {
             mask = 1 << this.ordinal();
         }
-    }
-
-    public void setSideOverlayTexture(final ResourceLocation sideOverlayTexture) {
-        this.sideOverlayTexture = sideOverlayTexture;
-    }
-
-    public void setEndOverlayTexture(final ResourceLocation endOverlayTexture) {
-        this.endOverlayTexture = endOverlayTexture;
     }
 }

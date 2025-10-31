@@ -30,6 +30,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -43,11 +44,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine implements IFancyUIMachine, IDisplayUIMachine, ITieredMachine, IOverclockMachine, IComputationContainerMachine {
 
     // runtime
+    @Getter
     @NotNull
     protected EnergyContainerList energyContainer = EnergyContainerList.EMPTY;
     @NotNull
     protected ComputationProviderList computationProviderList = ComputationProviderList.EMPTY;
+    @Getter
     protected int tier;
+    @Getter
     @Persisted
     protected boolean batchEnabled;
 
@@ -180,24 +184,12 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
         return energyContainer.getMaxVoltage();
     }
 
-    public EnergyContainerList getEnergyContainer() {
-        return energyContainer;
-    }
-
     /**
      * Is this multiblock a generator?
      * Used for max voltage calculations.
      */
     public boolean isGenerator() {
         return getDefinition().isGenerator();
-    }
-
-    public int getTier() {
-        return this.tier;
-    }
-
-    public boolean isBatchEnabled() {
-        return this.batchEnabled;
     }
 
     @Override

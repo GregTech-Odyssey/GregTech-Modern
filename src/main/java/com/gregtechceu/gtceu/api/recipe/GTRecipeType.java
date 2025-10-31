@@ -26,6 +26,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.objects.*;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,23 +40,35 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     public final Object2IntSortedMap<RecipeCapability<?>> maxInputs = new Object2IntAVLTreeMap<>(RecipeCapability.COMPARATOR);
     public final Object2IntSortedMap<RecipeCapability<?>> maxOutputs = new Object2IntAVLTreeMap<>(RecipeCapability.COMPARATOR);
     protected GTRecipeBuilder recipeBuilder;
+    @Getter
     protected ChanceBoostFunction chanceFunction = ChanceBoostFunction.OVERCLOCK;
+    @Getter
     protected GTRecipeTypeUI recipeUI = new GTRecipeTypeUI(this);
+    @Getter
     protected GTRecipeType smallRecipeMap;
     @Nullable
     protected Supplier<ItemStack> iconSupplier;
     @Nullable
     protected SoundEntry sound;
+    @Getter
     protected List<Function<CompoundTag, String>> dataInfos = new ObjectArrayList<>();
+    @Getter
     protected boolean isScanner;
     // Does this recipe type have a research item slot? If this is true you MUST create a custom UI.
+    @Getter
     protected boolean hasResearchSlot;
+    @Getter
     protected final Map<RecipeType<?>, List<GTRecipe>> proxyRecipes;
+    @Getter
     protected final GTRecipeCategory category;
+    @Getter
     protected final Map<GTRecipeCategory, Set<GTRecipe>> categoryMap = new O2OOpenCacheHashMap<>();
+    @Getter
     protected boolean offsetVoltageText = false;
+    @Getter
     protected int voltageTextOffset = 20;
     protected final Map<String, Collection<GTRecipe>> researchEntries = new O2OOpenCacheHashMap<>();
+    @Getter
     protected final List<ICustomRecipeLogic> customRecipeLogicRunners = new ObjectArrayList<>();
     public final Map<ResourceLocation, GTRecipe> recipes = new O2OOpenCacheHashMap<>();
 
@@ -274,20 +287,12 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         return this;
     }
 
-    public ChanceBoostFunction getChanceFunction() {
-        return this.chanceFunction;
-    }
-
     /**
      * @return {@code this}.
      */
     public GTRecipeType setChanceFunction(final ChanceBoostFunction chanceFunction) {
         this.chanceFunction = chanceFunction;
         return this;
-    }
-
-    public GTRecipeTypeUI getRecipeUI() {
-        return this.recipeUI;
     }
 
     /**
@@ -304,10 +309,6 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     public GTRecipeType setSmallRecipeMap(final GTRecipeType smallRecipeMap) {
         this.smallRecipeMap = smallRecipeMap;
         return this;
-    }
-
-    public GTRecipeType getSmallRecipeMap() {
-        return this.smallRecipeMap;
     }
 
     /**
@@ -336,24 +337,12 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         return this.sound;
     }
 
-    public List<Function<CompoundTag, String>> getDataInfos() {
-        return this.dataInfos;
-    }
-
-    public boolean isScanner() {
-        return this.isScanner;
-    }
-
     /**
      * @return {@code this}.
      */
     public GTRecipeType setScanner(final boolean isScanner) {
         this.isScanner = isScanner;
         return this;
-    }
-
-    public boolean isHasResearchSlot() {
-        return this.hasResearchSlot;
     }
 
     /**
@@ -364,18 +353,6 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         return this;
     }
 
-    public Map<RecipeType<?>, List<GTRecipe>> getProxyRecipes() {
-        return this.proxyRecipes;
-    }
-
-    public GTRecipeCategory getCategory() {
-        return this.category;
-    }
-
-    public Map<GTRecipeCategory, Set<GTRecipe>> getCategoryMap() {
-        return this.categoryMap;
-    }
-
     /**
      * @return {@code this}.
      */
@@ -384,23 +361,11 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         return this;
     }
 
-    public boolean isOffsetVoltageText() {
-        return this.offsetVoltageText;
-    }
-
     /**
      * @return {@code this}.
      */
     public GTRecipeType setVoltageTextOffset(final int voltageTextOffset) {
         this.voltageTextOffset = voltageTextOffset;
         return this;
-    }
-
-    public int getVoltageTextOffset() {
-        return this.voltageTextOffset;
-    }
-
-    public List<ICustomRecipeLogic> getCustomRecipeLogicRunners() {
-        return this.customRecipeLogicRunners;
     }
 }

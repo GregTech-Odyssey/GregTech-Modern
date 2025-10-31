@@ -5,10 +5,13 @@ import com.gregtechceu.gtceu.common.blockentity.CableBlockEntity;
 
 import net.minecraft.core.Direction;
 
+import lombok.Getter;
+
 import java.util.Objects;
 
 public class EnergyNetHandler implements IEnergyContainer {
 
+    @Getter
     private EnergyNet net;
     private boolean transfer;
     private final CableBlockEntity cable;
@@ -18,10 +21,6 @@ public class EnergyNetHandler implements IEnergyContainer {
         this.net = Objects.requireNonNull(net);
         this.cable = Objects.requireNonNull(cable);
         this.facing = facing;
-    }
-
-    public EnergyNet getNet() {
-        return net;
     }
 
     public void updateNetwork(EnergyNet net) {

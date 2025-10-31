@@ -36,6 +36,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2IntAVLTreeMap;
 import it.unimi.dsi.fastutil.longs.Long2IntSortedMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,6 +62,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     private static final Int2ObjectMap<String> FUSION_NAMES = new Int2ObjectArrayMap<>(4);
     // Minimum registered fusion reactor tier
     private static int MINIMUM_TIER = MAX;
+    @Getter
     private final int tier;
     @Nullable
     protected EnergyContainerList inputEnergyContainers;
@@ -68,6 +70,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     protected long heat = 0;
     @Persisted
     protected final NotifiableEnergyContainer energyContainer;
+    @Getter
     @DescSynced
     private Integer color = -1;
     @Nullable
@@ -304,13 +307,5 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
             case UV -> FusionCasingBlock.CasingType.FUSION_CASING_MK3;
             default -> FusionCasingBlock.CasingType.FUSION_CASING;
         };
-    }
-
-    public int getTier() {
-        return this.tier;
-    }
-
-    public Integer getColor() {
-        return this.color;
     }
 }

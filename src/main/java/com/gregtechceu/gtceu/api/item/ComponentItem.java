@@ -36,6 +36,7 @@ import net.minecraft.world.level.LevelReader;
 
 import com.google.common.collect.Multimap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -48,6 +49,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class ComponentItem extends Item implements HeldItemUIFactory.IHeldItemUIHolder, IItemRendererProvider, IComponentItem {
 
     protected int burnTime = -1;
+    @Getter
     protected List<IItemComponent> components;
 
     protected ComponentItem(Properties properties) {
@@ -424,9 +426,5 @@ public class ComponentItem extends Item implements HeldItemUIFactory.IHeldItemUI
         }
         electricItem.setInfiniteCharge(true);
         return itemStack;
-    }
-
-    public List<IItemComponent> getComponents() {
-        return this.components;
     }
 }

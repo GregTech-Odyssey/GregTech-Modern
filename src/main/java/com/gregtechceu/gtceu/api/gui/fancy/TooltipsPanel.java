@@ -9,11 +9,13 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
 
+@Getter
 public class TooltipsPanel extends Widget {
 
     protected List<IFancyTooltip> tooltips = new ObjectArrayList<>();
@@ -64,9 +66,5 @@ public class TooltipsPanel extends Widget {
                 }
             }
         }
-    }
-
-    public List<IFancyTooltip> getTooltips() {
-        return this.tooltips;
     }
 }

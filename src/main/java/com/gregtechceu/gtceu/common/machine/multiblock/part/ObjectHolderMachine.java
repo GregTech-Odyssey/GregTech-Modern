@@ -25,6 +25,8 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -36,6 +38,8 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
     // purposefully not exposed to automation or capabilities
     @Persisted
     private final ObjectHolderHandler heldItems;
+    @Getter
+    @Setter
     @Persisted
     @DescSynced
     private boolean isLocked;
@@ -150,13 +154,5 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
                 return true;
             } else return slot == 1 && isDataItem;
         }
-    }
-
-    public boolean isLocked() {
-        return this.isLocked;
-    }
-
-    public void setLocked(final boolean isLocked) {
-        this.isLocked = isLocked;
     }
 }

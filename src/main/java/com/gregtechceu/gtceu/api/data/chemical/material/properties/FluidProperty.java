@@ -11,6 +11,8 @@ import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,6 +22,8 @@ import java.util.function.Supplier;
 public class FluidProperty implements IMaterialProperty, FluidStorage {
 
     private final FluidStorageImpl storage = new FluidStorageImpl();
+    @Getter
+    @Setter
     private FluidStorageKey primaryKey = null;
     @Nullable
     private Fluid solidifyingFluid = null;
@@ -104,14 +108,6 @@ public class FluidProperty implements IMaterialProperty, FluidStorage {
     }
 
     public FluidProperty() {}
-
-    public FluidStorageKey getPrimaryKey() {
-        return this.primaryKey;
-    }
-
-    public void setPrimaryKey(final FluidStorageKey primaryKey) {
-        this.primaryKey = primaryKey;
-    }
 
     public void setSolidifyingFluid(@Nullable final Fluid solidifyingFluid) {
         this.solidifyingFluid = solidifyingFluid;

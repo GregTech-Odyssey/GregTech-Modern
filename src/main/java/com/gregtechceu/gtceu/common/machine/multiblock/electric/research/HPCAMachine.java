@@ -53,6 +53,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -238,6 +239,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     public static class HPCAGridHandler implements IManaged {
 
         public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(HPCAGridHandler.class);
+        @Getter
         private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
         // for testing
         @Nullable
@@ -535,10 +537,6 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         @Override
         public void onChanged() {
             controller.onChanged();
-        }
-
-        public FieldManagedStorage getSyncStorage() {
-            return this.syncStorage;
         }
     }
 }

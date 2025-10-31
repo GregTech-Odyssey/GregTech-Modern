@@ -14,7 +14,6 @@ import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.WorkableTieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
-import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
@@ -52,6 +51,7 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,18 +63,22 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class MinerMachine extends WorkableTieredMachine implements IMiner, IFancyUIMachine, IDataInfoProvider, IAutoOutputItem {
+public class MinerMachine extends WorkableTieredMachine implements IMiner, IDataInfoProvider, IAutoOutputItem {
 
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected Direction outputFacingItems;
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected boolean autoOutputItems;
+    @Getter
     @Persisted
     protected boolean allowInputFromOutputSideItems;
+    @Getter
     @Persisted
     protected final CustomItemStackHandler chargerInventory;
     private final long energyPerTick;
@@ -350,24 +354,8 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IFanc
         return new ObjectArrayList<>();
     }
 
-    public Direction getOutputFacingItems() {
-        return this.outputFacingItems;
-    }
-
-    public boolean isAutoOutputItems() {
-        return this.autoOutputItems;
-    }
-
-    public boolean isAllowInputFromOutputSideItems() {
-        return this.allowInputFromOutputSideItems;
-    }
-
     public void setAllowInputFromOutputSideItems(final boolean allowInputFromOutputSideItems) {
         clearDirectionCache();
         this.allowInputFromOutputSideItems = allowInputFromOutputSideItems;
-    }
-
-    public CustomItemStackHandler getChargerInventory() {
-        return this.chargerInventory;
     }
 }

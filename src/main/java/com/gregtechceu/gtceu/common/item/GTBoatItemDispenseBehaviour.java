@@ -7,7 +7,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockSource;
 import net.minecraft.core.Direction;
 import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.item.ItemStack;
@@ -30,7 +29,7 @@ public class GTBoatItemDispenseBehaviour extends DefaultDispenseItemBehavior {
     }
 
     public ItemStack execute(BlockSource source, ItemStack stack) {
-        Direction direction = (Direction) source.getBlockState().getValue(DispenserBlock.FACING);
+        Direction direction = source.getBlockState().getValue(DispenserBlock.FACING);
         Level level = source.getLevel();
         double d0 = 0.5625 + (double) EntityType.BOAT.getWidth() / 2.0;
         double d1 = source.x() + (double) direction.getStepX() * d0;
@@ -49,19 +48,19 @@ public class GTBoatItemDispenseBehaviour extends DefaultDispenseItemBehavior {
 
         boat.setYRot(direction.toYRot());
         double d4;
-        if (((Boat) boat).canBoatInFluid(level.getFluidState(blockpos))) {
+        if (boat.canBoatInFluid(level.getFluidState(blockpos))) {
             d4 = 1.0;
         } else {
             if (!level.getBlockState(blockpos).isAir() ||
-                    !((Boat) boat).canBoatInFluid(level.getFluidState(blockpos.below()))) {
+                    !boat.canBoatInFluid(level.getFluidState(blockpos.below()))) {
                 return this.defaultDispenseItemBehavior.dispense(source, stack);
             }
 
             d4 = 0.0;
         }
 
-        ((Boat) boat).setPos(d1, d2 + d4, d3);
-        level.addFreshEntity((Entity) boat);
+        boat.setPos(d1, d2 + d4, d3);
+        level.addFreshEntity(boat);
         stack.shrink(1);
         return stack;
     }

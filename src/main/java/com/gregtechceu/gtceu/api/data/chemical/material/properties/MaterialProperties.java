@@ -5,6 +5,8 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 import java.util.Map;
@@ -15,6 +17,8 @@ public class MaterialProperties {
     public static final Set<PropertyKey<?>> baseTypes = Set.of(PropertyKey.FLUID, PropertyKey.DUST, PropertyKey.INGOT, PropertyKey.GEM, PropertyKey.EMPTY);
 
     public final Map<PropertyKey<? extends IMaterialProperty>, IMaterialProperty> propertyMap;
+    @Getter
+    @Setter
     public Material material;
 
     public MaterialProperties() {
@@ -80,13 +84,5 @@ public class MaterialProperties {
         StringBuilder sb = new StringBuilder();
         propertyMap.forEach((k, v) -> sb.append(k.toString()).append("\n"));
         return sb.toString();
-    }
-
-    public Material getMaterial() {
-        return this.material;
-    }
-
-    public void setMaterial(final Material material) {
-        this.material = material;
     }
 }

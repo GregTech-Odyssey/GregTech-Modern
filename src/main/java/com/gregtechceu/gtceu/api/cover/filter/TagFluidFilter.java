@@ -119,7 +119,7 @@ public class TagFluidFilter extends TagFilter<FluidStack, FluidFilter> implement
 
         @Override
         public Stream<TagKey<?>> getTags() {
-            return getStack().getFluid().defaultFluidState().getTags().map(t -> (TagKey<?>) t);
+            return getStack().getFluid().defaultFluidState().getTags().map(t -> t);
         }
     }
 }

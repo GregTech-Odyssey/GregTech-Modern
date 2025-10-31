@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiFunction;
@@ -13,6 +14,7 @@ import java.util.function.Predicate;
 public class TagType {
 
     public final String tagPath;
+    @Getter
     public boolean isParentTag = false;
     public BiFunction<TagPrefix, Material, TagKey<Item>> formatter;
     public Predicate<Material> filter;
@@ -76,9 +78,5 @@ public class TagType {
     public TagKey<Item> getTag(TagPrefix prefix, @NotNull Material material) {
         if (filter != null && !material.isNull() && !filter.test(material)) return null;
         return formatter.apply(prefix, material);
-    }
-
-    public boolean isParentTag() {
-        return this.isParentTag;
     }
 }

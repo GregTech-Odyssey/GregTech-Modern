@@ -19,6 +19,7 @@ import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import lombok.Getter;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -29,6 +30,7 @@ public abstract class PipeNet<NodeDataType> implements ITagSerializable<Compound
     private final Long2ObjectOpenHashMap<Node<NodeDataType>> nodeByBlockPos = new Long2ObjectOpenHashMap<>();
 
     private final Long2IntOpenHashMap ownedChunks = new Long2IntOpenHashMap();
+    @Getter
     boolean isValid = false;
 
     public PipeNet(LevelPipeNet<NodeDataType, ? extends PipeNet<NodeDataType>> Level) {
@@ -42,10 +44,6 @@ public abstract class PipeNet<NodeDataType> implements ITagSerializable<Compound
 
     public ServerLevel getLevel() {
         return worldData.serverLevel;
-    }
-
-    public boolean isValid() {
-        return isValid;
     }
 
     /**

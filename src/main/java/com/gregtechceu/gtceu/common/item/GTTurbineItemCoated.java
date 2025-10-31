@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.common.item;
 
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
-import com.gregtechceu.gtceu.api.item.ITagPrefixItem;
 import com.gregtechceu.gtceu.common.item.tool.CoatedTurbineRotorBehaviour;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -13,7 +12,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class GTTurbineItemCoated extends GTTurbineItem implements ITagPrefixItem {
+public class GTTurbineItemCoated extends GTTurbineItem {
 
     @Override
     public Component getName(ItemStack stack) {

@@ -8,11 +8,13 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+@Getter
 public class GridCache {
 
     private final List<GeneratedVeinMetadata> veins = new ObjectArrayList<>();
@@ -51,9 +53,5 @@ public class GridCache {
                 i--;
             }
         }
-    }
-
-    public List<GeneratedVeinMetadata> getVeins() {
-        return this.veins;
     }
 }

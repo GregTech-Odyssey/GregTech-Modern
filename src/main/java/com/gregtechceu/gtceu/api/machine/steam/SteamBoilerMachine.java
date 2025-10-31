@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -46,13 +47,17 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidType;
+import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import snownee.jade.api.BlockAccessor;
@@ -66,15 +71,18 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class SteamBoilerMachine extends SteamWorkableMachine implements IUIMachine, IExplosionMachine, IDataInfoProvider, IWailaDisplayProvider {
+public abstract class SteamBoilerMachine extends SteamWorkableMachine implements IUIMachine, IExplosionMachine, IDataInfoProvider, IWailaDisplayProvider, IInteractedMachine {
 
     @Persisted
     public final NotifiableFluidTank waterTank;
+    @Getter
     @Persisted
     @DescSynced
     private int currentTemperature;
+    @Getter
     @Persisted
     private int timeBeforeCoolingDown;
+    @Getter
     private boolean hasNoWater;
     @Nullable
     protected TickableSubscription temperatureSubs;
@@ -208,7 +216,6 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
         return isHighPressure ? 40 : 45;
     }
 
-    @SuppressWarnings("MethodMayBeStatic")
     protected int getCoolDownRate() {
         return 1;
     }
@@ -264,6 +271,17 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
         return InteractionResult.PASS;
     }
 
+    @Override
+    public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand,
+                                   BlockHitResult hit) {
+        if (!isRemote()) {
+            if (FluidUtil.interactWithFluidHandler(player, hand, waterTank)) {
+                return InteractionResult.SUCCESS;
+            }
+        }
+        return IInteractedMachine.super.onUse(state, world, pos, player, hand, hit);
+    }
+
     //////////////////////////////////////
     // ********** GUI ***********//
     //////////////////////////////////////
@@ -309,18 +327,6 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
             return Collections.singletonList(Component.translatable("gtceu.machine.steam_boiler.heat_amount", FormattingUtil.formatNumbers((int) (getTemperaturePercent() * 100))));
         }
         return new ObjectArrayList<>();
-    }
-
-    public int getCurrentTemperature() {
-        return this.currentTemperature;
-    }
-
-    public int getTimeBeforeCoolingDown() {
-        return this.timeBeforeCoolingDown;
-    }
-
-    public boolean isHasNoWater() {
-        return this.hasNoWater;
     }
 
     @Override

@@ -182,7 +182,7 @@ public class GTRecipeBuilder {
 
     public GTRecipeBuilder EUt(long eu) {
         if (eu == 0) {
-            GTCEu.LOGGER.error("EUt can\'t be explicitly set to 0, id: {}", id);
+            GTCEu.LOGGER.error("EUt can't be explicitly set to 0, id: {}", id);
         }
         var lastPerTick = perTick;
         perTick = true;
@@ -207,7 +207,7 @@ public class GTRecipeBuilder {
 
     public GTRecipeBuilder CWUt(int cwu) {
         if (cwu == 0) {
-            GTCEu.LOGGER.error("CWUt can\'t be explicitly set to 0, id: {}", id);
+            GTCEu.LOGGER.error("CWUt can't be explicitly set to 0, id: {}", id);
         }
         var lastPerTick = perTick;
         perTick = true;
@@ -382,7 +382,7 @@ public class GTRecipeBuilder {
 
     public GTRecipeBuilder inputItems(TagPrefix tagPrefix, @NotNull Material material, int count) {
         if (tagPrefix.isEmpty() || material.isNull()) {
-            GTCEu.LOGGER.error("Tried to set input item stack that doesn\'t exist, id: {}, TagPrefix: {}, Material: {}, Count: {}", id, tagPrefix, material, count);
+            GTCEu.LOGGER.error("Tried to set input item stack that doesn't exist, id: {}, TagPrefix: {}, Material: {}, Count: {}", id, tagPrefix, material, count);
             return this;
         } else {
             tempItemMaterialStacks.add(new MaterialStack(material, tagPrefix.getMaterialAmount(material) * count));
@@ -490,12 +490,12 @@ public class GTRecipeBuilder {
 
     public GTRecipeBuilder outputItems(TagPrefix orePrefix, @NotNull Material material, int count) {
         if (orePrefix.isEmpty() || material.isNull()) {
-            GTCEu.LOGGER.error("Tried to set output item stack that doesn\'t exist, id: {}, TagPrefix: {}, Material: {}, Count: {}", id, orePrefix, material, count);
+            GTCEu.LOGGER.error("Tried to set output item stack that doesn't exist, id: {}, TagPrefix: {}, Material: {}, Count: {}", id, orePrefix, material, count);
             return this;
         }
         var item = ChemicalHelper.get(orePrefix, material, count);
         if (item.isEmpty()) {
-            GTCEu.LOGGER.error("Tried to set output item stack that doesn\'t exist, id: {}, TagPrefix: {}, Material: {}, Count: {}", id, orePrefix, material, count);
+            GTCEu.LOGGER.error("Tried to set output item stack that doesn't exist, id: {}, TagPrefix: {}, Material: {}, Count: {}", id, orePrefix, material, count);
             return this;
         }
         return outputItems(item);

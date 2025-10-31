@@ -95,7 +95,7 @@ public class CircuitFancyConfigurator implements IFancyConfigurator, IFancyCusto
     @Override
     public Widget createConfigurator() {
         var group = new WidgetGroup(0, 0, 174, 132);
-        group.addWidget(new LabelWidget(9, 8, "Programmed Circuit Configuration"));
+        group.addWidget(new LabelWidget(9, 8, "gtceu.gui.programmed_circuit_configuration"));
         group.addWidget(new SlotWidget(circuitSlot, 0, (group.getSize().width - 18) / 2, 20,
                 false, false)
                 .setBackground(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.INT_CIRCUIT_OVERLAY)));

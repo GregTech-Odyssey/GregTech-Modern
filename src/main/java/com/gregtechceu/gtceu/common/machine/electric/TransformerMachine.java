@@ -20,12 +20,15 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
+import lombok.Getter;
+import lombok.Setter;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@Getter
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class TransformerMachine extends TieredEnergyMachine implements IControllable, IWailaDisplayProvider {
@@ -34,6 +37,7 @@ public class TransformerMachine extends TieredEnergyMachine implements IControll
     @DescSynced
     @UpdateListener(methodName = "onTransformUpdated")
     private boolean isTransformUp;
+    @Setter
     @Persisted
     private boolean isWorkingEnabled;
     private final int baseAmp;
@@ -113,22 +117,6 @@ public class TransformerMachine extends TieredEnergyMachine implements IControll
             playerIn.sendSystemMessage(Component.translatable(isTransformUp() ? "gtceu.machine.transformer.message_transform_up" : "gtceu.machine.transformer.message_transform_down", energyContainer.getInputVoltage(), energyContainer.getInputAmperage(), energyContainer.getOutputVoltage(), energyContainer.getOutputAmperage()));
         }
         return InteractionResult.CONSUME;
-    }
-
-    public boolean isTransformUp() {
-        return this.isTransformUp;
-    }
-
-    public boolean isWorkingEnabled() {
-        return this.isWorkingEnabled;
-    }
-
-    public void setWorkingEnabled(final boolean isWorkingEnabled) {
-        this.isWorkingEnabled = isWorkingEnabled;
-    }
-
-    public int getBaseAmp() {
-        return this.baseAmp;
     }
 
     @Override

@@ -18,6 +18,7 @@ import net.minecraftforge.fluids.capability.templates.VoidFluidHandler;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,6 +31,7 @@ public class FluidContainerIngredient extends Ingredient {
 
     public static final ResourceLocation TYPE = GTCEu.id("fluid_container");
     public static final Codec<FluidContainerIngredient> CODEC = FluidIngredient.CODEC.xmap(FluidContainerIngredient::new, FluidContainerIngredient::getFluid);
+    @Getter
     private final FluidIngredient fluid;
 
     public FluidContainerIngredient(FluidIngredient fluid) {
@@ -117,8 +119,4 @@ public class FluidContainerIngredient extends Ingredient {
             ingredient.fluid.toNetwork(buffer);
         }
     };
-
-    public FluidIngredient getFluid() {
-        return this.fluid;
-    }
 }

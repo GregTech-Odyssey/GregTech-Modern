@@ -36,6 +36,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,6 +74,7 @@ public class Material implements Comparable<Material> {
     /**
      * Chemical formula of this material
      */
+    @Getter
     private String chemicalFormula;
 
     private String calculateChemicalFormula() {
@@ -92,10 +94,6 @@ public class Material implements Comparable<Material> {
             return components.toString();
         }
         return "";
-    }
-
-    public String getChemicalFormula() {
-        return chemicalFormula;
     }
 
     public Material setFormula(String formula) {
@@ -537,7 +535,7 @@ public class Material implements Comparable<Material> {
         public Builder(ResourceLocation resourceLocation) {
             super(resourceLocation);
             String name = resourceLocation.getPath();
-            if (name.charAt(name.length() - 1) == '_') throw new IllegalArgumentException("Material name cannot end with a \'_\'!");
+            if (name.charAt(name.length() - 1) == '_') throw new IllegalArgumentException("Material name cannot end with a '_'!");
             materialInfo = new MaterialInfo(resourceLocation);
             properties = new MaterialProperties();
             flags = new MaterialFlags();
@@ -1231,32 +1229,64 @@ public class Material implements Comparable<Material> {
          * if any past index 0 are -1, they aren't used.
          * <p>
          * Default: 0xFFFFFF if no Components, otherwise it will be the average of Components.
+         * -- GETTER --
+         * The colors of this Material.
+         * if any past index 0 are -1, they aren't used.
+         * <p>
+         * Default: 0xFFFFFF if no Components, otherwise it will be the average of Components.
+         * 
          */
+        @Getter
         private IntList colors = IntArrayList.of(-1, -1);
         /**
          * The color of this Material.
          * <p>
          * Default: 0xFFFFFF if no Components, otherwise it will be the average of Components.
+         * -- GETTER --
+         * The color of this Material.
+         * <p>
+         * Default: 0xFFFFFF if no Components, otherwise it will be the average of Components.
+         * 
          */
+        @Getter
         private boolean hasFluidColor = true;
         /**
          * The IconSet of this Material.
          * <p>
          * Default: - GEM_VERTICAL if it has GemProperty.
          * - DULL if has DustProperty or IngotProperty.
+         * -- GETTER --
+         * The IconSet of this Material.
+         * <p>
+         * Default: - GEM_VERTICAL if it has GemProperty.
+         * - DULL if has DustProperty or IngotProperty.
+         * 
          */
+        @Getter
         private MaterialIconSet iconSet;
         /**
          * The components of this Material.
          * <p>
          * Default: none.
+         * -- GETTER --
+         * The components of this Material.
+         * <p>
+         * Default: none.
+         * 
          */
+        @Getter
         private ImmutableList<MaterialStack> componentList;
         /**
          * The Element of this Material, if it is a direct Element.
          * <p>
          * Default: none.
+         * -- GETTER --
+         * The Element of this Material, if it is a direct Element.
+         * <p>
+         * Default: none.
+         * 
          */
+        @Getter
         private Element element;
 
         private MaterialInfo(ResourceLocation resourceLocation) {
@@ -1299,31 +1329,12 @@ public class Material implements Comparable<Material> {
          * if any past index 0 are -1, they aren't used.
          * <p>
          * Default: 0xFFFFFF if no Components, otherwise it will be the average of Components.
-         */
-        public IntList getColors() {
-            return this.colors;
-        }
-
-        /**
-         * The colors of this Material.
-         * if any past index 0 are -1, they aren't used.
-         * <p>
-         * Default: 0xFFFFFF if no Components, otherwise it will be the average of Components.
          * 
          * @return {@code this}.
          */
         public Material.MaterialInfo setColors(final IntList colors) {
             this.colors = colors;
             return this;
-        }
-
-        /**
-         * The color of this Material.
-         * <p>
-         * Default: 0xFFFFFF if no Components, otherwise it will be the average of Components.
-         */
-        public boolean isHasFluidColor() {
-            return this.hasFluidColor;
         }
 
         /**
@@ -1343,16 +1354,6 @@ public class Material implements Comparable<Material> {
          * <p>
          * Default: - GEM_VERTICAL if it has GemProperty.
          * - DULL if has DustProperty or IngotProperty.
-         */
-        public MaterialIconSet getIconSet() {
-            return this.iconSet;
-        }
-
-        /**
-         * The IconSet of this Material.
-         * <p>
-         * Default: - GEM_VERTICAL if it has GemProperty.
-         * - DULL if has DustProperty or IngotProperty.
          * 
          * @return {@code this}.
          */
@@ -1365,30 +1366,12 @@ public class Material implements Comparable<Material> {
          * The components of this Material.
          * <p>
          * Default: none.
-         */
-        public ImmutableList<MaterialStack> getComponentList() {
-            return this.componentList;
-        }
-
-        /**
-         * The components of this Material.
-         * <p>
-         * Default: none.
          * 
          * @return {@code this}.
          */
         public Material.MaterialInfo setComponentList(final ImmutableList<MaterialStack> componentList) {
             this.componentList = componentList;
             return this;
-        }
-
-        /**
-         * The Element of this Material, if it is a direct Element.
-         * <p>
-         * Default: none.
-         */
-        public Element getElement() {
-            return this.element;
         }
 
         /**

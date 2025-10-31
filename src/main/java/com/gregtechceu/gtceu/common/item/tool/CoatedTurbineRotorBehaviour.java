@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
-import com.gregtechceu.gtceu.api.item.component.ITurbineRotorBehavior;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.item.TurbineRotorBehaviour;
 
@@ -23,7 +22,7 @@ import java.util.List;
 
 import static com.gregtechceu.gtceu.common.item.GTTurbineItem.getRotorMaxDamage;
 
-public class CoatedTurbineRotorBehaviour extends TurbineRotorBehaviour implements ITurbineRotorBehavior {
+public class CoatedTurbineRotorBehaviour extends TurbineRotorBehaviour {
 
     private final RandomSource rd = RandomSource.create();
 

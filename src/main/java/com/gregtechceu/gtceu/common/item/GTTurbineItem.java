@@ -14,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -36,18 +37,6 @@ public class GTTurbineItem extends ComponentItem implements ITagPrefixItem {
 
     private final Material material;
 
-    public int getPower() {
-        return power;
-    }
-
-    public int getEfficiency() {
-        return efficiency;
-    }
-
-    public float getDoDamageToEntity() {
-        return doDamageToEntity;
-    }
-
     @Override
     public Component getName(ItemStack stack) {
         return ITagPrefixItem.super.getName(stack);
@@ -69,8 +58,11 @@ public class GTTurbineItem extends ComponentItem implements ITagPrefixItem {
         ITagPrefixItem.super.appendHoverText(stack, level, tooltipComponents, isAdvanced);
     }
 
+    @Getter
     protected final int power;
+    @Getter
     protected final int efficiency;
+    @Getter
     protected final float doDamageToEntity;
     protected final TagPrefix tagPrefix;
 

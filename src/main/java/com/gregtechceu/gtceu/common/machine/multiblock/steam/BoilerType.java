@@ -2,6 +2,8 @@ package com.gregtechceu.gtceu.common.machine.multiblock.steam;
 
 import net.minecraft.world.level.block.state.BlockState;
 
+import lombok.Getter;
+
 import static com.gregtechceu.gtceu.common.data.GTBlocks.*;
 
 public enum BoilerType {
@@ -28,6 +30,7 @@ public enum BoilerType {
 
     // Workable Data
     private final int steamPerTick;
+    @Getter
     private final int ticksToBoiling;
 
     // Structure Data
@@ -49,10 +52,6 @@ public enum BoilerType {
 
     public int steamPerTick() {
         return steamPerTick;
-    }
-
-    public int getTicksToBoiling() {
-        return ticksToBoiling;
     }
 
     public int runtimeBoost(int ticks) {

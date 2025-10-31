@@ -32,6 +32,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,12 +53,17 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
     @Persisted
     @DescSynced
     public final RecipeLogic recipeLogic;
+    @Getter
     public final GTRecipeType[] recipeTypes;
+    @Getter
     public int activeRecipeType;
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected Direction outputFacing;
+    @Getter
+    @Setter
     @Persisted
     @DescSynced
     protected boolean isMuffled;
@@ -164,31 +171,11 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
         return this.recipeLogic;
     }
 
-    public GTRecipeType[] getRecipeTypes() {
-        return this.recipeTypes;
-    }
-
-    public int getActiveRecipeType() {
-        return this.activeRecipeType;
-    }
-
     public void setActiveRecipeType(final int activeRecipeType) {
         if (this.activeRecipeType != activeRecipeType) {
             getRecipeLogic().markLastRecipeDirty();
             getRecipeLogic().updateTickSubscription();
         }
-    }
-
-    public Direction getOutputFacing() {
-        return this.outputFacing;
-    }
-
-    public boolean isMuffled() {
-        return this.isMuffled;
-    }
-
-    public void setMuffled(final boolean isMuffled) {
-        this.isMuffled = isMuffled;
     }
 
     public @NotNull Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {

@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidStackList;
 import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 
 public class CycleFluidEntryHandler implements IFluidHandlerModifiable {
 
+    @Getter
     private final List<FluidEntryList> entries;
     private List<List<FluidStack>> unwrapped = null;
 
@@ -93,9 +95,5 @@ public class CycleFluidEntryHandler implements IFluidHandlerModifiable {
     @Override
     public boolean supportsDrain(int tank) {
         return false;
-    }
-
-    public List<FluidEntryList> getEntries() {
-        return this.entries;
     }
 }

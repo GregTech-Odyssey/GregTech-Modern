@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -35,12 +36,13 @@ public class ClientCacheManager {
     private static final char resourceLocationSeparator = '=';
     private static final String filePrefix = "DIM";
     private static final String fileEnding = ".nbt";
+    private static final Pattern PATTERN = Pattern.compile("(?U)[^\\w-]+");
     private static File worldFolder;
     private static final Reference2ObjectMap<IClientCache, ClientCacheInfo> caches = new Reference2ObjectArrayMap<>();
     private static boolean shouldInit = true;
 
     private static String sanitizeFilename(String input) {
-        return input.replaceAll("(?U)[^\\w-]+", "_").trim();
+        return PATTERN.matcher(input).replaceAll("_").trim();
     }
 
     public static void init(String worldId) {

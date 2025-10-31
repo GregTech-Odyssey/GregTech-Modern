@@ -15,6 +15,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.material.Fluid;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -22,15 +25,32 @@ import java.util.function.Supplier;
 
 public class BedrockFluidDefinition {
 
+    @Getter
+    @Setter
     private int weight; // weight value for determining which vein will appear
+    @Getter
+    @Setter
     private int minimumYield;
+    @Getter
+    @Setter
     private int maximumYield;// the [minimum, maximum) yields
+    @Getter
+    @Setter
     private int depletionAmount; // amount of fluid the vein gets drained by
+    @Getter
+    @Setter
     private int depletionChance; // the chance [0, 100] that the vein will deplete by 1
+    @Getter
+    @Setter
     private int depletedYield; // yield after the vein is depleted
+    @Getter
+    @Setter
     private Supplier<Fluid> storedFluid; // the fluid which the vein contains
+    @Getter
     private BiomeWeightModifier biomeWeightModifier; // weighting of biomes
     private List<BiomeWeightModifier> originalModifiers; // weighting of biomes
+    @Getter
+    @Setter
     public Set<ResourceKey<Level>> dimensionFilter; // filtering of dimensions
 
     public BedrockFluidDefinition(ResourceLocation name, int weight, int minimumYield, int maximumYield, int depletionAmount, int depletionChance, int depletedYield, Supplier<Fluid> storedFluid, List<BiomeWeightModifier> originalModifiers, Set<ResourceKey<Level>> dimensionFilter) {
@@ -203,73 +223,5 @@ public class BedrockFluidDefinition {
             this.fluid = fluid;
             return this;
         }
-    }
-
-    public int getWeight() {
-        return this.weight;
-    }
-
-    public void setWeight(final int weight) {
-        this.weight = weight;
-    }
-
-    public int getMinimumYield() {
-        return this.minimumYield;
-    }
-
-    public int getMaximumYield() {
-        return this.maximumYield;
-    }
-
-    public void setMinimumYield(final int minimumYield) {
-        this.minimumYield = minimumYield;
-    }
-
-    public void setMaximumYield(final int maximumYield) {
-        this.maximumYield = maximumYield;
-    }
-
-    public int getDepletionAmount() {
-        return this.depletionAmount;
-    }
-
-    public void setDepletionAmount(final int depletionAmount) {
-        this.depletionAmount = depletionAmount;
-    }
-
-    public int getDepletionChance() {
-        return this.depletionChance;
-    }
-
-    public void setDepletionChance(final int depletionChance) {
-        this.depletionChance = depletionChance;
-    }
-
-    public int getDepletedYield() {
-        return this.depletedYield;
-    }
-
-    public void setDepletedYield(final int depletedYield) {
-        this.depletedYield = depletedYield;
-    }
-
-    public Supplier<Fluid> getStoredFluid() {
-        return this.storedFluid;
-    }
-
-    public void setStoredFluid(final Supplier<Fluid> storedFluid) {
-        this.storedFluid = storedFluid;
-    }
-
-    public BiomeWeightModifier getBiomeWeightModifier() {
-        return this.biomeWeightModifier;
-    }
-
-    public Set<ResourceKey<Level>> getDimensionFilter() {
-        return this.dimensionFilter;
-    }
-
-    public void setDimensionFilter(final Set<ResourceKey<Level>> dimensionFilter) {
-        this.dimensionFilter = dimensionFilter;
     }
 }

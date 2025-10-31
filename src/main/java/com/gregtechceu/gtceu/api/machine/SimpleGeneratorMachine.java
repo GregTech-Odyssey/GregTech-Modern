@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
-import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
@@ -28,6 +27,7 @@ import net.minecraft.resources.ResourceLocation;
 import com.google.common.collect.Tables;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -37,9 +37,10 @@ import java.util.function.BiFunction;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@Getter
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class SimpleGeneratorMachine extends WorkableTieredMachine implements IFancyUIMachine {
+public class SimpleGeneratorMachine extends WorkableTieredMachine {
 
     private final float hazardStrengthPerOperation;
 
@@ -136,8 +137,4 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine implements IFa
             createEnergyBar().setupUI(template, generatorMachine);
         }
     }));
-
-    public float getHazardStrengthPerOperation() {
-        return this.hazardStrengthPerOperation;
-    }
 }

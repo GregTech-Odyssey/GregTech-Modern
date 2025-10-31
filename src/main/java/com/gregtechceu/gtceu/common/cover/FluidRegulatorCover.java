@@ -21,6 +21,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -30,12 +31,15 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class FluidRegulatorCover extends PumpCover {
 
     private static final int MAX_STACK_SIZE = 2048000000; // Capacity of quantum tank IX
+    @Getter
     @Persisted
     @DescSynced
     private TransferMode transferMode = TransferMode.TRANSFER_ANY;
+    @Getter
     @Persisted
     @DescSynced
     private BucketMode transferBucketMode = BucketMode.MILLI_BUCKET;
+    @Getter
     @Persisted
     @DescSynced
     protected int globalTransferLimit;
@@ -192,17 +196,5 @@ public class FluidRegulatorCover extends PumpCover {
         if (this.transferMode == TransferMode.TRANSFER_ANY) return false;
         if (!this.filterHandler.isFilterPresent()) return true;
         return !this.filterHandler.getFilter().supportsAmounts();
-    }
-
-    public TransferMode getTransferMode() {
-        return this.transferMode;
-    }
-
-    public BucketMode getTransferBucketMode() {
-        return this.transferBucketMode;
-    }
-
-    public int getGlobalTransferLimit() {
-        return this.globalTransferLimit;
     }
 }

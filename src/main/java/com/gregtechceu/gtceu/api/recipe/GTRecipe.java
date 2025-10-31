@@ -18,6 +18,8 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
@@ -33,6 +35,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Container> {
 
     public final GTRecipeType recipeType;
+    @Getter
+    @Setter
     public ResourceLocation id;
     public final Map<RecipeCapability<?>, List<Content>> inputs;
     public final Map<RecipeCapability<?>, List<Content>> outputs;
@@ -184,13 +188,5 @@ public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Contai
     @Override
     public String toString() {
         return id.toString();
-    }
-
-    public ResourceLocation getId() {
-        return this.id;
-    }
-
-    public void setId(final ResourceLocation id) {
-        this.id = id;
     }
 }

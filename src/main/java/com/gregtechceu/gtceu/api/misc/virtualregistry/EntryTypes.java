@@ -1,12 +1,14 @@
 package com.gregtechceu.gtceu.api.misc.virtualregistry;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.misc.virtualregistry.entries.VirtualItemStorage;
+import com.gregtechceu.gtceu.api.misc.virtualregistry.entries.VirtualRedstone;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.entries.VirtualTank;
-import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -14,11 +16,13 @@ import java.util.function.Supplier;
 
 public final class EntryTypes<T extends VirtualEntry> {
 
-    private static final Map<ResourceLocation, EntryTypes<?>> TYPES_MAP = new O2OOpenCacheHashMap<>();
+    private static final Map<ResourceLocation, EntryTypes<?>> TYPES_MAP = new Object2ObjectOpenHashMap<>();
     public static final EntryTypes<VirtualTank> ENDER_FLUID = addEntryType(GTCEu.id("ender_fluid"), VirtualTank::new);
-    // ENDER_ITEM("ender_item", null),
+    public static final EntryTypes<VirtualItemStorage> ENDER_ITEM = addEntryType(GTCEu.id("ender_item"),
+            VirtualItemStorage::new);
+    public static final EntryTypes<VirtualRedstone> ENDER_REDSTONE = addEntryType(GTCEu.id("ender_redstone"),
+            VirtualRedstone::new);
     // ENDER_ENERGY("ender_energy", null),
-    // ENDER_REDSTONE("ender_redstone", null);
     private final ResourceLocation location;
     private final Supplier<T> factory;
 

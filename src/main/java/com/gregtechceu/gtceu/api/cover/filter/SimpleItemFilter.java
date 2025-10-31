@@ -13,6 +13,8 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 
+import lombok.Getter;
+
 import java.util.Arrays;
 import java.util.function.Consumer;
 
@@ -22,11 +24,15 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class SimpleItemFilter implements ItemFilter {
 
+    @Getter
     protected boolean isBlackList;
+    @Getter
     protected boolean ignoreNbt;
+    @Getter
     protected ItemStack[] matches = new ItemStack[9];
     protected Consumer<ItemFilter> itemWriter = filter -> {};
     protected Consumer<ItemFilter> onUpdated = filter -> itemWriter.accept(filter);
+    @Getter
     protected int maxStackSize;
 
     protected SimpleItemFilter() {
@@ -151,21 +157,5 @@ public class SimpleItemFilter implements ItemFilter {
         for (ItemStack match : matches) {
             match.setCount(Math.min(match.getCount(), maxStackSize));
         }
-    }
-
-    public boolean isBlackList() {
-        return this.isBlackList;
-    }
-
-    public boolean isIgnoreNbt() {
-        return this.ignoreNbt;
-    }
-
-    public ItemStack[] getMatches() {
-        return this.matches;
-    }
-
-    public int getMaxStackSize() {
-        return this.maxStackSize;
     }
 }

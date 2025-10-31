@@ -19,6 +19,7 @@ import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -41,8 +42,11 @@ public class RecipeHandlerList {
     public final Reference2ObjectOpenHashMap<RecipeCapability<?>, List<IRecipeHandler<?>>> handlerMap = new Reference2ObjectOpenHashMap<>();
     public final List<IRecipeHandler<?>> allHandlers = new ObjectArrayList<>();
     public final List<NotifiableRecipeHandlerTrait<?>> allHandlerTraits = new ObjectArrayList<>();
+    @Getter
     private final IO handlerIO;
+    @Getter
     private int color = -1;
+    @Getter
     private boolean isDistinct;
 
     public RecipeHandlerList external = this;
@@ -114,10 +118,6 @@ public class RecipeHandlerList {
         }
     }
 
-    public boolean isDistinct() {
-        return isDistinct;
-    }
-
     public void setColor(int color) {
         setColor(color, false);
     }
@@ -157,14 +157,6 @@ public class RecipeHandlerList {
             }
         }
         return () -> subs.forEach(ISubscription::unsubscribe);
-    }
-
-    public IO getHandlerIO() {
-        return this.handlerIO;
-    }
-
-    public int getColor() {
-        return this.color;
     }
 
     public <T extends GTRecipeType, R extends GTRecipe> Iterator<R> searchRecipe(IRecipeCapabilityHolder holder, T type, Predicate<R> canHandle) {

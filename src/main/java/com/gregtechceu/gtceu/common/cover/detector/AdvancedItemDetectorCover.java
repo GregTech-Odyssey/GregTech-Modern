@@ -25,10 +25,14 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@Getter
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class AdvancedItemDetectorCover extends ItemDetectorCover implements IUICover {
@@ -39,6 +43,7 @@ public class AdvancedItemDetectorCover extends ItemDetectorCover implements IUIC
     private int minValue;
     @Persisted
     private int maxValue;
+    @Setter
     @Persisted
     @DescSynced
     private boolean isLatched;
@@ -105,25 +110,5 @@ public class AdvancedItemDetectorCover extends ItemDetectorCover implements IUIC
         group.addWidget(filterHandler.createFilterSlotUI(148, 100));
         group.addWidget(filterHandler.createFilterConfigUI(10, 100, 156, 60));
         return group;
-    }
-
-    public int getMinValue() {
-        return this.minValue;
-    }
-
-    public int getMaxValue() {
-        return this.maxValue;
-    }
-
-    public boolean isLatched() {
-        return this.isLatched;
-    }
-
-    public void setLatched(final boolean isLatched) {
-        this.isLatched = isLatched;
-    }
-
-    public FilterHandler<ItemStack, ItemFilter> getFilterHandler() {
-        return this.filterHandler;
     }
 }

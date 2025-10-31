@@ -6,8 +6,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+@Getter
 public class ThermalFluidHandlerItemStack extends FluidHandlerItemStack implements IThermalFluidHandlerItemStack {
 
     private final boolean gasProof;
@@ -26,13 +28,5 @@ public class ThermalFluidHandlerItemStack extends FluidHandlerItemStack implemen
     @Override
     public boolean canFillFluidType(FluidStack fluid) {
         return IThermalFluidHandlerItemStack.super.canFillFluidType(fluid);
-    }
-
-    public boolean isGasProof() {
-        return this.gasProof;
-    }
-
-    public boolean isPlasmaProof() {
-        return this.plasmaProof;
     }
 }

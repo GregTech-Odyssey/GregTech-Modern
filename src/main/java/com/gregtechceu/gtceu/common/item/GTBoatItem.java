@@ -49,7 +49,7 @@ public class GTBoatItem extends Item {
             if (!list.isEmpty()) {
                 Vec3 vec31 = player.getEyePosition();
                 for (Entity e : list) {
-                    AABB aabb = e.getBoundingBox().inflate((double) e.getPickRadius());
+                    AABB aabb = e.getBoundingBox().inflate(e.getPickRadius());
                     if (aabb.contains(vec31)) {
                         return InteractionResultHolder.pass(itemstack);
                     }

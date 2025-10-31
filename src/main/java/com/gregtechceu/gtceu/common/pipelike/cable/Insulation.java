@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.client.model.PipeModel;
 
 import net.minecraft.resources.ResourceLocation;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
@@ -34,6 +35,7 @@ public enum Insulation implements IMaterialPipeType<WireProperties> {
     public final float thickness;
     public final int amperage;
     public final int lossMultiplier;
+    @Getter
     public final TagPrefix tagPrefix;
     public final int insulationLevel;
     public final boolean isCable;
@@ -80,9 +82,5 @@ public enum Insulation implements IMaterialPipeType<WireProperties> {
             model.setEndOverlayTexture(GTCEu.id("block/cable/insulation_%s".formatted(insulationLevel)));
         }
         return model;
-    }
-
-    public TagPrefix getTagPrefix() {
-        return this.tagPrefix;
     }
 }

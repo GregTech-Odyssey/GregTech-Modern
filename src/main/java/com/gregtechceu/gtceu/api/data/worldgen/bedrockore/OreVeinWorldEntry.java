@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,7 +14,9 @@ public class OreVeinWorldEntry {
 
     @Nullable
     private BedrockOreDefinition definition;
+    @Getter
     private int oreYield;
+    @Getter
     private int operationsRemaining;
 
     public OreVeinWorldEntry(@Nullable BedrockOreDefinition vein, int oreYield, int operationsRemaining) {
@@ -60,13 +63,5 @@ public class OreVeinWorldEntry {
     @Nullable
     public BedrockOreDefinition getDefinition() {
         return this.definition;
-    }
-
-    public int getOreYield() {
-        return this.oreYield;
-    }
-
-    public int getOperationsRemaining() {
-        return this.operationsRemaining;
     }
 }

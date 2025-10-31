@@ -1,4 +1,5 @@
 [versions]
+ldlib = "1.0.45"
 registrate = "MC1.20-1.3.11"
 mixinExtras = "0.5.0-rc.3"
 
@@ -11,18 +12,17 @@ ftbquests= "2001.4.11"
 
 ## modrinth maven ##
 jade = "11.6.3"
-embeddium = "0.3.19+mc1.20.1"
+embeddium = "0.3.31+mc1.20.1"
 
 ## cursemaven ##
 configuration = "5840405"
-ldlib = "6995785"
 shimmer = "5685940"
 xaerosWorldMap = "5658224"
 xaerosMinimap = "5773012"
 ae2wtlib = "5217955"
 
 [libraries]
-ldlib               = { module = "curse.maven:ldlib-626676", version.ref = "ldlib" }
+ldlib               = { module = "com.lowdragmc.ldlib:ldlib-forge-1.20.1", version.ref = "ldlib" }
 registrate          = { module = "com.tterrag.registrate:Registrate", version.ref = "registrate" }
 configuration       = { module = "curse.maven:configuration-444699", version.ref = "configuration" }
 mixinExtras-common  = { module = "io.github.llamalad7:mixinextras-common", version.ref = "mixinExtras" }

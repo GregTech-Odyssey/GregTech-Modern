@@ -9,12 +9,16 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import net.minecraft.server.level.ServerLevel;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
 public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait implements IRecipeHandlerTrait<T> {
 
     protected List<Runnable> listeners = new ObjectArrayList<>();
+    @Getter
+    @Setter
     @Persisted
     protected boolean isDistinct;
 
@@ -49,13 +53,5 @@ public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait imple
                 TaskHandler.enqueueServerTask(serverLevel, notify, () -> notify = null, 0);
             }
         }
-    }
-
-    public boolean isDistinct() {
-        return this.isDistinct;
-    }
-
-    public void setDistinct(final boolean isDistinct) {
-        this.isDistinct = isDistinct;
     }
 }

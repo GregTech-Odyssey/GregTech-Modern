@@ -20,6 +20,7 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +34,7 @@ public class LargeTurbineMachine extends WorkableElectricMultiblockMachine {
 
     public static final int MIN_DURABILITY_TO_WARN = 10;
     private final long BASE_EU_OUTPUT;
+    @Getter
     private final int tier;
 
     public LargeTurbineMachine(MetaMachineBlockEntity holder, int tier) {
@@ -138,9 +140,5 @@ public class LargeTurbineMachine extends WorkableElectricMultiblockMachine {
                 }
             }
         }
-    }
-
-    public int getTier() {
-        return this.tier;
     }
 }

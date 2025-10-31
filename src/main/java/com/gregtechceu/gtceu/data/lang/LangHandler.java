@@ -449,6 +449,8 @@ public class LangHandler {
         provider.add("cover.machine_controller.mode.cover_east", "Control Cover (East)");
         provider.add("cover.machine_controller.mode.cover_west", "Control Cover (West)");
         provider.add("cover.machine_controller.mode.null", "Control Nothing");
+        provider.add("gtceu.ender_item_link.title", "Ender Item Link");
+        provider.add("gtceu.ender_redstone_link.title", "Ender Redstone Link");
         provider.add("cover.ender_fluid_link.title", "Ender Fluid Link");
         provider.add("cover.ender_fluid_link.iomode.enabled", "I/O Enabled");
         provider.add("cover.ender_fluid_link.iomode.disabled", "I/O Disabled");
@@ -1322,6 +1324,7 @@ public class LangHandler {
 
         provider.add("gtceu.gui.machinemode.title", "Active Machine Mode");
         provider.add("gtceu.gui.machinemode", "Active Machine Mode: %s");
+        provider.add("gtceu.gui.machinemode.tab_tooltip", "Change active Machine Mode");
         provider.add("gtceu.machine.available_recipe_map_1.tooltip", "Available Recipe Types: %s");
         provider.add("gtceu.machine.available_recipe_map_2.tooltip", "Available Recipe Types: %s, %s");
         provider.add("gtceu.machine.available_recipe_map_3.tooltip", "Available Recipe Types: %s, %s, %s");
@@ -1360,6 +1363,8 @@ public class LangHandler {
         provider.add("gtceu.gui.config_slot.set_only", "§7Click to §bset§7 config slot.§r");
         provider.add("gtceu.gui.config_slot.auto_pull_managed", "§4Disabled:§7 Managed by Auto-Pull");
         provider.add("gtceu.gui.me_bus.auto_pull_button", "Click to toggle automatic item pulling from ME");
+
+        provider.add("gtceu.gui.programmed_circuit_configuration", "Programmed Circuit Configuration");
 
         // Decor Stuff
         replace(provider, "block.gtceu.yellow_stripes_block.a", "Yellow Stripes Block");

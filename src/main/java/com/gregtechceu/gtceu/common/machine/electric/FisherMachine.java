@@ -58,6 +58,8 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
@@ -69,20 +71,24 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class FisherMachine extends TieredEnergyMachine implements IAutoOutputItem, IFancyUIMachine, IMachineLife, IWorkable {
 
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected Direction outputFacingItems;
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected boolean autoOutputItems;
     @Persisted
     protected final NotifiableItemStackHandler cache;
+    @Getter
     @Persisted
     protected boolean allowInputFromOutputSideItems;
     @Persisted
     protected final NotifiableItemStackHandler baitHandler;
+    @Getter
     @Persisted
     protected final CustomItemStackHandler chargerInventory;
     @Nullable
@@ -99,17 +105,24 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
     protected ISubscription baitSubs;
     private final long energyPerTick;
     private final int inventorySize;
+    @Getter
     public final int maxProgress;
+    @Getter
     @Persisted
     private int progress = 0;
+    @Getter
+    @Setter
     @Persisted
     @DescSynced
     private boolean isWorkingEnabled = true;
+    @Getter
     @Persisted
     private boolean active = false;
     public static final int WATER_CHECK_SIZE = 5;
     private static final ItemStack fishingRod = new ItemStack(Items.FISHING_ROD);
     private boolean hasWater = false;
+    @Getter
+    @Setter
     @Persisted
     @DescSynced
     protected boolean junkEnabled = true;
@@ -463,52 +476,8 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
         return super.onWrenchClick(playerIn, hand, gridSide, hitResult);
     }
 
-    public Direction getOutputFacingItems() {
-        return this.outputFacingItems;
-    }
-
-    public boolean isAutoOutputItems() {
-        return this.autoOutputItems;
-    }
-
-    public boolean isAllowInputFromOutputSideItems() {
-        return this.allowInputFromOutputSideItems;
-    }
-
     public void setAllowInputFromOutputSideItems(final boolean allowInputFromOutputSideItems) {
         clearDirectionCache();
         this.allowInputFromOutputSideItems = allowInputFromOutputSideItems;
-    }
-
-    public CustomItemStackHandler getChargerInventory() {
-        return this.chargerInventory;
-    }
-
-    public int getMaxProgress() {
-        return this.maxProgress;
-    }
-
-    public int getProgress() {
-        return this.progress;
-    }
-
-    public boolean isWorkingEnabled() {
-        return this.isWorkingEnabled;
-    }
-
-    public void setWorkingEnabled(final boolean isWorkingEnabled) {
-        this.isWorkingEnabled = isWorkingEnabled;
-    }
-
-    public boolean isActive() {
-        return this.active;
-    }
-
-    public boolean isJunkEnabled() {
-        return this.junkEnabled;
-    }
-
-    public void setJunkEnabled(final boolean junkEnabled) {
-        this.junkEnabled = junkEnabled;
     }
 }

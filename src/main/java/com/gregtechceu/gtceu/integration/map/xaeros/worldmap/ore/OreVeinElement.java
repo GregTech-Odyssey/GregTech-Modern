@@ -7,6 +7,9 @@ import com.gregtechceu.gtceu.integration.map.WaypointManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 
+import lombok.Getter;
+
+@Getter
 public class OreVeinElement {
 
     private GeneratedVeinMetadata vein;
@@ -33,17 +36,5 @@ public class OreVeinElement {
 
     public Material getFirstMaterial() {
         return vein.definition().veinGenerator().getAllMaterials().get(0);
-    }
-
-    public GeneratedVeinMetadata getVein() {
-        return this.vein;
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public int getCachedNameLength() {
-        return this.cachedNameLength;
     }
 }

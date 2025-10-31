@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.NotNullByDefault;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +36,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
+@Getter
 @NotNullByDefault
 public class ArmorComponentItem extends ArmorItem implements IComponentItem {
 
@@ -305,13 +307,5 @@ public class ArmorComponentItem extends ArmorItem implements IComponentItem {
     @Override
     public boolean canWalkOnPowderedSnow(ItemStack stack, LivingEntity wearer) {
         return stack.is(GTItems.NANO_BOOTS.asItem()) || stack.is(GTItems.QUANTUM_BOOTS.asItem());
-    }
-
-    public IArmorLogic getArmorLogic() {
-        return this.armorLogic;
-    }
-
-    public List<IItemComponent> getComponents() {
-        return this.components;
     }
 }

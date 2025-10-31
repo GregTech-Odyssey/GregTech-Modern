@@ -19,6 +19,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
@@ -30,9 +31,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class RobotArmCover extends ConveyorCover {
 
+    @Getter
     @Persisted
     @DescSynced
     protected TransferMode transferMode;
+    @Getter
     @Persisted
     protected int globalTransferLimit;
     protected int itemsTransferBuffered;
@@ -181,13 +184,5 @@ public class RobotArmCover extends ConveyorCover {
         if (this.transferMode == TransferMode.TRANSFER_ANY) return false;
         if (!this.filterHandler.isFilterPresent()) return true;
         return !this.filterHandler.getFilter().supportsAmounts();
-    }
-
-    public TransferMode getTransferMode() {
-        return this.transferMode;
-    }
-
-    public int getGlobalTransferLimit() {
-        return this.globalTransferLimit;
     }
 }

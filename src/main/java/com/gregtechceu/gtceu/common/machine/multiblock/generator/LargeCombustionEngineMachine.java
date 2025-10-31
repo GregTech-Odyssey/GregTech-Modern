@@ -30,6 +30,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraftforge.fluids.FluidStack;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,6 +46,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
     private static final FluidStack OXYGEN_STACK = GTMaterials.Oxygen.getFluid(1);
     private static final FluidStack LIQUID_OXYGEN_STACK = GTMaterials.Oxygen.getFluid(FluidStorageKeys.LIQUID, 4);
     private static final FluidStack LUBRICANT_STACK = GTMaterials.Lubricant.getFluid(1);
+    @Getter
     private final int tier;
     // runtime
     @DescSynced
@@ -195,9 +197,5 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
     public void attachTooltips(TooltipsPanel tooltipsPanel) {
         super.attachTooltips(tooltipsPanel);
         tooltipsPanel.attachTooltips(new IFancyTooltip.Basic(() -> GuiTextures.INDICATOR_NO_STEAM.get(false), () -> List.of(Component.translatable("gtceu.multiblock.large_combustion_engine.obstructed").setStyle(Style.EMPTY.withColor(ChatFormatting.RED))), this::isIntakesObstructed, () -> null));
-    }
-
-    public int getTier() {
-        return this.tier;
     }
 }

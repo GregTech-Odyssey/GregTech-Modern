@@ -9,6 +9,8 @@ import com.lowdragmc.lowdraglib.gui.editor.configurator.WrapperConfigurator;
 import com.lowdragmc.lowdraglib.gui.widget.ProgressWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
+import lombok.Getter;
+
 import java.util.function.DoubleSupplier;
 
 @LDLRegister(name = "dual_progress", group = "widget.group")
@@ -18,8 +20,10 @@ public class DualProgressWidget extends WidgetGroup {
     @Configurable
     @NumberRange(range = { 0.001, 1.0 }, wheel = 0.01)
     private double splitPoint;
+    @Getter
     @Configurable(subConfigurable = true)
     private ProgressWidget texture1;
+    @Getter
     @Configurable(subConfigurable = true)
     private ProgressWidget texture2;
 
@@ -96,13 +100,5 @@ public class DualProgressWidget extends WidgetGroup {
             }
         }
         return false;
-    }
-
-    public ProgressWidget getTexture1() {
-        return this.texture1;
-    }
-
-    public ProgressWidget getTexture2() {
-        return this.texture2;
     }
 }

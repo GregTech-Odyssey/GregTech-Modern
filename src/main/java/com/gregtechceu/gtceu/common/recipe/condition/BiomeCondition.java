@@ -19,8 +19,10 @@ import net.minecraft.world.level.biome.Biome;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+@Getter
 public class BiomeCondition extends RecipeCondition {
 
     public static final Codec<BiomeCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(ResourceKey.codec(Registries.BIOME).fieldOf("biome").forGetter(val -> val.biome)).apply(instance, BiomeCondition::new));
@@ -93,8 +95,4 @@ public class BiomeCondition extends RecipeCondition {
     }
 
     public BiomeCondition() {}
-
-    public ResourceKey<Biome> getBiome() {
-        return this.biome;
-    }
 }

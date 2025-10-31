@@ -14,8 +14,10 @@ import net.minecraft.world.level.Level;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+@Getter
 public class ThunderCondition extends RecipeCondition {
 
     public static final Codec<ThunderCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(Codec.FLOAT.fieldOf("level").forGetter(val -> val.level)).apply(instance, ThunderCondition::new));
@@ -39,10 +41,6 @@ public class ThunderCondition extends RecipeCondition {
     @Override
     public Component getTooltips() {
         return Component.translatable("recipe.condition.thunder.tooltip", level);
-    }
-
-    public float getLevel() {
-        return level;
     }
 
     @Override

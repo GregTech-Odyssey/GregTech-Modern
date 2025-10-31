@@ -10,6 +10,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongSet;
+import lombok.Getter;
 
 import java.util.stream.Collectors;
 
@@ -22,7 +23,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class GeneratedVein {
 
+    @Getter
     private final ChunkPos origin;
+    @Getter
     private final IWorldGenLayer layer;
     private final Long2ObjectOpenHashMap<Long2ObjectMap<OreBlockPlacer>> generatedOres;
 
@@ -51,13 +54,5 @@ public class GeneratedVein {
     @Override
     public String toString() {
         return "GeneratedVein[origin=" + origin + ", chunks={" + generatedOres.keySet().longStream().mapToObj(ChunkPos::new).map(ChunkPos::toString).collect(Collectors.joining(", ")) + "}]";
-    }
-
-    public ChunkPos getOrigin() {
-        return this.origin;
-    }
-
-    public IWorldGenLayer getLayer() {
-        return this.layer;
     }
 }

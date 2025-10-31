@@ -21,6 +21,8 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -30,10 +32,13 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class FluidFilterCover extends CoverBehavior implements IUICover {
 
     protected FluidFilter fluidFilter;
+    @Getter
     @Persisted
     @DescSynced
     protected FilterMode filterMode = FilterMode.FILTER_INSERT;
     private FilteredFluidHandlerWrapper fluidFilterWrapper;
+    @Getter
+    @Setter
     @Persisted
     protected ManualIOMode allowFlow = ManualIOMode.DISABLED;
 
@@ -99,17 +104,5 @@ public class FluidFilterCover extends CoverBehavior implements IUICover {
             if (filterMode != FilterMode.FILTER_INSERT && getFluidFilter().test(resource)) return super.drain(resource, action);
             return FluidStack.EMPTY;
         }
-    }
-
-    public FilterMode getFilterMode() {
-        return this.filterMode;
-    }
-
-    public void setAllowFlow(final ManualIOMode allowFlow) {
-        this.allowFlow = allowFlow;
-    }
-
-    public ManualIOMode getAllowFlow() {
-        return this.allowFlow;
     }
 }

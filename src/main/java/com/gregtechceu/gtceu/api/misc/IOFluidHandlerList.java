@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.function.Predicate;
 
 public class IOFluidHandlerList extends FluidHandlerList {
 
+    @Getter
     private final IO io;
     private final Predicate<FluidStack> inFilter;
     private final Predicate<FluidStack> outFilter;
@@ -66,9 +68,5 @@ public class IOFluidHandlerList extends FluidHandlerList {
             }
             index += handler.getTanks();
         }
-    }
-
-    public IO getIo() {
-        return this.io;
     }
 }

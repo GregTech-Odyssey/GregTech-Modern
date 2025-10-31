@@ -15,8 +15,10 @@ import com.google.gson.JsonObject;
 import com.mojang.datafixers.Products;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+@Getter
 public abstract class RecipeCondition {
 
     public static final Codec<RecipeCondition> CODEC = GTRegistries.RECIPE_CONDITIONS.codec().dispatch(RecipeCondition::getType, RecipeConditionType::getCodec);
@@ -85,10 +87,6 @@ public abstract class RecipeCondition {
     public RecipeCondition fromNetwork(FriendlyByteBuf buf) {
         isReverse = buf.readBoolean();
         return this;
-    }
-
-    public boolean isReverse() {
-        return this.isReverse;
     }
 
     /**

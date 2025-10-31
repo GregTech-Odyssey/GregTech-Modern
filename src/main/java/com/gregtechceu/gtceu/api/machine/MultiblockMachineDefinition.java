@@ -14,6 +14,8 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,19 +27,39 @@ import java.util.function.Supplier;
 public class MultiblockMachineDefinition extends MachineDefinition {
 
     protected int checkPriority;
+    @Getter
+    @Setter
     protected boolean generator;
 
+    @Getter
     protected Supplier<BlockPattern> patternFactory;
+    @Getter
     protected Supplier<BlockPattern>[] subPatternFactory;
+    @Getter
+    @Setter
     protected Supplier<List<MultiblockShapeInfo>> shapes;
     /**
      * Set this to false only if your multiblock is set up such that it could have a wall-shared controller.
+     * -- SETTER --
+     * Set this to false only if your multiblock is set up such that it could have a wall-shared controller.
+     * -- GETTER --
+     * Set this to false only if your multiblock is set up such that it could have a wall-shared controller.
+     * 
+     * 
      */
+    @Getter
+    @Setter
     protected boolean allowFlip;
+    @Getter
+    @Setter
     protected boolean renderXEIPreview;
     @Nullable
     protected MultiblockMachineBuilder.MufflerProductionGenerator recoveryItems;
+    @Getter
+    @Setter
     protected TriFunction<IMultiController, IMultiPart, Direction, BlockState> partAppearance;
+    @Getter
+    @Setter
     protected BiConsumer<IMultiController, List<Component>> additionalDisplay;
 
     protected MultiblockMachineDefinition(ResourceLocation id) {
@@ -83,58 +105,12 @@ public class MultiblockMachineDefinition extends MachineDefinition {
         }
     }
 
-    public boolean isGenerator() {
-        return this.generator;
-    }
-
-    public void setGenerator(final boolean generator) {
-        this.generator = generator;
-    }
-
     public void setPatternFactory(final Function<MultiblockMachineDefinition, BlockPattern> patternFactory) {
         this.patternFactory = GTMemoizer.memoize(() -> patternFactory.apply(this));
     }
 
-    public Supplier<BlockPattern> getPatternFactory() {
-        return this.patternFactory;
-    }
-
     public void setSubPatternFactory(final List<Function<MultiblockMachineDefinition, BlockPattern>> subPatternFactory) {
         this.subPatternFactory = subPatternFactory.stream().map(p -> GTMemoizer.memoize(() -> p.apply(this))).toArray(Supplier[]::new);
-    }
-
-    public Supplier<BlockPattern>[] getSubPatternFactory() {
-        return this.subPatternFactory;
-    }
-
-    public void setShapes(final Supplier<List<MultiblockShapeInfo>> shapes) {
-        this.shapes = shapes;
-    }
-
-    public Supplier<List<MultiblockShapeInfo>> getShapes() {
-        return this.shapes;
-    }
-
-    /**
-     * Set this to false only if your multiblock is set up such that it could have a wall-shared controller.
-     */
-    public boolean isAllowFlip() {
-        return this.allowFlip;
-    }
-
-    /**
-     * Set this to false only if your multiblock is set up such that it could have a wall-shared controller.
-     */
-    public void setAllowFlip(final boolean allowFlip) {
-        this.allowFlip = allowFlip;
-    }
-
-    public boolean isRenderXEIPreview() {
-        return this.renderXEIPreview;
-    }
-
-    public void setRenderXEIPreview(final boolean renderXEIPreview) {
-        this.renderXEIPreview = renderXEIPreview;
     }
 
     public void setRecoveryItems(@Nullable final MultiblockMachineBuilder.MufflerProductionGenerator recoveryItems) {
@@ -144,21 +120,5 @@ public class MultiblockMachineDefinition extends MachineDefinition {
     @Nullable
     public MultiblockMachineBuilder.MufflerProductionGenerator getRecoveryItems() {
         return this.recoveryItems;
-    }
-
-    public TriFunction<IMultiController, IMultiPart, Direction, BlockState> getPartAppearance() {
-        return this.partAppearance;
-    }
-
-    public void setPartAppearance(final TriFunction<IMultiController, IMultiPart, Direction, BlockState> partAppearance) {
-        this.partAppearance = partAppearance;
-    }
-
-    public BiConsumer<IMultiController, List<Component>> getAdditionalDisplay() {
-        return this.additionalDisplay;
-    }
-
-    public void setAdditionalDisplay(final BiConsumer<IMultiController, List<Component>> additionalDisplay) {
-        this.additionalDisplay = additionalDisplay;
     }
 }

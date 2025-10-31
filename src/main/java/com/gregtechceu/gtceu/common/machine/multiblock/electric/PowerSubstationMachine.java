@@ -35,6 +35,7 @@ import net.minecraft.world.entity.player.Player;
 
 import com.google.common.annotations.VisibleForTesting;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigInteger;
@@ -62,8 +63,10 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
     private long passiveDrain;
     // Stats tracked for UI display
     private long netInLastSec;
+    @Getter
     private long inputPerSec;
     private long netOutLastSec;
+    @Getter
     private long outputPerSec;
     protected ConditionalSubscriptionHandler tickSubscription;
 
@@ -308,6 +311,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
         private long[] storage;
         // @Persisted(key = NBT_MAX)
         private long[] maximums;
+        @Getter
         private BigInteger capacity;
         private int index;
 
@@ -461,12 +465,9 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
             BigInteger capacityExcl = summarize(maximumsExcl);
             return capacityExcl.divide(BigInteger.valueOf(PASSIVE_DRAIN_DIVISOR)).add(BigInteger.valueOf(PASSIVE_DRAIN_MAX_PER_STORAGE * numExcl)).longValue();
         }
-
-        public BigInteger getCapacity() {
-            return this.capacity;
-        }
     }
 
+    @Getter
     public static class BatteryMatchWrapper {
 
         private final IBatteryData partType;
@@ -480,21 +481,5 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
             amount++;
             return this;
         }
-
-        public IBatteryData getPartType() {
-            return this.partType;
-        }
-
-        public int getAmount() {
-            return this.amount;
-        }
-    }
-
-    public long getInputPerSec() {
-        return this.inputPerSec;
-    }
-
-    public long getOutputPerSec() {
-        return this.outputPerSec;
     }
 }

@@ -26,8 +26,10 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.items.ItemHandlerHelper;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+@Getter
 public class CreativeTankMachine extends QuantumTankMachine {
 
     @Persisted
@@ -166,13 +168,5 @@ public class CreativeTankMachine extends QuantumTankMachine {
         public int getTankCapacity(int tank) {
             return 1000;
         }
-    }
-
-    public int getMBPerCycle() {
-        return this.mBPerCycle;
-    }
-
-    public int getTicksPerCycle() {
-        return this.ticksPerCycle;
     }
 }

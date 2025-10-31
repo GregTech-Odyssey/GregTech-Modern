@@ -22,6 +22,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import lombok.Getter;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -36,9 +37,12 @@ import static com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_TEX_COLOR;
 public class ProspectingTexture extends AbstractTexture {
 
     public static final String SELECTED_ALL = "[all]";
+    @Getter
     private String selected = SELECTED_ALL;
     private boolean darkMode;
+    @Getter
     private final int imageWidth;
+    @Getter
     private final int imageHeight;
     public final Object[][][] data;
     private final int playerXGui;
@@ -185,17 +189,5 @@ public class ProspectingTexture extends AbstractTexture {
             this.selected = uniqueID;
             load();
         }
-    }
-
-    public String getSelected() {
-        return this.selected;
-    }
-
-    public int getImageWidth() {
-        return this.imageWidth;
-    }
-
-    public int getImageHeight() {
-        return this.imageHeight;
     }
 }

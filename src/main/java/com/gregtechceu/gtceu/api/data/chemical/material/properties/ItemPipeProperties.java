@@ -2,15 +2,38 @@ package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 
 import com.gregtechceu.gtceu.utils.GTMath;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class ItemPipeProperties implements IMaterialProperty {
 
     /**
      * Items will try to take the path with the lowest priority
+     * -- SETTER --
+     * Sets the Priority of the item pipe
+     * -- GETTER --
+     * Retrieves the priority of the item pipe
+     *
+     * @return The item pipe priority
+     * 
+     * 
      */
     private int priority;
 
     /**
      * rate in stacks per sec
+     * -- SETTER --
+     * Sets the transfer rate of the item pipe
+     *
+     *
+     * -- GETTER --
+     * Retrieve the transfer rate of the item pipe
+     *
+     * @param transferRate The transfer rate
+     * @return The transfer rate of the item pipe
+     * 
      */
     private float transferRate;
 
@@ -24,40 +47,6 @@ public class ItemPipeProperties implements IMaterialProperty {
      */
     public ItemPipeProperties() {
         this(1, 0.25f);
-    }
-
-    /**
-     * Retrieves the priority of the item pipe
-     *
-     * @return The item pipe priority
-     */
-    public int getPriority() {
-        return priority;
-    }
-
-    /**
-     * Sets the Priority of the item pipe
-     */
-    public void setPriority(int priority) {
-        this.priority = priority;
-    }
-
-    /**
-     * Retrieve the transfer rate of the item pipe
-     *
-     * @return The transfer rate of the item pipe
-     */
-    public float getTransferRate() {
-        return transferRate;
-    }
-
-    /**
-     * Sets the transfer rate of the item pipe
-     *
-     * @param transferRate The transfer rate
-     */
-    public void setTransferRate(float transferRate) {
-        this.transferRate = transferRate;
     }
 
     @Override

@@ -23,12 +23,14 @@ import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
 
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import lombok.Getter;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
 
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -72,6 +74,7 @@ public class HazardProperty implements IMaterialProperty {
         }
     }
 
+    @Getter
     public enum ProtectionType {
 
         MASK(Set.of("head"), ArmorItem.Type.HELMET),
@@ -98,7 +101,7 @@ public class HazardProperty implements IMaterialProperty {
             if (this == NONE) {
                 return true;
             }
-            Set<ArmorItem.Type> correctArmorItems = new ReferenceOpenHashSet<>();
+            Set<ArmorItem.Type> correctArmorItems = EnumSet.noneOf(ArmorItem.Type.class);
             for (ArmorItem.Type equipmentType : equipmentTypes) {
                 ItemStack armor = livingEntity.getItemBySlot(equipmentType.getSlot());
                 if (!armor.isEmpty() && ((armor.getItem() instanceof ArmorComponentItem armorItem && armorItem.getArmorLogic().isPPE()) || armor.getTags().anyMatch(tag -> tag.equals(CustomTags.PPE_ARMOR)))) {
@@ -157,14 +160,6 @@ public class HazardProperty implements IMaterialProperty {
                     }
                 }
             }
-        }
-
-        public Set<ArmorItem.Type> getEquipmentTypes() {
-            return this.equipmentTypes;
-        }
-
-        public Set<String> getCurioSlots() {
-            return this.curioSlots;
         }
     }
 

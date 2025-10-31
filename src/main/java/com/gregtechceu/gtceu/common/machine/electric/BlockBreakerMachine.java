@@ -48,6 +48,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -60,16 +61,19 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOutputItem, IFancyUIMachine, IMachineLife, IControllable {
 
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected Direction outputFacingItems;
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected boolean autoOutputItems;
     @Persisted
     protected final NotifiableItemStackHandler cache;
+    @Getter
     @Persisted
     protected final CustomItemStackHandler chargerInventory;
     @Nullable
@@ -88,6 +92,7 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
     private float currentHardness;
     private final long energyPerTick;
     public final float efficiencyMultiplier;
+    @Getter
     @Persisted
     @DescSynced
     private boolean isWorkingEnabled = true;
@@ -439,21 +444,5 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
             playerIn.sendSystemMessage(Component.translatable(this.isWorkingEnabled() ? "behaviour.soft_hammer.enabled" : "behaviour.soft_hammer.disabled"));
         }
         return InteractionResult.CONSUME;
-    }
-
-    public Direction getOutputFacingItems() {
-        return this.outputFacingItems;
-    }
-
-    public boolean isAutoOutputItems() {
-        return this.autoOutputItems;
-    }
-
-    public CustomItemStackHandler getChargerInventory() {
-        return this.chargerInventory;
-    }
-
-    public boolean isWorkingEnabled() {
-        return this.isWorkingEnabled;
     }
 }

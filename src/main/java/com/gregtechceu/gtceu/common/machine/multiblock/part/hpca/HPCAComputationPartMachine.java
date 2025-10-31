@@ -9,8 +9,11 @@ import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 
+import lombok.Getter;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@Getter
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class HPCAComputationPartMachine extends HPCAComponentPartMachine implements IHPCAComputationProvider {
@@ -54,9 +57,5 @@ public class HPCAComputationPartMachine extends HPCAComponentPartMachine impleme
     @Override
     public boolean canBeDamaged() {
         return true;
-    }
-
-    public boolean isAdvanced() {
-        return this.advanced;
     }
 }

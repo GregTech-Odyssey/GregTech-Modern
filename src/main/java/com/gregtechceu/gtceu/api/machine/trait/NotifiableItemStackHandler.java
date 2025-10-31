@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,7 +34,9 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
         return new NotifiableItemStackHandler(machine, 0, IO.NONE).shouldSearchContent(false);
     }
 
+    @Getter
     public final IO handlerIO;
+    @Getter
     public final IO capabilityIO;
     @Persisted
     public final CustomItemStackHandler storage;
@@ -285,14 +288,6 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     @Override
     public boolean isItemValid(int slot, @NotNull ItemStack stack) {
         return storage.isItemValid(slot, stack);
-    }
-
-    public IO getHandlerIO() {
-        return this.handlerIO;
-    }
-
-    public IO getCapabilityIO() {
-        return this.capabilityIO;
     }
 
     public boolean shouldSearchContent() {

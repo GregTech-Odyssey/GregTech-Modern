@@ -20,6 +20,9 @@ import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigInteger;
 import java.util.List;
 
@@ -33,10 +36,15 @@ public class AdvancedEnergyDetectorCover extends EnergyDetectorCover implements 
 
     private static final int DEFAULT_MIN_PERCENT = 33;
     private static final int DEFAULT_MAX_PERCENT = 66;
+    @Getter
+    @Setter
     @Persisted
     public long minValue;
+    @Getter
+    @Setter
     @Persisted
     public long maxValue;
+    @Getter
     @Persisted
     private boolean usePercent;
     private LongInputWidget minValueInput;
@@ -137,25 +145,5 @@ public class AdvancedEnergyDetectorCover extends EnergyDetectorCover implements 
                 maxValueInput.setValue(GTMath.clamp((long) ((maxValue / 100.0) * energyCapacity), 0, energyCapacity));
             }
         }
-    }
-
-    public long getMinValue() {
-        return this.minValue;
-    }
-
-    public long getMaxValue() {
-        return this.maxValue;
-    }
-
-    public void setMinValue(final long minValue) {
-        this.minValue = minValue;
-    }
-
-    public void setMaxValue(final long maxValue) {
-        this.maxValue = maxValue;
-    }
-
-    public boolean isUsePercent() {
-        return this.usePercent;
     }
 }

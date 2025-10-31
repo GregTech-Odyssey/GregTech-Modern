@@ -7,14 +7,18 @@ import com.lowdragmc.lowdraglib.gui.util.ClickData;
 
 import net.minecraft.network.chat.Component;
 
+import lombok.Getter;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class ButtonConfigurator implements IFancyConfiguratorButton {
 
+    @Getter
     protected IGuiTexture icon;
     protected Consumer<ClickData> onClick;
+    @Getter
     protected List<Component> tooltips = Collections.emptyList();
 
     public ButtonConfigurator(IGuiTexture texture, Consumer<ClickData> onClick) {
@@ -25,14 +29,6 @@ public class ButtonConfigurator implements IFancyConfiguratorButton {
     @Override
     public void onClick(ClickData clickData) {
         onClick.accept(clickData);
-    }
-
-    public IGuiTexture getIcon() {
-        return this.icon;
-    }
-
-    public List<Component> getTooltips() {
-        return this.tooltips;
     }
 
     /**

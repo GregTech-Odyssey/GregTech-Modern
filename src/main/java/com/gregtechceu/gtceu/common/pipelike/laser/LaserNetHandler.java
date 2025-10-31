@@ -7,11 +7,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class LaserNetHandler implements ILaserContainer {
 
+    @Getter
     private LaserPipeNet net;
     private final LaserPipeBlockEntity pipe;
     private final Direction facing;
@@ -102,10 +104,6 @@ public class LaserNetHandler implements ILaserContainer {
     @Override
     public long getInputVoltage() {
         return 0;
-    }
-
-    public LaserPipeNet getNet() {
-        return net;
     }
 
     @Override

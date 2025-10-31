@@ -7,8 +7,11 @@ import com.gregtechceu.gtceu.common.block.CoilBlock;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 
+import lombok.Getter;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@Getter
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class CoilWorkableElectricMultiblockMachine extends WorkableElectricMultiblockMachine implements ICoilMachine {
@@ -29,9 +32,5 @@ public class CoilWorkableElectricMultiblockMachine extends WorkableElectricMulti
         if (type instanceof ICoilType coil) {
             this.coilType = coil;
         }
-    }
-
-    public ICoilType getCoilType() {
-        return this.coilType;
     }
 }

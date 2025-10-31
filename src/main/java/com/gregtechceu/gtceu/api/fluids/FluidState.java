@@ -6,8 +6,10 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.common.Tags;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+@Getter
 public enum FluidState {
 
     LIQUID("gtceu.fluid.state_liquid", CustomTags.LIQUID_FLUIDS),
@@ -20,13 +22,5 @@ public enum FluidState {
     FluidState(@NotNull String translationKey, @NotNull TagKey<Fluid> tagKey) {
         this.translationKey = translationKey;
         this.tagKey = tagKey;
-    }
-
-    public String getTranslationKey() {
-        return this.translationKey;
-    }
-
-    public TagKey<Fluid> getTagKey() {
-        return this.tagKey;
     }
 }

@@ -55,6 +55,8 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,12 +69,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDataType>, NodeDataType> extends BlockEntity implements ITickSubscription, IPaintable, IEnhancedManaged, IAsyncAutoSyncBlockEntity, IAutoPersistBlockEntity, IToolGridHighlight {
 
+    @Getter
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
     private final ManagedFieldHolder managedFieldHolder = MetaMachine.getManagedFieldHolder(getClass());
     private final int offset = GTValues.RNG.nextInt(20);
+    @Getter
     @DescSynced
     @Persisted(key = "cover")
     protected final PipeCoverContainer coverContainer;
+    @Getter
+    @Setter
     @DescSynced
     @Persisted
     @RequireRerender
@@ -84,6 +90,8 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     @Persisted
     public Direction blockedSide;
     private NodeDataType cachedNodeData;
+    @Getter
+    @Setter
     @Persisted
     @DescSynced
     @RequireRerender
@@ -491,30 +499,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
 
     public static boolean isConnected(int connections, Direction side) {
         return (connections & (1 << side.ordinal())) > 0;
-    }
-
-    public FieldManagedStorage getSyncStorage() {
-        return this.syncStorage;
-    }
-
-    public PipeCoverContainer getCoverContainer() {
-        return this.coverContainer;
-    }
-
-    public int getConnections() {
-        return this.connections;
-    }
-
-    public void setConnections(final int connections) {
-        this.connections = connections;
-    }
-
-    public int getPaintingColor() {
-        return this.paintingColor;
-    }
-
-    public void setPaintingColor(final int paintingColor) {
-        this.paintingColor = paintingColor;
     }
 
     public void setFrameMaterial(@NotNull final Material frameMaterial) {

@@ -6,6 +6,8 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import net.minecraft.core.Direction;
 
+import lombok.Getter;
+
 import java.util.List;
 
 public class EnergyContainerList implements IEnergyContainer {
@@ -14,11 +16,17 @@ public class EnergyContainerList implements IEnergyContainer {
     private static final int dcpMode = ConfigHolder.INSTANCE.machines.dualChamberPressurizationMode;
 
     private final IEnergyContainer[] energyContainerList;
+    @Getter
     private final long inputVoltage;
+    @Getter
     private final long outputVoltage;
+    @Getter
     private final long inputAmperage;
+    @Getter
     private final long outputAmperage;
+    @Getter
     private final long overclockVoltage;
+    @Getter
     private final long maxVoltage;
     private final long capacity;
 
@@ -114,29 +122,5 @@ public class EnergyContainerList implements IEnergyContainer {
     @Override
     public boolean inputsEnergy(Direction side) {
         return false;
-    }
-
-    public long getInputVoltage() {
-        return this.inputVoltage;
-    }
-
-    public long getOutputVoltage() {
-        return this.outputVoltage;
-    }
-
-    public long getInputAmperage() {
-        return this.inputAmperage;
-    }
-
-    public long getOutputAmperage() {
-        return this.outputAmperage;
-    }
-
-    public long getOverclockVoltage() {
-        return this.overclockVoltage;
-    }
-
-    public long getMaxVoltage() {
-        return this.maxVoltage;
     }
 }

@@ -14,6 +14,7 @@ import net.minecraftforge.common.crafting.StrictNBTIngredient;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.ints.IntList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,10 +24,13 @@ import java.util.stream.Stream;
 public class SizedIngredient extends Ingredient {
 
     public static final ResourceLocation TYPE = GTCEu.id("sized");
+    @Getter
     protected int amount;
+    @Getter
     protected final Ingredient inner;
     protected ItemStack[] itemStacks = null;
     private boolean changed = true;
+    @Getter
     private final boolean isEmpty;
     private final Value value;
 
@@ -168,16 +172,4 @@ public class SizedIngredient extends Ingredient {
             ingredient.inner.toNetwork(buffer);
         }
     };
-
-    public int getAmount() {
-        return this.amount;
-    }
-
-    public Ingredient getInner() {
-        return this.inner;
-    }
-
-    public boolean isEmpty() {
-        return this.isEmpty;
-    }
 }

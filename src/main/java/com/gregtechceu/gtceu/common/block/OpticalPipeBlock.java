@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +33,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class OpticalPipeBlock extends PipeBlock<OpticalPipeType, OpticalPipeProperties, LevelOpticalPipeNet> {
 
     public final PipeBlockRenderer renderer;
+    @Getter
     public final PipeModel pipeModel;
     private final OpticalPipeType pipeType;
     private final OpticalPipeProperties properties;
@@ -106,9 +108,5 @@ public class OpticalPipeBlock extends PipeBlock<OpticalPipeType, OpticalPipeProp
         if (tile == null) return false;
         if (tile.getCapability(GTCapability.CAPABILITY_DATA_ACCESS, side.getOpposite()).isPresent()) return true;
         return tile.getCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER, side.getOpposite()).isPresent();
-    }
-
-    public PipeModel getPipeModel() {
-        return this.pipeModel;
     }
 }

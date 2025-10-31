@@ -46,6 +46,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -57,6 +58,7 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
 
     private int debugLevel = 0;
 
+    @Getter
     public enum DisplayMode {
 
         SHOW_ALL("behavior.portable_scanner.mode.show_all_info"),
@@ -70,10 +72,6 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
 
         DisplayMode(String langKey) {
             this.langKey = langKey;
-        }
-
-        public String getLangKey() {
-            return this.langKey;
         }
     }
 

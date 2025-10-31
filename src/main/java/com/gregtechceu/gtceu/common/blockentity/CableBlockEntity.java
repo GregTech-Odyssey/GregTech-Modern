@@ -38,6 +38,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import snownee.jade.api.BlockAccessor;
@@ -63,6 +64,7 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
     private final PerTickLongCounter amperageCounter = new PerTickLongCounter(false);
     private LazyOptional<EnergyNetHandler> defaultHandler;
     private int heatQueue;
+    @Getter
     @Persisted
     @DescSynced
     private int temperature = getDefaultTemp();
@@ -306,10 +308,6 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
             list.add(Component.translatable("gtceu.recipe.temperature", temperature).withStyle(ChatFormatting.RED));
         }
         return list;
-    }
-
-    public int getTemperature() {
-        return this.temperature;
     }
 
     @Override

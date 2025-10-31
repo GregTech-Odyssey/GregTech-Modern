@@ -10,6 +10,8 @@ import com.gregtechceu.gtceu.client.model.PipeModel;
 
 import net.minecraft.resources.ResourceLocation;
 
+import lombok.Getter;
+
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.*;
 
 public enum FluidPipeType implements IMaterialPipeType<FluidPipeProperties> {
@@ -26,6 +28,7 @@ public enum FluidPipeType implements IMaterialPipeType<FluidPipeProperties> {
     public final String name;
     public final float thickness;
     public final int capacityMultiplier;
+    @Getter
     public final TagPrefix tagPrefix;
     public final int channels;
 
@@ -66,9 +69,5 @@ public enum FluidPipeType implements IMaterialPipeType<FluidPipeProperties> {
             return new PipeModel(thickness, () -> GTCEu.id("block/pipe/pipe_quad_side"), () -> GTCEu.id("block/pipe/pipe_%s_in".formatted(name)), null, null);
         }
         return new PipeModel(thickness, () -> GTCEu.id("block/pipe/pipe_side"), () -> GTCEu.id("block/pipe/pipe_%s_in".formatted(name)), null, null);
-    }
-
-    public TagPrefix getTagPrefix() {
-        return this.tagPrefix;
     }
 }

@@ -17,11 +17,15 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@Getter
+@Setter
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class ShutterCover extends CoverBehavior implements IControllable {
@@ -62,13 +66,5 @@ public class ShutterCover extends CoverBehavior implements IControllable {
     @Nullable
     public IFluidHandlerModifiable getFluidHandlerCap(IFluidHandlerModifiable defaultValue) {
         return isWorkingEnabled() ? null : super.getFluidHandlerCap(defaultValue);
-    }
-
-    public boolean isWorkingEnabled() {
-        return this.workingEnabled;
-    }
-
-    public void setWorkingEnabled(final boolean workingEnabled) {
-        this.workingEnabled = workingEnabled;
     }
 }

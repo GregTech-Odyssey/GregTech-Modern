@@ -32,6 +32,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -48,8 +49,10 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
     private CustomItemStackHandler sideCoverSlot;
     private ButtonWidget modeButton;
 
+    @Getter
     @Persisted
     private boolean isInverted = false;
+    @Getter
     @Persisted
     private int minRedstoneStrength = 1;
     @Persisted
@@ -217,14 +220,6 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
             sideCoverSlot.setStackInSlot(0, ItemStack.EMPTY);
             sideCoverSlot.onContentsChanged(0);
         });
-    }
-
-    public boolean isInverted() {
-        return this.isInverted;
-    }
-
-    public int getMinRedstoneStrength() {
-        return this.minRedstoneStrength;
     }
 
     @Nullable

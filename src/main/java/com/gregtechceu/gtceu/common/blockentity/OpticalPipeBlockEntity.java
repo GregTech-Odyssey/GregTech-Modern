@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,6 +37,7 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
     private static final IDataAccessHatch defaultDataHandler = new DefaultDataHandler();
     private WeakReference<OpticalPipeNet> currentPipeNet = new WeakReference<>(null);
     private OpticalNetHandler defaultHandler;
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
@@ -167,9 +169,5 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
         public boolean isCreative() {
             return false;
         }
-    }
-
-    public boolean isActive() {
-        return this.isActive;
     }
 }

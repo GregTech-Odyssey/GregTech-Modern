@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,8 +24,13 @@ public class LaserRoutePath implements IRoutePath<ILaserContainer> {
     private final Direction targetFacing;
     /**
      * the manhattan distance traveled during walking
+     * -- GETTER --
+     * the manhattan distance traveled during walking
+     * 
      */
+    @Getter
     private final int distance;
+    @Getter
     byte connections;
 
     public LaserRoutePath(LaserPipeBlockEntity targetPipe, BlockPos targetPipePos, @NotNull Direction targetFacing, int distance) {
@@ -54,16 +60,5 @@ public class LaserRoutePath implements IRoutePath<ILaserContainer> {
     @NotNull
     public Direction getTargetFacing() {
         return this.targetFacing;
-    }
-
-    /**
-     * the manhattan distance traveled during walking
-     */
-    public int getDistance() {
-        return this.distance;
-    }
-
-    public byte getConnections() {
-        return this.connections;
     }
 }

@@ -19,6 +19,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,6 +32,7 @@ public class LongDistanceNetwork {
 
     // all pipes and endpoints in this net
     private final OpenCacheHashSet<BlockPos> longDistancePipeBlocks = new OpenCacheHashSet<>();
+    @Getter
     private final LongDistancePipeType pipeType;
     private final WorldData world;
     // stores all connected endpoints, but only the first two are being used
@@ -426,9 +428,5 @@ public class LongDistanceNetwork {
         public ServerLevel getWorld() {
             return this.worldRef.get();
         }
-    }
-
-    public LongDistancePipeType getPipeType() {
-        return this.pipeType;
     }
 }

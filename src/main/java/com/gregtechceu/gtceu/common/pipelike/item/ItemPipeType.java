@@ -10,6 +10,8 @@ import com.gregtechceu.gtceu.client.model.PipeModel;
 
 import net.minecraft.resources.ResourceLocation;
 
+import lombok.Getter;
+
 public enum ItemPipeType implements IMaterialPipeType<ItemPipeProperties> {
 
     SMALL("small", 0.375F, TagPrefix.pipeSmallItem, 0.5F, 1.5F),
@@ -23,10 +25,13 @@ public enum ItemPipeType implements IMaterialPipeType<ItemPipeProperties> {
 
     public static final ResourceLocation TYPE_ID = GTCEu.id("item");
     public static final ItemPipeType[] VALUES = values();
+    @Getter
     public final String name;
+    @Getter
     private final float thickness;
     private final float rateMultiplier;
     private final float resistanceMultiplier;
+    @Getter
     private final TagPrefix tagPrefix;
 
     ItemPipeType(String name, float thickness, TagPrefix orePrefix, float rateMultiplier, float resistanceMultiplier) {
@@ -62,17 +67,5 @@ public enum ItemPipeType implements IMaterialPipeType<ItemPipeProperties> {
             model.setSideOverlayTexture(GTCEu.id("block/pipe/pipe_restrictive"));
         }
         return model;
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public float getThickness() {
-        return this.thickness;
-    }
-
-    public TagPrefix getTagPrefix() {
-        return this.tagPrefix;
     }
 }

@@ -11,6 +11,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,10 +20,13 @@ import java.util.function.Predicate;
 
 public class FluidRoutePath implements IRoutePath<IFluidHandler> {
 
+    @Getter
     private final FluidPipeBlockEntity targetPipe;
     @NotNull
     private final Direction targetFacing;
+    @Getter
     private final int distance;
+    @Getter
     private final FluidPipeProperties properties;
     private final Predicate<FluidStack> filters;
 
@@ -57,20 +61,8 @@ public class FluidRoutePath implements IRoutePath<IFluidHandler> {
         return new FacingPos(getTargetPipePos(), targetFacing);
     }
 
-    public FluidPipeBlockEntity getTargetPipe() {
-        return this.targetPipe;
-    }
-
     @NotNull
     public Direction getTargetFacing() {
         return this.targetFacing;
-    }
-
-    public int getDistance() {
-        return this.distance;
-    }
-
-    public FluidPipeProperties getProperties() {
-        return this.properties;
     }
 }

@@ -33,6 +33,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.Tags;
@@ -84,6 +85,17 @@ public class GTUtil {
                 .forEach(builder::add);
         return builder.build();
     });
+
+    private static final MapColor[] MAP_COLORS;
+
+    static {
+        int maxId = MapColor.GLOW_LICHEN.id;
+        MAP_COLORS = new MapColor[maxId];
+        for (int i = 0; i < maxId; i++) {
+            // Skip MapColor.NONE
+            MAP_COLORS[i] = MapColor.byId(i + 1);
+        }
+    }
 
     @Nullable
     public static Direction determineWrenchingSide(Direction facing, float x, float y, float z) {
@@ -388,18 +400,28 @@ public class GTUtil {
      * Determines dye color nearest to specified RGB color
      */
     public static DyeColor determineDyeColor(int rgbColor) {
+        return closestColor(rgbColor, DyeColor.values(), DyeColor::getTextColor);
+    }
+
+    /**
+     * Determines map color nearest to specified RGB color
+     */
+    public static MapColor determineMapColor(int rgbColor) {
+        return closestColor(rgbColor, MAP_COLORS, c -> c.calculateRGBColor(MapColor.Brightness.NORMAL));
+    }
+
+    private static <T> T closestColor(int rgbColor, T[] colors, Function<T, Integer> extractRgbColor) {
         float[] c = GradientUtil.getRGB(rgbColor);
 
         double min = Double.MAX_VALUE;
-        DyeColor minColor = null;
-        for (DyeColor dyeColor : DyeColor.values()) {
-            float[] c2 = GradientUtil.getRGB(dyeColor.getTextColor());
+        T minColor = null;
+        for (T color : colors) {
+            float[] c2 = GradientUtil.getRGB(extractRgbColor.apply(color));
 
-            double distance = (c[0] - c2[0]) * (c[0] - c2[0]) + (c[1] - c2[1]) * (c[1] - c2[1]) +
-                    (c[2] - c2[2]) * (c[2] - c2[2]);
+            double distance = (c[0] - c2[0]) * (c[0] - c2[0]) + (c[1] - c2[1]) * (c[1] - c2[1]) + (c[2] - c2[2]) * (c[2] - c2[2]);
 
-            if (Double.compare(min, distance) < 0) {
-                minColor = dyeColor;
+            if (Double.compare(min, distance) > 0) {
+                minColor = color;
                 min = distance;
             }
         }

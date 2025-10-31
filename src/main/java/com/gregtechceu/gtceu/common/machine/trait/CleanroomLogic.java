@@ -13,6 +13,8 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 public class CleanroomLogic extends RecipeLogic {
@@ -24,7 +26,15 @@ public class CleanroomLogic extends RecipeLogic {
     private IEnergyContainer energyContainer;
     /**
      * whether the cleanroom was active and needs an update
+     * -- SETTER --
+     * whether the cleanroom was active and needs an update
+     * -- GETTER --
+     * whether the cleanroom was active and needs an update
+     * 
+     * 
      */
+    @Getter
+    @Setter
     @Persisted
     private boolean isActiveAndNeedsUpdate;
 
@@ -131,19 +141,5 @@ public class CleanroomLogic extends RecipeLogic {
 
     public void setEnergyContainer(@Nullable final IEnergyContainer energyContainer) {
         this.energyContainer = energyContainer;
-    }
-
-    /**
-     * whether the cleanroom was active and needs an update
-     */
-    public boolean isActiveAndNeedsUpdate() {
-        return this.isActiveAndNeedsUpdate;
-    }
-
-    /**
-     * whether the cleanroom was active and needs an update
-     */
-    public void setActiveAndNeedsUpdate(final boolean isActiveAndNeedsUpdate) {
-        this.isActiveAndNeedsUpdate = isActiveAndNeedsUpdate;
     }
 }

@@ -9,6 +9,7 @@ import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -18,6 +19,7 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
 
     public final IFluidHandler[] handlers;
     protected final int size;
+    @Setter
     protected Predicate<FluidStack> filter = GTUtil.FAVORABLE;
 
     public FluidHandlerList(IFluidHandler... handlers) {
@@ -143,7 +145,7 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
             if (handler instanceof INBTSerializable<?> serializable) {
                 list.add(serializable.serializeNBT());
             } else {
-                GTCEu.LOGGER.warn("[FluidHandlerList] internal tank doesn\'t support serialization");
+                GTCEu.LOGGER.warn("[FluidHandlerList] internal tank doesn't support serialization");
             }
         }
         tag.put("tanks", list);
@@ -158,7 +160,7 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
             if (handlers[i] instanceof INBTSerializable serializable) {
                 serializable.deserializeNBT(list.get(i));
             } else {
-                GTCEu.LOGGER.warn("[FluidHandlerList] internal tank doesn\'t support serialization");
+                GTCEu.LOGGER.warn("[FluidHandlerList] internal tank doesn't support serialization");
             }
         }
     }
@@ -191,9 +193,5 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
             tank -= tanks;
         }
         return true;
-    }
-
-    public void setFilter(final Predicate<FluidStack> filter) {
-        this.filter = filter;
     }
 }

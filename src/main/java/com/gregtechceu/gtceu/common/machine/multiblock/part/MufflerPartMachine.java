@@ -22,8 +22,11 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.ItemHandlerHelper;
 
+import lombok.Getter;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@Getter
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class MufflerPartMachine extends TieredPartMachine implements IMufflerMachine {
@@ -83,13 +86,5 @@ public class MufflerPartMachine extends TieredPartMachine implements IMufflerMac
             }
         }
         return modular;
-    }
-
-    public int getRecoveryChance() {
-        return this.recoveryChance;
-    }
-
-    public CustomItemStackHandler getInventory() {
-        return this.inventory;
     }
 }

@@ -14,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.BlockGetter;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,9 +64,12 @@ public class CoilBlock extends ActiveBlock {
         @NotNull
         private final String name;
         // electric blast furnace properties
+        @Getter
         private final int coilTemperature;
         // multi smelter properties
+        @Getter
         private final int level;
+        @Getter
         private final int energyDiscount;
         @NotNull
         private final Material material;
@@ -100,18 +104,6 @@ public class CoilBlock extends ActiveBlock {
         @NotNull
         public String getName() {
             return this.name;
-        }
-
-        public int getCoilTemperature() {
-            return this.coilTemperature;
-        }
-
-        public int getLevel() {
-            return this.level;
-        }
-
-        public int getEnergyDiscount() {
-            return this.energyDiscount;
         }
 
         @NotNull

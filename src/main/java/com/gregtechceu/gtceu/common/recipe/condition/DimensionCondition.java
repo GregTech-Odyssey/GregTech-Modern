@@ -25,8 +25,10 @@ import net.minecraft.world.level.block.Blocks;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+@Getter
 public class DimensionCondition extends RecipeCondition {
 
     public static final Codec<DimensionCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(ResourceLocation.CODEC.fieldOf("dimension").forGetter(val -> val.dimension)).apply(instance, DimensionCondition::new));
@@ -67,10 +69,6 @@ public class DimensionCondition extends RecipeCondition {
             dimSlot.setOverlay(new TextTexture("T" + (dimMarker.tier >= DimensionMarker.MAX_TIER ? "?" : dimMarker.tier)).scale(0.75F).transform(-3.0F, 5.0F));
         }
         return dimSlot;
-    }
-
-    public ResourceLocation getDimension() {
-        return dimension;
     }
 
     @Override

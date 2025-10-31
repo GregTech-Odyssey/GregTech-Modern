@@ -19,6 +19,7 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.entity.player.Player;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -31,6 +32,7 @@ public class CreativeComputationProviderMachine extends MetaMachine implements I
     private long maxCWUt;
     private long lastRequestedCWUt;
     private long requestedCWUPerSec;
+    @Getter
     @Persisted
     private boolean active;
     @Nullable
@@ -86,10 +88,6 @@ public class CreativeComputationProviderMachine extends MetaMachine implements I
     @Override
     public ModularUI createUI(Player entityPlayer) {
         return new ModularUI(140, 95, this, entityPlayer).background(GuiTextures.BACKGROUND).widget(new LabelWidget(7, 7, "CWUt")).widget(new TextFieldWidget(9, 20, 122, 16, () -> String.valueOf(maxCWUt), value -> maxCWUt = Long.parseLong(value)).setNumbersOnly(0, Long.MAX_VALUE)).widget(new LabelWidget(7, 42, "gtceu.creative.computation.average")).widget(new LabelWidget(7, 54, () -> String.valueOf(lastRequestedCWUt))).widget(new SwitchWidget(9, 66, 122, 20, (clickData, value) -> setActive(value)).setSupplier(this::isActive).setTexture(new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, new TextTexture("gtceu.creative.activity.off")), new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, new TextTexture("gtceu.creative.activity.on"))));
-    }
-
-    public boolean isActive() {
-        return this.active;
     }
 
     @Override

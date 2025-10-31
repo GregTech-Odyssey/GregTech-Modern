@@ -3,11 +3,13 @@ package com.gregtechceu.gtceu.api.transfer.fluid;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraftforge.fluids.FluidStack;
 
+import lombok.Setter;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@Setter
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public abstract class FluidHandlerDelegate implements IFluidHandlerModifiable {
@@ -74,9 +76,5 @@ public abstract class FluidHandlerDelegate implements IFluidHandlerModifiable {
     @Override
     public boolean supportsDrain(int tank) {
         return delegate.supportsDrain(tank);
-    }
-
-    public void setDelegate(final IFluidHandlerModifiable delegate) {
-        this.delegate = delegate;
     }
 }

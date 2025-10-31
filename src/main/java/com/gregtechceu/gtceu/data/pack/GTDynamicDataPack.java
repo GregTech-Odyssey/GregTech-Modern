@@ -33,6 +33,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -44,6 +45,7 @@ public class GTDynamicDataPack implements PackResources {
 
     protected static final ObjectSet<String> SERVER_DOMAINS = new OpenCacheHashSet<>();
     protected static final GTDynamicPackContents CONTENTS = new GTDynamicPackContents();
+    private static final Pattern PATTERN = Pattern.compile("[\\W]");
 
     private final String name;
 
@@ -139,8 +141,8 @@ public class GTDynamicDataPack implements PackResources {
             JsonArray block = new JsonArray();
             GTRecipes.RECIPE_FILTERS.forEach((id) -> { // Collect removed recipes in here, in the pack filter section.
                 JsonObject entry = new JsonObject();
-                entry.addProperty("namespace", "^" + id.getNamespace().replaceAll("[\\W]", "\\\\$0") + "$");
-                entry.addProperty("path", "^recipes/" + id.getPath().replaceAll("[\\W]", "\\\\$0") + "\\.json" + "$");
+                entry.addProperty("namespace", "^" + PATTERN.matcher(id.getNamespace()).replaceAll("\\\\$0") + "$");
+                entry.addProperty("path", "^recipes/" + PATTERN.matcher(id.getPath()).replaceAll("\\\\$0") + "\\.json" + "$");
                 block.add(entry);
             });
             filter.add("block", block);

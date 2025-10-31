@@ -28,6 +28,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,12 +46,16 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Persisted
     @DescSynced
     public final RecipeLogic recipeLogic;
+    @Getter
     protected final GTRecipeType[] recipeTypes;
+    @Getter
     @Persisted
     protected int activeRecipeType;
     protected final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
     protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
     protected final List<ISubscription> traitSubscriptions;
+    @Getter
+    @Setter
     @Persisted
     @DescSynced
     protected boolean isMuffled;
@@ -282,14 +288,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         return this.recipeLogic;
     }
 
-    public GTRecipeType[] getRecipeTypes() {
-        return this.recipeTypes;
-    }
-
-    public int getActiveRecipeType() {
-        return this.activeRecipeType;
-    }
-
     @Override
     public @Nullable RecipeHandlerList getCurrentHandlerList() {
         return currentHandlerList;
@@ -306,14 +304,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     public @NotNull Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> getCapabilitiesFlat() {
         return this.capabilitiesFlat;
-    }
-
-    public boolean isMuffled() {
-        return this.isMuffled;
-    }
-
-    public void setMuffled(final boolean isMuffled) {
-        this.isMuffled = isMuffled;
     }
 
     @Override

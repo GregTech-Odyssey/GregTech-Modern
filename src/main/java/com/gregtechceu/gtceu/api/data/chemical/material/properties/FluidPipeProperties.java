@@ -3,8 +3,10 @@ package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 import com.gregtechceu.gtceu.api.capability.IPropertyFluidFilter;
 import com.gregtechceu.gtceu.api.fluids.FluidState;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+@Getter
 public class FluidPipeProperties implements IMaterialProperty, IPropertyFluidFilter {
 
     private final int throughput;
@@ -43,10 +45,6 @@ public class FluidPipeProperties implements IMaterialProperty, IPropertyFluidFil
     @Override
     public boolean canContain(@NotNull FluidState state) {
         return true;
-    }
-
-    public int getThroughput() {
-        return this.throughput;
     }
 
     public boolean isGasProof() {

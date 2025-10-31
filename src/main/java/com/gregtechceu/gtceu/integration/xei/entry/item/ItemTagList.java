@@ -9,12 +9,14 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.stream.Stream;
 
+@Getter
 public final class ItemTagList implements ItemEntryList {
 
     private final List<ItemTagEntry> entries = new ObjectArrayList<>();
@@ -54,9 +56,5 @@ public final class ItemTagList implements ItemEntryList {
         ItemStack stack = new ItemStack(holder.value(), amount);
         stack.setTag(nbt);
         return stack;
-    }
-
-    public List<ItemTagEntry> getEntries() {
-        return this.entries;
     }
 }

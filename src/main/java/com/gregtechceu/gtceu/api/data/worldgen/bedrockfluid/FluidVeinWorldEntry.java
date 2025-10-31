@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,7 +14,9 @@ public class FluidVeinWorldEntry {
 
     @Nullable
     private BedrockFluidDefinition vein;
+    @Getter
     private int fluidYield;
+    @Getter
     private int operationsRemaining;
 
     public FluidVeinWorldEntry(@Nullable BedrockFluidDefinition vein, int fluidYield, int operationsRemaining) {
@@ -64,13 +67,5 @@ public class FluidVeinWorldEntry {
     @Nullable
     public BedrockFluidDefinition getVein() {
         return this.vein;
-    }
-
-    public int getFluidYield() {
-        return this.fluidYield;
-    }
-
-    public int getOperationsRemaining() {
-        return this.operationsRemaining;
     }
 }

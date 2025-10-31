@@ -22,6 +22,7 @@ import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,8 +31,11 @@ import java.util.function.Predicate;
 
 public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngredient> implements ICapabilityTrait, IFluidHandlerModifiable {
 
+    @Getter
     public final IO handlerIO;
+    @Getter
     public final IO capabilityIO;
+    @Getter
     @Persisted
     protected final CustomFluidTank[] storages;
     protected boolean allowSameFluids = true; // Can different tanks be filled with the same fluid. It should be
@@ -39,11 +43,13 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     // while creating tanks.
     protected Boolean isEmpty;
     protected boolean changed = true;
+    @Getter
     @Persisted
     @DescSynced
     protected final CustomFluidTank lockedFluid = new CustomFluidTank(FluidType.BUCKET_VOLUME);
     @Persisted
     public boolean isVoiding;
+    @Getter
     protected Predicate<FluidStack> filter = GTUtil.FAVORABLE;
 
     protected boolean isAvailable = true;
@@ -401,26 +407,6 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
         if (this.isLocked()) {
             setFilter(stack -> stack.isFluidEqual(this.lockedFluid.getFluid()));
         }
-    }
-
-    public IO getHandlerIO() {
-        return this.handlerIO;
-    }
-
-    public IO getCapabilityIO() {
-        return this.capabilityIO;
-    }
-
-    public CustomFluidTank[] getStorages() {
-        return this.storages;
-    }
-
-    public CustomFluidTank getLockedFluid() {
-        return this.lockedFluid;
-    }
-
-    public Predicate<FluidStack> getFilter() {
-        return this.filter;
     }
 
     @Override

@@ -10,6 +10,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
@@ -17,6 +18,7 @@ import snownee.jade.api.IServerDataProvider;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 
+@Getter
 public abstract class CapabilityBlockProvider<C> implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
 
     public final ResourceLocation uid;
@@ -74,9 +76,5 @@ public abstract class CapabilityBlockProvider<C> implements IBlockComponentProvi
 
     protected float getProgress(long progress, long maxProgress) {
         return maxProgress == 0 ? 0 : (float) ((double) progress / maxProgress);
-    }
-
-    public ResourceLocation getUid() {
-        return this.uid;
     }
 }

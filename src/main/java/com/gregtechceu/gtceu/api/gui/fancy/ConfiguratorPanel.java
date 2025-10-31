@@ -25,6 +25,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,10 +35,13 @@ import java.util.List;
 
 public class ConfiguratorPanel extends WidgetGroup {
 
+    @Getter
     protected List<Tab> tabs = new ObjectArrayList<>();
     @Nullable
     protected Tab expanded;
+    @Setter
     protected int border = 4;
+    @Setter
     protected IGuiTexture texture = GuiTextures.BACKGROUND;
 
     public ConfiguratorPanel(int x, int y) {
@@ -406,20 +411,8 @@ public class ConfiguratorPanel extends WidgetGroup {
         return ConfigHolder.INSTANCE.client.animationTime;
     }
 
-    public List<Tab> getTabs() {
-        return this.tabs;
-    }
-
     @Nullable
     public Tab getExpanded() {
         return this.expanded;
-    }
-
-    public void setBorder(final int border) {
-        this.border = border;
-    }
-
-    public void setTexture(final IGuiTexture texture) {
-        this.texture = texture;
     }
 }

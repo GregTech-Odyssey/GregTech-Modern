@@ -104,8 +104,6 @@ public class TankValvePartMachine extends MultiblockPartMachine {
         if (!isFormed()) return false;
         if (getFrontFacing() != Direction.DOWN) return false;
         if (tankProxy.isEmpty()) return false;
-        if (getTargetTank() == null) return false;
-
-        return true;
+        return getTargetTank() != null;
     }
 }

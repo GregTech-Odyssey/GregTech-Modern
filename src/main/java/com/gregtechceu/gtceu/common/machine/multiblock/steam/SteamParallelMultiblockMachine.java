@@ -33,6 +33,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.player.Player;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,6 +46,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine implements IDisplayUIMachine {
 
+    @Getter
+    @Setter
     private int maxParallels = ConfigHolder.INSTANCE.machines.steamMultiParallelAmount;
     @Nullable
     protected SteamEnergyRecipeHandler steamEnergy = null;
@@ -152,13 +156,5 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
         screen.addWidget(new LabelWidget(4, 5, self().getBlockState().getBlock().getDescriptionId()));
         screen.addWidget(new ComponentPanelWidget(4, 17, this::addDisplayText).setMaxWidthLimit(150).clickHandler(this::handleDisplayClick));
         return new ModularUI(176, 216, this, entityPlayer).background(GuiTextures.BACKGROUND_STEAM.get(ConfigHolder.INSTANCE.machines.steelSteamMultiblocks)).widget(screen).widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT_STEAM.get(ConfigHolder.INSTANCE.machines.steelSteamMultiblocks), 7, 134, true));
-    }
-
-    public int getMaxParallels() {
-        return this.maxParallels;
-    }
-
-    public void setMaxParallels(final int maxParallels) {
-        this.maxParallels = maxParallels;
     }
 }

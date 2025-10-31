@@ -60,6 +60,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -68,6 +69,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class GTRegistrate extends Registrate {
 
+    private static final Pattern PATTERN = Pattern.compile("\\.");
     private final AtomicBoolean registered = new AtomicBoolean(false);
 
     protected GTRegistrate(String modId) {
@@ -182,7 +184,7 @@ public class GTRegistrate extends Registrate {
     @Override
     public <T extends Item> @NotNull ItemBuilder<T, Registrate> item(String name,
                                                                      NonNullFunction<Item.Properties, T> factory) {
-        return super.item(name, factory).lang(FormattingUtil.toEnglishName(name.replaceAll("\\.", "_")));
+        return super.item(name, factory).lang(FormattingUtil.toEnglishName(PATTERN.matcher(name).replaceAll("_")));
     }
 
     private RegistryEntry<CreativeModeTab> currentTab;

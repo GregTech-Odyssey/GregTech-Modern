@@ -9,21 +9,19 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 
 import java.util.List;
 
 public class PatternError {
 
+    @Getter
     public BlockPos pos;
     public TraceabilityPredicate predicate;
 
     public void setWorldState(MultiblockState worldState) {
         pos = worldState.pos;
         predicate = worldState.predicate;
-    }
-
-    public BlockPos getPos() {
-        return pos;
     }
 
     public List<List<ItemStack>> getCandidates() {

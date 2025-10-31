@@ -8,11 +8,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ItemHandlerProxyTrait extends MachineTrait implements IItemHandlerModifiable, ICapabilityTrait {
 
+    @Getter
     public final IO capabilityIO;
     @Nullable
     public IItemHandlerModifiable proxy;
@@ -107,10 +109,6 @@ public class ItemHandlerProxyTrait extends MachineTrait implements IItemHandlerM
             var filter = getMachine().getItemCapFilter(facing, IO.OUT);
             machine.blockEntityDirectionCache.getAdjacentItemHandler(level, pos, facing).ifPresent(adj -> GTTransferUtils.transferItemsFiltered(this, adj, filter));
         }
-    }
-
-    public IO getCapabilityIO() {
-        return this.capabilityIO;
     }
 
     /**

@@ -17,6 +17,8 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,9 +35,12 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     @Persisted
     @DescSynced
     public final RecipeLogic recipeLogic;
+    @Getter
     public final GTRecipeType[] recipeTypes;
+    @Getter
     @Persisted
     public int activeRecipeType;
+    @Getter
     public final Int2IntFunction tankScalingFunction;
     @Nullable
     private ICleanroomProvider cleanroom;
@@ -49,9 +54,12 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     public final NotifiableFluidTank exportFluids;
     protected final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
     protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
+    @Getter
     @Persisted
     protected int overclockTier;
     protected final List<ISubscription> traitSubscriptions;
+    @Getter
+    @Setter
     @Persisted
     @DescSynced
     protected boolean isMuffled;
@@ -204,23 +212,11 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
         return this.recipeLogic;
     }
 
-    public GTRecipeType[] getRecipeTypes() {
-        return this.recipeTypes;
-    }
-
-    public int getActiveRecipeType() {
-        return this.activeRecipeType;
-    }
-
     public void setActiveRecipeType(final int activeRecipeType) {
         if (this.activeRecipeType != activeRecipeType) {
             getRecipeLogic().markLastRecipeDirty();
             getRecipeLogic().updateTickSubscription();
         }
-    }
-
-    public Int2IntFunction getTankScalingFunction() {
-        return this.tankScalingFunction;
     }
 
     @Nullable
@@ -248,18 +244,6 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
 
     public @NotNull Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> getCapabilitiesFlat() {
         return this.capabilitiesFlat;
-    }
-
-    public int getOverclockTier() {
-        return this.overclockTier;
-    }
-
-    public boolean isMuffled() {
-        return this.isMuffled;
-    }
-
-    public void setMuffled(final boolean isMuffled) {
-        this.isMuffled = isMuffled;
     }
 
     @Override

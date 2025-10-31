@@ -20,6 +20,7 @@ import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
@@ -30,11 +31,13 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public abstract class GTFluid extends FlowingFluid {
 
+    @Getter
     private final FluidState state;
     private final Supplier<Item> bucketItem;
     private final Supplier<Fluid> stillFluid;
     private final Supplier<Fluid> flowingFluid;
     private final Supplier<Block> block;
+    @Getter
     private final int burnTime;
 
     public GTFluid(@NotNull FluidState state, Supplier<? extends Fluid> still, Supplier<? extends Fluid> flowing, Supplier<? extends LiquidBlock> block, Supplier<? extends Item> bucket, int burnTime) {
@@ -110,13 +113,5 @@ public abstract class GTFluid extends FlowingFluid {
         boolean still = this.getSource() == fluid;
         boolean flowing = this.getFlowing() == fluid;
         return still || flowing;
-    }
-
-    public FluidState getState() {
-        return this.state;
-    }
-
-    public int getBurnTime() {
-        return this.burnTime;
     }
 }

@@ -3,11 +3,13 @@ package com.gregtechceu.gtceu.api.data.worldgen;
 import net.minecraft.core.BlockPos;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 
 import java.util.List;
 
 public class RTTTree {
 
+    @Getter
     final List<BlockPos> nodes;
     final BlockPos root;
 
@@ -32,9 +34,5 @@ public class RTTTree {
 
     public void addNode(BlockPos node) {
         this.nodes.add(node);
-    }
-
-    public List<BlockPos> getNodes() {
-        return this.nodes;
     }
 }

@@ -54,6 +54,7 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -69,16 +70,19 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     private static final int[] INVENTORY_SIZES = { 4, 9, 16, 25, 25 };
     private static final double MOTION_MULTIPLIER = 0.04;
     private static final int BASE_EU_CONSUMPTION = 6;
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected Direction outputFacingItems;
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected boolean autoOutputItems;
     @Persisted
     protected final NotifiableItemStackHandler output;
+    @Getter
     @Persisted
     protected final CustomItemStackHandler chargerInventory;
     @Persisted
@@ -96,14 +100,17 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     private final long energyPerTick;
     private final int inventorySize;
     private AABB aabb;
+    @Getter
     @Persisted
     @DescSynced
     private int range;
     private boolean rangeDirty = false;
     private final int maxRange;
+    @Getter
     @Persisted
     @DescSynced
     private boolean isWorkingEnabled = true;
+    @Getter
     @DescSynced
     @Persisted
     @RequireRerender
@@ -461,29 +468,5 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
 
     public static int[] getINVENTORY_SIZES() {
         return ItemCollectorMachine.INVENTORY_SIZES;
-    }
-
-    public Direction getOutputFacingItems() {
-        return this.outputFacingItems;
-    }
-
-    public boolean isAutoOutputItems() {
-        return this.autoOutputItems;
-    }
-
-    public CustomItemStackHandler getChargerInventory() {
-        return this.chargerInventory;
-    }
-
-    public int getRange() {
-        return this.range;
-    }
-
-    public boolean isWorkingEnabled() {
-        return this.isWorkingEnabled;
-    }
-
-    public boolean isActive() {
-        return this.active;
     }
 }

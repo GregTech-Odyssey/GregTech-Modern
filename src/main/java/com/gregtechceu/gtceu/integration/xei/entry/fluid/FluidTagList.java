@@ -8,12 +8,14 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.stream.Stream;
 
+@Getter
 public final class FluidTagList implements FluidEntryList {
 
     private final List<FluidTagEntry> entries = new ObjectArrayList<>();
@@ -47,9 +49,5 @@ public final class FluidTagList implements FluidEntryList {
         public Stream<FluidStack> stacks() {
             return BuiltInRegistries.FLUID.getTag(tag).map(HolderSet.ListBacked::stream).orElseGet(Stream::empty).map(holder -> new FluidStack(holder.get(), amount, nbt));
         }
-    }
-
-    public List<FluidTagEntry> getEntries() {
-        return this.entries;
     }
 }

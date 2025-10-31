@@ -40,6 +40,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,19 +57,24 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
     public static final Int2IntFunction PUMP_SCALING = tier -> (int) (64D * Math.pow(4, Math.min(tier - 1, GTValues.IV)));
     public final int tier;
     public final int maxFluidTransferRate;
+    @Getter
     @Persisted
     @DescSynced
     protected int transferRate;
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected IO io = IO.OUT;
+    @Getter
     @Persisted
     @DescSynced
     protected BucketMode bucketMode = BucketMode.MILLI_BUCKET;
+    @Getter
     @Persisted
     @DescSynced
     protected ManualIOMode manualIOMode = ManualIOMode.DISABLED;
+    @Getter
     @Persisted
     @DescSynced
     protected boolean isWorkingEnabled = true;
@@ -321,25 +327,5 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
             }
             return super.drain(resource, action);
         }
-    }
-
-    public int getTransferRate() {
-        return this.transferRate;
-    }
-
-    public IO getIo() {
-        return this.io;
-    }
-
-    public BucketMode getBucketMode() {
-        return this.bucketMode;
-    }
-
-    public ManualIOMode getManualIOMode() {
-        return this.manualIOMode;
-    }
-
-    public boolean isWorkingEnabled() {
-        return this.isWorkingEnabled;
     }
 }

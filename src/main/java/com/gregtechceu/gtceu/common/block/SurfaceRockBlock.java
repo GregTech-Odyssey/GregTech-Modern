@@ -34,10 +34,12 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@Getter
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class SurfaceRockBlock extends Block {
@@ -165,9 +167,5 @@ public class SurfaceRockBlock extends Block {
     @Override
     public MutableComponent getName() {
         return Component.translatable("block.surface_rock", material.getLocalizedName());
-    }
-
-    public Material getMaterial() {
-        return this.material;
     }
 }

@@ -12,10 +12,13 @@ import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
+import lombok.Getter;
+
 import java.util.List;
 
 public class ItemRecipeHandler implements IRecipeHandler<Ingredient> {
 
+    @Getter
     public final IO handlerIO;
     public final CustomItemStackHandler storage;
 
@@ -49,9 +52,5 @@ public class ItemRecipeHandler implements IRecipeHandler<Ingredient> {
     @Override
     public RecipeCapability<Ingredient> getCapability() {
         return ItemRecipeCapability.CAP;
-    }
-
-    public IO getHandlerIO() {
-        return this.handlerIO;
     }
 }

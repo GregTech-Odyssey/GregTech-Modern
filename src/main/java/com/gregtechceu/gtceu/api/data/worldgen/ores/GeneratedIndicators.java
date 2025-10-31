@@ -4,6 +4,7 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.level.ChunkPos;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import lombok.Getter;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,6 +18,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class GeneratedIndicators {
 
+    @Getter
     private final ChunkPos origin;
     private final Long2ObjectMap<List<OreIndicatorPlacer>> generatedIndicators;
 
@@ -40,9 +42,5 @@ public class GeneratedIndicators {
     @Override
     public String toString() {
         return "GeneratedIndicators[origin=" + origin + ", chunks={" + generatedIndicators.keySet().longStream().mapToObj(ChunkPos::new).map(ChunkPos::toString).collect(Collectors.joining(", ")) + "}]";
-    }
-
-    public ChunkPos getOrigin() {
-        return this.origin;
     }
 }

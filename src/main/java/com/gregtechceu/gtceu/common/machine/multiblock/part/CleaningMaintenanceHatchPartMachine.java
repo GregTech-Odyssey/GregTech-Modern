@@ -9,6 +9,8 @@ import com.gregtechceu.gtceu.api.machine.multiblock.DummyCleanroom;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 
+import lombok.Getter;
+
 import java.util.Collections;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -22,6 +24,7 @@ public class CleaningMaintenanceHatchPartMachine extends AutoMaintenanceHatchPar
 
     // must come after the static block
     private final ICleanroomProvider DUMMY_CLEANROOM;
+    @Getter
     private final CleanroomType cleanroomType;
 
     public CleaningMaintenanceHatchPartMachine(MetaMachineBlockEntity metaTileEntityId, CleanroomType cleanroomType) {
@@ -49,9 +52,5 @@ public class CleaningMaintenanceHatchPartMachine extends AutoMaintenanceHatchPar
     @Override
     public int getTier() {
         return cleanroomType == CleanroomType.CLEANROOM ? UV : UHV;
-    }
-
-    public CleanroomType getCleanroomType() {
-        return this.cleanroomType;
     }
 }

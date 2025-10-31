@@ -32,6 +32,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.emi.emi.api.stack.EmiStack;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -45,7 +46,9 @@ import javax.annotation.Nullable;
 @LDLRegister(name = "gtm_phantom_fluid_slot", group = "widget.gtm_container", priority = 50)
 public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTarget {
 
+    @Setter
     private Supplier<FluidStack> phantomFluidGetter;
+    @Setter
     private Consumer<FluidStack> phantomFluidSetter;
     @Nullable
     protected FluidStack lastPhantomStack;
@@ -232,14 +235,6 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
             RenderSystem.enableBlend();
             RenderSystem.setShaderColor(1, 1, 1, 1);
         }
-    }
-
-    public void setPhantomFluidGetter(final Supplier<FluidStack> phantomFluidGetter) {
-        this.phantomFluidGetter = phantomFluidGetter;
-    }
-
-    public void setPhantomFluidSetter(final Consumer<FluidStack> phantomFluidSetter) {
-        this.phantomFluidSetter = phantomFluidSetter;
     }
 
     @Nullable

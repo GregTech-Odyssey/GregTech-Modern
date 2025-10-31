@@ -10,6 +10,8 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -21,7 +23,15 @@ public class TieredIOPartMachine extends TieredPartMachine implements IControlla
     protected final IO io;
     /**
      * AUTO IO working?
+     * -- SETTER --
+     * AUTO IO working?
+     * -- GETTER --
+     * AUTO IO working?
+     * 
+     * 
      */
+    @Getter
+    @Setter
     @Persisted
     @DescSynced
     @RequireRerender
@@ -42,19 +52,5 @@ public class TieredIOPartMachine extends TieredPartMachine implements IControlla
             case BOTH -> new PageGroupingData("gtceu.multiblock.page_switcher.io.both", 3);
             case NONE -> null;
         };
-    }
-
-    /**
-     * AUTO IO working?
-     */
-    public boolean isWorkingEnabled() {
-        return this.workingEnabled;
-    }
-
-    /**
-     * AUTO IO working?
-     */
-    public void setWorkingEnabled(final boolean workingEnabled) {
-        this.workingEnabled = workingEnabled;
     }
 }

@@ -10,6 +10,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.common.util.Lazy;
 
 import com.mojang.serialization.Codec;
+import lombok.Getter;
 
 import java.util.EnumMap;
 
@@ -56,9 +57,13 @@ public enum GTArmorMaterials implements ArmorMaterial, StringRepresentable {
     private final String name;
     private final int durabilityMultiplier;
     private final EnumMap<ArmorItem.Type, Integer> protectionFunctionForType;
+    @Getter
     private final int enchantmentValue;
+    @Getter
     private final SoundEvent equipSound;
+    @Getter
     private final float toughness;
+    @Getter
     private final float knockbackResistance;
     private final Lazy<Ingredient> repairIngredient;
 
@@ -96,21 +101,5 @@ public enum GTArmorMaterials implements ArmorMaterial, StringRepresentable {
         this.toughness = toughness;
         this.knockbackResistance = knockbackResistance;
         this.repairIngredient = repairIngredient;
-    }
-
-    public int getEnchantmentValue() {
-        return this.enchantmentValue;
-    }
-
-    public SoundEvent getEquipSound() {
-        return this.equipSound;
-    }
-
-    public float getToughness() {
-        return this.toughness;
-    }
-
-    public float getKnockbackResistance() {
-        return this.knockbackResistance;
     }
 }

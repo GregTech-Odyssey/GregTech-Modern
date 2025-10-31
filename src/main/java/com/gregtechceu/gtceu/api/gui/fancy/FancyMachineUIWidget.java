@@ -12,6 +12,8 @@ import com.lowdragmc.lowdraglib.gui.widget.custom.PlayerInventoryWidget;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
@@ -21,23 +23,36 @@ import java.util.stream.Stream;
 
 public class FancyMachineUIWidget extends WidgetGroup {
 
+    @Getter
     protected final TitleBarWidget titleBar;
+    @Getter
     protected final VerticalTabsWidget sideTabsWidget;
+    @Getter
     protected final WidgetGroup pageContainer;
+    @Getter
     protected final PageSwitcher pageSwitcher;
+    @Getter
     protected final ConfiguratorPanel configuratorPanel;
+    @Getter
     protected final TooltipsPanel tooltipsPanel;
     @Nullable
     protected final PlayerInventoryWidget playerInventory;
+    @Getter
+    @Setter
     protected int border = 4;
+    @Getter
     protected final IFancyUIProvider mainPage;
     /*
      * Current Page: The page visible in the UI
      * Current Home Page: The currently selected multiblock part's home page.
      */
+    @Getter
     protected IFancyUIProvider currentPage;
+    @Getter
     protected IFancyUIProvider currentHomePage;
+    @Getter
     protected List<IFancyUIProvider> allPages;
+    @Getter
     protected Deque<NavigationEntry> previousPages = new ArrayDeque<>();
 
     protected record NavigationEntry(IFancyUIProvider page, IFancyUIProvider homePage, Runnable onNavigation) {}
@@ -189,60 +204,8 @@ public class FancyMachineUIWidget extends WidgetGroup {
         currentHomePage.attachSideTabs(sideTabsWidget);
     }
 
-    public TitleBarWidget getTitleBar() {
-        return this.titleBar;
-    }
-
-    public VerticalTabsWidget getSideTabsWidget() {
-        return this.sideTabsWidget;
-    }
-
-    public WidgetGroup getPageContainer() {
-        return this.pageContainer;
-    }
-
-    public PageSwitcher getPageSwitcher() {
-        return this.pageSwitcher;
-    }
-
-    public ConfiguratorPanel getConfiguratorPanel() {
-        return this.configuratorPanel;
-    }
-
-    public TooltipsPanel getTooltipsPanel() {
-        return this.tooltipsPanel;
-    }
-
     @Nullable
     public PlayerInventoryWidget getPlayerInventory() {
         return this.playerInventory;
-    }
-
-    public int getBorder() {
-        return this.border;
-    }
-
-    public IFancyUIProvider getMainPage() {
-        return this.mainPage;
-    }
-
-    public IFancyUIProvider getCurrentPage() {
-        return this.currentPage;
-    }
-
-    public IFancyUIProvider getCurrentHomePage() {
-        return this.currentHomePage;
-    }
-
-    public List<IFancyUIProvider> getAllPages() {
-        return this.allPages;
-    }
-
-    public Deque<NavigationEntry> getPreviousPages() {
-        return this.previousPages;
-    }
-
-    public void setBorder(final int border) {
-        this.border = border;
     }
 }

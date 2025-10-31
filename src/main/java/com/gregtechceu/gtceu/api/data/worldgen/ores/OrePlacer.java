@@ -17,6 +17,7 @@ import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import lombok.Getter;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -28,6 +29,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * Surrounding veins are resolved from the {@link OreGenCache} and placed using each block position's
  * {@link OreBlockPlacer}.
  */
+@Getter
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class OrePlacer {
@@ -80,9 +82,5 @@ public class OrePlacer {
         generatedVein.consumeIndicators(chunk.getPos()).forEach(placer -> {
             placer.placeIndicators(access);
         });
-    }
-
-    public OreGenCache getOreGenCache() {
-        return this.oreGenCache;
     }
 }

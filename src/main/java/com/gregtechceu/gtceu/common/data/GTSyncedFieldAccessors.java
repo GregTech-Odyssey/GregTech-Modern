@@ -20,6 +20,8 @@ public class GTSyncedFieldAccessors {
     public static void init() {
         register(FriendlyBufPayload.class, FriendlyBufPayload::new, GT_RECIPE_TYPE_ACCESSOR, 1000);
         register(NbtTagPayload.class, NbtTagPayload::new, VirtualTankAccessor.INSTANCE, 2);
+        register(NbtTagPayload.class, NbtTagPayload::new, VirtualItemStorageAccessor.INSTANCE, 2);
+        register(NbtTagPayload.class, NbtTagPayload::new, VirtualRedstoneAccessor.INSTANCE, 2);
 
         registerSimple(MaterialPayload.class, MaterialPayload::new, Material.class, 1);
         registerSimple(GTRecipePayload.class, GTRecipePayload::new, GTRecipe.class, 100);

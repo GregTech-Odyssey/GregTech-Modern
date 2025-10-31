@@ -12,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.BlockGetter;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.Locale;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@Getter
 @ParametersAreNonnullByDefault
 public class BatteryBlock extends AppearanceBlock {
 
@@ -86,9 +88,5 @@ public class BatteryBlock extends AppearanceBlock {
         public String getSerializedName() {
             return getBatteryName();
         }
-    }
-
-    public IBatteryData getData() {
-        return this.data;
     }
 }

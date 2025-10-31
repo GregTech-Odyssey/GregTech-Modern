@@ -22,6 +22,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,6 +38,8 @@ public abstract class LongDistanceEndpointMachine extends MetaMachine implements
 
     @NotNull
     private final LongDistancePipeType pipeType;
+    @Getter
+    @Setter
     @Persisted
     private IO ioType = IO.NONE;
     private ILDEndpoint link;
@@ -249,13 +253,5 @@ public abstract class LongDistanceEndpointMachine extends MetaMachine implements
     @NotNull
     public LongDistancePipeType getPipeType() {
         return this.pipeType;
-    }
-
-    public IO getIoType() {
-        return this.ioType;
-    }
-
-    public void setIoType(final IO ioType) {
-        this.ioType = ioType;
     }
 }

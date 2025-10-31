@@ -15,6 +15,7 @@ import net.minecraft.nbt.NbtIo;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.DataInputStream;
@@ -24,7 +25,9 @@ import java.util.function.Supplier;
 
 public class EditableMachineUI implements IEditableUI<WidgetGroup, MetaMachine> {
 
+    @Getter
     final String groupName;
+    @Getter
     final ResourceLocation uiPath;
     final Supplier<WidgetGroup> widgetSupplier;
     final BiConsumer<WidgetGroup, MetaMachine> binder;
@@ -96,13 +99,5 @@ public class EditableMachineUI implements IEditableUI<WidgetGroup, MetaMachine> 
 
     public void reloadCustomUI() {
         this.customUICache = null;
-    }
-
-    public String getGroupName() {
-        return this.groupName;
-    }
-
-    public ResourceLocation getUiPath() {
-        return this.uiPath;
     }
 }

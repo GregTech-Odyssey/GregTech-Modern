@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.tags.TagKey;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -29,6 +30,7 @@ public abstract class TagFilter<T, S extends Filter<T, S>> implements Filter<T, 
     private static final Pattern DOUBLE_NOT = Pattern.compile("!{2,}");
     private static final Pattern DOUBLE_XOR = Pattern.compile("\\^{2,}");
     private static final Pattern DOUBLE_SPACE = Pattern.compile(" {2,}");
+    @Getter
     protected String oreDictFilterExpression = "";
     protected Consumer<S> itemWriter = filter -> {};
     protected Consumer<S> onUpdated = filter -> itemWriter.accept(filter);
@@ -108,7 +110,7 @@ public abstract class TagFilter<T, S extends Filter<T, S>> implements Filter<T, 
                 }
             }
             input = builder.toString();
-            input = input.replaceAll(" {2,}", " ");
+            input = DOUBLE_SPACE.matcher(input).replaceAll(" ");
             return input;
         }));
 
@@ -172,10 +174,6 @@ public abstract class TagFilter<T, S extends Filter<T, S>> implements Filter<T, 
             this.itemWriter.accept(filter);
             onUpdated.accept(filter);
         };
-    }
-
-    public String getOreDictFilterExpression() {
-        return this.oreDictFilterExpression;
     }
 
     public interface StackHandlerWidget<STACK, FILTER extends Filter<STACK, FILTER>> {

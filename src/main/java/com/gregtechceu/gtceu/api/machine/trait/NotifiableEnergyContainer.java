@@ -23,6 +23,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -31,16 +33,25 @@ import java.util.function.Predicate;
 
 public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long> implements IEnergyContainer {
 
+    @Getter
     protected IO handlerIO;
+    @Getter
     @Persisted
     @DescSynced
     protected long energyStored;
+    @Getter
     private long energyCapacity;
+    @Getter
     private long inputVoltage;
+    @Getter
     private long inputAmperage;
+    @Getter
     private long outputVoltage;
+    @Getter
     private long outputAmperage;
+    @Setter
     private Predicate<Direction> sideInputCondition;
+    @Setter
     private Predicate<Direction> sideOutputCondition;
     @Nullable
     protected TickableSubscription outputSubs;
@@ -278,41 +289,5 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
     @Override
     public RecipeCapability<Long> getCapability() {
         return EURecipeCapability.CAP;
-    }
-
-    public IO getHandlerIO() {
-        return this.handlerIO;
-    }
-
-    public long getEnergyStored() {
-        return this.energyStored;
-    }
-
-    public long getEnergyCapacity() {
-        return this.energyCapacity;
-    }
-
-    public long getInputVoltage() {
-        return this.inputVoltage;
-    }
-
-    public long getInputAmperage() {
-        return this.inputAmperage;
-    }
-
-    public long getOutputVoltage() {
-        return this.outputVoltage;
-    }
-
-    public long getOutputAmperage() {
-        return this.outputAmperage;
-    }
-
-    public void setSideInputCondition(final Predicate<Direction> sideInputCondition) {
-        this.sideInputCondition = sideInputCondition;
-    }
-
-    public void setSideOutputCondition(final Predicate<Direction> sideOutputCondition) {
-        this.sideOutputCondition = sideOutputCondition;
     }
 }

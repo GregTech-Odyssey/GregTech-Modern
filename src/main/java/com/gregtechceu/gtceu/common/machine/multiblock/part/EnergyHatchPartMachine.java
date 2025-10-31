@@ -17,6 +17,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -30,6 +31,7 @@ public class EnergyHatchPartMachine extends TieredIOPartMachine implements IExpl
     protected TickableSubscription explosionSubs;
     @Nullable
     protected ISubscription energyListener;
+    @Getter
     protected int amperage;
 
     public EnergyHatchPartMachine(MetaMachineBlockEntity holder, int tier, IO io, int amperage, Object... args) {
@@ -110,9 +112,5 @@ public class EnergyHatchPartMachine extends TieredIOPartMachine implements IExpl
 
     public static long getHatchEnergyCapacity(int tier, int amperage) {
         return GTValues.V[tier] * 64L * amperage;
-    }
-
-    public int getAmperage() {
-        return this.amperage;
     }
 }

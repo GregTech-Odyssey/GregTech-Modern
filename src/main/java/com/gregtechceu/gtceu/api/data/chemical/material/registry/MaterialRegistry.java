@@ -9,10 +9,12 @@ import com.gregtechceu.gtceu.common.registry.GTRegistration;
 
 import net.minecraft.resources.ResourceLocation;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
+@Getter
 public abstract class MaterialRegistry extends GTRegistry.String<Material> {
 
     private final GTRegistrate registrate;
@@ -50,8 +52,4 @@ public abstract class MaterialRegistry extends GTRegistry.String<Material> {
 
     @NotNull
     public abstract java.lang.String getModid();
-
-    public GTRegistrate getRegistrate() {
-        return this.registrate;
-    }
 }

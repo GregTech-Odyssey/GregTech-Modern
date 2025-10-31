@@ -14,6 +14,8 @@ import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -25,6 +27,8 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
     @NotNull
     protected Runnable onContentsChanged = GTUtil.NOOP;
     protected boolean freezeChanged = false;
+    @Getter
+    @Setter
     protected Predicate<ItemStack> filter = GTUtil.FAVORABLE;
 
     public ItemStack[] stacks;
@@ -228,14 +232,6 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
     public void setOnContentsChangedAndfreeze(@NotNull final Runnable onContentsChanged) {
         this.onContentsChanged = onContentsChanged;
         freezeChanged = true;
-    }
-
-    public Predicate<ItemStack> getFilter() {
-        return this.filter;
-    }
-
-    public void setFilter(final Predicate<ItemStack> filter) {
-        this.filter = filter;
     }
 
     public static boolean canItemStacksStack(@NotNull ItemStack a, @NotNull ItemStack b) {

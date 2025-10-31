@@ -31,10 +31,12 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
 
+    @Getter
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
     private final ManagedFieldHolder managedFieldHolder = MetaMachine.getManagedFieldHolder(getClass());
     private final PipeBlockEntity<?, ?> pipeTile;
@@ -244,9 +246,5 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
         }
         GTCEu.LOGGER.error("couldn't find cover definition {}", definitionId);
         throw new RuntimeException();
-    }
-
-    public FieldManagedStorage getSyncStorage() {
-        return this.syncStorage;
     }
 }

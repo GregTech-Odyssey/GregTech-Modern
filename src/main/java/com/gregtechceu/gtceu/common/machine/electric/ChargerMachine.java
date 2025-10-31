@@ -31,12 +31,15 @@ import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@Getter
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class ChargerMachine extends TieredEnergyMachine implements IControllable, IFancyUIMachine, IMachineLife {
@@ -49,6 +52,7 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
         FINISHED;
     }
 
+    @Setter
     @Persisted
     private boolean isWorkingEnabled;
     private final int inventorySize;
@@ -240,25 +244,5 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
             }
             return energyStored;
         }
-    }
-
-    public boolean isWorkingEnabled() {
-        return this.isWorkingEnabled;
-    }
-
-    public void setWorkingEnabled(final boolean isWorkingEnabled) {
-        this.isWorkingEnabled = isWorkingEnabled;
-    }
-
-    public int getInventorySize() {
-        return this.inventorySize;
-    }
-
-    public CustomItemStackHandler getChargerInventory() {
-        return this.chargerInventory;
-    }
-
-    public State getState() {
-        return this.state;
     }
 }

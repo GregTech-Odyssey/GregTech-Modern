@@ -44,6 +44,8 @@ import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import net.minecraftforge.fluids.capability.wrappers.BucketPickupHandlerWrapper;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.*;
 
@@ -59,8 +61,11 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
     public static final int PUMP_SPEED_BASE = 80;
     private final Set<BlockPos> forbiddenBlocks = new OpenCacheHashSet<>();
     private PumpQueue pumpQueue = null;
+    @Getter
     @Persisted
     private int pumpHeadY;
+    @Getter
+    @Setter
     @Persisted
     @DescSynced
     @RequireRerender
@@ -511,17 +516,5 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
             }
         }
         return super.sideTips(player, pos, state, toolTypes, side);
-    }
-
-    public int getPumpHeadY() {
-        return this.pumpHeadY;
-    }
-
-    public boolean isAutoOutputFluids() {
-        return this.autoOutputFluids;
-    }
-
-    public void setAutoOutputFluids(final boolean autoOutputFluids) {
-        this.autoOutputFluids = autoOutputFluids;
     }
 }

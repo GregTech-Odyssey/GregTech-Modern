@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.api.data.chemical;
 
+import lombok.Getter;
+
 /**
  * This is some kind of Periodic Table, which can be used to determine "Properties" of the Materials.
  */
@@ -31,7 +33,11 @@ public class Element {
     private String symbol;
     /**
      * Is this element an isotope?
+     * -- GETTER --
+     * Is this element an isotope?
+     * 
      */
+    @Getter
     private boolean isIsotope;
 
     public long mass() {
@@ -130,13 +136,6 @@ public class Element {
      */
     public void symbol(final String symbol) {
         this.symbol = symbol;
-    }
-
-    /**
-     * Is this element an isotope?
-     */
-    public boolean isIsotope() {
-        return this.isIsotope;
     }
 
     /**

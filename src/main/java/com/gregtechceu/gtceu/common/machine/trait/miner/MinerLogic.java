@@ -40,6 +40,8 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,44 +56,67 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
     protected final IMiner miner;
     @Nullable
     private NotifiableAccountedInvWrapper cachedItemHandler = null;
+    @Getter
     private final int fortune;
+    @Getter
     private final int speed;
+    @Getter
     private final int maximumRadius;
+    @Getter
     public ItemStack pickaxeTool;
     private final LinkedList<BlockPos> blocksToMine = new LinkedList<>();
+    @Getter
     @Persisted
     protected int x = Integer.MAX_VALUE;
+    @Getter
     @Persisted
     protected int y = Integer.MAX_VALUE;
+    @Getter
     @Persisted
     protected int z = Integer.MAX_VALUE;
+    @Getter
     @Persisted
     protected int startX = Integer.MAX_VALUE;
+    @Getter
     @Persisted
     protected int startZ = Integer.MAX_VALUE;
+    @Getter
     @Persisted
     protected int startY = Integer.MAX_VALUE;
+    @Getter
     @Persisted
     protected int pipeY = Integer.MAX_VALUE;
+    @Getter
     @Persisted
     protected int mineX = Integer.MAX_VALUE;
+    @Getter
     @Persisted
     protected int mineZ = Integer.MAX_VALUE;
+    @Getter
     @Persisted
     protected int mineY = Integer.MAX_VALUE;
+    @Getter
     private int minBuildHeight = Integer.MAX_VALUE;
+    @Getter
     private int maxBuildHeight = Integer.MAX_VALUE;
+    @Getter
     @Persisted
     private int pipeLength = 0;
+    @Getter
+    @Setter
     @Persisted
     private int currentRadius;
+    @Getter
     @Persisted
     private boolean isDone;
+    @Getter
     private boolean isInventoryFull;
     private final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
     protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
     private final ItemRecipeHandler inputItemHandler;
     private final ItemRecipeHandler outputItemHandler;
+    @Getter
+    @Setter
     private Direction dir = Direction.DOWN;
 
     /**
@@ -539,103 +564,11 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
         }
     }
 
-    public int getFortune() {
-        return this.fortune;
-    }
-
-    public int getSpeed() {
-        return this.speed;
-    }
-
-    public int getMaximumRadius() {
-        return this.maximumRadius;
-    }
-
-    public ItemStack getPickaxeTool() {
-        return this.pickaxeTool;
-    }
-
-    public int getX() {
-        return this.x;
-    }
-
-    public int getY() {
-        return this.y;
-    }
-
-    public int getZ() {
-        return this.z;
-    }
-
-    public int getStartX() {
-        return this.startX;
-    }
-
-    public int getStartZ() {
-        return this.startZ;
-    }
-
-    public int getStartY() {
-        return this.startY;
-    }
-
-    public int getPipeY() {
-        return this.pipeY;
-    }
-
-    public int getMineX() {
-        return this.mineX;
-    }
-
-    public int getMineZ() {
-        return this.mineZ;
-    }
-
-    public int getMineY() {
-        return this.mineY;
-    }
-
-    public int getMinBuildHeight() {
-        return this.minBuildHeight;
-    }
-
-    public int getMaxBuildHeight() {
-        return this.maxBuildHeight;
-    }
-
-    public int getPipeLength() {
-        return this.pipeLength;
-    }
-
-    public int getCurrentRadius() {
-        return this.currentRadius;
-    }
-
-    public void setCurrentRadius(final int currentRadius) {
-        this.currentRadius = currentRadius;
-    }
-
-    public boolean isDone() {
-        return this.isDone;
-    }
-
-    public boolean isInventoryFull() {
-        return this.isInventoryFull;
-    }
-
     public @NotNull Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {
         return this.capabilitiesProxy;
     }
 
     public @NotNull Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> getCapabilitiesFlat() {
         return this.capabilitiesFlat;
-    }
-
-    public void setDir(final Direction dir) {
-        this.dir = dir;
-    }
-
-    public Direction getDir() {
-        return this.dir;
     }
 }

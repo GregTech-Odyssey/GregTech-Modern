@@ -12,6 +12,8 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
+import lombok.Getter;
+
 import java.util.Map;
 
 /**
@@ -30,6 +32,7 @@ public class GroupingMapRenderer extends GenericMapRenderer {
         instance = new GroupingMapRenderer(renderers);
     }
 
+    @Getter
     private final Map<String, GenericMapRenderer> renderers;
     private final GenericMapRenderer[] rendererList;
 
@@ -91,9 +94,5 @@ public class GroupingMapRenderer extends GenericMapRenderer {
 
     public static GroupingMapRenderer getInstance() {
         return GroupingMapRenderer.instance;
-    }
-
-    public Map<String, GenericMapRenderer> getRenderers() {
-        return this.renderers;
     }
 }

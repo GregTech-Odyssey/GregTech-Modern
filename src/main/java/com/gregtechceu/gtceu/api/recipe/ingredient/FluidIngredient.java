@@ -22,6 +22,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -37,6 +38,7 @@ public class FluidIngredient implements Predicate<FluidStack> {
     @Nullable
     public FluidStack[] stacks;
     public long amount;
+    @Getter
     public CompoundTag nbt;
     public boolean changed = true;
 
@@ -259,6 +261,7 @@ public class FluidIngredient implements Predicate<FluidStack> {
         JsonObject serialize();
     }
 
+    @Getter
     public static class TagValue implements Value {
 
         private final TagKey<Fluid> tag;
@@ -286,10 +289,6 @@ public class FluidIngredient implements Predicate<FluidStack> {
         @Override
         public int hashCode() {
             return tag.hashCode();
-        }
-
-        public TagKey<Fluid> getTag() {
-            return this.tag;
         }
     }
 
@@ -340,8 +339,4 @@ public class FluidIngredient implements Predicate<FluidStack> {
             return 0;
         }
     };
-
-    public CompoundTag getNbt() {
-        return this.nbt;
-    }
 }

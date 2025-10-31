@@ -37,6 +37,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
@@ -47,10 +48,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropSaveMachine, IInteractedMachine {
 
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected boolean autoOutputFluids;
+    @Getter
     private final int maxStoredFluids;
     @Persisted
     protected final NotifiableFluidTank cache;
@@ -59,10 +62,12 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     @Nullable
     protected ISubscription exportFluidSubs;
     // rename "Fluid" for Item capability
+    @Getter
     @Persisted(key = "Fluid")
     @DescSynced
     @DropSaved
     protected FluidStack stored = FluidStack.EMPTY;
+    @Getter
     protected final Material material;
 
     public DrumMachine(MetaMachineBlockEntity holder, Material material, int maxStoredFluids, Object... args) {
@@ -181,7 +186,6 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
         }
     }
 
-    @SuppressWarnings("resource")
     @Override
     public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (!isRemote()) {
@@ -220,21 +224,5 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
             }
         }
         return super.sideTips(player, pos, state, toolTypes, side);
-    }
-
-    public boolean isAutoOutputFluids() {
-        return this.autoOutputFluids;
-    }
-
-    public int getMaxStoredFluids() {
-        return this.maxStoredFluids;
-    }
-
-    public FluidStack getStored() {
-        return this.stored;
-    }
-
-    public Material getMaterial() {
-        return this.material;
     }
 }

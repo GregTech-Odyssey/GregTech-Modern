@@ -39,6 +39,8 @@ import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,6 +53,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, IExhaustVentMachine, IUIMachine, IDataInfoProvider {
 
+    @Getter
+    @Setter
     @Persisted
     @DescSynced
     private boolean needsVenting;
@@ -229,13 +233,5 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
             return Collections.singletonList(Component.translatable("gtceu.universal.tooltip.working_area", workingArea, workingArea));
         }
         return new ObjectArrayList<>();
-    }
-
-    public boolean isNeedsVenting() {
-        return this.needsVenting;
-    }
-
-    public void setNeedsVenting(final boolean needsVenting) {
-        this.needsVenting = needsVenting;
     }
 }

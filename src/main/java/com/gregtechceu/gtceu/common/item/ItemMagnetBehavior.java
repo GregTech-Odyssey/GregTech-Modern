@@ -139,7 +139,6 @@ public class ItemMagnetBehavior implements IItemLifeCycle, IAddInformation, IIte
 
     private static boolean toggleActive(ItemStack stack) {
         boolean isActive = isActive(stack);
-        // noinspection ConstantConditions
         stack.getOrCreateTag().putBoolean("IsActive", !isActive);
         return !isActive;
     }

@@ -15,6 +15,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,7 +28,9 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
 
     public static final Map<ResourceLocation, GTRegistry<?, ?>> REGISTERED = new O2OOpenCacheHashMap<>();
     protected final BiMap<K, V> registry;
+    @Getter
     protected final ResourceLocation registryName;
+    @Getter
     protected boolean frozen = true;
 
     public GTRegistry(ResourceLocation registryName) {
@@ -91,7 +94,7 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
             throw new IllegalStateException("[replace] registry %s has been frozen".formatted(registryName));
         }
         if (!containKey(key)) {
-            GTCEu.LOGGER.warn("[replace] couldn\'t find key %s in registry %s".formatted(registryName, key));
+            GTCEu.LOGGER.warn("[replace] couldn't find key %s in registry %s".formatted(registryName, key));
         }
         registry.put(key, value);
         return value;
@@ -256,13 +259,5 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
         public Codec<V> codec() {
             return ResourceLocation.CODEC.flatXmap(rl -> Optional.ofNullable(this.get(rl)).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "Unknown registry key in " + this.registryName + ": " + rl)), obj -> Optional.ofNullable(this.getKey(obj)).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "Unknown registry element in " + this.registryName + ": " + obj)));
         }
-    }
-
-    public ResourceLocation getRegistryName() {
-        return this.registryName;
-    }
-
-    public boolean isFrozen() {
-        return this.frozen;
     }
 }

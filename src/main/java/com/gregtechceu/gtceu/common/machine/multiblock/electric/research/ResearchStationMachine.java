@@ -14,12 +14,14 @@ import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.item.ItemStack;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@Getter
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
@@ -159,9 +161,5 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
             }
             return true;
         }
-    }
-
-    public IObjectHolder getObjectHolder() {
-        return this.objectHolder;
     }
 }

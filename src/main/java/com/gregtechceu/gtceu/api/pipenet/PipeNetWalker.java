@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,9 +43,12 @@ public abstract class PipeNetWalker<T extends PipeBlockEntity<?, ?>, NodeDataTyp
     protected final List<T> nextPipes = new ObjectArrayList<>(5);
     protected T currentPipe;
     private Direction from = null;
+    @Getter
     protected int walkedBlocks;
+    @Getter
     protected boolean invalid;
     protected boolean running;
+    @Getter
     private boolean failed = false;
 
     protected PipeNetWalker(Net pipeNet, BlockPos sourcePipe, int walkedBlocks) {
@@ -231,17 +235,5 @@ public abstract class PipeNetWalker<T extends PipeBlockEntity<?, ?>, NodeDataTyp
 
     public BlockPos getCurrentPos() {
         return currentPos.immutable();
-    }
-
-    public int getWalkedBlocks() {
-        return this.walkedBlocks;
-    }
-
-    public boolean isInvalid() {
-        return this.invalid;
-    }
-
-    public boolean isFailed() {
-        return this.failed;
     }
 }

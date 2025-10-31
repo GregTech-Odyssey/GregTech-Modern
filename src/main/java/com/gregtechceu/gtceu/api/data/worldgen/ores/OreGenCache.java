@@ -11,6 +11,7 @@ import net.minecraft.world.level.chunk.ChunkGenerator;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import lombok.Getter;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.util.List;
@@ -31,6 +32,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class OreGenCache {
 
+    @Getter
     private final OreGenerator oreGenerator = new OreGenerator();
     private final int oreGenerationCacheSize = ConfigHolder.INSTANCE != null ? ConfigHolder.INSTANCE.worldgen.oreVeins.oreGenerationChunkCacheSize : 512;
     private final int oreIndicatorCacheSize = ConfigHolder.INSTANCE != null ? ConfigHolder.INSTANCE.worldgen.oreVeins.oreIndicatorChunkCacheSize : 512;
@@ -99,9 +101,5 @@ public class OreGenCache {
             }
             return null;
         }).takeWhile(Objects::nonNull);
-    }
-
-    public OreGenerator getOreGenerator() {
-        return this.oreGenerator;
     }
 }

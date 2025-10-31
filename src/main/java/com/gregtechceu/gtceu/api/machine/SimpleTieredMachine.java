@@ -18,7 +18,6 @@ import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputBoth;
-import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.machine.trait.CircuitHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
@@ -52,6 +51,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import com.google.common.collect.Tables;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -64,7 +64,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoOutputBoth, IFancyUIMachine {
+public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoOutputBoth {
 
     @Persisted
     @DescSynced
@@ -74,20 +74,26 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     @DescSynced
     @RequireRerender
     protected Direction outputFacingFluids;
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected boolean autoOutputItems;
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected boolean autoOutputFluids;
+    @Getter
     @Persisted
     protected boolean allowInputFromOutputSideItems;
+    @Getter
     @Persisted
     protected boolean allowInputFromOutputSideFluids;
+    @Getter
     @Persisted
     protected final CustomItemStackHandler chargerInventory;
+    @Getter
     @Persisted
     protected final NotifiableItemStackHandler circuitInventory;
     @Nullable
@@ -392,38 +398,14 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
         return super.sideTips(player, pos, state, toolTypes, side);
     }
 
-    public boolean isAutoOutputItems() {
-        return this.autoOutputItems;
-    }
-
-    public boolean isAutoOutputFluids() {
-        return this.autoOutputFluids;
-    }
-
-    public boolean isAllowInputFromOutputSideItems() {
-        return this.allowInputFromOutputSideItems;
-    }
-
     public void setAllowInputFromOutputSideItems(final boolean allowInputFromOutputSideItems) {
         clearDirectionCache();
         this.allowInputFromOutputSideItems = allowInputFromOutputSideItems;
     }
 
-    public boolean isAllowInputFromOutputSideFluids() {
-        return this.allowInputFromOutputSideFluids;
-    }
-
     public void setAllowInputFromOutputSideFluids(final boolean allowInputFromOutputSideFluids) {
         clearDirectionCache();
         this.allowInputFromOutputSideFluids = allowInputFromOutputSideFluids;
-    }
-
-    public CustomItemStackHandler getChargerInventory() {
-        return this.chargerInventory;
-    }
-
-    public NotifiableItemStackHandler getCircuitInventory() {
-        return this.circuitInventory;
     }
 
     @Override

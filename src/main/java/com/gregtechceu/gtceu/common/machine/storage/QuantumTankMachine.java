@@ -54,6 +54,7 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,24 +68,30 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class QuantumTankMachine extends TieredMachine implements IAutoOutputFluid, IInteractedMachine, IControllable, IDropSaveMachine, IFancyUIMachine {
 
     public static Object2LongMap<MachineDefinition> TANK_CAPACITY = new O2LOpenCacheHashMap<>();
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected Direction outputFacingFluids;
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected boolean autoOutputFluids;
+    @Getter
     @Persisted
     protected boolean allowInputFromOutputSideFluids;
     @Persisted
     private boolean isVoiding;
+    @Getter
     private final long maxAmount;
     protected final FluidCache cache;
     @DescSynced
     private final CustomFluidTank lockedFluid;
+    @Getter
     @DescSynced
     protected FluidStack stored = FluidStack.EMPTY;
+    @Getter
     @DescSynced
     protected long storedAmount = 0;
     @Nullable
@@ -407,32 +414,8 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         }
     }
 
-    public Direction getOutputFacingFluids() {
-        return this.outputFacingFluids;
-    }
-
-    public boolean isAutoOutputFluids() {
-        return this.autoOutputFluids;
-    }
-
-    public boolean isAllowInputFromOutputSideFluids() {
-        return this.allowInputFromOutputSideFluids;
-    }
-
     public void setAllowInputFromOutputSideFluids(final boolean allowInputFromOutputSideFluids) {
         clearDirectionCache();
         this.allowInputFromOutputSideFluids = allowInputFromOutputSideFluids;
-    }
-
-    public long getMaxAmount() {
-        return this.maxAmount;
-    }
-
-    public FluidStack getStored() {
-        return this.stored;
-    }
-
-    public long getStoredAmount() {
-        return this.storedAmount;
     }
 }

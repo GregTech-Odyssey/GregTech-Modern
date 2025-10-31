@@ -26,6 +26,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +48,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     public static int SEARCH_MAX_INTERVAL = 20;
 
     public final IRecipeLogicMachine machine;
+    @Getter
     @Persisted
     @DescSynced
     @UpdateListener(methodName = "onStatusSynced")
@@ -72,15 +75,22 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     @Nullable
     @Persisted
     protected GTRecipe lastOriginRecipe;
+    @Getter
+    @Setter
     @Persisted
     public int progress;
+    @Getter
     @Persisted
     protected int duration;
+    @Getter
     protected boolean recipeDirty = true;
+    @Getter
     @Persisted
     protected long totalContinuousRunningTime;
+    @Setter
     @Persisted
     protected boolean suspendAfterFinish = false;
+    @Getter
     protected final Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches = makeChanceCaches();
     protected TickableSubscription subscription;
     protected Object workingSound;
@@ -442,10 +452,6 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
         return map;
     }
 
-    public Status getStatus() {
-        return this.status;
-    }
-
     /**
      * unsafe, it may not be found from {@link RecipeManager}. Do not index it.
      */
@@ -462,33 +468,5 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     @Nullable
     public GTRecipe getLastOriginRecipe() {
         return this.lastOriginRecipe;
-    }
-
-    public int getProgress() {
-        return this.progress;
-    }
-
-    public void setProgress(final int progress) {
-        this.progress = progress;
-    }
-
-    public int getDuration() {
-        return this.duration;
-    }
-
-    public boolean isRecipeDirty() {
-        return this.recipeDirty;
-    }
-
-    public long getTotalContinuousRunningTime() {
-        return this.totalContinuousRunningTime;
-    }
-
-    public void setSuspendAfterFinish(final boolean suspendAfterFinish) {
-        this.suspendAfterFinish = suspendAfterFinish;
-    }
-
-    public Map<RecipeCapability<?>, Object2IntMap<?>> getChanceCaches() {
-        return this.chanceCaches;
     }
 }

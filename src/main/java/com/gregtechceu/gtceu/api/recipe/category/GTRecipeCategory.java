@@ -12,6 +12,7 @@ import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,10 +22,13 @@ public class GTRecipeCategory {
     public static final GTRecipeCategory DEFAULT = new GTRecipeCategory("default", GTRecipeTypes.DUMMY_RECIPES);
     public final ResourceLocation registryKey;
     public final String name;
+    @Getter
     private final GTRecipeType recipeType;
+    @Getter
     private final String languageKey;
     @Nullable
     private IGuiTexture icon = null;
+    @Getter
     private boolean isXEIVisible = true;
 
     public GTRecipeCategory(@NotNull GTRecipeType recipeType) {
@@ -80,24 +84,12 @@ public class GTRecipeCategory {
         return "GTRecipeCategory{%s}".formatted(name);
     }
 
-    public GTRecipeType getRecipeType() {
-        return this.recipeType;
-    }
-
-    public String getLanguageKey() {
-        return this.languageKey;
-    }
-
     /**
      * @return {@code this}.
      */
     public GTRecipeCategory setIcon(@Nullable final IGuiTexture icon) {
         this.icon = icon;
         return this;
-    }
-
-    public boolean isXEIVisible() {
-        return this.isXEIVisible;
     }
 
     /**

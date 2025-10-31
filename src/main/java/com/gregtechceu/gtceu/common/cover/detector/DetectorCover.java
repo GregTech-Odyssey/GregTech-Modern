@@ -17,15 +17,22 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public abstract class DetectorCover extends CoverBehavior implements IControllable {
 
+    @Getter
+    @Setter
     @Persisted
     protected boolean isWorkingEnabled = true;
     protected TickableSubscription subscription;
+    @Getter
+    @Setter
     @Persisted
     @DescSynced
     private boolean isInverted;
@@ -80,21 +87,5 @@ public abstract class DetectorCover extends CoverBehavior implements IControllab
     @Override
     public boolean canPipePassThrough() {
         return false;
-    }
-
-    public boolean isWorkingEnabled() {
-        return this.isWorkingEnabled;
-    }
-
-    public void setWorkingEnabled(final boolean isWorkingEnabled) {
-        this.isWorkingEnabled = isWorkingEnabled;
-    }
-
-    public boolean isInverted() {
-        return this.isInverted;
-    }
-
-    public void setInverted(final boolean isInverted) {
-        this.isInverted = isInverted;
     }
 }

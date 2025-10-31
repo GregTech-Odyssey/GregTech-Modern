@@ -24,10 +24,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.ItemHandlerHelper;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@Getter
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class CreativeChestMachine extends QuantumChestMachine {
@@ -150,13 +152,5 @@ public class CreativeChestMachine extends QuantumChestMachine {
         public int getSlotLimit(int slot) {
             return 1;
         }
-    }
-
-    public int getItemsPerCycle() {
-        return this.itemsPerCycle;
-    }
-
-    public int getTicksPerCycle() {
-        return this.ticksPerCycle;
     }
 }

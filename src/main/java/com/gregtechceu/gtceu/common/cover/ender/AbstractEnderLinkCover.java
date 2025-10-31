@@ -36,6 +36,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -55,14 +56,18 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
     @Persisted
     @DescSynced
     protected String colorStr = VirtualEntry.DEFAULT_COLOR;
+    @Getter
     @Persisted
     @DescSynced
     protected Permissions permission = Permissions.PUBLIC;
+    @Getter
     @Persisted
     protected boolean isWorkingEnabled = true;
+    @Getter
     @Persisted
     @DescSynced
     protected ManualIOMode manualIOMode = ManualIOMode.DISABLED;
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
@@ -223,6 +228,7 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
         return VirtualEntry.parseColor(this.colorStr);
     }
 
+    @Getter
     protected enum Permissions implements EnumSelectorWidget.SelectableEnum {
 
         PUBLIC("cover.ender_fluid_link.private.tooltip.disabled", GuiTextures.BUTTON_PUBLIC_PRIVATE.getSubTexture(0, 0, 1, 0.5)),
@@ -234,14 +240,6 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
         Permissions(String tooltip, IGuiTexture icon) {
             this.tooltip = tooltip;
             this.icon = icon;
-        }
-
-        public String getTooltip() {
-            return this.tooltip;
-        }
-
-        public IGuiTexture getIcon() {
-            return this.icon;
         }
     }
 
@@ -464,21 +462,5 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
                 addChannelWidgets(entries);
             }
         }
-    }
-
-    public Permissions getPermission() {
-        return this.permission;
-    }
-
-    public boolean isWorkingEnabled() {
-        return this.isWorkingEnabled;
-    }
-
-    public ManualIOMode getManualIOMode() {
-        return this.manualIOMode;
-    }
-
-    public IO getIo() {
-        return this.io;
     }
 }

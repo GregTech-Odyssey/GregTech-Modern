@@ -7,20 +7,20 @@ import java.lang.reflect.Method;
 
 public class EmptyMethodChecker extends ClassVisitor {
 
-    public static boolean isMethodBodyEmpty(Method method) {
-        return isMethodBodyEmpty(method.getDeclaringClass(),
+    public static boolean hasMethodBody(Method method) {
+        return hasMethodBody(method.getDeclaringClass(),
                 method.getName(),
                 method.getParameterTypes());
     }
 
-    public static boolean isMethodBodyEmpty(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
+    public static boolean hasMethodBody(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
         try {
             var classStream = clazz.getClassLoader().getResourceAsStream(clazz.getName().replace('.', '/') + ".class");
             if (classStream == null) return false;
             var classReader = new ClassReader(classStream);
             var analyzer = new EmptyMethodChecker(methodName, getMethodDescriptor(parameterTypes));
             classReader.accept(analyzer, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-            return analyzer.methodFound && analyzer.methodBodyEmpty;
+            return analyzer.methodFound && analyzer.hasMethodBody;
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -40,7 +40,7 @@ public class EmptyMethodChecker extends ClassVisitor {
     private final String targetMethodName;
     private final String targetMethodDescriptor;
     private boolean methodFound = false;
-    private boolean methodBodyEmpty = true;
+    private boolean hasMethodBody = false;
 
     public EmptyMethodChecker(String methodName, String methodDescriptor) {
         super(Opcodes.ASM9);
@@ -145,7 +145,7 @@ public class EmptyMethodChecker extends ClassVisitor {
 
         @Override
         public void visitEnd() {
-            analyzer.methodBodyEmpty = !hasNonReturnInstructions;
+            analyzer.hasMethodBody = hasNonReturnInstructions;
         }
     }
 }

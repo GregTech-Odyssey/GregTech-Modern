@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.data.recipe.misc.alloyblast.AlloyBlastRecipeProduce
 import net.minecraft.world.level.material.Fluid;
 
 import com.google.common.base.Preconditions;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
@@ -15,6 +16,7 @@ public class AlloyBlastProperty implements IMaterialProperty {
      * Internal material fluid field
      */
     private Supplier<? extends Fluid> fluidSupplier;
+    @Getter
     private int temperature;
     @NotNull
     private AlloyBlastRecipeProducer recipeProducer = AlloyBlastRecipeProducer.DEFAULT_PRODUCER;
@@ -45,10 +47,6 @@ public class AlloyBlastProperty implements IMaterialProperty {
     public void setTemperature(int fluidTemperature) {
         Preconditions.checkArgument(fluidTemperature > 0, "Invalid temperature");
         this.temperature = fluidTemperature;
-    }
-
-    public int getTemperature() {
-        return temperature;
     }
 
     @NotNull

@@ -8,6 +8,8 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import lombok.Getter;
+import lombok.Setter;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -19,6 +21,7 @@ import static com.gregtechceu.gtceu.client.util.RenderUtil.getNormal;
 import static com.gregtechceu.gtceu.client.util.RenderUtil.getVertices;
 import static net.minecraft.util.FastColor.ARGB32.*;
 
+@Getter
 public class FluidBlockRenderer {
 
     private final Properties properties;
@@ -146,6 +149,8 @@ public class FluidBlockRenderer {
         RenderUtil.vertex(pose, consumer, vert.x, vert.y, vert.z, r, g, b, a, u1, v1, combinedOverlay, combinedLight, normal.x, normal.y, normal.z);
     }
 
+    @Getter
+    @Setter
     public static class Properties {
 
         private float offsetX = 0;
@@ -158,76 +163,19 @@ public class FluidBlockRenderer {
 
         public Properties() {}
 
-        public float getOffsetX() {
-            return this.offsetX;
-        }
-
-        public float getOffsetY() {
-            return this.offsetY;
-        }
-
-        public float getOffsetZ() {
-            return this.offsetZ;
-        }
-
-        public float getOffsetFace() {
-            return this.offsetFace;
-        }
-
-        public boolean isOverwriteLight() {
-            return this.overwriteLight;
-        }
-
-        public int getLight() {
-            return this.light;
-        }
-
-        public Direction[] getDrawFaces() {
-            return this.drawFaces;
-        }
-
-        public void setOffsetX(final float offsetX) {
-            this.offsetX = offsetX;
-        }
-
-        public void setOffsetY(final float offsetY) {
-            this.offsetY = offsetY;
-        }
-
-        public void setOffsetZ(final float offsetZ) {
-            this.offsetZ = offsetZ;
-        }
-
-        public void setOffsetFace(final float offsetFace) {
-            this.offsetFace = offsetFace;
-        }
-
-        public void setOverwriteLight(final boolean overwriteLight) {
-            this.overwriteLight = overwriteLight;
-        }
-
-        public void setLight(final int light) {
-            this.light = light;
-        }
-
-        public void setDrawFaces(final Direction[] drawFaces) {
-            this.drawFaces = drawFaces;
-        }
-
         @Override
         public boolean equals(final Object o) {
             if (o == this) return true;
             if (!(o instanceof FluidBlockRenderer.Properties)) return false;
             final FluidBlockRenderer.Properties other = (FluidBlockRenderer.Properties) o;
-            if (!other.canEqual((Object) this)) return false;
+            if (!other.canEqual(this)) return false;
             if (Float.compare(this.getOffsetX(), other.getOffsetX()) != 0) return false;
             if (Float.compare(this.getOffsetY(), other.getOffsetY()) != 0) return false;
             if (Float.compare(this.getOffsetZ(), other.getOffsetZ()) != 0) return false;
             if (Float.compare(this.getOffsetFace(), other.getOffsetFace()) != 0) return false;
             if (this.isOverwriteLight() != other.isOverwriteLight()) return false;
             if (this.getLight() != other.getLight()) return false;
-            if (!java.util.Arrays.deepEquals(this.getDrawFaces(), other.getDrawFaces())) return false;
-            return true;
+            return java.util.Arrays.deepEquals(this.getDrawFaces(), other.getDrawFaces());
         }
 
         protected boolean canEqual(final Object other) {
@@ -291,9 +239,5 @@ public class FluidBlockRenderer {
         public FluidBlockRenderer getRenderer() {
             return new FluidBlockRenderer(properties);
         }
-    }
-
-    public Properties getProperties() {
-        return this.properties;
     }
 }

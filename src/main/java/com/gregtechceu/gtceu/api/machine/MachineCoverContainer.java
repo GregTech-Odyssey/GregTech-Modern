@@ -28,14 +28,17 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
 
+    @Getter
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
     private final ManagedFieldHolder managedFieldHolder = MetaMachine.getManagedFieldHolder(getClass());
+    @Getter
     private final MetaMachine machine;
     @DescSynced
     @Persisted
@@ -237,15 +240,7 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
         if (definition != null) {
             return definition.createCoverBehavior(this, side);
         }
-        GTCEu.LOGGER.error("couldn\'t find cover definition {}", definitionId);
+        GTCEu.LOGGER.error("couldn't find cover definition {}", definitionId);
         throw new RuntimeException();
-    }
-
-    public FieldManagedStorage getSyncStorage() {
-        return this.syncStorage;
-    }
-
-    public MetaMachine getMachine() {
-        return this.machine;
     }
 }

@@ -38,6 +38,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +57,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class MultiblockControllerMachine extends MetaMachine implements IMultiController, IMachineLife {
 
     protected MultiblockState multiblockState;
+    @Getter
     protected final int subPatternAmount = getSubPattern() == null ? 0 : getSubPattern().length;
     protected MultiblockState[] subMultiblockState = new MultiblockState[subPatternAmount];
     @DescSynced
@@ -63,15 +66,20 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     protected IMultiPart[] parts = new IMultiPart[0];
     @Nullable
     protected IParallelHatch parallelHatch = null;
+    @Getter
     @DescSynced
     @UpdateListener(methodName = "onPartsUpdated")
     protected BlockPos[] partPositions = new BlockPos[0];
+    @Getter
     @DescSynced
     @RequireRerender
     protected boolean isFormed;
 
+    @Getter
     @DescSynced
     protected final boolean[] isFormedsFlipped = new boolean[subPatternAmount];
+    @Getter
+    @Setter
     @Persisted
     @DescSynced
     protected boolean isFlipped;
@@ -175,18 +183,11 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     //////////////////////////////////////
     // *** Multiblock LifeCycle ***//
     //////////////////////////////////////
+    @Getter
     private final Lock patternLock = new ReentrantLock();
 
     public boolean @NotNull [] getSubFormed() {
         return formeds;
-    }
-
-    public boolean[] getIsFormedsFlipped() {
-        return isFormedsFlipped;
-    }
-
-    public int getSubPatternAmount() {
-        return subPatternAmount;
     }
 
     public int getSubFormedAmount() {
@@ -396,10 +397,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         }
     }
 
-    public BlockPos[] getPartPositions() {
-        return this.partPositions;
-    }
-
     @Override
     public void requestCheck() {
         if (!simpleLock && isFormed && getLevel() instanceof ServerLevel serverLevel) {
@@ -440,22 +437,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @Override
     public boolean checking() {
         return checking;
-    }
-
-    public boolean isFormed() {
-        return this.isFormed;
-    }
-
-    public boolean isFlipped() {
-        return this.isFlipped;
-    }
-
-    public void setFlipped(final boolean isFlipped) {
-        this.isFlipped = isFlipped;
-    }
-
-    public Lock getPatternLock() {
-        return this.patternLock;
     }
 
     @Override

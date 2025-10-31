@@ -39,6 +39,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigDecimal;
@@ -57,18 +59,25 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine implements IM
     private static final float MAX_DURATION_MULTIPLIER = 1.1F;
     private static final float MIN_DURATION_MULTIPLIER = 0.9F;
     private static final float DURATION_ACTION_AMOUNT = 0.01F;
+    @Getter
     private final boolean isConfigurable;
     @Persisted
     private final NotifiableItemStackHandler itemStackHandler;
+    @Getter
+    @Setter
     @Persisted
     @DescSynced
     @RequireRerender
     private boolean isTaped;
+    @Getter
+    @Setter
     @Persisted
     protected int timeActive;
+    @Getter
     @Persisted
     @DescSynced
     protected byte maintenanceProblems = startProblems();
+    @Getter
     @Persisted
     private float durationMultiplier = 1.0F;
     @Nullable
@@ -292,7 +301,7 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine implements IM
             if (consumeDuctTape(player, hand)) {
                 fixAllMaintenanceProblems();
                 setTaped(true);
-                return InteractionResult.CONSUME;
+                return InteractionResult.SUCCESS;
             }
         }
         return InteractionResult.PASS;
@@ -341,33 +350,5 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine implements IM
             tooltip = Component.translatable("gtceu.maintenance.configurable_" + type + ".changed_description", FormattingUtil.formatNumber2Places(multiplier.getAsDouble()));
         }
         return Component.translatable("gtceu.maintenance.configurable_" + type, FormattingUtil.formatNumber2Places(multiplier.getAsDouble())).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltip)));
-    }
-
-    public boolean isConfigurable() {
-        return this.isConfigurable;
-    }
-
-    public boolean isTaped() {
-        return this.isTaped;
-    }
-
-    public void setTaped(final boolean isTaped) {
-        this.isTaped = isTaped;
-    }
-
-    public int getTimeActive() {
-        return this.timeActive;
-    }
-
-    public void setTimeActive(final int timeActive) {
-        this.timeActive = timeActive;
-    }
-
-    public byte getMaintenanceProblems() {
-        return this.maintenanceProblems;
-    }
-
-    public float getDurationMultiplier() {
-        return this.durationMultiplier;
     }
 }

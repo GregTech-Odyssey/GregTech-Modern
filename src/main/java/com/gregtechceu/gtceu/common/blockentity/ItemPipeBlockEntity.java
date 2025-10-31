@@ -27,6 +27,7 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.EmptyHandler;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +38,7 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
 
     protected WeakReference<ItemPipeNet> currentItemPipeNet = new WeakReference<>(null);
     private final EnumMap<Direction, ItemNetHandler> handlers = new EnumMap<>(Direction.class);
+    @Getter
     private final Object2IntMap<FacingPos> transferred = new O2IOpenCacheHashMap<>();
     private ItemNetHandler defaultHandler;
     private int transferredItems = 0;
@@ -202,9 +204,5 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
         if (!useCoverCapability || side == null) return handler;
         CoverBehavior cover = getCoverContainer().getCoverAtSide(side);
         return cover != null ? cover.getItemHandlerCap(handler) : handler;
-    }
-
-    public Object2IntMap<FacingPos> getTransferred() {
-        return this.transferred;
     }
 }

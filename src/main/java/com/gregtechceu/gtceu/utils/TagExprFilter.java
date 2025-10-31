@@ -103,7 +103,7 @@ public class TagExprFilter {
             public boolean matches(Set<String> input) {
                 if (value == null || value.isEmpty()) return false;
                 if (value.equals("$") && input.isEmpty()) return true;
-                if (!value.contains(":") && !value.startsWith("*")) {
+                if (!value.contains(":") && !(!value.isEmpty() && value.charAt(0) == '*')) {
                     value = "forge:" + value;
                 }
 

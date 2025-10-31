@@ -29,6 +29,7 @@ import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -40,9 +41,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class BatteryBufferMachine extends TieredEnergyMachine implements IControllable, IFancyUIMachine, IMachineLife {
 
     public static final long AMPS_PER_BATTERY = 2L;
+    @Getter
     @Persisted
     private boolean isWorkingEnabled;
+    @Getter
     private final int inventorySize;
+    @Getter
     @Persisted
     protected final CustomItemStackHandler batteryInventory;
 
@@ -315,17 +319,5 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
             }
             return energyStored;
         }
-    }
-
-    public boolean isWorkingEnabled() {
-        return this.isWorkingEnabled;
-    }
-
-    public int getInventorySize() {
-        return this.inventorySize;
-    }
-
-    public CustomItemStackHandler getBatteryInventory() {
-        return this.batteryInventory;
     }
 }

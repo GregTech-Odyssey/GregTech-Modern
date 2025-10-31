@@ -13,13 +13,17 @@ import com.lowdragmc.lowdraglib.utils.Size;
 
 import net.minecraft.network.chat.Component;
 
+import lombok.Getter;
+
 import java.util.function.Consumer;
 
 public class AETextInputButtonWidget extends WidgetGroup {
 
     private Consumer<String> onConfirm;
+    @Getter
     private String text = "";
     private Component[] hoverTexts = new Component[0];
+    @Getter
     private boolean isInputting;
     private Widget textField;
 
@@ -68,19 +72,11 @@ public class AETextInputButtonWidget extends WidgetGroup {
         return this;
     }
 
-    public String getText() {
-        return this.text;
-    }
-
     /**
      * @return {@code this}.
      */
     public AETextInputButtonWidget setText(final String text) {
         this.text = text;
         return this;
-    }
-
-    public boolean isInputting() {
-        return this.isInputting;
     }
 }

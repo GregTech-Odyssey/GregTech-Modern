@@ -14,8 +14,10 @@ import net.minecraft.world.level.Level;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+@Getter
 public class RainingCondition extends RecipeCondition {
 
     public static final Codec<RainingCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(Codec.FLOAT.fieldOf("level").forGetter(val -> val.level)).apply(instance, RainingCondition::new));
@@ -39,10 +41,6 @@ public class RainingCondition extends RecipeCondition {
     @Override
     public Component getTooltips() {
         return Component.translatable("recipe.condition.rain.tooltip", level);
-    }
-
-    public float getLevel() {
-        return level;
     }
 
     @Override

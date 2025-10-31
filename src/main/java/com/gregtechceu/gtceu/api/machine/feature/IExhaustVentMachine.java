@@ -142,7 +142,6 @@ public interface IExhaustVentMachine extends IMachineFeature {
                 double d8 = level.random.nextGaussian() * 0.1;
                 try {
                     level.addParticle(ParticleTypes.CLOUD, posX + d1, posY + d3, posZ + d5, d6, d7, d8);
-                    continue;
                 } catch (Throwable throwable) {
                     GTCEu.LOGGER.warn("Could not spawn particle effect {}", ParticleTypes.CLOUD);
                     return;

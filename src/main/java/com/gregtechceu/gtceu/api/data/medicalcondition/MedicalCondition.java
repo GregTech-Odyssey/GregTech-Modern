@@ -13,6 +13,7 @@ import net.minecraft.world.level.Level;
 
 import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -23,6 +24,7 @@ public class MedicalCondition {
 
     public static final Map<String, MedicalCondition> CONDITIONS = new O2OOpenCacheHashMap<>();
     public static final Codec<MedicalCondition> CODEC = Codec.STRING.xmap(MedicalCondition.CONDITIONS::get, MedicalCondition::getName);
+    @Getter
     public final String name;
     public final int color;
     public final float maxProgression; // amount of seconds until maximum progression is reached
@@ -65,10 +67,6 @@ public class MedicalCondition {
         UNTREATED_PROGRESSION,
         HEAL,
         NONE;
-    }
-
-    public String getName() {
-        return this.name;
     }
 
     /**

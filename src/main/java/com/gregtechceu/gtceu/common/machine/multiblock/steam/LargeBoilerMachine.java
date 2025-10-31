@@ -35,6 +35,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.material.Fluids;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,10 +48,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class LargeBoilerMachine extends WorkableMultiblockMachine implements IExplosionMachine, IDisplayUIMachine {
 
     public static final int TICKS_PER_STEAM_GENERATION = 5;
+    @Getter
     public final int maxTemperature;
+    @Getter
     public final int heatSpeed;
+    @Getter
     @Persisted
     private int currentTemperature;
+    @Getter
     @Persisted
     private int throttle;
     @Nullable
@@ -219,21 +224,5 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
     @Override
     public IGuiTexture getScreenTexture() {
         return GuiTextures.DISPLAY_STEAM.get(maxTemperature > 800);
-    }
-
-    public int getMaxTemperature() {
-        return this.maxTemperature;
-    }
-
-    public int getHeatSpeed() {
-        return this.heatSpeed;
-    }
-
-    public int getCurrentTemperature() {
-        return this.currentTemperature;
-    }
-
-    public int getThrottle() {
-        return this.throttle;
     }
 }

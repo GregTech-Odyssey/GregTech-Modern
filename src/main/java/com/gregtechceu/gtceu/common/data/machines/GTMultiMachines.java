@@ -472,7 +472,7 @@ public class GTMultiMachines {
                     .where('F', Predicates.frames(GTMaterials.TreatedWood))
                     .where('H',
                             Predicates.abilities(PartAbility.PUMP_FLUID_HATCH)
-                                    .or(blocks(FLUID_EXPORT_HATCH[LV].get(), FLUID_EXPORT_HATCH[MV].get())))
+                                    .or(blocks(FLUID_EXPORT_HATCH[ULV].get(), FLUID_EXPORT_HATCH[LV].get())))
                     .where('#', Predicates.any())
                     .build())
             .allowExtendedFacing(false)
@@ -964,10 +964,21 @@ public class GTMultiMachines {
             "wooden_tank_valve", "Wooden Tank Valve", false,
             (builder, overlay) -> builder.sidedWorkableCasingRenderer("block/casings/wood_wall", overlay));
     public static final MultiblockMachineDefinition WOODEN_MULTIBLOCK_TANK = registerMultiblockTank(
-            "wooden_multiblock_tank", "Wooden Multiblock Tank", 250 * 10000,
+            "wooden_multiblock_tank", "Wooden Multiblock Tank", 100 * 10000,
             CASING_WOOD_WALL, WOODEN_TANK_VALVE::getBlock,
             new PropertyFluidFilter(false, false),
             (builder, overlay) -> builder.sidedWorkableCasingRenderer("block/casings/wood_wall", overlay));
+
+    public static final MachineDefinition BRONZE_TANK_VALVE = GTMachineUtils.registerTankValve(
+            "bronze_tank_valve", "Bronze Tank Valve", true,
+            (builder, overlay) -> builder
+                    .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_bronze_plated_bricks"), overlay));
+    public static final MultiblockMachineDefinition BRONZE_MULTIBLOCK_TANK = registerMultiblockTank(
+            "bronze_multiblock_tank", "Bronze Multiblock Tank", 250 * 10000,
+            CASING_BRONZE_BRICKS, BRONZE_TANK_VALVE::getBlock,
+            new PropertyFluidFilter(true, false),
+            (builder, overlay) -> builder
+                    .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_bronze_plated_bricks"), overlay));
 
     public static final MachineDefinition STEEL_TANK_VALVE = GTMachineUtils.registerTankValve(
             "steel_tank_valve", "Steel Tank Valve", true,

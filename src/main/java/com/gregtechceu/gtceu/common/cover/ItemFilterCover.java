@@ -25,6 +25,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,10 +37,13 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class ItemFilterCover extends CoverBehavior implements IUICover {
 
     protected ItemFilter itemFilter;
+    @Getter
     @Persisted
     @DescSynced
     protected FilterMode filterMode = FilterMode.FILTER_INSERT;
     private FilteredItemHandlerWrapper itemFilterWrapper;
+    @Getter
+    @Setter
     @Persisted
     protected ManualIOMode allowFlow = ManualIOMode.DISABLED;
 
@@ -122,17 +127,5 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
             }
             return ItemStack.EMPTY;
         }
-    }
-
-    public FilterMode getFilterMode() {
-        return this.filterMode;
-    }
-
-    public void setAllowFlow(final ManualIOMode allowFlow) {
-        this.allowFlow = allowFlow;
-    }
-
-    public ManualIOMode getAllowFlow() {
-        return this.allowFlow;
     }
 }

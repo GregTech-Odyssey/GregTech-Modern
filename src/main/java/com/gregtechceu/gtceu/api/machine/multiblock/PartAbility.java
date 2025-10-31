@@ -10,6 +10,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.Collection;
@@ -66,6 +67,7 @@ public class PartAbility {
         result.sort(Comparator.comparingInt(b -> BuiltInRegistries.BLOCK.getKey(b).getNamespace().length()));
         return result;
     });
+    @Getter
     private final String name;
 
     public PartAbility(String name) {
@@ -108,9 +110,5 @@ public class PartAbility {
             }
         }
         return result;
-    }
-
-    public String getName() {
-        return this.name;
     }
 }

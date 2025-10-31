@@ -7,6 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 
 public class CycleItemEntryHandler implements IItemHandlerModifiable {
 
+    @Getter
     private final List<ItemEntryList> entries;
     private List<List<ItemStack>> unwrapped = null;
 
@@ -78,9 +80,5 @@ public class CycleItemEntryHandler implements IItemHandlerModifiable {
     @Override
     public boolean isItemValid(int slot, @NotNull ItemStack stack) {
         return true;
-    }
-
-    public List<ItemEntryList> getEntries() {
-        return this.entries;
     }
 }

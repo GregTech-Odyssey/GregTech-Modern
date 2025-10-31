@@ -8,9 +8,11 @@ import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@Getter
 public class FluidTankProxyTrait extends MachineTrait implements IFluidHandlerModifiable, ICapabilityTrait {
 
     public final IO capabilityIO;
@@ -126,19 +128,11 @@ public class FluidTankProxyTrait extends MachineTrait implements IFluidHandlerMo
         }
     }
 
-    public IO getCapabilityIO() {
-        return this.capabilityIO;
-    }
-
     /**
      * @return {@code this}.
      */
     public FluidTankProxyTrait setProxy(final IFluidHandlerModifiable proxy) {
         this.proxy = proxy;
         return this;
-    }
-
-    public IFluidHandlerModifiable getProxy() {
-        return this.proxy;
     }
 }

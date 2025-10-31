@@ -37,6 +37,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,6 +53,7 @@ import static com.gregtechceu.gtceu.common.data.GTMaterials.DrillingFluid;
 public class LargeMinerMachine extends WorkableElectricMultiblockMachine implements IMiner, IDataInfoProvider {
 
     public static final int CHUNK_LENGTH = 16;
+    @Getter
     private final int tier;
     @Nullable
     protected EnergyContainerList energyContainer;
@@ -247,9 +249,5 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
             return Collections.singletonList(Component.translatable("gtceu.universal.tooltip.working_area", workingArea, workingArea));
         }
         return new ObjectArrayList<>();
-    }
-
-    public int getTier() {
-        return this.tier;
     }
 }

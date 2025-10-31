@@ -17,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +33,7 @@ public class TextureOverrideRenderer extends CTMModelRenderer {
     protected Map<String, ResourceLocation> override;
     @Nullable
     protected Supplier<Map<String, ResourceLocation>> overrideSupplier;
+    @Getter
     @OnlyIn(Dist.CLIENT)
     protected Map<ModelState, BakedModel> bakedModelCache;
 
@@ -133,9 +135,5 @@ public class TextureOverrideRenderer extends CTMModelRenderer {
     @Nullable
     public Supplier<Map<String, ResourceLocation>> getOverrideSupplier() {
         return this.overrideSupplier;
-    }
-
-    public Map<ModelState, BakedModel> getBakedModelCache() {
-        return this.bakedModelCache;
     }
 }

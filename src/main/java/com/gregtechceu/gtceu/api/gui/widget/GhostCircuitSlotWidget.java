@@ -16,6 +16,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -27,6 +28,7 @@ public class GhostCircuitSlotWidget extends SlotWidget {
     private static final int SET_TO_EMPTY = 2;
     private static final int SET_TO_N = 3;
     private static final int NO_CONFIG = -1;
+    @Getter
     private IItemHandlerModifiable circuitInventory;
     @Nullable
     private Widget configurator;
@@ -142,7 +144,7 @@ public class GhostCircuitSlotWidget extends SlotWidget {
 
     public Widget createConfigurator() {
         var group = new WidgetGroup(0, 0, 174, 132);
-        group.addWidget(new LabelWidget(9, 8, "Programmed Circuit Configuration"));
+        group.addWidget(new LabelWidget(9, 8, "gtceu.gui.programmed_circuit_configuration"));
         group.addWidget(new SlotWidget(this.circuitInventory, 0, (group.getSize().width - 18) / 2, 20, false, false).setBackground(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.INT_CIRCUIT_OVERLAY)));
         group.addWidget(new ButtonWidget((group.getSize().width - 18) / 2, 20, 18, 18, IGuiTexture.EMPTY, clickData -> {
             if (!clickData.isRemote) {
@@ -183,9 +185,5 @@ public class GhostCircuitSlotWidget extends SlotWidget {
         }
         group.setBackground(GuiTextures.BACKGROUND);
         return group;
-    }
-
-    public IItemHandlerModifiable getCircuitInventory() {
-        return this.circuitInventory;
     }
 }

@@ -52,6 +52,7 @@ import net.minecraftforge.items.ItemHandlerHelper;
 
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,14 +73,17 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
      * ItemControllerDrawerTile</a>
      */
     public static final Object2LongOpenHashMap<UUID> INTERACTION_LOGGER = new O2LOpenCacheHashMap<>();
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected Direction outputFacingItems;
+    @Getter
     @Persisted
     @DescSynced
     @RequireRerender
     protected boolean autoOutputItems;
+    @Getter
     @Persisted
     protected boolean allowInputFromOutputSideItems;
     @Persisted
@@ -88,8 +92,10 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     protected final ItemCache cache;
     @DescSynced
     private final CustomItemStackHandler lockedItem;
+    @Getter
     @DescSynced
     protected ItemStack stored = ItemStack.EMPTY;
+    @Getter
     @DescSynced
     protected long storedAmount = 0;
     @Nullable
@@ -466,28 +472,8 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         }
     }
 
-    public Direction getOutputFacingItems() {
-        return this.outputFacingItems;
-    }
-
-    public boolean isAutoOutputItems() {
-        return this.autoOutputItems;
-    }
-
-    public boolean isAllowInputFromOutputSideItems() {
-        return this.allowInputFromOutputSideItems;
-    }
-
     public void setAllowInputFromOutputSideItems(final boolean allowInputFromOutputSideItems) {
         clearDirectionCache();
         this.allowInputFromOutputSideItems = allowInputFromOutputSideItems;
-    }
-
-    public ItemStack getStored() {
-        return this.stored;
-    }
-
-    public long getStoredAmount() {
-        return this.storedAmount;
     }
 }

@@ -6,6 +6,8 @@ import com.gregtechceu.gtceu.client.renderer.cover.ICoverRenderer;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 
+import lombok.Getter;
+
 public final class CoverDefinition {
 
     public interface CoverBehaviourProvider {
@@ -18,8 +20,10 @@ public final class CoverDefinition {
         CoverBehavior create(CoverDefinition definition, ICoverable coverable, Direction side, int tier);
     }
 
+    @Getter
     private final ResourceLocation id;
     private final CoverBehaviourProvider behaviorCreator;
+    @Getter
     private final ICoverRenderer coverRenderer;
 
     public CoverDefinition(ResourceLocation id, CoverBehaviourProvider behaviorCreator, ICoverRenderer coverRenderer) {
@@ -30,13 +34,5 @@ public final class CoverDefinition {
 
     public CoverBehavior createCoverBehavior(ICoverable metaTileEntity, Direction side) {
         return behaviorCreator.create(this, metaTileEntity, side);
-    }
-
-    public ResourceLocation getId() {
-        return this.id;
-    }
-
-    public ICoverRenderer getCoverRenderer() {
-        return this.coverRenderer;
     }
 }

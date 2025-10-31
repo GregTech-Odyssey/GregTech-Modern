@@ -19,9 +19,11 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 
 import com.google.gson.JsonObject;
+import lombok.Getter;
 
 import java.util.Map;
 
+@Getter
 @MethodsReturnNonnullByDefault
 @FieldsAreNonnullByDefault
 public class ShapedEnergyTransferRecipe extends ShapedRecipe {
@@ -123,17 +125,5 @@ public class ShapedEnergyTransferRecipe extends ShapedRecipe {
             }
             buffer.writeItem(((ShapedRecipeAccessor) recipe).getResult());
         }
-    }
-
-    public Ingredient getChargeIngredient() {
-        return this.chargeIngredient;
-    }
-
-    public boolean isTransferMaxCharge() {
-        return this.transferMaxCharge;
-    }
-
-    public boolean isOverrideCharge() {
-        return this.overrideCharge;
     }
 }

@@ -43,6 +43,7 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import snownee.jade.api.BlockAccessor;
@@ -55,6 +56,7 @@ import java.util.Set;
 
 public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHighlight, IAsyncAutoSyncBlockEntity, IRPCBlockEntity, IAutoPersistBlockEntity, IPaintable, IWailaDisplayProvider {
 
+    @Getter
     public final MetaMachine metaMachine;
     public final MachineDefinition definition;
     public final int offset = GTValues.RNG.nextInt(20);
@@ -303,10 +305,6 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
         var server = level.getServer();
         if (server != null) return server.getTickCount() + offset;
         return GTValues.CLIENT_TIME + offset;
-    }
-
-    public MetaMachine getMetaMachine() {
-        return this.metaMachine;
     }
 
     @Override

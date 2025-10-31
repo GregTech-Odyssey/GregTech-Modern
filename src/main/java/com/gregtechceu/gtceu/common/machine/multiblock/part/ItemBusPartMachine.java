@@ -35,6 +35,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -43,6 +44,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinctPart, IMachineLife, IInputLimitableMachine {
 
+    @Getter
     @Persisted
     private final NotifiableItemStackHandler inventory;
     @Nullable
@@ -50,8 +52,10 @@ public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinct
     @Nullable
     protected ISubscription inventorySubs;
 
+    @Getter
     @Persisted
     protected final NotifiableItemStackHandler circuitInventory;
+    @Getter
     @Persisted
     @DescSynced
     private boolean isDistinct = false;
@@ -249,18 +253,6 @@ public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinct
         container.setBackground(GuiTextures.BACKGROUND_INVERSE);
         group.addWidget(container);
         return group;
-    }
-
-    public NotifiableItemStackHandler getInventory() {
-        return this.inventory;
-    }
-
-    public NotifiableItemStackHandler getCircuitInventory() {
-        return this.circuitInventory;
-    }
-
-    public boolean isDistinct() {
-        return this.isDistinct;
     }
 
     public boolean isInputLimit() {

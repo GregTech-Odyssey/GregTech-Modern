@@ -26,6 +26,8 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,36 +44,75 @@ import java.util.function.Supplier;
  */
 public class MachineDefinition implements Supplier<IMachineBlock>, ItemLike {
 
+    @Getter
     private final ResourceLocation id;
     // This is only stored here for KJS use.
+    @Getter
+    @Setter
     private String langValue;
+    @Setter
     private Supplier<? extends Block> blockSupplier;
+    @Setter
     private Supplier<? extends MetaMachineItem> itemSupplier;
+    @Setter
     private Supplier<BlockEntityType<? extends BlockEntity>> blockEntityTypeSupplier;
+    @Setter
     private Function<MetaMachineBlockEntity, MetaMachine> machineSupplier;
     @Nullable
     private GTRecipeType[] recipeTypes;
+    @Getter
+    @Setter
     private int tier;
+    @Getter
+    @Setter
     private int defaultPaintingColor;
+    @Getter
+    @Setter
     private RecipeModifier recipeModifier;
     @NotNull
     private Predicate<IRecipeLogicMachine> onWorking = GTUtil.FAVORABLE;
+    @Getter
+    @Setter
     private boolean regressWhenWaiting = true;
     /**
      * Whether this machine can be rotated or face upwards.
+     * -- SETTER --
+     * Whether this machine can be rotated or face upwards.
+     * -- GETTER --
+     * Whether this machine can be rotated or face upwards.
+     * 
+     * 
      */
+    @Getter
+    @Setter
     private boolean allowExtendedFacing;
+    @Getter
+    @Setter
     private IRenderer renderer;
+    @Setter
     private VoxelShape shape;
+    @Getter
+    @Setter
     private boolean renderWorldPreview;
+    @Getter
+    @Setter
     private boolean renderXEIPreview;
     private final Map<Direction, VoxelShape> cache = new EnumMap<>(Direction.class);
+    @Getter
+    @Setter
     private BiConsumer<ItemStack, List<Component>> tooltipBuilder;
+    @Getter
+    @Setter
     private Supplier<BlockState> appearance;
+    @Getter
+    @Setter
     private boolean allowCoverOnFront;
     @Nullable
     private EditableMachineUI editableUI;
+    @Getter
+    @Setter
     private Reference2IntOpenHashMap<RecipeCapability<?>> recipeOutputLimits;
+    @Setter
     private boolean disabledCombined;
 
     protected MachineDefinition(ResourceLocation id) {
@@ -161,34 +202,6 @@ public class MachineDefinition implements Supplier<IMachineBlock>, ItemLike {
         STATE.remove();
     }
 
-    public ResourceLocation getId() {
-        return this.id;
-    }
-
-    public String getLangValue() {
-        return this.langValue;
-    }
-
-    public void setLangValue(final String langValue) {
-        this.langValue = langValue;
-    }
-
-    public void setBlockSupplier(final Supplier<? extends Block> blockSupplier) {
-        this.blockSupplier = blockSupplier;
-    }
-
-    public void setItemSupplier(final Supplier<? extends MetaMachineItem> itemSupplier) {
-        this.itemSupplier = itemSupplier;
-    }
-
-    public void setBlockEntityTypeSupplier(final Supplier<BlockEntityType<? extends BlockEntity>> blockEntityTypeSupplier) {
-        this.blockEntityTypeSupplier = blockEntityTypeSupplier;
-    }
-
-    public void setMachineSupplier(final Function<MetaMachineBlockEntity, MetaMachine> machineSupplier) {
-        this.machineSupplier = machineSupplier;
-    }
-
     @Nullable
     public GTRecipeType[] getRecipeTypes() {
         return this.recipeTypes;
@@ -196,30 +209,6 @@ public class MachineDefinition implements Supplier<IMachineBlock>, ItemLike {
 
     public void setRecipeTypes(@Nullable final GTRecipeType[] recipeTypes) {
         this.recipeTypes = recipeTypes;
-    }
-
-    public int getTier() {
-        return this.tier;
-    }
-
-    public void setTier(final int tier) {
-        this.tier = tier;
-    }
-
-    public int getDefaultPaintingColor() {
-        return this.defaultPaintingColor;
-    }
-
-    public void setDefaultPaintingColor(final int defaultPaintingColor) {
-        this.defaultPaintingColor = defaultPaintingColor;
-    }
-
-    public RecipeModifier getRecipeModifier() {
-        return this.recipeModifier;
-    }
-
-    public void setRecipeModifier(final RecipeModifier recipeModifier) {
-        this.recipeModifier = recipeModifier;
     }
 
     public void setOnWorking(@NotNull final Predicate<IRecipeLogicMachine> onWorking) {
@@ -231,80 +220,6 @@ public class MachineDefinition implements Supplier<IMachineBlock>, ItemLike {
         return this.onWorking;
     }
 
-    public boolean isRegressWhenWaiting() {
-        return this.regressWhenWaiting;
-    }
-
-    public void setRegressWhenWaiting(final boolean regressWhenWaiting) {
-        this.regressWhenWaiting = regressWhenWaiting;
-    }
-
-    /**
-     * Whether this machine can be rotated or face upwards.
-     */
-    public boolean isAllowExtendedFacing() {
-        return this.allowExtendedFacing;
-    }
-
-    /**
-     * Whether this machine can be rotated or face upwards.
-     */
-    public void setAllowExtendedFacing(final boolean allowExtendedFacing) {
-        this.allowExtendedFacing = allowExtendedFacing;
-    }
-
-    public IRenderer getRenderer() {
-        return this.renderer;
-    }
-
-    public void setRenderer(final IRenderer renderer) {
-        this.renderer = renderer;
-    }
-
-    public void setShape(final VoxelShape shape) {
-        this.shape = shape;
-    }
-
-    public boolean isRenderWorldPreview() {
-        return this.renderWorldPreview;
-    }
-
-    public void setRenderWorldPreview(final boolean renderWorldPreview) {
-        this.renderWorldPreview = renderWorldPreview;
-    }
-
-    public boolean isRenderXEIPreview() {
-        return this.renderXEIPreview;
-    }
-
-    public void setRenderXEIPreview(final boolean renderXEIPreview) {
-        this.renderXEIPreview = renderXEIPreview;
-    }
-
-    public BiConsumer<ItemStack, List<Component>> getTooltipBuilder() {
-        return this.tooltipBuilder;
-    }
-
-    public void setTooltipBuilder(final BiConsumer<ItemStack, List<Component>> tooltipBuilder) {
-        this.tooltipBuilder = tooltipBuilder;
-    }
-
-    public Supplier<BlockState> getAppearance() {
-        return this.appearance;
-    }
-
-    public void setAppearance(final Supplier<BlockState> appearance) {
-        this.appearance = appearance;
-    }
-
-    public boolean isAllowCoverOnFront() {
-        return this.allowCoverOnFront;
-    }
-
-    public void setAllowCoverOnFront(final boolean allowCoverOnFront) {
-        this.allowCoverOnFront = allowCoverOnFront;
-    }
-
     @Nullable
     public EditableMachineUI getEditableUI() {
         return this.editableUI;
@@ -314,19 +229,7 @@ public class MachineDefinition implements Supplier<IMachineBlock>, ItemLike {
         this.editableUI = editableUI;
     }
 
-    public Reference2IntOpenHashMap<RecipeCapability<?>> getRecipeOutputLimits() {
-        return this.recipeOutputLimits;
-    }
-
-    public void setRecipeOutputLimits(final Reference2IntOpenHashMap<RecipeCapability<?>> recipeOutputLimits) {
-        this.recipeOutputLimits = recipeOutputLimits;
-    }
-
     public boolean disabledCombined() {
         return disabledCombined;
-    }
-
-    public void setDisabledCombined(boolean disabledCombined) {
-        this.disabledCombined = disabledCombined;
     }
 }

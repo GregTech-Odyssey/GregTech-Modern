@@ -54,6 +54,7 @@ import com.google.common.collect.Table;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import it.unimi.dsi.fastutil.objects.*;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -288,6 +289,7 @@ public class TagPrefix {
     private final Map<Material, Supplier<? extends ItemLike>[]> ignoredMaterials = new Reference2ObjectOpenHashMap<>();
     private final Reference2FloatMap<Material> materialAmounts = new Reference2FloatOpenHashMap<>();
     private int maxStackSize = 64;
+    @Getter
     private ToIntFunction<Material> maxDamageProvider;
     private final List<MaterialStack> secondaryMaterials = new ObjectArrayList<>();
     protected final Set<TagKey<Block>> miningToolTag = new OpenCacheHashSet<>();
@@ -306,10 +308,6 @@ public class TagPrefix {
 
     public static TagPrefix oreTagPrefix(String name, TagKey<Block> miningToolTag) {
         return new TagPrefix(name).defaultTagPath("ores/%s").prefixOnlyTagPath("ores_in_ground/%s").unformattedTagPath("ores").materialIconType(MaterialIconType.ore).miningToolTag(miningToolTag).unificationEnabled(true).blockConstructor(OreBlock::new).generationCondition(hasOreProperty);
-    }
-
-    public ToIntFunction<Material> getMaxDamageProvider() {
-        return this.maxDamageProvider;
     }
 
     /**

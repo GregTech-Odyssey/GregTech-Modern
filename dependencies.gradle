@@ -1,6 +1,9 @@
 dependencies {
     compileOnly(libs.jetbrains.annotations)
 
+    compileOnly('org.projectlombok:lombok:1.18.42')
+    annotationProcessor('org.projectlombok:lombok:1.18.42')
+
     // LDLib
     modApi(forge.ldlib.get())
 

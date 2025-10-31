@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.data.chemical.material.info;
 
 import net.minecraft.client.renderer.RenderType;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,6 +43,7 @@ public class MaterialIconSet {
     public final int id;
     public final boolean isRootIconset;
     private Supplier<Supplier<RenderType>> renderType;
+    @Getter
     private boolean isGlass;
 
     /**
@@ -81,10 +83,6 @@ public class MaterialIconSet {
         this.id = idCounter++;
         this.isRootIconset = isRootIconset;
         this.parentIconset = parentIconset;
-    }
-
-    public boolean isGlass() {
-        return isGlass;
     }
 
     public MaterialIconSet setGlass(boolean isGlass) {

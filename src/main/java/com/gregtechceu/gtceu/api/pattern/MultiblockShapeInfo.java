@@ -10,10 +10,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
+import lombok.Getter;
+
 import java.util.function.Supplier;
 
 public class MultiblockShapeInfo {
 
+    @Getter
     private final BlockInfo[][][] blocks; // [z][y][x]
     public int amount;
 
@@ -24,10 +27,6 @@ public class MultiblockShapeInfo {
                 for (BlockInfo blockInfo1 : blockInfos)
                     if (blockInfo1 != null) amount++;
         }
-    }
-
-    public BlockInfo[][][] getBlocks() {
-        return blocks;
     }
 
     public static ShapeInfoBuilder builder() {

@@ -26,6 +26,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import net.minecraftforge.fluids.capability.templates.VoidFluidHandler;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +38,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class DistillationTowerMachine extends WorkableElectricMultiblockMachine {
 
+    @Getter
     private List<IFluidHandler> fluidOutputs;
     @Nullable
     private IFluidHandler firstValid = null;
@@ -226,10 +228,6 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
             }
             return valid;
         }
-    }
-
-    public List<IFluidHandler> getFluidOutputs() {
-        return this.fluidOutputs;
     }
 
     @Nullable

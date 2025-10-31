@@ -14,6 +14,8 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
+import lombok.Getter;
+
 import java.util.Arrays;
 import java.util.function.Consumer;
 
@@ -23,11 +25,15 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class SimpleFluidFilter implements FluidFilter {
 
+    @Getter
     protected boolean isBlackList;
+    @Getter
     protected boolean ignoreNbt;
+    @Getter
     protected FluidStack[] matches = new FluidStack[9];
     protected Consumer<FluidFilter> itemWriter = filter -> {};
     protected Consumer<FluidFilter> onUpdated = filter -> itemWriter.accept(filter);
+    @Getter
     protected int maxStackSize = 1;
     private CustomFluidTank[] fluidStorageSlots = new CustomFluidTank[9];
 
@@ -157,21 +163,5 @@ public class SimpleFluidFilter implements FluidFilter {
         for (FluidStack match : matches) {
             if (!match.isEmpty()) match.setAmount(Math.min(match.getAmount(), maxStackSize));
         }
-    }
-
-    public boolean isBlackList() {
-        return this.isBlackList;
-    }
-
-    public boolean isIgnoreNbt() {
-        return this.ignoreNbt;
-    }
-
-    public FluidStack[] getMatches() {
-        return this.matches;
-    }
-
-    public int getMaxStackSize() {
-        return this.maxStackSize;
     }
 }

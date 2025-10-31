@@ -49,6 +49,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -56,6 +57,7 @@ import java.util.Set;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@Getter
 @SuppressWarnings("deprecation")
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
@@ -359,13 +361,5 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
     @Override
     public boolean isValidSpawn(BlockState state, BlockGetter level, BlockPos pos, SpawnPlacements.Type type, EntityType<?> entityType) {
         return false;
-    }
-
-    public MachineDefinition getDefinition() {
-        return this.definition;
-    }
-
-    public RotationState getRotationState() {
-        return this.rotationState;
     }
 }

@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.fluids.FluidBuilder;
 
 import net.minecraft.world.level.material.Fluid;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,6 +14,7 @@ public interface FluidStorage {
 
     class FluidEntry {
 
+        @Getter
         private Supplier<? extends Fluid> fluid;
         @Nullable
         private FluidBuilder builder;
@@ -20,10 +22,6 @@ public interface FluidStorage {
         public FluidEntry(final Supplier<? extends Fluid> fluid, @Nullable final FluidBuilder builder) {
             this.fluid = fluid;
             this.builder = builder;
-        }
-
-        public Supplier<? extends Fluid> getFluid() {
-            return this.fluid;
         }
 
         @Nullable

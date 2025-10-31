@@ -6,6 +6,8 @@ import com.gregtechceu.gtceu.api.block.IFusionCasingType;
 
 import net.minecraft.resources.ResourceLocation;
 
+import lombok.Getter;
+
 public class FusionCasingBlock extends ActiveBlock {
 
     public FusionCasingBlock(Properties properties, IFusionCasingType casingType) {
@@ -21,6 +23,7 @@ public class FusionCasingBlock extends ActiveBlock {
         FUSION_CASING_MK3("fusion_casing_mk3", 3);
 
         private final String name;
+        @Getter
         private final int harvestLevel;
 
         CasingType(String name, int harvestLevel) {
@@ -36,10 +39,6 @@ public class FusionCasingBlock extends ActiveBlock {
         @Override
         public ResourceLocation getTexture() {
             return GTCEu.id("block/casings/fusion/%s".formatted(this.name));
-        }
-
-        public int getHarvestLevel() {
-            return this.harvestLevel;
         }
     }
 }

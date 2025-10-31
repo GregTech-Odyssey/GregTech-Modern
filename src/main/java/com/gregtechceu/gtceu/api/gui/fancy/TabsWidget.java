@@ -16,6 +16,8 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,18 +27,36 @@ import java.util.function.Consumer;
 
 public class TabsWidget extends Widget {
 
+    @Getter
     protected final Consumer<IFancyUIProvider> onTabClick;
+    @Getter
     protected IFancyUIProvider mainTab;
+    @Getter
     protected List<IFancyUIProvider> subTabs;
     @Nullable
     protected IFancyUIProvider selectedTab;
+    @Getter
+    @Setter
     protected IGuiTexture leftButtonTexture = new GuiTextureGroup(GuiTextures.BUTTON, Icons.LEFT.copy().scale(0.7F));
+    @Getter
+    @Setter
     protected IGuiTexture leftButtonHoverTexture = new GuiTextureGroup(GuiTextures.BUTTON, Icons.LEFT.copy().setColor(-5592406).scale(0.7F));
+    @Getter
+    @Setter
     protected IGuiTexture rightButtonTexture = new GuiTextureGroup(GuiTextures.BUTTON, Icons.RIGHT.copy().scale(0.7F));
+    @Getter
+    @Setter
     protected IGuiTexture rightButtonHoverTexture = new GuiTextureGroup(GuiTextures.BUTTON, Icons.RIGHT.copy().setColor(-5592406).scale(0.7F));
+    @Getter
+    @Setter
     protected IGuiTexture tabTexture = new ResourceTexture("gtceu:textures/gui/tab/tabs_top.png").getSubTexture(1 / 3.0F, 0, 1 / 3.0F, 0.5F);
+    @Getter
+    @Setter
     protected IGuiTexture tabHoverTexture = new ResourceTexture("gtceu:textures/gui/tab/tabs_top.png").getSubTexture(1 / 3.0F, 0.5F, 1 / 3.0F, 0.5F);
+    @Getter
+    @Setter
     protected IGuiTexture tabPressedTexture = tabHoverTexture;
+    @Getter
     protected int offset;
     /**
      * (old tab, new tab)
@@ -242,49 +262,9 @@ public class TabsWidget extends Widget {
         this.detectAndSendChanges();
     }
 
-    public Consumer<IFancyUIProvider> getOnTabClick() {
-        return this.onTabClick;
-    }
-
-    public IFancyUIProvider getMainTab() {
-        return this.mainTab;
-    }
-
-    public List<IFancyUIProvider> getSubTabs() {
-        return this.subTabs;
-    }
-
     @Nullable
     public IFancyUIProvider getSelectedTab() {
         return this.selectedTab;
-    }
-
-    public IGuiTexture getLeftButtonTexture() {
-        return this.leftButtonTexture;
-    }
-
-    public IGuiTexture getLeftButtonHoverTexture() {
-        return this.leftButtonHoverTexture;
-    }
-
-    public IGuiTexture getRightButtonTexture() {
-        return this.rightButtonTexture;
-    }
-
-    public IGuiTexture getRightButtonHoverTexture() {
-        return this.rightButtonHoverTexture;
-    }
-
-    public IGuiTexture getTabTexture() {
-        return this.tabTexture;
-    }
-
-    public IGuiTexture getTabHoverTexture() {
-        return this.tabHoverTexture;
-    }
-
-    public IGuiTexture getTabPressedTexture() {
-        return this.tabPressedTexture;
     }
 
     /**
@@ -293,38 +273,6 @@ public class TabsWidget extends Widget {
     @Nullable
     public BiConsumer<IFancyUIProvider, IFancyUIProvider> getOnTabSwitch() {
         return this.onTabSwitch;
-    }
-
-    public void setLeftButtonTexture(final IGuiTexture leftButtonTexture) {
-        this.leftButtonTexture = leftButtonTexture;
-    }
-
-    public void setLeftButtonHoverTexture(final IGuiTexture leftButtonHoverTexture) {
-        this.leftButtonHoverTexture = leftButtonHoverTexture;
-    }
-
-    public void setRightButtonTexture(final IGuiTexture rightButtonTexture) {
-        this.rightButtonTexture = rightButtonTexture;
-    }
-
-    public void setRightButtonHoverTexture(final IGuiTexture rightButtonHoverTexture) {
-        this.rightButtonHoverTexture = rightButtonHoverTexture;
-    }
-
-    public void setTabTexture(final IGuiTexture tabTexture) {
-        this.tabTexture = tabTexture;
-    }
-
-    public void setTabHoverTexture(final IGuiTexture tabHoverTexture) {
-        this.tabHoverTexture = tabHoverTexture;
-    }
-
-    public void setTabPressedTexture(final IGuiTexture tabPressedTexture) {
-        this.tabPressedTexture = tabPressedTexture;
-    }
-
-    public int getOffset() {
-        return this.offset;
     }
 
     /**

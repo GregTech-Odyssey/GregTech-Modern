@@ -11,6 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.items.IItemHandler;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,10 +20,13 @@ import java.util.function.Predicate;
 
 public class ItemRoutePath implements IRoutePath<IItemHandler> {
 
+    @Getter
     private final ItemPipeBlockEntity targetPipe;
     @NotNull
     private final Direction targetFacing;
+    @Getter
     private final int distance;
+    @Getter
     private final ItemPipeProperties properties;
     private final Predicate<ItemStack> filters;
 
@@ -57,20 +61,8 @@ public class ItemRoutePath implements IRoutePath<IItemHandler> {
         return new FacingPos(getTargetPipePos(), targetFacing);
     }
 
-    public ItemPipeBlockEntity getTargetPipe() {
-        return this.targetPipe;
-    }
-
     @NotNull
     public Direction getTargetFacing() {
         return this.targetFacing;
-    }
-
-    public int getDistance() {
-        return this.distance;
-    }
-
-    public ItemPipeProperties getProperties() {
-        return this.properties;
     }
 }
