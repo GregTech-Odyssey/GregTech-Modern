@@ -45,7 +45,7 @@ public class GTDynamicDataPack implements PackResources {
 
     protected static final ObjectSet<String> SERVER_DOMAINS = new OpenCacheHashSet<>();
     protected static final GTDynamicPackContents CONTENTS = new GTDynamicPackContents();
-    private static final Pattern PATTERN = Pattern.compile("[\\W]");
+    private static final Pattern PATTERN = Pattern.compile("\\W");
 
     private final String name;
 

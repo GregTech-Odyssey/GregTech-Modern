@@ -26,8 +26,12 @@ public class SteamHatchPartMachine extends FluidHatchPartMachine {
     public static final int INITIAL_TANK_CAPACITY = 64 * FluidType.BUCKET_VOLUME;
     public static final boolean IS_STEEL = ConfigHolder.INSTANCE.machines.steelSteamMultiblocks;
 
-    public SteamHatchPartMachine(MetaMachineBlockEntity holder, Object... args) {
-        super(holder, 0, IO.IN, SteamHatchPartMachine.INITIAL_TANK_CAPACITY, 1, args);
+    public SteamHatchPartMachine(MetaMachineBlockEntity holder) {
+        this(holder, INITIAL_TANK_CAPACITY);
+    }
+
+    protected SteamHatchPartMachine(MetaMachineBlockEntity holder, int capacity) {
+        super(holder, 0, IO.IN, capacity, 1);
     }
 
     @Override

@@ -80,9 +80,6 @@ public class CleanroomLogic extends RecipeLogic {
                     return;
                 }
                 progress = 0;
-                if (!machine.beforeWorking(null)) {
-                    return;
-                }
                 adjustCleanAmount(false);
             } else {
                 // has all maintenance problems

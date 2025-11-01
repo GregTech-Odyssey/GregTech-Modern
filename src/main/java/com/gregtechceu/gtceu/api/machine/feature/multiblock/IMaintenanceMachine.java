@@ -139,7 +139,7 @@ public interface IMaintenanceMachine extends IMultiPart {
     }
 
     @Override
-    default GTRecipe modifyRecipe(GTRecipe recipe) {
+    default GTRecipe modifyRecipe(IWorkableMultiController controller, GTRecipe recipe) {
         if (ConfigHolder.INSTANCE.machines.enableMaintenance) {
             if (hasMaintenanceProblems()) {
                 return null;

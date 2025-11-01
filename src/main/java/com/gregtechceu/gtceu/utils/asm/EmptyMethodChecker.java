@@ -62,6 +62,7 @@ public class EmptyMethodChecker extends ClassVisitor {
 
         private final EmptyMethodChecker analyzer;
         private boolean hasNonReturnInstructions = false;
+        private boolean lastWasConstant = false;
 
         private MethodBodyVisitor(EmptyMethodChecker analyzer) {
             super(Opcodes.ASM9);
@@ -74,7 +75,14 @@ public class EmptyMethodChecker extends ClassVisitor {
         }
 
         @Override
-        public void visitInsn(int opcode) {}
+        public void visitInsn(int opcode) {
+            if (opcode == Opcodes.RETURN || opcode == Opcodes.IRETURN || opcode == Opcodes.ARETURN) return;
+            if (!lastWasConstant && (opcode == Opcodes.ACONST_NULL || opcode == Opcodes.ICONST_0 || opcode == Opcodes.ICONST_1)) {
+                lastWasConstant = true;
+                return;
+            }
+            hasNonReturnInstructions = true;
+        }
 
         @Override
         public void visitIntInsn(int opcode, int operand) {

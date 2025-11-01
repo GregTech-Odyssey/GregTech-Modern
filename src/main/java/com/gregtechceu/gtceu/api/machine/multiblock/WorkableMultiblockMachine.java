@@ -65,6 +65,9 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     protected RecipeHandlerList currentHandlerList;
 
     protected IMultiPart[] onWorkings = new IMultiPart[0];
+    protected IMultiPart[] beforeWorkings = new IMultiPart[0];
+    protected IMultiPart[] afterWorkings = new IMultiPart[0];
+    protected IMultiPart[] modifyRecipes = new IMultiPart[0];
 
     @DescSynced
     protected boolean activated;
@@ -106,7 +109,24 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        onWorkings = Arrays.stream(getParts()).filter(IMultiPart::hasOnWorkingMethod).toList().toArray(new IMultiPart[0]);
+        var parts = getParts();
+        List<IMultiPart> onWorkingList = new ObjectArrayList<>();
+        List<IMultiPart> beforeWorkingList = new ObjectArrayList<>();
+        List<IMultiPart> afterWorkingList = new ObjectArrayList<>();
+        List<IMultiPart> modifyRecipeList = new ObjectArrayList<>();
+        for (IMultiPart part : parts) {
+            if (part.hasOnWorkingMethod()) onWorkingList.add(part);
+            if (part.hasBeforeWorkingMethod()) beforeWorkingList.add(part);
+            if (part.hasAfterWorkingMethod()) afterWorkingList.add(part);
+            if (part.hasModifyRecipeMethod()) modifyRecipeList.add(part);
+
+        }
+
+        onWorkings = onWorkingList.toArray(new IMultiPart[0]);
+        beforeWorkings = beforeWorkingList.toArray(new IMultiPart[0]);
+        afterWorkings = afterWorkingList.toArray(new IMultiPart[0]);
+        modifyRecipes = modifyRecipeList.toArray(new IMultiPart[0]);
+
         activeState = ActiveBlock.State.UNKNOWN;
         // attach parts' traits
         activeBlocks.clear();
@@ -115,7 +135,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         capabilitiesFlat.clear();
         traitSubscriptions.forEach(ISubscription::unsubscribe);
         traitSubscriptions.clear();
-        for (IMultiPart part : getParts()) {
+        for (IMultiPart part : parts) {
             for (var handlerList : part.getRecipeHandlers()) {
                 this.addHandlerList(handlerList);
                 traitSubscriptions.add(handlerList.subscribe(recipeLogic::updateTickSubscription));
@@ -139,6 +159,9 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     public void onStructureInvalid() {
         super.onStructureInvalid();
         onWorkings = new IMultiPart[0];
+        beforeWorkings = new IMultiPart[0];
+        afterWorkings = new IMultiPart[0];
+        modifyRecipes = new IMultiPart[0];
         activeState = ActiveBlock.State.UNKNOWN;
         activeBlocks.clear();
         capabilitiesProxy.clear();
@@ -184,8 +207,8 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Nullable
     @Override
     public final GTRecipe doModifyRecipe(GTRecipe recipe) {
-        for (IMultiPart part : getParts()) {
-            recipe = part.modifyRecipe(recipe);
+        for (IMultiPart part : modifyRecipes) {
+            recipe = part.modifyRecipe(this, recipe);
             if (recipe == null) return null;
         }
         return getRealRecipe(recipe);
@@ -193,7 +216,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Nullable
     protected GTRecipe getRealRecipe(GTRecipe recipe) {
-        return self().getDefinition().getRecipeModifier().applyModifier(self(), recipe);
+        return definition.getRecipeModifier().applyModifier(this, recipe);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -217,16 +240,16 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Override
     public void afterWorking() {
-        for (var part : getParts()) {
+        for (var part : afterWorkings) {
             part.afterWorking(this);
         }
         IWorkableMultiController.super.afterWorking();
     }
 
     @Override
-    public boolean beforeWorking(@Nullable GTRecipe recipe) {
-        for (IMultiPart part : getParts()) {
-            if (!part.beforeWorking(this)) {
+    public boolean beforeWorking(@NotNull GTRecipe recipe) {
+        for (IMultiPart part : beforeWorkings) {
+            if (!part.beforeWorking(this, recipe)) {
                 return false;
             }
         }

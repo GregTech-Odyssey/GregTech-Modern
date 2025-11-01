@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -177,7 +178,7 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
     }
 
     @Override
-    public @Nullable GTRecipe modifyRecipe(GTRecipe recipe) {
+    public @Nullable GTRecipe modifyRecipe(IWorkableMultiController controller, GTRecipe recipe) {
         // creative hatches do not need to check, they always have the recipe
         if (this.isCreative()) return recipe;
         if (recipe.conditions.stream().noneMatch(ResearchCondition.class::isInstance)) return recipe;

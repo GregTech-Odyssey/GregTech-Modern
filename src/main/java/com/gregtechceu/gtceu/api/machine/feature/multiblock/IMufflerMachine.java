@@ -57,11 +57,11 @@ public interface IMufflerMachine extends IMultiPart {
     }
 
     @Override
-    default GTRecipe modifyRecipe(GTRecipe recipe) {
+    default GTRecipe modifyRecipe(IWorkableMultiController controller, GTRecipe recipe) {
         if (!isFrontFaceFree()) {
             return null;
         }
-        return IMultiPart.super.modifyRecipe(recipe);
+        return recipe;
     }
 
     @Override

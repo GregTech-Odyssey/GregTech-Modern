@@ -32,6 +32,7 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 import com.gregtechceu.gtceu.utils.cache.DirectionCache;
+import com.gregtechceu.gtceu.utils.collection.FastObjectArrayList;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -148,7 +149,7 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     private int paintingColor = -1;
     @Getter
     protected final List<MachineTrait> traits = new ObjectArrayList<>();
-    private final List<TickableSubscription> serverTicks = new ObjectArrayList<>();
+    private final FastObjectArrayList<TickableSubscription> serverTicks = new FastObjectArrayList<>();
     private final List<TickableSubscription> waitingToAdd = new ObjectArrayList<>();
     private ISubscription serverTickSubscription;
 
@@ -310,17 +311,15 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
                         boolean observe = OBSERVE || this.observe;
                         long currentTime = 0;
                         if (observe) currentTime = System.nanoTime();
-                        for (var iter = serverTicks.listIterator(0); iter.hasNext();) {
-                            var tickable = iter.next();
-                            if (tickable == null) {
-                                continue;
-                            }
+                        Object[] array = serverTicks.getArray();
+                        for (int i = 0, size = serverTicks.size(); i < size; i++) {
+                            var o = array[i];
+                            if (o == null) continue;
+                            var tickable = (TickableSubscription) o;
                             if (tickable.stillSubscribed) {
                                 tickable.runnable.run();
-                            }
-                            if (holder.isRemoved()) break;
-                            if (!tickable.stillSubscribed) {
-                                iter.remove();
+                            } else if (!holder.isRemoved()) {
+                                serverTicks.fastRemove(i);
                             }
                         }
                         if (observe) {

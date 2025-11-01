@@ -187,11 +187,11 @@ public interface IRotorHolderMachine extends IMultiPart {
     // ****** RECIPE LOGIC *******//
     //////////////////////////////////////
     @Override
-    default GTRecipe modifyRecipe(GTRecipe recipe) {
+    default GTRecipe modifyRecipe(IWorkableMultiController controller, GTRecipe recipe) {
         if (!isFrontFaceFree() || !hasRotor()) {
             return null;
         }
-        return IMultiPart.super.modifyRecipe(recipe);
+        return recipe;
     }
 
     //////////////////////////////////////

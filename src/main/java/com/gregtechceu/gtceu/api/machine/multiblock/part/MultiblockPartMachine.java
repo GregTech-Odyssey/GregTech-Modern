@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
 import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
+import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.utils.asm.EmptyMethodChecker;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
@@ -40,6 +41,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
 
     private static final Reference2BooleanOpenHashMap<Class<?>> ON_WORKING_METHOD = new Reference2BooleanOpenHashMap<>();
+    private static final Reference2BooleanOpenHashMap<Class<?>> BEFORE_WORKING_METHOD = new Reference2BooleanOpenHashMap<>();
+    private static final Reference2BooleanOpenHashMap<Class<?>> AFTER_WORKING_METHOD = new Reference2BooleanOpenHashMap<>();
+    private static final Reference2BooleanOpenHashMap<Class<?>> MODIFY_RECIPE_METHOD = new Reference2BooleanOpenHashMap<>();
 
     @DescSynced
     @RequireRerender
@@ -53,11 +57,48 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
         super(holder);
     }
 
+    @Override
     public boolean hasOnWorkingMethod() {
         var c = getClass();
         return ON_WORKING_METHOD.computeIfAbsent(c, k -> {
             try {
                 return EmptyMethodChecker.hasMethodBody(c.getMethod("onWorking", IWorkableMultiController.class));
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    @Override
+    public boolean hasBeforeWorkingMethod() {
+        var c = getClass();
+        return BEFORE_WORKING_METHOD.computeIfAbsent(c, k -> {
+            try {
+                return EmptyMethodChecker.hasMethodBody(c.getMethod("beforeWorking", IWorkableMultiController.class, GTRecipe.class));
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    @Override
+    public boolean hasAfterWorkingMethod() {
+        var c = getClass();
+        return AFTER_WORKING_METHOD.computeIfAbsent(c, k -> {
+            try {
+                return EmptyMethodChecker.hasMethodBody(c.getMethod("afterWorking", IWorkableMultiController.class));
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    @Override
+    public boolean hasModifyRecipeMethod() {
+        var c = getClass();
+        return MODIFY_RECIPE_METHOD.computeIfAbsent(c, k -> {
+            try {
+                return EmptyMethodChecker.hasMethodBody(c.getMethod("modifyRecipe", IWorkableMultiController.class, GTRecipe.class));
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }

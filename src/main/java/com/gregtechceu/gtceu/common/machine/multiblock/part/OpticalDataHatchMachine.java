@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.capability.IDataAccessHatch;
 import com.gregtechceu.gtceu.api.capability.IOpticalDataAccessHatch;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.common.blockentity.OpticalPipeBlockEntity;
@@ -99,7 +100,7 @@ public class OpticalDataHatchMachine extends MultiblockPartMachine implements IO
     }
 
     @Override
-    public @Nullable GTRecipe modifyRecipe(GTRecipe recipe) {
+    public @Nullable GTRecipe modifyRecipe(IWorkableMultiController controller, GTRecipe recipe) {
         if (recipe.conditions.stream().noneMatch(ResearchCondition.class::isInstance)) return recipe;
         if (this.isRecipeAvailable(recipe)) return recipe;
         return null;

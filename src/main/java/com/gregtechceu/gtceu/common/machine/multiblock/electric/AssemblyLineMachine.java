@@ -22,7 +22,6 @@ import net.minecraftforge.fluids.capability.templates.FluidTank;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -39,8 +38,7 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
     }
 
     @Override
-    public boolean beforeWorking(@Nullable GTRecipe recipe) {
-        if (recipe == null) return false;
+    public boolean beforeWorking(@NotNull GTRecipe recipe) {
         if (!super.beforeWorking(recipe)) return false;
         var config = ConfigHolder.INSTANCE.machines;
         if (!config.orderedAssemblyLineItems && !config.orderedAssemblyLineFluids) return true;

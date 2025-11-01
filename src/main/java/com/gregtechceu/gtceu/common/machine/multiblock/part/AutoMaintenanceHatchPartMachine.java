@@ -52,7 +52,7 @@ public class AutoMaintenanceHatchPartMachine extends TieredPartMachine implement
     }
 
     @Override
-    public GTRecipe modifyRecipe(GTRecipe recipe) {
+    public GTRecipe modifyRecipe(IWorkableMultiController controller, GTRecipe recipe) {
         return recipe;
     }
 }

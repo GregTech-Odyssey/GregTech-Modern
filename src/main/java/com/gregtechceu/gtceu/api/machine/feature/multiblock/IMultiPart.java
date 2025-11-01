@@ -21,6 +21,12 @@ public interface IMultiPart extends IFancyUIMachine {
 
     boolean hasOnWorkingMethod();
 
+    boolean hasBeforeWorkingMethod();
+
+    boolean hasAfterWorkingMethod();
+
+    boolean hasModifyRecipeMethod();
+
     /**
      * Can it be shared among multi multiblock.
      */
@@ -110,7 +116,7 @@ public interface IMultiPart extends IFancyUIMachine {
     /**
      * Called in {@link RecipeLogic#setupRecipe(GTRecipe)}
      */
-    default boolean beforeWorking(IWorkableMultiController controller) {
+    default boolean beforeWorking(IWorkableMultiController controller, GTRecipe recipe) {
         return true;
     }
 
@@ -121,7 +127,7 @@ public interface IMultiPart extends IFancyUIMachine {
      * @return modified recipe.
      *         null -- this recipe is unavailable
      */
-    default GTRecipe modifyRecipe(GTRecipe recipe) {
+    default GTRecipe modifyRecipe(IWorkableMultiController controller, GTRecipe recipe) {
         return recipe;
     }
 

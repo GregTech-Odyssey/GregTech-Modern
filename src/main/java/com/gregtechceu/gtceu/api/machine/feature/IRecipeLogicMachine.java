@@ -102,7 +102,7 @@ public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IWorkable,
     /**
      * Called in {@link RecipeLogic#setupRecipe(GTRecipe)} ()}
      */
-    default boolean beforeWorking(@Nullable GTRecipe recipe) {
+    default boolean beforeWorking(@NotNull GTRecipe recipe) {
         return true;
     }
 
