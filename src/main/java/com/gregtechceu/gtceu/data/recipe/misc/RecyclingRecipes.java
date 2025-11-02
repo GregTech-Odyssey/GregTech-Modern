@@ -15,7 +15,6 @@ import com.gregtechceu.gtceu.common.data.GTRecipeCategories;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.collection.O2LOpenCacheHashMap;
 import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.resources.ResourceLocation;
@@ -24,8 +23,8 @@ import net.minecraft.util.Tuple;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -428,11 +427,11 @@ public class RecyclingRecipes {
      */
     private static List<MaterialStack> combineStacks(List<MaterialStack> rawList) {
         // Combine any stacks in the List that have the same Item.
-        Object2LongOpenHashMap<Material> materialStacksExploded = new O2LOpenCacheHashMap<>();
+        Reference2LongOpenHashMap<Material> materialStacksExploded = new Reference2LongOpenHashMap<>();
         for (MaterialStack ms : rawList) {
             materialStacksExploded.addTo(ms.material(), ms.amount());
         }
-        return materialStacksExploded.object2LongEntrySet()
+        return materialStacksExploded.reference2LongEntrySet()
                 .stream()
                 .map(e -> new MaterialStack(e.getKey(), e.getLongValue()))
                 .toList();

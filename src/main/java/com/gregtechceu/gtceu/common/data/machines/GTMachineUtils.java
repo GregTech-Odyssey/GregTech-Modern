@@ -47,7 +47,6 @@ import com.gregtechceu.gtceu.common.machine.storage.QuantumChestMachine;
 import com.gregtechceu.gtceu.common.machine.storage.QuantumTankMachine;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
-import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
 
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
@@ -62,8 +61,8 @@ import net.minecraftforge.fluids.FluidType;
 
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -102,7 +101,7 @@ public class GTMachineUtils {
     public static final Int2IntFunction genericGeneratorTankSizeFunction = tier -> Math.min(4 * (1 << (tier - 1)),
             16) * FluidType.BUCKET_VOLUME;
 
-    public static Object2IntMap<MachineDefinition> DRUM_CAPACITY = new O2IOpenCacheHashMap<>();
+    public static Reference2IntOpenHashMap<MachineDefinition> DRUM_CAPACITY = new Reference2IntOpenHashMap<>();
 
     public static MachineDefinition[] registerSimpleMachines(String name, GTRecipeType recipeType,
                                                              Int2IntFunction tankScalingFunction,

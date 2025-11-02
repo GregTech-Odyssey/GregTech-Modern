@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.integration.ae2.gui.widget.list;
 
 import com.gregtechceu.gtceu.integration.ae2.utils.KeyStorage;
-import com.gregtechceu.gtceu.utils.collection.O2LOpenCacheHashMap;
 
 import com.lowdragmc.lowdraglib.gui.widget.DraggableScrollableWidgetGroup;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -16,8 +15,8 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.GenericStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 
 import java.util.List;
 
@@ -34,7 +33,7 @@ public abstract class AEListGridWidget extends DraggableScrollableWidgetGroup {
     protected final static int ROW_CHANGE_ID = 2;
     protected final static int CONTENT_CHANGE_ID = 3;
 
-    protected final Object2LongMap<AEKey> changeMap = new O2LOpenCacheHashMap<>();
+    protected final Reference2LongOpenHashMap<AEKey> changeMap = new Reference2LongOpenHashMap<>();
     protected final KeyStorage cached = new KeyStorage();
     protected final List<GenericStack> displayList = new ObjectArrayList<>();
 
@@ -89,7 +88,7 @@ public abstract class AEListGridWidget extends DraggableScrollableWidgetGroup {
         for (var entry : list) {
             var key = entry.getKey();
             long value = entry.getLongValue();
-            long cacheValue = cached.storage.getOrDefault(key, 0);
+            long cacheValue = cached.storage.getLong(key);
             if (cacheValue == 0) {
                 // Add
                 this.changeMap.put(key, value);
@@ -104,10 +103,10 @@ public abstract class AEListGridWidget extends DraggableScrollableWidgetGroup {
         }
 
         buffer.writeVarInt(this.changeMap.size());
-        for (var entry : this.changeMap.object2LongEntrySet()) {
+        this.changeMap.reference2LongEntrySet().fastForEach(entry -> {
             entry.getKey().writeToPacket(buffer);
             buffer.writeVarLong(entry.getLongValue());
-        }
+        });
     }
 
     protected void readListChange(FriendlyByteBuf buffer) {

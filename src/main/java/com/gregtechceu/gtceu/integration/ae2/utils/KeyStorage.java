@@ -1,7 +1,5 @@
 package com.gregtechceu.gtceu.integration.ae2.utils;
 
-import com.gregtechceu.gtceu.utils.collection.O2LOpenCacheHashMap;
-
 import com.lowdragmc.lowdraglib.syncdata.IContentChangeAware;
 import com.lowdragmc.lowdraglib.syncdata.ITagSerializable;
 
@@ -13,8 +11,8 @@ import appeng.api.config.Actionable;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEKey;
 import appeng.api.storage.MEStorage;
-import it.unimi.dsi.fastutil.objects.Object2LongMap;
-import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2LongMap;
+import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
@@ -25,11 +23,11 @@ import java.util.concurrent.locks.ReentrantLock;
  * Provides methods for serialization and deserialization.
  */
 @MethodsReturnNonnullByDefault
-public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAware, Iterable<Object2LongMap.Entry<AEKey>> {
+public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAware, Iterable<Reference2LongMap.Entry<AEKey>> {
 
     public final ReentrantLock lock = new ReentrantLock();
 
-    public final Object2LongOpenHashMap<AEKey> storage = new O2LOpenCacheHashMap<>();
+    public Reference2LongOpenHashMap<AEKey> storage = new Reference2LongOpenHashMap<>();
 
     // not
     @Nullable
@@ -47,7 +45,15 @@ public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAwar
         while (it.hasNext()) {
             var entry = it.next();
             var key = entry.getKey();
+            if (key == null) {
+                it.remove();
+                continue;
+            }
             var amount = entry.getLongValue();
+            if (amount <= 0) {
+                it.remove();
+                continue;
+            }
             long inserted = inventory.insert(key, amount, Actionable.MODULATE, source);
             if (inserted > 0) {
                 changed = true;
@@ -74,7 +80,7 @@ public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAwar
         var list = new ListTag();
         lock.lock();
         try {
-            for (Object2LongMap.Entry<AEKey> entry : this) {
+            for (var entry : this) {
                 var tag = new CompoundTag();
                 if (entry == null) continue;
                 tag.put("key", entry.getKey().toTagGeneric());
@@ -104,8 +110,8 @@ public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAwar
     }
 
     @Override
-    public Iterator<Object2LongMap.Entry<AEKey>> iterator() {
-        return storage.object2LongEntrySet().fastIterator();
+    public Iterator<Reference2LongMap.Entry<AEKey>> iterator() {
+        return storage.reference2LongEntrySet().fastIterator();
     }
 
     public boolean isEmpty() {
