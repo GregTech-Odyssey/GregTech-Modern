@@ -568,7 +568,7 @@ public class GTMultiMachines {
                                 .where('K', blocks(FusionReactorMachine.getCoilState(tier)))
                                 .where('O', casing.or(abilities(PartAbility.EXPORT_FLUIDS)))
                                 .where('A', air())
-                                .where('I', casing.or(abilities(PartAbility.IMPORT_FLUIDS).setMinGlobalLimited(2)))
+                                .where('I', casing.or(abilities(PartAbility.IMPORT_FLUIDS).setMinGlobalLimited(2)).or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0)))
                                 .where('#', any())
                                 .build();
                     })

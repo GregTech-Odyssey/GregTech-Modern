@@ -128,6 +128,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     protected void onItemChanged() {
         if (!isRemote()) {
             updateAutoOutputSubscription();
+            requestSync();
         }
     }
 

@@ -119,6 +119,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     protected void onFluidChanged() {
         if (!isRemote()) {
             updateAutoOutputSubscription();
+            requestSync();
         }
     }
 

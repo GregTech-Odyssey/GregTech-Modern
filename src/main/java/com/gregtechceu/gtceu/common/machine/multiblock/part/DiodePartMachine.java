@@ -68,7 +68,7 @@ public class DiodePartMachine extends TieredIOPartMachine {
         long tierVoltage = GTValues.V[getTier()];
         this.energyContainer.resetBasicInfo(tierVoltage * MAX_AMPS * 2, tierVoltage, amps, tierVoltage, amps);
         this.energyContainer.setSideInputCondition(s -> s != getFrontFacing());
-        this.energyContainer.setSideOutputCondition(s -> s == getFrontFacing() && isWorkingEnabled());
+        this.energyContainer.setSideOutputCondition(s -> isWorkingEnabled());
     }
 
     @Override

@@ -48,7 +48,7 @@ public class EnergyHatchPartMachine extends TieredIOPartMachine implements IExpl
         NotifiableEnergyContainer container;
         if (io == IO.OUT) {
             container = NotifiableEnergyContainer.emitterContainer(this, GTValues.V[tier] * 64L * amperage, GTValues.V[tier], amperage);
-            container.setSideOutputCondition(s -> s == getFrontFacing() && isWorkingEnabled());
+            container.setSideOutputCondition(s -> isWorkingEnabled());
             container.setCapabilityValidator(s -> s == null || s == getFrontFacing());
         } else {
             container = NotifiableEnergyContainer.receiverContainer(this, GTValues.V[tier] * 16L * amperage, GTValues.V[tier], amperage);

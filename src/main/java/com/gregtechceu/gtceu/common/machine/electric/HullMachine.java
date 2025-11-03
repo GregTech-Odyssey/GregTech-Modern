@@ -39,7 +39,6 @@ public class HullMachine extends TieredPartMachine {
     protected void reinitializeEnergyContainer() {
         long tierVoltage = GTValues.V[getTier()];
         this.energyContainer = new NotifiableEnergyContainer(this, tierVoltage * 16L, tierVoltage, 1L, tierVoltage, 1L);
-        this.energyContainer.setSideOutputCondition(s -> s == getFrontFacing());
     }
 
     @Override

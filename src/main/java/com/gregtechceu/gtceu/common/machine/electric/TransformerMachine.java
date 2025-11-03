@@ -46,6 +46,7 @@ public class TransformerMachine extends TieredEnergyMachine implements IControll
         super(holder, tier, baseAmp, args);
         this.isWorkingEnabled = true;
         this.baseAmp = baseAmp;
+        energyContainer.setSideSupplier(Direction::values);
     }
 
     @SuppressWarnings("unused")

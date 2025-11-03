@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long> implements IEnergyContainer {
 
@@ -49,6 +50,8 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
     private long outputVoltage;
     @Getter
     private long outputAmperage;
+    @Setter
+    private Supplier<Direction[]> sideSupplier = () -> new Direction[] { machine.getFrontFacing() };
     @Setter
     private Predicate<Direction> sideInputCondition;
     @Setter
@@ -148,7 +151,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
             long voltage = getOutputVoltage();
             long canOutput = Math.min(stored, getOutputAmperage() * voltage);
             long energyUsed = 0;
-            for (Direction side : GTUtil.DIRECTIONS) {
+            for (Direction side : sideSupplier.get()) {
                 if (!outputsEnergy(side)) continue;
                 var oppositeSide = side.getOpposite();
                 var energyContainer = GTCapabilityHelper.getEnergyContainer(machine.getNeighbor(side), oppositeSide);
