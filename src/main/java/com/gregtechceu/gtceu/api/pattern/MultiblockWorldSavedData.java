@@ -82,7 +82,7 @@ public class MultiblockWorldSavedData extends SavedData {
             .setNameFormat("GTCEu Multiblock Async Thread-%d")
             .setDaemon(true)
             .build();
-    private static final ThreadLocal<Boolean> IN_SERVICE = ThreadLocal.withInitial(() -> false);
+    public static final ThreadLocal<Boolean> IN_SERVICE = ThreadLocal.withInitial(() -> false);
     public int periodID = 0;
     private int waiting;
 

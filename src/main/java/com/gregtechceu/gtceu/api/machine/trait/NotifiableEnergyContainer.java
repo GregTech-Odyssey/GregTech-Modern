@@ -39,23 +39,23 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
     @Getter
     @Persisted
     @DescSynced
-    protected long energyStored;
+    public long energyStored;
     @Getter
-    private long energyCapacity;
+    public long energyCapacity;
     @Getter
-    private long inputVoltage;
+    protected long inputVoltage;
     @Getter
-    private long inputAmperage;
+    protected long inputAmperage;
     @Getter
-    private long outputVoltage;
+    protected long outputVoltage;
     @Getter
-    private long outputAmperage;
+    protected long outputAmperage;
     @Setter
-    private Supplier<Direction[]> sideSupplier = () -> new Direction[] { machine.getFrontFacing() };
+    protected Supplier<Direction[]> sideSupplier = () -> new Direction[] { machine.getFrontFacing() };
     @Setter
-    private Predicate<Direction> sideInputCondition;
+    protected Predicate<Direction> sideInputCondition;
     @Setter
-    private Predicate<Direction> sideOutputCondition;
+    protected Predicate<Direction> sideOutputCondition;
     @Nullable
     protected TickableSubscription outputSubs;
     @Nullable
@@ -115,7 +115,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
     public void checkOutputSubscription() {
         checkOutput = false;
         if (machine.getLevel() instanceof ServerLevel) {
-            if (getOutputVoltage() > 0 && getOutputAmperage() > 0) {
+            if (outputVoltage > 0 && outputAmperage > 0) {
                 if (getEnergyStored() >= 0) {
                     outputSubs = machine.subscribeServerTick(outputSubs, this::serverTick);
                 } else if (outputSubs != null) {
@@ -148,8 +148,8 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
     public void serverTick() {
         long stored = getEnergyStored();
         if (stored >= 0) {
-            long voltage = getOutputVoltage();
-            long canOutput = Math.min(stored, getOutputAmperage() * voltage);
+            long voltage = outputVoltage;
+            long canOutput = Math.min(stored, outputAmperage * voltage);
             long energyUsed = 0;
             for (Direction side : sideSupplier.get()) {
                 if (!outputsEnergy(side)) continue;
@@ -193,7 +193,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
     }
 
     private boolean handleElectricItem(IElectricItem electricItem, boolean simulate) {
-        var machineTier = GTUtil.getTierByVoltage(Math.max(getInputVoltage(), getOutputVoltage()));
+        var machineTier = GTUtil.getTierByVoltage(Math.max(inputVoltage, outputVoltage));
         var chargeTier = Math.min(machineTier, electricItem.getTier());
         var chargePercent = getEnergyStored() / (getEnergyCapacity() * 1.0);
         // Check if the item is a battery (or similar), and if we can receive some amount of energy
@@ -219,7 +219,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
     }
 
     private boolean handleForgeEnergyItem(IEnergyStorage energyStorage, boolean simulate) {
-        int machineTier = GTUtil.getTierByVoltage(Math.max(getInputVoltage(), getOutputVoltage()));
+        int machineTier = GTUtil.getTierByVoltage(Math.max(inputVoltage, outputVoltage));
         double chargePercent = getEnergyStored() / (getEnergyCapacity() * 1.0);
         if (chargePercent > 0.65) {
             // 2/3rds full
@@ -235,7 +235,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
     @Override
     public long acceptEnergyFromNetwork(Object o, Direction side, long voltage, long energyAdded) {
         if (side == null || inputsEnergy(side)) {
-            long inputVoltage = getInputVoltage();
+            long inputVoltage = this.inputVoltage;
             if (voltage > inputVoltage && machine instanceof IExplosionMachine explosionMachine) {
                 explosionMachine.doExplosion(GTUtil.getTierByVoltage(voltage));
                 return 0;
@@ -252,12 +252,12 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
 
     @Override
     public boolean inputsEnergy(Direction side) {
-        return !outputsEnergy(side) && getInputVoltage() > 0 && (sideInputCondition == null || sideInputCondition.test(side));
+        return inputVoltage > 0 && (sideInputCondition == null || sideInputCondition.test(side));
     }
 
     @Override
     public boolean outputsEnergy(Direction side) {
-        return getOutputVoltage() > 0 && (sideOutputCondition == null || sideOutputCondition.test(side));
+        return outputVoltage > 0 && (sideOutputCondition == null || sideOutputCondition.test(side));
     }
 
     @Override

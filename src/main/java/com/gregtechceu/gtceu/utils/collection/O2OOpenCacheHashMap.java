@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.*;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;
@@ -50,10 +51,6 @@ public class O2OOpenCacheHashMap<K, V> extends Object2ObjectOpenHashMap<K, V> {
 
     public O2OOpenCacheHashMap(final Object2ObjectMap<K, V> m) {
         this(m, DEFAULT_LOAD_FACTOR);
-    }
-
-    private int realSize() {
-        return containsNullKey ? size - 1 : size;
     }
 
     private V removeEntry(int pos) {
@@ -641,7 +638,7 @@ public class O2OOpenCacheHashMap<K, V> extends Object2ObjectOpenHashMap<K, V> {
             if (!hasSplit) {
                 return size - c;
             } else {
-                return Math.min(size - c, (long) (((double) realSize() / n) * (max - pos)) + (mustReturnNull ? 1 : 0));
+                return Math.min(size - c, (long) (((double) (containsNullKey ? size - 1 : size) / n) * (max - pos)) + (mustReturnNull ? 1 : 0));
             }
         }
 
@@ -718,6 +715,16 @@ public class O2OOpenCacheHashMap<K, V> extends Object2ObjectOpenHashMap<K, V> {
         @Override
         public ObjectSpliterator<Entry<K, V>> spliterator() {
             return new EntrySpliterator();
+        }
+
+        @Override
+        public boolean containsAll(Collection<?> c) {
+            if (c instanceof Object2ObjectMap.FastEntrySet set) {
+                for (ObjectIterator it = set.fastIterator(); it.hasNext();) if (!contains(it.next())) return false;
+            } else {
+                for (Object e : c) if (!contains(e)) return false;
+            }
+            return true;
         }
 
         @Override
@@ -1004,7 +1011,7 @@ public class O2OOpenCacheHashMap<K, V> extends Object2ObjectOpenHashMap<K, V> {
         final V[] newValue = (V[]) new Object[newN + 1];
         final int[] newHash = new int[newN + 1];
         int i = n, pos, h;
-        for (int j = realSize(); j-- != 0;) {
+        for (int j = containsNullKey ? size - 1 : size; j-- != 0;) {
             while (((key[--i]) == null));
             if (!((newKey[pos = HashCommon.mix(h = hash[i]) & mask]) == null)) while (!((newKey[pos = (pos + 1) & mask]) == null));
             newKey[pos] = key[i];
@@ -1033,7 +1040,7 @@ public class O2OOpenCacheHashMap<K, V> extends Object2ObjectOpenHashMap<K, V> {
         final K[] key = this.key;
         final V[] value = this.value;
         final int[] hash = this.hash;
-        for (int j = realSize(), i = 0, t = 0; j-- != 0;) {
+        for (int j = containsNullKey ? size - 1 : size, i = 0, t = 0; j-- != 0;) {
             while ((key[i]) == null) i++;
             if (this != key[i]) t = hash[i];
             if (this != value[i]) t ^= (value[i] == null ? 0 : value[i].hashCode());

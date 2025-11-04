@@ -65,7 +65,21 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
             nonEmptyBatteries = null;
             nonFullBatteries = null;
             energyContainer.checkOutputSubscription();
+            energyContainer.energyCapacity = 0L;
+            for (Object battery : getAllBatteries()) {
+                if (battery instanceof IElectricItem electricItem) {
+                    energyContainer.energyCapacity += electricItem.getMaxCharge();
+                } else if (battery instanceof IEnergyStorage energyStorage) {
+                    energyContainer.energyCapacity += FeCompat.toEu(energyStorage.getMaxEnergyStored(), FeCompat.ratio(false));
+                }
+            }
         });
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        batteryInventory.onContentsChanged(0);
     }
 
     @Override
@@ -292,19 +306,6 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                 return energyAdded;
             }
             return 0;
-        }
-
-        @Override
-        public long getEnergyCapacity() {
-            long energyCapacity = 0L;
-            for (Object battery : getAllBatteries()) {
-                if (battery instanceof IElectricItem electricItem) {
-                    energyCapacity += electricItem.getMaxCharge();
-                } else if (battery instanceof IEnergyStorage energyStorage) {
-                    energyCapacity += FeCompat.toEu(energyStorage.getMaxEnergyStored(), FeCompat.ratio(false));
-                }
-            }
-            return energyCapacity;
         }
 
         @Override
