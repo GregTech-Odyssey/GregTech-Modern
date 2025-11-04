@@ -12,7 +12,59 @@ import java.util.List;
 
 public class EnergyContainerList implements IEnergyContainer {
 
-    public static final EnergyContainerList EMPTY = new EnergyContainerList();
+    public static final EnergyContainerList EMPTY = new EnergyContainerList() {
+
+        @Override
+        public long acceptEnergyFromNetwork(Object o, Direction side, long voltage, long energyToAdd) {
+            return 0;
+        }
+
+        @Override
+        public long changeEnergy(long energyToAdd) {
+            return 0;
+        }
+
+        @Override
+        public long getEnergyCapacity() {
+            return 0;
+        }
+
+        @Override
+        public long getEnergyStored() {
+            return 0;
+        }
+
+        @Override
+        public long getInputVoltage() {
+            return 0;
+        }
+
+        @Override
+        public long getInputAmperage() {
+            return 0;
+        }
+
+        @Override
+        public long getOutputVoltage() {
+            return 0;
+        }
+
+        @Override
+        public long getOutputAmperage() {
+            return 0;
+        }
+
+        @Override
+        public long getOverclockVoltage() {
+            return 0;
+        }
+
+        @Override
+        public long getMaxVoltage() {
+            return 0;
+        }
+    };
+
     private static final int dcpMode = ConfigHolder.INSTANCE.machines.dualChamberPressurizationMode;
 
     private final IEnergyContainer[] energyContainerList;
@@ -39,7 +91,7 @@ public class EnergyContainerList implements IEnergyContainer {
         long input = 0;
         long output = 0;
         long maxRecipe = 0;
-        long minRecipe = GTValues.V[GTValues.MAX];
+        long minRecipe = energyContainerList.length == 0 ? 0 : GTValues.V[GTValues.MAX];
         int count = 0;
         int maxCount = 0;
         long capacity = 0;
