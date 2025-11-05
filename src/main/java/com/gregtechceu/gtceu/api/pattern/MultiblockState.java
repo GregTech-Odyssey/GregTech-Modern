@@ -1,11 +1,13 @@
 package com.gregtechceu.gtceu.api.pattern;
 
 import com.gregtechceu.gtceu.api.block.ActiveBlock;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.pattern.error.PatternError;
 import com.gregtechceu.gtceu.api.pattern.error.PatternStringError;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.PatternMatchContext;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -22,6 +24,7 @@ import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Set;
 
 public class MultiblockState {
 
@@ -57,6 +60,7 @@ public class MultiblockState {
     public final List<PatternError> errorRecord = new ObjectArrayList<>();
 
     public final Long2ObjectOpenHashMap<BlockState> blockStateCache;
+    public final Set<BlockPos> blockEntityCache;
 
     public MultiblockState(IMultiController controller, Level world, BlockPos controllerPos) {
         this.controller = controller;
@@ -65,6 +69,7 @@ public class MultiblockState {
         this.error = UNINIT_ERROR;
         this.matchContext = new PatternMatchContext();
         this.blockStateCache = new Long2ObjectOpenHashMap<>();
+        this.blockEntityCache = new OpenCacheHashSet<>();
     }
 
     @SuppressWarnings("all")
@@ -76,6 +81,7 @@ public class MultiblockState {
         this.matchContext = new PatternMatchContext();
         this.matchContext.mergeData(state.matchContext);
         this.blockStateCache = state.blockStateCache;
+        this.blockEntityCache = state.blockEntityCache;
     }
 
     public static MultiblockState copy(MultiblockState state) {
@@ -98,6 +104,7 @@ public class MultiblockState {
         this.globalCount.clear();
         this.layerCount.clear();
         this.blockStateCache.clear();
+        this.blockEntityCache.clear();
         this.predicate = null;
         this.blockState = null;
         this.tileEntity = null;
@@ -136,6 +143,9 @@ public class MultiblockState {
         if (this.tileEntityInitialized) return tileEntity;
         if (getBlockState().hasBlockEntity()) {
             this.tileEntity = this.world.getBlockEntity(this.pos);
+            if (this.tileEntity != null && !(this.tileEntity instanceof MetaMachineBlockEntity)) {
+                blockEntityCache.add(pos);
+            }
         } else {
             this.tileEntity = null;
         }

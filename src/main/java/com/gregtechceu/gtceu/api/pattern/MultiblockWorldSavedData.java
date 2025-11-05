@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.utils.PosUtils;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.saveddata.SavedData;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -43,9 +42,9 @@ public class MultiblockWorldSavedData extends SavedData {
         this();
     }
 
-    public MultiblockState[] getControllersInChunk(ChunkPos chunkPos) {
+    public MultiblockState[] getControllersInChunk(long chunkPos) {
         synchronized (chunkPosMapping) {
-            var states = chunkPosMapping.get(chunkPos.toLong());
+            var states = chunkPosMapping.get(chunkPos);
             if (states != null) {
                 return states.toArray(MultiblockState[]::new);
             }
