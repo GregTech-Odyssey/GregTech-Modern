@@ -78,8 +78,7 @@ public class MultiblockState {
         this.controller = state.controller;
         this.controllerPos = state.controllerPos;
         this.error = UNINIT_ERROR;
-        this.matchContext = new PatternMatchContext();
-        this.matchContext.mergeData(state.matchContext);
+        this.matchContext = new PatternMatchContext(state.matchContext);
         this.blockStateCache = state.blockStateCache;
         this.blockEntityCache = state.blockEntityCache;
     }

@@ -22,20 +22,31 @@ public class PatternMatchContext {
     public final LongOpenHashSet vaBlocks = new LongOpenHashSet();
     public final ReferenceOpenHashSet<IMultiPart> parts = new ReferenceOpenHashSet<>();
 
+    private final PatternMatchContext parents;
+
     private Long2ObjectOpenHashMap<TraceabilityPredicate> predicates;
 
-    private O2OOpenCacheHashMap<Object, Object> data = new O2OOpenCacheHashMap<>();
+    private O2OOpenCacheHashMap<Object, Object> data;
+
+    public PatternMatchContext() {
+        this.parents = null;
+    }
+
+    public PatternMatchContext(PatternMatchContext parents) {
+        this.parents = parents;
+        mergeData(parents);
+    }
+
+    private void mergeData(PatternMatchContext context) {
+        if (context.data != null) {
+            if (data == null) data = new O2OOpenCacheHashMap<>();
+            data.putAll(context.data);
+        }
+    }
 
     public Long2ObjectOpenHashMap<TraceabilityPredicate> getPredicates() {
         if (predicates == null) predicates = new Long2ObjectOpenHashMap<>();
         return predicates;
-    }
-
-    public void mergeData(PatternMatchContext state) {
-        if (state.data != null) {
-            if (data == null) data = new O2OOpenCacheHashMap<>();
-            data.putAll(state.data);
-        }
     }
 
     public void merge(PatternMatchContext state) {
@@ -52,6 +63,7 @@ public class PatternMatchContext {
         parts.clear();
         if (predicates != null) this.predicates.clear();
         if (data != null) this.data.clear();
+        if (parents != null) mergeData(parents);
     }
 
     public void set(Object key, Object value) {
