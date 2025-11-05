@@ -51,11 +51,6 @@ public class SerializerLong implements IContentSerializer<Long> {
     }
 
     @Override
-    public Class<Long> contentClass() {
-        return Long.class;
-    }
-
-    @Override
     public Codec<Long> codec() {
         return Codec.LONG;
     }

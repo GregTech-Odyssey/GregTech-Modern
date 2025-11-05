@@ -27,37 +27,37 @@ import org.jetbrains.annotations.Nullable;
 
 public class Content {
 
+    public static final int MAX_CHANCE = 10_000;
+
     @Getter
     public final Object content;
     public final int chance;
-    public final int maxChance;
     public final int tierChanceBoost;
 
-    public Content(Object content, int chance, int maxChance, int tierChanceBoost) {
+    public Content(Object content, int chance, int tierChanceBoost) {
         this.content = content;
         this.chance = chance;
-        this.maxChance = maxChance;
         this.tierChanceBoost = tierChanceBoost;
     }
 
     public static <T> Codec<Content> codec(RecipeCapability<T> capability) {
-        return RecordCodecBuilder.create(instance -> instance.group(capability.serializer.codec().fieldOf("content").forGetter(val -> capability.of(val.content)), ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("chance", ChanceLogic.getMaxChancedValue()).forGetter(val -> val.chance), ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("maxChance", ChanceLogic.getMaxChancedValue()).forGetter(val -> val.maxChance), Codec.INT.optionalFieldOf("tierChanceBoost", 0).forGetter(val -> val.tierChanceBoost)).apply(instance, Content::new));
+        return RecordCodecBuilder.create(instance -> instance.group(capability.serializer.codec().fieldOf("content").forGetter(val -> capability.of(val.content)), ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("chance", ChanceLogic.getMaxChancedValue()).forGetter(val -> val.chance), Codec.INT.optionalFieldOf("tierChanceBoost", 0).forGetter(val -> val.tierChanceBoost)).apply(instance, Content::new));
     }
 
     public Content copy(RecipeCapability<?> capability) {
-        return new Content(capability.copyContent(content), chance, maxChance, tierChanceBoost);
+        return new Content(capability.copyContent(content), chance, tierChanceBoost);
     }
 
     public Content copy(RecipeCapability<?> capability, @NotNull ContentModifier modifier) {
-        if (modifier == ContentModifier.IDENTITY || chance < maxChance) {
+        if (modifier == ContentModifier.IDENTITY || chance < MAX_CHANCE) {
             return copy(capability);
         } else {
-            return new Content(capability.copyContent(content, modifier), chance, maxChance, tierChanceBoost);
+            return new Content(capability.copyContent(content, modifier), chance, tierChanceBoost);
         }
     }
 
     public boolean isChanced() {
-        return chance > 0 && chance < maxChance;
+        return chance > 0 && chance < MAX_CHANCE;
     }
 
     /**
@@ -71,7 +71,7 @@ public class Content {
      * @return the fixed chance boost
      */
     private int fixBoost(int chanceBoost) {
-        float error = (float) ChanceLogic.getMaxChancedValue() / maxChance;
+        float error = (float) ChanceLogic.getMaxChancedValue() / MAX_CHANCE;
         int fixed = Math.round(Math.abs(chanceBoost) / error);
         return chanceBoost < 0 ? -fixed : fixed;
     }
@@ -115,7 +115,7 @@ public class Content {
         graphics.pose().scale(0.5F, 0.5F, 1);
         var func = function == null ? ChanceBoostFunction.OVERCLOCK : function;
         int chance = func.getBoostedChance(this, recipeTier, chanceTier);
-        float chanceFloat = 1.0F * chance / this.maxChance;
+        float chanceFloat = 1.0F * chance / MAX_CHANCE;
         String percent = FormattingUtil.formatNumber2Places(100 * chanceFloat);
         String s = chance == 0 ? LocalizationUtils.format("gtceu.gui.content.chance_nc_short") : percent + "%";
         int color = chance == 0 ? 16711680 : GradientUtil.toRGB(Mth.lerp(chanceFloat, 29.0F, 167.0F), 100.0F, 50.0F);
@@ -139,6 +139,6 @@ public class Content {
 
     @Override
     public String toString() {
-        return "Content{" + "content=" + content + ", chance=" + chance + ", maxChance=" + maxChance + ", tierChanceBoost=" + tierChanceBoost + '}';
+        return "Content{" + "content=" + content + ", chance=" + chance + ", tierChanceBoost=" + tierChanceBoost + '}';
     }
 }

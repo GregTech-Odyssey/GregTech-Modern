@@ -180,7 +180,7 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
             }
             if (content != null) {
                 float chance = (float) recipeType.getChanceFunction()
-                        .getBoostedChance(content, recipeTier, chanceTier) / content.maxChance;
+                        .getBoostedChance(content, recipeTier, chanceTier) / Content.MAX_CHANCE;
                 slot.setXEIChance(chance);
                 slot.setOnAddedTooltips((w, tooltips) -> {
                     GTRecipeWidget.setConsumedChance(content,

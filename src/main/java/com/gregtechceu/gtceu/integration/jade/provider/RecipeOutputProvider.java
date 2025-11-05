@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
+import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.integration.jade.GTElementHelper;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -66,10 +67,10 @@ public class RecipeOutputProvider extends CapabilityBlockProvider<RecipeLogic> {
 
                     var itemTag = new CompoundTag();
                     GTUtil.saveItemStack(stack, itemTag);
-                    if (item.chance < item.maxChance) {
+                    if (item.chance < Content.MAX_CHANCE) {
                         int count = stack.getCount();
                         double countD = (double) count * recipe.parallels *
-                                function.getBoostedChance(item, recipeTier, chanceTier) / item.maxChance;
+                                function.getBoostedChance(item, recipeTier, chanceTier) / Content.MAX_CHANCE;
                         count = countD < 1 ? 1 : (int) Math.round(countD);
                         itemTag.putInt("Count", count);
                     }
@@ -89,10 +90,10 @@ public class RecipeOutputProvider extends CapabilityBlockProvider<RecipeLogic> {
 
                     var fluidTag = new CompoundTag();
                     stack.writeToNBT(fluidTag);
-                    if (fluid.chance < fluid.maxChance) {
+                    if (fluid.chance < Content.MAX_CHANCE) {
                         int amount = stack.getAmount();
                         double amountD = (double) amount * recipe.parallels *
-                                function.getBoostedChance(fluid, recipeTier, chanceTier) / fluid.maxChance;
+                                function.getBoostedChance(fluid, recipeTier, chanceTier) / Content.MAX_CHANCE;
                         amount = amountD < 1 ? 1 : (int) Math.round(amountD);
                         fluidTag.putInt("Amount", amount);
                     }

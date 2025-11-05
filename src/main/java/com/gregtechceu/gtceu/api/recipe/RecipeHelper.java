@@ -368,7 +368,7 @@ public class RecipeHelper {
             // Add non-chanced contents with priority and store chanced contents for later
             for (var content : contents) {
                 if (added == N) break;
-                if (0 < content.chance && content.chance < content.maxChance) {
+                if (0 < content.chance && content.chance < Content.MAX_CHANCE) {
                     chanced.add(content);
                 } else {
                     list.add(content);

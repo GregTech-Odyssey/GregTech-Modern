@@ -74,7 +74,6 @@ public class GTRecipeBuilder {
     public int duration = 100;
     public boolean perTick;
     public int chance = ChanceLogic.getMaxChancedValue();
-    public int maxChance = ChanceLogic.getMaxChancedValue();
     public int tierChanceBoost = 0;
     protected boolean itemMaterialInfo = false;
     protected boolean fluidMaterialInfo = false;
@@ -140,7 +139,7 @@ public class GTRecipeBuilder {
     }
 
     protected Content makeContent(Object o) {
-        return new Content(o, chance, maxChance, tierChanceBoost);
+        return new Content(o, chance, tierChanceBoost);
     }
 
     public <T> GTRecipeBuilder input(RecipeCapability<T> capability, T obj) {
@@ -229,50 +228,68 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder inputItems(Object input) {
-        if (input instanceof Item item) {
-            return inputItems(item);
-        } else if (input instanceof Supplier<?> supplier && supplier.get() instanceof ItemLike item) {
-            return inputItems(item.asItem());
-        } else if (input instanceof ItemStack stack) {
-            return inputItems(stack);
-        } else if (input instanceof Ingredient ingredient) {
-            return inputItems(ingredient);
-        } else if (input instanceof MaterialEntry entry) {
-            return inputItems(entry);
-        } else if (input instanceof TagKey<?> tag) {
-            return inputItems((TagKey<Item>) tag);
-        } else if (input instanceof MachineDefinition machine) {
-            return inputItems(machine);
-        } else {
-            GTCEu.LOGGER.error("""
-                    Input item is not one of:
-                    Item, Supplier<Item>, ItemStack, Ingredient, MaterialEntry, TagKey<Item>, MachineDefinition
-                    id: {}""", id);
-            return this;
+        switch (input) {
+            case Item item -> {
+                return inputItems(item);
+            }
+            case Supplier<?> supplier when supplier.get() instanceof ItemLike item -> {
+                return inputItems(item.asItem());
+            }
+            case ItemStack stack -> {
+                return inputItems(stack);
+            }
+            case Ingredient ingredient -> {
+                return inputItems(ingredient);
+            }
+            case MaterialEntry entry -> {
+                return inputItems(entry);
+            }
+            case TagKey<?> tag -> {
+                return inputItems((TagKey<Item>) tag);
+            }
+            case MachineDefinition machine -> {
+                return inputItems(machine);
+            }
+            default -> {
+                GTCEu.LOGGER.error("""
+                        Input item is not one of:
+                        Item, Supplier<Item>, ItemStack, Ingredient, MaterialEntry, TagKey<Item>, MachineDefinition
+                        id: {}""", id);
+                return this;
+            }
         }
     }
 
     public GTRecipeBuilder inputItems(Object input, int count) {
-        if (input instanceof Item item) {
-            return inputItems(item, count);
-        } else if (input instanceof Supplier<?> supplier && supplier.get() instanceof ItemLike item) {
-            return inputItems(item.asItem(), count);
-        } else if (input instanceof ItemStack stack) {
-            return inputItems(stack.copyWithCount(count));
-        } else if (input instanceof Ingredient ingredient) {
-            return inputItems(ingredient, count);
-        } else if (input instanceof MaterialEntry entry) {
-            return inputItems(entry, count);
-        } else if (input instanceof TagKey<?> tag) {
-            return inputItems((TagKey<Item>) tag, count);
-        } else if (input instanceof MachineDefinition machine) {
-            return inputItems(machine, count);
-        } else {
-            GTCEu.LOGGER.error("""
-                    Input item is not one of:
-                    Item, Supplier<Item>, ItemStack, Ingredient, MaterialEntry, TagKey<Item>, MachineDefinition
-                    id: {}""", id);
-            return this;
+        switch (input) {
+            case Item item -> {
+                return inputItems(item, count);
+            }
+            case Supplier<?> supplier when supplier.get() instanceof ItemLike item -> {
+                return inputItems(item.asItem(), count);
+            }
+            case ItemStack stack -> {
+                return inputItems(stack.copyWithCount(count));
+            }
+            case Ingredient ingredient -> {
+                return inputItems(ingredient, count);
+            }
+            case MaterialEntry entry -> {
+                return inputItems(entry, count);
+            }
+            case TagKey<?> tag -> {
+                return inputItems((TagKey<Item>) tag, count);
+            }
+            case MachineDefinition machine -> {
+                return inputItems(machine, count);
+            }
+            default -> {
+                GTCEu.LOGGER.error("""
+                        Input item is not one of:
+                        Item, Supplier<Item>, ItemStack, Ingredient, MaterialEntry, TagKey<Item>, MachineDefinition
+                        id: {}""", id);
+                return this;
+            }
         }
     }
 
@@ -308,7 +325,7 @@ public class GTRecipeBuilder {
             return this;
         } else {
             var matInfo = ItemMaterialData.getMaterialInfo(input.getItem());
-            if (chance == maxChance && chance != 0) {
+            if (chance == Content.MAX_CHANCE && chance != 0) {
                 if (matInfo != null) {
                     for (var matStack : matInfo.getMaterials()) {
                         tempItemMaterialStacks.add(matStack.multiply(input.getCount()));
@@ -329,7 +346,7 @@ public class GTRecipeBuilder {
                 return this;
             } else {
                 var matInfo = ItemMaterialData.getMaterialInfo(itemStack.getItem());
-                if (chance == maxChance && chance != 0) {
+                if (chance == Content.MAX_CHANCE && chance != 0) {
                     if (matInfo != null) {
                         for (var matStack : matInfo.getMaterials()) {
                             tempItemMaterialStacks.add(matStack.multiply(itemStack.getCount()));
@@ -409,42 +426,56 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder outputItems(Object output) {
-        if (output instanceof Item item) {
-            return outputItems(item);
-        } else if (output instanceof Supplier<?> supplier && supplier.get() instanceof ItemLike item) {
-            return outputItems(item.asItem());
-        } else if (output instanceof ItemStack stack) {
-            return outputItems(stack);
-        } else if (output instanceof MaterialEntry entry) {
-            return outputItems(entry);
-        } else if (output instanceof MachineDefinition machine) {
-            return outputItems(machine);
-        } else {
-            GTCEu.LOGGER.error("""
-                    Output item is not one of:
-                    Item, Supplier<Item>, ItemStack, MaterialEntry, MachineDefinition
-                    id: {}""", id);
-            return this;
+        switch (output) {
+            case Item item -> {
+                return outputItems(item);
+            }
+            case Supplier<?> supplier when supplier.get() instanceof ItemLike item -> {
+                return outputItems(item.asItem());
+            }
+            case ItemStack stack -> {
+                return outputItems(stack);
+            }
+            case MaterialEntry entry -> {
+                return outputItems(entry);
+            }
+            case MachineDefinition machine -> {
+                return outputItems(machine);
+            }
+            default -> {
+                GTCEu.LOGGER.error("""
+                        Output item is not one of:
+                        Item, Supplier<Item>, ItemStack, MaterialEntry, MachineDefinition
+                        id: {}""", id);
+                return this;
+            }
         }
     }
 
     public GTRecipeBuilder outputItems(Object output, int count) {
-        if (output instanceof Item item) {
-            return outputItems(item, count);
-        } else if (output instanceof Supplier<?> supplier && supplier.get() instanceof ItemLike item) {
-            return outputItems(item.asItem(), count);
-        } else if (output instanceof ItemStack stack) {
-            return outputItems(stack.copyWithCount(count));
-        } else if (output instanceof MaterialEntry entry) {
-            return outputItems(entry, count);
-        } else if (output instanceof MachineDefinition machine) {
-            return outputItems(machine, count);
-        } else {
-            GTCEu.LOGGER.error("""
-                    Output item is not one of:
-                    Item, Supplier<Item>, ItemStack, MaterialEntry, MachineDefinition
-                    id: {}""", id);
-            return this;
+        switch (output) {
+            case Item item -> {
+                return outputItems(item, count);
+            }
+            case Supplier<?> supplier when supplier.get() instanceof ItemLike item -> {
+                return outputItems(item.asItem(), count);
+            }
+            case ItemStack stack -> {
+                return outputItems(stack.copyWithCount(count));
+            }
+            case MaterialEntry entry -> {
+                return outputItems(entry, count);
+            }
+            case MachineDefinition machine -> {
+                return outputItems(machine, count);
+            }
+            default -> {
+                GTCEu.LOGGER.error("""
+                        Output item is not one of:
+                        Item, Supplier<Item>, ItemStack, MaterialEntry, MachineDefinition
+                        id: {}""", id);
+                return this;
+            }
         }
     }
 
@@ -652,106 +683,6 @@ public class GTRecipeBuilder {
         return chancedOutput(ChemicalHelper.get(tag, mat, count), chance, tierChanceBoost);
     }
 
-    public GTRecipeBuilder chancedOutput(ItemStack stack, String fraction, int tierChanceBoost) {
-        if (stack.isEmpty()) {
-            return this;
-        }
-        String[] split = fraction.split("/");
-        if (split.length != 2) {
-            GTCEu.LOGGER.error("Fraction was not parsed correctly! Expected format is \"1/3\". Actual: \"{}\".", fraction, new Throwable());
-            return this;
-        }
-        int chance;
-        int maxChance;
-        try {
-            chance = Integer.parseInt(split[0]);
-            maxChance = Integer.parseInt(split[1]);
-        } catch (NumberFormatException e) {
-            GTCEu.LOGGER.error("Fraction was not parsed correctly! Expected format is \"1/3\". Actual: \"{}\".", fraction, new Throwable());
-            return this;
-        }
-        if (0 >= chance || chance > ChanceLogic.getMaxChancedValue()) {
-            GTCEu.LOGGER.error("Chance cannot be less or equal to 0 or more than {}. Actual: {}.", ChanceLogic.getMaxChancedValue(), chance, new Throwable());
-            return this;
-        }
-        if (chance >= maxChance || maxChance > ChanceLogic.getMaxChancedValue()) {
-            GTCEu.LOGGER.error("Max Chance cannot be less or equal to Chance or more than {}. Actual: {}.", ChanceLogic.getMaxChancedValue(), maxChance, new Throwable());
-            return this;
-        }
-        int scalar = Math.floorDiv(ChanceLogic.getMaxChancedValue(), maxChance);
-        chance *= scalar;
-        maxChance *= scalar;
-        int lastChance = this.chance;
-        int lastMaxChance = this.maxChance;
-        int lastTierChanceBoost = this.tierChanceBoost;
-        this.chance = chance;
-        this.maxChance = maxChance;
-        this.tierChanceBoost = tierChanceBoost;
-        outputItems(stack);
-        this.chance = lastChance;
-        this.maxChance = lastMaxChance;
-        this.tierChanceBoost = lastTierChanceBoost;
-        return this;
-    }
-
-    public GTRecipeBuilder chancedOutput(TagPrefix prefix, Material material, int count, String fraction, int tierChanceBoost) {
-        return chancedOutput(ChemicalHelper.get(prefix, material, count), fraction, tierChanceBoost);
-    }
-
-    public GTRecipeBuilder chancedOutput(TagPrefix prefix, Material material, String fraction, int tierChanceBoost) {
-        return chancedOutput(prefix, material, 1, fraction, tierChanceBoost);
-    }
-
-    public GTRecipeBuilder chancedOutput(Item item, int count, String fraction, int tierChanceBoost) {
-        return chancedOutput(new ItemStack(item, count), fraction, tierChanceBoost);
-    }
-
-    public GTRecipeBuilder chancedOutput(Item item, String fraction, int tierChanceBoost) {
-        return chancedOutput(item, 1, fraction, tierChanceBoost);
-    }
-
-    public GTRecipeBuilder chancedFluidOutput(FluidStack stack, String fraction, int tierChanceBoost) {
-        if (stack.isEmpty()) {
-            return this;
-        }
-        String[] split = fraction.split("/");
-        if (split.length != 2) {
-            GTCEu.LOGGER.error("Fraction was not parsed correctly! Expected format is \"1/3\". Actual: \"{}\".", fraction, new Throwable());
-            return this;
-        }
-        int chance;
-        int maxChance;
-        try {
-            chance = Integer.parseInt(split[0]);
-            maxChance = Integer.parseInt(split[1]);
-        } catch (NumberFormatException e) {
-            GTCEu.LOGGER.error("Fraction was not parsed correctly! Expected format is \"1/3\". Actual: \"{}\".", fraction, new Throwable());
-            return this;
-        }
-        if (0 >= chance || chance > ChanceLogic.getMaxChancedValue()) {
-            GTCEu.LOGGER.error("Chance cannot be less or equal to 0 or more than {}. Actual: {}.", ChanceLogic.getMaxChancedValue(), chance, new Throwable());
-            return this;
-        }
-        if (chance >= maxChance || maxChance > ChanceLogic.getMaxChancedValue()) {
-            GTCEu.LOGGER.error("Max Chance cannot be less or equal to Chance or more than {}. Actual: {}.", ChanceLogic.getMaxChancedValue(), maxChance, new Throwable());
-            return this;
-        }
-        int scalar = Math.floorDiv(ChanceLogic.getMaxChancedValue(), maxChance);
-        chance *= scalar;
-        maxChance *= scalar;
-        int lastChance = this.chance;
-        int lastMaxChance = this.maxChance;
-        int lastTierChanceBoost = this.tierChanceBoost;
-        this.chance = chance;
-        this.maxChance = maxChance;
-        this.tierChanceBoost = tierChanceBoost;
-        outputFluids(stack);
-        this.chance = lastChance;
-        this.maxChance = lastMaxChance;
-        this.tierChanceBoost = lastTierChanceBoost;
-        return this;
-    }
-
     public GTRecipeBuilder inputFluids(@NotNull Material material, int amount) {
         return inputFluids(material.getFluid(amount));
     }
@@ -761,7 +692,7 @@ public class GTRecipeBuilder {
             return this;
         }
         var matStack = ChemicalHelper.getMaterial(input.getFluid());
-        if (!matStack.isNull() && chance != 0 && chance == maxChance) {
+        if (!matStack.isNull() && chance != 0 && chance == Content.MAX_CHANCE) {
             tempFluidStacks.add(new MaterialStack(matStack, input.getAmount() * GTValues.M / GTValues.L));
         }
         return input(FluidRecipeCapability.CAP, FluidIngredient.of(input));
@@ -776,7 +707,7 @@ public class GTRecipeBuilder {
             } else {
                 var matStack = ChemicalHelper.getMaterial(fluid.getFluid());
                 if (!matStack.isNull()) {
-                    if (chance == maxChance && chance != 0) {
+                    if (chance == Content.MAX_CHANCE && chance != 0) {
                         tempFluidStacks.add(new MaterialStack(matStack, fluid.getAmount() * GTValues.M / GTValues.L));
                     }
                 }
@@ -1260,14 +1191,6 @@ public class GTRecipeBuilder {
      */
     public GTRecipeBuilder chance(final int chance) {
         this.chance = chance;
-        return this;
-    }
-
-    /**
-     * @return {@code this}.
-     */
-    public GTRecipeBuilder maxChance(final int maxChance) {
-        this.maxChance = maxChance;
         return this;
     }
 

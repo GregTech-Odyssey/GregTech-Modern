@@ -20,7 +20,7 @@ public interface ChanceBoostFunction {
         int tierDiff = chanceTier - recipeTier;
         if (tierDiff <= 0) return entry.chance; // equal or invalid tiers do not boost at all
         if (recipeTier == GTValues.ULV) tierDiff--; // LV does not boost over ULV
-        return Mth.clamp(entry.chance + (entry.tierChanceBoost * tierDiff), 0, entry.maxChance);
+        return Mth.clamp(entry.chance + (entry.tierChanceBoost * tierDiff), 0, Content.MAX_CHANCE);
     };
 
     /**

@@ -46,6 +46,7 @@ public abstract class RecipeCapability<T> {
     public final boolean doRenderSlot;
     public final int sortIndex;
     public final IContentSerializer<T> serializer;
+    public final Codec<List<Content>> contentSerializer;
 
     protected RecipeCapability(String name, int color, boolean doRenderSlot, int sortIndex,
                                IContentSerializer<T> serializer) {
@@ -54,10 +55,11 @@ public abstract class RecipeCapability<T> {
         this.doRenderSlot = doRenderSlot;
         this.sortIndex = sortIndex;
         this.serializer = serializer;
+        contentSerializer = Content.codec(this).listOf();
     }
 
     public static Codec<List<Content>> contentCodec(RecipeCapability<?> capability) {
-        return Content.codec(capability).listOf();
+        return capability.contentSerializer;
     }
 
     /**

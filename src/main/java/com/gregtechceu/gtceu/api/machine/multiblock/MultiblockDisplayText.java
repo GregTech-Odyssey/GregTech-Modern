@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
+import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -338,17 +339,17 @@ public class MultiblockDisplayText {
                     var stack = stacks[0];
                     int count = stack.getCount();
                     double countD = count;
-                    if (item.chance < item.maxChance) {
+                    if (item.chance < Content.MAX_CHANCE) {
                         countD = countD * recipe.parallels *
-                                function.getBoostedChance(item, recipeTier, chanceTier) / item.maxChance;
+                                function.getBoostedChance(item, recipeTier, chanceTier) / Content.MAX_CHANCE;
                         count = countD < 1 ? 1 : (int) Math.round(countD);
                     }
                     if (count < maxDurationSec) {
-                        String key = "gtceu.multiblock.output_line." + (item.chance < item.maxChance ? "2" : "0");
+                        String key = "gtceu.multiblock.output_line." + (item.chance < Content.MAX_CHANCE ? "2" : "0");
                         textList.add(Component.translatable(key, stack.getHoverName(), count,
                                 FormattingUtil.formatNumber2Places(maxDurationSec / countD)));
                     } else {
-                        String key = "gtceu.multiblock.output_line." + (item.chance < item.maxChance ? "3" : "1");
+                        String key = "gtceu.multiblock.output_line." + (item.chance < Content.MAX_CHANCE ? "3" : "1");
                         textList.add(Component.translatable(key, stack.getHoverName(), count,
                                 FormattingUtil.formatNumber2Places(countD / maxDurationSec)));
                     }
@@ -359,17 +360,17 @@ public class MultiblockDisplayText {
                     var stack = stacks[0];
                     int amount = stack.getAmount();
                     double amountD = amount;
-                    if (fluid.chance < fluid.maxChance) {
+                    if (fluid.chance < Content.MAX_CHANCE) {
                         amountD = amountD * recipe.parallels *
-                                function.getBoostedChance(fluid, recipeTier, chanceTier) / fluid.maxChance;
+                                function.getBoostedChance(fluid, recipeTier, chanceTier) / Content.MAX_CHANCE;
                         amount = amountD < 1 ? 1 : (int) Math.round(amountD);
                     }
                     if (amount < maxDurationSec) {
-                        String key = "gtceu.multiblock.output_line." + (fluid.chance < fluid.maxChance ? "2" : "0");
+                        String key = "gtceu.multiblock.output_line." + (fluid.chance < Content.MAX_CHANCE ? "2" : "0");
                         textList.add(Component.translatable(key, stack.getDisplayName(), amount,
                                 FormattingUtil.formatNumber2Places(maxDurationSec / amountD)));
                     } else {
-                        String key = "gtceu.multiblock.output_line." + (fluid.chance < fluid.maxChance ? "3" : "1");
+                        String key = "gtceu.multiblock.output_line." + (fluid.chance < Content.MAX_CHANCE ? "3" : "1");
                         textList.add(Component.translatable(key, stack.getDisplayName(), amount,
                                 FormattingUtil.formatNumber2Places(amountD / maxDurationSec)));
                     }

@@ -289,8 +289,8 @@ public class GTRecipeWidget extends WidgetGroup {
             if (boostedChance == 0) {
                 tooltips.add(Component.translatable("gtceu.gui.content.chance_nc"));
             } else {
-                float baseChanceFloat = 100f * content.chance / content.maxChance;
-                float boostedChanceFloat = 100f * boostedChance / content.maxChance;
+                float baseChanceFloat = 100f * content.chance / Content.MAX_CHANCE;
+                float boostedChanceFloat = 100f * boostedChance / Content.MAX_CHANCE;
                 if (logic != ChanceLogic.NONE && logic != ChanceLogic.OR) {
                     tooltips.add(Component.translatable("gtceu.gui.content.chance_base_logic",
                             FormattingUtil.formatNumber2Places(baseChanceFloat), logic.getTranslation())
@@ -303,7 +303,7 @@ public class GTRecipeWidget extends WidgetGroup {
                     String key = "gtceu.gui.content.chance_tier_boost_" +
                             ((content.tierChanceBoost > 0) ? "plus" : "minus");
                     tooltips.add(FormattingUtil.formatPercentage2Places(key,
-                            Math.abs(100f * content.tierChanceBoost / content.maxChance)));
+                            Math.abs(100f * content.tierChanceBoost / Content.MAX_CHANCE)));
                 }
                 if (logic != ChanceLogic.NONE && logic != ChanceLogic.OR) {
                     tooltips.add(Component.translatable("gtceu.gui.content.chance_boosted_logic",

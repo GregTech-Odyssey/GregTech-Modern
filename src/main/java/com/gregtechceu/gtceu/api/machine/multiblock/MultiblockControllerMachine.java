@@ -229,7 +229,10 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                     }
                 }
                 state.cleanCache();
-                for (var subState : subMultiblockState) subState.cleanCache();
+                for (var subState : subMultiblockState) {
+                    if (subState == null) continue;
+                    subState.cleanCache();
+                }
                 checking = false;
             }
             if (result) {
