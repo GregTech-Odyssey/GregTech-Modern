@@ -54,17 +54,11 @@ public abstract class LongDistanceEndpointMachine extends MetaMachine implements
 
     protected void updateRefreshNetSubscription() {
         if (getLink() == null) {
-            refreshNetSubs = subscribeServerTick(refreshNetSubs, this::checkNetwork);
+            refreshNetSubs = subscribeServerTick(refreshNetSubs, this::updateNetwork, 20);
         } else if (refreshNetSubs != null) {
             refreshNetSubs.unsubscribe();
             refreshNetSubs = null;
             super.notifyBlockUpdate();
-        }
-    }
-
-    protected void checkNetwork() {
-        if (getOffsetTimer() % 20 == 0) {
-            updateNetwork();
         }
     }
 

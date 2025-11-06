@@ -127,31 +127,41 @@ public class BlockPattern {
                             BlockPos pos = setActualRelativeOffset(x, y, z, frontFacing, upwardsFacing, isFlipped).offset(centerPos.getX(), centerPos.getY(), centerPos.getZ());
                             worldState.update(pos, predicate);
                             long posLong = pos.asLong();
-                            worldState.addPosCache(posLong);
 
-                            boolean error = !predicate.test(worldState);
-                            if (!error && !predicate.testOnly()) {
+                            boolean success = predicate.test(worldState);
+                            if (success && !predicate.testOnly()) {
                                 if (savePredicate) {
                                     matchContext.getPredicates().put(posLong, predicate);
                                 }
                                 if (worldState.getBlockState().getBlock() instanceof ActiveBlock) {
                                     matchContext.vaBlocks.add(posLong);
-                                } else if (worldState.getTileEntity() instanceof MetaMachineBlockEntity machineBlockEntity && machineBlockEntity.getMetaMachine() instanceof IMultiPart part) {
-                                    if (!worldState.world.isLoaded(pos)) {
-                                        worldState.setError(MultiblockState.UNLOAD_ERROR);
-                                        return false;
-                                    }
-                                    // add detected parts
-                                    if (part.isFormed() && !part.canShared() && !part.hasController(worldState.controllerPos)) {
-                                        // check part can be shared
-                                        error = true;
-                                        worldState.setError(MultiblockState.SHARE_ERROR);
-                                    } else {
-                                        matchContext.parts.add(part);
+                                } else {
+                                    var blockentity = worldState.getTileEntity();
+                                    if (blockentity != null) {
+                                        if (blockentity instanceof MetaMachineBlockEntity machineBlockEntity) {
+                                            if (machineBlockEntity.metaMachine instanceof IMultiPart part) {
+                                                if (!worldState.world.isLoaded(pos)) {
+                                                    worldState.setError(MultiblockState.UNLOAD_ERROR);
+                                                    return false;
+                                                }
+                                                // add detected parts
+                                                if (part.isFormed() && !part.canShared() && !part.hasController(worldState.controllerPos)) {
+                                                    // check part can be shared
+                                                    success = false;
+                                                    worldState.setError(MultiblockState.SHARE_ERROR);
+                                                } else {
+                                                    matchContext.parts.add(part);
+                                                }
+                                            }
+                                        } else {
+                                            worldState.blockEntityCache.add(posLong);
+                                        }
                                     }
                                 }
                             }
-                            if (error) {
+                            if (success) {
+                                worldState.cache.add(posLong);
+                            } else {
                                 // matching failed
                                 if (findFirstAisle) {
                                     if (r < aisleRepetitions[c][0]) {

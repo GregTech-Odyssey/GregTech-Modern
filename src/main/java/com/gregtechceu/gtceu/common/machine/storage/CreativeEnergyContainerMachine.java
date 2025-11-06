@@ -59,7 +59,7 @@ public class CreativeEnergyContainerMachine extends TieredMachine implements ILa
     @Override
     public void onLoad() {
         super.onLoad();
-        subscribeServerTick(this::updateEnergyTick);
+        subscribeServerTick(this::updateEnergyTick, 0);
     }
 
     //////////////////////////////////////

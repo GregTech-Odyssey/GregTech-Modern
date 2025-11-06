@@ -54,9 +54,7 @@ public class MultiblockWorldSavedData extends SavedData {
 
     public void addMapping(MultiblockState state) {
         synchronized (chunkPosMapping) {
-            for (var blockPos : state.cache) {
-                chunkPosMapping.computeIfAbsent(PosUtils.getChunkLong(blockPos), c -> new ReferenceOpenHashSet<>()).add(state);
-            }
+            state.cache.forEach(posLong -> chunkPosMapping.computeIfAbsent(PosUtils.getChunkLong(posLong), c -> new ReferenceOpenHashSet<>()).add(state));
         }
     }
 

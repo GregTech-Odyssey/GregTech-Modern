@@ -30,7 +30,7 @@ public class EnergyContainerInfoList extends EnergyContainerList {
 
     public void onMachineLoad() {
         if (machine == null || machine.isRemote()) return;
-        updateSubs = machine.subscribeServerTick(updateSubs, this::updateTick);
+        updateSubs = machine.subscribeServerTick(updateSubs, this::updateTick, 20);
     }
 
     public void onMachineUnLoad() {
@@ -41,12 +41,10 @@ public class EnergyContainerInfoList extends EnergyContainerList {
     }
 
     protected void updateTick() {
-        if (machine != null && machine.getOffsetTimer() % 20 == 0) {
-            lastEnergyOutputPerSec = energyOutputPerSec;
-            lastEnergyInputPerSec = energyInputPerSec;
-            energyOutputPerSec = 0;
-            energyInputPerSec = 0;
-        }
+        lastEnergyOutputPerSec = energyOutputPerSec;
+        lastEnergyInputPerSec = energyInputPerSec;
+        energyOutputPerSec = 0;
+        energyInputPerSec = 0;
     }
 
     @Override

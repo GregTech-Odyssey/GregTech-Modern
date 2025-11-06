@@ -21,9 +21,6 @@ public class ItemDetectorCover extends DetectorCover {
 
     @Override
     protected void update() {
-        if (this.coverHolder.getOffsetTimer() % 20 != 0)
-            return;
-
         IItemHandler handler = getItemHandler();
         if (handler == null)
             return;

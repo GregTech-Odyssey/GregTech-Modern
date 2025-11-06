@@ -118,11 +118,6 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
     }
 
     @Override
-    public int getOffsetTimer() {
-        return pipeTile.getOffsetTimer();
-    }
-
-    @Override
     public void notifyBlockUpdate() {
         pipeTile.notifyBlockUpdate();
     }
@@ -169,8 +164,8 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
 
     @Nullable
     @Override
-    public TickableSubscription subscribeServerTick(Runnable runnable) {
-        return pipeTile.subscribeServerTick(runnable);
+    public TickableSubscription subscribeServerTick(Runnable runnable, int cycle) {
+        return pipeTile.subscribeServerTick(runnable, cycle);
     }
 
     @Override

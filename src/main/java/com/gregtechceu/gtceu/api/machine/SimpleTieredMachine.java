@@ -244,7 +244,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
         var outputFacingItems = getOutputFacingItems();
         var outputFacingFluids = getOutputFacingFluids();
         if ((isAutoOutputItems() && !exportItems.isEmpty() && outputFacingItems != null && blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacingItems)) || (isAutoOutputFluids() && !exportFluids.isEmpty() && outputFacingFluids != null && blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacingFluids))) {
-            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput);
+            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput, 20);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;
@@ -267,13 +267,11 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     }
 
     protected void autoOutput() {
-        if (getOffsetTimer() % 20 == 0) {
-            if (isAutoOutputFluids() && getOutputFacingFluids() != null) {
-                exportFluids.exportToNearby(getOutputFacingFluids());
-            }
-            if (isAutoOutputItems() && getOutputFacingItems() != null) {
-                exportItems.exportToNearby(getOutputFacingItems());
-            }
+        if (isAutoOutputFluids() && getOutputFacingFluids() != null) {
+            exportFluids.exportToNearby(getOutputFacingFluids());
+        }
+        if (isAutoOutputItems() && getOutputFacingItems() != null) {
+            exportItems.exportToNearby(getOutputFacingItems());
         }
         updateAutoOutputSubscription();
     }

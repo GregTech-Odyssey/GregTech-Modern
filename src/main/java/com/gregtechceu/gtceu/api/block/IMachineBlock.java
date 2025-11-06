@@ -58,7 +58,7 @@ public interface IMachineBlock extends IBlockRendererProvider, EntityBlock {
             if (level.isClientSide) {
                 return (pLevel, pPos, pState, pTile) -> {
                     if (pTile instanceof MetaMachineBlockEntity metaMachine) {
-                        metaMachine.getMetaMachine().clientTick();
+                        metaMachine.metaMachine.clientTick();
                     }
                 };
             }

@@ -8,6 +8,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.thread.BlockableEventLoop;
 import net.minecraft.world.level.Level;
 
+import lombok.Getter;
+
 import java.util.function.BooleanSupplier;
 
 /**
@@ -24,10 +26,14 @@ public class ConditionalSubscriptionHandler {
 
     private TickableSubscription subscription;
 
-    public ConditionalSubscriptionHandler(ITickSubscription handler, Runnable runnable, BooleanSupplier condition) {
+    @Getter
+    private int cycle;
+
+    public ConditionalSubscriptionHandler(ITickSubscription handler, Runnable runnable, int cycle, BooleanSupplier condition) {
         this.handler = handler;
         this.runnable = runnable;
         this.condition = condition;
+        this.cycle = cycle;
     }
 
     /**
@@ -55,7 +61,7 @@ public class ConditionalSubscriptionHandler {
      */
     public void updateSubscription() {
         if (condition.getAsBoolean()) {
-            subscription = handler.subscribeServerTick(subscription, runnable);
+            subscription = handler.subscribeServerTick(subscription, runnable, cycle);
         } else if (subscription != null) {
             subscription.unsubscribe();
             subscription = null;
@@ -70,5 +76,10 @@ public class ConditionalSubscriptionHandler {
             subscription.unsubscribe();
             subscription = null;
         }
+    }
+
+    public void setCycle(int cycle) {
+        this.cycle = cycle;
+        if (subscription != null) subscription.cycle = cycle;
     }
 }

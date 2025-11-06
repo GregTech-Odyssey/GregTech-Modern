@@ -170,7 +170,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingFluids();
         if ((isAutoOutputFluids() && !cache.isEmpty()) && outputFacing != null && blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacing)) {
-            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::checkAutoOutput);
+            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::checkAutoOutput, 20);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;
@@ -178,12 +178,10 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     }
 
     protected void checkAutoOutput() {
-        if (getOffsetTimer() % 5 == 0) {
-            if (isAutoOutputFluids() && getOutputFacingFluids() != null) {
-                cache.exportToNearby(getOutputFacingFluids());
-            }
-            updateAutoOutputSubscription();
+        if (isAutoOutputFluids() && getOutputFacingFluids() != null) {
+            cache.exportToNearby(getOutputFacingFluids());
         }
+        updateAutoOutputSubscription();
     }
 
     @Override

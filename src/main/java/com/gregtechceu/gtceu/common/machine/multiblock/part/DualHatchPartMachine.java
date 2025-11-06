@@ -95,7 +95,7 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
         }
 
         if (canIO && (hasItemHandler || hasFluidHandler)) {
-            autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO);
+            autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO, 20);
         } else if (autoIOSubs != null) {
             autoIOSubs.unsubscribe();
             autoIOSubs = null;
@@ -104,26 +104,24 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
 
     @Override
     protected void autoIO() {
-        if (getOffsetTimer() % 20 == 0) {
-            if (isWorkingEnabled()) {
-                if (io == IO.OUT) {
-                    if (hasItemHandler) {
-                        getInventory().exportToNearby(getFrontFacing());
-                    }
-                    if (hasFluidHandler) {
-                        tank.exportToNearby(getFrontFacing());
-                    }
-                } else if (io == IO.IN) {
-                    if (hasItemHandler) {
-                        getInventory().importFromNearby(getFrontFacing());
-                    }
-                    if (hasFluidHandler) {
-                        tank.importFromNearby(getFrontFacing());
-                    }
+        if (isWorkingEnabled()) {
+            if (io == IO.OUT) {
+                if (hasItemHandler) {
+                    getInventory().exportToNearby(getFrontFacing());
+                }
+                if (hasFluidHandler) {
+                    tank.exportToNearby(getFrontFacing());
+                }
+            } else if (io == IO.IN) {
+                if (hasItemHandler) {
+                    getInventory().importFromNearby(getFrontFacing());
+                }
+                if (hasFluidHandler) {
+                    tank.importFromNearby(getFrontFacing());
                 }
             }
-            updateInventorySubscription();
         }
+        updateInventorySubscription();
     }
 
     @Override

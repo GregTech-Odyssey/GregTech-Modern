@@ -15,19 +15,23 @@ public interface ITickSubscription {
      * {@link BlockEntity#clearRemoved()} event.
      */
     @Nullable
-    TickableSubscription subscribeServerTick(Runnable runnable);
+    TickableSubscription subscribeServerTick(Runnable runnable, int cycle);
 
-    static ISubscription unsubscribe(@Nullable ISubscription current) {
+    static <T extends ISubscription> T unsubscribe(@Nullable T current) {
         if (current != null) {
             current.unsubscribe();
         }
         return null;
     }
 
-    @Nullable
     default TickableSubscription subscribeServerTick(@Nullable TickableSubscription last, Runnable runnable) {
+        return subscribeServerTick(last, runnable, 0);
+    }
+
+    @Nullable
+    default TickableSubscription subscribeServerTick(@Nullable TickableSubscription last, Runnable runnable, int cycle) {
         if (last == null || !last.stillSubscribed) {
-            return subscribeServerTick(runnable);
+            return subscribeServerTick(runnable, cycle);
         }
         return last;
     }

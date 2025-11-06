@@ -44,7 +44,7 @@ public abstract class DetectorCover extends CoverBehavior implements IControllab
     @Override
     public void onLoad() {
         super.onLoad();
-        subscription = coverHolder.subscribeServerTick(subscription, this::update);
+        subscription = coverHolder.subscribeServerTick(subscription, this::update, 20);
     }
 
     @Override

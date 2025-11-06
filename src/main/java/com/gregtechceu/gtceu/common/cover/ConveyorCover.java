@@ -95,7 +95,7 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
         this.transferRate = maxItemTransferRate;
         this.io = IO.OUT;
         this.distributionMode = DistributionMode.INSERT_FIRST;
-        subscriptionHandler = new ConditionalSubscriptionHandler(coverHolder, this::update, this::isSubscriptionActive);
+        subscriptionHandler = new ConditionalSubscriptionHandler(coverHolder, this::update, 20, this::isSubscriptionActive);
         filterHandler = FilterHandlers.item(this).onFilterLoaded(f -> configureFilter()).onFilterUpdated(f -> configureFilter()).onFilterRemoved(f -> configureFilter());
     }
 
@@ -188,17 +188,15 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     }
 
     protected void update() {
-        if (this.coverHolder.getOffsetTimer() % 20 == 0) {
-            IItemHandler adjacent = this.getAdjacentItemHandler();
-            IItemHandlerModifiable self = this.getOwnItemHandler();
-            if (adjacent != null && self != null) {
-                switch (this.io) {
-                    case IN -> this.doTransferItems(adjacent, self, this.transferRate);
-                    case OUT -> this.doTransferItems(self, adjacent, this.transferRate);
-                }
+        IItemHandler adjacent = this.getAdjacentItemHandler();
+        IItemHandlerModifiable self = this.getOwnItemHandler();
+        if (adjacent != null && self != null) {
+            switch (this.io) {
+                case IN -> this.doTransferItems(adjacent, self, this.transferRate);
+                case OUT -> this.doTransferItems(self, adjacent, this.transferRate);
             }
-            this.subscriptionHandler.updateSubscription();
         }
+        this.subscriptionHandler.updateSubscription();
     }
 
     protected int doTransferItems(IItemHandler sourceInventory, IItemHandler targetInventory, int maxTransferAmount) {

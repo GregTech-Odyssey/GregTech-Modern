@@ -161,7 +161,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
         if (isSuspend() || !machine.isRecipeLogicAvailable()) {
             unsubscribe();
         } else {
-            subscription = getMachine().subscribeServerTick(subscription, this::serverTick);
+            subscription = getMachine().subscribeServerTick(subscription, this::serverTick, interval);
         }
     }
 
@@ -179,12 +179,13 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
                 machine.onRecipeFinish();
                 onRecipeFinish();
             }
-        } else if (getMachine().getOffsetTimer() % interval == 0) {
+        } else {
             recipeDirty = false;
             findAndHandleRecipe();
             if (lastRecipe == null) {
                 if (interval < SEARCH_MAX_INTERVAL) {
                     interval <<= 1;
+                    if (subscription != null) subscription.cycle = interval;
                 }
                 if (!machine.keepSubscribing()) unsubscribe();
             }
@@ -270,6 +271,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
             lastRecipe = recipe;
             setStatus(RecipeLogic.Status.WORKING);
             duration = recipe.duration;
+            subscription.cycle = 0;
             isActive = true;
         } else {
             setStatus(RecipeLogic.Status.IDLE);

@@ -126,7 +126,7 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine implements IM
 
     protected void updateMaintenanceSubscription() {
         if (hasMaintenanceProblems()) {
-            maintenanceSubs = subscribeServerTick(maintenanceSubs, this::update);
+            maintenanceSubs = subscribeServerTick(maintenanceSubs, this::update, 80);
         } else if (maintenanceSubs != null) {
             maintenanceSubs.unsubscribe();
             maintenanceSubs = null;
@@ -134,15 +134,13 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine implements IM
     }
 
     public void update() {
-        if (getOffsetTimer() % 20 == 0) {
-            if (hasMaintenanceProblems()) {
-                if (consumeDuctTape(this.itemStackHandler, 0)) {
-                    fixAllMaintenanceProblems();
-                    setTaped(true);
-                }
-            } else {
-                updateMaintenanceSubscription();
+        if (hasMaintenanceProblems()) {
+            if (consumeDuctTape(this.itemStackHandler, 0)) {
+                fixAllMaintenanceProblems();
+                setTaped(true);
             }
+        } else {
+            updateMaintenanceSubscription();
         }
     }
 

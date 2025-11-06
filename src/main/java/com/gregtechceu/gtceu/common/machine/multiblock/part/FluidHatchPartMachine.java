@@ -156,7 +156,7 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
 
     protected void updateTankSubscription(Direction newFacing) {
         if (isWorkingEnabled() && ((io == IO.OUT && !tank.isEmpty()) || io == IO.IN) && blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), newFacing)) {
-            autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO);
+            autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO, 20);
         } else if (autoIOSubs != null) {
             autoIOSubs.unsubscribe();
             autoIOSubs = null;
@@ -164,16 +164,14 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
     }
 
     protected void autoIO() {
-        if (getOffsetTimer() % 20 == 0) {
-            if (isWorkingEnabled()) {
-                if (io == IO.OUT) {
-                    tank.exportToNearby(getFrontFacing());
-                } else if (io == IO.IN) {
-                    tank.importFromNearby(getFrontFacing());
-                }
+        if (isWorkingEnabled()) {
+            if (io == IO.OUT) {
+                tank.exportToNearby(getFrontFacing());
+            } else if (io == IO.IN) {
+                tank.importFromNearby(getFrontFacing());
             }
-            updateTankSubscription();
         }
+        updateTankSubscription();
     }
 
     @Override

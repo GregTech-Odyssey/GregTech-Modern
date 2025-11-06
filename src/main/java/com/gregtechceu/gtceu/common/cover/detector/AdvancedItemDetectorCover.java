@@ -69,7 +69,6 @@ public class AdvancedItemDetectorCover extends ItemDetectorCover implements IUIC
 
     @Override
     protected void update() {
-        if (this.coverHolder.getOffsetTimer() % 20 != 0) return;
         ItemFilter filter = filterHandler.getFilter();
         IItemHandler handler = getItemHandler();
         if (handler == null) return;

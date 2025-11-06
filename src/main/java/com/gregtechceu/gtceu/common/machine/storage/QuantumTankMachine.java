@@ -209,20 +209,22 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingFluids();
         if ((isAutoOutputFluids() && !stored.isEmpty()) && outputFacing != null && blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacing)) {
-            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::checkAutoOutput);
+            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::checkAutoOutput, getTicksPerCycle());
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;
         }
     }
 
+    protected int getTicksPerCycle() {
+        return 20;
+    }
+
     protected void checkAutoOutput() {
-        if (getOffsetTimer() % 20 == 0) {
-            if (isAutoOutputFluids() && getOutputFacingFluids() != null) {
-                cache.exportToNearby(getOutputFacingFluids());
-            }
-            updateAutoOutputSubscription();
+        if (isAutoOutputFluids() && getOutputFacingFluids() != null) {
+            cache.exportToNearby(getOutputFacingFluids());
         }
+        updateAutoOutputSubscription();
     }
 
     //////////////////////////////////////

@@ -31,7 +31,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class EnderFluidLinkCover extends AbstractEnderLinkCover<VirtualTank> {
 
-    public static final int TRANSFER_RATE = 8000; // mB/t
     @Persisted
     @DescSynced
     protected VirtualTank visualTank;
@@ -39,11 +38,9 @@ public class EnderFluidLinkCover extends AbstractEnderLinkCover<VirtualTank> {
     @Persisted
     @DescSynced
     protected final FilterHandler<FluidStack, FluidFilter> filterHandler;
-    protected int mBLeftToTransferLastSecond;
 
     public EnderFluidLinkCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {
         super(definition, coverHolder, attachedSide);
-        this.mBLeftToTransferLastSecond = TRANSFER_RATE * 20;
         filterHandler = FilterHandlers.fluid(this);
         if (!isRemote()) visualTank = VirtualEnderRegistry.getInstance().getOrCreateEntry(getOwner(), EntryTypes.ENDER_FLUID, getChannelName());
     }
@@ -73,33 +70,19 @@ public class EnderFluidLinkCover extends AbstractEnderLinkCover<VirtualTank> {
         return "EFLink#";
     }
 
-    @Override
-    protected void transfer() {
-        long timer = coverHolder.getOffsetTimer();
-        if (mBLeftToTransferLastSecond > 0) {
-            int platformTransferredFluid = doTransferFluids(mBLeftToTransferLastSecond);
-            this.mBLeftToTransferLastSecond -= platformTransferredFluid;
-        }
-        if (timer % 20 == 0) {
-            this.mBLeftToTransferLastSecond = TRANSFER_RATE * 20;
-        }
-    }
-
     @Nullable
     protected IFluidHandlerModifiable getOwnFluidHandler() {
         return coverHolder.getFluidHandlerCap(attachedSide, false);
     }
 
-    private int doTransferFluids(int platformTransferLimit) {
+    @Override
+    protected void transfer() {
         var ownFluidHandler = getOwnFluidHandler();
-        if (ownFluidHandler != null) {
-            return switch (io) {
-                case IN -> GTTransferUtils.transferFluidsFiltered(ownFluidHandler, visualTank.getFluidTank(), filterHandler.getFilter(), platformTransferLimit);
-                case OUT -> GTTransferUtils.transferFluidsFiltered(visualTank.getFluidTank(), ownFluidHandler, filterHandler.getFilter(), platformTransferLimit);
-                default -> 0;
-            };
+        if (ownFluidHandler == null) return;
+        switch (io) {
+            case IN -> GTTransferUtils.transferFluidsFiltered(ownFluidHandler, visualTank.getFluidTank(), filterHandler.getFilter(), VirtualTank.DEFAULT_CAPACITY);
+            case OUT -> GTTransferUtils.transferFluidsFiltered(visualTank.getFluidTank(), ownFluidHandler, filterHandler.getFilter(), VirtualTank.DEFAULT_CAPACITY);
         }
-        return 0;
     }
 
     //////////////////////////////////////

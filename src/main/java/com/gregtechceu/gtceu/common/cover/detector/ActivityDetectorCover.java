@@ -25,10 +25,6 @@ public class ActivityDetectorCover extends DetectorCover {
 
     @Override
     protected void update() {
-        if (this.coverHolder.getOffsetTimer() % 20 != 0) {
-            return;
-        }
-
         var workable = GTCapabilityHelper.getWorkable(coverHolder.holder(), attachedSide);
 
         boolean isCurrentlyWorking = workable.isActive() && workable.isWorkingEnabled();

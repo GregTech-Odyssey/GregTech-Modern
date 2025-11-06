@@ -45,7 +45,7 @@ public class ReservoirHatchPartMachine extends FluidHatchPartMachine {
     @Override
     protected void updateTankSubscription() {
         if (isWorkingEnabled() && !waterTank.isFull()) {
-            autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO);
+            autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO, 20);
         } else if (autoIOSubs != null) {
             autoIOSubs.unsubscribe();
             autoIOSubs = null;
@@ -55,10 +55,8 @@ public class ReservoirHatchPartMachine extends FluidHatchPartMachine {
     @Override
     protected void autoIO() {
         // replace with refilling water tank
-        if (getOffsetTimer() % 20 == 0) {
-            waterTank.refillWater();
-            updateTankSubscription();
-        }
+        waterTank.refillWater();
+        updateTankSubscription();
     }
 
     // By returning false here, we don't allow shift-clicking

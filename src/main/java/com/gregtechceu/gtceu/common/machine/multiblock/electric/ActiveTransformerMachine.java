@@ -46,14 +46,12 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
         this.powerOutput = EnergyContainerInfoList.EMPTY;
         this.powerInput = EnergyContainerInfoList.EMPTY;
 
-        this.converterSubscription = new ConditionalSubscriptionHandler(this, this::convertEnergyTick,
-                this::isSubscriptionActive);
+        this.converterSubscription = new ConditionalSubscriptionHandler(this, this::convertEnergyTick, 0, this::isSubscriptionActive);
     }
 
     public void convertEnergyTick() {
         if (isWorkingEnabled()) {
-            getRecipeLogic()
-                    .setStatus(isSubscriptionActive() ? RecipeLogic.Status.WORKING : RecipeLogic.Status.SUSPEND);
+            getRecipeLogic().setStatus(isSubscriptionActive() ? RecipeLogic.Status.WORKING : RecipeLogic.Status.SUSPEND);
         }
         if (isWorkingEnabled()) {
             long canDrain = powerInput.getEnergyStored();

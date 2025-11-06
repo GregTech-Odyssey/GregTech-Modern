@@ -51,9 +51,6 @@ public class ItemVoidingCover extends ConveyorCover {
 
     @Override
     protected void update() {
-        if (coverHolder.getOffsetTimer() % 5 != 0)
-            return;
-
         doVoidItems();
         subscriptionHandler.updateSubscription();
     }

@@ -78,7 +78,7 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
 
     public AbstractEnderLinkCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {
         super(definition, coverHolder, attachedSide);
-        subscriptionHandler = new ConditionalSubscriptionHandler(coverHolder, this::update, this::isSubscriptionActive);
+        subscriptionHandler = new ConditionalSubscriptionHandler(coverHolder, this::update, 20, this::isSubscriptionActive);
     }
 
     @Override
@@ -189,8 +189,6 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
     protected abstract EntryTypes<T> getEntryType();
 
     protected void update() {
-        long timer = coverHolder.getOffsetTimer();
-        if (timer % 5 != 0) return;
         if (isWorkingEnabled() && !isRemote()) {
             var entry = VirtualEnderRegistry.getInstance().getOrCreateEntry(getOwner(), getEntryType(), getChannelName());
             if (!entry.getColorStr().equals(this.colorStr)) {

@@ -89,7 +89,7 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
         this.tier = tier;
         this.maxFluidTransferRate = maxTransferRate;
         this.transferRate = maxFluidTransferRate;
-        subscriptionHandler = new ConditionalSubscriptionHandler(coverHolder, this::update, this::isSubscriptionActive);
+        subscriptionHandler = new ConditionalSubscriptionHandler(coverHolder, this::update, 20, this::isSubscriptionActive);
         filterHandler = FilterHandlers.fluid(this).onFilterLoaded(f -> configureFilter()).onFilterUpdated(f -> configureFilter()).onFilterRemoved(f -> configureFilter());
     }
 
@@ -187,10 +187,8 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
     }
 
     protected void update() {
-        if (this.coverHolder.getOffsetTimer() % 20 == 0) {
-            doTransferFluids(transferRate * 20);
-            subscriptionHandler.updateSubscription();
-        }
+        doTransferFluids(transferRate * 20);
+        subscriptionHandler.updateSubscription();
     }
 
     private int doTransferFluids(int platformTransferLimit) {

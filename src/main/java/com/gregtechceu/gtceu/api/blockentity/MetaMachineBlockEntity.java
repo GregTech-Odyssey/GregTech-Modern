@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.misc.EnergyInfoProviderList;
 import com.gregtechceu.gtceu.api.misc.LaserContainerList;
 import com.gregtechceu.gtceu.client.renderer.GTRendererProvider;
+import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.Platform;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
@@ -28,6 +29,7 @@ import com.lowdragmc.lowdraglib.syncdata.managed.IRef;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -53,6 +55,7 @@ import snownee.jade.api.config.IPluginConfig;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 
 public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHighlight, IAsyncAutoSyncBlockEntity, IRPCBlockEntity, IAutoPersistBlockEntity, IPaintable, IWailaDisplayProvider {
 
@@ -60,6 +63,8 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
     public final MetaMachine metaMachine;
     public final MachineDefinition definition;
     public final int offset = GTValues.RNG.nextInt(20);
+    public final BooleanSupplier isRemove = () -> remove;
+    public int tickDelay = 0;
     protected boolean asyncSyncing;
     protected LevelChunk chunk;
 
@@ -106,8 +111,12 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
 
     @Override
     public void clearRemoved() {
+        tickDelay = offset;
         super.clearRemoved();
         metaMachine.onLoad();
+        if (getLevel() instanceof ServerLevel serverLevel) {
+            TaskHandler.enqueueServerTask(serverLevel, () -> tickDelay = 0, 1);
+        }
     }
 
     @Override

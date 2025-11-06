@@ -770,7 +770,7 @@ public class GTMachines {
                     .overlayTieredHullRenderer("muffler_hatch")
                     .tooltips(LangHandler.getFromMultiLang("gtceu.machine.muffler_hatch.tooltip", 0),
                             Component.translatable("gtceu.muffler.recovery_tooltip", Math.max(1, tier * 10)),
-                            Component.translatable("gtceu.part_sharing.enabled"),
+                            Component.translatable("gtceu.part_sharing.disabled"),
                             LangHandler.getFromMultiLang("gtceu.machine.muffler_hatch.tooltip", 1)
                                     .withStyle(ChatFormatting.DARK_RED))
                     .register(),

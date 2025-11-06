@@ -32,7 +32,7 @@ public class TankValvePartMachine extends MultiblockPartMachine {
         super(holder);
 
         tankProxy = createTank(args);
-        autoIOSubscription = new ConditionalSubscriptionHandler(this, this::autoIO, this::shouldAutoIO);
+        autoIOSubscription = new ConditionalSubscriptionHandler(this, this::autoIO, 20, this::shouldAutoIO);
     }
 
     protected FluidTankProxyTrait createTank(Object... args) {
@@ -94,10 +94,8 @@ public class TankValvePartMachine extends MultiblockPartMachine {
     }
 
     private void autoIO() {
-        if (getOffsetTimer() % 5 == 0) {
-            tankProxy.exportToNearby(getFrontFacing());
-            autoIOSubscription.updateSubscription();
-        }
+        tankProxy.exportToNearby(getFrontFacing());
+        autoIOSubscription.updateSubscription();
     }
 
     private boolean shouldAutoIO() {

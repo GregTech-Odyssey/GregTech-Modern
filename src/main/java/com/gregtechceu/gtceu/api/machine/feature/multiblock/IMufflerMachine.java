@@ -91,4 +91,9 @@ public interface IMufflerMachine extends IMultiPart {
                 () -> !isFrontFaceFree(),
                 () -> null));
     }
+
+    @Override
+    default boolean canShared() {
+        return false;
+    }
 }

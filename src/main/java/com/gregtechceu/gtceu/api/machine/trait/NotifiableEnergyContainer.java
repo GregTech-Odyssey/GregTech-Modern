@@ -100,7 +100,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
         super.onMachineLoad();
         if (machine.isRemote()) return;
         checkOutputSubscription();
-        updateSubs = getMachine().subscribeServerTick(updateSubs, this::updateTick);
+        updateSubs = getMachine().subscribeServerTick(updateSubs, this::updateTick, 20);
     }
 
     @Override
@@ -137,11 +137,9 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
         if (checkOutput) {
             checkOutputSubscription();
         }
-        if (getMachine().getOffsetTimer() % 20 == 0) {
-            if (notify) {
-                notify = false;
-                notifyListeners();
-            }
+        if (notify) {
+            notify = false;
+            notifyListeners();
         }
     }
 

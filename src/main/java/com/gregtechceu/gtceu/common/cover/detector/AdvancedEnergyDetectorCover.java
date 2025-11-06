@@ -59,7 +59,6 @@ public class AdvancedEnergyDetectorCover extends EnergyDetectorCover implements 
 
     @Override
     protected void update() {
-        if (coverHolder.getOffsetTimer() % 20 != 0) return;
         IEnergyInfoProvider energyInfoProvider = getEnergyInfoProvider();
         if (energyInfoProvider == null) return;
         var energyInfo = energyInfoProvider.getEnergyInfo();

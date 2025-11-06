@@ -128,8 +128,9 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
             if (cache != null) {
                 var states = ((MultiblockWorldSavedData) cache).getControllersInChunk(chunk.getPos().toLong());
                 if (states != null) {
+                    var pl = pos.asLong();
                     for (var structure : states) {
-                        if (structure.isPosInCache(pos)) {
+                        if (structure.cache.contains(pl)) {
                             serverLevel.getServer().executeBlocking(() -> structure.onBlockStateChanged(pos, newState));
                         }
                     }

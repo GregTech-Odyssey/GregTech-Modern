@@ -20,9 +20,6 @@ public class AdvancedActivityDetectorCover extends ActivityDetectorCover {
 
     @Override
     protected void update() {
-        if (this.coverHolder.getOffsetTimer() % 20 != 0)
-            return;
-
         var workable = GTCapabilityHelper.getWorkable(coverHolder.holder(), attachedSide);
         if (workable == null || workable.getMaxProgress() == 0)
             return;

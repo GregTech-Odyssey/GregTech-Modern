@@ -172,7 +172,7 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
         var outputFacingItems = getOutputFacingItems();
         var outputFacingFluids = getOutputFacingFluids();
         if ((isAutoOutputItems() && !inventory.isEmpty() && outputFacingItems != null && blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacingItems)) || (isAutoOutputFluids() && !tank.isEmpty() && outputFacingFluids != null && blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacingFluids))) {
-            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput);
+            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput, 20);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;
@@ -180,13 +180,11 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
     }
 
     protected void autoOutput() {
-        if (getOffsetTimer() % 5 == 0) {
-            if (isAutoOutputFluids() && getOutputFacingFluids() != null) {
-                tank.exportToNearby(getOutputFacingFluids());
-            }
-            if (isAutoOutputItems() && getOutputFacingItems() != null) {
-                inventory.exportToNearby(getOutputFacingItems());
-            }
+        if (isAutoOutputFluids() && getOutputFacingFluids() != null) {
+            tank.exportToNearby(getOutputFacingFluids());
+        }
+        if (isAutoOutputItems() && getOutputFacingItems() != null) {
+            inventory.exportToNearby(getOutputFacingItems());
         }
         updateAutoOutputSubscription();
     }

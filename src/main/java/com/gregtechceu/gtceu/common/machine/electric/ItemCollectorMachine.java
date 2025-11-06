@@ -194,7 +194,7 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     //////////////////////////////////////
     public void updateCollectionSubscription() {
         if (drainEnergy(true) && isWorkingEnabled) {
-            collectionSubs = subscribeServerTick(collectionSubs, this::update);
+            collectionSubs = subscribeServerTick(collectionSubs, this::update, 20);
             active = true;
         } else if (collectionSubs != null) {
             collectionSubs.unsubscribe();
@@ -204,7 +204,7 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     }
 
     public void update() {
-        if (getOffsetTimer() % 20 == 0 && drainEnergy(false)) {
+        if (drainEnergy(false)) {
             if (aabb == null || rangeDirty) {
                 rangeDirty = false;
                 BlockPos pos1;
@@ -277,7 +277,7 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
 
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingItems();
-        if ((isAutoOutputItems() && !output.isEmpty()) && outputFacing != null && blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput);
+        if ((isAutoOutputItems() && !output.isEmpty()) && outputFacing != null && blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput, 20);
         else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;
@@ -285,10 +285,8 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     }
 
     protected void autoOutput() {
-        if (getOffsetTimer() % 5 == 0) {
-            if (isAutoOutputItems() && getOutputFacingItems() != null) output.exportToNearby(getOutputFacingItems());
-            updateAutoOutputSubscription();
-        }
+        if (isAutoOutputItems() && getOutputFacingItems() != null) output.exportToNearby(getOutputFacingItems());
+        updateAutoOutputSubscription();
     }
 
     protected void chargeBattery() {

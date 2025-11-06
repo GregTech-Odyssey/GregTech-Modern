@@ -177,7 +177,7 @@ public class RotorHolderPartMachine extends TieredPartMachine implements IMachin
             setRotorSpeed(getRotorSpeed() + SPEED_INCREMENT);
             updateRotorSubscription();
         }
-        if (self().getOffsetTimer() % 20 == 0) {
+        if (getOffsetTimer() % 20 == 0) {
             var numMaintenanceProblems = 0;
             if (isFormed() && getControllers().first() instanceof IMaintenanceMachine maintenance) {
                 numMaintenanceProblems = maintenance.getNumMaintenanceProblems();

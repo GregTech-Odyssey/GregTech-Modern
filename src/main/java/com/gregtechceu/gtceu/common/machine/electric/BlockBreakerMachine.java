@@ -281,7 +281,7 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
 
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingItems();
-        if ((isAutoOutputItems() && !cache.isEmpty()) && outputFacing != null && blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) autoOutputSubs = subscribeServerTick(autoOutputSubs, this::checkAutoOutput);
+        if ((isAutoOutputItems() && !cache.isEmpty()) && outputFacing != null && blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) autoOutputSubs = subscribeServerTick(autoOutputSubs, this::checkAutoOutput, 20);
         else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;
@@ -289,10 +289,8 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
     }
 
     protected void checkAutoOutput() {
-        if (getOffsetTimer() % 5 == 0) {
-            if (isAutoOutputItems() && getOutputFacingItems() != null) cache.exportToNearby(getOutputFacingItems());
-            updateAutoOutputSubscription();
-        }
+        if (isAutoOutputItems() && getOutputFacingItems() != null) cache.exportToNearby(getOutputFacingItems());
+        updateAutoOutputSubscription();
     }
 
     protected void updateBatterySubscription() {

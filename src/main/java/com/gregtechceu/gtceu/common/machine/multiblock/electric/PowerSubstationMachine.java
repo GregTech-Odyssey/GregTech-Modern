@@ -72,7 +72,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
 
     public PowerSubstationMachine(MetaMachineBlockEntity holder) {
         super(holder);
-        this.tickSubscription = new ConditionalSubscriptionHandler(this, this::transferEnergyTick, this::isFormed);
+        this.tickSubscription = new ConditionalSubscriptionHandler(this, this::transferEnergyTick, 20, this::isFormed);
         this.energyBank = new PowerStationEnergyBank(this, List.of());
     }
 
@@ -134,28 +134,24 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
     }
 
     protected void transferEnergyTick() {
-        if (!getLevel().isClientSide) {
-            if (getOffsetTimer() % 20 == 0) {
-                // active here is just used for rendering
-                getRecipeLogic().setStatus(energyBank.hasEnergy() ? RecipeLogic.Status.WORKING : RecipeLogic.Status.IDLE);
-                inputPerSec = netInLastSec;
-                outputPerSec = netOutLastSec;
-                netInLastSec = 0;
-                netOutLastSec = 0;
-            }
-            if (isWorkingEnabled() && isFormed()) {
-                // Bank from Energy Input Hatches
-                long energyBanked = energyBank.fill(inputHatches.getEnergyStored());
-                inputHatches.changeEnergy(-energyBanked);
-                netInLastSec += energyBanked;
-                // Passive drain
-                long energyPassiveDrained = energyBank.drain(getPassiveDrain());
-                netOutLastSec += energyPassiveDrained;
-                // Debank to Dynamo Hatches
-                long energyDebanked = energyBank.drain(outputHatches.getEnergyCapacity() - outputHatches.getEnergyStored());
-                outputHatches.changeEnergy(energyDebanked);
-                netOutLastSec += energyDebanked;
-            }
+        // active here is just used for rendering
+        getRecipeLogic().setStatus(energyBank.hasEnergy() ? RecipeLogic.Status.WORKING : RecipeLogic.Status.IDLE);
+        inputPerSec = netInLastSec;
+        outputPerSec = netOutLastSec;
+        netInLastSec = 0;
+        netOutLastSec = 0;
+        if (isWorkingEnabled() && isFormed()) {
+            // Bank from Energy Input Hatches
+            long energyBanked = energyBank.fill(inputHatches.getEnergyStored());
+            inputHatches.changeEnergy(-energyBanked);
+            netInLastSec += energyBanked;
+            // Passive drain
+            long energyPassiveDrained = energyBank.drain(getPassiveDrain());
+            netOutLastSec += energyPassiveDrained;
+            // Debank to Dynamo Hatches
+            long energyDebanked = energyBank.drain(outputHatches.getEnergyCapacity() - outputHatches.getEnergyStored());
+            outputHatches.changeEnergy(energyDebanked);
+            netOutLastSec += energyDebanked;
         }
     }
 
@@ -398,7 +394,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
          * @return Amount drained from storage
          */
         public long drain(long amount) {
-            if (amount < 0) throw new IllegalArgumentException("Amount cannot be negative!");
+            if (amount < 0) return 0;
             // ensure index
             if (index != 0 && storage[index] == 0) {
                 index--;

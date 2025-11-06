@@ -50,7 +50,7 @@ public class CreativeComputationProviderMachine extends MetaMachine implements I
 
     protected void updateComputationSubscription() {
         if (active) {
-            this.computationSubs = subscribeServerTick(this::updateComputationTick);
+            this.computationSubs = subscribeServerTick(computationSubs, this::updateComputationTick, 20);
         } else if (computationSubs != null) {
             computationSubs.unsubscribe();
             this.computationSubs = null;
@@ -60,10 +60,8 @@ public class CreativeComputationProviderMachine extends MetaMachine implements I
     }
 
     protected void updateComputationTick() {
-        if (getOffsetTimer() % 20 == 0) {
-            this.lastRequestedCWUt = requestedCWUPerSec / 20;
-            this.requestedCWUPerSec = 0;
-        }
+        this.lastRequestedCWUt = requestedCWUPerSec / 20;
+        this.requestedCWUPerSec = 0;
     }
 
     @Override

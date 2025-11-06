@@ -162,30 +162,28 @@ public class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, FluidPi
     }
 
     private void autoTransfer() {
-        if (getOffsetTimer() % 20 == 0) {
-            ensureHandlersInitialized();
-            checkNetwork();
-            if (this.currentFluidPipeNet.get() == null) return;
-            boolean hasHandler = false;
-            int throughput = 20 * getNodeData().getThroughput();
-            autoTransfer = true;
-            for (Direction facing : GTUtil.DIRECTIONS) {
-                if (facing != blockedSide && isConnected(facing)) {
-                    var be = getNeighbor(facing);
-                    if (be == null || be instanceof PipeBlockEntity<?, ?>) continue;
-                    var handler = LazyOptionalUtil.get(be.getCapability(ForgeCapabilities.FLUID_HANDLER, facing.getOpposite()));
-                    if (handler != null) {
-                        hasHandler = true;
-                        throughput -= GTTransferUtils.transferFluidsFiltered(handler, handlers.getOrDefault(facing, defaultHandler), getCoverContainer().getCoverAtSide(facing) instanceof FluidFilterCover filterCover ? filterCover.getFluidFilter() : GTUtil.FAVORABLE, throughput);
-                        if (throughput <= 0) break;
-                    }
+        ensureHandlersInitialized();
+        checkNetwork();
+        if (this.currentFluidPipeNet.get() == null) return;
+        boolean hasHandler = false;
+        int throughput = 20 * getNodeData().getThroughput();
+        autoTransfer = true;
+        for (Direction facing : GTUtil.DIRECTIONS) {
+            if (facing != blockedSide && isConnected(facing)) {
+                var be = getNeighbor(facing);
+                if (be == null || be instanceof PipeBlockEntity<?, ?>) continue;
+                var handler = LazyOptionalUtil.get(be.getCapability(ForgeCapabilities.FLUID_HANDLER, facing.getOpposite()));
+                if (handler != null) {
+                    hasHandler = true;
+                    throughput -= GTTransferUtils.transferFluidsFiltered(handler, handlers.getOrDefault(facing, defaultHandler), getCoverContainer().getCoverAtSide(facing) instanceof FluidFilterCover filterCover ? filterCover.getFluidFilter() : GTUtil.FAVORABLE, throughput);
+                    if (throughput <= 0) break;
                 }
             }
-            autoTransfer = false;
-            if (!hasHandler) {
-                transferSubs.unsubscribe();
-                transferSubs = null;
-            }
+        }
+        autoTransfer = false;
+        if (!hasHandler) {
+            transferSubs.unsubscribe();
+            transferSubs = null;
         }
     }
 

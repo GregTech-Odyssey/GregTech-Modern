@@ -156,7 +156,7 @@ public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinct
 
     protected void updateInventorySubscription(Direction newFacing) {
         if (isWorkingEnabled() && ((io == IO.OUT && !getInventory().isEmpty()) || io == IO.IN) && blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), newFacing)) {
-            autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO);
+            autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO, 20);
         } else if (autoIOSubs != null) {
             autoIOSubs.unsubscribe();
             autoIOSubs = null;
@@ -164,16 +164,14 @@ public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinct
     }
 
     protected void autoIO() {
-        if (getOffsetTimer() % 20 == 0) {
-            if (isWorkingEnabled()) {
-                if (io == IO.OUT) {
-                    getInventory().exportToNearby(getFrontFacing());
-                } else if (io == IO.IN) {
-                    getInventory().importFromNearby(getFrontFacing());
-                }
+        if (isWorkingEnabled()) {
+            if (io == IO.OUT) {
+                getInventory().exportToNearby(getFrontFacing());
+            } else if (io == IO.IN) {
+                getInventory().importFromNearby(getFrontFacing());
             }
-            updateInventorySubscription();
         }
+        updateInventorySubscription();
     }
 
     @Override

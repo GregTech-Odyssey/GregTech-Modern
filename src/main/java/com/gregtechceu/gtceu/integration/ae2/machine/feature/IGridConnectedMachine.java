@@ -28,13 +28,6 @@ public interface IGridConnectedMachine extends IMachineFeature, IGridConnectedBl
 
     void setOnline(boolean online);
 
-    /**
-     * @return {@code true} if current machine should interact with ME network, {@code false} otherwise.
-     */
-    default boolean shouldSyncME() {
-        return self().getOffsetTimer() % ME_UPDATE_INTERVAL == 0;
-    }
-
     default AECableType getCableConnectionType(Direction dir) {
         return AECableType.SMART;
     }

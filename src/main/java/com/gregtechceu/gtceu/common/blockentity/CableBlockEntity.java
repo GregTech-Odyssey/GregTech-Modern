@@ -164,16 +164,11 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
     }
 
     private void subscribeHeat() {
-        if (this.heatSubs == null) {
-            this.heatSubs = subscribeServerTick(this::update);
-        }
+        this.heatSubs = subscribeServerTick(heatSubs, this::update);
     }
 
     private void unsubscribeHeat() {
-        if (this.heatSubs != null) {
-            ITickSubscription.unsubscribe(this.heatSubs);
-            this.heatSubs = null;
-        }
+        this.heatSubs = ITickSubscription.unsubscribe(this.heatSubs);
     }
 
     public CableBlock getPipeBlock() {
@@ -219,7 +214,7 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
         }
     }
 
-    private boolean update() {
+    private void update() {
         if (heatQueue > 0) {
             // if received heat from overvolting or overamping, add heat
             setTemperature(temperature + heatQueue);
@@ -227,16 +222,16 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
         if (temperature >= meltTemp) {
             // cable melted
             level.setBlockAndUpdate(worldPosition, Blocks.FIRE.defaultBlockState());
-            return false;
+            return;
         }
         if (temperature <= getDefaultTemp()) {
             unsubscribeHeat();
-            return false;
+            return;
         }
         if (getPipeType().insulationLevel >= 0 && temperature >= 1500 && GTValues.RNG.nextFloat() < 0.1) {
             // insulation melted
             uninsulate();
-            return false;
+            return;
         }
         if (heatQueue == 0) {
             // otherwise cool down
@@ -244,7 +239,6 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
         } else {
             heatQueue = 0;
         }
-        return true;
     }
 
     private void uninsulate() {

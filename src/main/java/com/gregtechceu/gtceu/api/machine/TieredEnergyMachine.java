@@ -71,7 +71,7 @@ public class TieredEnergyMachine extends TieredMachine implements IExplosionMach
     protected void updateExplosionSubscription() {
         if (ConfigHolder.INSTANCE.machines.shouldWeatherOrTerrainExplosion && shouldWeatherOrTerrainExplosion() &&
                 energyContainer.getEnergyStored() > 0) {
-            explosionSubs = subscribeServerTick(explosionSubs, this::checkExplosion);
+            explosionSubs = subscribeServerTick(explosionSubs, this::checkExplosion, 100);
         } else if (explosionSubs != null) {
             explosionSubs.unsubscribe();
             explosionSubs = null;

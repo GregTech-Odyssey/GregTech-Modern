@@ -214,20 +214,22 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingItems();
         if ((isAutoOutputItems() && !stored.isEmpty()) && outputFacing != null && blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) {
-            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::checkAutoOutput);
+            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::checkAutoOutput, getTicksPerCycle());
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;
         }
     }
 
+    protected int getTicksPerCycle() {
+        return 20;
+    }
+
     protected void checkAutoOutput() {
-        if (getOffsetTimer() % 20 == 0) {
-            if (isAutoOutputItems() && getOutputFacingItems() != null) {
-                cache.exportToNearby(getOutputFacingItems());
-            }
-            updateAutoOutputSubscription();
+        if (isAutoOutputItems() && getOutputFacingItems() != null) {
+            cache.exportToNearby(getOutputFacingItems());
         }
+        updateAutoOutputSubscription();
     }
 
     //////////////////////////////////////

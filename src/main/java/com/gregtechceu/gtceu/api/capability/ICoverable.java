@@ -46,8 +46,6 @@ public interface ICoverable extends ITickSubscription, IAppearance {
 
     BlockPos getPos();
 
-    int getOffsetTimer();
-
     void onChanged();
 
     boolean isInValid();

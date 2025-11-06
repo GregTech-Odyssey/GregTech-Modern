@@ -72,7 +72,6 @@ public class AdvancedFluidDetectorCover extends FluidDetectorCover implements IU
 
     @Override
     protected void update() {
-        if (this.coverHolder.getOffsetTimer() % 20 != 0) return;
         FluidFilter filter = filterHandler.getFilter();
         IFluidHandler fluidHandler = getFluidHandler();
         if (fluidHandler == null) return;

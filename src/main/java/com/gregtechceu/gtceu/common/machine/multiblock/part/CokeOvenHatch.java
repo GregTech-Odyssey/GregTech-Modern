@@ -120,7 +120,7 @@ public class CokeOvenHatch extends MultiblockPartMachine {
         if ((!outputInventory.isEmpty() &&
                 blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), getFrontFacing())) ||
                 (!tank.isEmpty() && blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), getFrontFacing()))) {
-            autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO);
+            autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO, 20);
         } else if (autoIOSubs != null) {
             autoIOSubs.unsubscribe();
             autoIOSubs = null;
@@ -128,11 +128,9 @@ public class CokeOvenHatch extends MultiblockPartMachine {
     }
 
     protected void autoIO() {
-        if (getOffsetTimer() % 5 == 0) {
-            outputInventory.exportToNearby(getFrontFacing());
-            tank.exportToNearby(getFrontFacing());
-            updateAutoIOSubscription();
-        }
+        outputInventory.exportToNearby(getFrontFacing());
+        tank.exportToNearby(getFrontFacing());
+        updateAutoIOSubscription();
     }
 
     //////////////////////////////////////

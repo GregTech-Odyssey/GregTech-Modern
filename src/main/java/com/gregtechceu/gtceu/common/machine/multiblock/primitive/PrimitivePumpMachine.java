@@ -45,7 +45,7 @@ public class PrimitivePumpMachine extends MultiblockControllerMachine implements
     public void onStructureFormed() {
         super.onStructureFormed();
         initializeTank();
-        produceWaterSubscription = subscribeServerTick(this::produceWater);
+        produceWaterSubscription = subscribeServerTick(produceWaterSubscription, this::produceWater, 20);
     }
 
     private void initializeTank() {
@@ -95,7 +95,7 @@ public class PrimitivePumpMachine extends MultiblockControllerMachine implements
     }
 
     private void produceWater() {
-        if (getOffsetTimer() % 20 == 0 && isFormed() && !getMultiblockState().hasError()) {
+        if (isFormed() && !getMultiblockState().hasError()) {
             if (biomeModifier == 0) {
                 biomeModifier = GTUtil.getPumpBiomeModifier(getLevel().getBiome(getPos()));
             } else if (biomeModifier > 0) {

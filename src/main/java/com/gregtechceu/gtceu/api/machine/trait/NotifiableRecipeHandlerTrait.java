@@ -22,7 +22,12 @@ public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait imple
     @Persisted
     protected boolean isDistinct;
 
-    protected Runnable notify;
+    protected boolean isDirty = true;
+
+    private final Runnable notify = () -> {
+        listeners.forEach(Runnable::run);
+        isDirty = true;
+    };
 
     public NotifiableRecipeHandlerTrait(MetaMachine machine) {
         super(machine);
@@ -31,13 +36,13 @@ public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait imple
     @Override
     public void onMachineLoad() {
         super.onMachineLoad();
-        notify = null;
+        isDirty = true;
     }
 
     @Override
     public void onMachineUnLoad() {
         super.onMachineUnLoad();
-        notify = null;
+        isDirty = true;
     }
 
     @Override
@@ -47,10 +52,10 @@ public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait imple
     }
 
     public void notifyListeners() {
-        if (notify == null) {
+        if (isDirty) {
             if (machine.getLevel() instanceof ServerLevel serverLevel) {
-                notify = () -> listeners.forEach(Runnable::run);
-                TaskHandler.enqueueServerTask(serverLevel, notify, () -> notify = null, 0);
+                isDirty = false;
+                TaskHandler.enqueueServerTask(serverLevel, notify, 0);
             }
         }
     }

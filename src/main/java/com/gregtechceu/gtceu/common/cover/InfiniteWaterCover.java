@@ -33,7 +33,7 @@ public class InfiniteWaterCover extends CoverBehavior {
     @Override
     public void onLoad() {
         super.onLoad();
-        subscription = coverHolder.subscribeServerTick(subscription, this::update);
+        subscription = coverHolder.subscribeServerTick(subscription, this::update, 20);
     }
 
     @Override
@@ -45,11 +45,9 @@ public class InfiniteWaterCover extends CoverBehavior {
     }
 
     public void update() {
-        if (coverHolder.getOffsetTimer() % 20 == 0) {
-            var handler = GTCapabilityHelper.getFluidHandler(coverHolder.holder(), attachedSide);
-            if (handler != null) {
-                handler.fill(new FluidStack(Fluids.WATER, 16 * FluidType.BUCKET_VOLUME), IFluidHandler.FluidAction.EXECUTE);
-            }
+        var handler = GTCapabilityHelper.getFluidHandler(coverHolder.holder(), attachedSide);
+        if (handler != null) {
+            handler.fill(new FluidStack(Fluids.WATER, 16 * FluidType.BUCKET_VOLUME), IFluidHandler.FluidAction.EXECUTE);
         }
     }
 }

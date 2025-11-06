@@ -118,11 +118,6 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
     }
 
     @Override
-    public int getOffsetTimer() {
-        return machine.getOffsetTimer();
-    }
-
-    @Override
     public void notifyBlockUpdate() {
         machine.notifyBlockUpdate();
     }
@@ -171,8 +166,8 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
 
     @Nullable
     @Override
-    public TickableSubscription subscribeServerTick(Runnable runnable) {
-        return machine.subscribeServerTick(runnable);
+    public TickableSubscription subscribeServerTick(Runnable runnable, int cycle) {
+        return machine.subscribeServerTick(runnable, cycle);
     }
 
     @Override

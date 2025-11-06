@@ -22,9 +22,6 @@ public class FluidDetectorCover extends DetectorCover {
 
     @Override
     protected void update() {
-        if (this.coverHolder.getOffsetTimer() % 20 != 0)
-            return;
-
         IFluidHandler fluidHandler = getFluidHandler();
         if (fluidHandler == null)
             return;

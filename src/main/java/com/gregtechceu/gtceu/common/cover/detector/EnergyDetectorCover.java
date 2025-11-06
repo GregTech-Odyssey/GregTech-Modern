@@ -25,9 +25,6 @@ public class EnergyDetectorCover extends DetectorCover {
 
     @Override
     protected void update() {
-        if (this.coverHolder.getOffsetTimer() % 20 != 0)
-            return;
-
         IEnergyInfoProvider energyInfoProvider = getEnergyInfoProvider();
         if (energyInfoProvider == null) return;
 

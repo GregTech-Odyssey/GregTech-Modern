@@ -26,7 +26,6 @@ import com.lowdragmc.lowdraglib.networking.LDLNetworking;
 import com.lowdragmc.lowdraglib.networking.s2c.SPacketManagedPayload;
 import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
 import com.lowdragmc.lowdraglib.syncdata.IManagedStorage;
-import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
@@ -54,14 +53,13 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.BlockHitResult;
 
 import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -73,6 +71,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
     private final ManagedFieldHolder managedFieldHolder = MetaMachine.getManagedFieldHolder(getClass());
     private final int offset = GTValues.RNG.nextInt(20);
+    private final BooleanSupplier isRemove = () -> remove;
     @Getter
     @DescSynced
     @Persisted(key = "cover")
@@ -101,11 +100,10 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     @Persisted
     @NotNull
     private Material frameMaterial = GTMaterials.NULL;
-    private final List<TickableSubscription> serverTicks = new ObjectArrayList<>();
-    private final List<TickableSubscription> waitingToAdd = new ObjectArrayList<>();
-    private ISubscription serverTickSubscription;
 
     private LevelChunk chunk;
+
+    protected int tickDelay = 0;
 
     private boolean asyncSyncing;
     private boolean sync = true;
@@ -160,7 +158,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     @Override
     public void setRemoved() {
         super.setRemoved();
-        serverTickSubscription = ITickSubscription.unsubscribe(serverTickSubscription);
         coverContainer.onUnload();
         blockEntityDirectionCache.clearCache();
         if (transferSubs != null) {
@@ -171,11 +168,13 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
 
     @Override
     public void clearRemoved() {
-        serverTickSubscription = ITickSubscription.unsubscribe(serverTickSubscription);
-        serverTicks.clear();
+        tickDelay = offset;
         blockEntityDirectionCache.clearCache();
         super.clearRemoved();
         coverContainer.onLoad();
+        if (getLevel() instanceof ServerLevel serverLevel) {
+            TaskHandler.enqueueServerTask(serverLevel, () -> tickDelay = 0, 1);
+        }
     }
 
     public int getNumConnections() {
@@ -232,43 +231,17 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     }
 
     @Nullable
-    public TickableSubscription subscribeServerTick(Runnable runnable) {
+    @Override
+    public TickableSubscription subscribeServerTick(Runnable runnable, int cycle) {
         if (getLevel() instanceof ServerLevel serverLevel) {
-            var subscription = new TickableSubscription(runnable);
-            waitingToAdd.add(subscription);
-            if (serverTickSubscription == null) {
-                serverTickSubscription = TaskHandler.enqueueServerTick(serverLevel, () -> {
-                    if (!waitingToAdd.isEmpty()) {
-                        serverTicks.addAll(waitingToAdd);
-                        waitingToAdd.clear();
-                    }
-                    if (serverTicks.isEmpty()) {
-                        serverTickSubscription = ITickSubscription.unsubscribe(serverTickSubscription);
-                    } else {
-                        for (var iter = serverTicks.listIterator(0); iter.hasNext();) {
-                            var tickable = iter.next();
-                            if (tickable == null) {
-                                continue;
-                            }
-                            if (tickable.stillSubscribed) {
-                                tickable.runnable.run();
-                            }
-                            if (isRemoved()) break;
-                            if (!tickable.stillSubscribed) {
-                                iter.remove();
-                            }
-                        }
-                    }
-                }, () -> serverTickSubscription = null, 0);
-            }
-            return subscription;
+            return TaskHandler.enqueueServerTick(serverLevel, isRemove, runnable, cycle, tickDelay);
         }
         return null;
     }
 
     protected void updateTransferTick(boolean tick, Runnable runnable) {
         if (tick) {
-            transferSubs = subscribeServerTick(transferSubs, runnable);
+            transferSubs = subscribeServerTick(transferSubs, runnable, 20);
         } else if (transferSubs != null) {
             transferSubs.unsubscribe();
             transferSubs = null;

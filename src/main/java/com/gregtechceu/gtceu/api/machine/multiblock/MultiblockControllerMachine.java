@@ -14,7 +14,6 @@ import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldSavedData;
 import com.gregtechceu.gtceu.core.ILevel;
-import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
@@ -224,7 +223,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                         }
                     }
                     if (getLevel() instanceof ServerLevel serverLevel) {
-                        var c = new OpenCacheHashSet<>(state.blockEntityCache);
+                        var c = state.blockEntityCache.longStream().mapToObj(BlockPos::of).toList();
                         serverLevel.getServer().execute(() -> c.forEach(serverLevel::removeBlockEntity));
                     }
                 }

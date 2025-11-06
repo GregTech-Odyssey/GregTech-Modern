@@ -168,30 +168,28 @@ public class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeP
     }
 
     private void autoTransfer() {
-        if (getOffsetTimer() % 20 == 0) {
-            ensureHandlersInitialized();
-            checkNetwork();
-            if (this.currentItemPipeNet.get() == null) return;
-            boolean hasHandler = false;
-            int throughput = (int) ((getNodeData().getTransferRate() * 64) + 0.5);
-            autoTransfer = true;
-            for (Direction facing : GTUtil.DIRECTIONS) {
-                if (facing != blockedSide && isConnected(facing)) {
-                    var be = getNeighbor(facing);
-                    if (be == null || be instanceof PipeBlockEntity<?, ?>) continue;
-                    var handler = LazyOptionalUtil.get(be.getCapability(ForgeCapabilities.ITEM_HANDLER, facing.getOpposite()));
-                    if (handler != null) {
-                        hasHandler = true;
-                        throughput -= GTTransferUtils.transferItemsFiltered(handler, handlers.getOrDefault(facing, defaultHandler), getCoverContainer().getCoverAtSide(facing) instanceof ItemFilterCover filterCover ? filterCover.getItemFilter() : GTUtil.FAVORABLE, throughput);
-                        if (throughput <= 0) break;
-                    }
+        ensureHandlersInitialized();
+        checkNetwork();
+        if (this.currentItemPipeNet.get() == null) return;
+        boolean hasHandler = false;
+        int throughput = (int) ((getNodeData().getTransferRate() * 64) + 0.5);
+        autoTransfer = true;
+        for (Direction facing : GTUtil.DIRECTIONS) {
+            if (facing != blockedSide && isConnected(facing)) {
+                var be = getNeighbor(facing);
+                if (be == null || be instanceof PipeBlockEntity<?, ?>) continue;
+                var handler = LazyOptionalUtil.get(be.getCapability(ForgeCapabilities.ITEM_HANDLER, facing.getOpposite()));
+                if (handler != null) {
+                    hasHandler = true;
+                    throughput -= GTTransferUtils.transferItemsFiltered(handler, handlers.getOrDefault(facing, defaultHandler), getCoverContainer().getCoverAtSide(facing) instanceof ItemFilterCover filterCover ? filterCover.getItemFilter() : GTUtil.FAVORABLE, throughput);
+                    if (throughput <= 0) break;
                 }
             }
-            autoTransfer = false;
-            if (!hasHandler) {
-                transferSubs.unsubscribe();
-                transferSubs = null;
-            }
+        }
+        autoTransfer = false;
+        if (!hasHandler) {
+            transferSubs.unsubscribe();
+            transferSubs = null;
         }
     }
 

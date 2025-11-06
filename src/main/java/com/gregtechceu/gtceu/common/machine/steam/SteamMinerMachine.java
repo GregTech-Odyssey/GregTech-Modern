@@ -144,7 +144,7 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     protected void updateAutoOutputSubscription() {
         var outputFacingItems = getFrontFacing();
         if (!exportItems.isEmpty() && blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacingItems)) {
-            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput);
+            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput, 40);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;
@@ -152,10 +152,7 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     }
 
     protected void autoOutput() {
-        if (getOffsetTimer() % 5 == 0) {
-            exportItems.exportToNearby(getFrontFacing());
-        }
-        updateAutoOutputSubscription();
+        exportItems.exportToNearby(getFrontFacing());
     }
 
     //////////////////////////////////////

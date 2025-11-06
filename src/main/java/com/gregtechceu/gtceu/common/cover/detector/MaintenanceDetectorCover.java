@@ -27,10 +27,6 @@ public class MaintenanceDetectorCover extends DetectorCover {
 
     @Override
     protected void update() {
-        if (this.coverHolder.getOffsetTimer() % 20 != 0) {
-            return;
-        }
-
         IMaintenanceMachine maintenance = GTCapabilityHelper.getMaintenanceMachine(coverHolder.holder());
 
         int signal = getRedstoneSignalOutput();

@@ -32,19 +32,16 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 import com.gregtechceu.gtceu.utils.cache.DirectionCache;
-import com.gregtechceu.gtceu.utils.collection.FastObjectArrayList;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
 import com.lowdragmc.lowdraglib.syncdata.IManaged;
-import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
-import com.lowdragmc.lowdraglib.utils.DummyWorld;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -123,10 +120,6 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
         return holder;
     }
 
-    public static boolean OBSERVE = false;
-
-    protected static final Map<MetaMachine, Integer> PERFORMANCE_MAP = new WeakHashMap<>();
-
     @Getter
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
     private final ManagedFieldHolder managedFieldHolder = getManagedFieldHolder(getClass());
@@ -149,9 +142,6 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     private int paintingColor = -1;
     @Getter
     protected final List<MachineTrait> traits = new ObjectArrayList<>();
-    private final FastObjectArrayList<TickableSubscription> serverTicks = new FastObjectArrayList<>();
-    private final List<TickableSubscription> waitingToAdd = new ObjectArrayList<>();
-    private ISubscription serverTickSubscription;
 
     protected final DirectionCache<IItemHandlerModifiable> itemHandlerModifiableCache = DirectionCache.create();
     protected final DirectionCache<IFluidHandlerModifiable> fluidHandlerModifiableCache = DirectionCache.create();
@@ -170,13 +160,6 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     protected Direction frontFacing;
 
     protected boolean sync = true;
-
-    @Getter
-    protected int offsetTimer;
-
-    protected int averageTickTime;
-
-    protected long totaTickCount;
 
     public boolean observe;
 
@@ -245,21 +228,14 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
 
     @MustBeInvokedByOverriders
     public void onUnload() {
-        serverTickSubscription = ITickSubscription.unsubscribe(serverTickSubscription);
         traits.forEach(MachineTrait::onMachineUnLoad);
         coverContainer.onUnload();
-        for (TickableSubscription serverTick : serverTicks) {
-            if (serverTick != null) serverTick.unsubscribe();
-        }
-        serverTicks.clear();
         blockEntityDirectionCache.clearCache();
         clearDirectionCache();
     }
 
     @MustBeInvokedByOverriders
     public void onLoad() {
-        serverTickSubscription = ITickSubscription.unsubscribe(serverTickSubscription);
-        serverTicks.clear();
         blockEntityDirectionCache.clearCache();
         clearDirectionCache();
         traits.forEach(MachineTrait::onMachineLoad);
@@ -292,90 +268,20 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
      * event.
      */
     @Nullable
-    public TickableSubscription subscribeServerTick(Runnable runnable) {
-        if (holder.isRemoved()) return null;
+    @Override
+    public TickableSubscription subscribeServerTick(Runnable runnable, int cycle) {
         if (getLevel() instanceof ServerLevel serverLevel) {
-            var subscription = new TickableSubscription(runnable);
-            waitingToAdd.add(subscription);
-            if (serverTickSubscription == null) {
-                serverTickSubscription = TaskHandler.enqueueServerTick(serverLevel, () -> {
-                    if (!waitingToAdd.isEmpty()) {
-                        serverTicks.addAll(waitingToAdd);
-                        waitingToAdd.clear();
-                    }
-                    if (serverTicks.isEmpty()) {
-                        serverTickSubscription = ITickSubscription.unsubscribe(serverTickSubscription);
-                        averageTickTime = 0;
-                    } else {
-                        offsetTimer = holder.getOffsetTimer();
-                        boolean observe = OBSERVE || this.observe;
-                        long currentTime = 0;
-                        if (observe) currentTime = System.nanoTime();
-                        Object[] array = serverTicks.getArray();
-                        for (int i = 0, size = serverTicks.size(); i < size; i++) {
-                            var o = array[i];
-                            if (o == null) continue;
-                            var tickable = (TickableSubscription) o;
-                            if (tickable.stillSubscribed) {
-                                tickable.runnable.run();
-                            } else if (!holder.isRemoved()) {
-                                serverTicks.fastRemove(i);
-                            }
-                        }
-                        if (observe) {
-                            putTickTime(currentTime);
-                        }
-                    }
-                }, () -> serverTickSubscription = null, 0);
-            }
-            return subscription;
-        } else if (getLevel() instanceof DummyWorld) {
-            var subscription = new TickableSubscription(runnable);
-            waitingToAdd.add(subscription);
-            return subscription;
+            return TaskHandler.enqueueServerTick(serverLevel, holder.isRemove, runnable, cycle, holder.tickDelay);
         }
         return null;
     }
 
-    protected void putTickTime(long currentTime) {
-        totaTickCount += System.nanoTime() - currentTime;
-        if ((offsetTimer & 63) == 0) {
-            this.observe = false;
-            averageTickTime = (int) (totaTickCount / 128000);
-            totaTickCount = 0;
-        }
-        if (OBSERVE) PERFORMANCE_MAP.put(this, averageTickTime);
+    public int getOffsetTimer() {
+        return holder.getOffsetTimer();
     }
-
-    public boolean isFirstDummyWorldTick = true;
 
     @OnlyIn(Dist.CLIENT)
-    public void clientTick() {
-        offsetTimer = holder.getOffsetTimer();
-        if (getLevel() instanceof DummyWorld) {
-            if (isFirstDummyWorldTick) {
-                isFirstDummyWorldTick = false;
-                onLoad();
-            }
-            if (!waitingToAdd.isEmpty()) {
-                serverTicks.addAll(waitingToAdd);
-                waitingToAdd.clear();
-            }
-            for (var iter = serverTicks.listIterator(0); iter.hasNext();) {
-                var tickable = iter.next();
-                if (tickable == null) {
-                    continue;
-                }
-                if (tickable.stillSubscribed) {
-                    tickable.runnable.run();
-                }
-                if (holder.isRemoved()) break;
-                if (!tickable.stillSubscribed) {
-                    iter.remove();
-                }
-            }
-        }
-    }
+    public void clientTick() {}
 
     //////////////////////////////////////
     // ******* Interaction *******//
@@ -913,10 +819,6 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     @Override
     public int getDefaultPaintingColor() {
         return getDefinition().getDefaultPaintingColor();
-    }
-
-    public int getTickTime() {
-        return averageTickTime;
     }
 
     public void observe() {

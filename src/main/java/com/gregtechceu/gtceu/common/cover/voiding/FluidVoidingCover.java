@@ -55,9 +55,6 @@ public class FluidVoidingCover extends PumpCover {
 
     @Override
     protected void update() {
-        if (coverHolder.getOffsetTimer() % 5 != 0)
-            return;
-
         doVoidFluids();
         subscriptionHandler.updateSubscription();
     }

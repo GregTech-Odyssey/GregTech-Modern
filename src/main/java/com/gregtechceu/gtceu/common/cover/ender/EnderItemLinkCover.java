@@ -31,7 +31,6 @@ public class EnderItemLinkCover extends AbstractEnderLinkCover<VirtualItemStorag
     @Persisted
     @DescSynced
     protected VirtualItemStorage storage;
-    protected int itemsLeftToTransferLastSecond;
     @Getter
     @Persisted
     @DescSynced
@@ -39,7 +38,6 @@ public class EnderItemLinkCover extends AbstractEnderLinkCover<VirtualItemStorag
 
     public EnderItemLinkCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {
         super(definition, coverHolder, attachedSide);
-        itemsLeftToTransferLastSecond = TRANSFER_RATE * 20;
         filterHandler = FilterHandlers.item(this);
         if (!isRemote()) storage = VirtualEnderRegistry.getInstance().getOrCreateEntry(getOwner(),
                 EntryTypes.ENDER_ITEM, getChannelName());
@@ -72,22 +70,13 @@ public class EnderItemLinkCover extends AbstractEnderLinkCover<VirtualItemStorag
 
     @Override
     protected void transfer() {
-        long timer = coverHolder.getOffsetTimer();
-        if (itemsLeftToTransferLastSecond > 0) {
-            itemsLeftToTransferLastSecond -= doTransferItems(itemsLeftToTransferLastSecond);
-        }
-        if (timer % 20 == 0) itemsLeftToTransferLastSecond = TRANSFER_RATE * 20;
-    }
-
-    private int doTransferItems(int max) {
         IItemHandler ownHandler = getOwnItemHandler();
-        if (ownHandler == null) return 0;
-        return switch (io) {
+        if (ownHandler == null) return;
+        switch (io) {
             case IN -> GTTransferUtils.transferItemsFiltered(ownHandler, storage.getHandler(),
-                    filterHandler.getFilter(), max);
+                    filterHandler.getFilter(), 64);
             case OUT -> GTTransferUtils.transferItemsFiltered(storage.getHandler(), ownHandler,
-                    filterHandler.getFilter(), max);
-            default -> 0;
+                    filterHandler.getFilter(), 64);
         };
     }
 

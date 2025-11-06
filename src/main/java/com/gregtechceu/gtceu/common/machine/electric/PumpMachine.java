@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
+import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
@@ -74,6 +75,8 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
     @DropSaved
     protected final NotifiableFluidTank cache;
 
+    protected TickableSubscription update;
+
     public PumpMachine(MetaMachineBlockEntity holder, int tier, Object... args) {
         super(holder, tier);
         this.cache = createCacheFluidHandler(args);
@@ -105,7 +108,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
     @Override
     public void onLoad() {
         super.onLoad();
-        subscribeServerTick(this::update);
+        update = subscribeServerTick(update, this::update);
     }
 
     @Override
