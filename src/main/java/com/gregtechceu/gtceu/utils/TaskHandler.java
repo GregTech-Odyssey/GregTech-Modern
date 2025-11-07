@@ -58,10 +58,12 @@ public class TaskHandler {
         var tasks = serverTasks.remove(level);
         if (tasks != null) {
             tasks.forEach(TickableSubscription::unsubscribe);
+            tasks.clear();
         }
         var list = ILevel.getTasks(level);
         synchronized (list) {
             list.forEach(TickableSubscription::unsubscribe);
+            list.clear();
         }
     }
 

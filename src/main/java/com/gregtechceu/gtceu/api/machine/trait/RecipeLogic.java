@@ -45,7 +45,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
         SUSPEND
     }
 
-    public static int SEARCH_MAX_INTERVAL = 20;
+    public static int SEARCH_MAX_INTERVAL = 40;
 
     public final IRecipeLogicMachine machine;
     @Getter
@@ -92,9 +92,11 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     protected boolean suspendAfterFinish = false;
     @Getter
     protected final Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches = makeChanceCaches();
-    protected TickableSubscription subscription;
+
+    public TickableSubscription subscription;
+    public int interval = 5;
+
     protected Object workingSound;
-    protected int interval = 5;
 
     public RecipeLogic(IRecipeLogicMachine machine) {
         super(machine.self());
@@ -140,7 +142,10 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     public void onMachineLoad() {
         super.onMachineLoad();
         if (getMachine().getLevel() instanceof ServerLevel serverLevel) {
-            serverLevel.getServer().tell(new TickTask(1, this::updateTickSubscription));
+            serverLevel.getServer().tell(new TickTask(1, () -> {
+                updateTickSubscription();
+                if (isActive && subscription != null) subscription.cycle = 0;
+            }));
         }
     }
 
@@ -271,7 +276,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
             lastRecipe = recipe;
             setStatus(RecipeLogic.Status.WORKING);
             duration = recipe.duration;
-            subscription.cycle = 0;
+            if (subscription != null) subscription.cycle = 0;
             isActive = true;
         } else {
             setStatus(RecipeLogic.Status.IDLE);

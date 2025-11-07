@@ -153,7 +153,7 @@ public class MultiblockState {
                 if (controller != null) {
                     if (!state.is(controller.self().getBlockState().getBlock())) {
                         controller.onStructureInvalid();
-                        var mwsd = MultiblockWorldSavedData.getOrCreate(serverLevel);
+                        var mwsd = MultiblockWorldData.getOrCreate(serverLevel);
                         mwsd.removeMapping(this);
                     }
                 }

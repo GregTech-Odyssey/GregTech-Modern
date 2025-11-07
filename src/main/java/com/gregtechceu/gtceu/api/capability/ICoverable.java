@@ -26,13 +26,11 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 public interface ICoverable extends ITickSubscription, IAppearance {
 
@@ -140,8 +138,14 @@ public interface ICoverable extends ITickSubscription, IAppearance {
     }
 
     default List<CoverBehavior> getCovers() {
-        return Arrays.stream(GTUtil.DIRECTIONS).map(this::getCoverAtSide).filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        ImmutableList.Builder<CoverBehavior> result = ImmutableList.builderWithExpectedSize(6);
+        for (Direction direction : GTUtil.DIRECTIONS) {
+            var cover = getCoverAtSide(direction);
+            if (cover != null) {
+                result.add(cover);
+            }
+        }
+        return result.build();
     }
 
     default void onLoad() {

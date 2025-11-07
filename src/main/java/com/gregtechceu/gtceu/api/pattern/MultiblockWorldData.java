@@ -2,31 +2,37 @@ package com.gregtechceu.gtceu.api.pattern;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
+import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.utils.PosUtils;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.saveddata.SavedData;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.concurrent.*;
 
-public class MultiblockWorldSavedData extends SavedData {
+public class MultiblockWorldData {
 
     private static final Comparator<IMultiController> COMPARATOR = Comparator.comparingInt(c -> -c.checkPriority());
 
-    public static final String DATA_NAME = "gtceu_multiblock";
+    public static MultiblockWorldData getOrCreate(ServerLevel serverLevel) {
+        var data = ((ILevel) serverLevel).gtceu$getMultiblockWorldSavedData();
+        if (data == null) {
+            data = new MultiblockWorldData();
+            ((ILevel) serverLevel).gtceu$setMultiblockWorldSavedData(data);
+        }
+        return data;
+    }
 
-    public static MultiblockWorldSavedData getOrCreate(ServerLevel serverLevel) {
-        return serverLevel.getDataStorage()
-                .computeIfAbsent(MultiblockWorldSavedData::new, MultiblockWorldSavedData::new, DATA_NAME);
+    @Nullable
+    public static MultiblockWorldData get(ServerLevel serverLevel) {
+        return ((ILevel) serverLevel).gtceu$getMultiblockWorldSavedData();
     }
 
     /**
@@ -34,12 +40,8 @@ public class MultiblockWorldSavedData extends SavedData {
      */
     private final Long2ObjectOpenHashMap<Set<MultiblockState>> chunkPosMapping;
 
-    private MultiblockWorldSavedData() {
+    public MultiblockWorldData() {
         this.chunkPosMapping = new Long2ObjectOpenHashMap<>();
-    }
-
-    private MultiblockWorldSavedData(CompoundTag tag) {
-        this();
     }
 
     public MultiblockState[] getControllersInChunk(long chunkPos) {
@@ -66,18 +68,13 @@ public class MultiblockWorldSavedData extends SavedData {
         }
     }
 
-    @NotNull
-    @Override
-    public CompoundTag save(@NotNull CompoundTag compound) {
-        return compound;
-    }
-
     // ********************************* thread for searching ********************************* //
     private final CopyOnWriteArrayList<IMultiController> controllers = new CopyOnWriteArrayList<>();
     private ScheduledExecutorService executorService;
     private final static ThreadFactory THREAD_FACTORY = new ThreadFactoryBuilder()
             .setNameFormat("GTCEu Multiblock Async Thread-%d")
             .setDaemon(true)
+            .setPriority(1)
             .build();
     public static final ThreadLocal<Boolean> IN_SERVICE = ThreadLocal.withInitial(() -> false);
     public int periodID = 0;
@@ -152,5 +149,11 @@ public class MultiblockWorldSavedData extends SavedData {
             executorService.shutdownNow();
         }
         executorService = null;
+    }
+
+    public void clear() {
+        releaseExecutorService();
+        controllers.clear();
+        chunkPosMapping.clear();
     }
 }

@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.core;
 
+import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.world.level.Level;
@@ -13,6 +14,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public interface ILevel {
+
+    MultiblockWorldData gtceu$getMultiblockWorldSavedData();
+
+    void gtceu$setMultiblockWorldSavedData(MultiblockWorldData data);
 
     @NotNull
     List<TaskHandler.RunnableEntry> gtceu$getTasks();

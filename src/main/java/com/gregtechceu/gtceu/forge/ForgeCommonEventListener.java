@@ -10,7 +10,7 @@ import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEnderRegistry;
-import com.gregtechceu.gtceu.api.pattern.MultiblockWorldSavedData;
+import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.capability.MedicalConditionTracker;
 import com.gregtechceu.gtceu.common.capability.WorldIDSaveData;
@@ -178,7 +178,8 @@ public class ForgeCommonEventListener {
     public static void worldUnload(LevelEvent.Unload event) {
         if (event.getLevel() instanceof ServerLevel serverLevel) {
             TaskHandler.onWorldUnLoad(serverLevel);
-            MultiblockWorldSavedData.getOrCreate(serverLevel).releaseExecutorService();
+            var multiblockWorldData = MultiblockWorldData.get(serverLevel);
+            if (multiblockWorldData != null) multiblockWorldData.clear();
             ServerCache.instance.invalidateWorld(serverLevel);
         } else if (event.getLevel().isClientSide()) {
             ClientCacheManager.saveCaches();
@@ -203,7 +204,8 @@ public class ForgeCommonEventListener {
         var levels = event.getServer().getAllLevels();
         for (var level : levels) {
             if (!level.isClientSide()) {
-                MultiblockWorldSavedData.getOrCreate(level).releaseExecutorService();
+                var multiblockWorldData = MultiblockWorldData.get(level);
+                if (multiblockWorldData != null) multiblockWorldData.clear();
                 TaskHandler.onWorldUnLoad(level);
             }
         }

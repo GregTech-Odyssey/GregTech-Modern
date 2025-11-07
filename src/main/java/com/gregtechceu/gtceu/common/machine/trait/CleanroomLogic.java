@@ -40,6 +40,7 @@ public class CleanroomLogic extends RecipeLogic {
 
     public CleanroomLogic(CleanroomMachine machine) {
         super(machine);
+        interval = 0;
     }
 
     @Override

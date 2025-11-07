@@ -12,7 +12,7 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
-import com.gregtechceu.gtceu.api.pattern.MultiblockWorldSavedData;
+import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
 import com.gregtechceu.gtceu.core.ILevel;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
@@ -112,7 +112,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     public void onLoad() {
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
-            MultiblockWorldSavedData.getOrCreate(serverLevel).addAsyncLogic(this);
+            MultiblockWorldData.getOrCreate(serverLevel).addAsyncLogic(this);
         }
     }
 
@@ -120,7 +120,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     public void onUnload() {
         super.onUnload();
         if (getLevel() instanceof ServerLevel serverLevel) {
-            MultiblockWorldSavedData.getOrCreate(serverLevel).removeAsyncLogic(this);
+            MultiblockWorldData.getOrCreate(serverLevel).removeAsyncLogic(this);
         } else {
             ILevel.getHighlightCache(getLevel()).remove(getPos().asLong());
         }
@@ -249,7 +249,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     }
 
     @Override
-    public void asyncCheckPattern(MultiblockWorldSavedData data) {
+    public void asyncCheckPattern(MultiblockWorldData data) {
         if (simpleLock) return;
         if (getMultiblockState().error == null && isFormed) {
             data.addMapping(getMultiblockState());
@@ -263,7 +263,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                     setFlipped(getMultiblockState().isNeededFlip());
                     onStructureFormed();
                     requestSync();
-                    var mwsd = MultiblockWorldSavedData.getOrCreate(serverLevel);
+                    var mwsd = MultiblockWorldData.getOrCreate(serverLevel);
                     mwsd.addMapping(getMultiblockState());
                     mwsd.removeAsyncLogic(this);
                     simpleLock = false;
@@ -341,7 +341,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         parts = list.toArray(new IMultiPart[0]);
         getMultiblockState().setError(MultiblockState.UNLOAD_ERROR);
         if (getLevel() instanceof ServerLevel serverLevel) {
-            MultiblockWorldSavedData.getOrCreate(serverLevel).addAsyncLogic(this);
+            MultiblockWorldData.getOrCreate(serverLevel).addAsyncLogic(this);
         }
         updatePartPositions();
     }
@@ -421,7 +421,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                     setFlipped(false);
                     onStructureInvalid();
                     requestSync();
-                    var mwsd = MultiblockWorldSavedData.getOrCreate(serverLevel);
+                    var mwsd = MultiblockWorldData.getOrCreate(serverLevel);
                     mwsd.removeMapping(getMultiblockState());
                     mwsd.addAsyncLogic(this);
                 }

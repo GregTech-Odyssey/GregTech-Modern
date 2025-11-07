@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.core.mixins;
 
-import com.gregtechceu.gtceu.api.pattern.MultiblockWorldSavedData;
+import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
 import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
@@ -49,10 +49,23 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
     public abstract LevelChunk getChunk(int chunkX, int chunkZ);
 
     @Unique
+    private MultiblockWorldData gtceu$worldSavedData;
+
+    @Unique
     private List<TaskHandler.RunnableEntry> gtceu$tasks;
 
     @Unique
     private LongOpenHashSet gtceu$highlightCache;
+
+    @Override
+    public MultiblockWorldData gtceu$getMultiblockWorldSavedData() {
+        return gtceu$worldSavedData;
+    }
+
+    @Override
+    public void gtceu$setMultiblockWorldSavedData(MultiblockWorldData data) {
+        gtceu$worldSavedData = data;
+    }
 
     @Override
     public @NotNull List<TaskHandler.RunnableEntry> gtceu$getTasks() {
@@ -70,7 +83,7 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
     private @Nullable ChunkAccess gtceu$maybeGetChunkAsync(int chunkX, int chunkZ) {
         if (this.isClientSide) return null;
         if (Thread.currentThread() == this.thread) return null;
-        if (!MultiblockWorldSavedData.isThreadService() && !AsyncThreadData.isThreadService()) return null;
+        if (!MultiblockWorldData.isThreadService() && !AsyncThreadData.isThreadService()) return null;
         if (!this.getChunkSource().hasChunk(chunkX, chunkZ)) return null;
         return this.getChunkSource().getChunkNow(chunkX, chunkZ);
     }
@@ -124,9 +137,8 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
     @Inject(method = "markAndNotifyBlock", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;blockUpdated(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;)V"))
     private void gtceu$updateChunkMultiblocks(BlockPos pos, LevelChunk chunk, BlockState oldState, BlockState newState, int flags, int recursionLeft, CallbackInfo ci) {
         if (((Object) this) instanceof ServerLevel serverLevel) {
-            var cache = serverLevel.getDataStorage().cache.get(MultiblockWorldSavedData.DATA_NAME);
-            if (cache != null) {
-                var states = ((MultiblockWorldSavedData) cache).getControllersInChunk(chunk.getPos().toLong());
+            if (gtceu$worldSavedData != null) {
+                var states = gtceu$worldSavedData.getControllersInChunk(chunk.getPos().toLong());
                 if (states != null) {
                     var pl = pos.asLong();
                     for (var structure : states) {
