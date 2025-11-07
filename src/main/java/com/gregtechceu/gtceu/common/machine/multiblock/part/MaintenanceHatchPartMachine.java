@@ -114,6 +114,7 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine implements IM
     public void setMaintenanceProblems(byte problems) {
         this.maintenanceProblems = problems;
         updateMaintenanceSubscription();
+        requestSync();
     }
 
     @Override
@@ -166,7 +167,7 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine implements IM
                 }
             }
             // Lastly for each problem the multi has, try to fix with tools
-            fixProblemsWithTools(getMaintenanceProblems(), entityPlayer);
+            fixProblemsWithTools(maintenanceProblems, entityPlayer);
         }
     }
 

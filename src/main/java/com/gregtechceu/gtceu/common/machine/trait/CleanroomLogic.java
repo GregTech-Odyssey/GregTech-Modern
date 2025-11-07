@@ -38,14 +38,17 @@ public class CleanroomLogic extends RecipeLogic {
     @Persisted
     private boolean isActiveAndNeedsUpdate;
 
+    private final CleanroomMachine machine;
+
     public CleanroomLogic(CleanroomMachine machine) {
         super(machine);
+        this.machine = machine;
         interval = 0;
     }
 
     @Override
     public CleanroomMachine getMachine() {
-        return (CleanroomMachine) machine;
+        return machine;
     }
 
     /**
@@ -104,11 +107,11 @@ public class CleanroomLogic extends RecipeLogic {
         if (maintenanceMachine != null) {
             amountToClean -= maintenanceMachine.getNumMaintenanceProblems();
         }
-        getMachine().adjustCleanAmount(amountToClean);
+        machine.adjustCleanAmount(amountToClean);
     }
 
     protected boolean consumeEnergy() {
-        var cleanroom = getMachine();
+        var cleanroom = machine;
         // clamp to max for VA indexing
         var tier = Mth.clamp(cleanroom.getTier(), GTValues.ULV, GTValues.MAX);
         // use 3/16th an amp when fully clean otherwise 15/16th an amp during cleaning
@@ -126,7 +129,7 @@ public class CleanroomLogic extends RecipeLogic {
     protected int getTierDifference() {
         int minEnergyTier = GTValues.LV;
         // clamp for ULV
-        return Math.max(0, getMachine().getTier() - minEnergyTier);
+        return Math.max(0, machine.getTier() - minEnergyTier);
     }
 
     public void setDuration(int max) {

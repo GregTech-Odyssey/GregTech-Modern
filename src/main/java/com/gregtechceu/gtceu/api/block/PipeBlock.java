@@ -218,9 +218,14 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
                 if (open && !canConnect)
                     pipeTile.setConnection(facing, false, false);
             }
-            PipeNet<NodeDataType> net = pipeTile.getPipeNet();
-            if (net != null) {
-                pipeTile.getPipeNet().onNeighbourUpdate(fromPos);
+            var neighbor = level.getBlockState(fromPos);
+            var cache = pipeTile.blockStateDirectionCache.getCache(facing);
+            if (cache != neighbor) {
+                pipeTile.blockStateDirectionCache.setCache(facing, neighbor);
+                PipeNet<NodeDataType> net = pipeTile.getPipeNet();
+                if (net != null) {
+                    net.onNeighbourUpdate(fromPos);
+                }
             }
             if (cover != null) cover.onNeighborChanged(state.getBlock(), pos, false);
         }

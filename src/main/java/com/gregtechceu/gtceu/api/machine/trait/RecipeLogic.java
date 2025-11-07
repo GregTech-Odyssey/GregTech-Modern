@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.sound.AutoReleasedSound;
+import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
@@ -18,7 +19,6 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.annotation.UpdateListener;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraftforge.api.distmarker.Dist;
@@ -45,7 +45,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
         SUSPEND
     }
 
-    public static int SEARCH_MAX_INTERVAL = 40;
+    public final static int SEARCH_MAX_INTERVAL = 80;
 
     public final IRecipeLogicMachine machine;
     @Getter
@@ -106,7 +106,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     @OnlyIn(Dist.CLIENT)
     @SuppressWarnings("unused")
     protected void onStatusSynced(Status newValue, Status oldValue) {
-        getMachine().scheduleRenderUpdate();
+        super.machine.scheduleRenderUpdate();
         machine.notifyStatusChanged(this.status, status);
         updateSound();
     }
@@ -114,12 +114,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     @OnlyIn(Dist.CLIENT)
     @SuppressWarnings("unused")
     protected void onActiveSynced(boolean newActive, boolean oldActive) {
-        getMachine().scheduleRenderUpdate();
-    }
-
-    @Override
-    public void scheduleRenderUpdate() {
-        getMachine().scheduleRenderUpdate();
+        super.machine.scheduleRenderUpdate();
     }
 
     /**
@@ -141,12 +136,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     @Override
     public void onMachineLoad() {
         super.onMachineLoad();
-        if (getMachine().getLevel() instanceof ServerLevel serverLevel) {
-            serverLevel.getServer().tell(new TickTask(1, () -> {
-                updateTickSubscription();
-                if (isActive && subscription != null) subscription.cycle = 0;
-            }));
-        }
+        updateTickSubscription();
     }
 
     @Override
@@ -163,10 +153,13 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     }
 
     public void updateTickSubscription() {
-        if (isSuspend() || !machine.isRecipeLogicAvailable()) {
-            unsubscribe();
+        if (status != Status.SUSPEND && machine.isRecipeLogicAvailable()) {
+            if ((subscription == null || !subscription.stillSubscribed) && super.machine.getLevel() instanceof ServerLevel serverLevel) {
+                subscription = TaskHandler.enqueueServerTick(serverLevel, super.machine.holder.isRemove, this::serverTick, interval, 5);
+                if (isActive) subscription.cycle = 0;
+            }
         } else {
-            subscription = getMachine().subscribeServerTick(subscription, this::serverTick, interval);
+            unsubscribe();
         }
     }
 
@@ -175,9 +168,9 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     }
 
     public void serverTick() {
-        if (isSuspend()) {
+        if (status == Status.SUSPEND) {
             unsubscribe();
-        } else if (!isIdle() && lastRecipe != null) {
+        } else if (status != Status.IDLE && lastRecipe != null) {
             if (progress < duration) {
                 handleRecipeWorking();
             } else {
@@ -422,7 +415,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
                 workingSound = null;
             }
             if (sound != null) {
-                workingSound = sound.playAutoReleasedSound(() -> machine.shouldWorkingPlaySound() && isWorking() && !getMachine().isInValid() && getMachine().getLevel().isLoaded(getMachine().getPos()), getMachine().getPos(), true, 0, 1, 1);
+                workingSound = sound.playAutoReleasedSound(() -> machine.shouldWorkingPlaySound() && isWorking() && !super.machine.isInValid() && super.machine.getLevel().isLoaded(super.machine.getPos()), super.machine.getPos(), true, 0, 1, 1);
             }
         } else if (workingSound instanceof AutoReleasedSound soundEntry) {
             soundEntry.release();

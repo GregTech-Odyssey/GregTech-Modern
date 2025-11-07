@@ -19,6 +19,7 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
+import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 
 import com.lowdragmc.lowdraglib.Platform;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -111,6 +112,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     private final long posLong;
 
     public final BlockEntityDirectionCache blockEntityDirectionCache = BlockEntityDirectionCache.create();
+    public final DirectionCache<BlockState> blockStateDirectionCache = DirectionCache.create();
 
     protected TickableSubscription transferSubs;
 

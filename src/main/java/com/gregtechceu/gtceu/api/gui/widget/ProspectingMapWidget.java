@@ -94,7 +94,7 @@ public class ProspectingMapWidget extends WidgetGroup implements SearchComponent
     public void setDarkMode(boolean mode) {
         if (darkMode != mode) {
             darkMode = mode;
-            if (isRemote()) {
+            if (isRemote() && texture != null) {
                 texture.setDarkMode(darkMode);
             }
         }
@@ -181,7 +181,7 @@ public class ProspectingMapWidget extends WidgetGroup implements SearchComponent
         if (packetQueue != null) {
             while (!packetQueue.isEmpty()) {
                 var packet = packetQueue.poll();
-                texture.updateTexture(packet);
+                if (texture != null) texture.updateTexture(packet);
                 addOresToList(packet.data);
             }
         }
@@ -203,8 +203,8 @@ public class ProspectingMapWidget extends WidgetGroup implements SearchComponent
         var size = getSize();
         // draw background
         var x = position.x + 3;
-        var y = position.y + (size.getHeight() - texture.getImageHeight()) / 2 - 1;
-        texture.draw(graphics, x, y);
+        var y = position.y + (size.getHeight() - (texture == null ? 32 : texture.getImageHeight())) / 2 - 1;
+        if (texture != null) texture.draw(graphics, x, y);
         int cX = (mouseX - x) / 16;
         int cZ = (mouseY - y) / 16;
         if (cX >= 0 && cZ >= 0 && cX < chunkRadius * 2 - 1 && cZ < chunkRadius * 2 - 1) {
@@ -221,23 +221,24 @@ public class ProspectingMapWidget extends WidgetGroup implements SearchComponent
         var position = getPosition();
         var size = getSize();
         var x = position.x + 3;
-        var y = position.y + (size.getHeight() - texture.getImageHeight()) / 2 - 1;
+        var y = position.y + (size.getHeight() - (texture == null ? 32 : texture.getImageHeight())) / 2 - 1;
         int cX = (mouseX - x) / 16;
         int cZ = (mouseY - y) / 16;
         if (cX >= 0 && cZ >= 0 && cX < chunkRadius * 2 - 1 && cZ < chunkRadius * 2 - 1) {
             // draw hover layer
             List<Component> tooltips = new ObjectArrayList<>();
             tooltips.add(Component.translatable(mode.unlocalizedName));
-            List<Object[]> items = new ObjectArrayList<>();
-            for (int i = 0; i < mode.cellSize; i++) {
-                for (int j = 0; j < mode.cellSize; j++) {
-                    assert texture != null;
-                    if (texture.data[cX * mode.cellSize + i][cZ * mode.cellSize + j] != null) {
-                        items.add(texture.data[cX * mode.cellSize + i][cZ * mode.cellSize + j]);
+            if (texture != null) {
+                List<Object[]> items = new ObjectArrayList<>();
+                for (int i = 0; i < mode.cellSize; i++) {
+                    for (int j = 0; j < mode.cellSize; j++) {
+                        if (texture.data[cX * mode.cellSize + i][cZ * mode.cellSize + j] != null) {
+                            items.add(texture.data[cX * mode.cellSize + i][cZ * mode.cellSize + j]);
+                        }
                     }
                 }
+                mode.appendTooltips(items, tooltips, texture.getSelected());
             }
-            mode.appendTooltips(items, tooltips, texture.getSelected());
             gui.getModularUIGui().setHoverTooltip(tooltips, ItemStack.EMPTY, null, null);
         }
     }

@@ -24,7 +24,8 @@ public enum RelativeDirection {
     FRONT(UnaryOperator.identity(), Direction.NORTH),
     BACK(Direction::getOpposite, Direction.SOUTH);
 
-    private final UnaryOperator<Direction> actualDirection;
+    private final Direction[] actualDirections = new Direction[6];
+    private final int[] actualOrdinals = new int[6];
     /**
      * Equivalent global direction to this relative direction
      * with {@link Direction#NORTH NORTH} as the "forward" direction.
@@ -32,12 +33,21 @@ public enum RelativeDirection {
     public final Direction equivalentGlobal;
 
     RelativeDirection(UnaryOperator<Direction> actualDirection, Direction equivalentGlobal) {
-        this.actualDirection = actualDirection;
+        for (var d : Direction.values()) {
+            var actual = actualDirection.apply(d);
+            var ordinal = d.ordinal();
+            actualDirections[ordinal] = actual;
+            actualOrdinals[ordinal] = actual.ordinal();
+        }
         this.equivalentGlobal = equivalentGlobal;
     }
 
     public Direction getActualDirection(Direction direction) {
-        return actualDirection.apply(direction);
+        return actualDirections[direction.ordinal()];
+    }
+
+    public int getActualOrdinal(int ordinal) {
+        return actualOrdinals[ordinal];
     }
 
     public RelativeDirection getOpposite() {

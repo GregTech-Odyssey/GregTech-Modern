@@ -109,6 +109,7 @@ public class BlockPattern {
         int minZ = -centerOffset[4];
         worldState.clean();
         PatternMatchContext matchContext = worldState.getMatchContext();
+        var ordinal = frontFacing.ordinal();
         var globalCount = worldState.getGlobalCount();
         var layerCount = worldState.getLayerCount();
         // Checking aisles
@@ -124,7 +125,7 @@ public class BlockPattern {
                         TraceabilityPredicate predicate = this.blockMatches[c][b][a];
                         worldState.setError(null);
                         if (predicate != null) {
-                            BlockPos pos = setActualRelativeOffset(x, y, z, frontFacing, upwardsFacing, isFlipped).offset(centerPos.getX(), centerPos.getY(), centerPos.getZ());
+                            BlockPos pos = setActualRelativeOffset(x, y, z, frontFacing, ordinal, upwardsFacing, isFlipped).offset(centerPos.getX(), centerPos.getY(), centerPos.getZ());
                             worldState.update(pos, predicate);
                             long posLong = pos.asLong();
 
@@ -223,6 +224,7 @@ public class BlockPattern {
         BlockPos centerPos = worldState.controllerPos;
         Direction facing = controller.self().getFrontFacing();
         Direction upwardsFacing = controller.self().getUpwardsFacing();
+        var ordinal = facing.ordinal();
         boolean isFlipped = controller.self().isFlipped();
         var cacheGlobal = worldState.getGlobalCount();
         var cacheLayer = worldState.getLayerCount();
@@ -236,7 +238,7 @@ public class BlockPattern {
                     for (int a = 0, x = -centerOffset[0]; a < this.palmLength; a++, x++) {
                         TraceabilityPredicate predicate = this.blockMatches[c][b][a];
                         if (predicate != null) {
-                            BlockPos pos = setActualRelativeOffset(x, y, z, facing, upwardsFacing, isFlipped).offset(centerPos.getX(), centerPos.getY(), centerPos.getZ());
+                            BlockPos pos = setActualRelativeOffset(x, y, z, facing, ordinal, upwardsFacing, isFlipped).offset(centerPos.getX(), centerPos.getY(), centerPos.getZ());
                             worldState.update(pos, predicate);
                             long posLong = pos.asLong();
                             if (!world.isEmptyBlock(pos)) {
@@ -478,7 +480,7 @@ public class BlockPattern {
                                 }
                             }
                             if (info != null && info.getBlockState().getBlock() != Blocks.AIR) {
-                                BlockPos pos = setActualRelativeOffset(z, y, x, Direction.NORTH, Direction.UP, false);
+                                BlockPos pos = gerPreviewOffset(z, y, x);
                                 if (info.getBlockState().getBlock() instanceof MetaMachineBlock) {
                                     machines.put(pos.asLong(), info);
                                 } else {
@@ -551,14 +553,14 @@ public class BlockPattern {
         consumer.accept(blockState.setValue(property, found));
     }
 
-    protected BlockPos setActualRelativeOffset(int x, int y, int z, Direction facing, Direction upwardsFacing, boolean isFlipped) {
+    protected BlockPos setActualRelativeOffset(int x, int y, int z, Direction facing, int ordinal, Direction upwardsFacing, boolean isFlipped) {
         int[] c0 = new int[] { x, y, z };
         int[] c1 = new int[3];
-        boolean down = facing == Direction.DOWN;
-        if (down || facing == Direction.UP) {
-            Direction of = down ? upwardsFacing : upwardsFacing.getOpposite();
+        boolean down = ordinal == 0;
+        if (down || ordinal == 1) {
+            int of = down ? upwardsFacing.ordinal() : upwardsFacing.getOpposite().ordinal();
             for (int i = 0; i < 3; i++) {
-                switch (structureDir[i].getActualDirection(of).ordinal()) {
+                switch (structureDir[i].getActualOrdinal(of)) {
                     case 1 -> c1[1] = c0[i];
                     case 0 -> c1[1] = -c0[i];
                     case 4 -> c1[0] = -c0[i];
@@ -588,7 +590,7 @@ public class BlockPattern {
             }
         } else {
             for (int i = 0; i < 3; i++) {
-                switch (structureDir[i].getActualDirection(facing).ordinal()) {
+                switch (structureDir[i].getActualOrdinal(ordinal)) {
                     case 1 -> c1[1] = c0[i];
                     case 0 -> c1[1] = -c0[i];
                     case 4 -> c1[0] = -c0[i];
@@ -621,7 +623,7 @@ public class BlockPattern {
             }
             if (isFlipped) {
                 if (upwardsFacing == Direction.NORTH || upwardsFacing == Direction.SOUTH) {
-                    if (facing == Direction.NORTH || facing == Direction.SOUTH) {
+                    if (ordinal == 2 || ordinal == 3) {
                         c1[0] = -c1[0]; // flip X-axis
                     } else {
                         c1[2] = -c1[2]; // flip Z-axis
@@ -629,6 +631,22 @@ public class BlockPattern {
                 } else {
                     c1[1] = -c1[1]; // flip Y-axis
                 }
+            }
+        }
+        return new BlockPos(c1[0], c1[1], c1[2]);
+    }
+
+    protected BlockPos gerPreviewOffset(int x, int y, int z) {
+        int[] c0 = new int[] { x, y, z };
+        int[] c1 = new int[3];
+        for (int i = 0; i < 3; i++) {
+            switch (structureDir[i].getActualOrdinal(2)) {
+                case 1 -> c1[1] = c0[i];
+                case 0 -> c1[1] = -c0[i];
+                case 4 -> c1[0] = -c0[i];
+                case 5 -> c1[0] = c0[i];
+                case 2 -> c1[2] = -c0[i];
+                case 3 -> c1[2] = c0[i];
             }
         }
         return new BlockPos(c1[0], c1[1], c1[2]);
