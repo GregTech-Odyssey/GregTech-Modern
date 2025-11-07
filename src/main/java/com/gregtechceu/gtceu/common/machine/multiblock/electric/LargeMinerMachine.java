@@ -184,7 +184,6 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
             textList.add(Component.translatable("gtceu.machine.miner.startx", getRecipeLogic().getX() == Integer.MAX_VALUE ? 0 : getRecipeLogic().getX()));
             textList.add(Component.translatable("gtceu.machine.miner.starty", getRecipeLogic().getY() == Integer.MAX_VALUE ? 0 : getRecipeLogic().getY()));
             textList.add(Component.translatable("gtceu.machine.miner.startz", getRecipeLogic().getZ() == Integer.MAX_VALUE ? 0 : getRecipeLogic().getZ()));
-            textList.add(Component.translatable("gtceu.universal.tooltip.silk_touch").append(ComponentPanelWidget.withButton(Component.literal("[").append(getRecipeLogic().isSilkTouchMode() ? Component.translatable("gtceu.creative.activity.on") : Component.translatable("gtceu.creative.activity.off")).append(Component.literal("]")), "silk_touch")));
             textList.add(Component.translatable("gtceu.universal.tooltip.chunk_mode").append(ComponentPanelWidget.withButton(Component.literal("[").append(getRecipeLogic().isChunkMode() ? Component.translatable("gtceu.creative.activity.on") : Component.translatable("gtceu.creative.activity.off")).append(Component.literal("]")), "chunk_mode")));
             if (getRecipeLogic().isChunkMode()) {
                 textList.add(Component.translatable("gtceu.universal.tooltip.working_area_chunks", workingAreaChunks, workingAreaChunks));
@@ -202,9 +201,6 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
         if (!clickData.isRemote) {
             if (componentData.equals("chunk_mode")) {
                 getRecipeLogic().setChunkMode(!getRecipeLogic().isChunkMode());
-            }
-            if (componentData.equals("silk_touch")) {
-                getRecipeLogic().setSilkTouchMode(!getRecipeLogic().isSilkTouchMode());
             }
         }
     }

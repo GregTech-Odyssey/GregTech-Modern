@@ -39,8 +39,6 @@ public class LargeMinerLogic extends MinerLogic {
     private int overclockAmount = 0;
     @Persisted
     private boolean isChunkMode;
-    @Persisted
-    private boolean isSilkTouchMode;
 
     /**
      * Creates the logic for multiblock ore block miners
@@ -101,20 +99,9 @@ public class LargeMinerLogic extends MinerLogic {
         }
     }
 
-    public void setSilkTouchMode(boolean isSilkTouchMode) {
-        if (!isWorking()) {
-            this.isSilkTouchMode = isSilkTouchMode;
-        }
-    }
-
     @Override
     public BlockPos getMiningPos() {
         return getMachine().getPos().relative(getMachine().getFrontFacing().getOpposite());
-    }
-
-    @Override
-    protected boolean hasPostProcessing() {
-        return !isSilkTouchMode;
     }
 
     @Override

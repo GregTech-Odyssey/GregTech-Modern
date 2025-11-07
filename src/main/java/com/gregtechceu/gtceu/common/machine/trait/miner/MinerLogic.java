@@ -6,18 +6,13 @@ import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.misc.ItemRecipeHandler;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.transfer.item.NotifiableAccountedInvWrapper;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
-import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
@@ -39,7 +34,6 @@ import net.minecraftforge.common.Tags;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
+public class MinerLogic extends RecipeLogic {
 
     private static final short MAX_SPEED = Short.MAX_VALUE;
     private static final byte POWER = 5;
@@ -111,10 +105,6 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
     private boolean isDone;
     @Getter
     private boolean isInventoryFull;
-    private final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
-    protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
-    private final ItemRecipeHandler inputItemHandler;
-    private final ItemRecipeHandler outputItemHandler;
     @Getter
     @Setter
     private Direction dir = Direction.DOWN;
@@ -136,14 +126,6 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
         this.maximumRadius = maximumRadius;
         this.isDone = false;
         this.pickaxeTool = GTMaterialItems.TOOL_ITEMS.get(GTMaterials.Neutronium, GTToolType.PICKAXE).get().get();
-        this.capabilitiesProxy = new EnumMap<>(IO.class);
-        this.capabilitiesFlat = new EnumMap<>(IO.class);
-        this.inputItemHandler = new ItemRecipeHandler(IO.IN, machine.getRecipeType().getMaxInputs(ItemRecipeCapability.CAP));
-        this.outputItemHandler = new ItemRecipeHandler(IO.OUT, machine.getRecipeType().getMaxOutputs(ItemRecipeCapability.CAP));
-        RecipeHandlerList inHandlers = RecipeHandlerList.of(IO.IN, inputItemHandler);
-        RecipeHandlerList outHandlers = RecipeHandlerList.of(IO.OUT, outputItemHandler);
-        addHandlerList(inHandlers);
-        addHandlerList(outHandlers);
         interval = 0;
     }
 
@@ -179,7 +161,7 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
         if (!isSuspend() && getMachine().getLevel() instanceof ServerLevel serverLevel && checkCanMine()) {
             // if the inventory is not full, drain energy etc. from the miner
             // the storages have already been checked earlier
-            if (!isInventoryFull()) {
+            if (!isInventoryFull) {
                 // always drain storages when working, even if blocksToMine ends up being empty
                 miner.drainInput(false);
                 // since energy is being consumed the miner is now active
@@ -221,7 +203,7 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
                 }
                 // When we are here we have an ore to mine! I'm glad we aren't threaded
                 if (!blocksToMine.isEmpty() & blockState.is(Tags.Blocks.ORES)) {
-                    LootParams.Builder builder = new LootParams.Builder(serverLevel).withParameter(LootContextParams.BLOCK_STATE, blockState).withParameter(LootContextParams.ORIGIN, Vec3.atLowerCornerOf(blocksToMine.getFirst())).withParameter(LootContextParams.TOOL, getPickaxeTool());
+                    LootParams.Builder builder = new LootParams.Builder(serverLevel).withParameter(LootContextParams.BLOCK_STATE, blockState).withParameter(LootContextParams.ORIGIN, Vec3.atLowerCornerOf(blocksToMine.getFirst())).withParameter(LootContextParams.TOOL, pickaxeTool);
                     // get the small ore drops, if a small ore
                     getSmallOreBlockDrops(blockDrops, blockState, builder);
                     // get the block's drops.
@@ -229,10 +211,6 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
                         getSilkTouchDrops(blockDrops, blockState, builder);
                     } else {
                         getRegularBlockDrops(blockDrops, blockState, builder);
-                    }
-                    // handle recipe type
-                    if (hasPostProcessing()) {
-                        doPostProcessing(blockDrops, blockState, builder);
                     }
                     // try to insert them
                     mineAndInsertItems(blockDrops, serverLevel);
@@ -291,13 +269,6 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
          */
     }
 
-    /**
-     * Should we apply additional processing according to the recipe type.
-     */
-    protected boolean hasPostProcessing() {
-        return false;
-    }
-
     protected boolean isSilkTouchMode() {
         return false;
     }
@@ -314,34 +285,6 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
 
     protected int getVoltageTier() {
         return 0;
-    }
-
-    protected boolean doPostProcessing(NonNullList<ItemStack> blockDrops, BlockState blockState, LootParams.Builder builder) {
-        ItemStack oreDrop = new ItemStack(blockState.getBlock());
-        if (oreDrop.isEmpty()) return false;
-        // create dummy recipe handler
-        inputItemHandler.storage.setStackInSlot(0, oreDrop);
-        outputItemHandler.storage.clear();
-        var matches = machine.getRecipeType().searchRecipe(this, r -> RecipeHelper.matchContents(this, r));
-        while (matches.hasNext()) {
-            GTRecipe match = matches.next();
-            if (match == null) continue;
-            long eut = match.getInputEUt();
-            if (GTUtil.getTierByVoltage(eut) <= getVoltageTier()) {
-                if (RecipeHelper.handleRecipeIO(this, match, IO.OUT, this.chanceCaches)) {
-                    blockDrops.clear();
-                    var result = new ObjectArrayList<ItemStack>();
-                    for (int i = 0; i < outputItemHandler.storage.getSlots(); ++i) {
-                        var stack = outputItemHandler.storage.getStackInSlot(i);
-                        if (stack.isEmpty()) continue;
-                        result.add(stack);
-                    }
-                    dropPostProcessing(blockDrops, result, blockState, builder);
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     protected void dropPostProcessing(NonNullList<ItemStack> blockDrops, List<ItemStack> outputs, BlockState blockState, LootParams.Builder builder) {
@@ -563,13 +506,5 @@ public class MinerLogic extends RecipeLogic implements IRecipeCapabilityHolder {
                 pos = pos.relative(dir);
             }
         }
-    }
-
-    public @NotNull Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {
-        return this.capabilitiesProxy;
-    }
-
-    public @NotNull Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> getCapabilitiesFlat() {
-        return this.capabilitiesFlat;
     }
 }
