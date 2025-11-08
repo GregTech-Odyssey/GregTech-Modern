@@ -15,6 +15,7 @@ import com.gregtechceu.gtceu.api.pattern.util.PatternMatchContext;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
 
+import com.lowdragmc.lowdraglib.syncdata.blockentity.IManagedBlockEntity;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
 import net.minecraft.core.BlockPos;
@@ -154,7 +155,7 @@ public class BlockPattern {
                                                     matchContext.parts.add(part);
                                                 }
                                             }
-                                        } else {
+                                        } else if (!(blockentity instanceof IManagedBlockEntity)) {
                                             worldState.blockEntityCache.add(posLong);
                                         }
                                     }
