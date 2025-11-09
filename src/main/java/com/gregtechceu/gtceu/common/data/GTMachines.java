@@ -806,7 +806,7 @@ public class GTMachines {
             .abilities(PartAbility.STEAM)
             .overlaySteamHullRenderer("steam_hatch")
             .tooltips(Component.translatable("gtceu.universal.tooltip.fluid_storage_capacity",
-                    SteamHatchPartMachine.INITIAL_TANK_CAPACITY),
+                    FormattingUtil.formatNumbers(SteamHatchPartMachine.INITIAL_TANK_CAPACITY)),
                     Component.translatable("gtceu.machine.steam.steam_hatch.tooltip"))
             .allowCoverOnFront(true)
             .register();
