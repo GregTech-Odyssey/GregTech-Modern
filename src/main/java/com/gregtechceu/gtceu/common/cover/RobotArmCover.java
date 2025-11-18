@@ -22,9 +22,6 @@ import net.minecraftforge.items.IItemHandler;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Iterator;
-import java.util.Map;
-
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
@@ -66,10 +63,10 @@ public class RobotArmCover extends ConveyorCover {
     }
 
     protected int doTransferExact(IItemHandler sourceInventory, IItemHandler targetInventory, int maxTransferAmount) {
-        Map<ItemStack, TypeItemInfo> sourceItemAmount = countInventoryItemsByType(sourceInventory);
-        Iterator<ItemStack> iterator = sourceItemAmount.keySet().iterator();
+        var sourceItemAmount = countInventoryItemsByType(sourceInventory);
+        var iterator = sourceItemAmount.object2ObjectEntrySet().fastIterator();
         while (iterator.hasNext()) {
-            TypeItemInfo sourceInfo = sourceItemAmount.get(iterator.next());
+            TypeItemInfo sourceInfo = iterator.next().getValue();
             int itemAmount = sourceInfo.totalCount;
             int itemToMoveAmount = getFilteredItemAmount(sourceInfo.itemStack);
             if (itemAmount >= itemToMoveAmount) {
@@ -101,16 +98,16 @@ public class RobotArmCover extends ConveyorCover {
     }
 
     protected int doKeepExact(IItemHandler sourceInventory, IItemHandler targetInventory, int maxTransferAmount) {
-        Map<ItemStack, GroupItemInfo> targetItemAmounts = countInventoryItemsByMatchSlot(targetInventory);
-        Map<ItemStack, GroupItemInfo> sourceItemAmounts = countInventoryItemsByMatchSlot(sourceInventory);
-        Iterator<ItemStack> iterator = sourceItemAmounts.keySet().iterator();
+        var targetItemAmounts = countInventoryItemsByMatchSlot(targetInventory);
+        var sourceItemAmounts = countInventoryItemsByMatchSlot(sourceInventory);
+        var iterator = sourceItemAmounts.object2ObjectEntrySet().fastIterator();
         while (iterator.hasNext()) {
-            ItemStack filteredItem = iterator.next();
-            GroupItemInfo sourceInfo = sourceItemAmounts.get(filteredItem);
+            var filteredItem = iterator.next();
+            GroupItemInfo sourceInfo = filteredItem.getValue();
             int itemToKeepAmount = getFilteredItemAmount(sourceInfo.itemStack);
             int itemAmount = 0;
-            if (targetItemAmounts.containsKey(filteredItem)) {
-                GroupItemInfo destItemInfo = targetItemAmounts.get(filteredItem);
+            GroupItemInfo destItemInfo = targetItemAmounts.get(filteredItem.getKey());
+            if (destItemInfo != null) {
                 itemAmount = destItemInfo.totalCount;
             }
             if (itemAmount < itemToKeepAmount) {

@@ -312,15 +312,15 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     }
 
     @NotNull
-    protected Map<ItemStack, TypeItemInfo> countInventoryItemsByType(@NotNull IItemHandler inventory) {
+    protected O2OOpenCustomCacheHashMap<ItemStack, TypeItemInfo> countInventoryItemsByType(@NotNull IItemHandler inventory) {
         ItemFilter filter = filterHandler.getFilter();
-        Map<ItemStack, TypeItemInfo> result = new O2OOpenCustomCacheHashMap<>(ItemStackHashStrategy.ITEM_AND_TAG);
+        var result = new O2OOpenCustomCacheHashMap<ItemStack, TypeItemInfo>(ItemStackHashStrategy.ITEM_AND_TAG);
         for (int srcIndex = 0; srcIndex < inventory.getSlots(); srcIndex++) {
             ItemStack itemStack = inventory.getStackInSlot(srcIndex);
             if (itemStack.isEmpty() || !filter.test(itemStack)) {
                 continue;
             }
-            var itemInfo = result.computeIfAbsent(itemStack, s -> new TypeItemInfo(s, new IntArrayList(), 0));
+            var itemInfo = result.computeIfAbsent(itemStack, s -> new TypeItemInfo(itemStack, new IntArrayList(), 0));
             itemInfo.totalCount += itemStack.getCount();
             itemInfo.slots.add(srcIndex);
         }
@@ -328,15 +328,15 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     }
 
     @NotNull
-    protected Map<ItemStack, GroupItemInfo> countInventoryItemsByMatchSlot(@NotNull IItemHandler inventory) {
+    protected O2OOpenCustomCacheHashMap<ItemStack, GroupItemInfo> countInventoryItemsByMatchSlot(@NotNull IItemHandler inventory) {
         ItemFilter filter = filterHandler.getFilter();
-        Map<ItemStack, GroupItemInfo> result = new O2OOpenCustomCacheHashMap<>(ItemStackHashStrategy.ITEM_AND_TAG);
+        var result = new O2OOpenCustomCacheHashMap<ItemStack, GroupItemInfo>(ItemStackHashStrategy.ITEM_AND_TAG);
         for (int srcIndex = 0; srcIndex < inventory.getSlots(); srcIndex++) {
             ItemStack itemStack = inventory.getStackInSlot(srcIndex);
             if (itemStack.isEmpty() || !filter.test(itemStack)) {
                 continue;
             }
-            var itemInfo = result.computeIfAbsent(itemStack, s -> new GroupItemInfo(s, 0));
+            var itemInfo = result.computeIfAbsent(itemStack, s -> new GroupItemInfo(itemStack, 0));
             itemInfo.totalCount += itemStack.getCount();
         }
         return result;

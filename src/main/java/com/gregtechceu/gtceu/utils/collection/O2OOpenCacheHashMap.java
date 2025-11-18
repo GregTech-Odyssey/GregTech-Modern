@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.utils.collection;
 import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.*;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -286,21 +285,6 @@ public class O2OOpenCacheHashMap<K, V> extends Object2ObjectOpenHashMap<K, V> {
         if (pos >= 0) return value[pos];
         if (!mappingFunction.containsKey(k)) return defRetValue;
         final V newValue = mappingFunction.get(k);
-        insert(-pos - 1, k, newValue, h);
-        return newValue;
-    }
-
-    @Override
-    public V computeIfAbsent(final K k, final java.util.function.@NotNull Function<? super K, ? extends V> mappingFunction) {
-        int pos, h = 0;
-        if (k == null) {
-            pos = containsNullKey ? n : -(n + 1);
-        } else {
-            h = k.hashCode();
-            pos = find(k, h);
-        }
-        if (pos >= 0) return value[pos];
-        final V newValue = mappingFunction.apply(k);
         insert(-pos - 1, k, newValue, h);
         return newValue;
     }
