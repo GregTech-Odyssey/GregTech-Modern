@@ -247,6 +247,11 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     }
 
     @Override
+    public boolean hasInputLimitConfig() {
+        return importItems.storage.size > 1;
+    }
+
+    @Override
     public void setInputLimit(boolean inputLimit) {
         this.importItems.storage.isInputLimited = inputLimit;
     }

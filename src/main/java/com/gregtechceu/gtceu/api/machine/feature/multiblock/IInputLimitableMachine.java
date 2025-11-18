@@ -17,9 +17,13 @@ public interface IInputLimitableMachine extends IFancyUIMachine {
 
     void setInputLimit(boolean isInputLimit);
 
+    default boolean hasInputLimitConfig() {
+        return true;
+    }
+
     @Override
     default void attachConfigurators(ConfiguratorPanel configuratorPanel) {
-        configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(
+        if (hasInputLimitConfig()) configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(
                 GuiTextures.LOCK,
                 GuiTextures.LOCK_WHITE,
                 this::isInputLimit, (clickData, pressed) -> setInputLimit(pressed))

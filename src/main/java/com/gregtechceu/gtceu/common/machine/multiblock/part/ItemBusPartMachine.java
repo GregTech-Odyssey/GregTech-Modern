@@ -125,6 +125,11 @@ public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinct
     }
 
     @Override
+    public boolean hasInputLimitConfig() {
+        return inventory.storage.size > 1;
+    }
+
+    @Override
     public void setInputLimit(boolean inputLimit) {
         this.inventory.storage.isInputLimited = (io != IO.OUT && inputLimit);
     }
