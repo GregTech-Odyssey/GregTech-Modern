@@ -13,7 +13,6 @@ import com.gregtechceu.gtceu.api.pattern.error.SinglePredicateError;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.PatternMatchContext;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
-import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
 
 import com.lowdragmc.lowdraglib.syncdata.blockentity.IManagedBlockEntity;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
@@ -41,7 +40,6 @@ import net.minecraftforge.items.IItemHandler;
 import it.unimi.dsi.fastutil.ints.IntObjectPair;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.apache.commons.lang3.ArrayUtils;
@@ -379,7 +377,7 @@ public class BlockPattern {
         for (int l = 0, x = 0; l < this.fingerLength; l++) {
             for (int r = 0; r < repetition[l]; r++) {
                 // Checking single slice
-                Object2IntOpenHashMap<SimplePredicate> cacheLayer = new O2IOpenCacheHashMap<>();
+                Reference2IntOpenHashMap<SimplePredicate> cacheLayer = new Reference2IntOpenHashMap<>();
                 for (int y = 0; y < this.thumbLength; y++) {
                     for (int z = 0; z < this.palmLength; z++) {
                         TraceabilityPredicate predicate = this.blockMatches[l][y][z];

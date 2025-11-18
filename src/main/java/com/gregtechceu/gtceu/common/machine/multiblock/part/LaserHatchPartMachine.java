@@ -27,7 +27,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class LaserHatchPartMachine extends TieredIOPartMachine implements IDataInfoProvider {
 
     @Persisted
-    private NotifiableLaserContainer buffer;
+    private final NotifiableLaserContainer buffer;
 
     public LaserHatchPartMachine(MetaMachineBlockEntity holder, IO io, int tier, int amperage) {
         super(holder, tier, io);

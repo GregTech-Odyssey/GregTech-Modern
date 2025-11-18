@@ -15,7 +15,6 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
-import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
@@ -42,19 +41,18 @@ import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class ProspectorMode<T> {
 
     public static ProspectorMode<String> ORE = new ProspectorMode<>("metaitem.prospector.mode.ores", 16) {
 
-        private final Map<BlockState, String> BLOCK_CACHE = new O2OOpenCacheHashMap<>();
-        private final Map<String, IGuiTexture> ICON_CACHE = new O2OOpenCacheHashMap<>();
+        private final Map<BlockState, String> BLOCK_CACHE = new Reference2ObjectOpenHashMap<>();
+        private final Map<String, IGuiTexture> ICON_CACHE = new HashMap<>();
 
         @Override
         public void scan(String[][][] storage, LevelChunk chunk) {

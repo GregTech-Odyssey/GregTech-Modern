@@ -1,11 +1,9 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
+import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ILaserContainer;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.utils.GTUtil;
-
-import net.minecraft.core.Direction;
 
 public class NotifiableLaserContainer extends NotifiableEnergyContainer implements ILaserContainer {
 
@@ -27,22 +25,24 @@ public class NotifiableLaserContainer extends NotifiableEnergyContainer implemen
     @Override
     public void serverTick() {
         long stored = getEnergyStored();
-        if (stored >= 0) {
+        if (stored > 0 && outputSubs != null) {
             long voltage = getOutputVoltage();
             long canOutput = Math.min(stored, getOutputAmperage() * voltage);
             long energyUsed = 0;
-            for (Direction side : GTUtil.DIRECTIONS) {
-                if (!outputsEnergy(side)) continue;
-                var oppositeSide = side.getOpposite();
-                var energyContainer = GTCapabilityHelper.getLaser(machine.getNeighbor(side), oppositeSide);
-                if (energyContainer != null && canOutput >= energyContainer.getInputVoltage() && energyContainer.inputsEnergy(oppositeSide)) {
-                    energyUsed += energyContainer.acceptEnergyFromNetwork(this, oppositeSide, voltage, canOutput - energyUsed);
-                    if (energyUsed == canOutput) break;
-                }
+            var side = machine.getFrontFacing();
+            var oppositeSide = side.getOpposite();
+            var energyContainer = GTCapabilityHelper.getLaser(machine.getNeighbor(side), oppositeSide);
+            if (energyContainer != null && canOutput >= energyContainer.getInputVoltage() && energyContainer.inputsEnergy(oppositeSide)) {
+                energyUsed += energyContainer.acceptEnergyFromNetwork(this, oppositeSide, voltage, canOutput - energyUsed);
             }
             if (energyUsed > 0) {
                 setEnergyStored(stored - energyUsed);
+                outputSubs.cycle = 0;
+            } else if (outputSubs.cycle < 20) {
+                outputSubs.cycle++;
             }
+        } else {
+            ITickSubscription.unsubscribe(outputSubs);
         }
     }
 }

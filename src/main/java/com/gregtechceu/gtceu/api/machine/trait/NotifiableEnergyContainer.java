@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
@@ -114,15 +115,11 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
 
     public void checkOutputSubscription() {
         checkOutput = false;
-        if (machine.getLevel() instanceof ServerLevel) {
-            if (outputVoltage > 0 && outputAmperage > 0) {
-                if (getEnergyStored() >= 0) {
-                    outputSubs = machine.subscribeServerTick(outputSubs, this::serverTick);
-                } else if (outputSubs != null) {
-                    outputSubs.unsubscribe();
-                    outputSubs = null;
-                }
-            }
+        if (machine.getLevel() instanceof ServerLevel && outputVoltage > 0 && outputAmperage > 0 && getEnergyStored() >= 0) {
+            outputSubs = machine.subscribeServerTick(outputSubs, this::serverTick);
+        } else if (outputSubs != null) {
+            outputSubs.unsubscribe();
+            outputSubs = null;
         }
     }
 
@@ -145,7 +142,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
 
     public void serverTick() {
         long stored = getEnergyStored();
-        if (stored >= 0) {
+        if (stored > 0 && outputSubs != null) {
             long voltage = outputVoltage;
             long canOutput = Math.min(stored, outputAmperage * voltage);
             long energyUsed = 0;
@@ -160,7 +157,12 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
             }
             if (energyUsed > 0) {
                 setEnergyStored(stored - energyUsed);
+                outputSubs.cycle = 0;
+            } else if (outputSubs.cycle < 20) {
+                outputSubs.cycle++;
             }
+        } else {
+            ITickSubscription.unsubscribe(outputSubs);
         }
     }
 
@@ -233,13 +235,12 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
     @Override
     public long acceptEnergyFromNetwork(Object o, Direction side, long voltage, long energyAdded) {
         if (side == null || inputsEnergy(side)) {
-            long inputVoltage = this.inputVoltage;
             if (voltage > inputVoltage && machine instanceof IExplosionMachine explosionMachine) {
                 explosionMachine.doExplosion(GTUtil.getTierByVoltage(voltage));
                 return 0;
             }
             long stored = getEnergyStored();
-            energyAdded = Math.min(getEnergyCapacity() - stored, Math.min(energyAdded, inputVoltage * getInputAmperage()));
+            energyAdded = Math.min(getEnergyCapacity() - stored, Math.min(energyAdded, voltage * getInputAmperage()));
             if (energyAdded > 0) {
                 setEnergyStored(stored + energyAdded);
                 return energyAdded;

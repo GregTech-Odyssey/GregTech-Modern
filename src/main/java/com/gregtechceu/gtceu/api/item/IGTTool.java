@@ -23,7 +23,6 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
 import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
@@ -67,10 +66,7 @@ import net.minecraftforge.common.util.LazyOptional;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMaps;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import it.unimi.dsi.fastutil.objects.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -134,9 +130,10 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
         }
 
         // Set tool and material enchantments
-        Object2IntMap<Enchantment> enchantments = new O2IOpenCacheHashMap<>(toolProperty.getEnchantments());
+        Reference2IntOpenHashMap<Enchantment> enchantments = new Reference2IntOpenHashMap<>(toolProperty.getEnchantments());
         enchantments.putAll(toolStats.getDefaultEnchantments(stack));
-        for (var entry : Object2IntMaps.fastIterable(enchantments)) {
+        for (ObjectIterator<Reference2IntMap.Entry<Enchantment>> it = enchantments.reference2IntEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
             var enchantment = entry.getKey();
             if (enchantment.canEnchant(stack)) {
                 stack.enchant(enchantment, entry.getIntValue());

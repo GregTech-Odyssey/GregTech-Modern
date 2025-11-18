@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.integration.map.cache;
 
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.GeneratedVeinMetadata;
-import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
@@ -10,13 +9,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 
 import java.util.List;
 import java.util.Map;
 
 public abstract class WorldCache {
 
-    protected final Map<ResourceKey<Level>, DimensionCache> cache = new O2OOpenCacheHashMap<>();
+    protected final Map<ResourceKey<Level>, DimensionCache> cache = new Reference2ObjectOpenHashMap<>();
 
     public boolean addVein(ResourceKey<Level> dim, int gridX, int gridZ, GeneratedVeinMetadata vein) {
         if (!cache.containsKey(dim)) {

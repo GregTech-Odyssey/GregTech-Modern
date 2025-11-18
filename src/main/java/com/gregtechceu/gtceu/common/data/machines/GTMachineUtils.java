@@ -270,8 +270,7 @@ public class GTMachineUtils {
                                 Component.translatable("gtceu.universal.tooltip.voltage_in_out",
                                         FormattingUtil.formatNumbers(GTValues.V[tier]),
                                         GTValues.VNF[tier]),
-                                Component.translatable("gtceu.universal.tooltip.amperage_in_till",
-                                        batterySlotSize * BatteryBufferMachine.AMPS_PER_BATTERY),
+                                Component.translatable("gtceu.universal.tooltip.amperage_in_till", batterySlotSize),
                                 Component.translatable("gtceu.universal.tooltip.amperage_out_till", batterySlotSize))
                         .register(),
                 ALL_TIERS);

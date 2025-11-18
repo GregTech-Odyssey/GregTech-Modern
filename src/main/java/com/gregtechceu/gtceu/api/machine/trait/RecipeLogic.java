@@ -227,6 +227,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
         }
         if (isWaiting()) {
             machine.regressRecipe(this);
+            if (lastRecipe.getInputEUt() > 0) machine.setWorkingEnabled(false);
         }
     }
 

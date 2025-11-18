@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.data.recipe.misc.StoneMachineRecipes;
 import com.gregtechceu.gtceu.data.recipe.misc.WoodMachineRecipes;
 import com.gregtechceu.gtceu.data.tags.TagsHandler;
 import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
-import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 import com.gregtechceu.gtceu.utils.collection.O2OOpenCustomCacheHashMap;
 import com.gregtechceu.gtceu.utils.memoization.MemoizedBlockSupplier;
 
@@ -34,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -47,10 +47,10 @@ public class ItemMaterialData {
     /** Mapping of a fluid to a material */
     public static final Reference2ReferenceOpenHashMap<Fluid, Material> FLUID_MATERIAL = new Reference2ReferenceOpenHashMap<>();
     /** Mapping of all items that represent a "prefix, material" pair */
-    public static final O2OOpenCacheHashMap<MaterialEntry, List<Supplier<? extends Item>>> MATERIAL_ENTRY_ITEM_MAP = new O2OOpenCacheHashMap<>();
-    public static final O2OOpenCacheHashMap<MaterialEntry, List<Item>> MATERIAL_ENTRY_ITEM_LIKE_MAP = new O2OOpenCacheHashMap<>();
-    public static final O2OOpenCacheHashMap<MaterialEntry, List<Supplier<? extends Block>>> MATERIAL_ENTRY_BLOCK_MAP = new O2OOpenCacheHashMap<>();
-    public static final O2OOpenCacheHashMap<MaterialEntry, List<Block>> MATERIAL_ENTRY_BLOCK_LIKE_MAP = new O2OOpenCacheHashMap<>();
+    public static final HashMap<MaterialEntry, List<Supplier<? extends Item>>> MATERIAL_ENTRY_ITEM_MAP = new HashMap<>();
+    public static final HashMap<MaterialEntry, List<Item>> MATERIAL_ENTRY_ITEM_LIKE_MAP = new HashMap<>();
+    public static final HashMap<MaterialEntry, List<Supplier<? extends Block>>> MATERIAL_ENTRY_BLOCK_MAP = new HashMap<>();
+    public static final HashMap<MaterialEntry, List<Block>> MATERIAL_ENTRY_BLOCK_LIKE_MAP = new HashMap<>();
     /** Mapping of stone type blockState to "prefix, material" */
     public static final Reference2ReferenceOpenHashMap<Supplier<BlockState>, TagPrefix> ORES_INVERSE = new Reference2ReferenceOpenHashMap<>();
 
