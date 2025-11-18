@@ -253,7 +253,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                 if (changed) {
                     changed();
                     outputSubs.cycle = 0;
-                } else if (outputSubs.cycle < 20) {
+                } else if (outputSubs.cycle < 10) {
                     outputSubs.cycle++;
                 }
             } else {

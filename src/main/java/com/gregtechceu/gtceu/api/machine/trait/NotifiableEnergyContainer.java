@@ -158,7 +158,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
             if (energyUsed > 0) {
                 setEnergyStored(stored - energyUsed);
                 outputSubs.cycle = 0;
-            } else if (outputSubs.cycle < 20) {
+            } else if (outputSubs.cycle < 10) {
                 outputSubs.cycle++;
             }
         } else {

@@ -38,7 +38,7 @@ public class NotifiableLaserContainer extends NotifiableEnergyContainer implemen
             if (energyUsed > 0) {
                 setEnergyStored(stored - energyUsed);
                 outputSubs.cycle = 0;
-            } else if (outputSubs.cycle < 20) {
+            } else if (outputSubs.cycle < 10) {
                 outputSubs.cycle++;
             }
         } else {

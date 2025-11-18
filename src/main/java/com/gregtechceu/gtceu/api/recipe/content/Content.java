@@ -30,9 +30,9 @@ public class Content {
     public static final int MAX_CHANCE = 10_000;
 
     @Getter
-    public final Object content;
-    public final int chance;
-    public final int tierChanceBoost;
+    public Object content;
+    public int chance;
+    public int tierChanceBoost;
 
     public Content(Object content, int chance, int tierChanceBoost) {
         this.content = content;
