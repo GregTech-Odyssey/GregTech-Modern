@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.block.IMachineBlock;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
@@ -273,7 +272,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                     serverLevel.getServer().execute(() -> getOwner().getMembers().forEach(uuid -> {
                         Player p = serverLevel.getPlayerByUUID(uuid);
                         Component m = Component.translatable("gtocore.multiblock.invalid.message",
-                                getDefinition().getBlock().getName().withStyle(ChatFormatting.YELLOW),
+                                getDefinition().get().getName().withStyle(ChatFormatting.YELLOW),
                                 Component.literal(getPos().toShortString()).withStyle(ChatFormatting.AQUA));
                         if (p != null) p.sendSystemMessage(m); // this player is online
                         else MESSAGE_CACHE.put(uuid, m); // cache message for offline player
@@ -368,8 +367,8 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             return;
         }
         var blockState = getBlockState();
-        if (blockState.getBlock() instanceof MetaMachineBlock && blockState.getValue(IMachineBlock.UPWARDS_FACING_PROPERTY) != upwardsFacing) {
-            getLevel().setBlockAndUpdate(getPos(), blockState.setValue(IMachineBlock.UPWARDS_FACING_PROPERTY, upwardsFacing));
+        if (blockState.getBlock() instanceof MetaMachineBlock && blockState.getValue(MetaMachineBlock.UPWARDS_FACING_PROPERTY) != upwardsFacing) {
+            getLevel().setBlockAndUpdate(getPos(), blockState.setValue(MetaMachineBlock.UPWARDS_FACING_PROPERTY, upwardsFacing));
             if (getLevel() != null && !getLevel().isClientSide) {
                 notifyBlockUpdate();
                 onChanged();

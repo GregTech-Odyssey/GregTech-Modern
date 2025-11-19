@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.api.machine;
 
-import com.gregtechceu.gtceu.api.block.IMachineBlock;
+import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
@@ -18,7 +18,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -42,7 +41,7 @@ import java.util.function.Supplier;
 /**
  * Representing basic information of a machine.
  */
-public class MachineDefinition implements Supplier<IMachineBlock>, ItemLike {
+public class MachineDefinition implements Supplier<MetaMachineBlock>, ItemLike {
 
     @Getter
     private final ResourceLocation id;
@@ -51,7 +50,7 @@ public class MachineDefinition implements Supplier<IMachineBlock>, ItemLike {
     @Setter
     private String langValue;
     @Setter
-    private Supplier<? extends Block> blockSupplier;
+    private Supplier<? extends MetaMachineBlock> blockSupplier;
     @Setter
     private Supplier<? extends MetaMachineItem> itemSupplier;
     @Setter
@@ -123,10 +122,6 @@ public class MachineDefinition implements Supplier<IMachineBlock>, ItemLike {
         return new MachineDefinition(id);
     }
 
-    public Block getBlock() {
-        return blockSupplier.get();
-    }
-
     @Override
     public @NotNull MetaMachineItem asItem() {
         return itemSupplier.get();
@@ -154,8 +149,8 @@ public class MachineDefinition implements Supplier<IMachineBlock>, ItemLike {
     }
 
     @Override
-    public IMachineBlock get() {
-        return (IMachineBlock) blockSupplier.get();
+    public MetaMachineBlock get() {
+        return blockSupplier.get();
     }
 
     public String getName() {
@@ -168,38 +163,11 @@ public class MachineDefinition implements Supplier<IMachineBlock>, ItemLike {
     }
 
     public String getDescriptionId() {
-        return getBlock().getDescriptionId();
+        return get().getDescriptionId();
     }
 
     public BlockState defaultBlockState() {
-        return getBlock().defaultBlockState();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        MachineDefinition that = (MachineDefinition) o;
-        return id.equals(that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
-
-    static final ThreadLocal<MachineDefinition> STATE = new ThreadLocal<>();
-
-    public static MachineDefinition getBuilt() {
-        return STATE.get();
-    }
-
-    public static void setBuilt(MachineDefinition state) {
-        STATE.set(state);
-    }
-
-    public static void clearBuilt() {
-        STATE.remove();
+        return get().defaultBlockState();
     }
 
     @Nullable
@@ -231,5 +199,19 @@ public class MachineDefinition implements Supplier<IMachineBlock>, ItemLike {
 
     public boolean disabledCombined() {
         return disabledCombined;
+    }
+
+    private static final ThreadLocal<MachineDefinition> STATE = new ThreadLocal<>();
+
+    public static MachineDefinition getBuilt() {
+        return STATE.get();
+    }
+
+    public static void setBuilt(MachineDefinition state) {
+        STATE.set(state);
+    }
+
+    public static void clearBuilt() {
+        STATE.remove();
     }
 }

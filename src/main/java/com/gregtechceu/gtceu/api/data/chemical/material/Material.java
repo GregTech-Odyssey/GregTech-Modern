@@ -27,6 +27,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
@@ -35,20 +36,33 @@ import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import static com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey.HAZARD;
 
 public class Material implements Comparable<Material> {
+
+    public final Reference2ReferenceOpenHashMap<TagPrefix, List<Supplier<? extends Item>>> MATERIAL_ENTRY_ITEM_MAP = new Reference2ReferenceOpenHashMap<>();
+    public final Reference2ReferenceOpenHashMap<TagPrefix, List<Item>> MATERIAL_ENTRY_ITEM_LIKE_MAP = new Reference2ReferenceOpenHashMap<>();
+    public final Reference2ReferenceOpenHashMap<TagPrefix, List<Supplier<? extends Block>>> MATERIAL_ENTRY_BLOCK_MAP = new Reference2ReferenceOpenHashMap<>();
+    public final Reference2ReferenceOpenHashMap<TagPrefix, List<Block>> MATERIAL_ENTRY_BLOCK_LIKE_MAP = new Reference2ReferenceOpenHashMap<>();
+
+    private final Reference2ReferenceOpenHashMap<FluidStorageKey, Fluid> FLUID_ENTRY_MAP = new Reference2ReferenceOpenHashMap<>();
+
+    private Fluid fluid;
+
+    public void clearData() {
+        MATERIAL_ENTRY_ITEM_MAP.clear();
+        MATERIAL_ENTRY_BLOCK_MAP.clear();
+    }
 
     /**
      * Basic Info of this Material.
@@ -193,15 +207,7 @@ public class Material implements Comparable<Material> {
         }
     }
 
-    /**
-     * Retrieves a fluid from the material.
-     * Attempts to retrieve with {@link FluidProperty#getPrimaryKey()}, {@link FluidStorageKeys#LIQUID} and
-     * {@link FluidStorageKeys#GAS}.
-     *
-     * @return the fluid
-     * @see #getFluid(FluidStorageKey)
-     */
-    public Fluid getFluid() {
+    private Fluid getAnyFluid() {
         FluidProperty prop = getProperty(PropertyKey.FLUID);
         if (prop == null) {
             throw new IllegalArgumentException("Material " + getResourceLocation() + " does not have a Fluid!");
@@ -214,15 +220,32 @@ public class Material implements Comparable<Material> {
     }
 
     /**
+     * Retrieves a fluid from the material.
+     * Attempts to retrieve with {@link FluidProperty#getPrimaryKey()}, {@link FluidStorageKeys#LIQUID} and
+     * {@link FluidStorageKeys#GAS}.
+     *
+     * @return the fluid
+     * @see #getFluid(FluidStorageKey)
+     */
+    public Fluid getFluid() {
+        if (fluid == null) {
+            fluid = getAnyFluid();
+        }
+        return fluid;
+    }
+
+    /**
      * @param key the key for the fluid
      * @return the fluid corresponding with the key
      */
     public Fluid getFluid(@NotNull FluidStorageKey key) {
-        FluidProperty prop = getProperty(PropertyKey.FLUID);
-        if (prop == null) {
-            throw new IllegalArgumentException("Material " + getResourceLocation() + " does not have a Fluid!");
-        }
-        return prop.get(key);
+        return FLUID_ENTRY_MAP.computeIfAbsent(key, k -> {
+            FluidProperty prop = getProperty(PropertyKey.FLUID);
+            if (prop == null) {
+                throw new IllegalArgumentException("Material " + getResourceLocation() + " does not have a Fluid!");
+            }
+            return prop.get(key);
+        });
     }
 
     /**

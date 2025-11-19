@@ -109,9 +109,7 @@ public interface IMultiPart extends IFancyUIMachine {
     /**
      * Called in {@link RecipeLogic#onRecipeFinish()} before outputs are produced
      */
-    default boolean afterWorking(IWorkableMultiController controller) {
-        return true;
-    }
+    default void afterWorking(IWorkableMultiController controller) {}
 
     /**
      * Called in {@link RecipeLogic#setupRecipe(GTRecipe)}

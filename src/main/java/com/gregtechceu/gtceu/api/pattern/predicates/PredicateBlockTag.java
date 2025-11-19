@@ -39,7 +39,9 @@ public class PredicateBlockTag extends SimplePredicate {
                 .flatMap(HolderSet.Named::stream)
                 .map(Holder::value)
                 .toArray(Block[]::new);
-        candidates = () -> blocks;
+        if (blocks.length == 0) blocks = new Block[] { Blocks.BARRIER };
+        Block[] finalBlocks = blocks;
+        candidates = () -> finalBlocks;
         var info = BlockInfo.fromBlock(blocks[0]);
         blockInfo = () -> info;
         return this;

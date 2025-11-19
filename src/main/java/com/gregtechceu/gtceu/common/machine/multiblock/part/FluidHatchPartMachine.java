@@ -206,7 +206,7 @@ public class FluidHatchPartMachine extends TieredIOPartMachine implements IMachi
             else if (this.slots == 9) newDefinition = GTMachines.FLUID_IMPORT_HATCH_9X[this.getTier()];
         }
         if (newDefinition == null) return false;
-        BlockState newBlockState = newDefinition.getBlock().defaultBlockState();
+        BlockState newBlockState = newDefinition.get().defaultBlockState();
         getLevel().setBlockAndUpdate(blockPos, newBlockState);
         if (getLevel().getBlockEntity(blockPos) instanceof MetaMachineBlockEntity newHolder) {
             if (newHolder.getMetaMachine() instanceof FluidHatchPartMachine newMachine) {

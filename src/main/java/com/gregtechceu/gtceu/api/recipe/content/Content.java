@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GradientUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.utils.ColorUtils;
 import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
 import net.minecraft.client.Minecraft;
@@ -120,8 +121,16 @@ public class Content {
         String s = chance == 0 ? LocalizationUtils.format("gtceu.gui.content.chance_nc_short") : percent + "%";
         int color = chance == 0 ? 16711680 : GradientUtil.toRGB(Mth.lerp(chanceFloat, 29.0F, 167.0F), 100.0F, 50.0F);
         Font fontRenderer = Minecraft.getInstance().font;
-        graphics.drawString(fontRenderer, s, (int) ((x + (width / 3.0F)) * 2 - fontRenderer.width(s) + 23), (int) ((y + (height / 3.0F) + 6) * 2 - height), color, true);
+        graphics.drawString(fontRenderer, s, (int) ((x + (width / 3.0F)) * 2 - fontRenderer.width(s) + 23), (int) ((y + (height / 3.0F) + 6) * 2 - height), color(color), true);
         graphics.pose().popPose();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private int color(int color) {
+        if (color != 0xFF0000) return color;
+        double progress = Math.abs(System.currentTimeMillis() % 4000) / 4000.0d;
+        float alpha = (float) ((Math.cos(progress * 2 * Math.PI) + 1) / 2.2 + 0.05);
+        return ColorUtils.color(alpha, 1f, 0.0f, 0.0f);
     }
 
     @OnlyIn(Dist.CLIENT)

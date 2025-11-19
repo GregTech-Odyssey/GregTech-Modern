@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
+import com.gregtechceu.gtceu.common.unification.material.MaterialRegistryManager;
 import com.gregtechceu.gtceu.data.recipe.misc.RecyclingRecipes;
 import com.gregtechceu.gtceu.data.recipe.misc.StoneMachineRecipes;
 import com.gregtechceu.gtceu.data.recipe.misc.WoodMachineRecipes;
@@ -33,7 +34,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -46,11 +46,6 @@ public class ItemMaterialData {
     public static final Reference2ObjectOpenHashMap<Item, MaterialEntry> ITEM_MATERIAL_ENTRY_COLLECTED = new Reference2ObjectOpenHashMap<>();
     /** Mapping of a fluid to a material */
     public static final Reference2ReferenceOpenHashMap<Fluid, Material> FLUID_MATERIAL = new Reference2ReferenceOpenHashMap<>();
-    /** Mapping of all items that represent a "prefix, material" pair */
-    public static final HashMap<MaterialEntry, List<Supplier<? extends Item>>> MATERIAL_ENTRY_ITEM_MAP = new HashMap<>();
-    public static final HashMap<MaterialEntry, List<Item>> MATERIAL_ENTRY_ITEM_LIKE_MAP = new HashMap<>();
-    public static final HashMap<MaterialEntry, List<Supplier<? extends Block>>> MATERIAL_ENTRY_BLOCK_MAP = new HashMap<>();
-    public static final HashMap<MaterialEntry, List<Block>> MATERIAL_ENTRY_BLOCK_LIKE_MAP = new HashMap<>();
     /** Mapping of stone type blockState to "prefix, material" */
     public static final Reference2ReferenceOpenHashMap<Supplier<BlockState>, TagPrefix> ORES_INVERSE = new Reference2ReferenceOpenHashMap<>();
 
@@ -77,11 +72,11 @@ public class ItemMaterialData {
      */
     public static void registerMaterialEntry(@NotNull Supplier<? extends ItemLike> supplier,
                                              @NotNull MaterialEntry materialEntry) {
-        registerItemEntry(supplier, materialEntry);
+        registerItemEntry(supplier, materialEntry.tagPrefix(), materialEntry.material());
         ITEM_MATERIAL_ENTRY.add(Pair.of(() -> supplier.get().asItem(), materialEntry));
         var blockSupplier = convertToBlock(supplier);
         if (blockSupplier != null) {
-            registerBlockEntry(blockSupplier, materialEntry);
+            registerBlockEntry(blockSupplier, materialEntry.tagPrefix(), materialEntry.material());
         }
     }
 
@@ -115,19 +110,18 @@ public class ItemMaterialData {
     }
 
     private static void registerItemEntry(@NotNull Supplier<? extends ItemLike> supplier,
-                                          @NotNull MaterialEntry materialEntry) {
-        MATERIAL_ENTRY_ITEM_MAP.computeIfAbsent(materialEntry, k -> new ObjectArrayList<>())
+                                          @NotNull TagPrefix tagPrefix, @NotNull Material material) {
+        material.MATERIAL_ENTRY_ITEM_MAP.computeIfAbsent(tagPrefix, k -> new ObjectArrayList<>())
                 .add(() -> supplier.get().asItem());
-        if (TagPrefix.ORES.containsKey(materialEntry.tagPrefix()) &&
-                !ORES_INVERSE.containsValue(materialEntry.tagPrefix())) {
-            ORES_INVERSE.put(TagPrefix.ORES.get(materialEntry.tagPrefix()).stoneType(), materialEntry.tagPrefix());
+        if (TagPrefix.ORES.containsKey(tagPrefix) &&
+                !ORES_INVERSE.containsValue(tagPrefix)) {
+            ORES_INVERSE.put(TagPrefix.ORES.get(tagPrefix).stoneType(), tagPrefix);
         }
     }
 
     private static void registerBlockEntry(@NotNull Supplier<? extends Block> supplier,
-                                           @NotNull MaterialEntry materialEntry) {
-        MATERIAL_ENTRY_BLOCK_MAP.computeIfAbsent(materialEntry, k -> new ObjectArrayList<>())
-                .add(supplier);
+                                           @NotNull TagPrefix tagPrefix, @NotNull Material material) {
+        material.MATERIAL_ENTRY_BLOCK_MAP.computeIfAbsent(tagPrefix, k -> new ObjectArrayList<>()).add(supplier);
     }
 
     @SuppressWarnings("unchecked")
@@ -150,8 +144,7 @@ public class ItemMaterialData {
 
     public static void reinitializeMaterialData() {
         // Clear old data
-        MATERIAL_ENTRY_ITEM_MAP.clear();
-        MATERIAL_ENTRY_BLOCK_MAP.clear();
+        MaterialRegistryManager.getInstance().getRegisteredMaterials().forEach(Material::clearData);
         ITEM_MATERIAL_ENTRY.clear();
         FLUID_MATERIAL.clear();
 

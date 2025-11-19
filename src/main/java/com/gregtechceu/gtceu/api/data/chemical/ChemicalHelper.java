@@ -198,47 +198,50 @@ public class ChemicalHelper {
         return materialEntry;
     }
 
-    public static List<Item> getItems(MaterialEntry materialEntry) {
-        if (materialEntry.material().isNull()) return Collections.emptyList();
-        return MATERIAL_ENTRY_ITEM_LIKE_MAP.computeIfAbsent(materialEntry, entry -> {
-            var items = MATERIAL_ENTRY_ITEM_MAP.get(materialEntry);
+    public static List<Item> getItems(MaterialEntry MaterialEntry) {
+        return getItems(MaterialEntry.tagPrefix(), MaterialEntry.material());
+    }
+
+    public static List<Item> getItems(TagPrefix tagPrefix, Material material) {
+        if (material.isNull()) return Collections.emptyList();
+        return material.MATERIAL_ENTRY_ITEM_LIKE_MAP.computeIfAbsent(tagPrefix, entry -> {
+            var items = material.MATERIAL_ENTRY_ITEM_MAP.get(tagPrefix);
             if (items != null) {
                 return (List<Item>) items.stream().map(Supplier::get).toList();
             }
-            TagPrefix prefix = materialEntry.tagPrefix();
             items = new ObjectArrayList<>();
-            for (TagKey<Item> tag : prefix.getItemTags(materialEntry.material())) {
+            for (TagKey<Item> tag : tagPrefix.getItemTags(material)) {
                 for (Holder<Item> itemHolder : BuiltInRegistries.ITEM.getTagOrEmpty(tag)) {
                     items.add(itemHolder::value);
                 }
             }
-            if (items.isEmpty() && prefix.hasItemTable() && prefix.doGenerateItem(materialEntry.material())) {
-                return Collections.singletonList(prefix.getItemFromTable(materialEntry.material()).get().asItem());
+            if (items.isEmpty() && tagPrefix.hasItemTable() && tagPrefix.doGenerateItem(material)) {
+                return Collections.singletonList(tagPrefix.getItemFromTable(material).get().asItem());
             }
             return (List<Item>) items.stream().map(Supplier::get).toList();
         });
     }
 
     public static Item getItem(MaterialEntry MaterialEntry) {
-        var list = getItems(MaterialEntry);
+        return getItem(MaterialEntry.tagPrefix(), MaterialEntry.material());
+    }
+
+    public static Item getItem(TagPrefix tagPrefix, Material material) {
+        var list = getItems(tagPrefix, material);
         if (list.isEmpty()) return Items.AIR;
         return list.getFirst().asItem();
     }
 
-    public static Item getItem(TagPrefix tagPrefix, @NotNull Material material) {
-        return getItem(new MaterialEntry(tagPrefix, material));
-    }
-
     public static ItemStack get(MaterialEntry materialEntry, int size) {
-        var list = getItems(materialEntry);
-        if (list.isEmpty()) return ItemStack.EMPTY;
-        var stack = list.get(0).asItem().getDefaultInstance();
-        stack.setCount(size);
-        return stack;
+        return get(materialEntry.tagPrefix(), materialEntry.material(), size);
     }
 
     public static ItemStack get(TagPrefix orePrefix, Material material, int stackSize) {
-        return get(new MaterialEntry(orePrefix, material), stackSize);
+        var list = getItems(orePrefix, material);
+        if (list.isEmpty()) return ItemStack.EMPTY;
+        var stack = list.get(0).asItem().getDefaultInstance();
+        stack.setCount(stackSize);
+        return stack;
     }
 
     public static ItemStack get(TagPrefix orePrefix, Material material) {
@@ -246,21 +249,24 @@ public class ChemicalHelper {
     }
 
     public static List<Block> getBlocks(MaterialEntry materialEntry) {
-        if (materialEntry.isEmpty()) return Collections.emptyList();
-        return MATERIAL_ENTRY_BLOCK_LIKE_MAP.computeIfAbsent(materialEntry, entry -> {
-            var blocks = MATERIAL_ENTRY_BLOCK_MAP.get(entry);
+        return getBlocks(materialEntry.tagPrefix(), materialEntry.material());
+    }
+
+    public static List<Block> getBlocks(TagPrefix tagPrefix, Material material) {
+        if (material.isNull()) return Collections.emptyList();
+        return material.MATERIAL_ENTRY_BLOCK_LIKE_MAP.computeIfAbsent(tagPrefix, entry -> {
+            var blocks = material.MATERIAL_ENTRY_BLOCK_MAP.get(tagPrefix);
             if (blocks != null) {
                 return (List<Block>) blocks.stream().map(Supplier::get).toList();
             }
-            TagPrefix prefix = materialEntry.tagPrefix();
             blocks = new ObjectArrayList<>();
-            for (TagKey<Block> tag : prefix.getBlockTags(materialEntry.material())) {
+            for (TagKey<Block> tag : tagPrefix.getBlockTags(material)) {
                 for (Holder<Block> itemHolder : BuiltInRegistries.BLOCK.getTagOrEmpty(tag)) {
                     blocks.add(itemHolder::value);
                 }
             }
-            if (blocks.isEmpty() && prefix.hasItemTable() && prefix.doGenerateBlock(materialEntry.material())) {
-                var blockSupplier = ItemMaterialData.convertToBlock(prefix.getItemFromTable(materialEntry.material()));
+            if (blocks.isEmpty() && tagPrefix.hasItemTable() && tagPrefix.doGenerateBlock(material)) {
+                var blockSupplier = ItemMaterialData.convertToBlock(tagPrefix.getItemFromTable(material));
                 if (blockSupplier != null) {
                     return Collections.singletonList(blockSupplier.get());
                 }
@@ -271,14 +277,14 @@ public class ChemicalHelper {
 
     @Nullable
     public static Block getBlock(MaterialEntry materialEntry) {
-        var list = getBlocks(materialEntry);
-        if (list.isEmpty()) return null;
-        return list.get(0);
+        return getBlock(materialEntry.tagPrefix(), materialEntry.material());
     }
 
     @Nullable
     public static Block getBlock(TagPrefix orePrefix, Material material) {
-        return getBlock(new MaterialEntry(orePrefix, material));
+        var list = getBlocks(orePrefix, material);
+        if (list.isEmpty()) return null;
+        return list.get(0);
     }
 
     @Nullable

@@ -207,7 +207,7 @@ public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinct
             newDefinition = GTMachines.ITEM_IMPORT_BUS[this.getTier()];
         }
         if (newDefinition == null) return false;
-        BlockState newBlockState = newDefinition.getBlock().defaultBlockState();
+        BlockState newBlockState = newDefinition.get().defaultBlockState();
         getLevel().setBlockAndUpdate(blockPos, newBlockState);
         if (getLevel().getBlockEntity(blockPos) instanceof MetaMachineBlockEntity newHolder) {
             if (newHolder.getMetaMachine() instanceof ItemBusPartMachine newMachine) {

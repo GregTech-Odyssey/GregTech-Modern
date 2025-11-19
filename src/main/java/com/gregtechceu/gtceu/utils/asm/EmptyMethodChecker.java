@@ -13,7 +13,7 @@ public class EmptyMethodChecker extends ClassVisitor {
                 method.getParameterTypes());
     }
 
-    public static boolean hasMethodBody(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
+    private static boolean hasMethodBody(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
         try {
             var classStream = clazz.getClassLoader().getResourceAsStream(clazz.getName().replace('.', '/') + ".class");
             if (classStream == null) return false;

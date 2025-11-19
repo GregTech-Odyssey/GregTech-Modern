@@ -57,7 +57,7 @@ public interface IMaintenanceMachine extends IMultiPart {
     void setTimeActive(int time);
 
     /**
-     * Duration modifier for recipe. {@link IMaintenanceMachine#modifyRecipe(GTRecipe)}
+     * Duration modifier for recipe. {@link IMaintenanceMachine#modifyRecipe(IWorkableMultiController,GTRecipe)}
      * It's configurable in the Configurable Maintenance Part.
      */
     default float getDurationMultiplier() {
@@ -127,15 +127,13 @@ public interface IMaintenanceMachine extends IMultiPart {
     }
 
     @Override
-    default boolean afterWorking(IWorkableMultiController controller) {
+    default void afterWorking(IWorkableMultiController controller) {
         if (ConfigHolder.INSTANCE.machines.enableMaintenance) {
             calculateMaintenance(this, controller.getRecipeLogic().getProgress());
             if (hasMaintenanceProblems()) {
                 controller.getRecipeLogic().markLastRecipeDirty();
-                return false;
             }
         }
-        return true;
     }
 
     @Override

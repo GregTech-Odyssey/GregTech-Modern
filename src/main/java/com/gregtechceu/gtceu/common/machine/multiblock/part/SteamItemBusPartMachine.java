@@ -77,7 +77,7 @@ public class SteamItemBusPartMachine extends ItemBusPartMachine {
         }
 
         if (newDefinition == null) return false;
-        BlockState newBlockState = newDefinition.getBlock().defaultBlockState();
+        BlockState newBlockState = newDefinition.get().defaultBlockState();
 
         getLevel().setBlockAndUpdate(blockPos, newBlockState);
 

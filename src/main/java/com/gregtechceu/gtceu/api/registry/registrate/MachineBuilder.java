@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.api.registry.registrate;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.block.IMachineBlock;
+import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.data.RotationState;
@@ -67,8 +67,8 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
 
     protected final Registrate registrate;
     protected final String name;
-    protected final BiFunction<BlockBehaviour.Properties, DEFINITION, IMachineBlock> blockFactory;
-    protected final BiFunction<IMachineBlock, Item.Properties, MetaMachineItem> itemFactory;
+    protected final BiFunction<BlockBehaviour.Properties, DEFINITION, MetaMachineBlock> blockFactory;
+    protected final BiFunction<MetaMachineBlock, Item.Properties, MetaMachineItem> itemFactory;
     protected final TriFunction<BlockEntityType<?>, BlockPos, BlockState, MetaMachineBlockEntity> blockEntityFactory;
     // non-final for KJS
     protected Function<ResourceLocation, DEFINITION> definition;
@@ -114,7 +114,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     @Nullable
     private String langValue = null;
 
-    protected MachineBuilder(Registrate registrate, String name, Function<ResourceLocation, DEFINITION> definition, Function<MetaMachineBlockEntity, MetaMachine> machine, BiFunction<BlockBehaviour.Properties, DEFINITION, IMachineBlock> blockFactory, BiFunction<IMachineBlock, Item.Properties, MetaMachineItem> itemFactory, TriFunction<BlockEntityType<?>, BlockPos, BlockState, MetaMachineBlockEntity> blockEntityFactory) {
+    protected MachineBuilder(Registrate registrate, String name, Function<ResourceLocation, DEFINITION> definition, Function<MetaMachineBlockEntity, MetaMachine> machine, BiFunction<BlockBehaviour.Properties, DEFINITION, MetaMachineBlock> blockFactory, BiFunction<MetaMachineBlock, Item.Properties, MetaMachineItem> itemFactory, TriFunction<BlockEntityType<?>, BlockPos, BlockState, MetaMachineBlockEntity> blockEntityFactory) {
         super(new ResourceLocation(registrate.getModid(), name));
         this.registrate = registrate;
         this.name = name;
@@ -137,7 +137,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
         return this;
     }
 
-    public static <DEFINITION extends MachineDefinition> MachineBuilder<DEFINITION> create(Registrate registrate, String name, Function<ResourceLocation, DEFINITION> definitionFactory, Function<MetaMachineBlockEntity, MetaMachine> metaMachine, BiFunction<BlockBehaviour.Properties, DEFINITION, IMachineBlock> blockFactory, BiFunction<IMachineBlock, Item.Properties, MetaMachineItem> itemFactory, TriFunction<BlockEntityType<?>, BlockPos, BlockState, MetaMachineBlockEntity> blockEntityFactory) {
+    public static <DEFINITION extends MachineDefinition> MachineBuilder<DEFINITION> create(Registrate registrate, String name, Function<ResourceLocation, DEFINITION> definitionFactory, Function<MetaMachineBlockEntity, MetaMachine> metaMachine, BiFunction<BlockBehaviour.Properties, DEFINITION, MetaMachineBlock> blockFactory, BiFunction<MetaMachineBlock, Item.Properties, MetaMachineItem> itemFactory, TriFunction<BlockEntityType<?>, BlockPos, BlockState, MetaMachineBlockEntity> blockEntityFactory) {
         return new MachineBuilder<>(registrate, name, definitionFactory, metaMachine, blockFactory, itemFactory, blockEntityFactory);
     }
 
@@ -316,7 +316,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     static class BlockBuilderWrapper {
 
         @SuppressWarnings("removal")
-        public static <DEFINITION extends MachineDefinition> BlockBuilder<Block, Registrate> makeBlockBuilder(MachineBuilder<DEFINITION> builder, DEFINITION definition) {
+        public static <DEFINITION extends MachineDefinition> BlockBuilder<MetaMachineBlock, Registrate> makeBlockBuilder(MachineBuilder<DEFINITION> builder, DEFINITION definition) {
             return
             // .tag(GTToolType.WRENCH.harvestTag)
             builder.registrate.block(builder.name, properties -> {
@@ -325,16 +325,16 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
                 var b = builder.blockFactory.apply(properties, definition);
                 RotationState.clear();
                 MachineDefinition.clearBuilt();
-                return b.self();
-            }).color(() -> () -> IMachineBlock::colorTinted).initialProperties(() -> Blocks.DISPENSER).properties(BlockBehaviour.Properties::noLootTable).addLayer(() -> RenderType::cutoutMipped).blockstate(NonNullBiConsumer.noop()).properties(builder.blockProp).onRegister(b -> Arrays.stream(builder.abilities).forEach(a -> a.register(builder.tier, b)));
+                return b;
+            }).color(() -> () -> MetaMachineBlock::colorTinted).initialProperties(() -> Blocks.DISPENSER).properties(BlockBehaviour.Properties::noLootTable).addLayer(() -> RenderType::cutoutMipped).blockstate(NonNullBiConsumer.noop()).properties(builder.blockProp).onRegister(b -> Arrays.stream(builder.abilities).forEach(a -> a.register(builder.tier, b)));
         }
     }
 
     static class ItemBuilderWrapper {
 
-        public static <DEFINITION extends MachineDefinition> ItemBuilder<MetaMachineItem, Registrate> makeItemBuilder(MachineBuilder<DEFINITION> builder, BlockEntry<Block> block) {
+        public static <DEFINITION extends MachineDefinition> ItemBuilder<MetaMachineItem, Registrate> makeItemBuilder(MachineBuilder<DEFINITION> builder, BlockEntry<MetaMachineBlock> block) {
             return  // do not gen any lang keys
-            builder.registrate.item(builder.name, properties -> builder.itemFactory.apply((IMachineBlock) block.get(), properties)).setData(ProviderType.LANG, NonNullBiConsumer.noop()).model(NonNullBiConsumer.noop()).color(() -> () -> builder.itemColor::apply).properties(builder.itemProp);
+            builder.registrate.item(builder.name, properties -> builder.itemFactory.apply(block.get(), properties)).setData(ProviderType.LANG, NonNullBiConsumer.noop()).model(NonNullBiConsumer.noop()).color(() -> () -> builder.itemColor::apply).properties(builder.itemProp);
         }
     }
 

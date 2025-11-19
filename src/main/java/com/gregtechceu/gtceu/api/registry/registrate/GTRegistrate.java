@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.api.registry.registrate;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.block.IMachineBlock;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
@@ -136,8 +135,8 @@ public class GTRegistrate extends Registrate {
     public <DEFINITION extends MachineDefinition> MachineBuilder<DEFINITION> machine(String name,
                                                                                      Function<ResourceLocation, DEFINITION> definitionFactory,
                                                                                      Function<MetaMachineBlockEntity, MetaMachine> metaMachine,
-                                                                                     BiFunction<BlockBehaviour.Properties, DEFINITION, IMachineBlock> blockFactory,
-                                                                                     BiFunction<IMachineBlock, Item.Properties, MetaMachineItem> itemFactory,
+                                                                                     BiFunction<BlockBehaviour.Properties, DEFINITION, MetaMachineBlock> blockFactory,
+                                                                                     BiFunction<MetaMachineBlock, Item.Properties, MetaMachineItem> itemFactory,
                                                                                      TriFunction<BlockEntityType<?>, BlockPos, BlockState, MetaMachineBlockEntity> blockEntityFactory) {
         return MachineBuilder.create(this, name, definitionFactory, metaMachine, blockFactory, itemFactory,
                 blockEntityFactory);
@@ -160,8 +159,8 @@ public class GTRegistrate extends Registrate {
 
     public MultiblockMachineBuilder multiblock(String name,
                                                Function<MetaMachineBlockEntity, ? extends MultiblockControllerMachine> metaMachine,
-                                               BiFunction<BlockBehaviour.Properties, MultiblockMachineDefinition, IMachineBlock> blockFactory,
-                                               BiFunction<IMachineBlock, Item.Properties, MetaMachineItem> itemFactory,
+                                               BiFunction<BlockBehaviour.Properties, MultiblockMachineDefinition, MetaMachineBlock> blockFactory,
+                                               BiFunction<MetaMachineBlock, Item.Properties, MetaMachineItem> itemFactory,
                                                TriFunction<BlockEntityType<?>, BlockPos, BlockState, MetaMachineBlockEntity> blockEntityFactory) {
         return MultiblockMachineBuilder.createMulti(this, name, metaMachine, blockFactory, itemFactory,
                 blockEntityFactory);

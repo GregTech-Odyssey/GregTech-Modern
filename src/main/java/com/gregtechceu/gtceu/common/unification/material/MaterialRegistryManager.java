@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 import net.minecraft.resources.ResourceLocation;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
@@ -127,11 +128,11 @@ public final class MaterialRegistryManager implements IMaterialRegistryManager {
 
     public void closeRegistries() {
         registries.values().forEach(MaterialRegistryImpl::closeRegistry);
-        Collection<Material> collection = new ObjectArrayList<>();
+        var collection = new ObjectArrayList<Material>();
         for (MaterialRegistry registry : registries.values()) {
             collection.addAll(registry.getAllMaterials());
         }
-        registeredMaterials = Collections.unmodifiableCollection(collection);
+        registeredMaterials = ImmutableList.copyOf(collection);
         registrationPhase = Phase.CLOSED;
     }
 

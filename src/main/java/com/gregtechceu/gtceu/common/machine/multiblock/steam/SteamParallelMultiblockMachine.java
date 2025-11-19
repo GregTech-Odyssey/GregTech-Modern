@@ -73,7 +73,7 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
 
     protected void addSteamEnergy() {
         for (var part : getParts()) {
-            if (!PartAbility.STEAM.isApplicable(part.self().getDefinition().getBlock())) continue;
+            if (!PartAbility.STEAM.isApplicable(part.self().getDefinition().get())) continue;
             var handlers = part.getRecipeHandlers();
             for (var hl : handlers) {
                 if (!hl.isValid(IO.IN)) continue;

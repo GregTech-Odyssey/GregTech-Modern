@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.machine;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.block.IMachineBlock;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.IPaintable;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
@@ -594,11 +593,11 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
 
     @NotNull
     public static Direction getUpwardFacing(@Nullable MetaMachine machine) {
-        return machine == null || !machine.allowExtendedFacing() ? Direction.NORTH : machine.getBlockState().getValue(IMachineBlock.UPWARDS_FACING_PROPERTY);
+        return machine == null || !machine.allowExtendedFacing() ? Direction.NORTH : machine.getBlockState().getValue(MetaMachineBlock.UPWARDS_FACING_PROPERTY);
     }
 
     public Direction getUpwardsFacing() {
-        return this.allowExtendedFacing() ? this.getBlockState().getValue(IMachineBlock.UPWARDS_FACING_PROPERTY) : Direction.NORTH;
+        return this.allowExtendedFacing() ? this.getBlockState().getValue(MetaMachineBlock.UPWARDS_FACING_PROPERTY) : Direction.NORTH;
     }
 
     public void setUpwardsFacing(@NotNull Direction upwardsFacing) {
@@ -610,8 +609,8 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
             return;
         }
         var blockState = getBlockState();
-        if (blockState.getBlock() instanceof MetaMachineBlock && blockState.getValue(IMachineBlock.UPWARDS_FACING_PROPERTY) != upwardsFacing) {
-            getLevel().setBlockAndUpdate(getPos(), blockState.setValue(IMachineBlock.UPWARDS_FACING_PROPERTY, upwardsFacing));
+        if (blockState.getBlock() instanceof MetaMachineBlock && blockState.getValue(MetaMachineBlock.UPWARDS_FACING_PROPERTY) != upwardsFacing) {
+            getLevel().setBlockAndUpdate(getPos(), blockState.setValue(MetaMachineBlock.UPWARDS_FACING_PROPERTY, upwardsFacing));
             if (getLevel() != null && !getLevel().isClientSide) {
                 notifyBlockUpdate();
                 onChanged();
@@ -750,7 +749,7 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
             if (side != null && this instanceof IAutoOutputItem autoOutput && autoOutput.getOutputFacingItems() == side && !autoOutput.isAllowInputFromOutputSideItems()) {
                 io = IO.OUT;
             } else if (filteredTraits.size() == 1 && inf == GTUtil.FAVORABLE && outf == GTUtil.FAVORABLE) {
-                handlerList = filteredTraits.get(0);
+                handlerList = filteredTraits.getFirst();
             }
             if (handlerList == null) handlerList = new IOFilteredInvWrapper(filteredTraits, io, inf, outf);
             if (!useCoverCapability || side == null) return handlerList;
@@ -778,7 +777,7 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
             IO io = IO.BOTH;
             if (side != null && this instanceof IAutoOutputFluid autoOutput && autoOutput.getOutputFacingFluids() == side && !autoOutput.isAllowInputFromOutputSideFluids()) {
                 io = IO.OUT;
-            } else if (filteredTraits.size() == 1 && inf == GTUtil.FAVORABLE && outf == GTUtil.FAVORABLE && filteredTraits.get(0) instanceof IFluidHandlerModifiable modifiable) {
+            } else if (filteredTraits.size() == 1 && inf == GTUtil.FAVORABLE && outf == GTUtil.FAVORABLE && filteredTraits.getFirst() instanceof IFluidHandlerModifiable modifiable) {
                 handlerList = modifiable;
             }
             if (handlerList == null) handlerList = new IOFluidHandlerList(filteredTraits, io, inf, outf);
@@ -812,7 +811,7 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
         getDefinition().getTooltipBuilder().accept(getDefinition().asStack(), tooltips);
         String mainKey = String.format("%s.machine.%s.tooltip", getDefinition().getId().getNamespace(), getDefinition().getId().getPath());
         if (Language.getInstance().has(mainKey)) {
-            tooltips.add(0, Component.translatable(mainKey));
+            tooltips.addFirst(Component.translatable(mainKey));
         }
     }
 

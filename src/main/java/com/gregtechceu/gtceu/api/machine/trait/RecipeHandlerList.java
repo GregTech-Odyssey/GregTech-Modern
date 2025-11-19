@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
-import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
@@ -37,7 +37,7 @@ public class RecipeHandlerList {
 
     public static final RecipeHandlerList NO_DATA = new RecipeHandlerList(IO.NONE);
 
-    public static Consumer<MultiblockPartMachine> NOTIFY = p -> {};
+    public static Consumer<IMultiPart> NOTIFY = p -> {};
 
     public final Reference2ObjectOpenHashMap<RecipeCapability<?>, List<IRecipeHandler<?>>> handlerMap = new Reference2ObjectOpenHashMap<>();
     public final List<IRecipeHandler<?>> allHandlers = new ObjectArrayList<>();
@@ -55,9 +55,9 @@ public class RecipeHandlerList {
 
     public final IntIngredientMap intIngredientMap = new IntIngredientMap();
 
-    public final MultiblockPartMachine part;
+    public final IMultiPart part;
 
-    protected RecipeHandlerList(IO handlerIO, MultiblockPartMachine part) {
+    protected RecipeHandlerList(IO handlerIO, IMultiPart part) {
         this.handlerIO = handlerIO;
         this.part = part;
     }
@@ -79,7 +79,7 @@ public class RecipeHandlerList {
         return rhl;
     }
 
-    public static RecipeHandlerList of(IO io, MultiblockPartMachine part, Iterable<IRecipeHandler<?>> handlers) {
+    public static RecipeHandlerList of(IO io, IMultiPart part, Iterable<IRecipeHandler<?>> handlers) {
         RecipeHandlerList rhl = new RecipeHandlerList(io, part);
         rhl.addHandlers(handlers);
         return rhl;

@@ -21,6 +21,7 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.api.distmarker.Dist;
@@ -71,7 +72,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @DescSynced
     protected boolean activated;
-    @DescSynced
     protected ActiveBlock.State activeState = ActiveBlock.State.UNKNOWN;
 
     public WorkableMultiblockMachine(MetaMachineBlockEntity holder, Object... args) {
@@ -93,9 +93,19 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void onUnload() {
         super.onUnload();
-        if (isRemote()) activeState = ActiveBlock.State.UNKNOWN;
+        if (isRemote()) deleteActive();
         traitSubscriptions.forEach(ISubscription::unsubscribe);
         traitSubscriptions.clear();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private void deleteActive() {
+        if (activeState.ordinal() != 2) {
+            Minecraft.getInstance().tell(() -> {
+                updateActiveBlocks(false);
+                activeState = ActiveBlock.State.NON_ACTIVE;
+            });
+        }
     }
 
     //////////////////////////////////////
@@ -127,7 +137,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         afterWorkings = afterWorkingList.toArray(new IMultiPart[0]);
         modifyRecipes = modifyRecipeList.toArray(new IMultiPart[0]);
 
-        activeState = ActiveBlock.State.UNKNOWN;
         // attach parts' traits
         activeBlocks.clear();
         activeBlocks.addAll(getMultiblockState().getMatchContext().vaBlocks);
@@ -162,8 +171,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         beforeWorkings = new IMultiPart[0];
         afterWorkings = new IMultiPart[0];
         modifyRecipes = new IMultiPart[0];
-        activeState = ActiveBlock.State.UNKNOWN;
-        activeBlocks.clear();
         capabilitiesProxy.clear();
         capabilitiesFlat.clear();
         traitSubscriptions.forEach(ISubscription::unsubscribe);
@@ -175,7 +182,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void onPartUnload() {
         super.onPartUnload();
-        activeBlocks.clear();
         capabilitiesProxy.clear();
         capabilitiesFlat.clear();
         traitSubscriptions.forEach(ISubscription::unsubscribe);
@@ -196,7 +202,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
             previouslyMuffled = isMuffled;
             if (recipeLogic != null) recipeLogic.updateSound();
         }
-        var shouldActive = activated || (isFormed && getRecipeLogic().isWorking());
+        var shouldActive = isFormed && (activated || getRecipeLogic().isWorking());
         var state = shouldActive ? ActiveBlock.State.ACTIVE : ActiveBlock.State.NON_ACTIVE;
         if (activeState.ordinal() == 0 || state != activeState) {
             activeState = state;

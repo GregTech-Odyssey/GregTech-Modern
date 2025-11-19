@@ -15,6 +15,7 @@ import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKey;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.registry.registrate.forge.GTClientFluidTypeExtensions;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
+import com.gregtechceu.gtceu.common.unification.material.MaterialRegistryManager;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -61,27 +62,28 @@ public class MixinHelpers {
 
     public static void registryGTDynamicTags() {
         var itemTags = DYNAMIC_TAG_CACHE.computeIfAbsent(BuiltInRegistries.ITEM, path -> new O2OOpenCacheHashMap<>());
-        ItemMaterialData.MATERIAL_ENTRY_ITEM_MAP.forEach((entry, itemLikes) -> {
-            if (itemLikes.isEmpty()) return;
-            var material = entry.material();
+        MaterialRegistryManager.getInstance().getRegisteredMaterials().forEach(material -> {
             if (material.isNull()) return;
-            var entries = itemLikes.stream().map(MixinHelpers::makeItemEntry).collect(toArrayList());
+            material.MATERIAL_ENTRY_ITEM_MAP.forEach((tagPrefix, itemLikes) -> {
+                if (itemLikes.isEmpty()) return;
+                var entries = itemLikes.stream().map(MixinHelpers::makeItemEntry).collect(toArrayList());
 
-            var materialTags = entry.tagPrefix().getAllItemTags(material);
-            for (TagKey<Item> materialTag : materialTags) {
-                itemTags.computeIfAbsent(materialTag.location(), path -> new ObjectArrayList<>()).addAll(entries);
-            }
+                var materialTags = tagPrefix.getAllItemTags(material);
+                for (TagKey<Item> materialTag : materialTags) {
+                    itemTags.computeIfAbsent(materialTag.location(), path -> new ObjectArrayList<>()).addAll(entries);
+                }
 
-            if (entry.tagPrefix() == TagPrefix.crushed && material.hasProperty(PropertyKey.ORE)) {
-                OreProperty ore = material.getProperty(PropertyKey.ORE);
-                Material washedIn = ore.getWashedIn().first();
-                if (washedIn.isNull()) return;
-                ResourceLocation generalTag = CustomTags.CHEM_BATH_WASHABLE.location();
-                ResourceLocation specificTag = generalTag.withSuffix("/" + washedIn.getName());
+                if (tagPrefix == TagPrefix.crushed && material.hasProperty(PropertyKey.ORE)) {
+                    OreProperty ore = material.getProperty(PropertyKey.ORE);
+                    Material washedIn = ore.getWashedIn().first();
+                    if (washedIn.isNull()) return;
+                    ResourceLocation generalTag = CustomTags.CHEM_BATH_WASHABLE.location();
+                    ResourceLocation specificTag = generalTag.withSuffix("/" + washedIn.getName());
 
-                itemTags.computeIfAbsent(generalTag, path -> new ObjectArrayList<>()).addAll(entries);
-                itemTags.computeIfAbsent(specificTag, path -> new ObjectArrayList<>()).addAll(entries);
-            }
+                    itemTags.computeIfAbsent(generalTag, path -> new ObjectArrayList<>()).addAll(entries);
+                    itemTags.computeIfAbsent(specificTag, path -> new ObjectArrayList<>()).addAll(entries);
+                }
+            });
         });
 
         GTMaterialItems.TOOL_ITEMS.rowMap().forEach((material, map) -> {
@@ -111,34 +113,34 @@ public class MixinHelpers {
             }
         }
         var blockTags = DYNAMIC_TAG_CACHE.computeIfAbsent(BuiltInRegistries.BLOCK, path -> new O2OOpenCacheHashMap<>());
-        ItemMaterialData.MATERIAL_ENTRY_BLOCK_MAP.forEach((entry, blocks) -> {
-            if (blocks.isEmpty()) return;
-            var material = entry.material();
+        MaterialRegistryManager.getInstance().getRegisteredMaterials().forEach(material -> {
             if (material.isNull()) return;
-
-            var entries = blocks.stream().map(MixinHelpers::makeBlockEntry).collect(toArrayList());
-            var materialTags = entry.tagPrefix().getAllBlockTags(material);
-            for (TagKey<Block> materialTag : materialTags) {
-                blockTags.computeIfAbsent(materialTag.location(), path -> new ObjectArrayList<>()).addAll(entries);
-            }
-            // Add tool tags
-            if (!entry.isIgnored() && !entry.tagPrefix().miningToolTag().isEmpty()) {
-                blockTags.computeIfAbsent(CustomTags.TOOL_TIERS[material.getBlockHarvestLevel()].location(),
-                        path -> new ObjectArrayList<>()).addAll(entries);
-                if (material.hasProperty(PropertyKey.WOOD)) {
-                    blockTags.computeIfAbsent(BlockTags.MINEABLE_WITH_AXE.location(), path -> new ObjectArrayList<>())
-                            .addAll(entries);
-                } else {
-                    for (var tag : entry.tagPrefix().miningToolTag()) {
-                        blockTags.computeIfAbsent(tag.location(), path -> new ObjectArrayList<>()).addAll(entries);
+            material.MATERIAL_ENTRY_BLOCK_MAP.forEach((tagPrefix, blocks) -> {
+                if (blocks.isEmpty()) return;
+                var entries = blocks.stream().map(MixinHelpers::makeBlockEntry).collect(toArrayList());
+                var materialTags = tagPrefix.getAllBlockTags(material);
+                for (TagKey<Block> materialTag : materialTags) {
+                    blockTags.computeIfAbsent(materialTag.location(), path -> new ObjectArrayList<>()).addAll(entries);
+                }
+                // Add tool tags
+                if (!tagPrefix.isIgnored(material) && !tagPrefix.miningToolTag().isEmpty()) {
+                    blockTags.computeIfAbsent(CustomTags.TOOL_TIERS[material.getBlockHarvestLevel()].location(),
+                            path -> new ObjectArrayList<>()).addAll(entries);
+                    if (material.hasProperty(PropertyKey.WOOD)) {
+                        blockTags.computeIfAbsent(BlockTags.MINEABLE_WITH_AXE.location(), path -> new ObjectArrayList<>())
+                                .addAll(entries);
+                    } else {
+                        for (var tag : tagPrefix.miningToolTag()) {
+                            blockTags.computeIfAbsent(tag.location(), path -> new ObjectArrayList<>()).addAll(entries);
+                        }
                     }
                 }
-            }
+            });
         });
 
         GTRegistries.MACHINES.forEach(machine -> {
             blockTags.computeIfAbsent(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WRENCH.location(),
-                    path -> new ObjectArrayList<>()).add(makeBlockEntry(machine.getBlock()));
+                    path -> new ObjectArrayList<>()).add(makeBlockEntry(machine.get()));
         });
 
         // if config is NOT enabled, add the "configurable" mineability tags to the pickaxe tag

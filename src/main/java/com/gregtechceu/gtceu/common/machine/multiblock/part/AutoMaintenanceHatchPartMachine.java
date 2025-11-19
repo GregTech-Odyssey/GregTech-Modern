@@ -47,9 +47,7 @@ public class AutoMaintenanceHatchPartMachine extends TieredPartMachine implement
     public void setTimeActive(int time) {}
 
     @Override
-    public boolean afterWorking(IWorkableMultiController controller) {
-        return true;
-    }
+    public void afterWorking(IWorkableMultiController controller) {}
 
     @Override
     public GTRecipe modifyRecipe(IWorkableMultiController controller, GTRecipe recipe) {

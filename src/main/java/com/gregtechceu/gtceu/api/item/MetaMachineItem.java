@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.api.item;
 
-import com.gregtechceu.gtceu.api.block.IMachineBlock;
+import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.block.PipeBlock;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
@@ -26,18 +26,18 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class MetaMachineItem extends BlockItem implements IItemRendererProvider {
 
-    public MetaMachineItem(IMachineBlock block, Properties properties) {
-        super(block.self(), properties);
+    public MetaMachineItem(MetaMachineBlock block, Properties properties) {
+        super(block, properties);
     }
 
     public MachineDefinition getDefinition() {
-        return ((IMachineBlock) getBlock()).getDefinition();
+        return ((MetaMachineBlock) getBlock()).getDefinition();
     }
 
     @Nullable
     @Override
     public IRenderer getRenderer(ItemStack stack) {
-        return ((IMachineBlock) getBlock()).getDefinition().getRenderer();
+        return ((MetaMachineBlock) getBlock()).getDefinition().getRenderer();
     }
 
     @Override

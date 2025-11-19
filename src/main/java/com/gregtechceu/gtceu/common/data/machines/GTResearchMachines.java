@@ -81,7 +81,7 @@ public class GTResearchMachines {
                             .or(abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1).setMaxGlobalLimited(2, 1))
                             .or(abilities(PartAbility.COMPUTATION_DATA_RECEPTION).setExactLimit(1))
                             .or(autoAbilities(true, false, false)))
-                    .where('H', blockDirection(GTResearchMachines.OBJECT_HOLDER.getBlock(), RelativeDirection.BACK))
+                    .where('H', blockDirection(GTResearchMachines.OBJECT_HOLDER.get(), RelativeDirection.BACK))
                     .build())
             .shapeInfo(definition -> MultiblockShapeInfo.builder()
                     .aisle("---", "XXX", "---", "---", "---", "XXX", "---")
@@ -100,7 +100,7 @@ public class GTResearchMachines {
                     .where('O', GTResearchMachines.COMPUTATION_HATCH_RECEIVER, Direction.SOUTH)
                     .where('E', GTMachines.ENERGY_INPUT_HATCH[GTValues.LuV], Direction.SOUTH)
                     .where('M', ConfigHolder.INSTANCE.machines.enableMaintenance ?
-                            GTMachines.MAINTENANCE_HATCH.getBlock().defaultBlockState().setValue(
+                            GTMachines.MAINTENANCE_HATCH.get().defaultBlockState().setValue(
                                     GTMachines.MAINTENANCE_HATCH.get().getRotationState().property, Direction.SOUTH) :
                             COMPUTER_CASING.getDefaultState())
                     .where('H', GTResearchMachines.OBJECT_HOLDER, Direction.SOUTH)

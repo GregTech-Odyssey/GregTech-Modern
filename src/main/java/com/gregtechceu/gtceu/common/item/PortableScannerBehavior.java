@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.common.item;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.block.IMachineBlock;
+import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
@@ -56,7 +56,7 @@ import javax.annotation.Nonnull;
 
 public class PortableScannerBehavior implements IInteractionItem, IAddInformation {
 
-    private int debugLevel = 0;
+    private final int debugLevel;
 
     @Getter
     public enum DisplayMode {
@@ -155,109 +155,110 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
             list.add(Component.translatable("behavior.portable_scanner.block_hardness", Component.translatable(FormattingUtil.formatNumbers(block.defaultDestroyTime())).withStyle(ChatFormatting.YELLOW), Component.translatable(FormattingUtil.formatNumbers(block.getExplosionResistance())).withStyle(ChatFormatting.YELLOW)));
             // Possible block states
             if (debugLevel > 2) {
-                state.getProperties().forEach(property -> {
-                    list.add(Component.translatable("behavior.portable_scanner.state", Component.translatable(property.getName()), Component.translatable(state.getValue(property).toString()).withStyle(ChatFormatting.AQUA)));
-                });
+                state.getProperties().forEach(property -> list.add(Component.translatable("behavior.portable_scanner.state", Component.translatable(property.getName()), Component.translatable(state.getValue(property).toString()).withStyle(ChatFormatting.AQUA))));
             }
         }
-        if (tileEntity instanceof MetaMachineBlockEntity machineBlockEntity) {
-            MetaMachine machine = machineBlockEntity.getMetaMachine();
-            list.add(Component.translatable(state.getBlock().getDescriptionId()).withStyle(ChatFormatting.BLUE));
-            // General machine information
-            if (mode == DisplayMode.SHOW_ALL || mode == DisplayMode.SHOW_MACHINE_INFO) {
-                if (machine.getOwner() != null) {
-                    machine.getOwner().displayInfo(list);
-                }
-                if (machine.getDefinition().isAllowExtendedFacing()) {
-                    list.add(Component.translatable("behavior.portable_scanner.divider"));
-                    list.add(Component.translatable("behavior.portable_scanner.machine_front_facing", machine.getFrontFacing().getSerializedName()));
-                    list.add(Component.translatable("behavior.portable_scanner.machine_upwards_facing", machineBlockEntity.getBlockState().getValue(IMachineBlock.UPWARDS_FACING_PROPERTY).getSerializedName()));
-                }
-                // Fluid tanks
-                Optional<IFluidHandler> fluidCap = tileEntity.getCapability(ForgeCapabilities.FLUID_HANDLER).resolve();
-                if (fluidCap.isPresent()) {
-                    list.add(Component.translatable("behavior.portable_scanner.divider"));
-                    IFluidHandler fluidHandler = fluidCap.get();
-                    boolean allTanksEmpty = true;
-                    for (int i = 0; i < fluidHandler.getTanks(); i++) {
-                        FluidStack fluidStack = fluidHandler.getFluidInTank(i);
-                        if (fluidStack.getFluid() == null || fluidStack.isEmpty()) {
-                            continue;
+        switch (tileEntity) {
+            case MetaMachineBlockEntity machineBlockEntity -> {
+                MetaMachine machine = machineBlockEntity.getMetaMachine();
+                list.add(Component.translatable(state.getBlock().getDescriptionId()).withStyle(ChatFormatting.BLUE));
+                // General machine information
+                if (mode == DisplayMode.SHOW_ALL || mode == DisplayMode.SHOW_MACHINE_INFO) {
+                    if (machine.getOwner() != null) {
+                        machine.getOwner().displayInfo(list);
+                    }
+                    if (machine.getDefinition().isAllowExtendedFacing()) {
+                        list.add(Component.translatable("behavior.portable_scanner.divider"));
+                        list.add(Component.translatable("behavior.portable_scanner.machine_front_facing", machine.getFrontFacing().getSerializedName()));
+                        list.add(Component.translatable("behavior.portable_scanner.machine_upwards_facing", machineBlockEntity.getBlockState().getValue(MetaMachineBlock.UPWARDS_FACING_PROPERTY).getSerializedName()));
+                    }
+                    // Fluid tanks
+                    Optional<IFluidHandler> fluidCap = tileEntity.getCapability(ForgeCapabilities.FLUID_HANDLER).resolve();
+                    if (fluidCap.isPresent()) {
+                        list.add(Component.translatable("behavior.portable_scanner.divider"));
+                        IFluidHandler fluidHandler = fluidCap.get();
+                        boolean allTanksEmpty = true;
+                        for (int i = 0; i < fluidHandler.getTanks(); i++) {
+                            FluidStack fluidStack = fluidHandler.getFluidInTank(i);
+                            if (fluidStack.getFluid() == null || fluidStack.isEmpty()) {
+                                continue;
+                            }
+                            energyCost += 500;
+                            allTanksEmpty = false;
+                            list.add(Component.translatable("behavior.portable_scanner.tank", i, Component.translatable(FormattingUtil.formatNumbers(fluidStack.getAmount())).withStyle(ChatFormatting.GREEN), Component.translatable(FormattingUtil.formatNumbers(fluidHandler.getTankCapacity(i))).withStyle(ChatFormatting.YELLOW), Component.translatable(fluidStack.getTranslationKey()).withStyle(ChatFormatting.GOLD)));
                         }
+                        if (allTanksEmpty) {
+                            list.add(Component.translatable("behavior.portable_scanner.tanks_empty"));
+                        }
+                    }
+                    // Sound muffling
+                    if (machine instanceof IMufflableMachine mufflableMachine) {
                         energyCost += 500;
-                        allTanksEmpty = false;
-                        list.add(Component.translatable("behavior.portable_scanner.tank", i, Component.translatable(FormattingUtil.formatNumbers(fluidStack.getAmount())).withStyle(ChatFormatting.GREEN), Component.translatable(FormattingUtil.formatNumbers(fluidHandler.getTankCapacity(i))).withStyle(ChatFormatting.YELLOW), Component.translatable(fluidStack.getTranslationKey()).withStyle(ChatFormatting.GOLD)));
-                    }
-                    if (allTanksEmpty) {
-                        list.add(Component.translatable("behavior.portable_scanner.tanks_empty"));
+                        if (mufflableMachine.isMuffled()) {
+                            list.add(Component.translatable("behavior.portable_scanner.divider"));
+                            list.add(Component.translatable("behavior.portable_scanner.muffled").withStyle(ChatFormatting.GREEN));
+                        }
                     }
                 }
-                // Sound muffling
-                if (machine instanceof IMufflableMachine mufflableMachine) {
+                // Energy related information
+                if (mode == DisplayMode.SHOW_ALL || mode == DisplayMode.SHOW_ELECTRICAL_INFO) {
+                    // Energy container
+                    Optional<IEnergyContainer> energyCap = tileEntity.getCapability(GTCapability.CAPABILITY_ENERGY_CONTAINER).resolve();
+                    if (energyCap.isPresent()) {
+                        IEnergyContainer energyContainer = energyCap.get();
+                        if (energyContainer.getInputVoltage() > 0) {
+                            list.add(Component.translatable("behavior.portable_scanner.divider"));
+                            list.add(Component.translatable("behavior.portable_scanner.energy_container_in", Component.translatable(FormattingUtil.formatNumbers(energyContainer.getInputVoltage())).withStyle(ChatFormatting.RED), Component.translatable(GTValues.VN[GTUtil.getTierByVoltage(energyContainer.getInputVoltage())]).withStyle(ChatFormatting.RED), Component.translatable(FormattingUtil.formatNumbers(energyContainer.getInputAmperage())).withStyle(ChatFormatting.RED)));
+                        }
+                        if (energyContainer.getOutputVoltage() > 0) {
+                            list.add(Component.translatable("behavior.portable_scanner.divider"));
+                            list.add(Component.translatable("behavior.portable_scanner.energy_container_out", Component.translatable(FormattingUtil.formatNumbers(energyContainer.getOutputVoltage())).withStyle(ChatFormatting.RED), Component.translatable(GTValues.VN[GTUtil.getTierByVoltage(energyContainer.getOutputVoltage())]).withStyle(ChatFormatting.RED), Component.translatable(FormattingUtil.formatNumbers(energyContainer.getOutputAmperage())).withStyle(ChatFormatting.RED)));
+                        }
+                        list.add(Component.translatable("behavior.portable_scanner.energy_container_storage", Component.translatable(FormattingUtil.formatNumbers(energyContainer.getEnergyStored())).withStyle(ChatFormatting.GREEN), Component.translatable(FormattingUtil.formatNumbers(energyContainer.getEnergyCapacity())).withStyle(ChatFormatting.YELLOW)));
+                    }
+                }
+                // Recipe related information
+                if (mode == DisplayMode.SHOW_ALL || mode == DisplayMode.SHOW_RECIPE_INFO) {
+                    // Workable progress info
+                    if (machine instanceof IWorkable workableMachine) {
+                        energyCost += 400;
+                        if (!workableMachine.isWorkingEnabled()) {
+                            list.add(Component.translatable("behavior.portable_scanner.divider"));
+                            list.add(Component.translatable("behavior.portable_scanner.machine_disabled").withStyle(ChatFormatting.RED));
+                        }
+                        if (workableMachine.getMaxProgress() > 0) {
+                            list.add(Component.translatable("behavior.portable_scanner.divider"));
+                            list.add(Component.translatable("behavior.portable_scanner.machine_progress", Component.translatable(FormattingUtil.formatNumbers(workableMachine.getProgress())).withStyle(ChatFormatting.GREEN), Component.translatable(FormattingUtil.formatNumbers(workableMachine.getMaxProgress())).withStyle(ChatFormatting.YELLOW)));
+                        }
+                    }
+                }
+                // machine-specific info
+                IDataInfoProvider provider = null;
+                if (tileEntity instanceof IDataInfoProvider) provider = (IDataInfoProvider) tileEntity;
+                else if (machine instanceof IDataInfoProvider) provider = (IDataInfoProvider) machine;
+                if (provider != null) {
+                    list.add(Component.translatable("behavior.portable_scanner.divider"));
+                    list.addAll(provider.getDataInfo(mode));
+                }
+            }
+            case PipeBlockEntity<?, ?> pipe -> {
+                // Pipes need special name handling
+                list.add(pipe.getPipeBlock().getName().withStyle(ChatFormatting.BLUE));
+                // Pipe-specific info
+                if (tileEntity instanceof IDataInfoProvider dataInfoProvider) {
+                    list.add(Component.translatable("behavior.portable_scanner.divider"));
+                    list.addAll(dataInfoProvider.getDataInfo(mode));
+                }
+                if (tileEntity instanceof FluidPipeBlockEntity) {
+                    // Getting fluid info always costs 500
                     energyCost += 500;
-                    if (mufflableMachine.isMuffled()) {
-                        list.add(Component.translatable("behavior.portable_scanner.divider"));
-                        list.add(Component.translatable("behavior.portable_scanner.muffled").withStyle(ChatFormatting.GREEN));
-                    }
                 }
             }
-            // Energy related information
-            if (mode == DisplayMode.SHOW_ALL || mode == DisplayMode.SHOW_ELECTRICAL_INFO) {
-                // Energy container
-                Optional<IEnergyContainer> energyCap = tileEntity.getCapability(GTCapability.CAPABILITY_ENERGY_CONTAINER).resolve();
-                if (energyCap.isPresent()) {
-                    IEnergyContainer energyContainer = energyCap.get();
-                    if (energyContainer.getInputVoltage() > 0) {
-                        list.add(Component.translatable("behavior.portable_scanner.divider"));
-                        list.add(Component.translatable("behavior.portable_scanner.energy_container_in", Component.translatable(FormattingUtil.formatNumbers(energyContainer.getInputVoltage())).withStyle(ChatFormatting.RED), Component.translatable(GTValues.VN[GTUtil.getTierByVoltage(energyContainer.getInputVoltage())]).withStyle(ChatFormatting.RED), Component.translatable(FormattingUtil.formatNumbers(energyContainer.getInputAmperage())).withStyle(ChatFormatting.RED)));
-                    }
-                    if (energyContainer.getOutputVoltage() > 0) {
-                        list.add(Component.translatable("behavior.portable_scanner.divider"));
-                        list.add(Component.translatable("behavior.portable_scanner.energy_container_out", Component.translatable(FormattingUtil.formatNumbers(energyContainer.getOutputVoltage())).withStyle(ChatFormatting.RED), Component.translatable(GTValues.VN[GTUtil.getTierByVoltage(energyContainer.getOutputVoltage())]).withStyle(ChatFormatting.RED), Component.translatable(FormattingUtil.formatNumbers(energyContainer.getOutputAmperage())).withStyle(ChatFormatting.RED)));
-                    }
-                    list.add(Component.translatable("behavior.portable_scanner.energy_container_storage", Component.translatable(FormattingUtil.formatNumbers(energyContainer.getEnergyStored())).withStyle(ChatFormatting.GREEN), Component.translatable(FormattingUtil.formatNumbers(energyContainer.getEnergyCapacity())).withStyle(ChatFormatting.YELLOW)));
-                }
-            }
-            // Recipe related information
-            if (mode == DisplayMode.SHOW_ALL || mode == DisplayMode.SHOW_RECIPE_INFO) {
-                // Workable progress info
-                if (machine instanceof IWorkable workableMachine) {
-                    energyCost += 400;
-                    if (!workableMachine.isWorkingEnabled()) {
-                        list.add(Component.translatable("behavior.portable_scanner.divider"));
-                        list.add(Component.translatable("behavior.portable_scanner.machine_disabled").withStyle(ChatFormatting.RED));
-                    }
-                    if (workableMachine.getMaxProgress() > 0) {
-                        list.add(Component.translatable("behavior.portable_scanner.divider"));
-                        list.add(Component.translatable("behavior.portable_scanner.machine_progress", Component.translatable(FormattingUtil.formatNumbers(workableMachine.getProgress())).withStyle(ChatFormatting.GREEN), Component.translatable(FormattingUtil.formatNumbers(workableMachine.getMaxProgress())).withStyle(ChatFormatting.YELLOW)));
-                    }
-                }
-            }
-            // machine-specific info
-            IDataInfoProvider provider = null;
-            if (tileEntity instanceof IDataInfoProvider) provider = (IDataInfoProvider) tileEntity;
-            else if (machine instanceof IDataInfoProvider) provider = (IDataInfoProvider) machine;
-            if (provider != null) {
-                list.add(Component.translatable("behavior.portable_scanner.divider"));
-                list.addAll(provider.getDataInfo(mode));
-            }
-        } else if (tileEntity instanceof PipeBlockEntity<?, ?> pipe) {
-            // Pipes need special name handling
-            list.add(pipe.getPipeBlock().getName().withStyle(ChatFormatting.BLUE));
-            // Pipe-specific info
-            if (tileEntity instanceof IDataInfoProvider dataInfoProvider) {
+            case IDataInfoProvider dataInfoProvider -> {
                 list.add(Component.translatable("behavior.portable_scanner.divider"));
                 list.addAll(dataInfoProvider.getDataInfo(mode));
             }
-            if (tileEntity instanceof FluidPipeBlockEntity) {
-                // Getting fluid info always costs 500
-                energyCost += 500;
-            }
-        } else if (tileEntity instanceof IDataInfoProvider dataInfoProvider) {
-            list.add(Component.translatable("behavior.portable_scanner.divider"));
-            list.addAll(dataInfoProvider.getDataInfo(mode));
-        } else {
-            list.add(Component.translatable(state.getBlock().getDescriptionId()).withStyle(ChatFormatting.BLUE));
+            case null, default -> list.add(Component.translatable(state.getBlock().getDescriptionId()).withStyle(ChatFormatting.BLUE));
         }
         // Environmental information
         if (mode == DisplayMode.SHOW_ALL || mode == DisplayMode.SHOW_ENVIRONMENTAL_INFO) {

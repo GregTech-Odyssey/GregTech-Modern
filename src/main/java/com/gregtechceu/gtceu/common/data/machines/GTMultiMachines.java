@@ -354,7 +354,7 @@ public class GTMultiMachines {
                         .aisle("XXX", "XXX", "XXX")
                         .where('S', Predicates.controller(definition))
                         .where('Y', blocks(CASING_STAINLESS_CLEAN.get())
-                                .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
+                                .or(Predicates.blocks(GTMachines.CONTROL_HATCH.get()).setMaxGlobalLimited(1).setPreviewCount(0))
                                 .or(Predicates.abilities(PartAbility.EXPORT_ITEMS).setMaxGlobalLimited(1))
                                 .or(Predicates.abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1)
                                         .setMaxGlobalLimited(2))
@@ -445,9 +445,9 @@ public class GTMultiMachines {
                                     .addTooltips(Component.translatable("gtceu.multiblock.pattern.location_end")))
                     .where('Y',
                             blocks(CASING_STEEL_SOLID.get())
-                                    .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
+                                    .or(Predicates.blocks(GTMachines.CONTROL_HATCH.get()).setMaxGlobalLimited(1).setPreviewCount(0))
                                     .or(Predicates.abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1).setMaxGlobalLimited(2)))
-                    .where('I', blocks(ITEM_IMPORT_BUS[0].getBlock()))
+                    .where('I', blocks(ITEM_IMPORT_BUS[0].get()))
                     .where('G', blocks(CASING_GRATE.get()))
                     .where('A', blocks(CASING_ASSEMBLY_CONTROL.get()))
                     .where('R', blocks(CASING_LAMINATED_GLASS.get()))
@@ -493,7 +493,7 @@ public class GTMultiMachines {
                     .where('S', Predicates.controller(definition))
                     .where('#', Predicates.air())
                     .where('X', blocks(CASING_BRONZE_BRICKS.get()).setMinGlobalLimited(14)
-                            .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
+                            .or(Predicates.blocks(GTMachines.CONTROL_HATCH.get()).setMaxGlobalLimited(1).setPreviewCount(0))
                             .or(Predicates.abilities(PartAbility.STEAM_IMPORT_ITEMS).setPreviewCount(1))
                             .or(Predicates.abilities(PartAbility.STEAM_EXPORT_ITEMS).setPreviewCount(1))
                             .or(Predicates.abilities(PartAbility.STEAM).setExactLimit(1)))
@@ -517,7 +517,7 @@ public class GTMultiMachines {
                     .where('#', Predicates.air())
                     .where(' ', Predicates.any())
                     .where('X', blocks(CASING_BRONZE_BRICKS.get()).setMinGlobalLimited(6)
-                            .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
+                            .or(Predicates.blocks(GTMachines.CONTROL_HATCH.get()).setMaxGlobalLimited(1).setPreviewCount(0))
                             .or(Predicates.abilities(PartAbility.STEAM_IMPORT_ITEMS).setPreviewCount(1))
                             .or(Predicates.abilities(PartAbility.STEAM_EXPORT_ITEMS).setPreviewCount(1)))
                     .where('F', blocks(FIREBOX_BRONZE.get())
@@ -568,7 +568,7 @@ public class GTMultiMachines {
                                 .where('K', blocks(FusionReactorMachine.getCoilState(tier)))
                                 .where('O', casing.or(abilities(PartAbility.EXPORT_FLUIDS)))
                                 .where('A', air())
-                                .where('I', casing.or(abilities(PartAbility.IMPORT_FLUIDS).setMinGlobalLimited(2)).or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0)))
+                                .where('I', casing.or(abilities(PartAbility.IMPORT_FLUIDS).setMinGlobalLimited(2)).or(Predicates.blocks(GTMachines.CONTROL_HATCH.get()).setMaxGlobalLimited(1).setPreviewCount(0)))
                                 .where('#', any())
                                 .build();
                     })
@@ -729,7 +729,7 @@ public class GTMultiMachines {
                             .or(abilities(PartAbility.PASSTHROUGH_HATCH).setMaxGlobalLimited(30, 3))
                             .or(abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1).setMaxGlobalLimited(3, 2))
                             .or(blocks(ConfigHolder.INSTANCE.machines.enableMaintenance ?
-                                    GTMachines.MAINTENANCE_HATCH.getBlock() : PLASTCRETE.get()).setExactLimit(1))
+                                    GTMachines.MAINTENANCE_HATCH.get() : PLASTCRETE.get()).setExactLimit(1))
                             .or(blocks(Blocks.IRON_DOOR).setMaxGlobalLimited(8)))
                     .where('S', controller(definition))
                     .where(' ', any())
@@ -747,7 +747,7 @@ public class GTMultiMachines {
                         .aisle("XMXEX", "XXOXX", "XXRXX", "XXXXX", "XXXXX")
                         .where('X', GTBlocks.PLASTCRETE)
                         .where('G', GTBlocks.CLEANROOM_GLASS)
-                        .where('S', GTMultiMachines.CLEANROOM.getBlock())
+                        .where('S', GTMultiMachines.CLEANROOM.get())
                         .where(' ', Blocks.AIR)
                         .where('E', GTMachines.ENERGY_INPUT_HATCH[GTValues.LV], Direction.SOUTH)
                         .where('H', GTMachines.HULL[GTValues.HV], Direction.NORTH)
@@ -884,7 +884,7 @@ public class GTMultiMachines {
                         .where('T', GTMachines.SUBSTATION_ENERGY_OUTPUT_HATCH[EV], Direction.NORTH)
                         .where('M',
                                 ConfigHolder.INSTANCE.machines.enableMaintenance ?
-                                        GTMachines.MAINTENANCE_HATCH.getBlock().defaultBlockState().setValue(
+                                        GTMachines.MAINTENANCE_HATCH.get().defaultBlockState().setValue(
                                                 GTMachines.MAINTENANCE_HATCH.get().getRotationState().property,
                                                 Direction.NORTH) :
                                         CASING_PALLADIUM_SUBSTATION.get().defaultBlockState());
@@ -965,7 +965,7 @@ public class GTMultiMachines {
             (builder, overlay) -> builder.sidedWorkableCasingRenderer("block/casings/wood_wall", overlay));
     public static final MultiblockMachineDefinition WOODEN_MULTIBLOCK_TANK = registerMultiblockTank(
             "wooden_multiblock_tank", "Wooden Multiblock Tank", 100 * 10000,
-            CASING_WOOD_WALL, WOODEN_TANK_VALVE::getBlock,
+            CASING_WOOD_WALL, WOODEN_TANK_VALVE::get,
             new PropertyFluidFilter(false, false),
             (builder, overlay) -> builder.sidedWorkableCasingRenderer("block/casings/wood_wall", overlay));
 
@@ -975,7 +975,7 @@ public class GTMultiMachines {
                     .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_bronze_plated_bricks"), overlay));
     public static final MultiblockMachineDefinition BRONZE_MULTIBLOCK_TANK = registerMultiblockTank(
             "bronze_multiblock_tank", "Bronze Multiblock Tank", 250 * 10000,
-            CASING_BRONZE_BRICKS, BRONZE_TANK_VALVE::getBlock,
+            CASING_BRONZE_BRICKS, BRONZE_TANK_VALVE::get,
             new PropertyFluidFilter(true, false),
             (builder, overlay) -> builder
                     .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_bronze_plated_bricks"), overlay));
@@ -986,7 +986,7 @@ public class GTMultiMachines {
                     GTCEu.id("block/casings/solid/machine_casing_solid_steel"), overlay));
     public static final MultiblockMachineDefinition STEEL_MULTIBLOCK_TANK = registerMultiblockTank(
             "steel_multiblock_tank", "Steel Multiblock Tank", 1000 * 10000,
-            CASING_STEEL_SOLID, STEEL_TANK_VALVE::getBlock,
+            CASING_STEEL_SOLID, STEEL_TANK_VALVE::get,
             null,
             (builder, overlay) -> builder.workableCasingRenderer(
                     GTCEu.id("block/casings/solid/machine_casing_solid_steel"), overlay));

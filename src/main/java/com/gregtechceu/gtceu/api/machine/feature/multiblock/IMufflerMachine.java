@@ -65,12 +65,11 @@ public interface IMufflerMachine extends IMultiPart {
     }
 
     @Override
-    default boolean afterWorking(IWorkableMultiController controller) {
+    default void afterWorking(IWorkableMultiController controller) {
         MultiblockMachineBuilder.MufflerProductionGenerator supplier = controller.self().getDefinition().getRecoveryItems();
         if (supplier != null) {
             recoverItemsTable(supplier.getMuffledProduction(controller.self(), controller.getRecipeLogic().getLastRecipe()));
         }
-        return IMultiPart.super.afterWorking(controller);
     }
 
     //////////////////////////////////////

@@ -68,12 +68,10 @@ public class GTCraftingComponents {
     public static CraftingComponent SPRING_TRANSFORMER;
 
     public static void init() {
-        CraftingComponent.ALL_COMPONENTS.clear();
-
         /*
          * GTCEu must supply values for at least tiers 1 through 8 (through UV)
          */
-        CIRCUIT = CraftingComponent.of("circuit", CustomTags.ULV_CIRCUITS)
+        CIRCUIT = CraftingComponent.of(CustomTags.ULV_CIRCUITS)
                 .add(ULV, CustomTags.ULV_CIRCUITS)
                 .add(LV, CustomTags.LV_CIRCUITS)
                 .add(MV, CustomTags.MV_CIRCUITS)
@@ -90,7 +88,7 @@ public class GTCraftingComponents {
                 .add(OpV, CustomTags.OpV_CIRCUITS)
                 .add(MAX, CustomTags.MAX_CIRCUITS);
 
-        BETTER_CIRCUIT = CraftingComponent.of("better_circuit", CustomTags.ULV_CIRCUITS)
+        BETTER_CIRCUIT = CraftingComponent.of(CustomTags.ULV_CIRCUITS)
                 .add(ULV, CustomTags.LV_CIRCUITS)
                 .add(LV, CustomTags.MV_CIRCUITS)
                 .add(MV, CustomTags.HV_CIRCUITS)
@@ -107,7 +105,7 @@ public class GTCraftingComponents {
                 .add(OpV, CustomTags.MAX_CIRCUITS)
                 .add(MAX, CustomTags.MAX_CIRCUITS);
 
-        WIRE_ELECTRIC = CraftingComponent.of("wire_single", wireGtSingle, Gold)
+        WIRE_ELECTRIC = CraftingComponent.of(wireGtSingle, Gold)
                 .add(ULV, wireGtSingle, Gold)
                 .add(LV, wireGtSingle, Gold)
                 .add(MV, wireGtSingle, Silver)
@@ -119,7 +117,7 @@ public class GTCraftingComponents {
                 .add(UV, wireGtSingle, Osmium)
                 .add(UHV, wireGtSingle, Osmium);
 
-        WIRE_QUAD = CraftingComponent.of("wire_quad", wireGtQuadruple, Lead)
+        WIRE_QUAD = CraftingComponent.of(wireGtQuadruple, Lead)
                 .add(ULV, wireGtQuadruple, Lead)
                 .add(LV, wireGtQuadruple, Tin)
                 .add(MV, wireGtQuadruple, Copper)
@@ -131,7 +129,7 @@ public class GTCraftingComponents {
                 .add(UV, wireGtQuadruple, YttriumBariumCuprate)
                 .add(UHV, wireGtQuadruple, Europium);
 
-        WIRE_OCT = CraftingComponent.of("wire_oct", wireGtOctal, Lead)
+        WIRE_OCT = CraftingComponent.of(wireGtOctal, Lead)
                 .add(ULV, wireGtOctal, Lead)
                 .add(LV, wireGtOctal, Tin)
                 .add(MV, wireGtOctal, Copper)
@@ -143,7 +141,7 @@ public class GTCraftingComponents {
                 .add(UV, wireGtOctal, YttriumBariumCuprate)
                 .add(UHV, wireGtOctal, Europium);
 
-        WIRE_HEX = CraftingComponent.of("wire_hex", wireGtHex, Lead)
+        WIRE_HEX = CraftingComponent.of(wireGtHex, Lead)
                 .add(ULV, wireGtHex, Lead)
                 .add(LV, wireGtHex, Tin)
                 .add(MV, wireGtHex, Copper)
@@ -155,7 +153,7 @@ public class GTCraftingComponents {
                 .add(UV, wireGtHex, YttriumBariumCuprate)
                 .add(UHV, wireGtHex, Europium);
 
-        CABLE = CraftingComponent.of("cable_single", cableGtSingle, RedAlloy)
+        CABLE = CraftingComponent.of(cableGtSingle, RedAlloy)
                 .add(ULV, cableGtSingle, RedAlloy)
                 .add(LV, cableGtSingle, Tin)
                 .add(MV, cableGtSingle, Copper)
@@ -167,7 +165,7 @@ public class GTCraftingComponents {
                 .add(UV, cableGtSingle, YttriumBariumCuprate)
                 .add(UHV, cableGtSingle, Europium);
 
-        CABLE_DOUBLE = CraftingComponent.of("cable_double", cableGtDouble, RedAlloy)
+        CABLE_DOUBLE = CraftingComponent.of(cableGtDouble, RedAlloy)
                 .add(ULV, cableGtDouble, RedAlloy)
                 .add(LV, cableGtDouble, Tin)
                 .add(MV, cableGtDouble, Copper)
@@ -179,7 +177,7 @@ public class GTCraftingComponents {
                 .add(UV, cableGtDouble, YttriumBariumCuprate)
                 .add(UHV, cableGtDouble, Europium);
 
-        CABLE_QUAD = CraftingComponent.of("cable_quad", cableGtQuadruple, RedAlloy)
+        CABLE_QUAD = CraftingComponent.of(cableGtQuadruple, RedAlloy)
                 .add(ULV, cableGtQuadruple, RedAlloy)
                 .add(LV, cableGtQuadruple, Tin)
                 .add(MV, cableGtQuadruple, Copper)
@@ -191,7 +189,7 @@ public class GTCraftingComponents {
                 .add(UV, cableGtQuadruple, YttriumBariumCuprate)
                 .add(UHV, cableGtQuadruple, Europium);
 
-        CABLE_OCT = CraftingComponent.of("cable_oct", cableGtOctal, RedAlloy)
+        CABLE_OCT = CraftingComponent.of(cableGtOctal, RedAlloy)
                 .add(ULV, cableGtOctal, RedAlloy)
                 .add(LV, cableGtOctal, Tin)
                 .add(MV, cableGtOctal, Copper)
@@ -203,7 +201,7 @@ public class GTCraftingComponents {
                 .add(UV, cableGtOctal, YttriumBariumCuprate)
                 .add(UHV, cableGtOctal, Europium);
 
-        CABLE_HEX = CraftingComponent.of("cable_hex", cableGtHex, RedAlloy)
+        CABLE_HEX = CraftingComponent.of(cableGtHex, RedAlloy)
                 .add(ULV, cableGtHex, RedAlloy)
                 .add(LV, cableGtHex, Tin)
                 .add(MV, cableGtHex, Copper)
@@ -215,7 +213,7 @@ public class GTCraftingComponents {
                 .add(UV, cableGtHex, YttriumBariumCuprate)
                 .add(UHV, cableGtHex, Europium);
 
-        CABLE_TIER_UP = CraftingComponent.of("cable_tier_up_single", cableGtSingle, RedAlloy)
+        CABLE_TIER_UP = CraftingComponent.of(cableGtSingle, RedAlloy)
                 .add(ULV, cableGtSingle, Tin)
                 .add(LV, cableGtSingle, Copper)
                 .add(MV, cableGtSingle, Gold)
@@ -227,7 +225,7 @@ public class GTCraftingComponents {
                 .add(UV, cableGtSingle, Europium)
                 .add(UHV, cableGtSingle, Europium);
 
-        CABLE_TIER_UP_DOUBLE = CraftingComponent.of("cable_tier_up_double", cableGtDouble, RedAlloy)
+        CABLE_TIER_UP_DOUBLE = CraftingComponent.of(cableGtDouble, RedAlloy)
                 .add(ULV, cableGtDouble, Tin)
                 .add(LV, cableGtDouble, Copper)
                 .add(MV, cableGtDouble, Gold)
@@ -239,7 +237,7 @@ public class GTCraftingComponents {
                 .add(UV, cableGtDouble, Europium)
                 .add(UHV, cableGtDouble, Europium);
 
-        CABLE_TIER_UP_QUAD = CraftingComponent.of("cable_tier_up_quad", cableGtQuadruple, RedAlloy)
+        CABLE_TIER_UP_QUAD = CraftingComponent.of(cableGtQuadruple, RedAlloy)
                 .add(ULV, cableGtQuadruple, Tin)
                 .add(LV, cableGtQuadruple, Copper)
                 .add(MV, cableGtQuadruple, Gold)
@@ -251,7 +249,7 @@ public class GTCraftingComponents {
                 .add(UV, cableGtQuadruple, Europium)
                 .add(UHV, cableGtQuadruple, Europium);
 
-        CABLE_TIER_UP_OCT = CraftingComponent.of("cable_tier_up_oct", cableGtOctal, RedAlloy)
+        CABLE_TIER_UP_OCT = CraftingComponent.of(cableGtOctal, RedAlloy)
                 .add(ULV, cableGtOctal, Tin)
                 .add(LV, cableGtOctal, Copper)
                 .add(MV, cableGtOctal, Gold)
@@ -263,7 +261,7 @@ public class GTCraftingComponents {
                 .add(UV, cableGtOctal, Europium)
                 .add(UHV, cableGtOctal, Europium);
 
-        CABLE_TIER_UP_HEX = CraftingComponent.of("cable_tier_up_hex", cableGtHex, RedAlloy)
+        CABLE_TIER_UP_HEX = CraftingComponent.of(cableGtHex, RedAlloy)
                 .add(ULV, cableGtHex, Tin)
                 .add(LV, cableGtHex, Copper)
                 .add(MV, cableGtHex, Gold)
@@ -275,7 +273,7 @@ public class GTCraftingComponents {
                 .add(UV, cableGtHex, Europium)
                 .add(UHV, cableGtHex, Europium);
 
-        HULL = CraftingComponent.of("hull", GTMachines.HULL[ULV].asItem())
+        HULL = CraftingComponent.of(GTMachines.HULL[ULV].asItem())
                 .add(ULV, GTMachines.HULL[ULV].asItem())
                 .add(LV, GTMachines.HULL[LV].asItem())
                 .add(MV, GTMachines.HULL[MV].asItem())
@@ -294,7 +292,7 @@ public class GTCraftingComponents {
                     .add(MAX, GTMachines.HULL[MAX].asItem());
         }
 
-        CASING = CraftingComponent.of("casing", GTBlocks.MACHINE_CASING_ULV.asItem())
+        CASING = CraftingComponent.of(GTBlocks.MACHINE_CASING_ULV.asItem())
                 .add(ULV, GTBlocks.MACHINE_CASING_ULV.asItem())
                 .add(LV, GTBlocks.MACHINE_CASING_LV.asItem())
                 .add(MV, GTBlocks.MACHINE_CASING_MV.asItem())
@@ -313,7 +311,7 @@ public class GTCraftingComponents {
                     .add(MAX, GTBlocks.MACHINE_CASING_MAX.asItem());
         }
 
-        PIPE_NORMAL = CraftingComponent.of("normal_pipe", pipeNormalFluid, Bronze)
+        PIPE_NORMAL = CraftingComponent.of(pipeNormalFluid, Bronze)
                 .add(ULV, pipeNormalFluid, Bronze)
                 .add(LV, pipeNormalFluid, Bronze)
                 .add(MV, pipeNormalFluid, Steel)
@@ -325,7 +323,7 @@ public class GTCraftingComponents {
                 .add(UV, pipeNormalFluid, Naquadah)
                 .add(UHV, pipeNormalFluid, Naquadah);
 
-        PIPE_LARGE = CraftingComponent.of("large_pipe", pipeLargeFluid, Bronze)
+        PIPE_LARGE = CraftingComponent.of(pipeLargeFluid, Bronze)
                 .add(ULV, pipeLargeFluid, Bronze)
                 .add(LV, pipeLargeFluid, Bronze)
                 .add(MV, pipeLargeFluid, Steel)
@@ -337,7 +335,7 @@ public class GTCraftingComponents {
                 .add(UV, pipeLargeFluid, Naquadah)
                 .add(UHV, pipeLargeFluid, Neutronium);
 
-        PIPE_NONUPLE = CraftingComponent.of("nonuple_pipe", pipeNonupleFluid, Titanium)
+        PIPE_NONUPLE = CraftingComponent.of(pipeNonupleFluid, Titanium)
                 .add(EV, pipeNonupleFluid, Titanium)
                 .add(IV, pipeNonupleFluid, TungstenSteel)
                 .add(LuV, pipeNonupleFluid, NiobiumTitanium)
@@ -351,7 +349,7 @@ public class GTCraftingComponents {
          * Laminated Glass: IV, LuV
          * Fusion: ZPM, UV, UHV
          */
-        GLASS = CraftingComponent.of("glass", Tags.Items.GLASS)
+        GLASS = CraftingComponent.of(Tags.Items.GLASS)
                 .add(ULV, Tags.Items.GLASS)
                 .add(LV, Tags.Items.GLASS)
                 .add(MV, Tags.Items.GLASS)
@@ -363,7 +361,7 @@ public class GTCraftingComponents {
                 .add(UV, GTBlocks.FUSION_GLASS.asItem())
                 .add(UHV, GTBlocks.FUSION_GLASS.asItem());
 
-        PLATE = CraftingComponent.of("plate", plate, Iron)
+        PLATE = CraftingComponent.of(plate, Iron)
                 .add(ULV, plate, WroughtIron)
                 .add(LV, plate, Steel)
                 .add(MV, plate, Aluminium)
@@ -375,7 +373,7 @@ public class GTCraftingComponents {
                 .add(UV, plate, Darmstadtium)
                 .add(UHV, plate, Neutronium);
 
-        HULL_PLATE = CraftingComponent.of("hull_plate", plate, Wood)
+        HULL_PLATE = CraftingComponent.of(plate, Wood)
                 .add(ULV, plate, Wood)
                 .add(LV, plate, WroughtIron)
                 .add(MV, plate, WroughtIron)
@@ -387,7 +385,7 @@ public class GTCraftingComponents {
                 .add(UV, plate, Polybenzimidazole)
                 .add(UHV, plate, Polybenzimidazole);
 
-        ROTOR = CraftingComponent.of("rotor", rotor, Tin)
+        ROTOR = CraftingComponent.of(rotor, Tin)
                 .add(ULV, rotor, Tin)
                 .add(LV, rotor, Tin)
                 .add(MV, rotor, Bronze)
@@ -399,7 +397,7 @@ public class GTCraftingComponents {
                 .add(UV, rotor, Darmstadtium)
                 .add(UHV, rotor, Darmstadtium);
 
-        GRINDER = CraftingComponent.of("grinder", gem, Diamond)
+        GRINDER = CraftingComponent.of(gem, Diamond)
                 .add(ULV, gem, Diamond)
                 .add(LV, gem, Diamond)
                 .add(MV, gem, Diamond)
@@ -411,7 +409,7 @@ public class GTCraftingComponents {
                 .add(UV, GTItems.COMPONENT_GRINDER_TUNGSTEN.asItem())
                 .add(UHV, GTItems.COMPONENT_GRINDER_TUNGSTEN.asItem());
 
-        SAWBLADE = CraftingComponent.of("sawblade", toolHeadBuzzSaw, Bronze)
+        SAWBLADE = CraftingComponent.of(toolHeadBuzzSaw, Bronze)
                 .add(ULV, toolHeadBuzzSaw, Bronze)
                 .add(LV, toolHeadBuzzSaw, CobaltBrass)
                 .add(MV, toolHeadBuzzSaw, VanadiumSteel)
@@ -423,7 +421,7 @@ public class GTCraftingComponents {
                 .add(UV, toolHeadBuzzSaw, Duranium)
                 .add(UHV, toolHeadBuzzSaw, Duranium);
 
-        MOTOR = CraftingComponent.of("motor", GTItems.ELECTRIC_MOTOR_LV.asItem())
+        MOTOR = CraftingComponent.of(GTItems.ELECTRIC_MOTOR_LV.asItem())
                 .add(LV, GTItems.ELECTRIC_MOTOR_LV.asItem())
                 .add(MV, GTItems.ELECTRIC_MOTOR_MV.asItem())
                 .add(HV, GTItems.ELECTRIC_MOTOR_HV.asItem())
@@ -440,7 +438,7 @@ public class GTCraftingComponents {
                     .add(OpV, GTItems.ELECTRIC_MOTOR_OpV.asItem());
         }
 
-        PUMP = CraftingComponent.of("pump", GTItems.ELECTRIC_PUMP_LV.asItem())
+        PUMP = CraftingComponent.of(GTItems.ELECTRIC_PUMP_LV.asItem())
                 .add(LV, GTItems.ELECTRIC_PUMP_LV.asItem())
                 .add(MV, GTItems.ELECTRIC_PUMP_MV.asItem())
                 .add(HV, GTItems.ELECTRIC_PUMP_HV.asItem())
@@ -457,7 +455,7 @@ public class GTCraftingComponents {
                     .add(OpV, GTItems.ELECTRIC_PUMP_OpV.asItem());
         }
 
-        PISTON = CraftingComponent.of("piston", GTItems.ELECTRIC_PISTON_LV.asItem())
+        PISTON = CraftingComponent.of(GTItems.ELECTRIC_PISTON_LV.asItem())
                 .add(LV, GTItems.ELECTRIC_PISTON_LV.asItem())
                 .add(MV, GTItems.ELECTRIC_PISTON_MV.asItem())
                 .add(HV, GTItems.ELECTRIC_PISTON_HV.asItem())
@@ -474,7 +472,7 @@ public class GTCraftingComponents {
                     .add(OpV, GTItems.ELECTRIC_PISTON_OpV.asItem());
         }
 
-        EMITTER = CraftingComponent.of("emitter", GTItems.EMITTER_LV.asItem())
+        EMITTER = CraftingComponent.of(GTItems.EMITTER_LV.asItem())
                 .add(LV, GTItems.EMITTER_LV.asItem())
                 .add(MV, GTItems.EMITTER_MV.asItem())
                 .add(HV, GTItems.EMITTER_HV.asItem())
@@ -492,7 +490,7 @@ public class GTCraftingComponents {
                     .add(OpV, GTItems.EMITTER_OpV.asItem());
         }
 
-        SENSOR = CraftingComponent.of("sensor", GTItems.SENSOR_LV.asItem())
+        SENSOR = CraftingComponent.of(GTItems.SENSOR_LV.asItem())
                 .add(LV, GTItems.SENSOR_LV.asItem())
                 .add(MV, GTItems.SENSOR_MV.asItem())
                 .add(HV, GTItems.SENSOR_HV.asItem())
@@ -509,7 +507,7 @@ public class GTCraftingComponents {
                     .add(OpV, GTItems.SENSOR_OpV.asItem());
         }
 
-        CONVEYOR = CraftingComponent.of("conveyor", GTItems.CONVEYOR_MODULE_LV.asItem())
+        CONVEYOR = CraftingComponent.of(GTItems.CONVEYOR_MODULE_LV.asItem())
                 .add(LV, GTItems.CONVEYOR_MODULE_LV.asItem())
                 .add(MV, GTItems.CONVEYOR_MODULE_MV.asItem())
                 .add(HV, GTItems.CONVEYOR_MODULE_HV.asItem())
@@ -526,7 +524,7 @@ public class GTCraftingComponents {
                     .add(OpV, GTItems.CONVEYOR_MODULE_OpV.asItem());
         }
 
-        ROBOT_ARM = CraftingComponent.of("robot_arm", GTItems.ROBOT_ARM_LV.asItem())
+        ROBOT_ARM = CraftingComponent.of(GTItems.ROBOT_ARM_LV.asItem())
                 .add(LV, GTItems.ROBOT_ARM_LV.asItem())
                 .add(MV, GTItems.ROBOT_ARM_MV.asItem())
                 .add(HV, GTItems.ROBOT_ARM_HV.asItem())
@@ -543,7 +541,7 @@ public class GTCraftingComponents {
                     .add(OpV, GTItems.ROBOT_ARM_OpV.asItem());
         }
 
-        FIELD_GENERATOR = CraftingComponent.of("field_generator", GTItems.FIELD_GENERATOR_LV.asItem())
+        FIELD_GENERATOR = CraftingComponent.of(GTItems.FIELD_GENERATOR_LV.asItem())
                 .add(LV, GTItems.FIELD_GENERATOR_LV.asItem())
                 .add(MV, GTItems.FIELD_GENERATOR_MV.asItem())
                 .add(HV, GTItems.FIELD_GENERATOR_HV.asItem())
@@ -560,7 +558,7 @@ public class GTCraftingComponents {
                     .add(OpV, GTItems.FIELD_GENERATOR_OpV.asItem());
         }
 
-        COIL_HEATING = CraftingComponent.of("coil_heating", wireGtDouble, Copper)
+        COIL_HEATING = CraftingComponent.of(wireGtDouble, Copper)
                 .add(ULV, wireGtDouble, Copper)
                 .add(LV, wireGtDouble, Copper)
                 .add(MV, wireGtDouble, Cupronickel)
@@ -572,7 +570,7 @@ public class GTCraftingComponents {
                 .add(UV, wireGtDouble, NaquadahAlloy)
                 .add(UHV, wireGtDouble, Trinium);
 
-        COIL_HEATING_DOUBLE = CraftingComponent.of("coil_heating_double", wireGtQuadruple, Copper)
+        COIL_HEATING_DOUBLE = CraftingComponent.of(wireGtQuadruple, Copper)
                 .add(ULV, wireGtQuadruple, Copper)
                 .add(LV, wireGtQuadruple, Copper)
                 .add(MV, wireGtQuadruple, Cupronickel)
@@ -584,7 +582,7 @@ public class GTCraftingComponents {
                 .add(UV, wireGtQuadruple, NaquadahAlloy)
                 .add(UHV, wireGtQuadruple, Trinium);
 
-        COIL_ELECTRIC = CraftingComponent.of("coil_electric", wireGtSingle, Tin)
+        COIL_ELECTRIC = CraftingComponent.of(wireGtSingle, Tin)
                 .add(ULV, wireGtSingle, Tin)
                 .add(LV, wireGtDouble, Tin)
                 .add(MV, wireGtDouble, Copper)
@@ -596,7 +594,7 @@ public class GTCraftingComponents {
                 .add(UV, wireGtOctal, YttriumBariumCuprate)
                 .add(UHV, wireGtOctal, Europium);
 
-        ROD_MAGNETIC = CraftingComponent.of("rod_magnetic", rod, IronMagnetic)
+        ROD_MAGNETIC = CraftingComponent.of(rod, IronMagnetic)
                 .add(ULV, rod, IronMagnetic)
                 .add(LV, rod, IronMagnetic)
                 .add(MV, rod, SteelMagnetic)
@@ -608,7 +606,7 @@ public class GTCraftingComponents {
                 .add(UV, block, NeodymiumMagnetic)
                 .add(UHV, block, SamariumMagnetic);
 
-        ROD_DISTILLATION = CraftingComponent.of("rod_distillation", rod, Blaze)
+        ROD_DISTILLATION = CraftingComponent.of(rod, Blaze)
                 .add(ULV, rod, Blaze)
                 .add(LV, spring, Copper)
                 .add(MV, spring, Cupronickel)
@@ -620,7 +618,7 @@ public class GTCraftingComponents {
                 .add(UV, spring, NaquadahAlloy)
                 .add(UHV, spring, Trinium);
 
-        ROD_ELECTROMAGNETIC = CraftingComponent.of("rod_electromagnetic", rod, Iron)
+        ROD_ELECTROMAGNETIC = CraftingComponent.of(rod, Iron)
                 .add(ULV, rod, Iron)
                 .add(LV, rod, Iron)
                 .add(MV, rod, Steel)
@@ -632,7 +630,7 @@ public class GTCraftingComponents {
                 .add(UV, rod, VanadiumGallium)
                 .add(UHV, rod, VanadiumGallium);
 
-        ROD_RADIOACTIVE = CraftingComponent.of("rod_radioactive", rod, Uranium235)
+        ROD_RADIOACTIVE = CraftingComponent.of(rod, Uranium235)
                 .add(EV, rod, Uranium235)
                 .add(IV, rod, Plutonium241)
                 .add(LuV, rod, NaquadahEnriched)
@@ -640,7 +638,7 @@ public class GTCraftingComponents {
                 .add(UV, rod, Tritanium)
                 .add(UHV, rod, Tritanium);
 
-        PIPE_REACTOR = CraftingComponent.of("pipe_reactor", Tags.Items.GLASS)
+        PIPE_REACTOR = CraftingComponent.of(Tags.Items.GLASS)
                 .add(ULV, Tags.Items.GLASS)
                 .add(LV, Tags.Items.GLASS)
                 .add(MV, Tags.Items.GLASS)
@@ -652,7 +650,7 @@ public class GTCraftingComponents {
                 .add(UV, pipeHugeFluid, Polytetrafluoroethylene)
                 .add(UHV, pipeNormalFluid, Polybenzimidazole);
 
-        POWER_COMPONENT = CraftingComponent.of("power_component", GTItems.ULTRA_LOW_POWER_INTEGRATED_CIRCUIT.asItem())
+        POWER_COMPONENT = CraftingComponent.of(GTItems.ULTRA_LOW_POWER_INTEGRATED_CIRCUIT.asItem())
                 .add(MV, GTItems.ULTRA_LOW_POWER_INTEGRATED_CIRCUIT.asItem())
                 .add(HV, GTItems.LOW_POWER_INTEGRATED_CIRCUIT.asItem())
                 .add(EV, GTItems.POWER_INTEGRATED_CIRCUIT.asItem())
@@ -662,7 +660,7 @@ public class GTCraftingComponents {
                 .add(UV, GTItems.ULTRA_HIGH_POWER_INTEGRATED_CIRCUIT.asItem())
                 .add(UHV, GTItems.ULTRA_HIGH_POWER_INTEGRATED_CIRCUIT.asItem());
 
-        VOLTAGE_COIL = CraftingComponent.of("voltage_coil", GTItems.VOLTAGE_COIL_ULV.asItem())
+        VOLTAGE_COIL = CraftingComponent.of(GTItems.VOLTAGE_COIL_ULV.asItem())
                 .add(ULV, GTItems.VOLTAGE_COIL_ULV.asItem())
                 .add(LV, GTItems.VOLTAGE_COIL_LV.asItem())
                 .add(MV, GTItems.VOLTAGE_COIL_MV.asItem())
@@ -673,7 +671,7 @@ public class GTCraftingComponents {
                 .add(ZPM, GTItems.VOLTAGE_COIL_ZPM.asItem())
                 .add(UV, GTItems.VOLTAGE_COIL_UV.asItem());
 
-        SPRING = CraftingComponent.of("spring", spring, Lead)
+        SPRING = CraftingComponent.of(spring, Lead)
                 .add(ULV, spring, Lead)
                 .add(LV, spring, Tin)
                 .add(MV, spring, Copper)
@@ -685,7 +683,7 @@ public class GTCraftingComponents {
                 .add(UV, spring, YttriumBariumCuprate)
                 .add(UHV, spring, Europium);
 
-        CRATE = CraftingComponent.of("crate", Tags.Items.CHESTS_WOODEN)
+        CRATE = CraftingComponent.of(Tags.Items.CHESTS_WOODEN)
                 .add(ULV, Tags.Items.CHESTS_WOODEN)
                 .add(LV, GTMachines.WOODEN_CRATE.asItem())
                 .add(MV, GTMachines.BRONZE_CRATE.asItem())
@@ -697,7 +695,7 @@ public class GTCraftingComponents {
                 .add(UV, GTMachines.SUPER_CHEST[1].asItem())
                 .add(UHV, GTMachines.SUPER_CHEST[2].asItem());
 
-        DRUM = CraftingComponent.of("drum", Tags.Items.GLASS)
+        DRUM = CraftingComponent.of(Tags.Items.GLASS)
                 .add(ULV, Tags.Items.GLASS)
                 .add(LV, GTMachines.WOODEN_DRUM.asItem())
                 .add(MV, GTMachines.BRONZE_DRUM.asItem())
@@ -709,7 +707,7 @@ public class GTCraftingComponents {
                 .add(UV, GTMachines.SUPER_TANK[1].asItem())
                 .add(UHV, GTMachines.SUPER_TANK[2].asItem());
 
-        FRAME = CraftingComponent.of("frame", frameGt, Wood)
+        FRAME = CraftingComponent.of(frameGt, Wood)
                 .add(ULV, frameGt, Wood)
                 .add(LV, frameGt, Steel)
                 .add(MV, frameGt, Aluminium)
@@ -721,7 +719,7 @@ public class GTCraftingComponents {
                 .add(UV, frameGt, NaquadahAlloy)
                 .add(UHV, frameGt, NaquadahAlloy);
 
-        SMALL_SPRING_TRANSFORMER = CraftingComponent.of("small_spring_transformer", springSmall, RedAlloy)
+        SMALL_SPRING_TRANSFORMER = CraftingComponent.of(springSmall, RedAlloy)
                 .add(ULV, springSmall, RedAlloy)
                 .add(LV, springSmall, Tin)
                 .add(MV, springSmall, Copper)
@@ -733,7 +731,7 @@ public class GTCraftingComponents {
                 .add(UV, springSmall, YttriumBariumCuprate)
                 .add(UHV, springSmall, Europium);
 
-        SPRING_TRANSFORMER = CraftingComponent.of("spring_transformer", spring, Tin)
+        SPRING_TRANSFORMER = CraftingComponent.of(spring, Tin)
                 .add(ULV, spring, Tin)
                 .add(LV, spring, Copper)
                 .add(MV, spring, Gold)

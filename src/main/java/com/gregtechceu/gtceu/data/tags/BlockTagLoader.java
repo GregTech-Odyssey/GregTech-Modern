@@ -38,8 +38,8 @@ public class BlockTagLoader {
                 .add(GTMaterials.NaturalGas.getFluid().defaultFluidState().createLegacyBlock().getBlock());
 
         provider.addTag(BlockTags.MINEABLE_WITH_AXE)
-                .add(GTMachines.WOODEN_DRUM.getBlock())
-                .add(GTMachines.WOODEN_CRATE.getBlock());
+                .add(GTMachines.WOODEN_DRUM.get())
+                .add(GTMachines.WOODEN_CRATE.get());
 
         // always add the wrench/pickaxe tag as a valid tag to mineable/wrench etc.
         provider.addTag(CustomTags.MINEABLE_WITH_WRENCH)

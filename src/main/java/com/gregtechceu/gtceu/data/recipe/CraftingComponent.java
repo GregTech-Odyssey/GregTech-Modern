@@ -1,10 +1,8 @@
 package com.gregtechceu.gtceu.data.recipe;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
-import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
@@ -13,14 +11,11 @@ import net.minecraft.world.item.Items;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
-
 import static com.gregtechceu.gtceu.api.GTValues.V;
 
 public class CraftingComponent {
 
-    public static final Map<String, CraftingComponent> ALL_COMPONENTS = new O2OOpenCacheHashMap<>();
-    public static final CraftingComponent EMPTY = CraftingComponent.of("empty", Items.AIR);
+    public static final CraftingComponent EMPTY = CraftingComponent.of(Items.AIR);
     private final Object[] values = new Object[V.length];
     @NotNull
     private Object fallback;
@@ -30,19 +25,12 @@ public class CraftingComponent {
         this.fallback = fallback;
     }
 
-    public static CraftingComponent of(@NotNull String id, @NotNull Object fallback) {
-        var existing = ALL_COMPONENTS.get(id);
-        if (existing != null) {
-            GTCEu.LOGGER.error("Duplicate crafting component id: {}, check components", id);
-            return existing;
-        }
-        var ret = new CraftingComponent(fallback);
-        ALL_COMPONENTS.put(id, ret);
-        return ret;
+    public static CraftingComponent of(@NotNull Object fallback) {
+        return new CraftingComponent(fallback);
     }
 
-    public static CraftingComponent of(@NotNull String id, @NotNull TagPrefix prefix, @NotNull Material material) {
-        return of(id, new MaterialEntry(prefix, material));
+    public static CraftingComponent of(@NotNull TagPrefix prefix, @NotNull Material material) {
+        return of(new MaterialEntry(prefix, material));
     }
 
     @NotNull
@@ -80,14 +68,6 @@ public class CraftingComponent {
         } else if (!(o instanceof Item || o instanceof MaterialEntry)) {
             throw new IllegalArgumentException("Object is not of type Item, MaterialEntry or TagKey<Item>");
         }
-    }
-
-    public static CraftingComponent get(String id) {
-        if (!ALL_COMPONENTS.containsKey(id)) {
-            GTCEu.LOGGER.error("No such crafting component: {}", id);
-            return EMPTY;
-        }
-        return ALL_COMPONENTS.get(id);
     }
 
     public void setFallback(@NotNull final Object fallback) {

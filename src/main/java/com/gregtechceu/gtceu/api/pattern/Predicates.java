@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.api.pattern;
 
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.block.ICoilType;
-import com.gregtechceu.gtceu.api.block.IMachineBlock;
+import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
@@ -47,7 +47,7 @@ import static com.gregtechceu.gtceu.common.machine.multiblock.electric.PowerSubs
 public class Predicates {
 
     public static TraceabilityPredicate controller(MachineDefinition definition) {
-        return blocks(definition.getBlock()).setController();
+        return blocks(definition.get()).setController();
     }
 
     public static TraceabilityPredicate controller(TraceabilityPredicate predicate) {
@@ -60,10 +60,10 @@ public class Predicates {
         return new TraceabilityPredicate(new PredicateBlocks(blocks));
     }
 
-    public static TraceabilityPredicate blocks(IMachineBlock... blocks) {
+    public static TraceabilityPredicate blocks(MetaMachineBlock... blocks) {
         if (blocks.length == 0) return any();
         return new TraceabilityPredicate(
-                new PredicateBlocks(Arrays.stream(blocks).map(IMachineBlock::self).toArray(Block[]::new)));
+                new PredicateBlocks(Arrays.stream(blocks).toArray(Block[]::new)));
     }
 
     public static TraceabilityPredicate blockDirection(Block block, RelativeDirection... directions) {
@@ -116,7 +116,7 @@ public class Predicates {
                                                       boolean checkItemOut,
                                                       boolean checkFluidIn,
                                                       boolean checkFluidOut) {
-        TraceabilityPredicate predicate = blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0);
+        TraceabilityPredicate predicate = blocks(GTMachines.CONTROL_HATCH.get()).setMaxGlobalLimited(1).setPreviewCount(0);
 
         if (checkEnergyIn) {
             for (var type : recipeType) {

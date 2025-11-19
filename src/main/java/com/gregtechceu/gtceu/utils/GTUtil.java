@@ -445,9 +445,9 @@ public class GTUtil {
     @Nullable
     public static Fluid getMoltenFluid(@NotNull Material material) {
         if (material.hasProperty(PropertyKey.ALLOY_BLAST))
-            return material.getProperty(PropertyKey.FLUID).getStorage().get(FluidStorageKeys.MOLTEN);
+            return material.getFluid(FluidStorageKeys.MOLTEN);
         if (!TagPrefix.ingotHot.doGenerateItem(material) && material.hasProperty(PropertyKey.FLUID))
-            return material.getProperty(PropertyKey.FLUID).getStorage().get(FluidStorageKeys.LIQUID);
+            return material.getFluid(FluidStorageKeys.LIQUID);
         return null;
     }
 

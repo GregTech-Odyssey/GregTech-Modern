@@ -13,7 +13,9 @@ import com.gregtechceu.gtceu.api.machine.feature.*;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.asm.EmptyMethodChecker;
 
+import com.lowdragmc.lowdraglib.client.renderer.IBlockRendererProvider;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -38,10 +40,14 @@ import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
@@ -61,10 +67,17 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @SuppressWarnings("deprecation")
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
+public class MetaMachineBlock extends AppearanceBlock implements IBlockRendererProvider, EntityBlock {
+
+    public static final DirectionProperty UPWARDS_FACING_PROPERTY = DirectionProperty.create("upwards_facing", Direction.Plane.HORIZONTAL);
 
     public final MachineDefinition definition;
     public final RotationState rotationState;
+
+    private boolean hasClientTick;
+    private boolean hasAnimateTick;
+
+    private boolean needCheck = true;
 
     public MetaMachineBlock(Properties properties, MachineDefinition definition) {
         super(properties);
@@ -73,7 +86,7 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
         if (rotationState != RotationState.NONE) {
             BlockState defaultState = this.defaultBlockState().setValue(rotationState.property, rotationState.defaultDirection);
             if (definition.isAllowExtendedFacing()) {
-                defaultState = defaultState.setValue(IMachineBlock.UPWARDS_FACING_PROPERTY, Direction.NORTH);
+                defaultState = defaultState.setValue(UPWARDS_FACING_PROPERTY, Direction.NORTH);
             }
             registerDefaultState(defaultState);
         }
@@ -85,7 +98,7 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
         if (rotationState != RotationState.NONE) {
             pBuilder.add(rotationState.property);
             if (MachineDefinition.getBuilt().isAllowExtendedFacing()) {
-                pBuilder.add(IMachineBlock.UPWARDS_FACING_PROPERTY);
+                pBuilder.add(UPWARDS_FACING_PROPERTY);
             }
         }
     }
@@ -108,10 +121,11 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
 
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-        super.animateTick(state, level, pos, random);
-        var machine = getMachine(level, pos);
-        if (machine != null) {
-            machine.animateTick(random);
+        if (hasAnimateTick) {
+            var machine = getMachine(level, pos);
+            if (machine != null) {
+                machine.animateTick(random);
+            }
         }
     }
 
@@ -170,9 +184,9 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
             if (definition.isAllowExtendedFacing()) {
                 Direction frontFacing = state.getValue(rotationState.property);
                 if (frontFacing == Direction.UP) {
-                    state = state.setValue(IMachineBlock.UPWARDS_FACING_PROPERTY, player.getDirection());
+                    state = state.setValue(UPWARDS_FACING_PROPERTY, player.getDirection());
                 } else if (frontFacing == Direction.DOWN) {
-                    state = state.setValue(IMachineBlock.UPWARDS_FACING_PROPERTY, player.getDirection().getOpposite());
+                    state = state.setValue(UPWARDS_FACING_PROPERTY, player.getDirection().getOpposite());
                 }
             }
         }
@@ -355,11 +369,52 @@ public class MetaMachineBlock extends AppearanceBlock implements IMachineBlock {
         if (machine != null) {
             return machine.getBlockAppearance(state, level, pos, side, sourceState, sourcePos);
         }
-        return super.getBlockAppearance(state, level, pos, side, sourceState, sourcePos);
+        return state;
     }
 
     @Override
     public boolean isValidSpawn(BlockState state, BlockGetter level, BlockPos pos, SpawnPlacements.Type type, EntityType<?> entityType) {
         return false;
+    }
+
+    @Nullable
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        var be = definition.getBlockEntityType().create(pos, state);
+        if (needCheck && be instanceof MetaMachineBlockEntity metaMachine) {
+            try {
+                var c = metaMachine.metaMachine.getClass();
+                hasClientTick = EmptyMethodChecker.hasMethodBody(c.getMethod("clientTick"));
+                hasAnimateTick = EmptyMethodChecker.hasMethodBody(c.getMethod("animateTick", RandomSource.class));
+                needCheck = false;
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return be;
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
+        if (level.isClientSide && hasClientTick && blockEntityType == definition.getBlockEntityType()) {
+            return (pLevel, pPos, pState, pTile) -> {
+                if (pTile instanceof MetaMachineBlockEntity metaMachine) {
+                    metaMachine.metaMachine.clientTick();
+                }
+            };
+        }
+        return null;
+    }
+
+    public static int colorTinted(BlockState blockState, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos,
+                                  int index) {
+        if (level != null && pos != null) {
+            var machine = MetaMachine.getMachine(level, pos);
+            if (machine != null) {
+                return machine.tintColor(index);
+            }
+        }
+        return -1;
     }
 }
