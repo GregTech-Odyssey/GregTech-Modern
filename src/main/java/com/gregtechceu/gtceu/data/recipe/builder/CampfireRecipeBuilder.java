@@ -1,23 +1,19 @@
 package com.gregtechceu.gtceu.data.recipe.builder;
 
-import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.data.pack.GTDynamicDataPack;
+import com.gregtechceu.gtceu.common.data.GTRecipes;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import com.lowdragmc.lowdraglib.utils.NBTToJsonConverter;
-
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CampfireCookingRecipe;
+import net.minecraft.world.item.crafting.CookingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
-import com.google.gson.JsonObject;
 import org.jetbrains.annotations.Nullable;
 
 public class CampfireRecipeBuilder {
@@ -73,62 +69,14 @@ public class CampfireRecipeBuilder {
         return GTUtil.ITEM_ID.apply(output.getItem());
     }
 
-    public void toJson(JsonObject json) {
-        if (group != null) {
-            json.addProperty("group", group);
-        }
-        if (!input.isEmpty()) {
-            json.add("ingredient", input.toJson());
-        }
-        if (output.isEmpty()) {
-            GTCEu.LOGGER.error("shapeless recipe {} output is empty", id);
-            throw new IllegalArgumentException(id + ": output items is empty");
-        } else {
-            JsonObject result = new JsonObject();
-            result.addProperty("item", GTUtil.ITEM_ID.apply(output.getItem()).toString());
-            if (output.getCount() > 1) {
-                result.addProperty("count", output.getCount());
-            }
-            if (output.hasTag() && output.getTag() != null) {
-                result.add("nbt", NBTToJsonConverter.getObject(output.getTag()));
-            }
-            json.add("result", result);
-        }
-        json.addProperty("experience", experience);
-        json.addProperty("cookingtime", cookingTime);
+    public ResourceLocation getId() {
+        var ID = id == null ? defaultId() : id;
+        return new ResourceLocation(ID.getNamespace(), "campfire" + "/" + ID.getPath());
     }
 
     public void save() {
-        GTDynamicDataPack.addRecipe(new FinishedRecipe() {
-
-            @Override
-            public void serializeRecipeData(JsonObject pJson) {
-                toJson(pJson);
-            }
-
-            @Override
-            public ResourceLocation getId() {
-                var ID = id == null ? defaultId() : id;
-                return new ResourceLocation(ID.getNamespace(), "campfire" + "/" + ID.getPath());
-            }
-
-            @Override
-            public RecipeSerializer<?> getType() {
-                return RecipeSerializer.CAMPFIRE_COOKING_RECIPE;
-            }
-
-            @Nullable
-            @Override
-            public JsonObject serializeAdvancement() {
-                return null;
-            }
-
-            @Nullable
-            @Override
-            public ResourceLocation getAdvancementId() {
-                return null;
-            }
-        });
+        var id = getId();
+        GTRecipes.RECIPE_MAP.put(id, new CampfireCookingRecipe(id, group, CookingBookCategory.MISC, input, output, experience, cookingTime));
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.api.block;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.data.RotationState;
 import com.gregtechceu.gtceu.api.item.IGTTool;
@@ -384,7 +385,7 @@ public class MetaMachineBlock extends AppearanceBlock implements IBlockRendererP
         if (needCheck && be instanceof MetaMachineBlockEntity metaMachine) {
             try {
                 var c = metaMachine.metaMachine.getClass();
-                hasClientTick = EmptyMethodChecker.hasMethodBody(c.getMethod("clientTick"));
+                if (GTCEu.isClientSide()) hasClientTick = EmptyMethodChecker.hasMethodBody(c.getMethod("clientTick"));
                 hasAnimateTick = EmptyMethodChecker.hasMethodBody(c.getMethod("animateTick", RandomSource.class));
                 needCheck = false;
             } catch (NoSuchMethodException e) {

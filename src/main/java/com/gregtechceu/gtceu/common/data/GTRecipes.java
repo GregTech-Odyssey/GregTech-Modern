@@ -10,14 +10,19 @@ import com.gregtechceu.gtceu.data.recipe.configurable.RecipeRemoval;
 import com.gregtechceu.gtceu.data.recipe.generated.*;
 import com.gregtechceu.gtceu.data.recipe.misc.*;
 import com.gregtechceu.gtceu.data.recipe.serialized.chemistry.ChemistryRecipes;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.block.ComposterBlock;
 
+import java.util.Map;
 import java.util.Set;
 
 public class GTRecipes {
+
+    public static final Map<ResourceLocation, Recipe<?>> RECIPE_MAP = new O2OOpenCacheHashMap<>();
 
     public static final Set<ResourceLocation> RECIPE_FILTERS = new OpenCacheHashSet<>();
 

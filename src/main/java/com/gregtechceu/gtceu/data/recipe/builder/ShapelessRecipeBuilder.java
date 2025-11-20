@@ -1,36 +1,25 @@
 package com.gregtechceu.gtceu.data.recipe.builder;
 
-import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.data.pack.GTDynamicDataPack;
+import com.gregtechceu.gtceu.common.data.GTRecipes;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import com.lowdragmc.lowdraglib.utils.NBTToJsonConverter;
-
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class ShapelessRecipeBuilder {
 
-    private List<Ingredient> ingredients = new ObjectArrayList<>();
+    private final NonNullList<Ingredient> ingredients = NonNullList.create();
     protected String group;
     private ItemStack output = ItemStack.EMPTY;
-    private float experience;
-    private int cookingTime;
     protected ResourceLocation id;
 
     public ShapelessRecipeBuilder(@Nullable ResourceLocation id) {
@@ -77,62 +66,14 @@ public class ShapelessRecipeBuilder {
         return GTUtil.ITEM_ID.apply(output.getItem());
     }
 
-    public void toJson(JsonObject json) {
-        if (group != null) {
-            json.addProperty("group", group);
-        }
-        JsonArray jsonarray = new JsonArray();
-        for (Ingredient ingredient : ingredients) {
-            jsonarray.add(ingredient.toJson());
-        }
-        json.add("ingredients", jsonarray);
-        if (output.isEmpty()) {
-            GTCEu.LOGGER.error("shapeless recipe {} output is empty", id);
-            throw new IllegalArgumentException(id + ": output items is empty");
-        } else {
-            JsonObject result = new JsonObject();
-            result.addProperty("item", GTUtil.ITEM_ID.apply(output.getItem()).toString());
-            if (output.getCount() > 1) {
-                result.addProperty("count", output.getCount());
-            }
-            if (output.hasTag() && output.getTag() != null) {
-                result.add("nbt", NBTToJsonConverter.getObject(output.getTag()));
-            }
-            json.add("result", result);
-        }
+    public ResourceLocation getId() {
+        var ID = id == null ? defaultId() : id;
+        return new ResourceLocation(ID.getNamespace(), "shapeless" + "/" + ID.getPath());
     }
 
     public void save() {
-        GTDynamicDataPack.addRecipe(new FinishedRecipe() {
-
-            @Override
-            public void serializeRecipeData(JsonObject pJson) {
-                toJson(pJson);
-            }
-
-            @Override
-            public ResourceLocation getId() {
-                var ID = id == null ? defaultId() : id;
-                return new ResourceLocation(ID.getNamespace(), "shapeless" + "/" + ID.getPath());
-            }
-
-            @Override
-            public RecipeSerializer<?> getType() {
-                return RecipeSerializer.SHAPELESS_RECIPE;
-            }
-
-            @Nullable
-            @Override
-            public JsonObject serializeAdvancement() {
-                return null;
-            }
-
-            @Nullable
-            @Override
-            public ResourceLocation getAdvancementId() {
-                return null;
-            }
-        });
+        var id = getId();
+        GTRecipes.RECIPE_MAP.put(id, new ShapelessRecipe(id, group, CraftingBookCategory.MISC, output, ingredients));
     }
 
     /**
@@ -147,7 +88,6 @@ public class ShapelessRecipeBuilder {
      * @return {@code this}.
      */
     public ShapelessRecipeBuilder experience(final float experience) {
-        this.experience = experience;
         return this;
     }
 
@@ -155,7 +95,6 @@ public class ShapelessRecipeBuilder {
      * @return {@code this}.
      */
     public ShapelessRecipeBuilder cookingTime(final int cookingTime) {
-        this.cookingTime = cookingTime;
         return this;
     }
 

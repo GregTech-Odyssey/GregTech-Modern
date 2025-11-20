@@ -1,13 +1,14 @@
 package com.gregtechceu.gtceu.data.recipe.builder;
 
 import com.gregtechceu.gtceu.api.recipe.ShapedFluidContainerRecipe;
-import com.gregtechceu.gtceu.data.pack.GTDynamicDataPack;
+import com.gregtechceu.gtceu.common.data.GTRecipes;
+import com.gregtechceu.gtceu.core.mixins.ShapedRecipeAccessor;
 
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.Ingredient;
 
-import com.google.gson.JsonObject;
 import org.jetbrains.annotations.Nullable;
 
 public class ShapedFluidContainerRecipeBuilder extends ShapedRecipeBuilder {
@@ -17,35 +18,12 @@ public class ShapedFluidContainerRecipeBuilder extends ShapedRecipeBuilder {
     }
 
     public void save() {
-        GTDynamicDataPack.addRecipe(new FinishedRecipe() {
-
-            @Override
-            public void serializeRecipeData(JsonObject pJson) {
-                toJson(pJson);
-            }
-
-            @Override
-            public ResourceLocation getId() {
-                var ID = id == null ? defaultId() : id;
-                return new ResourceLocation(ID.getNamespace(), "shaped_fluid_container/" + ID.getPath());
-            }
-
-            @Override
-            public RecipeSerializer<?> getType() {
-                return ShapedFluidContainerRecipe.SERIALIZER;
-            }
-
-            @Nullable
-            @Override
-            public JsonObject serializeAdvancement() {
-                return null;
-            }
-
-            @Nullable
-            @Override
-            public ResourceLocation getAdvancementId() {
-                return null;
-            }
-        });
+        var id = getId();
+        var key = ShapedRecipeBuilder.symbolMapTokeys(symbolMap);
+        String[] pattern = ShapedRecipeBuilder.shapeToPattern(shape);
+        int xSize = pattern[0].length();
+        int ySize = pattern.length;
+        NonNullList<Ingredient> dissolved = ShapedRecipeAccessor.callDissolvePattern(pattern, key, xSize, ySize);
+        GTRecipes.RECIPE_MAP.put(id, new ShapedFluidContainerRecipe(id, group, CraftingBookCategory.MISC, xSize, ySize, dissolved, output, true));
     }
 }

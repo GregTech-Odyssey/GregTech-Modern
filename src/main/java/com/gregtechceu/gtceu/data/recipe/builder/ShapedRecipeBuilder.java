@@ -1,31 +1,49 @@
 package com.gregtechceu.gtceu.data.recipe.builder;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.recipe.StrictShapedRecipe;
-import com.gregtechceu.gtceu.data.pack.GTDynamicDataPack;
+import com.gregtechceu.gtceu.common.data.GTRecipes;
+import com.gregtechceu.gtceu.core.mixins.ShapedRecipeAccessor;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import com.lowdragmc.lowdraglib.utils.Builder;
-import com.lowdragmc.lowdraglib.utils.NBTToJsonConverter;
 
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 public class ShapedRecipeBuilder extends Builder<Ingredient, ShapedRecipeBuilder> {
+
+    public static String[] shapeToPattern(List<String[]> shape) {
+        var pattern = new ObjectArrayList<String>();
+        for (String[] strings : shape) {
+            pattern.addAll(Arrays.asList(strings));
+        }
+        return pattern.toArray(new String[0]);
+    }
+
+    public static Map<String, Ingredient> symbolMapTokeys(Map<Character, Ingredient> symbolMap) {
+        Map<String, Ingredient> keys = new O2OOpenCacheHashMap<>();
+        symbolMap.forEach((k, v) -> keys.put(k.toString(), v));
+        keys.put(" ", Ingredient.EMPTY);
+        return keys;
+    }
 
     public static Function<Item, Ingredient> INGREDIENT_ITEM_FUNCTION = Ingredient::of;
     public static Function<TagKey<Item>, Ingredient> INGREDIENT_TAG_FUNCTION = Ingredient::of;
@@ -108,41 +126,9 @@ public class ShapedRecipeBuilder extends Builder<Ingredient, ShapedRecipeBuilder
         return builder;
     }
 
-    public void toJson(JsonObject json) {
-        if (group != null) {
-            json.addProperty("group", group);
-        }
-
-        if (!shape.isEmpty()) {
-            JsonArray pattern = new JsonArray();
-            for (String[] strings : shape) {
-                for (String string : strings) {
-                    pattern.add(string);
-                }
-            }
-            json.add("pattern", pattern);
-        }
-
-        if (!symbolMap.isEmpty()) {
-            JsonObject key = new JsonObject();
-            symbolMap.forEach((k, v) -> key.add(k.toString(), v.toJson()));
-            json.add("key", key);
-        }
-
-        if (output.isEmpty()) {
-            GTCEu.LOGGER.error("shaped recipe {} output is empty", id);
-            throw new IllegalArgumentException(id + ": output items is empty");
-        } else {
-            JsonObject result = new JsonObject();
-            result.addProperty("item", GTUtil.ITEM_ID.apply(output.getItem()).toString());
-            if (output.getCount() > 1) {
-                result.addProperty("count", output.getCount());
-            }
-            if (output.hasTag() && output.getTag() != null) {
-                result.add("nbt", NBTToJsonConverter.getObject(output.getTag()));
-            }
-            json.add("result", result);
-        }
+    public ResourceLocation getId() {
+        var ID = id == null ? defaultId() : id;
+        return new ResourceLocation(ID.getNamespace(), "shaped" + "/" + ID.getPath());
     }
 
     protected ResourceLocation defaultId() {
@@ -150,35 +136,12 @@ public class ShapedRecipeBuilder extends Builder<Ingredient, ShapedRecipeBuilder
     }
 
     public void save() {
-        GTDynamicDataPack.addRecipe(new FinishedRecipe() {
-
-            @Override
-            public void serializeRecipeData(JsonObject pJson) {
-                toJson(pJson);
-            }
-
-            @Override
-            public ResourceLocation getId() {
-                var ID = id == null ? defaultId() : id;
-                return new ResourceLocation(ID.getNamespace(), "shaped" + "/" + ID.getPath());
-            }
-
-            @Override
-            public RecipeSerializer<?> getType() {
-                return isStrict ? StrictShapedRecipe.SERIALIZER : RecipeSerializer.SHAPED_RECIPE;
-            }
-
-            @Nullable
-            @Override
-            public JsonObject serializeAdvancement() {
-                return null;
-            }
-
-            @Nullable
-            @Override
-            public ResourceLocation getAdvancementId() {
-                return null;
-            }
-        });
+        var id = getId();
+        var key = ShapedRecipeBuilder.symbolMapTokeys(symbolMap);
+        String[] pattern = ShapedRecipeBuilder.shapeToPattern(shape);
+        int xSize = pattern[0].length();
+        int ySize = pattern.length;
+        NonNullList<Ingredient> dissolved = ShapedRecipeAccessor.callDissolvePattern(pattern, key, xSize, ySize);
+        GTRecipes.RECIPE_MAP.put(id, isStrict ? new StrictShapedRecipe(id, group, CraftingBookCategory.MISC, xSize, ySize, dissolved, output) : new ShapedRecipe(id, group, CraftingBookCategory.MISC, xSize, ySize, dissolved, output));
     }
 }
