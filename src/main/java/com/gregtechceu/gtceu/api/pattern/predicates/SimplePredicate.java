@@ -29,8 +29,8 @@ import java.util.function.Supplier;
 
 public class SimplePredicate {
 
-    public static SimplePredicate ANY = new SimplePredicate("any", GTUtil.FAVORABLE, null, null);
-    public static SimplePredicate AIR = new SimplePredicate("air", blockWorldState -> blockWorldState.getBlockState().isAir(), null, null);
+    public static SimplePredicate ANY = new SimplePredicate(GTUtil.FAVORABLE, null, null);
+    public static SimplePredicate AIR = new SimplePredicate(blockWorldState -> blockWorldState.getBlockState().isAir(), null, null);
 
     @Nullable
     public Supplier<Block[]> candidates;
@@ -44,26 +44,9 @@ public class SimplePredicate {
     public int previewCount = -1;
     public boolean disableRenderFormed = false;
 
-    public final String type;
-
-    public SimplePredicate() {
-        this("unknown");
-    }
-
-    public SimplePredicate(String type) {
-        this.type = type;
-    }
+    public SimplePredicate() {}
 
     public SimplePredicate(Predicate<MultiblockState> predicate, Supplier<BlockInfo> blockInfo, @Nullable Supplier<Block[]> candidates) {
-        this();
-        this.predicate = predicate;
-        this.blockInfo = blockInfo == null ? GTUtil.NULL_SUPPLIER : blockInfo;
-        this.candidates = candidates;
-    }
-
-    public SimplePredicate(String type, Predicate<MultiblockState> predicate, Supplier<BlockInfo> blockInfo,
-                           @Nullable Supplier<Block[]> candidates) {
-        this(type);
         this.predicate = predicate;
         this.blockInfo = blockInfo == null ? GTUtil.NULL_SUPPLIER : blockInfo;
         this.candidates = candidates;

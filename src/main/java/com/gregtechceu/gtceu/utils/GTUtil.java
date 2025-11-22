@@ -70,6 +70,7 @@ public class GTUtil {
     public static final Consumer NOOP_CONSUMER = o -> {};
 
     public static final Supplier NULL_SUPPLIER = () -> null;
+    public static final Function NULL_FUNCTION = o -> null;
 
     public static final Predicate FAVORABLE = o -> true;
     public static final Predicate NEGATIVE = o -> false;

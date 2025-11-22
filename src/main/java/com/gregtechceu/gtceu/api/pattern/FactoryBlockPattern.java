@@ -8,7 +8,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.lang.reflect.Array;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -135,21 +134,29 @@ public class FactoryBlockPattern {
         int size = this.depth.size();
         int[] centerOffset = new int[5];
         int[][] aisleRepetitions = this.aisleRepetitions.toArray(new int[this.aisleRepetitions.size()][]);
-        TraceabilityPredicate[][][] predicate = (TraceabilityPredicate[][][]) Array.newInstance(TraceabilityPredicate.class, size, this.aisleHeight, this.rowWidth);
+        TraceabilityPredicate[][][] predicate = new TraceabilityPredicate[size][][];
 
         for (int i = 0, minZ = 0, maxZ = 0; i < size; minZ += aisleRepetitions[i][0], maxZ += aisleRepetitions[i][1], i++) {
             for (int j = 0; j < this.aisleHeight; j++) {
                 for (int k = 0; k < this.rowWidth; k++) {
                     var tp = this.symbolMap.get(this.depth.get(i)[j].charAt(k));
-                    predicate[i][j][k] = tp;
-                    if (tp != null && tp.isController) {
-                        centerOffset = new int[] { k, j, i, minZ, maxZ };
+                    if (tp != null) {
+                        var pi = predicate[i];
+                        if (pi == null) {
+                            predicate[i] = pi = new TraceabilityPredicate[this.aisleHeight][];
+                        }
+                        var pj = pi[j];
+                        if (pj == null) {
+                            pi[j] = pj = new TraceabilityPredicate[this.rowWidth];
+                        }
+                        pj[k] = tp;
+                        if (tp.isController) centerOffset = new int[] { k, j, i, minZ, maxZ };
                     }
                 }
             }
         }
 
-        var pattern = new BlockPattern(predicate, structureDir, aisleRepetitions, centerOffset);
+        var pattern = new BlockPattern(predicate, structureDir, aisleRepetitions, centerOffset, size, this.aisleHeight, this.rowWidth);
         if (condition != null) pattern.condition = condition;
         if (definition != null) {
             pattern.predicates = symbolMap.values();

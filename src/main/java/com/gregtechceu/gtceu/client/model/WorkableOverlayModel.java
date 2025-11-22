@@ -19,7 +19,6 @@ import net.minecraft.client.resources.model.BlockModelRotation;
 import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -30,10 +29,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -41,6 +37,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class WorkableOverlayModel {
+
+    public static final Map<ResourceLocation, Boolean> OVERLAY_CACHE = new HashMap<>();
+
+    public static boolean isPresent(ResourceLocation location) {
+        return OVERLAY_CACHE.computeIfAbsent(location, k -> Minecraft.getInstance().getResourceManager().getResource(location).isPresent());
+    }
 
     public enum OverlayFace {
 
@@ -188,47 +190,45 @@ public class WorkableOverlayModel {
 
     @OnlyIn(Dist.CLIENT)
     public void registerTextureAtlas(Consumer<ResourceLocation> register) {
-        ResourceManager resManager = Minecraft.getInstance().getResourceManager();
-
         sprites.clear();
         for (OverlayFace overlayFace : OverlayFace.VALUES) {
             final String overlayPath = "/overlay_" + overlayFace.name().toLowerCase(Locale.ROOT);
 
             var normalSprite = new ResourceLocation(location.getNamespace(), location.getPath() + overlayPath);
             var normalSprite1 = getTextureLocation(normalSprite);
-            if (resManager.getResource(normalSprite1).isEmpty()) continue;
+            if (!isPresent(normalSprite1)) continue;
             register.accept(normalSprite);
 
             // normal
             final String active = String.format("%s_active", overlayPath);
             ResourceLocation activeSprite = new ResourceLocation(location.getNamespace(), location.getPath() + active);
             var activeSprite1 = getTextureLocation(activeSprite);
-            if (resManager.getResource(activeSprite1).isPresent()) register.accept(activeSprite);
+            if (isPresent(activeSprite1)) register.accept(activeSprite);
             else activeSprite = normalSprite;
 
             final String paused = String.format("%s_paused", overlayPath);
             ResourceLocation pausedSprite = new ResourceLocation(location.getNamespace(), location.getPath() + paused);
             var pausedSprite1 = getTextureLocation(pausedSprite);
-            if (resManager.getResource(pausedSprite1).isPresent()) register.accept(pausedSprite);
+            if (isPresent(pausedSprite1)) register.accept(pausedSprite);
             else pausedSprite = normalSprite;
 
             // emissive
             ResourceLocation normalSpriteEmissive = new ResourceLocation(location.getNamespace(),
                     location.getPath() + overlayPath + "_emissive");
             var normalSpriteEmissive1 = getTextureLocation(normalSpriteEmissive);
-            if (resManager.getResource(normalSpriteEmissive1).isPresent()) register.accept(normalSpriteEmissive);
+            if (isPresent(normalSpriteEmissive1)) register.accept(normalSpriteEmissive);
             else normalSpriteEmissive = null;
 
             ResourceLocation activeSpriteEmissive = new ResourceLocation(location.getNamespace(),
                     location.getPath() + active + "_emissive");
             var activeSpriteEmissive1 = getTextureLocation(activeSpriteEmissive);
-            if (resManager.getResource(activeSpriteEmissive1).isPresent()) register.accept(activeSpriteEmissive);
+            if (isPresent(activeSpriteEmissive1)) register.accept(activeSpriteEmissive);
             else activeSpriteEmissive = null;
 
             ResourceLocation pausedSpriteEmissive = new ResourceLocation(location.getNamespace(),
                     location.getPath() + paused + "_emissive");
             var pausedSpriteEmissive1 = getTextureLocation(pausedSpriteEmissive);
-            if (resManager.getResource(pausedSpriteEmissive1).isPresent()) register.accept(pausedSpriteEmissive);
+            if (isPresent(pausedSpriteEmissive1)) register.accept(pausedSpriteEmissive);
             else pausedSpriteEmissive = null;
 
             sprites.put(overlayFace, new ActivePredicate(normalSprite, activeSprite, pausedSprite,
