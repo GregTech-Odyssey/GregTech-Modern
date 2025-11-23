@@ -38,7 +38,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class WorkableOverlayModel {
 
-    public static final Map<ResourceLocation, Boolean> OVERLAY_CACHE = new HashMap<>();
+    public static Map<ResourceLocation, Boolean> OVERLAY_CACHE = new HashMap<>();
 
     public static boolean isPresent(ResourceLocation location) {
         return OVERLAY_CACHE.computeIfAbsent(location, k -> Minecraft.getInstance().getResourceManager().getResource(location).isPresent());

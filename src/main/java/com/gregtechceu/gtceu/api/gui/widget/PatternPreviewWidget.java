@@ -409,9 +409,9 @@ public class PatternPreviewWidget extends WidgetGroup {
         boolean result = false;
         if (pattern != null) {
             var state = controllerBase.getMultiblockState();
-            state.cleanCache();
+            state.clearCache();
             result = pattern.checkPatternAt(state, true);
-            state.cleanCache();
+            state.clearCache();
         }
         if (result) {
             controllerBase.onStructureFormed();

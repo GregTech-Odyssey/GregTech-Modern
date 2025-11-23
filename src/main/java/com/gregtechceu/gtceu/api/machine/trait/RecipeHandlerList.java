@@ -49,6 +49,8 @@ public class RecipeHandlerList {
     @Getter
     private boolean isDistinct;
 
+    public int priority;
+
     public RecipeHandlerList external = this;
 
     public GTRecipeType recipeType;

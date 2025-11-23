@@ -106,7 +106,7 @@ public class BlockPattern {
     public boolean checkPatternAt(MultiblockState worldState, BlockPos centerPos, Direction frontFacing, Direction upwardsFacing, boolean isFlipped, boolean savePredicate) {
         boolean findFirstAisle = false;
         int minZ = -centerOffset[4];
-        worldState.clean();
+        worldState.clear();
         PatternMatchContext matchContext = worldState.getMatchContext();
         var ordinal = frontFacing.ordinal();
         var globalCount = worldState.getGlobalCount();
@@ -138,7 +138,7 @@ public class BlockPattern {
                                 matchContext.getPredicates().put(posLong, predicate);
                             }
                             if (worldState.getBlockState().getBlock() instanceof ActiveBlock) {
-                                matchContext.vaBlocks.add(posLong);
+                                if (!savePredicate) matchContext.vaBlocks.add(posLong);
                             } else {
                                 var blockentity = worldState.getTileEntity();
                                 if (blockentity != null) {
@@ -164,7 +164,7 @@ public class BlockPattern {
                             }
                         }
                         if (success) {
-                            worldState.cache.add(posLong);
+                            if (!savePredicate) worldState.cache.add(posLong);
                         } else {
                             // matching failed
                             if (findFirstAisle) {
@@ -220,8 +220,8 @@ public class BlockPattern {
     public void autoBuild(Player player, MultiblockState worldState) {
         Level world = player.level();
         int minZ = -centerOffset[4];
-        worldState.cleanCache();
-        worldState.clean();
+        worldState.clearCache();
+        worldState.clear();
         IMultiController controller = worldState.controller;
         BlockPos centerPos = worldState.controllerPos;
         Direction facing = controller.self().getFrontFacing();

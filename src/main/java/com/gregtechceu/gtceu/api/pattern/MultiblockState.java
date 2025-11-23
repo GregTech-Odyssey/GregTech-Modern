@@ -36,9 +36,9 @@ public class MultiblockState {
     public BlockEntity tileEntity;
     public boolean tileEntityInitialized;
     @Getter
-    public final Reference2IntOpenHashMap<SimplePredicate> globalCount = new Reference2IntOpenHashMap<>();
+    public Reference2IntOpenHashMap<SimplePredicate> globalCount = new Reference2IntOpenHashMap<>();
     @Getter
-    public final Reference2IntOpenHashMap<SimplePredicate> layerCount = new Reference2IntOpenHashMap<>();
+    public Reference2IntOpenHashMap<SimplePredicate> layerCount = new Reference2IntOpenHashMap<>();
     public TraceabilityPredicate predicate;
     public PatternError error;
     @Getter
@@ -56,7 +56,7 @@ public class MultiblockState {
 
     public final List<PatternError> errorRecord = new ObjectArrayList<>();
 
-    public final Long2ObjectOpenHashMap<BlockState> blockStateCache;
+    public Long2ObjectOpenHashMap<BlockState> blockStateCache;
     public final LongOpenHashSet blockEntityCache;
 
     public MultiblockState(IMultiController controller, Level world, BlockPos controllerPos) {
@@ -90,7 +90,7 @@ public class MultiblockState {
         this.blockEntityCache.addAll(state.blockEntityCache);
     }
 
-    public void clean() {
+    public void clear() {
         this.matchContext.reset();
         this.globalCount.clear();
         this.layerCount.clear();
@@ -98,10 +98,10 @@ public class MultiblockState {
         this.blockEntityCache.clear();
     }
 
-    public void cleanCache() {
-        this.globalCount.clear();
-        this.layerCount.clear();
-        this.blockStateCache.clear();
+    public void clearCache() {
+        this.globalCount = new Reference2IntOpenHashMap<>();
+        this.layerCount = new Reference2IntOpenHashMap<>();
+        this.blockStateCache = new Long2ObjectOpenHashMap<>();
         this.predicate = null;
         this.blockState = null;
         this.tileEntity = null;

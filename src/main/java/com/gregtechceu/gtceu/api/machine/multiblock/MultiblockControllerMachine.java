@@ -201,7 +201,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             if (pattern != null) {
                 checking = true;
                 var state = getMultiblockState();
-                state.cleanCache();
+                state.clearCache();
                 result = pattern.checkPatternAt(state, false);
                 if (result) {
                     var subPattern = getSubPattern();
@@ -226,10 +226,10 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                         serverLevel.getServer().execute(() -> c.forEach(serverLevel::removeBlockEntity));
                     }
                 }
-                state.cleanCache();
+                state.clearCache();
                 for (var subState : subMultiblockState) {
                     if (subState == null) continue;
-                    subState.cleanCache();
+                    subState.clearCache();
                 }
                 checking = false;
             }
