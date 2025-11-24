@@ -62,7 +62,7 @@ public class MixinHelpers {
 
     public static void registryGTDynamicTags() {
         var itemTags = DYNAMIC_TAG_CACHE.computeIfAbsent(BuiltInRegistries.ITEM, path -> new O2OOpenCacheHashMap<>());
-        MaterialRegistryManager.getInstance().getRegisteredMaterials().forEach(material -> {
+        MaterialRegistryManager.getInstance().getAll().forEach(material -> {
             if (material.isNull()) return;
             material.MATERIAL_ENTRY_ITEM_MAP.forEach((tagPrefix, itemLikes) -> {
                 if (itemLikes.isEmpty()) return;
@@ -113,7 +113,7 @@ public class MixinHelpers {
             }
         }
         var blockTags = DYNAMIC_TAG_CACHE.computeIfAbsent(BuiltInRegistries.BLOCK, path -> new O2OOpenCacheHashMap<>());
-        MaterialRegistryManager.getInstance().getRegisteredMaterials().forEach(material -> {
+        MaterialRegistryManager.getInstance().getAll().forEach(material -> {
             if (material.isNull()) return;
             material.MATERIAL_ENTRY_BLOCK_MAP.forEach((tagPrefix, blocks) -> {
                 if (blocks.isEmpty()) return;

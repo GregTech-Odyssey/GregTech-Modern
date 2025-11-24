@@ -144,7 +144,7 @@ public class ItemMaterialData {
 
     public static void reinitializeMaterialData() {
         // Clear old data
-        MaterialRegistryManager.getInstance().getRegisteredMaterials().forEach(Material::clearData);
+        MaterialRegistryManager.getInstance().getAll().forEach(Material::clearData);
         ITEM_MATERIAL_ENTRY.clear();
         FLUID_MATERIAL.clear();
 

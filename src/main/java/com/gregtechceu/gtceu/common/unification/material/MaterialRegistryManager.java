@@ -15,11 +15,13 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
 
 public final class MaterialRegistryManager implements IMaterialRegistryManager {
 
@@ -30,6 +32,9 @@ public final class MaterialRegistryManager implements IMaterialRegistryManager {
 
     @Nullable
     private Collection<Material> registeredMaterials;
+
+    @NotNull
+    private final Set<Material> nonRegisteredMaterials = new ReferenceOpenHashSet<>();
 
     private final MaterialRegistryImpl gregtechRegistry = createInternalRegistry();
 
@@ -42,6 +47,14 @@ public final class MaterialRegistryManager implements IMaterialRegistryManager {
             INSTANCE = new MaterialRegistryManager();
         }
         return INSTANCE;
+    }
+
+    public void addNonRegistered(Material material) {
+        nonRegisteredMaterials.add(material);
+    }
+
+    public Collection<Material> getAll() {
+        return ImmutableList.<Material>builder().addAll(registeredMaterials).addAll(nonRegisteredMaterials).build();
     }
 
     @NotNull
