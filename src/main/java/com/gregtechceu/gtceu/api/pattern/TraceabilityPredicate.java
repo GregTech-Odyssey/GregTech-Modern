@@ -9,8 +9,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 
-import com.fast.fastcollection.O2OOpenCustomCacheHashMap;
-import it.unimi.dsi.fastutil.Hash;
+import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,26 +48,6 @@ public class TraceabilityPredicate {
         }
     };
 
-    private static final O2OOpenCustomCacheHashMap<TraceabilityPredicate, TraceabilityPredicate> PREDICATE_MAP = new O2OOpenCustomCacheHashMap<>(new Hash.Strategy<>() {
-
-        @Override
-        public int hashCode(@Nullable TraceabilityPredicate o) {
-            if (o == null) return 0;
-            var hash = o.common.hashCode();
-            hash = 31 * hash + o.limited.hashCode();
-            hash = 31 * hash + o.direction.hashCode();
-            hash = 31 * hash + (o.isController ? 1231 : 1237);
-            return hash;
-        }
-
-        @Override
-        public boolean equals(@Nullable TraceabilityPredicate a, @Nullable TraceabilityPredicate b) {
-            if (a == b) return true;
-            if (a == null || b == null) return false;
-            return a.common.equals(b.common) && a.limited.equals(b.limited) && a.direction.equals(b.direction) && a.isController == b.isController;
-        }
-    });
-
     public List<SimplePredicate> common = new ObjectArrayList<>();
     public List<SimplePredicate> limited = new ObjectArrayList<>();
     public Function<MultiblockState, Direction> direction = GTUtil.NULL_FUNCTION;
@@ -105,9 +84,17 @@ public class TraceabilityPredicate {
 
     public TraceabilityPredicate sort() {
         limited.sort(Comparator.comparingInt(a -> a.minCount));
-        if (common.isEmpty()) common = Collections.emptyList();
-        if (limited.isEmpty()) limited = Collections.emptyList();
-        return PREDICATE_MAP.computeIfAbsent(this, k -> this);
+        if (common.isEmpty()) {
+            common = Collections.emptyList();
+        } else {
+            common = ImmutableList.copyOf(common);
+        }
+        if (limited.isEmpty()) {
+            limited = Collections.emptyList();
+        } else {
+            limited = ImmutableList.copyOf(limited);
+        }
+        return this;
     }
 
     /**

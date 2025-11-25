@@ -45,23 +45,4 @@ public class PredicateBlocks extends SimplePredicate {
         candidates = () -> blocks;
         return this;
     }
-
-    @Override
-    public int hashCode() {
-        var hash = Arrays.hashCode(blocks);
-        hash = 31 * hash + minCount;
-        hash = 31 * hash + maxCount;
-        hash = 31 * hash + minLayerCount;
-        hash = 31 * hash + maxLayerCount;
-        hash = 31 * hash + previewCount;
-        hash = 31 * hash + (disableRenderFormed ? 1231 : 1237);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (!(obj instanceof PredicateBlocks other)) return false;
-        return Arrays.equals(blocks, other.blocks) && minCount == other.minCount && maxCount == other.maxCount && minLayerCount == other.minLayerCount && maxLayerCount == other.maxLayerCount && previewCount == other.previewCount && disableRenderFormed == other.disableRenderFormed;
-    }
 }

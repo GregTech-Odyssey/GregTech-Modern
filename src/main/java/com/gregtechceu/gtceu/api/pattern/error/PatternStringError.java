@@ -12,6 +12,6 @@ public class PatternStringError extends PatternError {
 
     @Override
     public Component getErrorInfo() {
-        return Component.translatable(translateKey);
+        return Component.translatable(translateKey).append("-").append(pos.toShortString());
     }
 }
