@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.integration.xei.entry.item.ItemStackList;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemTagList;
 import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemEntryHandler;
 import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemStackHandler;
-import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import com.lowdragmc.lowdraglib.gui.editor.annotation.LDLRegister;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.ConfiguratorGroup;
@@ -27,6 +26,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
 
+import com.fast.fastcollection.O2OOpenCacheHashMap;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import org.jetbrains.annotations.NotNull;

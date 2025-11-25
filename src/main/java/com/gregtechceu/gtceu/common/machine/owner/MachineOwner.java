@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.common.machine.owner;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.config.ConfigHolder;
-import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -12,6 +11,7 @@ import net.minecraftforge.common.UsernameCache;
 import net.minecraftforge.fml.ModLoader;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
+import com.fast.fastcollection.O2OOpenCacheHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;

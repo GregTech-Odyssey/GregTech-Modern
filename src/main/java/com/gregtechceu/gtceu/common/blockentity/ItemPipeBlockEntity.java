@@ -13,7 +13,6 @@ import com.gregtechceu.gtceu.utils.FacingPos;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.LazyOptionalUtil;
-import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -26,6 +25,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.EmptyHandler;
 
+import com.fast.fastcollection.O2IOpenCacheHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;

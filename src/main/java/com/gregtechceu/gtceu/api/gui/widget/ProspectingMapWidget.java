@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.integration.map.WaypointManager;
 import com.gregtechceu.gtceu.integration.map.cache.client.GTClientCache;
 import com.gregtechceu.gtceu.integration.map.cache.server.ServerCache;
 import com.gregtechceu.gtceu.integration.map.layer.builtin.OreRenderLayer;
-import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -32,6 +31,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import com.fast.fastcollection.OpenCacheHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;

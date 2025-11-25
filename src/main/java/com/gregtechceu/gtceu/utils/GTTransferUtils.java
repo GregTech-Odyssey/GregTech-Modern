@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.utils;
 
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerList;
-import com.gregtechceu.gtceu.utils.collection.O2IOpenCustomCacheHashMap;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -20,6 +19,7 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
 
+import com.fast.fastcollection.O2IOpenCustomCacheHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;

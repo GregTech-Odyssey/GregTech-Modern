@@ -2,8 +2,8 @@ package com.gregtechceu.gtceu.data.lang;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.config.ConfigHolder;
-import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
+import com.fast.fastcollection.OpenCacheHashSet;
 import com.tterrag.registrate.providers.RegistrateLangProvider;
 import dev.toma.configuration.Configuration;
 import dev.toma.configuration.config.format.ConfigFormats;

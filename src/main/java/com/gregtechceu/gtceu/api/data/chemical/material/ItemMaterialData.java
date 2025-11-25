@@ -11,7 +11,6 @@ import com.gregtechceu.gtceu.data.recipe.misc.StoneMachineRecipes;
 import com.gregtechceu.gtceu.data.recipe.misc.WoodMachineRecipes;
 import com.gregtechceu.gtceu.data.tags.TagsHandler;
 import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
-import com.gregtechceu.gtceu.utils.collection.O2OOpenCustomCacheHashMap;
 import com.gregtechceu.gtceu.utils.memoization.MemoizedBlockSupplier;
 
 import net.minecraft.core.registries.Registries;
@@ -23,6 +22,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.registries.RegistryObject;
 
+import com.fast.fastcollection.O2OOpenCustomCacheHashMap;
 import com.mojang.datafixers.util.Pair;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;

@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.integration.map;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.integration.map.cache.client.IClientCache;
-import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
@@ -13,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
+import com.fast.fastcollection.OpenCacheHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;

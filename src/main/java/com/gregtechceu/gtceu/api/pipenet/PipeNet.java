@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.api.pipenet;
 
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.PosUtils;
-import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
 
 import com.lowdragmc.lowdraglib.syncdata.ITagSerializable;
 
@@ -13,6 +12,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 
+import com.fast.fastcollection.O2IOpenCacheHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;

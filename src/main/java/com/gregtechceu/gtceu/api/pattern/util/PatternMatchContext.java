@@ -2,8 +2,8 @@ package com.gregtechceu.gtceu.api.pattern.util;
 
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
-import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
+import com.fast.fastcollection.O2OOpenCacheHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;

@@ -26,8 +26,6 @@ import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.integration.xei.widgets.GTOreByProduct;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
-import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
 
 import net.minecraft.client.renderer.RenderType;
@@ -49,6 +47,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.MapColor;
 
+import com.fast.fastcollection.O2OOpenCacheHashMap;
+import com.fast.fastcollection.OpenCacheHashSet;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Table;
 import com.mojang.serialization.Codec;

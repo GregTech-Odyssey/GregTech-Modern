@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.client.renderer.block.SurfaceRockRenderer;
 import com.gregtechceu.gtceu.client.renderer.item.TagPrefixItemRenderer;
 import com.gregtechceu.gtceu.client.renderer.item.ToolItemRenderer;
 import com.gregtechceu.gtceu.common.data.GTModels;
-import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.SharedConstants;
@@ -22,6 +21,7 @@ import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
 import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraftforge.fml.ModLoader;
 
+import com.fast.fastcollection.OpenCacheHashSet;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
 import it.unimi.dsi.fastutil.objects.ObjectSet;

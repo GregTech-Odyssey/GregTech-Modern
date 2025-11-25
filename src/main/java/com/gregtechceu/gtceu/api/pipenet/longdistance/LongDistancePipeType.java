@@ -2,11 +2,11 @@ package com.gregtechceu.gtceu.api.pipenet.longdistance;
 
 import com.gregtechceu.gtceu.common.pipelike.fluid.longdistance.LDFluidPipeType;
 import com.gregtechceu.gtceu.common.pipelike.item.longdistance.LDItemPipeType;
-import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
+import com.fast.fastcollection.O2OOpenCacheHashMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;

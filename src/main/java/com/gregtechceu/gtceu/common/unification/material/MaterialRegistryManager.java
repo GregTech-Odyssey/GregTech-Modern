@@ -5,10 +5,10 @@ import com.gregtechceu.gtceu.api.data.chemical.material.IMaterialRegistryManager
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.registry.MaterialRegistry;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
-import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.resources.ResourceLocation;
 
+import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;

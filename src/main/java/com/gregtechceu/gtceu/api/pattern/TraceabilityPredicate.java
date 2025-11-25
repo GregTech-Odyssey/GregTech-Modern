@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.api.pattern;
 
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.collection.O2OOpenCustomCacheHashMap;
 
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
@@ -10,6 +9,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 
+import com.fast.fastcollection.O2OOpenCustomCacheHashMap;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;

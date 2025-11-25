@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.data.worldgen.generator.indicators.SurfaceIndic
 import com.gregtechceu.gtceu.api.data.worldgen.generator.veins.*;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreVeinUtil;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
-import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Holder;
@@ -23,6 +22,7 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.placement.HeightRangePlacement;
 
+import com.fast.fastcollection.OpenCacheHashSet;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;

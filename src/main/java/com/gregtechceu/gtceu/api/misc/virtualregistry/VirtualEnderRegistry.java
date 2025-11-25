@@ -1,12 +1,12 @@
 package com.gregtechceu.gtceu.api.misc.virtualregistry;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
+import com.fast.fastcollection.O2OOpenCacheHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

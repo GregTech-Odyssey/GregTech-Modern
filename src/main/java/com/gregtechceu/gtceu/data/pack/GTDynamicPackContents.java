@@ -1,12 +1,12 @@
 package com.gregtechceu.gtceu.data.pack;
 
-import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.resources.IoSupplier;
 
+import com.fast.fastcollection.O2OOpenCacheHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;

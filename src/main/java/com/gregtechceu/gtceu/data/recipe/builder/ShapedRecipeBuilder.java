@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.recipe.StrictShapedRecipe;
 import com.gregtechceu.gtceu.common.data.GTRecipes;
 import com.gregtechceu.gtceu.core.mixins.ShapedRecipeAccessor;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import com.lowdragmc.lowdraglib.utils.Builder;
 
@@ -20,6 +19,7 @@ import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
+import com.fast.fastcollection.O2OOpenCacheHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 

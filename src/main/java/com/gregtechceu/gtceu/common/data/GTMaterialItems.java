@@ -10,12 +10,12 @@ import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.ITagPrefixItem;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
-import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 
+import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.google.common.collect.ArrayTable;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;

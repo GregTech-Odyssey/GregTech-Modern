@@ -1,5 +1,8 @@
 repositories {
     mavenLocal()
+    flatDir {
+        dir "libs"
+    }
     mavenCentral()
 
     maven { // JEI mirror, AE2

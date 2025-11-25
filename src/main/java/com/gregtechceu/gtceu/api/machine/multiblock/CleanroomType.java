@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.machine.multiblock;
 
-import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
-
+import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;

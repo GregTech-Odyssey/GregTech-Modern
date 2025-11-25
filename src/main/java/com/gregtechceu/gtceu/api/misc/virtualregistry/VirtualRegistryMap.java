@@ -1,11 +1,10 @@
 package com.gregtechceu.gtceu.api.misc.virtualregistry;
 
-import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
-
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.util.INBTSerializable;
 
+import com.fast.fastcollection.OpenCacheHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

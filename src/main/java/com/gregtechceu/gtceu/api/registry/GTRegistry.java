@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.registry;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.StringTag;
@@ -11,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModLoadingContext;
 
+import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.mojang.serialization.Codec;

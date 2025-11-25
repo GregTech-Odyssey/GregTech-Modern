@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.api.machine.feature.IDataStickInteractable;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 import com.gregtechceu.gtceu.utils.ResearchManager;
-import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.Tag;
@@ -20,6 +19,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 
+import com.fast.fastcollection.OpenCacheHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;

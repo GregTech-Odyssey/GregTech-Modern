@@ -13,7 +13,6 @@ import com.gregtechceu.gtceu.common.cover.RobotArmCover;
 import com.gregtechceu.gtceu.common.cover.data.DistributionMode;
 import com.gregtechceu.gtceu.common.cover.data.FilterMode;
 import com.gregtechceu.gtceu.utils.FacingPos;
-import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -22,6 +21,7 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 
+import com.fast.fastcollection.O2IOpenCacheHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;

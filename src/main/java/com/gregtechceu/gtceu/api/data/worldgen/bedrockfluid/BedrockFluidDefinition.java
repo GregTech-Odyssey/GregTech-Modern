@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid;
 import com.gregtechceu.gtceu.api.data.worldgen.BiomeWeightModifier;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.utils.RegistryUtil;
-import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
@@ -15,6 +14,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.material.Fluid;
 
+import com.fast.fastcollection.OpenCacheHashSet;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -4,6 +4,8 @@ dependencies {
     compileOnly('org.projectlombok:lombok:1.18.42')
     annotationProcessor('org.projectlombok:lombok:1.18.42')
 
+    implementation("dev:fastcollection-1.0")
+
     // LDLib
     modApi(forge.ldlib.get())
 
