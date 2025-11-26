@@ -92,6 +92,10 @@ public class GTDynamicPackContents {
     private final Node root = new Node();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
+    public void addToData(ResourceLocation location, byte[] bytes) {
+        addToData(location, () -> new ByteArrayInputStream(bytes));
+    }
+
     public void addToData(ResourceLocation location, Supplier<byte[]> supplier) {
         var finalSupplier = GTMemoizer.memoize(supplier);
         addToData(location, () -> new ByteArrayInputStream(finalSupplier.get()));

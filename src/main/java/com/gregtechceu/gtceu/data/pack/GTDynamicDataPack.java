@@ -68,7 +68,7 @@ public class GTDynamicDataPack implements PackResources {
 
     public static void addRecipe(FinishedRecipe recipe) {
         var bytes = recipe.serializeRecipe().toString().getBytes(StandardCharsets.UTF_8);
-        CONTENTS.addToData(getRecipeLocation(recipe.getId()), () -> bytes);
+        CONTENTS.addToData(getRecipeLocation(recipe.getId()), bytes);
     }
 
     /**

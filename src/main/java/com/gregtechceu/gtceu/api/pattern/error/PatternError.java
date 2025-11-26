@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -37,14 +38,16 @@ public class PatternError {
 
     public Component getErrorInfo() {
         List<List<ItemStack>> candidates = getCandidates();
-        StringBuilder builder = new StringBuilder();
+        MutableComponent builder = Component.empty();
+        boolean first = false;
         for (List<ItemStack> candidate : candidates) {
             if (!candidate.isEmpty()) {
-                if (!builder.isEmpty()) builder.append(", ");
+                if (first) builder.append("\n");
+                first = true;
                 builder.append(candidate.getFirst().getDisplayName());
                 if (candidate.size() > 1) builder.append("...");
             }
         }
-        return Component.translatable("gtceu.multiblock.pattern.error", builder.toString(), pos.toShortString());
+        return Component.translatable("gtceu.multiblock.pattern.error", builder, pos.toShortString());
     }
 }
