@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
@@ -39,6 +40,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
+import dev.gigaherz.toolbelt.BeltFinder;
+import dev.gigaherz.toolbelt.belt.ToolBeltInventory;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -243,16 +246,21 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine implements IM
                         }
                     }
                 }
-                if (entityPlayer instanceof ServerPlayer player) {
-                    for (ItemStack stack : entityPlayer.getInventory().items) {
-                        if (ToolHelper.is(stack, toolToMatch)) {
-                            setMaintenanceFixed(i);
-                            ToolHelper.damageItem(stack, player, 1);
-                            if (toolsToMatch.stream().allMatch(Objects::isNull)) {
-                                return;
+                // Then try the tool belt inventory
+                if (GTCEu.isModLoaded("toolbelt")) {
+                    int finalI = i;
+                    BeltFinder.findBelt(entityPlayer).ifPresent((belt) -> {
+                        ToolBeltInventory inv = new ToolBeltInventory(belt.getBelt());
+                        for (int slot = 0; slot < inv.getSlots(); slot++) {
+                            ItemStack itemStack = inv.getStackInSlot(slot);
+                            if (ToolHelper.is(itemStack, toolToMatch)) {
+                                fixProblemWithTool(finalI, itemStack, entityPlayer);
+                                if (toolsToMatch.stream().allMatch(Objects::isNull)) {
+                                    return;
+                                }
                             }
                         }
-                    }
+                    });
                 }
             }
         }
