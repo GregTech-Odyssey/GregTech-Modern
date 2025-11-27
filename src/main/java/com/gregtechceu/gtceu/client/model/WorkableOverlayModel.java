@@ -26,10 +26,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -38,7 +38,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class WorkableOverlayModel {
 
-    public static Map<ResourceLocation, Boolean> OVERLAY_CACHE = new HashMap<>();
+    public static Map<ResourceLocation, Boolean> OVERLAY_CACHE = new ConcurrentHashMap<>();
 
     public static boolean isPresent(ResourceLocation location) {
         return OVERLAY_CACHE.computeIfAbsent(location, k -> Minecraft.getInstance().getResourceManager().getResource(location).isPresent());
@@ -148,18 +148,16 @@ public class WorkableOverlayModel {
 
                 texture = predicate.getEmissiveSprite(isActive, isWorkingEnabled);
                 if (texture != null) {
+                    BakedQuad quad;
                     if (ConfigHolder.INSTANCE.client.machinesEmissiveTextures) {
-                        var quad = StaticFaceBakery.bakeFace(StaticFaceBakery.SLIGHTLY_OVER_BLOCK, renderSide, texture,
+                        quad = StaticFaceBakery.bakeFace(StaticFaceBakery.SLIGHTLY_OVER_BLOCK, renderSide, texture,
                                 modelState, -101, 15, true, false);
-                        if (quad.getDirection() == side) {
-                            quads.add(quad);
-                        }
                     } else {
-                        var quad = StaticFaceBakery.bakeFace(StaticFaceBakery.SLIGHTLY_OVER_BLOCK, renderSide, texture,
+                        quad = StaticFaceBakery.bakeFace(StaticFaceBakery.SLIGHTLY_OVER_BLOCK, renderSide, texture,
                                 modelState, -1, 0, true, true);
-                        if (quad.getDirection() == side) {
-                            quads.add(quad);
-                        }
+                    }
+                    if (quad.getDirection() == side) {
+                        quads.add(quad);
                     }
                 }
             }
@@ -167,7 +165,6 @@ public class WorkableOverlayModel {
         return quads;
     }
 
-    @NotNull
     @OnlyIn(Dist.CLIENT)
     public TextureAtlasSprite getParticleTexture() {
         for (ActivePredicate predicate : sprites.values()) {
@@ -194,38 +191,38 @@ public class WorkableOverlayModel {
         for (OverlayFace overlayFace : OverlayFace.VALUES) {
             final String overlayPath = "/overlay_" + overlayFace.name().toLowerCase(Locale.ROOT);
 
-            var normalSprite = new ResourceLocation(location.getNamespace(), location.getPath() + overlayPath);
+            var normalSprite = ResourceLocation.fromNamespaceAndPath(location.getNamespace(), location.getPath() + overlayPath);
             var normalSprite1 = getTextureLocation(normalSprite);
             if (!isPresent(normalSprite1)) continue;
             register.accept(normalSprite);
 
             // normal
             final String active = String.format("%s_active", overlayPath);
-            ResourceLocation activeSprite = new ResourceLocation(location.getNamespace(), location.getPath() + active);
+            ResourceLocation activeSprite = ResourceLocation.fromNamespaceAndPath(location.getNamespace(), location.getPath() + active);
             var activeSprite1 = getTextureLocation(activeSprite);
             if (isPresent(activeSprite1)) register.accept(activeSprite);
             else activeSprite = normalSprite;
 
             final String paused = String.format("%s_paused", overlayPath);
-            ResourceLocation pausedSprite = new ResourceLocation(location.getNamespace(), location.getPath() + paused);
+            ResourceLocation pausedSprite = ResourceLocation.fromNamespaceAndPath(location.getNamespace(), location.getPath() + paused);
             var pausedSprite1 = getTextureLocation(pausedSprite);
             if (isPresent(pausedSprite1)) register.accept(pausedSprite);
             else pausedSprite = normalSprite;
 
             // emissive
-            ResourceLocation normalSpriteEmissive = new ResourceLocation(location.getNamespace(),
+            ResourceLocation normalSpriteEmissive = ResourceLocation.fromNamespaceAndPath(location.getNamespace(),
                     location.getPath() + overlayPath + "_emissive");
             var normalSpriteEmissive1 = getTextureLocation(normalSpriteEmissive);
             if (isPresent(normalSpriteEmissive1)) register.accept(normalSpriteEmissive);
             else normalSpriteEmissive = null;
 
-            ResourceLocation activeSpriteEmissive = new ResourceLocation(location.getNamespace(),
+            ResourceLocation activeSpriteEmissive = ResourceLocation.fromNamespaceAndPath(location.getNamespace(),
                     location.getPath() + active + "_emissive");
             var activeSpriteEmissive1 = getTextureLocation(activeSpriteEmissive);
             if (isPresent(activeSpriteEmissive1)) register.accept(activeSpriteEmissive);
             else activeSpriteEmissive = null;
 
-            ResourceLocation pausedSpriteEmissive = new ResourceLocation(location.getNamespace(),
+            ResourceLocation pausedSpriteEmissive = ResourceLocation.fromNamespaceAndPath(location.getNamespace(),
                     location.getPath() + paused + "_emissive");
             var pausedSpriteEmissive1 = getTextureLocation(pausedSpriteEmissive);
             if (isPresent(pausedSpriteEmissive1)) register.accept(pausedSpriteEmissive);
@@ -237,6 +234,6 @@ public class WorkableOverlayModel {
     }
 
     private ResourceLocation getTextureLocation(ResourceLocation location) {
-        return new ResourceLocation(location.getNamespace(), "textures/%s.png".formatted(location.getPath()));
+        return ResourceLocation.fromNamespaceAndPath(location.getNamespace(), "textures/%s.png".formatted(location.getPath()));
     }
 }
