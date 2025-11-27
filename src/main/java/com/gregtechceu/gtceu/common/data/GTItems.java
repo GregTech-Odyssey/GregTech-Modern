@@ -81,7 +81,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.gregtechceu.gtceu.common.data.GTCreativeModeTabs.ITEM;
-import static com.gregtechceu.gtceu.common.data.GTModels.createTextureModel;
 import static com.gregtechceu.gtceu.common.data.GTModels.overrideModel;
 import static com.gregtechceu.gtceu.common.registry.GTRegistration.REGISTRATE;
 import static com.gregtechceu.gtceu.utils.FormattingUtil.toEnglishName;
