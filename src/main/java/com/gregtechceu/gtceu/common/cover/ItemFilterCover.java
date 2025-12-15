@@ -120,10 +120,10 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
             ItemStack result = super.extractItem(slot, amount, true);
             if (result.isEmpty() && (filterMode == FilterMode.FILTER_INSERT) && allowFlow == ManualIOMode.UNFILTERED) {
-                return super.extractItem(slot, amount, false);
+                return super.extractItem(slot, amount, simulate);
             }
             if (filterMode != FilterMode.FILTER_INSERT && getItemFilter().test(result)) {
-                return super.extractItem(slot, amount, false);
+                return super.extractItem(slot, amount, simulate);
             }
             return ItemStack.EMPTY;
         }
