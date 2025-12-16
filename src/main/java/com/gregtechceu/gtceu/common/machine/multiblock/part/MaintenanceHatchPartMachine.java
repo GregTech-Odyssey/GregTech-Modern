@@ -246,21 +246,9 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine implements IM
                         }
                     }
                 }
-                // Then try the tool belt inventory
+                // Then try the tool belt inventory (reflective to avoid classloading when mod is absent)
                 if (GTCEu.isModLoaded("toolbelt")) {
-                    int finalI = i;
-                    BeltFinder.findBelt(entityPlayer).ifPresent((belt) -> {
-                        ToolBeltInventory inv = new ToolBeltInventory(belt.getBelt());
-                        for (int slot = 0; slot < inv.getSlots(); slot++) {
-                            ItemStack itemStack = inv.getStackInSlot(slot);
-                            if (ToolHelper.is(itemStack, toolToMatch)) {
-                                fixProblemWithTool(finalI, itemStack, entityPlayer);
-                                if (toolsToMatch.stream().allMatch(Objects::isNull)) {
-                                    return;
-                                }
-                            }
-                        }
-                    });
+                    BeltAdapter.tryUseBelt(this::fixProblemWithTool, entityPlayer, toolToMatch, i, toolsToMatch);
                 }
             }
         }
@@ -357,5 +345,29 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine implements IM
             tooltip = Component.translatable("gtceu.maintenance.configurable_" + type + ".changed_description", FormattingUtil.formatNumber2Places(multiplier.getAsDouble()));
         }
         return Component.translatable("gtceu.maintenance.configurable_" + type, FormattingUtil.formatNumber2Places(multiplier.getAsDouble())).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltip)));
+    }
+
+    private static class BeltAdapter {
+
+        static void tryUseBelt(ToolFixer toolFixer, Player entityPlayer, GTToolType toolToMatch, int problemIndex, List<GTToolType> toolsToMatch) {
+            BeltFinder.findBelt(entityPlayer).ifPresent((belt) -> {
+                ToolBeltInventory inv = new ToolBeltInventory(belt.getBelt());
+                for (int slot = 0; slot < inv.getSlots(); slot++) {
+                    ItemStack itemStack = inv.getStackInSlot(slot);
+                    if (ToolHelper.is(itemStack, toolToMatch)) {
+                        toolFixer.fixProblemWithTool(problemIndex, itemStack, entityPlayer);
+                        if (toolsToMatch.stream().allMatch(Objects::isNull)) {
+                            return;
+                        }
+                    }
+                }
+            });
+        }
+
+        @FunctionalInterface
+        interface ToolFixer {
+
+            void fixProblemWithTool(int problemIndex, ItemStack stack, Player player);
+        }
     }
 }

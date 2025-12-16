@@ -49,7 +49,6 @@ import net.minecraft.world.level.block.Blocks;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -135,7 +134,6 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
     }
 
     @Override
-    @NotNull
     public CleanroomLogic getRecipeLogic() {
         return (CleanroomLogic) super.getRecipeLogic();
     }
@@ -208,11 +206,12 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
     }
 
     // `return false` being a separate statement is better for readability
-    @SuppressWarnings("RedundantIfStatement")
     private static boolean isPartIgnored(IMultiPart part) {
-        if (part instanceof DiodePartMachine) return true;
-        if (part instanceof HullMachine) return true;
-        return false;
+        return switch (part) {
+            case DiodePartMachine ignored -> true;
+            case HullMachine ignored -> true;
+            default -> false;
+        };
     }
 
     /**
@@ -272,7 +271,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
      * @param direction the direction to move
      * @return if a block is a valid wall block at pos moved in direction
      */
-    public boolean isBlockEdge(@NotNull Level world, @NotNull BlockPos.MutableBlockPos pos, @NotNull Direction direction) {
+    public boolean isBlockEdge(Level world, BlockPos.MutableBlockPos pos, Direction direction) {
         var state = world.getBlockState(pos.move(direction));
         return state.is(getCasingState()) || state.is(getGlassState());
     }
@@ -283,7 +282,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
      * @param direction the direction to move
      * @return if a block is a valid floor block at pos moved in direction
      */
-    public boolean isBlockFloor(@NotNull Level world, @NotNull BlockPos.MutableBlockPos pos, @NotNull Direction direction) {
+    public boolean isBlockFloor(Level world, BlockPos.MutableBlockPos pos, Direction direction) {
         var state = world.getBlockState(pos.move(direction));
         return state.is(getCasingState()) || state.is(getGlassState()) || state.is(CustomTags.CLEANROOM_FLOORS);
     }
@@ -298,7 +297,6 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         return true;
     }
 
-    @NotNull
     @Override
     public BlockPattern getPattern() {
         // return the default structure, even if there is no valid size found
@@ -363,8 +361,8 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
             f[i] = floorLayer[i].toString();
         }
         String[] m = new String[bDist + fDist + 1];
-        for (int i = 0; i < wallLayers.get(0).length; i++) {
-            m[i] = wallLayers.get(0)[i].toString();
+        for (int i = 0; i < wallLayers.getFirst().length; i++) {
+            m[i] = wallLayers.getFirst()[i].toString();
         }
         String[] c = new String[bDist + fDist + 1];
         for (int i = 0; i < ceilingLayer.length; i++) {
@@ -384,17 +382,14 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
     }
 
     // protected to allow easy addition of addon "cleanrooms"
-    @NotNull
     protected Block getCasingState() {
         return GTBlocks.PLASTCRETE.get();
     }
 
-    @NotNull
     protected Block getGlassState() {
         return GTBlocks.CLEANROOM_GLASS.get();
     }
 
-    @NotNull
     protected static TraceabilityPredicate doorPredicate() {
         return Predicates.custom(blockWorldState -> blockWorldState.getBlockState().is(CustomTags.CLEANROOM_DOORS), () -> BlockInfo.fromBlockState(Blocks.IRON_DOOR.defaultBlockState()), () -> new Block[] { Blocks.IRON_DOOR });
     }
@@ -405,15 +400,18 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
 
     private static boolean isMachineBanned(MetaMachine machine) {
         // blacklisted machines: mufflers and all generators, miners/drills, primitives
-        if (machine instanceof ICleanroomProvider) return true;
-        if (machine instanceof IMufflerMachine) return true;
-        if (machine instanceof SimpleGeneratorMachine) return true;
-        if (machine instanceof LargeMinerMachine) return true;
-        if (machine instanceof FluidDrillMachine) return true;
-        if (machine instanceof BedrockOreMinerMachine) return true;
-        if (machine instanceof CokeOvenMachine) return true;
-        if (machine instanceof PrimitiveBlastFurnaceMachine) return true;
-        return machine instanceof PrimitivePumpMachine;
+        return switch (machine) {
+            case ICleanroomProvider ignored -> true;
+            case IMufflerMachine ignored -> true;
+            case SimpleGeneratorMachine ignored -> true;
+            case LargeMinerMachine ignored -> true;
+            case FluidDrillMachine ignored -> true;
+            case BedrockOreMinerMachine ignored -> true;
+            case CokeOvenMachine ignored -> true;
+            case PrimitiveBlastFurnaceMachine ignored -> true;
+            case PrimitivePumpMachine ignored -> true;
+            default -> false;
+        };
     }
 
     @Override
@@ -472,7 +470,6 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         return this.cleanAmount >= CLEAN_AMOUNT_THRESHOLD;
     }
 
-    @NotNull
     @Override
     public List<Component> getDataInfo(PortableScannerBehavior.DisplayMode mode) {
         if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_MACHINE_INFO) {
