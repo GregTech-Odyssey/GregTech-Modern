@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
@@ -39,6 +40,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
+import dev.gigaherz.toolbelt.BeltFinder;
+import dev.gigaherz.toolbelt.belt.ToolBeltInventory;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -243,16 +246,9 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine implements IM
                         }
                     }
                 }
-                if (entityPlayer instanceof ServerPlayer player) {
-                    for (ItemStack stack : entityPlayer.getInventory().items) {
-                        if (ToolHelper.is(stack, toolToMatch)) {
-                            setMaintenanceFixed(i);
-                            ToolHelper.damageItem(stack, player, 1);
-                            if (toolsToMatch.stream().allMatch(Objects::isNull)) {
-                                return;
-                            }
-                        }
-                    }
+                // Then try the tool belt inventory (reflective to avoid classloading when mod is absent)
+                if (GTCEu.isModLoaded("toolbelt")) {
+                    BeltAdapter.tryUseBelt(this::fixProblemWithTool, entityPlayer, toolToMatch, i, toolsToMatch);
                 }
             }
         }
@@ -349,5 +345,29 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine implements IM
             tooltip = Component.translatable("gtceu.maintenance.configurable_" + type + ".changed_description", FormattingUtil.formatNumber2Places(multiplier.getAsDouble()));
         }
         return Component.translatable("gtceu.maintenance.configurable_" + type, FormattingUtil.formatNumber2Places(multiplier.getAsDouble())).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltip)));
+    }
+
+    private static class BeltAdapter {
+
+        static void tryUseBelt(ToolFixer toolFixer, Player entityPlayer, GTToolType toolToMatch, int problemIndex, List<GTToolType> toolsToMatch) {
+            BeltFinder.findBelt(entityPlayer).ifPresent((belt) -> {
+                ToolBeltInventory inv = new ToolBeltInventory(belt.getBelt());
+                for (int slot = 0; slot < inv.getSlots(); slot++) {
+                    ItemStack itemStack = inv.getStackInSlot(slot);
+                    if (ToolHelper.is(itemStack, toolToMatch)) {
+                        toolFixer.fixProblemWithTool(problemIndex, itemStack, entityPlayer);
+                        if (toolsToMatch.stream().allMatch(Objects::isNull)) {
+                            return;
+                        }
+                    }
+                }
+            });
+        }
+
+        @FunctionalInterface
+        interface ToolFixer {
+
+            void fixProblemWithTool(int problemIndex, ItemStack stack, Player player);
+        }
     }
 }

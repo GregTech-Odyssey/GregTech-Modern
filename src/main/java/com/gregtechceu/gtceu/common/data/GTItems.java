@@ -81,7 +81,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.gregtechceu.gtceu.common.data.GTCreativeModeTabs.ITEM;
-import static com.gregtechceu.gtceu.common.data.GTModels.createTextureModel;
 import static com.gregtechceu.gtceu.common.data.GTModels.overrideModel;
 import static com.gregtechceu.gtceu.common.registry.GTRegistration.REGISTRATE;
 import static com.gregtechceu.gtceu.utils.FormattingUtil.toEnglishName;
@@ -2197,14 +2196,6 @@ public class GTItems {
                     .onRegister(attach(new ColorSprayBehaviour(() -> SPRAY_EMPTY.asStack(), 512, i))).register();
         }
     }
-
-    @Deprecated
-    public static ItemEntry<ComponentItem> TURBINE_ROTOR = REGISTRATE.item("turbine_rotor", ComponentItem::create)
-            .lang("%s Turbine Rotor")
-            .properties(p -> p.stacksTo(1))
-            .model((ctx, prov) -> createTextureModel(ctx, prov, GTCEu.id("item/material_sets/dull/turbine_rotor")))
-            .color(() -> ITurbineRotorBehavior::getItemStackColor)
-            .onRegister(attach(new TurbineRotorBehaviourLegacy())).register();
 
     public static ItemEntry<Item> NEURO_PROCESSOR = REGISTRATE.item("neuro_processing_unit", Item::new)
             .lang("Neuro Processing Unit").register();
