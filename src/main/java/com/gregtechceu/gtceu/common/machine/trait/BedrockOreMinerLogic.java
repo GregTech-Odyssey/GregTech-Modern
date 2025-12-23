@@ -41,7 +41,7 @@ public class BedrockOreMinerLogic extends RecipeLogic {
 
     @Override
     public void findAndHandleRecipe() {
-        if (getMachine().getLevel() instanceof ServerLevel serverLevel) {
+        if (getMachine().getLevel() instanceof ServerLevel serverLevel && getMachine().getEnergyTier() >= getMachine().getTier()) {
             lastRecipe = null;
             var data = BedrockOreVeinSavedData.getOrCreate(serverLevel);
             if (veinMaterials == null) {

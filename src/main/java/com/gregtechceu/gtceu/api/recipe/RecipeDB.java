@@ -8,7 +8,7 @@ import com.fast.recipesearch.IntLongMap;
 import com.fast.recipesearch.RecipeSearcher;
 
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class RecipeDB extends AbstractContainerRecipeDB<GTRecipe> {
 
@@ -16,15 +16,27 @@ public class RecipeDB extends AbstractContainerRecipeDB<GTRecipe> {
         super(branchBuilder);
     }
 
-    @Override
-    public GTRecipe findAnyMatch(int[] searchKeys, Function<GTRecipe, GTRecipe> recipeProcessor) {
-        searchContext.reset(this.rootBranch, searchKeys, recipeProcessor, null);
-        GTRecipe foundRecipe = searchContext.findAny();
-        if (foundRecipe != null) {
-            return foundRecipe;
-        } else {
-            return !this.serialRecipes.isEmpty() ? findInSerial(this.serialRecipes, recipeProcessor) : null;
+    public boolean find(IntLongMap map, Predicate<GTRecipe> canHandle) {
+        if (rootBranch != null) {
+            searchContext.reset(this.rootBranch, map.toIntArray(), r -> {
+                if (r.getIntContainer().match(map) && canHandle.test(r)) return r;
+                return null;
+            }, null);
+            if (searchContext.findAny() != null) {
+                return true;
+            }
         }
+        if (!serialRecipes.isEmpty()) {
+            for (GTRecipe recipe : serialRecipes) {
+                if (canHandle.test(recipe)) return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    protected boolean supportsParallel(GTRecipe recipe) {
+        return false;
     }
 
     @Override

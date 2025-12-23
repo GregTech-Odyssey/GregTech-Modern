@@ -169,7 +169,7 @@ public class RecipeHandlerList {
         var map = this.getIngredientMap(recipeType);
         if (map.isEmpty()) return false;
         holder.setCurrentHandlerList(this, null);
-        return recipeType.findRecipe(map, canHandle);
+        return recipeType.db.find(map, canHandle);
     }
 
     public long getInputItemParallel(IRecipeLogicMachine holder, List<Content> contents, long parallelAmount) {

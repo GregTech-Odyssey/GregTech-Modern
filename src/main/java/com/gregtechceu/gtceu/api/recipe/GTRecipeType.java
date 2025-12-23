@@ -80,7 +80,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     protected final List<ICustomRecipeLogic> customRecipeLogicRunners = new ObjectArrayList<>();
     public final Map<ResourceLocation, GTRecipe> recipes = new O2OOpenCacheHashMap<>();
 
-    protected RecipeDB db;
+    public RecipeDB db;
 
     public GTRecipeType(ResourceLocation registryName, String group, RecipeType<?>... proxyRecipes) {
         this.registryName = registryName;
@@ -187,13 +187,6 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
             var r = logic.createCustomRecipe(holder);
             if (r != null && canHandle.test(r)) return;
         }
-    }
-
-    public boolean findRecipe(IntLongMap map, Predicate<GTRecipe> canHandle) {
-        return db.findAnyMatch(map.toIntArray(), r -> {
-            if (r.getIntContainer().match(map) && canHandle.test(r)) return r;
-            return null;
-        }) != null;
     }
 
     protected void init() {
