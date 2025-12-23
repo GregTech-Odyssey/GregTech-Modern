@@ -17,12 +17,9 @@ import com.gregtechceu.gtceu.api.item.LampBlockItem;
 import com.gregtechceu.gtceu.api.item.LaserPipeBlockItem;
 import com.gregtechceu.gtceu.api.item.OpticalPipeBlockItem;
 import com.gregtechceu.gtceu.api.machine.multiblock.IBatteryData;
-import com.gregtechceu.gtceu.api.pipenet.longdistance.LongDistancePipeBlock;
 import com.gregtechceu.gtceu.common.block.*;
 import com.gregtechceu.gtceu.common.block.explosive.IndustrialTNTBlock;
 import com.gregtechceu.gtceu.common.block.explosive.PowderbarrelBlock;
-import com.gregtechceu.gtceu.common.pipelike.fluid.longdistance.LDFluidPipeType;
-import com.gregtechceu.gtceu.common.pipelike.item.longdistance.LDItemPipeType;
 import com.gregtechceu.gtceu.common.pipelike.laser.LaserPipeType;
 import com.gregtechceu.gtceu.common.pipelike.optical.OpticalPipeType;
 import com.gregtechceu.gtceu.core.mixins.BlockPropertiesAccessor;
@@ -158,26 +155,6 @@ public class GTBlocks {
                 .register();
         OPTICAL_PIPES[index] = entry;
     }
-
-    // Long Distance Item Pipe Blocks
-    public static final BlockEntry<LongDistancePipeBlock> LD_ITEM_PIPE = REGISTRATE
-            .block("long_distance_item_pipeline",
-                    properties -> new LongDistancePipeBlock(properties, LDItemPipeType.INSTANCE))
-            .initialProperties(() -> Blocks.IRON_BLOCK)
-            .blockstate(GTModels::longDistanceItemPipeModel)
-            .tag(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WRENCH, BlockTags.NEEDS_STONE_TOOL)
-            .simpleItem()
-            .register();
-
-    // Long Distance Fluid Pipe Blocks
-    public static final BlockEntry<LongDistancePipeBlock> LD_FLUID_PIPE = REGISTRATE
-            .block("long_distance_fluid_pipeline",
-                    properties -> new LongDistancePipeBlock(properties, LDFluidPipeType.INSTANCE))
-            .initialProperties(() -> Blocks.IRON_BLOCK)
-            .blockstate(GTModels::longDistanceFluidPipeModel)
-            .tag(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WRENCH, BlockTags.NEEDS_STONE_TOOL)
-            .simpleItem()
-            .register();
 
     //////////////////////////////////////
     // ****** Casing Blocks *****//

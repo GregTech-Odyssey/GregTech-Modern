@@ -1,7 +1,5 @@
 {
   "values": [
-    "gtceu:long_distance_item_pipeline",
-    "gtceu:long_distance_fluid_pipeline",
     "gtceu:wood_wall",
     "gtceu:steam_machine_casing",
     "gtceu:heatproof_machine_casing",

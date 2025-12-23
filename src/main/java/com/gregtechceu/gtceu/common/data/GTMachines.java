@@ -24,8 +24,6 @@ import com.gregtechceu.gtceu.common.machine.steam.SteamMinerMachine;
 import com.gregtechceu.gtceu.common.machine.steam.SteamSolarBoiler;
 import com.gregtechceu.gtceu.common.machine.steam.SteamSolidBoilerMachine;
 import com.gregtechceu.gtceu.common.machine.storage.*;
-import com.gregtechceu.gtceu.common.pipelike.fluid.longdistance.LDFluidEndpointMachine;
-import com.gregtechceu.gtceu.common.pipelike.item.longdistance.LDItemEndpointMachine;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -286,38 +284,6 @@ public class GTMachines {
     public static final MachineDefinition[] HI_AMP_TRANSFORMER_2A = registerTransformerMachines("Hi-Amp (2x) ", 2);
     public static final MachineDefinition[] HI_AMP_TRANSFORMER_4A = registerTransformerMachines("Hi-Amp (4x) ", 4);
     public static final MachineDefinition[] POWER_TRANSFORMER = registerTransformerMachines("Power ", 16);
-
-    public static final MachineDefinition LONG_DIST_ITEM_ENDPOINT = REGISTRATE
-            .machine("long_distance_item_pipeline_endpoint", LDItemEndpointMachine::new)
-            .langValue("Long Distance Item Pipeline Endpoint")
-            .allRotation()
-            .tier(LV)
-            .tieredHullRenderer(GTCEu.id("block/machine/ld_item_endpoint_machine"))
-            .tooltips(LangHandler.getMultiLang("gtceu.machine.endpoint.tooltip").toArray(Component[]::new))
-            .tooltipBuilder((stack, tooltip) -> {
-                if (ConfigHolder.INSTANCE.machines.ldItemPipeMinDistance > 0) {
-                    tooltip.add(Component.translatable("gtceu.machine.endpoint.tooltip.min_length",
-                            ConfigHolder.INSTANCE.machines.ldItemPipeMinDistance));
-                }
-            })
-            .register();
-
-    public static final MachineDefinition LONG_DIST_FLUID_ENDPOINT = REGISTRATE
-            .machine("long_distance_fluid_pipeline_endpoint", LDFluidEndpointMachine::new)
-            .langValue("Long Distance Fluid Pipeline Endpoint")
-            .allRotation()
-            .tier(LV)
-            .tieredHullRenderer(GTCEu.id("block/machine/ld_fluid_endpoint_machine"))
-            .tooltips(Component.translatable("gtceu.machine.endpoint.tooltip.0"),
-                    Component.translatable("gtceu.machine.endpoint.tooltip.1"),
-                    Component.translatable("gtceu.machine.endpoint.tooltip.2"))
-            .tooltipBuilder((stack, tooltip) -> {
-                if (ConfigHolder.INSTANCE.machines.ldFluidPipeMinDistance > 0) {
-                    tooltip.add(Component.translatable("gtceu.machine.endpoint.tooltip.min_length",
-                            ConfigHolder.INSTANCE.machines.ldItemPipeMinDistance));
-                }
-            })
-            .register();
 
     public static final MachineDefinition[] BATTERY_BUFFER_4 = registerBatteryBuffer(4);
 
