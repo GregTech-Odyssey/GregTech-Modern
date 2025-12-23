@@ -5,6 +5,7 @@ dependencies {
     annotationProcessor('org.projectlombok:lombok:1.18.42')
 
     implementation("dev:fastcollection-1.0")
+    implementation("dev:RecipeSearch-1.0")
     modCompileOnly("curse.maven:tool-belt-260262:5929061")
 
     // LDLib

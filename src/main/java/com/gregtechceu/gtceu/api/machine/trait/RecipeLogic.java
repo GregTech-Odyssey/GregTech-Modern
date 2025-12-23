@@ -32,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -231,23 +230,10 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
         }
     }
 
-    @NotNull
-    public Iterator<GTRecipe> searchRecipe() {
-        return machine.getRecipeType().searchRecipe(machine, this::matchRecipe);
-    }
-
     public void findAndHandleRecipe() {
         lastRecipe = null;
         lastOriginRecipe = null;
-        handleSearchingRecipes(searchRecipe());
-    }
-
-    protected void handleSearchingRecipes(@NotNull Iterator<GTRecipe> matches) {
-        while (matches.hasNext()) {
-            GTRecipe match = matches.next();
-            if (match == null) continue;
-            if (checkMatchedRecipeAvailable(match)) return;
-        }
+        machine.getRecipeType().findRecipe(machine, match -> matchRecipe(match) && checkMatchedRecipeAvailable(match));
     }
 
     public boolean handleTickRecipe(GTRecipe recipe) {

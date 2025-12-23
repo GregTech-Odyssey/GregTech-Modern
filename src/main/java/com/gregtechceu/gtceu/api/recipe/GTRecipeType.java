@@ -1,11 +1,12 @@
 package com.gregtechceu.gtceu.api.recipe;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.gui.SteamTexture;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.chance.boost.ChanceBoostFunction;
-import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
+import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 import com.gregtechceu.gtceu.api.sound.SoundEntry;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
@@ -17,14 +18,21 @@ import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.IntTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.AbstractCookingRecipe;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.fast.fastcollection.OpenCacheHashSet;
+import com.fast.recipesearch.IntLongMap;
 import it.unimi.dsi.fastutil.objects.*;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -58,7 +66,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     @Getter
     protected boolean hasResearchSlot;
     @Getter
-    protected final Map<RecipeType<?>, List<GTRecipe>> proxyRecipes;
+    protected final Set<RecipeType<?>> proxyRecipes;
     @Getter
     protected final GTRecipeCategory category;
     @Getter
@@ -72,23 +80,21 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     protected final List<ICustomRecipeLogic> customRecipeLogicRunners = new ObjectArrayList<>();
     public final Map<ResourceLocation, GTRecipe> recipes = new O2OOpenCacheHashMap<>();
 
+    protected RecipeDB db;
+
     public GTRecipeType(ResourceLocation registryName, String group, RecipeType<?>... proxyRecipes) {
         this.registryName = registryName;
         this.group = group;
         this.category = GTRecipeCategory.registerDefault(this);
         recipeBuilder = new GTRecipeBuilder(registryName, this);
         // must be linked to stop json contents from shuffling
-        Map<RecipeType<?>, List<GTRecipe>> map = new Reference2ReferenceOpenHashMap<>();
-        for (RecipeType<?> proxyRecipe : proxyRecipes) {
-            map.put(proxyRecipe, new ObjectArrayList<>());
-        }
-        this.proxyRecipes = map;
+        this.proxyRecipes = new ReferenceOpenHashSet<>(proxyRecipes);
     }
 
     public static boolean available(GTRecipeType recipeType, GTRecipeType... types) {
         if (recipeType == null || recipeType == GTRecipeTypes.DUMMY_RECIPES) return true;
         for (var type : types) {
-            if (recipeType == type || type.proxyRecipes.containsKey(recipeType)) return true;
+            if (recipeType == type || type.proxyRecipes.contains(recipeType)) return true;
         }
         return false;
     }
@@ -172,9 +178,54 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         return registryName.toString();
     }
 
-    @NotNull
-    public Iterator<GTRecipe> searchRecipe(IRecipeCapabilityHolder holder, Predicate<GTRecipe> canHandle) {
-        return recipes.values().parallelStream().filter(canHandle).iterator();
+    public void findRecipe(IRecipeCapabilityHolder holder, Predicate<GTRecipe> canHandle) {
+        init();
+        for (var list : holder.getInputList()) {
+            if (list.findRecipe(holder, this, canHandle)) return;
+        }
+        for (var logic : customRecipeLogicRunners) {
+            var r = logic.createCustomRecipe(holder);
+            if (r != null && canHandle.test(r)) return;
+        }
+    }
+
+    public boolean findRecipe(IntLongMap map, Predicate<GTRecipe> canHandle) {
+        return db.findAnyMatch(map.toIntArray(), r -> {
+            if (r.getIntContainer().match(map) && canHandle.test(r)) return r;
+            return null;
+        }) != null;
+    }
+
+    protected void init() {
+        if (db == null) {
+            var recipes = new ObjectArrayList<>(this.recipes.values());
+            proxyRecipes.forEach(t -> {
+                if (t instanceof GTRecipeType type) {
+                    recipes.addAll(type.recipes.values());
+                } else {
+                    var map = (Map<ResourceLocation, Recipe>) ServerLifecycleHooks.getCurrentServer().getRecipeManager().byType((RecipeType) t);
+                    recipes.addAll(map.entrySet().stream().map(e -> this.toGTrecipe(e.getKey(), e.getValue())).toList());
+                }
+            });
+            db = RecipeDB.create(recipes, RecipeDB::new);
+        }
+    }
+
+    public void clear() {
+        if (db != null) db.clear();
+    }
+
+    protected GTRecipe toGTrecipe(ResourceLocation id, Recipe<?> recipe) {
+        var builder = recipeBuilder(id);
+        for (var ingredient : recipe.getIngredients()) {
+            builder.inputItems(ingredient);
+        }
+        builder.outputItems(recipe.getResultItem(RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY)));
+        if (recipe instanceof AbstractCookingRecipe cookingRecipe) {
+            builder.duration(cookingRecipe.getCookingTime() / 4);
+            builder.EUt(GTValues.VA[GTValues.LV]);
+        }
+        return builder.buildRawRecipe();
     }
 
     public int getMaxInputs(RecipeCapability<?> cap) {
@@ -254,11 +305,22 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         return Collections.unmodifiableSet(categoryMap.getOrDefault(category, Set.of()));
     }
 
-    public void convertItem(ItemStack stack, long amount, IntIngredientMap map) {
-        map.add(stack.getItem().hashCode(), amount);
+    public <T> void convert(RecipeCapability<T> capability, Object object, IntLongMap map) {
+        capability.convert((T) object, map);
     }
 
-    public void convertFluid(FluidStack stack, long amount, IntIngredientMap map) {
+    public void convertItem(ItemStack stack, long amount, IntLongMap map) {
+        map.add(stack.getItem().hashCode(), amount);
+        stack.getItem().builtInRegistryHolder().tags.forEach(t -> map.add(t.hashCode(), amount));
+        var nbt = stack.getTag();
+        if (nbt != null && stack.getItem() == IntCircuitIngredient.PROGRAMMED_CIRCUIT) {
+            if (nbt.tags.get(IntCircuitIngredient.Configuration) instanceof IntTag intTag) {
+                map.add(intTag.getAsInt(), amount);
+            }
+        }
+    }
+
+    public void convertFluid(FluidStack stack, long amount, IntLongMap map) {
         map.add(stack.getFluid().hashCode(), amount);
     }
 

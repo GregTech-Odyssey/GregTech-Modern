@@ -17,6 +17,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 
+import com.fast.recipesearch.IntContainerHolder;
+import com.fast.recipesearch.IntMapContainer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,9 +34,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Container> {
+public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Container>, IntContainerHolder {
 
     public final GTRecipeType recipeType;
+    public IntMapContainer container;
     @Getter
     @Setter
     public ResourceLocation id;
@@ -188,5 +191,15 @@ public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Contai
     @Override
     public String toString() {
         return id.toString();
+    }
+
+    @Override
+    public IntMapContainer getIntContainer() {
+        return container;
+    }
+
+    @Override
+    public void setIntContainer(IntMapContainer intMapContainer) {
+        container = intMapContainer;
     }
 }

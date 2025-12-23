@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEnderRegistry;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.capability.MedicalConditionTracker;
 import com.gregtechceu.gtceu.common.capability.WorldIDSaveData;
@@ -196,6 +197,7 @@ public class ForgeCommonEventListener {
     public static void serverStopped(ServerStoppedEvent event) {
         ServerCache.instance.clear();
         VirtualEnderRegistry.release();
+        GTRegistries.RECIPE_TYPES.forEach(GTRecipeType::clear);
     }
 
     @SubscribeEvent

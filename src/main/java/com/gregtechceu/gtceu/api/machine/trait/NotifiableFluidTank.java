@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
-import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
 import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
 import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
@@ -22,6 +21,7 @@ import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
 
+import com.fast.recipesearch.IntLongMap;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +54,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
 
     protected boolean isAvailable = true;
 
-    protected final IntIngredientMap intIngredientMap = new IntIngredientMap();
+    protected final IntLongMap intIngredientMap = new IntLongMap();
 
     public NotifiableFluidTank(MetaMachine machine, int slots, int capacity, IO io, IO capabilityIO) {
         super(machine);
@@ -235,7 +235,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     }
 
     @Override
-    public IntIngredientMap getIngredientMap(@NotNull GTRecipeType type) {
+    public IntLongMap getIngredientMap(@NotNull GTRecipeType type) {
         if (changed) {
             changed = false;
             intIngredientMap.clear();

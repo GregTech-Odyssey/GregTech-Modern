@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.ingredient.SizedIngredient;
-import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.function.ObjectLongConsumer;
@@ -20,6 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import com.fast.recipesearch.IntLongMap;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +46,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
 
     protected boolean isAvailable = true;
 
-    protected final IntIngredientMap intIngredientMap = new IntIngredientMap();
+    protected final IntLongMap intIngredientMap = new IntLongMap();
 
     public NotifiableItemStackHandler(MetaMachine machine, int slots, @NotNull IO handlerIO, @NotNull IO capabilityIO, IntFunction<CustomItemStackHandler> storageFactory) {
         super(machine);
@@ -186,7 +186,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     }
 
     @Override
-    public IntIngredientMap getIngredientMap(@NotNull GTRecipeType type) {
+    public IntLongMap getIngredientMap(@NotNull GTRecipeType type) {
         if (changed) {
             changed = false;
             intIngredientMap.clear();

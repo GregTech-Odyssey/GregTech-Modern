@@ -34,8 +34,8 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -181,14 +181,18 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
     @Nullable
     public String getRecipeFluidInputInfo() {
         // Previous Recipe is always null on first world load, so try to acquire a new recipe
-        GTRecipe recipe = recipeLogic.getLastRecipe();
-        if (recipe == null) {
-            Iterator<GTRecipe> iterator = recipeLogic.searchRecipe();
-            recipe = iterator.hasNext() ? iterator.next() : null;
-            if (recipe == null) return null;
+        AtomicReference<GTRecipe> recipe = new AtomicReference<>(recipeLogic.getLastRecipe());
+        if (recipe.get() == null) {
+            getRecipeType().findRecipe(this, r -> {
+                if (RecipeHelper.matchContents(this, r)) {
+                    recipe.set(r);
+                    return true;
+                }
+                return false;
+            });
         }
-        FluidStack requiredFluidInput = RecipeHelper.getInputFluids(recipe).get(0);
-        long ocAmount = getMaxVoltage() / recipe.getOutputEUt();
+        FluidStack requiredFluidInput = RecipeHelper.getInputFluids(recipe.get()).get(0);
+        long ocAmount = getMaxVoltage() / recipe.get().getOutputEUt();
         int neededAmount = GTMath.saturatedCast(ocAmount * requiredFluidInput.getAmount());
         return ChatFormatting.RED + FormattingUtil.formatNumbers(neededAmount) + "mB";
     }

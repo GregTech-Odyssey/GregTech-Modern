@@ -31,6 +31,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.common.crafting.IntersectionIngredient;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import com.fast.recipesearch.IntLongMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import org.jetbrains.annotations.NotNull;
@@ -48,6 +49,21 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
 
     protected ItemRecipeCapability() {
         super("item", 0xFFD96106, true, 0, SerializerIngredient.INSTANCE);
+    }
+
+    @Override
+    public void convert(Ingredient ingredient, IntLongMap map) {
+        if (ingredient instanceof SizedIngredient sized) {
+            convert(sized.getInner(), map);
+        } else if (ingredient instanceof IntCircuitIngredient circuitIngredient) {
+            map.add(circuitIngredient.configuration, 1);
+        } else if (ingredient.isVanilla() && ingredient.values.length == 1) {
+            if (ingredient.values[0] instanceof Ingredient.ItemValue itemValue) {
+                map.add(itemValue.item.getItem().hashCode(), 1);
+            } else if (ingredient.values[0] instanceof Ingredient.TagValue tagValue) {
+                map.add(tagValue.tag.hashCode(), 1);
+            }
+        }
     }
 
     @Override

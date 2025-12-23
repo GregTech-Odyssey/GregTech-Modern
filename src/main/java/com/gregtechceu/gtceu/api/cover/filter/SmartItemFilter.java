@@ -1,7 +1,9 @@
 package com.gregtechceu.gtceu.api.cover.filter;
 
+import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 
@@ -14,8 +16,10 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
 import com.fast.fastcollection.O2IOpenCustomCacheHashMap;
+import com.fast.recipesearch.IntLongMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenCustomHashMap;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 public class SmartItemFilter implements ItemFilter {
@@ -85,7 +89,22 @@ public class SmartItemFilter implements ItemFilter {
     }
 
     private int lookup(ItemStack itemStack) {
-        return 0;
+        var map = new IntLongMap();
+        filterMode.type.convertItem(itemStack, Integer.MAX_VALUE, map);
+        AtomicInteger count = new AtomicInteger();
+        filterMode.type.findRecipe(map, recipe -> {
+            for (Content content : recipe.getInputContents(ItemRecipeCapability.CAP)) {
+                var stacks = ItemRecipeCapability.CAP.of(content.getContent()).getItems();
+                for (var stack : stacks) {
+                    if (ItemStack.isSameItem(stack, itemStack)) {
+                        count.set(stack.getCount());
+                        return true;
+                    }
+                }
+            }
+            return false;
+        });
+        return count.get();
     }
 
     public void setModeFromMachine(String machineName) {
@@ -106,13 +125,13 @@ public class SmartItemFilter implements ItemFilter {
 
         private static final SmartFilteringMode[] VALUES = values();
         private final String localeName;
-        private final GTRecipeType lookup;
+        private final GTRecipeType type;
         private final Object2IntOpenCustomHashMap<ItemStack> cache = new O2IOpenCustomCacheHashMap<>(
                 ItemStackHashStrategy.ITEM_AND_TAG);
 
         SmartFilteringMode(String localeName, GTRecipeType type) {
             this.localeName = localeName;
-            this.lookup = type;
+            this.type = type;
         }
 
         @Override

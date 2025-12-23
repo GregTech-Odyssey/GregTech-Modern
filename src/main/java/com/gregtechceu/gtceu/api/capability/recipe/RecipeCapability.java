@@ -17,6 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
 import com.fast.fastcollection.O2IOpenCacheHashMap;
+import com.fast.recipesearch.IntLongMap;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -122,6 +123,8 @@ public abstract class RecipeCapability<T> {
     public boolean doMatchInRecipe() {
         return true;
     }
+
+    public void convert(T object, IntLongMap map) {}
 
     /**
      * Calculate the maximum parallel amount based on the output space of the holder

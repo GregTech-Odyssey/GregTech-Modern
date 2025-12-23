@@ -25,6 +25,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import com.fast.recipesearch.IntLongMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
@@ -38,6 +39,14 @@ public class FluidRecipeCapability extends RecipeCapability<FluidIngredient> {
 
     protected FluidRecipeCapability() {
         super("fluid", 0xFF3C70EE, true, 1, SerializerFluidIngredient.INSTANCE);
+    }
+
+    @Override
+    public void convert(FluidIngredient ingredient, IntLongMap map) {
+        if (ingredient.values.length == 1 && ingredient.values[0] instanceof FluidIngredient.FluidValue fluidValue) {
+            map.add(fluidValue.fluid.hashCode(), 1);
+
+        }
     }
 
     @Override

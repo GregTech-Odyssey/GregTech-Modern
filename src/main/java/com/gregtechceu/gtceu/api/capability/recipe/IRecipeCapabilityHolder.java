@@ -25,6 +25,10 @@ public interface IRecipeCapabilityHolder {
 
     default void setCurrentHandlerList(RecipeHandlerList list, GTRecipe recipe) {}
 
+    default List<RecipeHandlerList> getInputList() {
+        return getCapabilitiesProxy().getOrDefault(IO.IN, Collections.emptyList());
+    }
+
     @NotNull
     Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy();
 

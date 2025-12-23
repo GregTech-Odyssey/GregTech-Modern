@@ -6,8 +6,6 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
-import com.gregtechceu.gtceu.api.recipe.lookup.SearchFunction;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelFunction;
 import com.gregtechceu.gtceu.utils.function.ObjectLongConsumer;
 import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
@@ -17,6 +15,7 @@ import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.fast.recipesearch.IntLongMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.Getter;
@@ -24,14 +23,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class RecipeHandlerList {
 
-    public static SearchFunction SEARCH = (holder, type, handlerList, searchFunction) -> Collections.emptyIterator();
     public static ParallelFunction<RecipeHandlerList> ITEM_PARALLEL = (holder, contents, parallelAmount, args) -> parallelAmount;
     public static ParallelFunction<RecipeHandlerList> FLUID_PARALLEL = (holder, contents, parallelAmount, args) -> parallelAmount;
 
@@ -55,7 +52,7 @@ public class RecipeHandlerList {
 
     public GTRecipeType recipeType;
 
-    public final IntIngredientMap intIngredientMap = new IntIngredientMap();
+    public final IntLongMap intIngredientMap = new IntLongMap();
 
     public final IMultiPart part;
 
@@ -161,8 +158,18 @@ public class RecipeHandlerList {
         return () -> subs.forEach(ISubscription::unsubscribe);
     }
 
-    public <T extends GTRecipeType, R extends GTRecipe> Iterator<R> searchRecipe(IRecipeCapabilityHolder holder, T type, Predicate<R> canHandle) {
-        return SEARCH.search(holder, type, this, canHandle);
+    public boolean findRecipe(IRecipeCapabilityHolder holder, GTRecipeType recipeType, Predicate<GTRecipe> canHandle) {
+        if (this.recipeType != null && this.recipeType != recipeType && holder instanceof IRecipeLogicMachine machine && !machine.disabledCombined()) {
+            if (GTRecipeType.available(this.recipeType, machine.getRecipeTypes())) {
+                recipeType = this.recipeType;
+            } else {
+                return false;
+            }
+        }
+        var map = this.getIngredientMap(recipeType);
+        if (map.isEmpty()) return false;
+        holder.setCurrentHandlerList(this, null);
+        return recipeType.findRecipe(map, canHandle);
     }
 
     public long getInputItemParallel(IRecipeLogicMachine holder, List<Content> contents, long parallelAmount) {
@@ -173,9 +180,9 @@ public class RecipeHandlerList {
         return FLUID_PARALLEL.getParallel(holder, contents, parallelAmount, this);
     }
 
-    public IntIngredientMap getIngredientMap(@NotNull GTRecipeType type) {
+    public IntLongMap getIngredientMap(@NotNull GTRecipeType type) {
         intIngredientMap.clear();
-        allHandlers.forEach(handler -> handler.getIngredientMap(type).fill(intIngredientMap));
+        allHandlers.forEach(handler -> handler.getIngredientMap(type).copyTo(intIngredientMap));
         return intIngredientMap;
     }
 

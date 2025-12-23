@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
@@ -14,6 +13,7 @@ import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
+import com.fast.recipesearch.IntLongMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
@@ -78,7 +78,7 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     }
 
     @Override
-    public IntIngredientMap getIngredientMap(@NotNull GTRecipeType type) {
+    public IntLongMap getIngredientMap(@NotNull GTRecipeType type) {
         if (changed) {
             changed = false;
             intIngredientMap.clear();
