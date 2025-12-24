@@ -212,12 +212,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     }
 
     public void handleRecipeWorking() {
-        var recipe = lastRecipe;
-        if (handleTickRecipe(recipe)) {
-            if (!machine.onWorking()) {
-                interruptRecipe();
-                return;
-            }
+        if (handleTickRecipe(lastRecipe) && machine.onWorking()) {
             setStatus(RecipeLogic.Status.WORKING);
             progress++;
             totalContinuousRunningTime++;
@@ -280,9 +275,11 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     }
 
     public void setWaiting(@Nullable Component reason) {
-        setStatus(Status.WAITING);
-        waitingReason = reason;
-        machine.onWaiting();
+        if (this.status != Status.WAITING) {
+            setStatus(Status.WAITING);
+            waitingReason = reason;
+            machine.onWaiting();
+        }
     }
 
     /**
@@ -377,12 +374,8 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
      * Interrupt current recipe without io.
      */
     public void interruptRecipe() {
-        machine.afterWorking();
-        if (lastRecipe != null) {
-            setStatus(Status.IDLE);
-            progress = 0;
-            duration = 0;
-        }
+        setWaiting(null);
+        unsubscribe();
     }
 
     //////////////////////////////////////

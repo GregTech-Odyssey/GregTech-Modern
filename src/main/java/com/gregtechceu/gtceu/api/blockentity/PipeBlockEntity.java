@@ -102,8 +102,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     @NotNull
     private Material frameMaterial = GTMaterials.NULL;
 
-    private LevelChunk chunk;
-
     protected int tickDelay = 0;
 
     private boolean asyncSyncing;
@@ -147,10 +145,10 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     }
 
     public @Nullable LevelChunk getChunk() {
-        if (chunk == null && level != null) {
-            chunk = level.getChunkAt(worldPosition);
+        if (level != null) {
+            return level.getChunkAt(worldPosition);
         }
-        return chunk;
+        return null;
     }
 
     public int getOffsetTimer() {
