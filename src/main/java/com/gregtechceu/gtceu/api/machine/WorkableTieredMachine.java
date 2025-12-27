@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.machine.feature.*;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachine;
 import com.gregtechceu.gtceu.api.machine.trait.*;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -234,7 +233,7 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     }
 
     @Override
-    public void setCurrentHandlerList(RecipeHandlerList list, GTRecipe recipe) {
+    public void setCurrentHandlerList(RecipeHandlerList list) {
         this.currentHandlerList = list;
     }
 

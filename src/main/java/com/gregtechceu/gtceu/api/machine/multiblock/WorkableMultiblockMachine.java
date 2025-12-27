@@ -323,7 +323,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     }
 
     @Override
-    public void setCurrentHandlerList(RecipeHandlerList list, GTRecipe recipe) {
+    public void setCurrentHandlerList(RecipeHandlerList list) {
         this.currentHandlerList = list;
     }
 

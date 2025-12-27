@@ -161,7 +161,7 @@ public class RecipeHandlerList {
     public boolean findRecipe(IRecipeCapabilityHolder holder, GTRecipeType recipeType, Predicate<GTRecipe> canHandle) {
         var map = this.getIngredientMap(recipeType);
         if (map.isEmpty()) return false;
-        holder.setCurrentHandlerList(this, null);
+        holder.setCurrentHandlerList(this);
         return recipeType.db.find(map, canHandle);
     }
 

@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.capability.recipe;
 
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
@@ -23,7 +22,7 @@ public interface IRecipeCapabilityHolder {
         return null;
     }
 
-    default void setCurrentHandlerList(RecipeHandlerList list, GTRecipe recipe) {}
+    default void setCurrentHandlerList(RecipeHandlerList list) {}
 
     default List<RecipeHandlerList> getInputList() {
         return getCapabilitiesProxy().getOrDefault(IO.IN, Collections.emptyList());
@@ -50,11 +49,11 @@ public interface IRecipeCapabilityHolder {
         if (handler == RecipeHandlerList.NO_DATA) return;
         IO io = handler.getHandlerIO();
         getCapabilitiesProxy().computeIfAbsent(io, i -> new ObjectArrayList<>()).add(handler);
-        var entrySet = handler.handlerMap.entrySet();
+        var entrySet = handler.handlerMap.reference2ObjectEntrySet();
         var inner = getCapabilitiesFlat().computeIfAbsent(io, i -> new Reference2ObjectOpenHashMap<>(entrySet.size()));
-        for (var entry : entrySet) {
+        entrySet.fastForEach(entry -> {
             var entryList = entry.getValue();
             inner.computeIfAbsent(entry.getKey(), c -> new ObjectArrayList<>(entryList.size())).addAll(entryList);
-        }
+        });
     }
 }
