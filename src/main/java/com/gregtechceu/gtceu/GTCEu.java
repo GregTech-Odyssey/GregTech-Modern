@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu;
 
-import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.client.ClientProxy;
 import com.gregtechceu.gtceu.common.CommonProxy;
@@ -29,13 +28,7 @@ public class GTCEu {
     public static final Logger LOGGER = LoggerFactory.getLogger(NAME);
 
     public GTCEu() {
-        GTCEu.init();
-        GTCEuAPI.instance = this;
         DistExecutor.unsafeRunForDist(() -> ClientProxy::new, () -> CommonProxy::new);
-    }
-
-    public static void init() {
-        LOGGER.info("{} is initializing...", NAME);
     }
 
     public static ResourceLocation id(String path) {

@@ -178,15 +178,17 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         return registryName.toString();
     }
 
-    public void findRecipe(IRecipeCapabilityHolder holder, Predicate<GTRecipe> canHandle) {
+    @SuppressWarnings("UnusedReturnValue")
+    public boolean findRecipe(IRecipeCapabilityHolder holder, Predicate<GTRecipe> canHandle) {
         init();
         for (var list : holder.getInputList()) {
-            if (list.findRecipe(holder, this, canHandle)) return;
+            if (list.findRecipe(holder, this, canHandle)) return true;
         }
         for (var logic : customRecipeLogicRunners) {
             var r = logic.createCustomRecipe(holder);
-            if (r != null && canHandle.test(r)) return;
+            if (r != null && canHandle.test(r)) return true;
         }
+        return false;
     }
 
     protected void init() {
