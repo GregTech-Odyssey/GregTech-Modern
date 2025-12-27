@@ -159,13 +159,6 @@ public class RecipeHandlerList {
     }
 
     public boolean findRecipe(IRecipeCapabilityHolder holder, GTRecipeType recipeType, Predicate<GTRecipe> canHandle) {
-        if (this.recipeType != null && this.recipeType != recipeType && holder instanceof IRecipeLogicMachine machine && !machine.disabledCombined()) {
-            if (GTRecipeType.available(this.recipeType, machine.getRecipeTypes())) {
-                recipeType = this.recipeType;
-            } else {
-                return false;
-            }
-        }
         var map = this.getIngredientMap(recipeType);
         if (map.isEmpty()) return false;
         holder.setCurrentHandlerList(this, null);

@@ -24,7 +24,6 @@ import com.gregtechceu.gtceu.common.item.armor.IJetpack;
 import com.gregtechceu.gtceu.common.item.armor.QuarkTechSuite;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.SPacketSendWorldID;
-import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.integration.map.ClientCacheManager;
 import com.gregtechceu.gtceu.integration.map.WaypointManager;
@@ -32,10 +31,11 @@ import com.gregtechceu.gtceu.integration.map.cache.server.ServerCache;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.Difficulty;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -195,6 +195,7 @@ public class ForgeCommonEventListener {
 
     @SubscribeEvent
     public static void serverStopped(ServerStoppedEvent event) {
+        MultiblockControllerMachine.MESSAGE_CACHE.clear();
         ServerCache.instance.clear();
         VirtualEnderRegistry.release();
         GTRegistries.RECIPE_TYPES.forEach(GTRecipeType::clear);
@@ -202,7 +203,6 @@ public class ForgeCommonEventListener {
 
     @SubscribeEvent
     public static void serverStopping(ServerStoppingEvent event) {
-        MultiblockControllerMachine.MESSAGE_CACHE.clear();
         var levels = event.getServer().getAllLevels();
         for (var level : levels) {
             if (!level.isClientSide()) {
@@ -262,12 +262,15 @@ public class ForgeCommonEventListener {
     @SubscribeEvent
     public static void onEntitySpawn(MobSpawnEvent.FinalizeSpawn event) {
         Mob entity = event.getEntity();
-        Difficulty difficulty = entity.level().getDifficulty();
-        if (difficulty == Difficulty.HARD && entity.getRandom().nextFloat() <= 0.03f) {
-            if (entity instanceof Zombie zombie && ConfigHolder.INSTANCE.tools.nanoSaber.zombieSpawnWithSabers) {
+        if (entity.getRandom().nextBoolean()) return;
+        if (entity instanceof Zombie zombie && zombie.getMainHandItem().isEmpty()) {
+            if (zombie.getRandom().nextInt(50) > 48) {
                 ItemStack itemStack = GTItems.NANO_SABER.get().getInfiniteChargedStack();
                 ToggleEnergyConsumerBehavior.setItemActive(itemStack, true);
-                entity.setItemSlot(EquipmentSlot.MAINHAND, itemStack);
+                zombie.setItemSlot(EquipmentSlot.MAINHAND, itemStack);
+                zombie.setDropChance(EquipmentSlot.MAINHAND, 0.0f);
+            } else if (zombie.getRandom().nextBoolean()) {
+                zombie.setItemSlot(EquipmentSlot.MAINHAND, BuiltInRegistries.ITEM.getOrCreateTag(ItemTags.SWORDS).getRandomElement(zombie.getRandom()).orElseGet(() -> BuiltInRegistries.ITEM.wrapAsHolder(Items.STICK)).value().getDefaultInstance());
                 zombie.setDropChance(EquipmentSlot.MAINHAND, 0.0f);
             }
         }

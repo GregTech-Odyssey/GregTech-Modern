@@ -52,7 +52,7 @@ public enum BreweryLogic implements GTRecipeType.ICustomRecipeLogic {
 
     @Override
     public @Nullable GTRecipe createCustomRecipe(IRecipeCapabilityHolder holder) {
-        var handlerLists = holder.getCapabilitiesForIO(IO.IN);
+        var handlerLists = holder.getInputList();
         if (handlerLists.isEmpty()) return null;
         List<RecipeHandlerList> distinct = new ObjectArrayList<>();
         List<IRecipeHandler<?>> notDistinctItems = new ObjectArrayList<>();
