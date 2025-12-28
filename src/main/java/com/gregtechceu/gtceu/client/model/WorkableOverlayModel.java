@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.client.model.ModelFactory;
 import com.lowdragmc.lowdraglib.client.renderer.IItemRendererProvider;
+import com.lowdragmc.lowdraglib.utils.ResourceHelper;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
@@ -29,7 +30,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -37,12 +37,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class WorkableOverlayModel {
-
-    public static Map<ResourceLocation, Boolean> OVERLAY_CACHE = new ConcurrentHashMap<>();
-
-    public static boolean isPresent(ResourceLocation location) {
-        return OVERLAY_CACHE.computeIfAbsent(location, k -> Minecraft.getInstance().getResourceManager().getResource(location).isPresent());
-    }
 
     public enum OverlayFace {
 
@@ -193,39 +187,39 @@ public class WorkableOverlayModel {
 
             var normalSprite = ResourceLocation.fromNamespaceAndPath(location.getNamespace(), location.getPath() + overlayPath);
             var normalSprite1 = getTextureLocation(normalSprite);
-            if (!isPresent(normalSprite1)) continue;
+            if (!ResourceHelper.isResourceExist(normalSprite1)) continue;
             register.accept(normalSprite);
 
             // normal
             final String active = String.format("%s_active", overlayPath);
             ResourceLocation activeSprite = ResourceLocation.fromNamespaceAndPath(location.getNamespace(), location.getPath() + active);
             var activeSprite1 = getTextureLocation(activeSprite);
-            if (isPresent(activeSprite1)) register.accept(activeSprite);
+            if (ResourceHelper.isResourceExist(activeSprite1)) register.accept(activeSprite);
             else activeSprite = normalSprite;
 
             final String paused = String.format("%s_paused", overlayPath);
             ResourceLocation pausedSprite = ResourceLocation.fromNamespaceAndPath(location.getNamespace(), location.getPath() + paused);
             var pausedSprite1 = getTextureLocation(pausedSprite);
-            if (isPresent(pausedSprite1)) register.accept(pausedSprite);
+            if (ResourceHelper.isResourceExist(pausedSprite1)) register.accept(pausedSprite);
             else pausedSprite = normalSprite;
 
             // emissive
             ResourceLocation normalSpriteEmissive = ResourceLocation.fromNamespaceAndPath(location.getNamespace(),
                     location.getPath() + overlayPath + "_emissive");
             var normalSpriteEmissive1 = getTextureLocation(normalSpriteEmissive);
-            if (isPresent(normalSpriteEmissive1)) register.accept(normalSpriteEmissive);
+            if (ResourceHelper.isResourceExist(normalSpriteEmissive1)) register.accept(normalSpriteEmissive);
             else normalSpriteEmissive = null;
 
             ResourceLocation activeSpriteEmissive = ResourceLocation.fromNamespaceAndPath(location.getNamespace(),
                     location.getPath() + active + "_emissive");
             var activeSpriteEmissive1 = getTextureLocation(activeSpriteEmissive);
-            if (isPresent(activeSpriteEmissive1)) register.accept(activeSpriteEmissive);
+            if (ResourceHelper.isResourceExist(activeSpriteEmissive1)) register.accept(activeSpriteEmissive);
             else activeSpriteEmissive = null;
 
             ResourceLocation pausedSpriteEmissive = ResourceLocation.fromNamespaceAndPath(location.getNamespace(),
                     location.getPath() + paused + "_emissive");
             var pausedSpriteEmissive1 = getTextureLocation(pausedSpriteEmissive);
-            if (isPresent(pausedSpriteEmissive1)) register.accept(pausedSpriteEmissive);
+            if (ResourceHelper.isResourceExist(pausedSpriteEmissive1)) register.accept(pausedSpriteEmissive);
             else pausedSpriteEmissive = null;
 
             sprites.put(overlayFace, new ActivePredicate(normalSprite, activeSprite, pausedSprite,

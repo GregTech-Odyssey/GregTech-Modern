@@ -24,10 +24,7 @@ public class TagPrefixItemRenderer {
     public static void reinitModels() {
         for (TagPrefixItemRenderer model : MODELS) {
             ResourceLocation itemId = GTUtil.ITEM_ID.apply(model.item);
-            GTDynamicResourcePack.addItemModel(itemId,
-                    () -> new DelegatedModel(model.type.getItemModelPath(model.iconSet, true)).get());
-            // ModelTemplates.FLAT_ITEM.create(GTDynamicResourcePack.getItemModelLocation(itemId),
-            // TextureMapping.layer0(itemId.withPrefix("item/")), GTDynamicResourcePack::addItemModel);
+            GTDynamicResourcePack.addItemModel(itemId, new DelegatedModel(model.type.getItemModelPath(model.iconSet)));
         }
     }
 

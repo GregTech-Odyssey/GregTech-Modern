@@ -8,12 +8,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 
 import com.google.common.base.CaseFormat;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
+import it.unimi.dsi.fastutil.Function;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public record MaterialIconType(String name) {
+import java.util.Map;
+
+public final class MaterialIconType {
 
     public static final MaterialIconType dustTiny = new MaterialIconType("dustTiny");
     public static final MaterialIconType dustSmall = new MaterialIconType("dustSmall");
@@ -99,24 +101,34 @@ public record MaterialIconType(String name) {
     public static final MaterialIconType crop = new MaterialIconType("crop");
     public static final MaterialIconType essence = new MaterialIconType("essence");
 
-    private static final Table<MaterialIconType, MaterialIconSet, ResourceLocation> ITEM_MODEL_CACHE = HashBasedTable
-            .create();
-    private static final Table<MaterialIconType, MaterialIconSet, ResourceLocation> ITEM_TEXTURE_CACHE = HashBasedTable
-            .create();
-    private static final Table<MaterialIconType, MaterialIconSet, ResourceLocation> ITEM_TEXTURE_CACHE_SECONDARY = HashBasedTable
-            .create();
-    private static final Table<MaterialIconType, MaterialIconSet, ResourceLocation> BLOCK_MODEL_CACHE = HashBasedTable
-            .create();
-    private static final Table<MaterialIconType, MaterialIconSet, ResourceLocation> BLOCK_TEXTURE_CACHE = HashBasedTable
-            .create();
-    private static final Table<MaterialIconType, MaterialIconSet, ResourceLocation> BLOCK_TEXTURE_CACHE_SECONDARY = HashBasedTable
-            .create();
+    public static Map<MaterialIconType, Map<MaterialIconSet, ResourceLocation>> ITEM_MODEL_CACHE = new Reference2ReferenceOpenHashMap<>();
+
+    public static final Map<MaterialIconType, Map<MaterialIconSet, ResourceLocation>> ITEM_TEXTURE_CACHE = new Reference2ReferenceOpenHashMap<>();
+    private static final Map<MaterialIconType, Map<MaterialIconSet, ResourceLocation>> ITEM_TEXTURE_CACHE_SECONDARY = new Reference2ReferenceOpenHashMap<>();
+
+    private static Map<MaterialIconType, Map<MaterialIconSet, ResourceLocation>> BLOCK_MODEL_CACHE = new Reference2ReferenceOpenHashMap<>();
+
+    private static final Map<MaterialIconType, Map<MaterialIconSet, ResourceLocation>> BLOCK_TEXTURE_CACHE = new Reference2ReferenceOpenHashMap<>();
+    private static final Map<MaterialIconType, Map<MaterialIconSet, ResourceLocation>> BLOCK_TEXTURE_CACHE_SECONDARY = new Reference2ReferenceOpenHashMap<>();
+
+    private final String name;
 
     public MaterialIconType(String name) {
         this.name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, name);
     }
 
     public static void init() {}
+
+    public static void clear() {
+        ITEM_MODEL_CACHE = null;
+        BLOCK_MODEL_CACHE = null;
+    }
+
+    private static final Function<MaterialIconType, Map<MaterialIconSet, ResourceLocation>> FUNCTION = k -> new Reference2ReferenceOpenHashMap<>();
+
+    private ResourceLocation getCache(Map<MaterialIconType, Map<MaterialIconSet, ResourceLocation>> map, MaterialIconSet materialIconSet, Function<MaterialIconSet, ResourceLocation> function) {
+        return map.computeIfAbsent(this, FUNCTION).computeIfAbsent(materialIconSet, function);
+    }
 
     @Nullable
     public ResourceLocation getBlockTexturePath(@NotNull MaterialIconSet materialIconSet, boolean doReadCache) {
@@ -126,101 +138,72 @@ public record MaterialIconType(String name) {
     @Nullable // Safe: only null on registration on fabric, and no "required" textures are resolved at that point.
     public ResourceLocation getBlockTexturePath(@NotNull MaterialIconSet materialIconSet, String suffix,
                                                 boolean doReadCache) {
-        if (doReadCache) {
-            if (suffix == null || suffix.isBlank()) {
-                if (BLOCK_TEXTURE_CACHE.contains(this, materialIconSet))
-                    return BLOCK_TEXTURE_CACHE.get(this, materialIconSet);
-            } else {
-                if (BLOCK_TEXTURE_CACHE_SECONDARY.contains(this, materialIconSet))
-                    return BLOCK_TEXTURE_CACHE_SECONDARY.get(this, materialIconSet);
+        boolean isBlank = suffix == null || suffix.isBlank();
+        return getCache(isBlank ? BLOCK_TEXTURE_CACHE : BLOCK_TEXTURE_CACHE_SECONDARY, materialIconSet, k -> {
+            var fs = isBlank ? "" : "_" + suffix;
+
+            MaterialIconSet iconSet = materialIconSet;
+            // noinspection ConstantConditions
+            if (!GTCEu.isClientSide() || Minecraft.getInstance() == null ||
+                    Minecraft.getInstance().getResourceManager() == null)
+                return null; // check minecraft for null for CI environments
+            if (!iconSet.isRootIconset) {
+                while (!iconSet.isRootIconset) {
+                    ResourceLocation location = GTCEu
+                            .id(String.format("textures/block/material_sets/%s/%s%s.png", iconSet.name, this.name, fs));
+                    if (ResourceHelper.isResourceExist(location))
+                        break;
+                    iconSet = iconSet.parentIconset;
+                }
             }
-        }
 
-        suffix = suffix == null || suffix.isBlank() ? "" : "_" + suffix;
-
-        MaterialIconSet iconSet = materialIconSet;
-        // noinspection ConstantConditions
-        if (!GTCEu.isClientSide() || Minecraft.getInstance() == null ||
-                Minecraft.getInstance().getResourceManager() == null)
-            return null; // check minecraft for null for CI environments
-        if (!iconSet.isRootIconset) {
-            while (!iconSet.isRootIconset) {
-                ResourceLocation location = GTCEu
-                        .id(String.format("textures/block/material_sets/%s/%s%s.png", iconSet.name, this.name, suffix));
-                if (ResourceHelper.isResourceExist(location) || ResourceHelper.isResourceExistRaw(location))
-                    break;
-                iconSet = iconSet.parentIconset;
+            ResourceLocation location = GTCEu
+                    .id(String.format("textures/block/material_sets/%s/%s%s.png", iconSet.name, this.name, fs));
+            if (!fs.isEmpty() && !ResourceHelper.isResourceExist(location)) {
+                return null;
             }
-        }
-
-        ResourceLocation location = GTCEu
-                .id(String.format("textures/block/material_sets/%s/%s%s.png", iconSet.name, this.name, suffix));
-        if (!suffix.isEmpty() && !ResourceHelper.isResourceExist(location) &&
-                !ResourceHelper.isResourceExistRaw(location)) {
-            return null;
-        }
-        location = GTCEu.id(String.format("block/material_sets/%s/%s%s", iconSet.name, this.name, suffix));
-        if (suffix.isEmpty()) {
-            BLOCK_TEXTURE_CACHE.put(this, materialIconSet, location);
-        } else {
-            BLOCK_TEXTURE_CACHE_SECONDARY.put(this, materialIconSet, location);
-        }
-
-        return location;
+            return GTCEu.id(String.format("block/material_sets/%s/%s%s", iconSet.name, this.name, fs));
+        });
     }
 
     @NotNull
-    public ResourceLocation getBlockModelPath(@NotNull MaterialIconSet materialIconSet, boolean doReadCache) {
-        if (doReadCache) {
-            if (BLOCK_MODEL_CACHE.contains(this, materialIconSet)) {
-                return BLOCK_MODEL_CACHE.get(this, materialIconSet);
+    public ResourceLocation getBlockModelPath(@NotNull MaterialIconSet materialIconSet) {
+        return getCache(BLOCK_MODEL_CACHE, materialIconSet, k -> {
+            MaterialIconSet iconSet = materialIconSet;
+            // noinspection ConstantConditions
+            if (!iconSet.isRootIconset && GTCEu.isClientSide() && Minecraft.getInstance() != null &&
+                    Minecraft.getInstance().getResourceManager() != null) { // check minecraft for null for CI
+                                                                            // environments
+                while (!iconSet.isRootIconset) {
+                    ResourceLocation location = GTCEu
+                            .id(String.format("models/block/material_sets/%s/%s.json", iconSet.name, this.name));
+                    if (ResourceHelper.isResourceExist(location))
+                        break;
+                    iconSet = iconSet.parentIconset;
+                }
             }
-        }
-
-        MaterialIconSet iconSet = materialIconSet;
-        // noinspection ConstantConditions
-        if (!iconSet.isRootIconset && GTCEu.isClientSide() && Minecraft.getInstance() != null &&
-                Minecraft.getInstance().getResourceManager() != null) { // check minecraft for null for CI environments
-            while (!iconSet.isRootIconset) {
-                ResourceLocation location = GTCEu
-                        .id(String.format("models/block/material_sets/%s/%s.json", iconSet.name, this.name));
-                if (ResourceHelper.isResourceExist(location) || ResourceHelper.isResourceExistRaw(location))
-                    break;
-                iconSet = iconSet.parentIconset;
-            }
-        }
-
-        ResourceLocation location = GTCEu.id(String.format("block/material_sets/%s/%s", iconSet.name, this.name));
-        ITEM_MODEL_CACHE.put(this, materialIconSet, location);
-
-        return location;
+            return GTCEu.id(String.format("block/material_sets/%s/%s", iconSet.name, this.name));
+        });
     }
 
     @NotNull
-    public ResourceLocation getItemModelPath(@NotNull MaterialIconSet materialIconSet, boolean doReadCache) {
-        if (doReadCache) {
-            if (ITEM_MODEL_CACHE.contains(this, materialIconSet)) {
-                return ITEM_MODEL_CACHE.get(this, materialIconSet);
+    public ResourceLocation getItemModelPath(@NotNull MaterialIconSet materialIconSet) {
+        return getCache(ITEM_MODEL_CACHE, materialIconSet, k -> {
+            MaterialIconSet iconSet = materialIconSet;
+            // noinspection ConstantConditions
+            if (!iconSet.isRootIconset && GTCEu.isClientSide() && Minecraft.getInstance() != null &&
+                    Minecraft.getInstance().getResourceManager() != null) { // check minecraft for null for CI
+                                                                            // environments
+                while (!iconSet.isRootIconset) {
+                    ResourceLocation location = GTCEu.id(String.format("models/item/material_sets/%s/%s.json", iconSet.name, this.name));
+                    if (ResourceHelper.isResourceExist(location))
+                        break;
+                    iconSet = iconSet.parentIconset;
+                }
             }
-        }
 
-        MaterialIconSet iconSet = materialIconSet;
-        // noinspection ConstantConditions
-        if (!iconSet.isRootIconset && GTCEu.isClientSide() && Minecraft.getInstance() != null &&
-                Minecraft.getInstance().getResourceManager() != null) { // check minecraft for null for CI environments
-            while (!iconSet.isRootIconset) {
-                ResourceLocation location = GTCEu
-                        .id(String.format("models/item/material_sets/%s/%s.json", iconSet.name, this.name));
-                if (ResourceHelper.isResourceExist(location) || ResourceHelper.isResourceExistRaw(location))
-                    break;
-                iconSet = iconSet.parentIconset;
-            }
-        }
-
-        ResourceLocation location = GTCEu.id(String.format("item/material_sets/%s/%s", iconSet.name, this.name));
-        ITEM_MODEL_CACHE.put(this, materialIconSet, location);
-
-        return location;
+            return GTCEu.id(String.format("item/material_sets/%s/%s", iconSet.name, this.name));
+        });
     }
 
     @Nullable
@@ -231,45 +214,31 @@ public record MaterialIconType(String name) {
     @Nullable
     public ResourceLocation getItemTexturePath(@NotNull MaterialIconSet materialIconSet, String suffix,
                                                boolean doReadCache) {
-        if (doReadCache) {
-            if (suffix == null || suffix.isBlank()) {
-                if (ITEM_TEXTURE_CACHE.contains(this, materialIconSet))
-                    return ITEM_TEXTURE_CACHE.get(this, materialIconSet);
-            } else {
-                if (ITEM_TEXTURE_CACHE_SECONDARY.contains(this, materialIconSet))
-                    return ITEM_TEXTURE_CACHE_SECONDARY.get(this, materialIconSet);
+        boolean isBlank = suffix == null || suffix.isBlank();
+        return getCache(isBlank ? ITEM_TEXTURE_CACHE : ITEM_TEXTURE_CACHE_SECONDARY, materialIconSet, k -> {
+            var fs = isBlank ? "" : "_" + suffix;
+
+            MaterialIconSet iconSet = materialIconSet;
+            // noinspection ConstantConditions
+            if (!iconSet.isRootIconset && GTCEu.isClientSide() && Minecraft.getInstance() != null &&
+                    Minecraft.getInstance().getResourceManager() != null) { // check minecraft for null for CI
+                                                                            // environments
+                while (!iconSet.isRootIconset) {
+                    ResourceLocation location = GTCEu
+                            .id(String.format("textures/item/material_sets/%s/%s%s.png", iconSet.name, this.name, fs));
+                    if (ResourceHelper.isResourceExist(location))
+                        break;
+                    iconSet = iconSet.parentIconset;
+                }
             }
-        }
 
-        suffix = suffix == null || suffix.isBlank() ? "" : "_" + suffix;
-
-        MaterialIconSet iconSet = materialIconSet;
-        // noinspection ConstantConditions
-        if (!iconSet.isRootIconset && GTCEu.isClientSide() && Minecraft.getInstance() != null &&
-                Minecraft.getInstance().getResourceManager() != null) { // check minecraft for null for CI environments
-            while (!iconSet.isRootIconset) {
-                ResourceLocation location = GTCEu
-                        .id(String.format("textures/item/material_sets/%s/%s%s.png", iconSet.name, this.name, suffix));
-                if (ResourceHelper.isResourceExist(location) || ResourceHelper.isResourceExistRaw(location))
-                    break;
-                iconSet = iconSet.parentIconset;
+            ResourceLocation location = GTCEu
+                    .id(String.format("textures/item/material_sets/%s/%s%s.png", iconSet.name, this.name, fs));
+            if (!fs.isEmpty() && !ResourceHelper.isResourceExist(location)) {
+                return null;
             }
-        }
-
-        ResourceLocation location = GTCEu
-                .id(String.format("textures/item/material_sets/%s/%s%s.png", iconSet.name, this.name, suffix));
-        if (!suffix.isEmpty() && !ResourceHelper.isResourceExist(location) &&
-                !ResourceHelper.isResourceExistRaw(location)) {
-            return null;
-        }
-        location = GTCEu.id(String.format("item/material_sets/%s/%s%s", iconSet.name, this.name, suffix));
-        if (suffix.isEmpty()) {
-            ITEM_TEXTURE_CACHE.put(this, materialIconSet, location);
-        } else {
-            ITEM_TEXTURE_CACHE_SECONDARY.put(this, materialIconSet, location);
-        }
-
-        return location;
+            return GTCEu.id(String.format("item/material_sets/%s/%s%s", iconSet.name, this.name, fs));
+        });
     }
 
     @Override

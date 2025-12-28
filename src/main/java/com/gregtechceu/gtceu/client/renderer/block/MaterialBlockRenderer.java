@@ -29,11 +29,9 @@ public class MaterialBlockRenderer {
         for (MaterialBlockRenderer model : MODELS) {
             ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(model.block);
             ResourceLocation modelId = blockId.withPrefix("block/");
-            GTDynamicResourcePack.addBlockModel(modelId,
-                    () -> new DelegatedModel(model.type.getBlockModelPath(model.iconSet, true)).get());
+            GTDynamicResourcePack.addBlockModel(modelId, new DelegatedModel(model.type.getBlockModelPath(model.iconSet)));
             GTDynamicResourcePack.addBlockState(blockId, () -> BlockModelGenerators.createSimpleBlock(model.block, modelId).get());
-            GTDynamicResourcePack.addItemModel(GTUtil.ITEM_ID.apply(model.block.asItem()),
-                    new DelegatedModel(ModelLocationUtils.getModelLocation(model.block)));
+            GTDynamicResourcePack.addItemModel(GTUtil.ITEM_ID.apply(model.block.asItem()), new DelegatedModel(ModelLocationUtils.getModelLocation(model.block)));
         }
     }
 

@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.data.pack;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
+import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconType;
 import com.gregtechceu.gtceu.client.renderer.block.MaterialBlockRenderer;
 import com.gregtechceu.gtceu.client.renderer.block.OreBlockRenderer;
 import com.gregtechceu.gtceu.client.renderer.block.SurfaceRockRenderer;
@@ -70,6 +71,7 @@ public class GTDynamicResourcePack implements PackResources {
         ToolItemRenderer.reinitModels();
         SurfaceRockRenderer.reinitModels();
         GTModels.registerMaterialFluidModels();
+        MaterialIconType.clear();
         GTCEu.LOGGER.info("GregTech Model loading took {}ms", System.currentTimeMillis() - startTime);
     }
 

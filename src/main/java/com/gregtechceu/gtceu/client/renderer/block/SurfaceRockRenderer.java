@@ -37,7 +37,7 @@ public class SurfaceRockRenderer {
             ResourceLocation modelId = blockId.withPrefix("block/");
 
             GTDynamicResourcePack.addBlockModel(modelId, new DelegatedModel(GTCEu.id("block/surface_rock")));
-            GTDynamicResourcePack.addBlockState(blockId, MultiVariantGenerator
+            GTDynamicResourcePack.addBlockState(blockId, () -> MultiVariantGenerator
                     .multiVariant(model.block, Variant.variant().with(VariantProperties.MODEL, modelId))
                     .with(PropertyDispatch.property(BlockStateProperties.FACING)
                             .select(Direction.DOWN, Variant.variant())
@@ -50,7 +50,8 @@ public class SurfaceRockRenderer {
                             .select(Direction.WEST,
                                     Variant.variant().with(VariantProperties.X_ROT, VariantProperties.Rotation.R270))
                             .select(Direction.EAST,
-                                    Variant.variant().with(VariantProperties.X_ROT, VariantProperties.Rotation.R90))));
+                                    Variant.variant().with(VariantProperties.X_ROT, VariantProperties.Rotation.R90)))
+                    .get());
             GTDynamicResourcePack.addItemModel(blockId, new DelegatedModel(modelId));
         }
     }
