@@ -40,12 +40,15 @@ public class PatternError {
         List<List<ItemStack>> candidates = getCandidates();
         MutableComponent builder = Component.empty();
         boolean first = false;
+        int count = 0;
         for (List<ItemStack> candidate : candidates) {
             if (!candidate.isEmpty()) {
                 if (first) builder.append("\n");
                 first = true;
+                count++;
                 builder.append(candidate.getFirst().getDisplayName());
                 if (candidate.size() > 1) builder.append("...");
+                if (count > 5) break;
             }
         }
         return Component.translatable("gtceu.multiblock.pattern.error", builder, pos.toShortString());

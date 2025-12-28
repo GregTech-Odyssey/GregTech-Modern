@@ -48,10 +48,6 @@ public class RecipeHandlerList {
 
     public int priority;
 
-    public RecipeHandlerList external = this;
-
-    public GTRecipeType recipeType;
-
     public final IntLongMap intIngredientMap = new IntLongMap();
 
     public final IMultiPart part;
