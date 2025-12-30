@@ -29,7 +29,6 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMaps;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
@@ -102,7 +101,6 @@ public class FluidVoidingCover extends PumpCover {
         return group;
     }
 
-    @NotNull
     protected String getUITitle() {
         return "cover.fluid.voiding.title";
     }

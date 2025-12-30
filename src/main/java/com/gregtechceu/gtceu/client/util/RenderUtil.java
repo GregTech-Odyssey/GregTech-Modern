@@ -30,11 +30,11 @@ import net.minecraftforge.fluids.FluidStack;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
@@ -160,8 +160,8 @@ public class RenderUtil {
         if (recipe == null) {
             return null;
         }
-        var contents = new ObjectArrayList<Content>();
-        var empty = new ObjectArrayList<Content>();
+        var contents = new ArrayList<Content>();
+        var empty = new ArrayList<Content>();
         contents.addAll(recipe.outputs.getOrDefault(FluidRecipeCapability.CAP, empty));
         contents.addAll(recipe.inputs.getOrDefault(FluidRecipeCapability.CAP, empty));
         if (contents.isEmpty()) {
@@ -206,7 +206,7 @@ public class RenderUtil {
             // check item outputs first
             List<Content> outputs = recipe.getOutputContents(ItemRecipeCapability.CAP);
             if (!outputs.isEmpty()) {
-                ItemStack[] items = ItemRecipeCapability.CAP.of(outputs.get(0).content).getItems();
+                ItemStack[] items = ItemRecipeCapability.CAP.of(outputs.getFirst().content).getItems();
                 if (items.length > 0) {
                     ItemStack output = items[0];
                     if (!output.isEmpty() && !ItemStack.isSameItemSameTags(output, stack)) {
@@ -218,7 +218,7 @@ public class RenderUtil {
             // if there are no item outputs, try to find a fluid output
             outputs = recipe.getOutputContents(FluidRecipeCapability.CAP);
             if (!outputs.isEmpty()) {
-                FluidStack[] fluids = FluidRecipeCapability.CAP.of(outputs.get(0).content).getStacks();
+                FluidStack[] fluids = FluidRecipeCapability.CAP.of(outputs.getFirst().content).getStacks();
                 if (fluids.length != 0) {
                     FluidStack output = fluids[0];
                     if (!output.isEmpty()) {

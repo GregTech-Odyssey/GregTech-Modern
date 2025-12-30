@@ -15,9 +15,9 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Blocks;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -294,9 +294,9 @@ public class GTMaterials {
         gemExquisite.setIgnored(material);
     }
 
-    public static final List<MaterialFlag> STD_METAL = new ObjectArrayList<>();
-    public static final List<MaterialFlag> EXT_METAL = new ObjectArrayList<>();
-    public static final List<MaterialFlag> EXT2_METAL = new ObjectArrayList<>();
+    public static final List<MaterialFlag> STD_METAL = new ArrayList<>();
+    public static final List<MaterialFlag> EXT_METAL = new ArrayList<>();
+    public static final List<MaterialFlag> EXT2_METAL = new ArrayList<>();
 
     static {
         STD_METAL.add(GENERATE_PLATE);

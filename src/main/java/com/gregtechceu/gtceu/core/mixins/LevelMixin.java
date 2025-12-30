@@ -18,7 +18,6 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
@@ -27,6 +26,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Mixin(Level.class)
@@ -69,7 +69,7 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
 
     @Override
     public @NotNull List<TaskHandler.RunnableEntry> gtceu$getTasks() {
-        if (gtceu$tasks == null) gtceu$tasks = new ObjectArrayList<>();
+        if (gtceu$tasks == null) gtceu$tasks = new ArrayList<>();
         return gtceu$tasks;
     }
 

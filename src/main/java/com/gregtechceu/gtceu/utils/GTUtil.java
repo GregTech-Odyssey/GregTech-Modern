@@ -188,7 +188,7 @@ public class GTUtil {
      * @return Index of the nearest value lesser or equal than {@code value},
      *         or {@code -1} if there's no entry matching the condition
      */
-    public static int nearestLesserOrEqual(@NotNull long[] array, long value) {
+    public static int nearestLesserOrEqual(long[] array, long value) {
         int low = 0, high = array.length - 1;
         while (true) {
             int median = (low + high) / 2;
@@ -208,7 +208,7 @@ public class GTUtil {
      * @return Index of the nearest value lesser than {@code value},
      *         or {@code -1} if there's no entry matching the condition
      */
-    public static int nearestLesser(@NotNull long[] array, long value) {
+    public static int nearestLesser(long[] array, long value) {
         int low = 0, high = array.length - 1;
         while (true) {
             int median = (low + high) / 2;
@@ -357,6 +357,14 @@ public class GTUtil {
                     InputConstants.isKeyDown(id, GLFW.GLFW_KEY_RIGHT_ALT);
         }
         return false;
+    }
+
+    public static Level getClientLevel() {
+        if (GTCEu.isClientSide()) {
+            return Minecraft.getInstance().level;
+        } else {
+            return null;
+        }
     }
 
     public static boolean isFluidStackAmountDivisible(FluidStack fluidStack, int divisor) {

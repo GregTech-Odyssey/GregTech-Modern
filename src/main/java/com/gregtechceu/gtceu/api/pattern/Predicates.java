@@ -47,11 +47,11 @@ import static com.gregtechceu.gtceu.common.machine.multiblock.electric.PowerSubs
 public class Predicates {
 
     public static TraceabilityPredicate controller(MachineDefinition definition) {
-        return blocks(definition.get()).setController();
+        return new ControllerPredicate(definition);
     }
 
-    public static TraceabilityPredicate controller(TraceabilityPredicate predicate) {
-        return predicate.setController();
+    public static TraceabilityPredicate module(MachineDefinition definition) {
+        return air().or(blocks(definition.get()).setPreviewCount(0));
     }
 
     public static TraceabilityPredicate blocks(Block... blocks) {
@@ -227,7 +227,7 @@ public class Predicates {
             }
             return false;
         }, () -> BlockInfo.fromBlockState(GTBlocks.FILTER_CASING.getDefaultState()), () -> GTCEuAPI.CLEANROOM_FILTERS.values().stream()
-                .map(blockSupplier -> blockSupplier.get())
+                .map(Supplier::get)
                 .toArray(Block[]::new))
                 .addTooltips(Component.translatable("gtceu.multiblock.pattern.error.filters"));
     }

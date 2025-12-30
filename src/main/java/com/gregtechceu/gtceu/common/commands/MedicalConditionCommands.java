@@ -34,25 +34,17 @@ public class MedicalConditionCommands {
         dispatcher.register(
                 literal("medical_condition")
                         .then(literal("query")
-                                .executes(ctx -> {
-                                    return queryMedicalConditions(ctx.getSource().getPlayerOrException());
-                                })
+                                .executes(ctx -> queryMedicalConditions(ctx.getSource().getPlayerOrException()))
                                 .then(argument("target", EntityArgument.player())
                                         .requires(source -> source.hasPermission(LEVEL_GAMEMASTERS))
-                                        .executes(context -> {
-                                            return queryMedicalConditions(EntityArgument.getPlayer(context, "target"));
-                                        })))
+                                        .executes(context -> queryMedicalConditions(EntityArgument.getPlayer(context, "target")))))
                         .then(literal("clear")
                                 .requires(ctx -> ctx.hasPermission(LEVEL_ADMINS))
-                                .executes(ctx -> {
-                                    return clearMedicalConditions(
-                                            Collections.singleton(ctx.getSource().getPlayerOrException()), null);
-                                })
+                                .executes(ctx -> clearMedicalConditions(
+                                        Collections.singleton(ctx.getSource().getPlayerOrException()), null))
                                 .then(argument("targets", EntityArgument.players())
-                                        .executes(ctx -> {
-                                            return clearMedicalConditions(EntityArgument.getPlayers(ctx, "targets"),
-                                                    null);
-                                        })
+                                        .executes(ctx -> clearMedicalConditions(EntityArgument.getPlayers(ctx, "targets"),
+                                                null))
                                         .then(argument("condition", MedicalConditionArgument.medicalCondition())
                                                 .executes(ctx -> {
                                                     Collection<ServerPlayer> targets = EntityArgument.getPlayers(ctx,

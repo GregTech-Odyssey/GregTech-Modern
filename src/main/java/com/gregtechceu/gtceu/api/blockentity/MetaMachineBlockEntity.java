@@ -44,7 +44,6 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,6 +51,7 @@ import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -170,7 +170,7 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
                 }
                 var list = getCapabilitiesFromTraits(machine.getTraits(), side, IEnergyContainer.class);
                 if (!list.isEmpty()) {
-                    return LazyOptional.of(() -> list.size() == 1 ? list.get(0) : new EnergyContainerList(list));
+                    return LazyOptional.of(() -> list.size() == 1 ? list.getFirst() : new EnergyContainerList(list));
                 }
                 return LazyOptional.empty();
             }).cast();
@@ -180,7 +180,7 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
             }
             var list = getCapabilitiesFromTraits(machine.getTraits(), side, ILaserContainer.class);
             if (!list.isEmpty()) {
-                return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> list.size() == 1 ? list.get(0) : new LaserContainerList(list)));
+                return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> list.size() == 1 ? list.getFirst() : new LaserContainerList(list)));
             }
             return LazyOptional.empty();
         } else if (cap == GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER) {
@@ -189,7 +189,7 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
             }
             var list = getCapabilitiesFromTraits(machine.getTraits(), side, IEnergyInfoProvider.class);
             if (!list.isEmpty()) {
-                return GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER.orEmpty(cap, LazyOptional.of(() -> list.size() == 1 ? list.get(0) : new EnergyInfoProviderList(list)));
+                return GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER.orEmpty(cap, LazyOptional.of(() -> list.size() == 1 ? list.getFirst() : new EnergyInfoProviderList(list)));
             }
             return LazyOptional.empty();
         } else if (cap == GTCapability.CAPABILITY_WORKABLE) {
@@ -218,7 +218,7 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
 
     public static <T> List<T> getCapabilitiesFromTraits(List<MachineTrait> traits, Direction accessSide, Class<T> capability) {
         if (traits.isEmpty()) return Collections.emptyList();
-        List<T> list = new ObjectArrayList<>();
+        List<T> list = new ArrayList<>();
         for (MachineTrait trait : traits) {
             if (trait.hasCapability(accessSide) && capability.isInstance(trait)) {
                 list.add(capability.cast(trait));

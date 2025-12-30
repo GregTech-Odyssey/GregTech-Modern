@@ -10,11 +10,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import com.fast.fastcollection.OpenCacheHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -39,8 +39,8 @@ public abstract class PipeNetWalker<T extends PipeBlockEntity<?, ?>, NodeDataTyp
     private Set<T> walked;
     protected List<PipeNetWalker<T, NodeDataType, Net>> walkers;
     protected final BlockPos.MutableBlockPos currentPos;
-    protected final List<Direction> nextPipeFacings = new ObjectArrayList<>(5);
-    protected final List<T> nextPipes = new ObjectArrayList<>(5);
+    protected final List<Direction> nextPipeFacings = new ArrayList<>(5);
+    protected final List<T> nextPipes = new ArrayList<>(5);
     protected T currentPipe;
     private Direction from = null;
     @Getter
@@ -150,13 +150,13 @@ public abstract class PipeNetWalker<T extends PipeBlockEntity<?, ?>, NodeDataTyp
             }
             if (nextPipeFacings.isEmpty()) return true;
             if (nextPipeFacings.size() == 1) {
-                currentPos.set(nextPipes.get(0).getPipePos());
-                currentPipe = nextPipes.get(0);
-                from = nextPipeFacings.get(0).getOpposite();
+                currentPos.set(nextPipes.getFirst().getPipePos());
+                currentPipe = nextPipes.getFirst();
+                from = nextPipeFacings.getFirst().getOpposite();
                 walkedBlocks++;
                 return !isRunning();
             }
-            walkers = new ObjectArrayList<>();
+            walkers = new ArrayList<>();
             for (int i = 0; i < nextPipeFacings.size(); i++) {
                 Direction side = nextPipeFacings.get(i);
                 PipeNetWalker<T, NodeDataType, Net> walker = Objects.requireNonNull(createSubWalker(pipeNet, side, currentPos.relative(side), walkedBlocks + 1), "Walker can't be null");

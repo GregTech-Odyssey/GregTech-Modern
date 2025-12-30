@@ -24,11 +24,11 @@ import net.minecraft.nbt.NbtIo;
 import net.minecraft.resources.ResourceLocation;
 
 import com.fast.fastcollection.OpenCacheHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -121,7 +121,7 @@ public class MachineUIProject extends UIProject {
                 final var editableUI = definition.getEditableUI();
                 if (editableUI != null) {
                     // has editable UI
-                    categories.computeIfAbsent(editableUI.getGroupName(), group -> new ObjectArrayList<>()).add(definition);
+                    categories.computeIfAbsent(editableUI.getGroupName(), group -> new ArrayList<>()).add(definition);
                 }
             }
             categories.forEach((groupName, definitions) -> menu.branch(groupName, m -> {

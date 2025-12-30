@@ -43,7 +43,7 @@ public class OreVeinElementRenderer extends MinimapElementRenderer<OreVeinElemen
         GeneratedVeinMetadata vein = element.getVein();
         int iconSize = ConfigHolder.INSTANCE.compat.minimap.oreIconSize;
 
-        Material firstMaterial = vein.definition().veinGenerator().getAllMaterials().get(0);
+        Material firstMaterial = vein.definition().veinGenerator().getAllMaterials().getFirst();
         int materialARGB = firstMaterial.getMaterialARGB();
         float[] colors = DrawUtil.floats(materialARGB);
         RenderSystem.setShaderColor(1, 1, 1, 1);

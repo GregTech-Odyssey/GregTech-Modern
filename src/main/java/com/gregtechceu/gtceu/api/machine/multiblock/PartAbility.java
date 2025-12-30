@@ -7,12 +7,12 @@ import net.minecraft.world.level.block.Block;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -58,8 +58,8 @@ public class PartAbility {
      */
     private final Int2ObjectOpenHashMap<Set<Block>> registry = new Int2ObjectOpenHashMap<>();
     private final Supplier<Collection<Block>> allBlocks = GTMemoizer.memoize(() -> {
-        List<Block> result = new ObjectArrayList<>();
-        List<Int2ObjectMap.Entry<Set<Block>>> entries = new ObjectArrayList<>(registry.int2ObjectEntrySet());
+        List<Block> result = new ArrayList<>();
+        List<Int2ObjectMap.Entry<Set<Block>>> entries = new ArrayList<>(registry.int2ObjectEntrySet());
         entries.sort(Comparator.comparingInt(Int2ObjectMap.Entry::getIntKey));
         for (var entry : entries) {
             result.addAll(entry.getValue());
@@ -87,7 +87,7 @@ public class PartAbility {
     }
 
     public Collection<Block> getBlocks(int... tiers) {
-        List<Block> result = new ObjectArrayList<>();
+        List<Block> result = new ArrayList<>();
         for (ObjectIterator<Int2ObjectMap.Entry<Set<Block>>> it = registry.int2ObjectEntrySet().fastIterator(); it.hasNext();) {
             var e = it.next();
             if (ArrayUtils.contains(tiers, e.getIntKey())) {
@@ -101,7 +101,7 @@ public class PartAbility {
      * [from, to]
      */
     public Collection<Block> getBlockRange(int from, int to) {
-        List<Block> result = new ObjectArrayList<>();
+        List<Block> result = new ArrayList<>();
         for (ObjectIterator<Int2ObjectMap.Entry<Set<Block>>> it = registry.int2ObjectEntrySet().fastIterator(); it.hasNext();) {
             var e = it.next();
             var key = e.getIntKey();

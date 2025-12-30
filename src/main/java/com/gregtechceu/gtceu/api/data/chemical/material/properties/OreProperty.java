@@ -5,12 +5,12 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 
 import net.minecraft.util.Mth;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -28,7 +28,7 @@ public class OreProperty implements IMaterialProperty {
      * 
      */
     @Getter
-    private final List<Material> oreByProducts = new ObjectArrayList<>();
+    private final List<Material> oreByProducts = new ArrayList<>();
     /**
      * Crushed Ore output amount multiplier during Maceration.
      * <p>
@@ -123,7 +123,7 @@ public class OreProperty implements IMaterialProperty {
      * 
      */
     @Getter
-    private final List<Material> separatedInto = new ObjectArrayList<>();
+    private final List<Material> separatedInto = new ArrayList<>();
 
     public OreProperty(int oreMultiplier, int byProductMultiplier) {
         this.oreMultiplier = oreMultiplier;

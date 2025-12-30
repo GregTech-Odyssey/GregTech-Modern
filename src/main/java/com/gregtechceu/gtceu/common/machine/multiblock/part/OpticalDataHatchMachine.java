@@ -6,7 +6,7 @@ import com.gregtechceu.gtceu.api.capability.IOpticalDataAccessHatch;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
-import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableMultiblockPartMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.common.blockentity.OpticalPipeBlockEntity;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.research.DataBankMachine;
@@ -18,14 +18,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class OpticalDataHatchMachine extends MultiblockPartMachine implements IOpticalDataAccessHatch {
+public class OpticalDataHatchMachine extends WorkableMultiblockPartMachine implements IOpticalDataAccessHatch {
 
     @Getter
     private final boolean isTransmitter;
@@ -56,7 +55,7 @@ public class OpticalDataHatchMachine extends MultiblockPartMachine implements IO
     }
 
     @Override
-    public boolean isRecipeAvailable(@NotNull GTRecipe recipe) {
+    public boolean isRecipeAvailable(GTRecipe recipe) {
         if (!isFormed()) {
             return false;
         }
@@ -64,7 +63,7 @@ public class OpticalDataHatchMachine extends MultiblockPartMachine implements IO
         call = true;
         var result = false;
         if (isTransmitter) {
-            if (getControllers().first() instanceof DataBankMachine dataBankMachine && dataBankMachine.getRecipeLogic().isWorking()) {
+            if (getController() instanceof DataBankMachine dataBankMachine && dataBankMachine.getRecipeLogic().isWorking()) {
                 result = isRecipeAvailable(dataBankMachine.dataAccesses, recipe) || isRecipeAvailable(dataBankMachine.receptions, recipe);
             }
         } else {
@@ -75,7 +74,7 @@ public class OpticalDataHatchMachine extends MultiblockPartMachine implements IO
         return result;
     }
 
-    private static boolean isRecipeAvailable(@NotNull Iterable<? extends IDataAccessHatch> hatches, @NotNull GTRecipe recipe) {
+    private static boolean isRecipeAvailable(Iterable<? extends IDataAccessHatch> hatches, GTRecipe recipe) {
         for (IDataAccessHatch hatch : hatches) {
             if (hatch.isRecipeAvailable(recipe)) {
                 return true;

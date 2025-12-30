@@ -17,10 +17,10 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.function.Predicate;
@@ -32,7 +32,7 @@ public class FluidNetWalker extends PipeNetWalker<FluidPipeBlockEntity, FluidPip
             return null;
         }
         try {
-            FluidNetWalker walker = new FluidNetWalker(pipeNet, sourcePipe, 1, new ObjectArrayList<>(), null);
+            FluidNetWalker walker = new FluidNetWalker(pipeNet, sourcePipe, 1, new ArrayList<>(), null);
             walker.sourcePipe = sourcePipe;
             walker.facingToHandler = sourceFacing;
             walker.traversePipeNet();
@@ -45,7 +45,7 @@ public class FluidNetWalker extends PipeNetWalker<FluidPipeBlockEntity, FluidPip
 
     private FluidPipeProperties minProperties;
     private final List<FluidRoutePath> inventories;
-    private final List<Predicate<FluidStack>> filters = new ObjectArrayList<>();
+    private final List<Predicate<FluidStack>> filters = new ArrayList<>();
     private final EnumMap<Direction, List<Predicate<FluidStack>>> nextFilters = new EnumMap<>(Direction.class);
     private BlockPos sourcePipe;
     private Direction facingToHandler;
@@ -104,7 +104,7 @@ public class FluidNetWalker extends PipeNetWalker<FluidPipeBlockEntity, FluidPip
         LazyOptional<IFluidHandler> handler = neighbourTile.getCapability(ForgeCapabilities.FLUID_HANDLER,
                 faceToNeighbour.getOpposite());
         if (handler.isPresent()) {
-            List<Predicate<FluidStack>> filters = new ObjectArrayList<>(this.filters);
+            List<Predicate<FluidStack>> filters = new ArrayList<>(this.filters);
             List<Predicate<FluidStack>> moreFilters = nextFilters.get(faceToNeighbour);
             if (moreFilters != null && !moreFilters.isEmpty()) {
                 filters.addAll(moreFilters);
@@ -118,7 +118,7 @@ public class FluidNetWalker extends PipeNetWalker<FluidPipeBlockEntity, FluidPip
                                   Direction faceToNeighbour) {
         CoverBehavior thisCover = currentPipe.getCoverContainer().getCoverAtSide(faceToNeighbour);
         CoverBehavior neighbourCover = neighbourPipe.getCoverContainer().getCoverAtSide(faceToNeighbour.getOpposite());
-        List<Predicate<FluidStack>> filters = new ObjectArrayList<>();
+        List<Predicate<FluidStack>> filters = new ArrayList<>();
         if (thisCover instanceof ShutterCover shutter) {
             filters.add(stack -> !shutter.isWorkingEnabled());
         } else if (thisCover instanceof FluidFilterCover fluidFilterCover &&

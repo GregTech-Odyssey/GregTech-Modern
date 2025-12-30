@@ -24,12 +24,12 @@ import net.minecraftforge.common.brewing.BrewingRecipeRegistry;
 import net.minecraftforge.common.brewing.IBrewingRecipe;
 import net.minecraftforge.fluids.FluidStack;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -54,9 +54,9 @@ public enum BreweryLogic implements GTRecipeType.ICustomRecipeLogic {
     public @Nullable GTRecipe createCustomRecipe(IRecipeCapabilityHolder holder) {
         var handlerLists = holder.getInputList();
         if (handlerLists.isEmpty()) return null;
-        List<RecipeHandlerList> distinct = new ObjectArrayList<>();
-        List<IRecipeHandler<?>> notDistinctItems = new ObjectArrayList<>();
-        List<IRecipeHandler<?>> notDistinctFluids = new ObjectArrayList<>();
+        List<RecipeHandlerList> distinct = new ArrayList<>();
+        List<IRecipeHandler<?>> notDistinctItems = new ArrayList<>();
+        List<IRecipeHandler<?>> notDistinctFluids = new ArrayList<>();
 
         for (var handlerList : handlerLists) {
             if (handlerList.isDistinct()) {
@@ -69,8 +69,8 @@ public enum BreweryLogic implements GTRecipeType.ICustomRecipeLogic {
 
         if (distinct.isEmpty() && notDistinctItems.isEmpty() && notDistinctFluids.isEmpty()) return null;
 
-        List<ItemStack> itemStacks = new ObjectArrayList<>();
-        List<FluidStack> fluidStacks = new ObjectArrayList<>();
+        List<ItemStack> itemStacks = new ArrayList<>();
+        List<FluidStack> fluidStacks = new ArrayList<>();
 
         for (var handlerList : distinct) {
             itemStacks.clear();

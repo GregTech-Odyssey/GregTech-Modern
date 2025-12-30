@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.capability.IWailaDisplayProvider;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
@@ -49,13 +48,13 @@ public class PrimitivePumpMachine extends MultiblockControllerMachine implements
     }
 
     private void initializeTank() {
-        for (IMultiPart part : getParts()) {
+        for (var part : getWorkableParts()) {
             var handlerLists = part.getRecipeHandlers();
 
             for (var handlerList : handlerLists) {
                 var recipeCap = handlerList.getCapability(FluidRecipeCapability.CAP);
                 if (handlerList.getHandlerIO() == IO.OUT && !recipeCap.isEmpty()) {
-                    fluidTank = (NotifiableFluidTank) recipeCap.get(0);
+                    fluidTank = (NotifiableFluidTank) recipeCap.getFirst();
                     long tankCapacity = fluidTank.getTankCapacity(0);
                     if (tankCapacity == FluidType.BUCKET_VOLUME) {
                         hatchModifier = 1;
@@ -73,12 +72,6 @@ public class PrimitivePumpMachine extends MultiblockControllerMachine implements
     @Override
     public void onStructureInvalid() {
         super.onStructureInvalid();
-        resetState();
-    }
-
-    @Override
-    public void onPartUnload() {
-        super.onPartUnload();
         resetState();
     }
 

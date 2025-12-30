@@ -75,6 +75,7 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
     @Persisted
     @DescSynced
     @RequireRerender
+    @Nullable
     protected Direction outputFacingItems;
     @Getter
     @Persisted

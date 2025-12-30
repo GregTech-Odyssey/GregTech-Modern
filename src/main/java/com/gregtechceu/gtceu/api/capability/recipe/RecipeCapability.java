@@ -21,11 +21,11 @@ import com.fast.recipesearch.IntLongMap;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -165,7 +165,7 @@ public abstract class RecipeCapability<T> {
 
     @NotNull
     public List<Object> createXEIContainerContents(List<Content> contents, GTRecipe recipe, IO io) {
-        return new ObjectArrayList<>();
+        return new ArrayList<>();
     }
 
     @Nullable

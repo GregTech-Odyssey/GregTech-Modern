@@ -20,9 +20,9 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
 import com.fast.fastcollection.O2OOpenCacheHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +31,7 @@ import java.util.function.Function;
 public class ShapedRecipeBuilder extends Builder<Ingredient, ShapedRecipeBuilder> {
 
     public static String[] shapeToPattern(List<String[]> shape) {
-        var pattern = new ObjectArrayList<String>();
+        var pattern = new ArrayList<String>();
         for (String[] strings : shape) {
             pattern.addAll(Arrays.asList(strings));
         }

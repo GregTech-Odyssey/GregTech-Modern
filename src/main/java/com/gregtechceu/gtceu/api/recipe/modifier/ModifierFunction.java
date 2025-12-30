@@ -8,12 +8,12 @@ import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -102,7 +102,7 @@ public interface ModifierFunction {
         private ContentModifier outputModifier = ContentModifier.IDENTITY;
         private ContentModifier tickInputModifier = ContentModifier.IDENTITY;
         private ContentModifier tickOutputModifier = ContentModifier.IDENTITY;
-        private final List<RecipeCondition> addedConditions = new ObjectArrayList<>();
+        private final List<RecipeCondition> addedConditions = new ArrayList<>();
 
         public FunctionBuilder() {}
 
@@ -143,7 +143,7 @@ public interface ModifierFunction {
         public ModifierFunction build() {
             if (parallels == 0) return NULL;
             return recipe -> {
-                var newConditions = new ObjectArrayList<>(recipe.conditions);
+                var newConditions = new ArrayList<>(recipe.conditions);
                 newConditions.addAll(addedConditions);
                 var copied = new GTRecipe(recipe.recipeType, recipe.id, inputModifier.applyContents(recipe.inputs), outputModifier.applyContents(recipe.outputs), applyAllButEU(tickInputModifier, recipe.tickInputs), applyAllButEU(tickOutputModifier, recipe.tickOutputs), newConditions, recipe.data, recipe.duration, recipe.recipeCategory);
                 copied.parallels = recipe.parallels * parallels;
@@ -171,10 +171,10 @@ public interface ModifierFunction {
                 var contentList = entry.getValue();
                 if (contentList != null && !contentList.isEmpty()) {
                     if (cap == EURecipeCapability.CAP) {
-                        copyContents.put(cap, new ObjectArrayList<>(contentList));
+                        copyContents.put(cap, new ArrayList<>(contentList));
                         continue;
                     }
-                    List<Content> contentsCopy = new ObjectArrayList<>();
+                    List<Content> contentsCopy = new ArrayList<>();
                     for (Content content : contentList) {
                         contentsCopy.add(content.copy(cap, cm));
                     }

@@ -14,9 +14,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
 import com.fast.recipesearch.IntLongMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntFunction;
 
@@ -108,7 +108,7 @@ public class CircuitHandler extends NotifiableItemStackHandler {
             ItemStack stored = storage.stacks[0];
             int count = stored.getCount();
             if (count == 1) {
-                left = new ObjectArrayList<>(left);
+                left = new ArrayList<>(left);
                 for (var it = left.listIterator(0); it.hasNext();) {
                     if (it.next().test(stored)) {
                         it.remove();

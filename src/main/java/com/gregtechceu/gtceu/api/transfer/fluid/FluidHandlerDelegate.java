@@ -5,7 +5,6 @@ import net.minecraftforge.fluids.FluidStack;
 
 import lombok.Setter;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -29,14 +28,13 @@ public abstract class FluidHandlerDelegate implements IFluidHandlerModifiable {
     }
 
     @Override
-    @NotNull
     public FluidStack getFluidInTank(int tank) {
         return delegate.getFluidInTank(tank);
     }
 
     @Override
     @ApiStatus.Internal
-    public void setFluidInTank(int tank, @NotNull FluidStack fluidStack) {
+    public void setFluidInTank(int tank, FluidStack fluidStack) {
         delegate.setFluidInTank(tank, fluidStack);
     }
 
@@ -46,7 +44,7 @@ public abstract class FluidHandlerDelegate implements IFluidHandlerModifiable {
     }
 
     @Override
-    public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
+    public boolean isFluidValid(int tank, FluidStack stack) {
         return delegate.isFluidValid(tank, stack);
     }
 
@@ -68,7 +66,6 @@ public abstract class FluidHandlerDelegate implements IFluidHandlerModifiable {
     }
 
     @Override
-    @NotNull
     public FluidStack drain(int maxDrain, FluidAction action) {
         return delegate.drain(maxDrain, action);
     }

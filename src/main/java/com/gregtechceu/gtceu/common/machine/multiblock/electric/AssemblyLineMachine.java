@@ -20,9 +20,9 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -30,8 +30,8 @@ import java.util.Map;
 
 public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
 
-    private List<CustomItemStackHandler> itemStackTransfers = new ObjectArrayList<>();
-    private List<CustomFluidTank> fluidStackTransfers = new ObjectArrayList<>();
+    private List<CustomItemStackHandler> itemStackTransfers = new ArrayList<>();
+    private List<CustomFluidTank> fluidStackTransfers = new ArrayList<>();
 
     public AssemblyLineMachine(MetaMachineBlockEntity holder) {
         super(holder);
@@ -90,8 +90,8 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        itemStackTransfers = new ObjectArrayList<>();
-        fluidStackTransfers = new ObjectArrayList<>();
+        itemStackTransfers = new ArrayList<>();
+        fluidStackTransfers = new ArrayList<>();
         for (Object part : getParts()) {
             if (part instanceof ItemBusPartMachine itemBusPart) {
                 itemStackTransfers.add(itemBusPart.getInventory().storage);

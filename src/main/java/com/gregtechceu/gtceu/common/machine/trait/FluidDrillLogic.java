@@ -106,10 +106,10 @@ public class FluidDrillLogic extends RecipeLogic {
             }
         }
         if (suspendAfterFinish) {
-            setStatus(Status.SUSPEND);
+            setStatus(SUSPEND);
             suspendAfterFinish = false;
         } else {
-            setStatus(Status.IDLE);
+            setStatus(IDLE);
         }
         progress = 0;
         duration = 0;

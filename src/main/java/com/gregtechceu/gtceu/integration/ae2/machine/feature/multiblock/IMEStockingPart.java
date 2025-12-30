@@ -8,12 +8,13 @@ import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 
 import appeng.api.stacks.GenericStack;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface IMEStockingPart extends IAutoPullPart {
 
     @Override
-    default void addedToController(IMultiController controller) {
+    default void addedToController(@NotNull IMultiController controller) {
         // ensure that no other stocking bus on this multiblock is configured to hold the same item.
         // that we have in our own bus.
         setAutoPullTest(stack -> !this.testConfiguredInOtherPart(stack));
@@ -26,7 +27,7 @@ public interface IMEStockingPart extends IAutoPullPart {
     }
 
     @Override
-    default void removedFromController(IMultiController controller) {
+    default void removedFromController(@NotNull IMultiController controller) {
         setAutoPullTest(GTUtil.NEGATIVE);
         if (isAutoPull()) {
             getSlotList().clearInventory(0);

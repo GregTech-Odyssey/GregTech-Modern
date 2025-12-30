@@ -41,7 +41,6 @@ import com.fast.fastcollection.O2LOpenCacheHashMap;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -268,7 +267,6 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
         this.setTransferRate(transferRate * this.bucketMode.multiplier);
     }
 
-    @NotNull
     protected String getUITitle() {
         return "cover.pump.title";
     }

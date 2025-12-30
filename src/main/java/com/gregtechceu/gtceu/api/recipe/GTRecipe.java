@@ -19,13 +19,13 @@ import net.minecraft.world.level.Level;
 
 import com.fast.recipesearch.IntContainerHolder;
 import com.fast.recipesearch.IntMapContainer;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -54,11 +54,11 @@ public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Contai
     public int ocLevel = 0;
     public final GTRecipeCategory recipeCategory;
 
-    public GTRecipe(GTRecipeType recipeType, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, List<RecipeCondition> conditions, @NotNull CompoundTag data, int duration, @NotNull GTRecipeCategory recipeCategory) {
+    public GTRecipe(GTRecipeType recipeType, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, List<RecipeCondition> conditions, CompoundTag data, int duration, GTRecipeCategory recipeCategory) {
         this(recipeType, null, inputs, outputs, tickInputs, tickOutputs, conditions, data, duration, recipeCategory);
     }
 
-    public GTRecipe(GTRecipeType recipeType, @Nullable ResourceLocation id, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, List<RecipeCondition> conditions, @NotNull CompoundTag data, int duration, @NotNull GTRecipeCategory recipeCategory) {
+    public GTRecipe(GTRecipeType recipeType, @Nullable ResourceLocation id, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, List<RecipeCondition> conditions, CompoundTag data, int duration, GTRecipeCategory recipeCategory) {
         this.recipeType = recipeType;
         this.id = id;
         this.inputs = inputs;
@@ -80,7 +80,7 @@ public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Contai
     }
 
     public GTRecipe copy(ContentModifier modifier, boolean modifyDuration) {
-        var copied = new GTRecipe(recipeType, id, modifier.applyContents(inputs), modifier.applyContents(outputs), modifier.applyContents(tickInputs), modifier.applyContents(tickOutputs), new ObjectArrayList<>(conditions), data, duration, recipeCategory);
+        var copied = new GTRecipe(recipeType, id, modifier.applyContents(inputs), modifier.applyContents(outputs), modifier.applyContents(tickInputs), modifier.applyContents(tickOutputs), new ArrayList<>(conditions), data, duration, recipeCategory);
         if (modifyDuration) {
             copied.duration = modifier.apply(this.duration);
         }
@@ -90,19 +90,17 @@ public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Contai
     }
 
     @Override
-    @NotNull
     public RecipeSerializer<?> getSerializer() {
         return GTRecipeSerializer.SERIALIZER;
     }
 
     @Override
-    @NotNull
     public GTRecipeType getType() {
         return recipeType;
     }
 
     @Override
-    public boolean matches(@NotNull Container pContainer, @NotNull Level pLevel) {
+    public boolean matches(Container pContainer, Level pLevel) {
         return false;
     }
 

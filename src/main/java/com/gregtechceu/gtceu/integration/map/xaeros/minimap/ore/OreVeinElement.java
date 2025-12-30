@@ -21,6 +21,6 @@ public class OreVeinElement {
     }
 
     public Material getFirstMaterial() {
-        return vein.definition().veinGenerator().getAllMaterials().get(0);
+        return vein.definition().veinGenerator().getAllMaterials().getFirst();
     }
 }

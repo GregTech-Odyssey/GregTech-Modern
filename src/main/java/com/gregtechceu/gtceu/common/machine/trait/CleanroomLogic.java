@@ -75,7 +75,7 @@ public class CleanroomLogic extends RecipeLogic {
                     setWaiting(Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(EURecipeCapability.CAP.getName()));
                     return;
                 }
-                setStatus(Status.WORKING);
+                setStatus(WORKING);
                 // increase progress
                 if (progress++ < getMaxProgress()) {
                     if (!machine.onWorking()) {
@@ -93,7 +93,7 @@ public class CleanroomLogic extends RecipeLogic {
                 if (machine.self().getOffsetTimer() % duration == 0) {
                     adjustCleanAmount(true);
                 }
-                setStatus(Status.IDLE);
+                setStatus(IDLE);
                 machine.afterWorking();
             }
         }

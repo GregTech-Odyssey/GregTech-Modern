@@ -55,7 +55,6 @@ import it.unimi.dsi.fastutil.chars.Char2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.chars.CharSet;
 import it.unimi.dsi.fastutil.chars.CharSets;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
@@ -303,7 +302,7 @@ public class ToolHelper {
         }
         sideDirection = sideDirection.getClockWise();
 
-        List<BlockPos> validPositions = new ObjectArrayList<>();
+        List<BlockPos> validPositions = new ArrayList<>();
         for (int depth = 0; depth <= aoeDefinition.layer(); depth++) {
             for (int top = aoeRowEnd; top >= aoeRowStart; top--) {
                 for (int side = -aoeDefinition.column(); side <= aoeDefinition.column(); side++) {
@@ -434,7 +433,7 @@ public class ToolHelper {
         List<Tier> tiers = TierSortingRegistry.getSortedTiers().stream()
                 .filter(tier -> tier.getLevel() == harvestLevel)
                 .toList();
-        return !tiers.isEmpty() ? tiers.get(tiers.size() - 1) : Tiers.WOOD;
+        return !tiers.isEmpty() ? tiers.getLast() : Tiers.WOOD;
     }
 
     public static boolean onBlockStartBreak(ItemStack itemstack, BlockPos pos, Player player) {

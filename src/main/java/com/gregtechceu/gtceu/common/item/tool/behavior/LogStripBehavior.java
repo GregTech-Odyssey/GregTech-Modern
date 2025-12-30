@@ -64,7 +64,7 @@ public class LogStripBehavior implements IToolBehavior {
         }
 
         if (stripped) {
-            level.playSound(player, blocks.get(0), SoundEvents.AXE_STRIP, SoundSource.BLOCKS, 1.0F, 1.0F);
+            level.playSound(player, blocks.getFirst(), SoundEvents.AXE_STRIP, SoundSource.BLOCKS, 1.0F, 1.0F);
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
         return InteractionResult.PASS;

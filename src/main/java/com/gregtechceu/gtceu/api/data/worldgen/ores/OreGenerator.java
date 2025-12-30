@@ -23,10 +23,9 @@ import net.minecraft.world.level.levelgen.placement.PlacementContext;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -76,7 +75,7 @@ public class OreGenerator {
         Long2ObjectOpenHashMap<List<OreIndicatorPlacer>> generatedIndicators = new Long2ObjectOpenHashMap<>();
         for (IndicatorGenerator gen : definition.indicatorGenerators()) {
             for (var entry : gen.generate(level, config.newRandom(), config.data).long2ObjectEntrySet()) {
-                generatedIndicators.computeIfAbsent(entry.getLongKey(), k -> new ObjectArrayList<>()).add(entry.getValue());
+                generatedIndicators.computeIfAbsent(entry.getLongKey(), k -> new ArrayList<>()).add(entry.getValue());
             }
         }
 
@@ -149,7 +148,6 @@ public class OreGenerator {
         return randomVein == null ? null : randomVein.vein();
     }
 
-    @NotNull
     private static Optional<BlockPos> computeVeinOrigin(WorldGenLevel level, ChunkGenerator generator, ChunkPos pos,
                                                         RandomSource random, BlockPos veinCenter,
                                                         GTOreDefinition entry) {

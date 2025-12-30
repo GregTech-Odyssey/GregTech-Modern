@@ -9,16 +9,16 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 
 public class ExtendedProgressWidget extends ProgressWidget {
 
-    private List<Component> serverTooltips = new ObjectArrayList<>();
+    private List<Component> serverTooltips = new ArrayList<>();
     private Consumer<List<Component>> serverTooltipSupplier;
 
     public ExtendedProgressWidget() {
@@ -41,7 +41,7 @@ public class ExtendedProgressWidget extends ProgressWidget {
     public void detectAndSendChanges() {
         super.detectAndSendChanges();
         if (serverTooltipSupplier != null) {
-            List<Component> textBuffer = new ObjectArrayList<>();
+            List<Component> textBuffer = new ArrayList<>();
             serverTooltipSupplier.accept(textBuffer);
             if (!serverTooltips.equals(textBuffer)) {
                 this.serverTooltips = textBuffer;
@@ -72,7 +72,7 @@ public class ExtendedProgressWidget extends ProgressWidget {
     @Override
     public void drawInForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         if ((!tooltipTexts.isEmpty() || !serverTooltips.isEmpty()) && isMouseOverElement(mouseX, mouseY) && getHoverElement(mouseX, mouseY) == this && gui != null && gui.getModularUIGui() != null) {
-            var tips = new ObjectArrayList<>(tooltipTexts);
+            var tips = new ArrayList<>(tooltipTexts);
             tips.addAll(serverTooltips);
             gui.getModularUIGui().setHoverTooltip(tips, ItemStack.EMPTY, null, null);
         }

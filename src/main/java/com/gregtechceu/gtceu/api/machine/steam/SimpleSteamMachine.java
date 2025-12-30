@@ -33,7 +33,6 @@ import net.minecraftforge.fluids.FluidType;
 
 import com.google.common.collect.Tables;
 import lombok.Setter;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -98,7 +97,6 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
     }
 
     @Override
-    @NotNull
     public Direction getVentingDirection() {
         return getOutputFacing();
     }
@@ -131,7 +129,7 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
      * @param recipe  recipe
      * @return A {@link ModifierFunction} for the given Steam Machine
      */
-    public static ModifierFunction recipeModifier(@NotNull MetaMachine machine, @NotNull GTRecipe recipe) {
+    public static ModifierFunction recipeModifier(MetaMachine machine, GTRecipe recipe) {
         if (!(machine instanceof SimpleSteamMachine steamMachine)) {
             return RecipeModifier.nullWrongType(SimpleSteamMachine.class, machine);
         }

@@ -23,7 +23,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @FunctionalInterface
 public interface OverclockingLogic {
 
-    OCResult runOverclockingLogic(@NotNull OCParams ocParams, long maxVoltage);
+    OCResult runOverclockingLogic(OCParams ocParams, long maxVoltage);
 
     double STD_VOLTAGE_FACTOR = 4.0;
     double PERFECT_HALF_VOLTAGE_FACTOR = 2.0;

@@ -11,9 +11,9 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import java.util.ArrayList;
 
-public interface IMaintenanceMachine extends IMultiPart {
+public interface IMaintenanceMachine extends IWorkableMultiPart {
 
     int MINIMUM_MAINTENANCE_TIME = 3456000; // 48 real-life hours = 3456000 ticks
     byte ALL_PROBLEMS = 0;
@@ -164,7 +164,7 @@ public interface IMaintenanceMachine extends IMultiPart {
     default void attachTooltips(TooltipsPanel tooltipsPanel) {
         if (ConfigHolder.INSTANCE.machines.enableMaintenance) {
             tooltipsPanel.attachTooltips(new IFancyTooltip.Basic(() -> GuiTextures.MAINTENANCE_ICON, () -> {
-                var tooltips = new ObjectArrayList<Component>();
+                var tooltips = new ArrayList<Component>();
                 tooltips.add(Component.translatable("gtceu.multiblock.universal.has_problems_header")
                         .setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
 

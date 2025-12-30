@@ -16,8 +16,7 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
+import java.util.ArrayList;
 import java.util.List;
 
 public class MachineModeFancyConfigurator implements IFancyUIProvider {
@@ -59,7 +58,7 @@ public class MachineModeFancyConfigurator implements IFancyUIProvider {
 
     @Override
     public List<Component> getTabTooltips() {
-        List<Component> tooltip = new ObjectArrayList<>();
+        List<Component> tooltip = new ArrayList<>();
         tooltip.add(Component.translatable("gtceu.gui.machinemode.tab_tooltip"));
         return tooltip;
     }

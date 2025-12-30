@@ -45,7 +45,6 @@ import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -311,8 +310,7 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
         return maxTransferAmount - itemsLeftToTransfer;
     }
 
-    @NotNull
-    protected O2OOpenCustomCacheHashMap<ItemStack, TypeItemInfo> countInventoryItemsByType(@NotNull IItemHandler inventory) {
+    protected O2OOpenCustomCacheHashMap<ItemStack, TypeItemInfo> countInventoryItemsByType(IItemHandler inventory) {
         ItemFilter filter = filterHandler.getFilter();
         var result = new O2OOpenCustomCacheHashMap<ItemStack, TypeItemInfo>(ItemStackHashStrategy.ITEM_AND_TAG);
         for (int srcIndex = 0; srcIndex < inventory.getSlots(); srcIndex++) {
@@ -327,8 +325,7 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
         return result;
     }
 
-    @NotNull
-    protected O2OOpenCustomCacheHashMap<ItemStack, GroupItemInfo> countInventoryItemsByMatchSlot(@NotNull IItemHandler inventory) {
+    protected O2OOpenCustomCacheHashMap<ItemStack, GroupItemInfo> countInventoryItemsByMatchSlot(IItemHandler inventory) {
         ItemFilter filter = filterHandler.getFilter();
         var result = new O2OOpenCustomCacheHashMap<ItemStack, GroupItemInfo>(ItemStackHashStrategy.ITEM_AND_TAG);
         for (int srcIndex = 0; srcIndex < inventory.getSlots(); srcIndex++) {
@@ -393,7 +390,6 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
         return coverHolder.holder() instanceof ItemPipeBlockEntity || getNeighbor() instanceof ItemPipeBlockEntity;
     }
 
-    @NotNull
     protected String getUITitle() {
         return "cover.conveyor.title";
     }
@@ -429,9 +425,8 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
             super(delegate);
         }
 
-        @NotNull
         @Override
-        public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
             if (io == IO.OUT && manualIOMode == ManualIOMode.DISABLED) {
                 return stack;
             }
@@ -441,7 +436,6 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
             return super.insertItem(slot, stack, simulate);
         }
 
-        @NotNull
         @Override
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
             if (io == IO.IN && manualIOMode == ManualIOMode.DISABLED) {

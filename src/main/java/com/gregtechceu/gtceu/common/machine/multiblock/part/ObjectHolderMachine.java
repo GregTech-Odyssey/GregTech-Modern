@@ -27,7 +27,6 @@ import net.minecraft.world.item.ItemStack;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -50,34 +49,30 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
     }
 
     @Override
-    @NotNull
     public ItemStack getHeldItem(boolean remove) {
         return getHeldItem(0, remove);
     }
 
     @Override
-    public void setHeldItem(@NotNull ItemStack heldItem) {
+    public void setHeldItem(ItemStack heldItem) {
         heldItems.setStackInSlot(0, heldItem);
     }
 
     @Override
-    @NotNull
     public ItemStack getDataItem(boolean remove) {
         return getHeldItem(1, remove);
     }
 
     @Override
-    public void setDataItem(@NotNull ItemStack dataItem) {
+    public void setDataItem(ItemStack dataItem) {
         heldItems.setStackInSlot(1, dataItem);
     }
 
     @Override
-    @NotNull
     public NotifiableItemStackHandler getAsHandler() {
         return heldItems;
     }
 
-    @NotNull
     private ItemStack getHeldItem(int slot, boolean remove) {
         ItemStack stackInSlot = heldItems.getStackInSlot(slot);
         if (remove && stackInSlot != ItemStack.EMPTY) {
@@ -126,7 +121,6 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
         }
 
         // prevent extracting the item while running
-        @NotNull
         @Override
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
             if (!isLocked()) {
@@ -137,7 +131,7 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
 
         // only allow data items in the second slot
         @Override
-        public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+        public boolean isItemValid(int slot, ItemStack stack) {
             if (stack.isEmpty()) {
                 return true;
             }

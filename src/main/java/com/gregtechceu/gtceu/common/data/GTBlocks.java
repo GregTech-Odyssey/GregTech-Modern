@@ -388,9 +388,7 @@ public class GTBlocks {
             .block("computer_casing", Block::new)
             .initialProperties(() -> Blocks.IRON_BLOCK)
             .properties(p -> p.isValidSpawn((state, level, pos, ent) -> false))
-            .blockstate((ctx, prov) -> {
-                prov.simpleBlock(ctx.getEntry(), prov.models().getExistingFile(GTCEu.id("block/computer_casing")));
-            })
+            .blockstate((ctx, prov) -> prov.simpleBlock(ctx.getEntry(), prov.models().getExistingFile(GTCEu.id("block/computer_casing"))))
             .tag(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WRENCH)
             .item(BlockItem::new)
             .build()
@@ -399,10 +397,8 @@ public class GTBlocks {
             .block("advanced_computer_casing", Block::new)
             .initialProperties(() -> Blocks.IRON_BLOCK)
             .properties(p -> p.isValidSpawn((state, level, pos, ent) -> false))
-            .blockstate((ctx, prov) -> {
-                prov.simpleBlock(ctx.getEntry(),
-                        prov.models().getExistingFile(GTCEu.id("block/advanced_computer_casing")));
-            })
+            .blockstate((ctx, prov) -> prov.simpleBlock(ctx.getEntry(),
+                    prov.models().getExistingFile(GTCEu.id("block/advanced_computer_casing"))))
             .tag(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WRENCH)
             .item(BlockItem::new)
             .build()
@@ -412,11 +408,9 @@ public class GTBlocks {
             .initialProperties(() -> Blocks.IRON_BLOCK)
             .properties(p -> p.isValidSpawn((state, level, pos, ent) -> false))
             .addLayer(() -> RenderType::cutoutMipped)
-            .blockstate((ctx, prov) -> {
-                prov.simpleBlock(ctx.getEntry(), prov.models().cubeColumn("computer_heat_vent",
-                        GTCEu.id("block/casings/hpca/computer_heat_vent_side"),
-                        GTCEu.id("block/casings/hpca/computer_heat_vent_top_bot")));
-            })
+            .blockstate((ctx, prov) -> prov.simpleBlock(ctx.getEntry(), prov.models().cubeColumn("computer_heat_vent",
+                    GTCEu.id("block/casings/hpca/computer_heat_vent_side"),
+                    GTCEu.id("block/casings/hpca/computer_heat_vent_top_bot"))))
             .tag(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WRENCH)
             .item(BlockItem::new)
             .build()

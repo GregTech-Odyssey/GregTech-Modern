@@ -56,14 +56,13 @@ import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -128,7 +127,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     }
 
     @Override
-    public void setOutputFacing(@NotNull Direction outputFacing) {
+    public void setOutputFacing(Direction outputFacing) {
         // no op - boilers do not have output facings
     }
 
@@ -237,7 +236,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
      * @param recipe  recipe
      * @return A {@link ModifierFunction} for the given Steam Boiler
      */
-    public static ModifierFunction recipeModifier(@NotNull MetaMachine machine, @NotNull GTRecipe recipe) {
+    public static ModifierFunction recipeModifier(MetaMachine machine, GTRecipe recipe) {
         if (!(machine instanceof SteamBoilerMachine boilerMachine)) {
             return RecipeModifier.nullWrongType(SteamBoilerMachine.class, machine);
         }
@@ -318,13 +317,12 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
         getLevel().addParticle(ParticleTypes.FLAME, x, y, z, 0, 0, 0);
     }
 
-    @NotNull
     @Override
     public List<Component> getDataInfo(PortableScannerBehavior.DisplayMode mode) {
         if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_MACHINE_INFO) {
             return Collections.singletonList(Component.translatable("gtceu.machine.steam_boiler.heat_amount", FormattingUtil.formatNumbers((int) (getTemperaturePercent() * 100))));
         }
-        return new ObjectArrayList<>();
+        return new ArrayList<>();
     }
 
     @Override

@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public interface IRotorHolderMachine extends IMultiPart {
+public interface IRotorHolderMachine extends IWorkableMultiPart {
 
     int SPEED_INCREMENT = 1;
     int SPEED_DECREMENT = 3;
@@ -43,7 +43,6 @@ public interface IRotorHolderMachine extends IMultiPart {
     int getRotorSpeed();
 
     /**
-     * @return the current speed of the holder
      */
     void setRotorSpeed(int speed);
 

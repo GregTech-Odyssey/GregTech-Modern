@@ -32,6 +32,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -111,7 +112,7 @@ public class ItemMaterialData {
 
     private static void registerItemEntry(@NotNull Supplier<? extends ItemLike> supplier,
                                           @NotNull TagPrefix tagPrefix, @NotNull Material material) {
-        material.MATERIAL_ENTRY_ITEM_MAP.computeIfAbsent(tagPrefix, k -> new ObjectArrayList<>())
+        material.MATERIAL_ENTRY_ITEM_MAP.computeIfAbsent(tagPrefix, k -> new ArrayList<>())
                 .add(() -> supplier.get().asItem());
         if (TagPrefix.ORES.containsKey(tagPrefix) &&
                 !ORES_INVERSE.containsValue(tagPrefix)) {
@@ -121,7 +122,7 @@ public class ItemMaterialData {
 
     private static void registerBlockEntry(@NotNull Supplier<? extends Block> supplier,
                                            @NotNull TagPrefix tagPrefix, @NotNull Material material) {
-        material.MATERIAL_ENTRY_BLOCK_MAP.computeIfAbsent(tagPrefix, k -> new ObjectArrayList<>()).add(supplier);
+        material.MATERIAL_ENTRY_BLOCK_MAP.computeIfAbsent(tagPrefix, k -> new ArrayList<>()).add(supplier);
     }
 
     @SuppressWarnings("unchecked")
@@ -162,7 +163,7 @@ public class ItemMaterialData {
     @ApiStatus.Internal
     public static void resolveItemMaterialInfos() {
         for (var entry : UNRESOLVED_ITEM_MATERIAL_INFO.entrySet()) {
-            List<MaterialStack> stacks = new ObjectArrayList<>();
+            List<MaterialStack> stacks = new ArrayList<>();
             var stack = entry.getKey();
             var count = stack.getCount();
             for (var input : entry.getValue()) {

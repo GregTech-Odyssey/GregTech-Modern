@@ -209,7 +209,7 @@ public class FluidBuilder {
     }
 
     @NotNull
-    public Supplier<? extends Fluid> build(Material material, @NotNull FluidStorageKey key, GTRegistrate registrate) {
+    public Supplier<? extends Fluid> build(Material material, @Nullable FluidStorageKey key, GTRegistrate registrate) {
         determineName(material, key);
         determineTextures(material, key, material.getModid());
         if (name == null) {

@@ -10,7 +10,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 
 import com.google.common.collect.ImmutableList;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -48,25 +47,22 @@ public class TraceabilityPredicate {
         }
     };
 
-    public List<SimplePredicate> common = new ObjectArrayList<>();
-    public List<SimplePredicate> limited = new ObjectArrayList<>();
+    public final List<SimplePredicate> common;
+    public final List<SimplePredicate> limited;
     public Function<MultiblockState, Direction> direction = GTUtil.NULL_FUNCTION;
-    public boolean isController;
 
-    public TraceabilityPredicate() {}
-
-    public TraceabilityPredicate(TraceabilityPredicate predicate) {
-        common.addAll(predicate.common);
-        limited.addAll(predicate.limited);
-        isController = predicate.isController;
-        direction = predicate.direction;
+    public TraceabilityPredicate() {
+        common = new ArrayList<>();
+        limited = new ArrayList<>();
     }
 
     public TraceabilityPredicate(Predicate<MultiblockState> predicate, Supplier<BlockInfo> blockInfo, @Nullable Supplier<Block[]> candidates) {
+        this();
         common.add(new SimplePredicate(predicate, blockInfo, candidates));
     }
 
     public TraceabilityPredicate(SimplePredicate simplePredicate) {
+        this();
         if (simplePredicate.minCount != -1 || simplePredicate.maxCount != -1) {
             limited.add(simplePredicate);
         } else {
@@ -74,27 +70,31 @@ public class TraceabilityPredicate {
         }
     }
 
-    /**
-     * Mark it as the controller of this multi. Normally you won't call it yourself. Use plz.
-     */
-    public TraceabilityPredicate setController() {
-        isController = true;
-        return this;
+    protected TraceabilityPredicate(TraceabilityPredicate predicate) {
+        this.common = new ArrayList<>(predicate.common);
+        this.limited = new ArrayList<>(predicate.limited);
+        this.direction = predicate.direction;
+    }
+
+    protected TraceabilityPredicate(TraceabilityPredicate predicate, Object ignored) {
+        if (predicate.common.isEmpty()) {
+            this.common = Collections.emptyList();
+        } else {
+            this.common = ImmutableList.copyOf(predicate.common);
+        }
+        var limited = new ArrayList<>(predicate.limited);
+        limited.sort(Comparator.comparingInt(a -> a.minCount));
+        if (limited.isEmpty()) {
+            this.limited = Collections.emptyList();
+        } else {
+            this.limited = ImmutableList.copyOf(limited);
+        }
+        this.direction = predicate.direction;
     }
 
     public TraceabilityPredicate sort() {
-        limited.sort(Comparator.comparingInt(a -> a.minCount));
-        if (common.isEmpty()) {
-            common = Collections.emptyList();
-        } else {
-            common = ImmutableList.copyOf(common);
-        }
-        if (limited.isEmpty()) {
-            limited = Collections.emptyList();
-        } else {
-            limited = ImmutableList.copyOf(limited);
-        }
-        return this;
+        if (getClass() != TraceabilityPredicate.class) return this;
+        return new TraceabilityPredicate(this, null);
     }
 
     /**
@@ -106,14 +106,14 @@ public class TraceabilityPredicate {
             common.forEach(predicate -> {
                 if (predicate.candidates == null) return;
                 if (predicate.toolTips == null) {
-                    predicate.toolTips = new ObjectArrayList<>();
+                    predicate.toolTips = new ArrayList<>();
                 }
                 predicate.toolTips.addAll(tooltips);
             });
             limited.forEach(predicate -> {
                 if (predicate.candidates == null) return;
                 if (predicate.toolTips == null) {
-                    predicate.toolTips = new ObjectArrayList<>();
+                    predicate.toolTips = new ArrayList<>();
                 }
                 predicate.toolTips.addAll(tooltips);
             });
@@ -251,11 +251,11 @@ public class TraceabilityPredicate {
     }
 
     public boolean isAny() {
-        return this.common.size() == 1 && this.limited.isEmpty() && this.common.get(0) == SimplePredicate.ANY;
+        return this.common.size() == 1 && this.limited.isEmpty() && this.common.getFirst() == SimplePredicate.ANY;
     }
 
     public boolean isAir() {
-        return this.common.size() == 1 && this.limited.isEmpty() && this.common.get(0) == SimplePredicate.AIR;
+        return this.common.size() == 1 && this.limited.isEmpty() && this.common.getFirst() == SimplePredicate.AIR;
     }
 
     public boolean isSingle() {

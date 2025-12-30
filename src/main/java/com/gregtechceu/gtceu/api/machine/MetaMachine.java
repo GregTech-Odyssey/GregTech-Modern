@@ -74,7 +74,6 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
@@ -100,7 +99,7 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
 
     private static final Map<Class<?>, ManagedFieldHolder> MANAGED_FIELD_MAP = new ConcurrentHashMap<>();
 
-    public static @NotNull ManagedFieldHolder getManagedFieldHolder(Class<? extends IManaged> clazz) {
+    public static ManagedFieldHolder getManagedFieldHolder(Class<? extends IManaged> clazz) {
         var holder = MANAGED_FIELD_MAP.get(clazz);
         if (holder == null) {
             Class sc = clazz.getSuperclass();
@@ -140,7 +139,7 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     @RequireRerender
     private int paintingColor = -1;
     @Getter
-    protected final List<MachineTrait> traits = new ObjectArrayList<>();
+    protected final List<MachineTrait> traits = new ArrayList<>();
 
     protected final DirectionCache<IItemHandlerModifiable> itemHandlerModifiableCache = DirectionCache.create();
     protected final DirectionCache<IFluidHandlerModifiable> fluidHandlerModifiableCache = DirectionCache.create();
@@ -195,7 +194,7 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     }
 
     public boolean isRemote() {
-        var level = getLevel();
+        var level = holder.level();
         return level == null ? GTCEu.isClientThread() : level.isClientSide;
     }
 
@@ -247,13 +246,13 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
      * @param tag     the CompoundTag to load data from
      * @param forDrop if the save is done for dropping the machine as an item.
      */
-    public void saveCustomPersistedData(@NotNull CompoundTag tag, boolean forDrop) {
+    public void saveCustomPersistedData(CompoundTag tag, boolean forDrop) {
         for (MachineTrait trait : this.getTraits()) {
             trait.saveCustomPersistedData(tag, forDrop);
         }
     }
 
-    public void loadCustomPersistedData(@NotNull CompoundTag tag) {
+    public void loadCustomPersistedData(CompoundTag tag) {
         for (MachineTrait trait : this.getTraits()) {
             trait.loadCustomPersistedData(tag);
         }
@@ -269,7 +268,7 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     @Nullable
     @Override
     public TickableSubscription subscribeServerTick(Runnable runnable, int cycle) {
-        if (getLevel() instanceof ServerLevel serverLevel) {
+        if (holder.level() instanceof ServerLevel serverLevel) {
             return TaskHandler.enqueueServerTick(serverLevel, holder.isRemove, runnable, cycle, holder.tickDelay);
         }
         return null;
@@ -440,8 +439,8 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     // ********** MISC ***********//
     //////////////////////////////////////
     @Nullable
-    public static MetaMachine getMachine(BlockGetter level, BlockPos pos) {
-        if (level.getBlockEntity(pos) instanceof MetaMachineBlockEntity machineBlockEntity) {
+    public static MetaMachine getMachine(@Nullable BlockGetter level, BlockPos pos) {
+        if (level != null && level.getBlockEntity(pos) instanceof MetaMachineBlockEntity machineBlockEntity) {
             return machineBlockEntity.metaMachine;
         }
         return null;
@@ -528,7 +527,6 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
         return !hasFrontFacing() || getFrontFacing() != direction;
     }
 
-    @NotNull
     public static Direction getFrontFacing(@Nullable MetaMachine machine) {
         return machine == null ? Direction.NORTH : machine.getFrontFacing();
     }
@@ -591,7 +589,6 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
         }
     }
 
-    @NotNull
     public static Direction getUpwardFacing(@Nullable MetaMachine machine) {
         return machine == null || !machine.allowExtendedFacing() ? Direction.NORTH : machine.getBlockState().getValue(MetaMachineBlock.UPWARDS_FACING_PROPERTY);
     }
@@ -600,7 +597,7 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
         return this.allowExtendedFacing() ? this.getBlockState().getValue(MetaMachineBlock.UPWARDS_FACING_PROPERTY) : Direction.NORTH;
     }
 
-    public void setUpwardsFacing(@NotNull Direction upwardsFacing) {
+    public void setUpwardsFacing(Direction upwardsFacing) {
         if (!getDefinition().isAllowExtendedFacing()) {
             return;
         }
@@ -638,11 +635,11 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
         return -1;
     }
 
-    public @NotNull BlockState getNeighborBlockState(Direction facing) {
+    public BlockState getNeighborBlockState(Direction facing) {
         return blockStateDirectionCache.getOrSet(facing, () -> getLevel().getBlockState(getPos().relative(facing)));
     }
 
-    public @NotNull FluidState getNeighborFluidState(Direction facing) {
+    public FluidState getNeighborFluidState(Direction facing) {
         return fluidStateDirectionCache.getOrSet(facing, () -> getLevel().getFluidState(getPos().relative(facing)));
     }
 
@@ -666,7 +663,6 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
 
     public void animateTick(RandomSource random) {}
 
-    @NotNull
     public BlockState getBlockAppearance(BlockState state, BlockAndTintGetter level, BlockPos pos, Direction side, BlockState sourceState, BlockPos sourcePos) {
         var appearance = getCoverContainer().getBlockAppearance(state, level, pos, side, sourceState, sourcePos);
         if (appearance != null) return appearance;
@@ -733,7 +729,7 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
         var cache = useCoverCapability ? itemHandlerModifiableCoverCache : itemHandlerModifiableCache;
         return cache.getOrSet(side, () -> {
             var ts = getTraits();
-            List<IItemHandlerModifiable> filteredTraits = new ObjectArrayList<>(ts.size());
+            List<IItemHandlerModifiable> filteredTraits = new ArrayList<>(ts.size());
             for (var t : ts) {
                 if (t instanceof IItemHandlerModifiable && t.hasCapability(side)) {
                     filteredTraits.add((IItemHandlerModifiable) t);
@@ -762,7 +758,7 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
         var cache = useCoverCapability ? fluidHandlerModifiableCoverCache : fluidHandlerModifiableCache;
         return cache.getOrSet(side, () -> {
             var ts = getTraits();
-            List<IFluidHandler> filteredTraits = new ObjectArrayList<>(ts.size());
+            List<IFluidHandler> filteredTraits = new ArrayList<>(ts.size());
             for (var t : ts) {
                 if (t instanceof IFluidHandler && t.hasCapability(side)) {
                     filteredTraits.add((IFluidHandler) t);
@@ -797,7 +793,7 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
 
     @Override
     public final List<Component> getFancyTooltip() {
-        var tooltips = new ObjectArrayList<Component>();
+        var tooltips = new ArrayList<Component>();
         onAddFancyInformationTooltip(tooltips);
         return tooltips;
     }

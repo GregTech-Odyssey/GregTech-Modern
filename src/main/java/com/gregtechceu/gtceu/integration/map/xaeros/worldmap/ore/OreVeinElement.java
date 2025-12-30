@@ -23,7 +23,7 @@ public class OreVeinElement {
     }
 
     public void onMouseSelect() {
-        Material firstMaterial = vein.definition().veinGenerator().getAllMaterials().get(0);
+        Material firstMaterial = vein.definition().veinGenerator().getAllMaterials().getFirst();
         int color = firstMaterial.getMaterialARGB();
         // TODO generalize to all possible layer types
         BlockPos center = vein.center();
@@ -35,6 +35,6 @@ public class OreVeinElement {
     }
 
     public Material getFirstMaterial() {
-        return vein.definition().veinGenerator().getAllMaterials().get(0);
+        return vein.definition().veinGenerator().getAllMaterials().getFirst();
     }
 }

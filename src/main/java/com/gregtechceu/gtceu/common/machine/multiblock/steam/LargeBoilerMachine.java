@@ -34,11 +34,10 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.material.Fluids;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -124,7 +123,7 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
                 // if maxDrain is 0 because throttle is too low, skip trying to make steam
                 // drain water
                 var drainWater = List.of(FluidIngredient.of(maxDrain, Fluids.WATER));
-                List<IRecipeHandler<?>> inputTanks = new ObjectArrayList<>();
+                List<IRecipeHandler<?>> inputTanks = new ArrayList<>();
                 inputTanks.addAll(getCapabilitiesFlat(IO.IN, FluidRecipeCapability.CAP));
                 inputTanks.addAll(getCapabilitiesFlat(IO.BOTH, FluidRecipeCapability.CAP));
                 for (IRecipeHandler<?> tank : inputTanks) {
@@ -133,12 +132,12 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
                         break;
                     }
                 }
-                var drained = (drainWater == null || drainWater.isEmpty()) ? maxDrain : maxDrain - drainWater.get(0).getAmount();
+                var drained = (drainWater == null || drainWater.isEmpty()) ? maxDrain : maxDrain - drainWater.getFirst().getAmount();
                 steamGenerated = drained * ConfigHolder.INSTANCE.machines.largeBoilers.steamPerWater;
                 if (drained > 0) {
                     // fill steam
                     var fillSteam = List.of(FluidIngredient.of(GTMaterials.Steam.getFluid(steamGenerated)));
-                    List<IRecipeHandler<?>> outputTanks = new ObjectArrayList<>();
+                    List<IRecipeHandler<?>> outputTanks = new ArrayList<>();
                     outputTanks.addAll(getCapabilitiesFlat(IO.OUT, FluidRecipeCapability.CAP));
                     outputTanks.addAll(getCapabilitiesFlat(IO.BOTH, FluidRecipeCapability.CAP));
                     for (IRecipeHandler<?> tank : outputTanks) {
@@ -190,7 +189,7 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
      * @param recipe  recipe
      * @return A {@link ModifierFunction} for the given Large Boiler and recipe
      */
-    public static ModifierFunction recipeModifier(@NotNull MetaMachine machine, @NotNull GTRecipe recipe) {
+    public static ModifierFunction recipeModifier(MetaMachine machine, GTRecipe recipe) {
         if (!(machine instanceof LargeBoilerMachine largeBoilerMachine)) {
             return RecipeModifier.nullWrongType(LargeBoilerMachine.class, machine);
         }

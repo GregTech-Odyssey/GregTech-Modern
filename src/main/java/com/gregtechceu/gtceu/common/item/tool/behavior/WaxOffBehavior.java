@@ -47,7 +47,7 @@ public class WaxOffBehavior implements IToolBehavior {
                 blocks = List.of(pos);
             } else {
                 blocks = getUnwaxableBlocks(aoeDefinition, context);
-                blocks.add(0, context.getClickedPos());
+                blocks.addFirst(context.getClickedPos());
             }
         } else {
             return InteractionResult.PASS;
@@ -67,7 +67,7 @@ public class WaxOffBehavior implements IToolBehavior {
         }
 
         if (unwaxed) {
-            level.playSound(player, blocks.get(0), SoundEvents.AXE_WAX_OFF, SoundSource.BLOCKS, 1.0F, 1.0F);
+            level.playSound(player, blocks.getFirst(), SoundEvents.AXE_WAX_OFF, SoundSource.BLOCKS, 1.0F, 1.0F);
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
         return InteractionResult.PASS;

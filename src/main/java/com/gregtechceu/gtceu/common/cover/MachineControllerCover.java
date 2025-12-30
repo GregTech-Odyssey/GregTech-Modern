@@ -73,7 +73,7 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
     public void onAttached(ItemStack itemStack, ServerPlayer player) {
         super.onAttached(itemStack, player);
         var allowedModes = getAllowedModes();
-        setControllerMode(allowedModes.isEmpty() ? null : allowedModes.get(0));
+        setControllerMode(allowedModes.isEmpty() ? null : allowedModes.getFirst());
     }
 
     @Override
@@ -193,7 +193,7 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
 
     private void selectNextMode() {
         var allowedModes = getAllowedModes();
-        setControllerMode(allowedModes.stream().dropWhile(mode -> this.controllerMode != null && mode != this.controllerMode).skip(1).findFirst().orElse(allowedModes.isEmpty() ? null : allowedModes.get(0)));
+        setControllerMode(allowedModes.stream().dropWhile(mode -> this.controllerMode != null && mode != this.controllerMode).skip(1).findFirst().orElse(allowedModes.isEmpty() ? null : allowedModes.getFirst()));
         updateAll();
     }
 

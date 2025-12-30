@@ -26,14 +26,14 @@ import net.minecraft.world.level.block.Blocks;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GTOreByProduct {
 
-    private static final List<TagPrefix> ORES = new ObjectArrayList<>();
+    private static final List<TagPrefix> ORES = new ArrayList<>();
 
     public static void addOreByProductPrefix(TagPrefix orePrefix) {
         if (!ORES.contains(orePrefix)) {
@@ -46,9 +46,9 @@ public class GTOreByProduct {
     private static ImmutableList<ItemStack> ALWAYS_MACHINES;
 
     private final Int2ObjectMap<Content> chances = new Int2ObjectOpenHashMap<>();
-    protected final List<ItemEntryList> itemInputs = new ObjectArrayList<>();
+    protected final List<ItemEntryList> itemInputs = new ArrayList<>();
     protected final NonNullList<ItemStack> itemOutputs = NonNullList.create();
-    protected final List<FluidEntryList> fluidInputs = new ObjectArrayList<>();
+    protected final List<FluidEntryList> fluidInputs = new ArrayList<>();
     private boolean hasDirectSmelt = false;
     private boolean hasChemBath = false;
     private boolean hasSeparator = false;
@@ -100,7 +100,7 @@ public class GTOreByProduct {
         itemInputs.add(oreStacks);
 
         // set up machines as inputs
-        List<ItemStack> simpleWashers = new ObjectArrayList<>();
+        List<ItemStack> simpleWashers = new ArrayList<>();
         simpleWashers.add(new ItemStack(Items.CAULDRON));
         simpleWashers.add(GTMachines.ORE_WASHER[GTValues.LV].asStack());
 
@@ -239,14 +239,14 @@ public class GTOreByProduct {
         // electromagnetic separator
         if (hasSeparator) {
             // noinspection DataFlowIssue
-            TagPrefix prefix = (separatedInto.get(separatedInto.size() - 1).getBlastTemperature() == 0 &&
-                    separatedInto.get(separatedInto.size() - 1).hasProperty(PropertyKey.INGOT)) ? TagPrefix.nugget :
+            TagPrefix prefix = (separatedInto.getLast().getBlastTemperature() == 0 &&
+                    separatedInto.getLast().hasProperty(PropertyKey.INGOT)) ? TagPrefix.nugget :
                             TagPrefix.dust;
-            ItemStack separatedStack2 = ChemicalHelper.get(prefix, separatedInto.get(separatedInto.size() - 1),
+            ItemStack separatedStack2 = ChemicalHelper.get(prefix, separatedInto.getLast(),
                     prefix == TagPrefix.nugget ? 2 : 1);
 
             addToOutputs(material, TagPrefix.dust, 1);
-            addToOutputs(separatedInto.get(0), TagPrefix.dust, 1);
+            addToOutputs(separatedInto.getFirst(), TagPrefix.dust, 1);
             addChance(1000, 250);
             addToOutputs(separatedStack2);
             addChance(prefix == TagPrefix.dust ? 500 : 2000, prefix == TagPrefix.dust ? 150 : 600);

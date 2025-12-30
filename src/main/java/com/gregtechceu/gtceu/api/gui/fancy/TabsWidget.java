@@ -15,12 +15,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -70,7 +70,7 @@ public class TabsWidget extends Widget {
 
     public TabsWidget(Consumer<IFancyUIProvider> onTabClick, int x, int y, int width, int height) {
         super(x, y, width, height);
-        this.subTabs = new ObjectArrayList<>();
+        this.subTabs = new ArrayList<>();
         this.onTabClick = onTabClick;
     }
 

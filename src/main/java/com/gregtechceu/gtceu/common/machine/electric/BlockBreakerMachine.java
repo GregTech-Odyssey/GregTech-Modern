@@ -65,6 +65,7 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
     @Persisted
     @DescSynced
     @RequireRerender
+    @Nullable
     protected Direction outputFacingItems;
     @Getter
     @Persisted
@@ -326,7 +327,7 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
     //////////////////////////////////////
     // ********** GUI ***********//
     //////////////////////////////////////
-    public static BiFunction<ResourceLocation, Integer, EditableMachineUI> EDITABLE_UI_CREATOR = Util.memoize((path, inventorySize) -> new EditableMachineUI("misc", path, () -> {
+    public static final BiFunction<ResourceLocation, Integer, EditableMachineUI> EDITABLE_UI_CREATOR = Util.memoize((path, inventorySize) -> new EditableMachineUI("misc", path, () -> {
         var template = createTemplate(inventorySize).createDefault();
         var energyBar = createEnergyBar().createDefault();
         var batterySlot = createBatterySlot().createDefault();
@@ -379,16 +380,14 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
             }
             main.setBackground(GuiTextures.BACKGROUND_INVERSE);
             return main;
-        }, (group, machine) -> {
-            WidgetUtils.widgetByIdForEach(group, "^slot_[0-9]+$", SlotWidget.class, slot -> {
-                var index = WidgetUtils.widgetIdIndex(slot);
-                if (index >= 0 && index < machine.cache.getSlots()) {
-                    slot.setHandlerSlot(machine.cache, index);
-                    slot.setCanTakeItems(true);
-                    slot.setCanPutItems(false);
-                }
-            });
-        });
+        }, (group, machine) -> WidgetUtils.widgetByIdForEach(group, "^slot_[0-9]+$", SlotWidget.class, slot -> {
+            var index = WidgetUtils.widgetIdIndex(slot);
+            if (index >= 0 && index < machine.cache.getSlots()) {
+                slot.setHandlerSlot(machine.cache, index);
+                slot.setCanTakeItems(true);
+                slot.setCanPutItems(false);
+            }
+        }));
     }
 
     //////////////////////////////////////

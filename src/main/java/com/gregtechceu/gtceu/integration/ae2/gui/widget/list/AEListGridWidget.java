@@ -15,9 +15,9 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.GenericStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.lowdragmc.lowdraglib.gui.util.DrawerHelper.drawGradientRect;
@@ -35,7 +35,7 @@ public abstract class AEListGridWidget extends DraggableScrollableWidgetGroup {
 
     protected final Reference2LongOpenHashMap<AEKey> changeMap = new Reference2LongOpenHashMap<>();
     protected final KeyStorage cached = new KeyStorage();
-    protected final List<GenericStack> displayList = new ObjectArrayList<>();
+    protected final List<GenericStack> displayList = new ArrayList<>();
 
     public AEListGridWidget(int x, int y, int slotsY, KeyStorage internalList) {
         super(x, y, 18 + 140, slotsY * 18);
@@ -57,7 +57,7 @@ public abstract class AEListGridWidget extends DraggableScrollableWidgetGroup {
 
     private void removeSlotRows(int amount) {
         for (int i = 0; i < amount; i++) {
-            Widget slotWidget = this.widgets.remove(this.widgets.size() - 1);
+            Widget slotWidget = this.widgets.removeLast();
             removeWidget(slotWidget);
         }
     }

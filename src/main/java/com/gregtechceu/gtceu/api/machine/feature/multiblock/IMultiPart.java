@@ -2,10 +2,6 @@ package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
-import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -15,17 +11,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.SortedSet;
+import java.util.Set;
 
 public interface IMultiPart extends IFancyUIMachine {
-
-    boolean hasOnWorkingMethod();
-
-    boolean hasBeforeWorkingMethod();
-
-    boolean hasAfterWorkingMethod();
-
-    boolean hasModifyRecipeMethod();
 
     /**
      * Can it be shared among multi multiblock.
@@ -49,7 +37,14 @@ public interface IMultiPart extends IFancyUIMachine {
      *
      * @return An of the part's controllers
      */
-    SortedSet<IMultiController> getControllers();
+    Set<IMultiController> getControllers();
+
+    default IMultiController getController() {
+        for (var controller : getControllers()) {
+            return controller;
+        }
+        return null;
+    }
 
     /**
      * Called when it was removed from a multiblock.
@@ -60,11 +55,6 @@ public interface IMultiPart extends IFancyUIMachine {
      * Called when it was added to a multiblock.
      */
     void addedToController(IMultiController controller);
-
-    /**
-     * Get all available traits for recipe logic.
-     */
-    List<RecipeHandlerList> getRecipeHandlers();
 
     /**
      * whether its base model can be replaced by controller when it is formed.
@@ -83,50 +73,6 @@ public interface IMultiPart extends IFancyUIMachine {
             if (appearance != null) return appearance;
         }
         return null;
-    }
-
-    /**
-     * Called per tick in {@link RecipeLogic#handleRecipeWorking()}
-     */
-    default boolean onWorking(IWorkableMultiController controller) {
-        return true;
-    }
-
-    /**
-     * Called per tick in {@link RecipeLogic#handleRecipeWorking()}
-     */
-    default boolean onWaiting(IWorkableMultiController controller) {
-        return true;
-    }
-
-    /**
-     * Called in {@link WorkableMultiblockMachine#setWorkingEnabled(boolean)}
-     */
-    default boolean onPaused(IWorkableMultiController controller) {
-        return true;
-    }
-
-    /**
-     * Called in {@link RecipeLogic#onRecipeFinish()} before outputs are produced
-     */
-    default void afterWorking(IWorkableMultiController controller) {}
-
-    /**
-     * Called in {@link RecipeLogic#setupRecipe(GTRecipe)}
-     */
-    default boolean beforeWorking(IWorkableMultiController controller, GTRecipe recipe) {
-        return true;
-    }
-
-    /**
-     * Override it to modify recipe on the fly e.g. applying overclock, change chance, etc
-     * 
-     * @param recipe recipe from detected from GTRecipeType
-     * @return modified recipe.
-     *         null -- this recipe is unavailable
-     */
-    default GTRecipe modifyRecipe(IWorkableMultiController controller, GTRecipe recipe) {
-        return recipe;
     }
 
     /**

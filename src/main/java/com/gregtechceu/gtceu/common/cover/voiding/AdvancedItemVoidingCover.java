@@ -17,8 +17,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Map;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -93,7 +91,6 @@ public class AdvancedItemVoidingCover extends ItemVoidingCover {
     // *********** GUI ***********//
     //////////////////////////////////////
     @Override
-    @NotNull
     protected String getUITitle() {
         return "cover.item.voiding.advanced.title";
     }

@@ -16,11 +16,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.fast.recipesearch.IntLongMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -37,8 +37,8 @@ public class RecipeHandlerList {
     public static Consumer<IMultiPart> NOTIFY = p -> {};
 
     public final Reference2ObjectOpenHashMap<RecipeCapability<?>, List<IRecipeHandler<?>>> handlerMap = new Reference2ObjectOpenHashMap<>();
-    public final List<IRecipeHandler<?>> allHandlers = new ObjectArrayList<>();
-    public final List<NotifiableRecipeHandlerTrait<?>> allHandlerTraits = new ObjectArrayList<>();
+    public final List<IRecipeHandler<?>> allHandlers = new ArrayList<>();
+    public final List<NotifiableRecipeHandlerTrait<?>> allHandlerTraits = new ArrayList<>();
     @Getter
     private final IO handlerIO;
     @Getter
@@ -87,7 +87,7 @@ public class RecipeHandlerList {
     public void addHandlers(Iterable<IRecipeHandler<?>> handlers) {
         for (var handler : handlers) {
             if (allHandlers.contains(handler)) continue;
-            handlerMap.computeIfAbsent(handler.getCapability(), c -> new ObjectArrayList<>()).add(handler);
+            handlerMap.computeIfAbsent(handler.getCapability(), c -> new ArrayList<>()).add(handler);
             allHandlers.add(handler);
             if (handler instanceof NotifiableRecipeHandlerTrait<?> rht) allHandlerTraits.add(rht);
         }
@@ -138,14 +138,14 @@ public class RecipeHandlerList {
     }
 
     public ISubscription subscribe(Runnable listener) {
-        List<ISubscription> subs = new ObjectArrayList<>(allHandlerTraits.size());
+        List<ISubscription> subs = new ArrayList<>(allHandlerTraits.size());
         allHandlerTraits.forEach(rht -> subs.add(rht.addChangedListener(listener)));
         return () -> subs.forEach(ISubscription::unsubscribe);
     }
 
     public ISubscription subscribe(Runnable listener, RecipeCapability<?> cap) {
         var capList = getCapability(cap);
-        List<ISubscription> subs = new ObjectArrayList<>(capList.size());
+        List<ISubscription> subs = new ArrayList<>(capList.size());
         for (var handler : capList) {
             if (handler instanceof IRecipeHandlerTrait<?> trait) {
                 subs.add(trait.addChangedListener(listener));

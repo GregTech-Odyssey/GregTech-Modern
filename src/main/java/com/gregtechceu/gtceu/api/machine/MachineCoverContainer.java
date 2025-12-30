@@ -27,10 +27,10 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
@@ -139,7 +139,7 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
 
     @Override
     public boolean canPlaceCoverOnSide(CoverDefinition definition, Direction side) {
-        List<VoxelShape> collisionList = new ObjectArrayList<>();
+        List<VoxelShape> collisionList = new ArrayList<>();
         machine.addCollisionBoundingBox(collisionList);
         // noinspection RedundantIfStatement
         if (ICoverable.doesCoverCollide(side, collisionList, getCoverPlateThickness())) {

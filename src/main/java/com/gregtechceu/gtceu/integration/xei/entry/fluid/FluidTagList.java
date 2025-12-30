@@ -7,18 +7,18 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
 @Getter
 public final class FluidTagList implements FluidEntryList {
 
-    private final List<FluidTagEntry> entries = new ObjectArrayList<>();
+    private final List<FluidTagEntry> entries = new ArrayList<>();
 
     public static FluidTagList of(@NotNull TagKey<Fluid> tag, int amount, @Nullable CompoundTag nbt) {
         var list = new FluidTagList();

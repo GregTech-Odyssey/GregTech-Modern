@@ -32,7 +32,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.fast.fastcollection.OpenCacheHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -226,10 +225,10 @@ public class ProspectingMapWidget extends WidgetGroup implements SearchComponent
         int cZ = (mouseY - y) / 16;
         if (cX >= 0 && cZ >= 0 && cX < chunkRadius * 2 - 1 && cZ < chunkRadius * 2 - 1) {
             // draw hover layer
-            List<Component> tooltips = new ObjectArrayList<>();
+            List<Component> tooltips = new ArrayList<>();
             tooltips.add(Component.translatable(mode.unlocalizedName));
             if (texture != null) {
-                List<Object[]> items = new ObjectArrayList<>();
+                List<Object[]> items = new ArrayList<>();
                 for (int i = 0; i < mode.cellSize; i++) {
                     for (int j = 0; j < mode.cellSize; j++) {
                         if (texture.data[cX * mode.cellSize + i][cZ * mode.cellSize + j] != null) {
@@ -296,9 +295,9 @@ public class ProspectingMapWidget extends WidgetGroup implements SearchComponent
         var vein = GTClientCache.instance.getNearbyVeins(gui.entityPlayer.level().dimension(), blockPos, 32);
         if (!vein.isEmpty()) {
             vein.sort((o1, o2) -> (int) (o1.center().distToCenterSqr(xPos, o1.center().getY(), zPos) - o2.center().distToCenterSqr(xPos, o2.center().getY(), zPos)));
-            var name = OreRenderLayer.getName(vein.get(0)).getString();
-            var materials = vein.get(0).definition().veinGenerator().getAllMaterials();
-            var mostCommonItem = materials.get(materials.size() - 1);
+            var name = OreRenderLayer.getName(vein.getFirst()).getString();
+            var materials = vein.getFirst().definition().veinGenerator().getAllMaterials();
+            var mostCommonItem = materials.getLast();
             var color = mostCommonItem.getMaterialRGB();
             return new WaypointItem(blockPos, name, color);
         }

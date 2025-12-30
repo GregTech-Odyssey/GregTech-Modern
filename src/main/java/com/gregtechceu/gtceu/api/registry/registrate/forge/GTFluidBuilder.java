@@ -45,9 +45,9 @@ import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
 import com.tterrag.registrate.util.nullness.NonNullBiFunction;
 import com.tterrag.registrate.util.nullness.NonNullConsumer;
 import com.tterrag.registrate.util.nullness.NonNullSupplier;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
@@ -97,7 +97,7 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
     private NonNullSupplier<? extends LiquidBlock> block;
     @Nullable
     private NonNullSupplier<? extends BucketItem> bucket;
-    private final List<TagKey<Fluid>> tags = new ObjectArrayList<>();
+    private final List<TagKey<Fluid>> tags = new ArrayList<>();
 
     public GTFluidBuilder(AbstractRegistrate<?> owner, P parent, Material material, String name, String langKey, BuilderCallback callback, ResourceLocation stillTexture, ResourceLocation flowingTexture, GTFluidBuilder.FluidTypeFactory typeFactory) {
         super(owner, parent, "flowing_" + name, callback, ForgeRegistries.Keys.FLUIDS);
@@ -122,9 +122,7 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
 
     @SuppressWarnings("deprecation")
     public GTFluidBuilder<P> renderType(Supplier<RenderType> layer) {
-        DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
-            Preconditions.checkArgument(RenderType.chunkBufferLayers().contains(layer.get()), "Invalid render type: " + layer);
-        });
+        DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> Preconditions.checkArgument(RenderType.chunkBufferLayers().contains(layer.get()), "Invalid render type: " + layer));
         if (this.layer == null) {
             onRegister(this::registerRenderType);
         }
@@ -134,15 +132,13 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
 
     @SuppressWarnings("deprecation")
     protected void registerRenderType(GTFluidImpl.Flowing entry) {
-        DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
-            OneTimeEventReceiver.addModListener(getOwner(), FMLClientSetupEvent.class, $ -> {
-                if (this.layer != null) {
-                    RenderType layer = this.layer.get();
-                    ItemBlockRenderTypes.setRenderLayer(entry, layer);
-                    ItemBlockRenderTypes.setRenderLayer(getSource(), layer);
-                }
-            });
-        });
+        DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> OneTimeEventReceiver.addModListener(getOwner(), FMLClientSetupEvent.class, $ -> {
+            if (this.layer != null) {
+                RenderType layer = this.layer.get();
+                ItemBlockRenderTypes.setRenderLayer(entry, layer);
+                ItemBlockRenderTypes.setRenderLayer(getSource(), layer);
+            }
+        }));
     }
 
     public GTFluidBuilder<P> defaultSource() {

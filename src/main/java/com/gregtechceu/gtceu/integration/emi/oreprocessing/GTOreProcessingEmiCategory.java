@@ -14,8 +14,8 @@ import net.minecraft.world.item.Items;
 import dev.emi.emi.api.EmiRegistry;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
 import dev.emi.emi.api.stack.EmiStack;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey.ORE;
@@ -38,7 +38,7 @@ public class GTOreProcessingEmiCategory extends EmiRecipeCategory {
     }
 
     public static void registerWorkStations(EmiRegistry registry) {
-        List<MachineDefinition> registeredMachines = new ObjectArrayList<>();
+        List<MachineDefinition> registeredMachines = new ArrayList<>();
         GTRecipeType[] validTypes = new GTRecipeType[] {
                 MACERATOR_RECIPES, ORE_WASHER_RECIPES, THERMAL_CENTRIFUGE_RECIPES, CENTRIFUGE_RECIPES,
                 CHEMICAL_BATH_RECIPES, ELECTROMAGNETIC_SEPARATOR_RECIPES, SIFTER_RECIPES

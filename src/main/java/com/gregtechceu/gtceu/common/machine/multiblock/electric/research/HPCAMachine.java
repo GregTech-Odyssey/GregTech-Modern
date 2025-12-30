@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.api.gui.widget.ExtendedProgressWidget;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
@@ -51,11 +52,11 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -100,13 +101,13 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        List<IFluidHandler> coolantContainers = new ObjectArrayList<>();
-        List<IHPCAComponentHatch> componentHatches = new ObjectArrayList<>();
+        List<IFluidHandler> coolantContainers = new ArrayList<>();
+        List<IHPCAComponentHatch> componentHatches = new ArrayList<>();
         for (IMultiPart part : getParts()) {
             if (part instanceof IHPCAComponentHatch componentHatch) {
                 componentHatches.add(componentHatch);
-            } else {
-                for (var handlerList : part.getRecipeHandlers()) {
+            } else if (part instanceof IWorkableMultiPart workableMultiPart) {
+                for (var handlerList : workableMultiPart.getRecipeHandlers()) {
                     handlerList.getCapability(FluidRecipeCapability.CAP).stream().filter(IFluidHandler.class::isInstance).map(IFluidHandler.class::cast).forEach(coolantContainers::add);
                 }
             }
@@ -173,7 +174,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         if (isWorkingEnabled()) {
             long energyToConsume = hpcaHandler.getCurrentEUt();
             if (this.energyContainer.removeEnergy(energyToConsume) >= energyToConsume) {
-                getRecipeLogic().setStatus(RecipeLogic.Status.WORKING);
+                getRecipeLogic().setStatus(RecipeLogic.WORKING);
             } else {
                 getRecipeLogic().setWaiting(Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(EURecipeCapability.CAP.getName()));
             }
@@ -245,7 +246,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         @Nullable
         private final HPCAMachine controller;
         // structure info
-        private final List<IHPCAComponentHatch> components = new ObjectArrayList<>();
+        private final List<IHPCAComponentHatch> components = new ArrayList<>();
         private final Set<IHPCACoolantProvider> coolantProviders = new ReferenceOpenHashSet<>();
         private final Set<IHPCAComputationProvider> computationProviders = new ReferenceOpenHashSet<>();
         private int numBridges;
@@ -398,7 +399,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
             // 1% chance each tick to damage a component if running too hot
             if (GTValues.RNG.nextInt(200) == 0) {
                 // randomize which component is actually damaged
-                List<IHPCAComponentHatch> candidates = new ObjectArrayList<>();
+                List<IHPCAComponentHatch> candidates = new ArrayList<>();
                 for (var component : components) {
                     if (component.canBeDamaged()) {
                         candidates.add(component);

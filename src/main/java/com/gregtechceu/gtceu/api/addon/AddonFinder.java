@@ -1,12 +1,11 @@
 package com.gregtechceu.gtceu.api.addon;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
+import java.util.ArrayList;
 import java.util.List;
 
 public final class AddonFinder {
 
-    private static final List<IGTAddon> cache = new ObjectArrayList<>();
+    private static final List<IGTAddon> cache = new ArrayList<>();
 
     public static void add(IGTAddon addon) {
         cache.add(addon);

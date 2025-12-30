@@ -7,9 +7,9 @@ import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.data.recipe.misc.RecyclingRecipes;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -36,7 +36,7 @@ public final class RecyclingRecipeHandler {
             return;
         }
 
-        List<MaterialStack> materialStacks = new ObjectArrayList<>();
+        List<MaterialStack> materialStacks = new ArrayList<>();
         materialStacks.add(new MaterialStack(material, prefix.getMaterialAmount(material)));
         materialStacks.addAll(prefix.secondaryMaterials());
         // only ignore arc smelting for blacklisted prefixes if yielded material is the same as input material

@@ -26,7 +26,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -126,7 +125,7 @@ public class WorkableOverlayModel {
     @OnlyIn(Dist.CLIENT)
     public List<BakedQuad> bakeQuads(@Nullable Direction side, ModelState modelState,
                                      boolean isActive, boolean isWorkingEnabled) {
-        var quads = new ObjectArrayList<BakedQuad>();
+        var quads = new ArrayList<BakedQuad>();
 
         for (var renderSide : GTUtil.DIRECTIONS) {
             ActivePredicate predicate = sprites.get(OverlayFace.bySide(renderSide));

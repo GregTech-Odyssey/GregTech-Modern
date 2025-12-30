@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -24,7 +25,7 @@ import java.util.function.Supplier;
 @SuppressWarnings("unused")
 public class ToolDefinitionBuilder {
 
-    private final List<IToolBehavior> behaviours = new ObjectArrayList<>();
+    private final List<IToolBehavior> behaviours = new ArrayList<>();
     private int damagePerAction = 1;
     private int damagePerCraftingAction = 1;
     private boolean suitableForBlockBreaking = false;

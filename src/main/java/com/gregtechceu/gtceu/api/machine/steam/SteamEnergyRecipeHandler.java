@@ -12,8 +12,7 @@ import com.gregtechceu.gtceu.utils.GTMath;
 
 import net.minecraftforge.fluids.FluidStack;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -34,11 +33,11 @@ public class SteamEnergyRecipeHandler implements IRecipeHandler<Long> {
         if (totalSteam > 0) {
             var steam = io == IO.IN ? FluidIngredient.of(totalSteam, GTMaterials.Steam.getFluid()) :
                     FluidIngredient.of(GTMaterials.Steam.getFluid(totalSteam));
-            var list = new ObjectArrayList<FluidIngredient>();
+            var list = new ArrayList<FluidIngredient>();
             list.add(steam);
             var leftSteam = steamTank.handleRecipeInner(io, recipe, list, simulate);
             if (leftSteam == null || leftSteam.isEmpty()) return null;
-            eut = (long) (leftSteam.get(0).getAmount() / conversionRate);
+            eut = (long) (leftSteam.getFirst().getAmount() / conversionRate);
         }
         return eut <= 0 ? null : Collections.singletonList(eut);
     }

@@ -43,10 +43,10 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -90,10 +90,10 @@ public class GeodeVeinGenerator extends VeinGenerator {
         int minOffset = this.minGenOffset;
         int maxOffset = this.maxGenOffset;
         int distributionSample = this.distributionPoints.sample(random);
-        List<ObjectIntPair<BlockPos>> points = new ObjectArrayList<>(distributionSample);
+        List<ObjectIntPair<BlockPos>> points = new ArrayList<>(distributionSample);
         WorldgenRandom worldgenRandom = new WorldgenRandom(new LegacyRandomSource(level.getSeed()));
         NormalNoise normalNoise = NormalNoise.create(worldgenRandom, -4, 1.0);
-        List<BlockPos> list2 = new ObjectArrayList<>(3);
+        List<BlockPos> list2 = new ArrayList<>(3);
         double wallDistance = (double) distributionSample / (double) this.outerWallDistance.getMaxValue();
         double fillingSize = 1.0 / Math.sqrt(geodeLayerSettings.filling);
         double innerSize = 1.0 / Math.sqrt(geodeLayerSettings.innerLayer + wallDistance);
@@ -132,7 +132,7 @@ public class GeodeVeinGenerator extends VeinGenerator {
                 list2.add(origin.offset(0, 1, 0));
             }
         }
-        List<BlockPos> positions = new ObjectArrayList<>();
+        List<BlockPos> positions = new ArrayList<>();
         Predicate<BlockState> placementPredicate = GeodeFeature.isReplaceable(this.geodeBlockSettings.cannotReplace);
         for (BlockPos pos : BlockPos.betweenClosed(origin.offset(minOffset, minOffset, minOffset), origin.offset(maxOffset, maxOffset, maxOffset))) {
             double noiseValue = normalNoise.getValue(pos.getX(), pos.getY(), pos.getZ()) * this.noiseMultiplier;

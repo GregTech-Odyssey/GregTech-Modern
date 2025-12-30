@@ -47,10 +47,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -190,8 +190,8 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
     }
 
     protected void initializeAbilities() {
-        List<IEnergyContainer> energyContainers = new ObjectArrayList<>();
-        for (IMultiPart part : getParts()) {
+        List<IEnergyContainer> energyContainers = new ArrayList<>();
+        for (var part : getWorkableParts()) {
             if (isPartIgnored(part)) continue;
             for (var handlerList : part.getRecipeHandlers()) {
                 handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).forEach(energyContainers::add);
@@ -314,7 +314,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
             rDist = tmp;
         }
         StringBuilder[] floorLayer = new StringBuilder[fDist + bDist + 1];
-        List<StringBuilder[]> wallLayers = new ObjectArrayList<>();
+        List<StringBuilder[]> wallLayers = new ArrayList<>();
         StringBuilder[] ceilingLayer = new StringBuilder[fDist + bDist + 1];
         for (int i = 0; i < floorLayer.length; i++) {
             floorLayer[i] = new StringBuilder(lDist + rDist + 1);
@@ -475,7 +475,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_MACHINE_INFO) {
             return Collections.singletonList(Component.translatable(isClean() ? "gtceu.multiblock.cleanroom.clean_state" : "gtceu.multiblock.cleanroom.dirty_state"));
         }
-        return new ObjectArrayList<>();
+        return new ArrayList<>();
     }
 
     @Override

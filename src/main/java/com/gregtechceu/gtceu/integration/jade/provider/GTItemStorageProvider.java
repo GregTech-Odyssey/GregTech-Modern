@@ -12,12 +12,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 import snownee.jade.addon.universal.ItemStorageProvider;
 import snownee.jade.api.Accessor;
 import snownee.jade.api.view.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -51,7 +51,7 @@ public enum GTItemStorageProvider implements IServerExtensionProvider<MetaMachin
             if (qcm instanceof CreativeChestMachine ccm) {
                 amount = (long) Math.ceil(1d * ccm.getItemsPerCycle() / ccm.getTicksPerCycle());
             }
-            List<ItemStack> list = new ObjectArrayList<>();
+            List<ItemStack> list = new ArrayList<>();
             for (int stack : GTMath.split(amount)) {
                 list.add(stored.copyWithCount(stack));
             }

@@ -14,10 +14,8 @@ import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -30,10 +28,8 @@ public final class MaterialRegistryManager implements IMaterialRegistryManager {
     private final Object2ObjectMap<String, MaterialRegistryImpl> registries = new O2OOpenCacheHashMap<>();
     private final Int2ObjectMap<MaterialRegistryImpl> networkIds = new Int2ObjectOpenHashMap<>();
 
-    @Nullable
     private Collection<Material> registeredMaterials;
 
-    @NotNull
     private final Set<Material> nonRegisteredMaterials = new ReferenceOpenHashSet<>();
 
     private final MaterialRegistryImpl gregtechRegistry = createInternalRegistry();
@@ -60,8 +56,8 @@ public final class MaterialRegistryManager implements IMaterialRegistryManager {
     @NotNull
     @Override
     public MaterialRegistry createRegistry(@NotNull String modid) {
-        if (getPhase() != Phase.PRE) {
-            throw new IllegalStateException("Cannot create registries in phase " + getPhase());
+        if (registrationPhase != Phase.PRE) {
+            throw new IllegalStateException("Cannot create registries in phase " + registrationPhase);
         }
 
         Preconditions.checkArgument(!registries.containsKey(modid),
@@ -89,8 +85,8 @@ public final class MaterialRegistryManager implements IMaterialRegistryManager {
     @NotNull
     @Override
     public Collection<MaterialRegistry> getRegistries() {
-        if (getPhase() == Phase.PRE) {
-            throw new IllegalStateException("Cannot get all material registries during phase " + getPhase());
+        if (registrationPhase == Phase.PRE) {
+            throw new IllegalStateException("Cannot get all material registries during phase " + registrationPhase);
         }
         return Collections.unmodifiableCollection(registries.values());
     }
@@ -98,8 +94,7 @@ public final class MaterialRegistryManager implements IMaterialRegistryManager {
     @NotNull
     @Override
     public Collection<Material> getRegisteredMaterials() {
-        if (registeredMaterials == null ||
-                (getPhase() != Phase.CLOSED && getPhase() != Phase.FROZEN)) {
+        if (registeredMaterials == null || (registrationPhase != Phase.CLOSED && registrationPhase != Phase.FROZEN)) {
             throw new IllegalStateException("Cannot retrieve all materials before registration");
         }
         return registeredMaterials;
@@ -141,11 +136,11 @@ public final class MaterialRegistryManager implements IMaterialRegistryManager {
 
     public void closeRegistries() {
         registries.values().forEach(MaterialRegistryImpl::closeRegistry);
-        var collection = new ObjectArrayList<Material>();
+        ImmutableList.Builder<Material> collection = ImmutableList.builder();
         for (MaterialRegistry registry : registries.values()) {
             collection.addAll(registry.getAllMaterials());
         }
-        registeredMaterials = ImmutableList.copyOf(collection);
+        registeredMaterials = collection.build();
         registrationPhase = Phase.CLOSED;
     }
 

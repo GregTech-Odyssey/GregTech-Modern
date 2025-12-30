@@ -16,7 +16,6 @@ import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.Level;
 
 import com.google.gson.JsonObject;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -65,7 +64,7 @@ public class StrictShapedRecipe extends ShapedRecipe {
     }
 
     @Override
-    public @NotNull RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<?> getSerializer() {
         return SERIALIZER;
     }
 

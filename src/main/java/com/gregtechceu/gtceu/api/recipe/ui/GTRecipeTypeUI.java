@@ -43,7 +43,6 @@ import it.unimi.dsi.fastutil.bytes.Byte2ObjectArrayMap;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2IntAVLTreeMap;
 import it.unimi.dsi.fastutil.objects.Object2IntSortedMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -51,6 +50,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.DoubleSupplier;
@@ -182,7 +182,7 @@ public class GTRecipeTypeUI {
         }, (template, recipeHolder) -> {
             var isJEI = recipeHolder.progressSupplier == ProgressWidget.JEIProgress;
             // bind progress
-            List<Widget> progress = new ObjectArrayList<>();
+            List<Widget> progress = new ArrayList<>();
             // First set the progress suppliers separately.
             WidgetUtils.widgetByIdForEach(template, "^progress$", ProgressWidget.class, progressWidget -> {
                 progressWidget.setProgressSupplier(recipeHolder.progressSupplier);

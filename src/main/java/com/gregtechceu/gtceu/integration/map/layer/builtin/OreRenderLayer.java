@@ -15,9 +15,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
@@ -44,7 +44,7 @@ public class OreRenderLayer extends MapRenderLayer {
     public static @NotNull Material getMaterial(@NotNull GeneratedVeinMetadata vein) {
         Material firstMaterial = null;
         if (!vein.definition().indicatorGenerators().isEmpty()) {
-            var blockOrMaterial = vein.definition().indicatorGenerators().get(0).block();
+            var blockOrMaterial = vein.definition().indicatorGenerators().getFirst().block();
             firstMaterial = blockOrMaterial == null ? null : blockOrMaterial.map(
                     state -> {
                         var matStack = ChemicalHelper.getMaterialStack(state.getBlock());
@@ -53,13 +53,13 @@ public class OreRenderLayer extends MapRenderLayer {
                     Function.identity());
         }
         if (firstMaterial == null) {
-            firstMaterial = vein.definition().veinGenerator().getAllMaterials().get(0);
+            firstMaterial = vein.definition().veinGenerator().getAllMaterials().getFirst();
         }
         return firstMaterial;
     }
 
     public static List<Component> getTooltip(String name, GeneratedVeinMetadata vein) {
-        final List<Component> tooltip = new ObjectArrayList<>();
+        final List<Component> tooltip = new ArrayList<>();
         var title = Component.literal(name);
         if (vein.depleted()) {
             title.append(" (").append(Component.translatable("gtceu.minimap.ore_vein.depleted")).append(")");
@@ -67,13 +67,9 @@ public class OreRenderLayer extends MapRenderLayer {
         tooltip.add(title);
 
         for (var filler : vein.definition().veinGenerator().getAllEntries()) {
-            filler.vein().ifLeft(state -> {
-                tooltip.add(Component.literal(ConfigHolder.INSTANCE.compat.minimap.oreNamePrefix)
-                        .append(state.getBlock().getName()));
-            }).ifRight(material -> {
-                tooltip.add(Component.literal(ConfigHolder.INSTANCE.compat.minimap.oreNamePrefix)
-                        .append(TagPrefix.ore.getLocalizedName(material)));
-            });
+            filler.vein().ifLeft(state -> tooltip.add(Component.literal(ConfigHolder.INSTANCE.compat.minimap.oreNamePrefix)
+                    .append(state.getBlock().getName()))).ifRight(material -> tooltip.add(Component.literal(ConfigHolder.INSTANCE.compat.minimap.oreNamePrefix)
+                            .append(TagPrefix.ore.getLocalizedName(material))));
         }
         return tooltip;
     }

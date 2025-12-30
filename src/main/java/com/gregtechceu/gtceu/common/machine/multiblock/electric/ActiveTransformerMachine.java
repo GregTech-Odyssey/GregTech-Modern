@@ -9,7 +9,7 @@ import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
@@ -25,9 +25,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -39,7 +39,7 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
 
     private EnergyContainerInfoList powerOutput;
     private EnergyContainerInfoList powerInput;
-    protected ConditionalSubscriptionHandler converterSubscription;
+    protected final ConditionalSubscriptionHandler converterSubscription;
 
     public ActiveTransformerMachine(MetaMachineBlockEntity holder) {
         super(holder);
@@ -51,7 +51,7 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
 
     public void convertEnergyTick() {
         if (isWorkingEnabled()) {
-            getRecipeLogic().setStatus(isSubscriptionActive() ? RecipeLogic.Status.WORKING : RecipeLogic.Status.SUSPEND);
+            getRecipeLogic().setStatus(isSubscriptionActive() ? RecipeLogic.WORKING : RecipeLogic.SUSPEND);
         }
         if (isWorkingEnabled()) {
             long canDrain = powerInput.getEnergyStored();
@@ -81,9 +81,9 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
     public void onStructureFormed() {
         super.onStructureFormed();
         // capture all energy containers
-        List<IEnergyContainer> powerInput = new ObjectArrayList<>();
-        List<IEnergyContainer> powerOutput = new ObjectArrayList<>();
-        for (IMultiPart part : getPrioritySortedParts()) {
+        List<IEnergyContainer> powerInput = new ArrayList<>();
+        List<IEnergyContainer> powerOutput = new ArrayList<>();
+        for (var part : getPrioritySortedParts()) {
             for (var handlerList : part.getRecipeHandlers()) {
                 var containers = handlerList.getCapability(EURecipeCapability.CAP).stream()
                         .filter(IEnergyContainer.class::isInstance)
@@ -114,8 +114,8 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
     }
 
     @NotNull
-    private List<IMultiPart> getPrioritySortedParts() {
-        return Arrays.stream(getParts()).sorted(Comparator.comparingInt(part -> {
+    private List<IWorkableMultiPart> getPrioritySortedParts() {
+        return Arrays.stream(getParts()).filter(IWorkableMultiPart.class::isInstance).map(IWorkableMultiPart.class::cast).sorted(Comparator.comparingInt(part -> {
             if (part instanceof MetaMachine partMachine) {
                 Block partBlock = partMachine.getBlockState().getBlock();
 
@@ -135,7 +135,7 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
 
     @Override
     public void onStructureInvalid() {
-        if ((isWorkingEnabled() && recipeLogic.getStatus() == RecipeLogic.Status.WORKING) &&
+        if ((isWorkingEnabled() && recipeLogic.getStatus() == RecipeLogic.WORKING) &&
                 !ConfigHolder.INSTANCE.machines.harmlessActiveTransformers) {
             doExplosion(6f + getTier());
         }
@@ -144,7 +144,7 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
         this.powerInput.onMachineUnLoad();
         this.powerOutput = EnergyContainerInfoList.EMPTY;
         this.powerInput = EnergyContainerInfoList.EMPTY;
-        getRecipeLogic().setStatus(RecipeLogic.Status.SUSPEND);
+        getRecipeLogic().setStatus(RecipeLogic.SUSPEND);
         converterSubscription.unsubscribe();
     }
 

@@ -14,7 +14,7 @@ import java.util.List;
 @Mixin(value = MapElementRenderHandler.Builder.class, remap = false)
 public class MapElementRenderHandlerBuilderMixin {
 
-    @ModifyVariable(method = "build", at = @At(value = "LOAD", ordinal = 3))
+    @ModifyVariable(method = "build", at = @At(value = "LOAD", ordinal = 3), name = "renderers")
     private List<MapElementRenderer<?, ?, ?>> gtceu$addOreRenderer(List<MapElementRenderer<?, ?, ?>> value) {
         if (ConfigHolder.INSTANCE.compat.minimap.toggle.xaerosMapIntegration) {
             value.add(OreVeinElementRenderer.Builder.begin().build());

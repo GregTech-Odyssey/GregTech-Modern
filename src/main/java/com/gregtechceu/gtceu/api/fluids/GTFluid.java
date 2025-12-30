@@ -21,7 +21,6 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
@@ -40,7 +39,7 @@ public abstract class GTFluid extends FlowingFluid {
     @Getter
     private final int burnTime;
 
-    public GTFluid(@NotNull FluidState state, Supplier<? extends Fluid> still, Supplier<? extends Fluid> flowing, Supplier<? extends LiquidBlock> block, Supplier<? extends Item> bucket, int burnTime) {
+    public GTFluid(FluidState state, Supplier<? extends Fluid> still, Supplier<? extends Fluid> flowing, Supplier<? extends LiquidBlock> block, Supplier<? extends Item> bucket, int burnTime) {
         super();
         this.state = state;
         this.stillFluid = GTMemoizer.memoize(() -> still.get() != null ? still.get() : Fluids.EMPTY);

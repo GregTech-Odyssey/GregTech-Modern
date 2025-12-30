@@ -2,9 +2,9 @@ package com.gregtechceu.gtceu.api.recipe.content;
 
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -49,7 +49,7 @@ public record ContentModifier(double multiplier, double addition) {
             var contentList = entry.getValue();
             var cap = entry.getKey();
             if (contentList != null && !contentList.isEmpty()) {
-                List<Content> contentsCopy = new ObjectArrayList<>();
+                List<Content> contentsCopy = new ArrayList<>();
                 for (Content content : contentList) {
                     contentsCopy.add(content.copy(cap, this));
                 }

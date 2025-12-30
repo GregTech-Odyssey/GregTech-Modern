@@ -124,9 +124,7 @@ public class TieredEnergyMachine extends TieredMachine implements IExplosionMach
             progressBar.setFillDirection(ProgressTexture.FillDirection.DOWN_TO_UP);
             progressBar.setBackground(GuiTextures.ENERGY_BAR_BACKGROUND);
             return progressBar;
-        }, (progressBar, machine) -> {
-            progressBar.setProgressSupplier(
-                    () -> machine.energyContainer.getEnergyStored() * 1d / machine.energyContainer.getEnergyCapacity());
-        });
+        }, (progressBar, machine) -> progressBar.setProgressSupplier(
+                () -> machine.energyContainer.getEnergyStored() * 1d / machine.energyContainer.getEnergyCapacity()));
     }
 }

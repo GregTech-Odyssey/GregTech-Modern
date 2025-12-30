@@ -21,8 +21,8 @@ import dev.emi.emi.api.recipe.handler.EmiRecipeHandler;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.screen.RecipeScreen;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Ae2PatternTerminalHandler<T extends PatternEncodingTermMenu> implements EmiRecipeHandler<T> {
@@ -75,7 +75,7 @@ public class Ae2PatternTerminalHandler<T extends PatternEncodingTermMenu> implem
 
     private static List<GenericStack> intoGenericStack(EmiIngredient ingredient) {
         if (ingredient.isEmpty()) {
-            return new ObjectArrayList<>();
+            return new ArrayList<>();
         }
         return ingredient.getEmiStacks().stream().map(stack -> fromEmiStack(stack, ingredient.getAmount())).toList();
     }

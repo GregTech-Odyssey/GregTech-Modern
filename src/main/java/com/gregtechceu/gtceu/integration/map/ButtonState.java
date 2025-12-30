@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.integration.map;
 
 import com.fast.fastcollection.O2OOpenCacheHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -45,7 +45,7 @@ public class ButtonState {
 
     public static List<Button> getAllButtons() {
         if (sortedButtons == null) {
-            sortedButtons = new ObjectArrayList<>(buttons.values());
+            sortedButtons = new ArrayList<>(buttons.values());
         }
         return sortedButtons;
     }

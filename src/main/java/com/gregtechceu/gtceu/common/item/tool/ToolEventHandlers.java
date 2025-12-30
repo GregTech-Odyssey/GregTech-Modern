@@ -34,9 +34,9 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -134,7 +134,7 @@ public class ToolEventHandlers {
             }
         }
         if (ToolHelper.isMagnetic(tool)) {
-            drops = new ObjectArrayList<>(drops);
+            drops = new ArrayList<>(drops);
             Iterator<ItemStack> dropItr = drops.iterator();
             while (dropItr.hasNext()) {
                 ItemStack dropStack = dropItr.next();

@@ -21,7 +21,7 @@ public abstract class MaterialRegistry extends GTRegistry.String<Material> {
 
     public MaterialRegistry(java.lang.String modId) {
         super(new ResourceLocation(modId, "material"));
-        this.registrate = GTCEu.MOD_ID.equals(modId) ? GTRegistration.REGISTRATE : AddonFinder.getAddons().get(0).getRegistrate();
+        this.registrate = GTCEu.MOD_ID.equals(modId) ? GTRegistration.REGISTRATE : AddonFinder.getAddons().getFirst().getRegistrate();
     }
 
     public abstract void register(Material material);

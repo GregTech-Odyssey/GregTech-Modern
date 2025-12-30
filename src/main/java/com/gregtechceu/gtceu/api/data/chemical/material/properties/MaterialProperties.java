@@ -3,11 +3,11 @@ package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,7 +66,7 @@ public class MaterialProperties {
     public void verify() {
         List<IMaterialProperty> oldList;
         do {
-            oldList = new ObjectArrayList<>(propertyMap.values());
+            oldList = new ArrayList<>(propertyMap.values());
             oldList.forEach(p -> p.verifyProperty(this));
         } while (oldList.size() != propertyMap.size());
         if (propertyMap.keySet().stream().noneMatch(baseTypes::contains)) {

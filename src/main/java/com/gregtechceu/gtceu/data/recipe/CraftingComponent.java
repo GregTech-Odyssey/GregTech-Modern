@@ -71,9 +71,6 @@ public class CraftingComponent {
     }
 
     public void setFallback(@NotNull final Object fallback) {
-        if (fallback == null) {
-            throw new NullPointerException("fallback is marked non-null but is null");
-        }
         this.fallback = fallback;
     }
 }

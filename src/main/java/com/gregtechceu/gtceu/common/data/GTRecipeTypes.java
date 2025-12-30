@@ -44,8 +44,7 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.ModLoader;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -79,11 +78,11 @@ public class GTRecipeTypes {
                 }
                 var list = builder.input.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList());
                 if (!list.isEmpty()) {
-                    Arrays.stream(FluidRecipeCapability.CAP.of(list.get(0).content).getStacks()).forEach(stack -> SteamLiquidBoilerMachine.FUEL_CACHE.add(stack.getFluid()));
+                    Arrays.stream(FluidRecipeCapability.CAP.of(list.getFirst().content).getStacks()).forEach(stack -> SteamLiquidBoilerMachine.FUEL_CACHE.add(stack.getFluid()));
                 }
                 list = builder.input.getOrDefault(ItemRecipeCapability.CAP, Collections.emptyList());
                 if (!list.isEmpty()) {
-                    Arrays.stream(ItemRecipeCapability.CAP.of(list.get(0).content).getItems()).forEach(stack -> SteamSolidBoilerMachine.FUEL_CACHE.add(stack.getItem()));
+                    Arrays.stream(ItemRecipeCapability.CAP.of(list.getFirst().content).getItems()).forEach(stack -> SteamSolidBoilerMachine.FUEL_CACHE.add(stack.getItem()));
                 }
             })
             .setMaxTooltips(1)
@@ -528,7 +527,7 @@ public class GTRecipeTypes {
             })
             .setUiBuilder((recipe, widgetGroup) -> {
                 int temp = recipe.data.getInt("ebf_temp");
-                List<List<ItemStack>> items = new ObjectArrayList<>();
+                List<List<ItemStack>> items = new ArrayList<>();
                 items.add(GTCEuAPI.HEATING_COILS.entrySet().stream()
                         .filter(coil -> coil.getKey().getCoilTemperature() >= temp)
                         .map(coil -> new ItemStack(coil.getValue().get())).toList());
@@ -545,12 +544,12 @@ public class GTRecipeTypes {
                 if (recipeBuilder.data.getBoolean("disable_distillery")) return;
                 if (recipeBuilder.output.containsKey(FluidRecipeCapability.CAP)) {
                     long EUt = EURecipeCapability.CAP
-                            .of(recipeBuilder.tickInput.get(EURecipeCapability.CAP).get(0).getContent());
-                    Content inputContent = recipeBuilder.input.get(FluidRecipeCapability.CAP).get(0);
+                            .of(recipeBuilder.tickInput.get(EURecipeCapability.CAP).getFirst().getContent());
+                    Content inputContent = recipeBuilder.input.get(FluidRecipeCapability.CAP).getFirst();
                     FluidIngredient input = FluidRecipeCapability.CAP.of(inputContent.getContent());
                     ItemStack[] outputs = recipeBuilder.output.containsKey(ItemRecipeCapability.CAP) ?
                             ItemRecipeCapability.CAP
-                                    .of(recipeBuilder.output.get(ItemRecipeCapability.CAP).get(0).getContent())
+                                    .of(recipeBuilder.output.get(ItemRecipeCapability.CAP).getFirst().getContent())
                                     .getItems() :
                             null;
                     ItemStack outputItem = outputs == null || outputs.length == 0 ? ItemStack.EMPTY : outputs[0];

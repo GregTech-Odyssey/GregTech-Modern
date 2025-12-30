@@ -28,7 +28,6 @@ import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -58,7 +57,7 @@ public abstract class GTExplosiveBlock extends Block {
         this.fuseLength = fuseLength;
     }
 
-    protected abstract GTExplosiveEntity createEntity(@NotNull Level world, @NotNull BlockPos pos,
+    protected abstract GTExplosiveEntity createEntity(Level world, BlockPos pos,
                                                       @Nullable LivingEntity exploder);
 
     @Override

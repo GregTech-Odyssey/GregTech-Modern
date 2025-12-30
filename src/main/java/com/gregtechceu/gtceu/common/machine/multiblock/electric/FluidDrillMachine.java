@@ -21,8 +21,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -48,7 +46,6 @@ public class FluidDrillMachine extends WorkableElectricMultiblockMachine {
         return new FluidDrillLogic(this);
     }
 
-    @NotNull
     @Override
     public FluidDrillLogic getRecipeLogic() {
         return (FluidDrillLogic) super.getRecipeLogic();

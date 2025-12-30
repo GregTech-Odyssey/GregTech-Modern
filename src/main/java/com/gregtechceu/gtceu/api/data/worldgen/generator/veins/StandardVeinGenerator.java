@@ -29,7 +29,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.tterrag.registrate.util.nullness.NonNullSupplier;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.util.ArrayList;
@@ -115,7 +114,7 @@ public class StandardVeinGenerator extends VeinGenerator {
     public VeinGenerator build() {
         if (this.blocks != null) return this;
         // if (this.blocks.left().isPresent() && !this.blocks.left().get().isEmpty()) return this;
-        List<OreConfiguration.TargetBlockState> targetStates = new ObjectArrayList<>();
+        List<OreConfiguration.TargetBlockState> targetStates = new ArrayList<>();
         if (this.block != null) {
             targetStates.add(OreConfiguration.target(new TagMatchTest(BlockTags.STONE_ORE_REPLACEABLES),
                     this.block.get().defaultBlockState()));

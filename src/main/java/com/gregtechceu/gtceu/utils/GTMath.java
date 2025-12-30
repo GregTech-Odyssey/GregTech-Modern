@@ -4,11 +4,11 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.item.ItemStack;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +27,7 @@ public class GTMath {
         int count = saturatedCast(amount);
         int fullStacks = count / 64;
         int rem = count % 64;
-        List<ItemStack> stacks = new ObjectArrayList<>(fullStacks + 1);
+        List<ItemStack> stacks = new ArrayList<>(fullStacks + 1);
         if (fullStacks > 0) stacks.addAll(Collections.nCopies(fullStacks, stack.copyWithCount(64)));
         if (rem > 0) stacks.add(stack.copyWithCount(rem));
         return stacks;

@@ -50,8 +50,8 @@ public record CoverPlaceBehavior(CoverDefinition coverDefinition) implements IIn
         Item item = itemStack.getItem();
         if (item instanceof IComponentItem componentItem) {
             for (IItemComponent component : componentItem.getComponents()) {
-                if (component instanceof CoverPlaceBehavior placeBehavior) {
-                    if (canPlaceCover == null || canPlaceCover.test(placeBehavior.coverDefinition)) {
+                if (component instanceof CoverPlaceBehavior(CoverDefinition definition)) {
+                    if (canPlaceCover == null || canPlaceCover.test(definition)) {
                         return true;
                     }
                 }

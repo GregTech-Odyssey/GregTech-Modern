@@ -110,7 +110,7 @@ public final class WireCombiningHandler {
                 .inputItems(prefix, material)
                 .outputItems(cableToWireMap.get(prefix), material)
                 .outputItems(plate, GTMaterials.Rubber,
-                        (int) (prefix.secondaryMaterials().get(0).amount() / GTValues.M))
+                        (int) (prefix.secondaryMaterials().getFirst().amount() / GTValues.M))
                 .duration(100).EUt(GTValues.VA[GTValues.ULV])
                 .save();
     }

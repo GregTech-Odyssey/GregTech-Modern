@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.integration.xei.entry.item.ItemStackList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,7 +20,7 @@ public class CycleItemEntryHandler implements IItemHandlerModifiable {
     private List<List<ItemStack>> unwrapped = null;
 
     public CycleItemEntryHandler(List<ItemEntryList> entries) {
-        this.entries = new ObjectArrayList<>(entries);
+        this.entries = new ArrayList<>(entries);
     }
 
     public List<List<ItemStack>> getUnwrapped() {

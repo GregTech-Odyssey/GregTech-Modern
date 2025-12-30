@@ -22,7 +22,6 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -163,7 +162,6 @@ public class FluidRegulatorCover extends PumpCover {
     // ***** GUI ******//
     ///////////////////////////
     @Override
-    @NotNull
     protected String getUITitle() {
         return "cover.fluid_regulator.title";
     }

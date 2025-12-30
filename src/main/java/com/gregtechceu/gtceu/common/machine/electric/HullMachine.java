@@ -17,7 +17,6 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 
 import appeng.capabilities.Capabilities;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -42,7 +41,7 @@ public class HullMachine extends TieredPartMachine {
     }
 
     @Override
-    public @Nullable <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+    public @Nullable <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
         if (cap == Capabilities.IN_WORLD_GRID_NODE_HOST) {
             return Capabilities.IN_WORLD_GRID_NODE_HOST.orEmpty(cap, LazyOptional.of(() -> gridNodeHost));
         }
@@ -72,7 +71,7 @@ public class HullMachine extends TieredPartMachine {
     }
 
     @Override
-    public void saveCustomPersistedData(@NotNull CompoundTag tag, boolean forDrop) {
+    public void saveCustomPersistedData(CompoundTag tag, boolean forDrop) {
         super.saveCustomPersistedData(tag, forDrop);
         CompoundTag nbt = new CompoundTag();
         gridNodeHost.getMainNode().saveToNBT(nbt);
@@ -80,7 +79,7 @@ public class HullMachine extends TieredPartMachine {
     }
 
     @Override
-    public void loadCustomPersistedData(@NotNull CompoundTag tag) {
+    public void loadCustomPersistedData(CompoundTag tag) {
         super.loadCustomPersistedData(tag);
         gridNodeHost.getMainNode().loadFromNBT(tag.getCompound("grid_node"));
     }

@@ -99,7 +99,6 @@ public class MultiblockTankMachine extends MultiblockControllerMachine implement
         return String.valueOf(tank.getFluidInTank(0).getAmount());
     }
 
-    @NotNull
     public NotifiableFluidTank getTank() {
         return this.tank;
     }

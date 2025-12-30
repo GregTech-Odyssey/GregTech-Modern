@@ -37,15 +37,14 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 
@@ -79,8 +78,7 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
     }
 
     @Override
-    @NotNull
-    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+    public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
         if (cap == GTCapability.CAPABILITY_ENERGY_CONTAINER) {
             var container = getEnergyContainer(side);
             if (container != null) {
@@ -293,9 +291,8 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
     }
 
     @Override
-    @NotNull
     public List<Component> getDataInfo(PortableScannerBehavior.DisplayMode mode) {
-        List<Component> list = new ObjectArrayList<>();
+        List<Component> list = new ArrayList<>();
         if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_ELECTRICAL_INFO) {
             list.add(Component.translatable("behavior.portable_scanner.eu_per_sec", Component.translatable(FormattingUtil.formatNumbers(getCurrentVoltage())).withStyle(ChatFormatting.RED)));
             list.add(Component.translatable("behavior.portable_scanner.amp_per_sec", Component.translatable(FormattingUtil.formatNumbers(getCurrentAmperage())).withStyle(ChatFormatting.RED)));

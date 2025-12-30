@@ -27,7 +27,6 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -106,8 +105,7 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
         }
 
         @Override
-        @NotNull
-        public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
             if ((filterMode == FilterMode.FILTER_EXTRACT) && allowFlow == ManualIOMode.UNFILTERED) return super.insertItem(slot, stack, simulate);
             if (filterMode != FilterMode.FILTER_EXTRACT && getItemFilter().test(stack)) {
                 return super.insertItem(slot, stack, simulate);
@@ -116,7 +114,6 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
         }
 
         @Override
-        @NotNull
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
             ItemStack result = super.extractItem(slot, amount, true);
             if (result.isEmpty() && (filterMode == FilterMode.FILTER_INSERT) && allowFlow == ManualIOMode.UNFILTERED) {

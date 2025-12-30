@@ -24,9 +24,9 @@ import dev.emi.emi.api.widget.SlotWidget;
 import dev.emi.emi.api.widget.TankWidget;
 import dev.emi.emi.api.widget.Widget;
 import dev.emi.emi.api.widget.WidgetHolder;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GTEmiRecipe extends ModularEmiRecipe<WidgetGroup> {
@@ -59,7 +59,7 @@ public class GTEmiRecipe extends ModularEmiRecipe<WidgetGroup> {
         synchronized (CACHE_OPENED) {
             CACHE_OPENED.add(modular);
         }
-        List<Widget> slots = new ObjectArrayList<>();
+        List<Widget> slots = new ArrayList<>();
         for (com.lowdragmc.lowdraglib.gui.widget.Widget w : getFlatWidgetCollection(widget)) {
             if (w instanceof IRecipeIngredientSlot slot) {
                 if (w.getParent() instanceof DraggableScrollableWidgetGroup draggable && draggable.isUseScissor()) {

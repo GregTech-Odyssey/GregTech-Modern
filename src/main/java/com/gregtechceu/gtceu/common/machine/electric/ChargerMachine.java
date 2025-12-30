@@ -30,11 +30,11 @@ import net.minecraft.core.Direction;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -138,7 +138,7 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
     // ****** Charger Logic ******//
     //////////////////////////////////////
     private List<Object> getNonFullElectricItem() {
-        List<Object> electricItems = new ObjectArrayList<>();
+        List<Object> electricItems = new ArrayList<>();
         for (int i = 0; i < chargerInventory.getSlots(); i++) {
             var electricItemStack = chargerInventory.getStackInSlot(i);
             var electricItem = GTCapabilityHelper.getElectricItem(electricItemStack);

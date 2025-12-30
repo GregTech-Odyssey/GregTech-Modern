@@ -18,9 +18,9 @@ import net.minecraftforge.fluids.FluidStack;
 
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.GenericStack;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -71,7 +71,7 @@ public class AEFluidDisplayWidget extends Widget {
                 FluidStack fluidStack = fluid.what() instanceof AEFluidKey key ?
                         new FluidStack(key.getFluid(), GTMath.saturatedCast(fluid.amount()), key.getTag()) :
                         FluidStack.EMPTY;
-                List<Component> tooltips = new ObjectArrayList<>();
+                List<Component> tooltips = new ArrayList<>();
                 tooltips.add(fluidStack.getDisplayName());
                 tooltips.add(Component.literal(String.format("%,d mB", fluid.amount())));
                 TooltipsHandler.appendFluidTooltips(fluidStack, tooltips::add, TooltipFlag.NORMAL);

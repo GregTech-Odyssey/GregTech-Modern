@@ -8,9 +8,9 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +29,7 @@ public abstract class WorldCache {
         if (cache.containsKey(dim)) {
             return cache.get(dim).getNearbyVeins(pos, blockRadius);
         }
-        return new ObjectArrayList<>();
+        return new ArrayList<>();
     }
 
     public List<GeneratedVeinMetadata> getVeinsInArea(ResourceKey<Level> dim, int[] bounds) {
@@ -38,7 +38,7 @@ public abstract class WorldCache {
                     new BlockPos(bounds[0], 0, bounds[1]),
                     new BlockPos(bounds[0] + bounds[2], 0, bounds[1] + bounds[3]));
         }
-        return new ObjectArrayList<>();
+        return new ArrayList<>();
     }
 
     public void clear() {

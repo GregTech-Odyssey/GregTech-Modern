@@ -24,7 +24,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -38,7 +37,7 @@ public class OpticalPipeBlock extends PipeBlock<OpticalPipeType, OpticalPipeProp
     private final OpticalPipeType pipeType;
     private final OpticalPipeProperties properties;
 
-    public OpticalPipeBlock(BlockBehaviour.Properties properties, @NotNull OpticalPipeType pipeType) {
+    public OpticalPipeBlock(BlockBehaviour.Properties properties, OpticalPipeType pipeType) {
         super(properties, pipeType);
         this.pipeType = pipeType;
         this.properties = OpticalPipeProperties.INSTANCE;
@@ -62,7 +61,7 @@ public class OpticalPipeBlock extends PipeBlock<OpticalPipeType, OpticalPipeProp
     }
 
     @Override
-    public OpticalPipeProperties createProperties(@NotNull PipeBlockEntity<OpticalPipeType, OpticalPipeProperties> pipeTile) {
+    public OpticalPipeProperties createProperties(PipeBlockEntity<OpticalPipeType, OpticalPipeProperties> pipeTile) {
         OpticalPipeType pipeType = pipeTile.getPipeType();
         if (pipeType == null) return getFallbackType();
         return this.pipeType.modifyProperties(properties);

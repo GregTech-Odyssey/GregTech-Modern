@@ -36,7 +36,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.Getter;
@@ -543,7 +542,7 @@ public class Material implements Comparable<Material> {
         /*
          * The temporary list of components for this Material.
          */
-        private List<MaterialStack> composition = new ObjectArrayList<>();
+        private List<MaterialStack> composition = new ArrayList<>();
         /*
          * Temporary value to use to determine how to calculate default RGB
          */

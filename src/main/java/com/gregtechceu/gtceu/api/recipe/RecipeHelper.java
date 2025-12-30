@@ -209,9 +209,9 @@ public class RecipeHelper {
             if (!cap.doMatchInRecipe()) continue;
             var list = entry.getValue();
             if (list.isEmpty()) continue;
-            List<Content> chancedContents = new ObjectArrayList<>(list.size());
-            var contentList = new ObjectArrayList<>(list.size());
-            var searchContentList = simulated ? null : new ObjectArrayList<>(list.size());
+            List<Content> chancedContents = new ArrayList<>(list.size());
+            var contentList = new ArrayList<>(list.size());
+            var searchContentList = simulated ? null : new ArrayList<>(list.size());
             for (Content cont : list) {
                 if (simulated) {
                     contentList.add(cont.content);
@@ -291,7 +291,7 @@ public class RecipeHelper {
         Map<RecipeConditionType<?>, List<RecipeCondition>> or = new Reference2ObjectArrayMap<>();
         for (RecipeCondition condition : recipe.conditions) {
             if (condition.isOr()) {
-                or.computeIfAbsent(condition.getType(), type -> new ObjectArrayList<>()).add(condition);
+                or.computeIfAbsent(condition.getType(), type -> new ArrayList<>()).add(condition);
             } else if (!condition.check(recipe, recipeLogic)) {
                 return ActionResult.fail(Component.translatable("gtceu.recipe_logic.condition_fails")
                         .append(": ")
@@ -357,14 +357,14 @@ public class RecipeHelper {
             int N = trimLimits.getOrDefault(cap, -1);
             if (N == 0) continue; // Skip this cap if limit is 0
 
-            List<Content> list = outputs.computeIfAbsent(cap, c -> new ObjectArrayList<>());
+            List<Content> list = outputs.computeIfAbsent(cap, c -> new ArrayList<>());
             if (N == -1) { // Add all if limit is -1/not in map
                 list.addAll(contents);
                 continue;
             }
 
             int added = 0;
-            List<Content> chanced = new ObjectArrayList<>();
+            List<Content> chanced = new ArrayList<>();
             // Add non-chanced contents with priority and store chanced contents for later
             for (var content : contents) {
                 if (added == N) break;

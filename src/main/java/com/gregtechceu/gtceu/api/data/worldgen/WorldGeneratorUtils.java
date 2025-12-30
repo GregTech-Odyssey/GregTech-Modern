@@ -25,7 +25,6 @@ import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 
 import java.util.*;
@@ -112,7 +111,7 @@ public class WorldGeneratorUtils {
     }
 
     public static void generateChunks(WorldGenLevel level, ChunkStatus requiredStatus, Collection<ChunkPos> chunks) {
-        List<ChunkPos> previouslyUnloadedChunks = new ObjectArrayList<>();
+        List<ChunkPos> previouslyUnloadedChunks = new ArrayList<>();
         var chunkSource = level.getChunkSource();
 
         for (ChunkPos chunkPos : chunks) {

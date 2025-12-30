@@ -33,12 +33,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 
 import com.fast.fastcollection.OpenCacheHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -70,13 +69,12 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
             @Override
             public void onContentsChanged() {
                 super.onContentsChanged();
-                rebuildData(isFormed() && getControllers().first() instanceof DataBankMachine);
+                rebuildData(isFormed() && getController() instanceof DataBankMachine);
             }
 
-            @NotNull
             @Override
-            public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
-                boolean isDataBank = isFormed() && getControllers().first() instanceof DataBankMachine;
+            public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+                boolean isDataBank = isFormed() && getController() instanceof DataBankMachine;
                 if (ResearchManager.isStackDataItem(stack, isDataBank) && ResearchManager.hasResearchTag(stack)) {
                     return super.insertItem(slot, stack, simulate);
                 }
@@ -141,21 +139,20 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
     }
 
     @Override
-    public boolean isRecipeAvailable(@NotNull GTRecipe recipe) {
+    public boolean isRecipeAvailable(GTRecipe recipe) {
         return recipes.contains(recipe);
     }
 
-    @NotNull
     @Override
     public List<Component> getDataInfo(PortableScannerBehavior.DisplayMode mode) {
         if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_RECIPE_INFO) {
             if (recipes.isEmpty()) return Collections.emptyList();
-            List<Component> list = new ObjectArrayList<>();
+            List<Component> list = new ArrayList<>();
             list.add(Component.translatable("behavior.data_item.assemblyline.title"));
             list.add(Component.empty());
             Collection<ItemStack> itemsAdded = new ObjectOpenCustomHashSet<>(ItemStackHashStrategy.ALL);
             for (GTRecipe recipe : recipes) {
-                ItemStack stack = ItemRecipeCapability.CAP.of(recipe.getOutputContents(ItemRecipeCapability.CAP).get(0).content).getItems()[0];
+                ItemStack stack = ItemRecipeCapability.CAP.of(recipe.getOutputContents(ItemRecipeCapability.CAP).getFirst().content).getItems()[0];
                 if (!itemsAdded.contains(stack)) {
                     itemsAdded.add(stack);
                     list.add(Component.translatable("behavior.data_item.assemblyline.data", stack.getDisplayName()));
@@ -163,7 +160,7 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
             }
             return list;
         }
-        return new ObjectArrayList<>();
+        return new ArrayList<>();
     }
 
     @Override
@@ -180,7 +177,7 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
     @Override
     public @Nullable GTRecipe modifyRecipe(IWorkableMultiController controller, GTRecipe recipe) {
         // creative hatches do not need to check, they always have the recipe
-        if (this.isCreative()) return recipe;
+        if (this.isCreative) return recipe;
         if (recipe.conditions.stream().noneMatch(ResearchCondition.class::isInstance)) return recipe;
         // hatches need to have the recipe available
         if (this.isRecipeAvailable(recipe)) return recipe;

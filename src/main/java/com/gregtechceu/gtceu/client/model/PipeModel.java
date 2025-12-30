@@ -28,7 +28,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import com.mojang.blaze3d.vertex.PoseStack;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -131,7 +130,7 @@ public class PipeModel {
     }
 
     public VoxelShape getShapes(int connections) {
-        var shapes = new ObjectArrayList<VoxelShape>(7);
+        var shapes = new ArrayList<VoxelShape>(7);
         shapes.add(Shapes.create(coreCube));
         for (Direction side : GTUtil.DIRECTIONS) {
             if (PipeBlockEntity.isConnected(connections, side)) {
@@ -168,7 +167,7 @@ public class PipeModel {
         if (side != null) {
             if (thickness == 1) {
                 // full block
-                List<BakedQuad> quads = new ObjectArrayList<>();
+                List<BakedQuad> quads = new ArrayList<>();
                 quads.add(FaceQuad.builder(side, sideSprite).cube(coreCube).cubeUV().tintIndex(0).bake());
                 if (secondarySideSprite != null) {
                     quads.add(FaceQuad.builder(side, secondarySideSprite).cube(coreCube).cubeUV().tintIndex(0).bake());
@@ -177,7 +176,7 @@ public class PipeModel {
             }
             if (PipeBlockEntity.isConnected(connections, side)) {
                 // side connected
-                List<BakedQuad> quads = new ObjectArrayList<>();
+                List<BakedQuad> quads = new ArrayList<>();
                 quads.add(FaceQuad.builder(side, endSprite).cube(sideCubes.get(side).inflate(-0.001)).cubeUV().tintIndex(1).bake());
                 if (secondaryEndSprite != null) {
                     quads.add(FaceQuad.builder(side, secondaryEndSprite).cube(sideCubes.get(side)).cubeUV().tintIndex(1).bake());

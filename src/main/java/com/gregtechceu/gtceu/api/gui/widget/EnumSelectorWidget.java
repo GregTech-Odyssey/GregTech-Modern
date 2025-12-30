@@ -13,8 +13,6 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -110,7 +108,7 @@ public class EnumSelectorWidget<T extends Enum<T> & EnumSelectorWidget.Selectabl
         return this;
     }
 
-    public void setSelected(@NotNull T value) {
+    public void setSelected(T value) {
         var selectedIndex = values.indexOf(value);
 
         if (selectedIndex == -1)

@@ -268,7 +268,7 @@ public class TagPrefix {
     public final String name;
     private String idPattern;
     public final boolean invertedName;
-    protected final List<TagType> tags = new ObjectArrayList<>();
+    protected final List<TagType> tags = new ArrayList<>();
     public String langValue;
     private long materialAmount = -1;
     private boolean unificationEnabled;
@@ -291,7 +291,7 @@ public class TagPrefix {
     private int maxStackSize = 64;
     @Getter
     private ToIntFunction<Material> maxDamageProvider;
-    private final List<MaterialStack> secondaryMaterials = new ObjectArrayList<>();
+    private final List<MaterialStack> secondaryMaterials = new ArrayList<>();
     protected final Set<TagKey<Block>> miningToolTag = new OpenCacheHashSet<>();
 
     protected TagPrefix(String name) {

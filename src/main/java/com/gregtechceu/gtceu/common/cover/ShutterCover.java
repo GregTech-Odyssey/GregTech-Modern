@@ -19,7 +19,6 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -33,7 +32,7 @@ public class ShutterCover extends CoverBehavior implements IControllable {
     @Persisted
     private boolean workingEnabled = true;
 
-    public ShutterCover(@NotNull CoverDefinition definition, @NotNull ICoverable coverableView, @NotNull Direction attachedSide) {
+    public ShutterCover(CoverDefinition definition, ICoverable coverableView, Direction attachedSide) {
         super(definition, coverableView, attachedSide);
     }
 

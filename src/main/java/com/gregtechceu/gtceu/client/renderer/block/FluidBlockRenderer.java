@@ -166,8 +166,7 @@ public class FluidBlockRenderer {
         @Override
         public boolean equals(final Object o) {
             if (o == this) return true;
-            if (!(o instanceof FluidBlockRenderer.Properties)) return false;
-            final FluidBlockRenderer.Properties other = (FluidBlockRenderer.Properties) o;
+            if (!(o instanceof Properties other)) return false;
             if (!other.canEqual(this)) return false;
             if (Float.compare(this.getOffsetX(), other.getOffsetX()) != 0) return false;
             if (Float.compare(this.getOffsetY(), other.getOffsetY()) != 0) return false;

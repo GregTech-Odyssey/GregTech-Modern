@@ -650,7 +650,7 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
             if (GTUtil.isShiftDown()) {
                 Material material = getToolMaterial(stack);
 
-                Collection<Component> repairItems = new ObjectArrayList<>();
+                Collection<Component> repairItems = new ArrayList<>();
                 if (!VanillaRecipeHelper.isMaterialWood(material)) {
                     if (material.hasProperty(PropertyKey.INGOT)) {
                         repairItems.add(TagPrefix.ingot.getLocalizedName(material));
@@ -758,7 +758,7 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
 
     @Nullable
     default ICapabilityProvider definition$initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
-        List<ICapabilityProvider> providers = new ObjectArrayList<>();
+        List<ICapabilityProvider> providers = new ArrayList<>();
         for (IToolBehavior behavior : getToolStats().getBehaviors()) {
             if (behavior instanceof IComponentCapability componentCapability) {
                 providers.add(new ICapabilityProvider() {
@@ -773,7 +773,7 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
             }
         }
         if (providers.isEmpty()) return null;
-        if (providers.size() == 1) return providers.get(0);
+        if (providers.size() == 1) return providers.getFirst();
         return new CombinedCapabilityProvider(providers);
     }
 

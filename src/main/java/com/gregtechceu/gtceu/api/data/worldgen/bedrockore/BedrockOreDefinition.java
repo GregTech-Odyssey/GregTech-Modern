@@ -19,8 +19,8 @@ import net.minecraft.world.level.biome.Biome;
 import com.fast.fastcollection.OpenCacheHashSet;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -126,7 +126,7 @@ public class BedrockOreDefinition {
         }
 
         public Builder material(Material material, int amount) {
-            if (this.materials == null) this.materials = new ObjectArrayList<>();
+            if (this.materials == null) this.materials = new ArrayList<>();
             this.materials.add(new WeightedMaterial(material, amount));
             return this;
         }

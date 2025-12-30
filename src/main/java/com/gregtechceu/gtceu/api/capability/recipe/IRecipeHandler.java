@@ -9,9 +9,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.fast.recipesearch.IntLongMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public interface IRecipeHandler<K> extends IFilteredHandler<K> {
@@ -99,7 +99,7 @@ public interface IRecipeHandler<K> extends IFilteredHandler<K> {
     }
 
     default List<K> handleRecipe(IO io, GTRecipe recipe, List<?> left, boolean simulate) {
-        List<K> contents = new ObjectArrayList<>(left.size());
+        List<K> contents = new ArrayList<>(left.size());
         for (Object leftObj : left) {
             contents.add(copyContent(leftObj));
         }

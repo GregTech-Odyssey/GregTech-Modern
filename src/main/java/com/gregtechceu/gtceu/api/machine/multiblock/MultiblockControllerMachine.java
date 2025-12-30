@@ -3,15 +3,19 @@ package com.gregtechceu.gtceu.api.machine.multiblock;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.IParallelHatch;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiModule;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
+import com.gregtechceu.gtceu.common.network.GTNetwork;
+import com.gregtechceu.gtceu.common.network.packets.SCPacketStructureFormed;
+import com.gregtechceu.gtceu.common.network.packets.SCPacketUpdateActiveBlock;
 import com.gregtechceu.gtceu.core.ILevel;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
@@ -31,21 +35,17 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.fast.recipesearch.IteratorUtil;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -63,8 +63,8 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     protected final boolean[] formeds = new boolean[subPatternAmount];
     protected int formedAmount;
     protected IMultiPart[] parts = new IMultiPart[0];
-    @Nullable
-    protected IParallelHatch parallelHatch = null;
+    protected final List<IMultiModule<?>> modules = new ArrayList<>();
+
     @Getter
     @DescSynced
     @UpdateListener(methodName = "onPartsUpdated")
@@ -78,7 +78,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @DescSynced
     protected final boolean[] isFormedsFlipped = new boolean[subPatternAmount];
     @Getter
-    @Setter
     @Persisted
     @DescSynced
     protected boolean isFlipped;
@@ -112,6 +111,8 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
             MultiblockWorldData.getOrCreate(serverLevel).addAsyncLogic(this);
+        } else if (!isFormed) {
+            ILevel.getHighlightCache(getLevel()).add(getPos().asLong());
         }
     }
 
@@ -131,7 +132,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     }
 
     @Override
-    @NotNull
     public MultiblockState getMultiblockState() {
         if (multiblockState == null) {
             multiblockState = new MultiblockState(this, getLevel(), getPos());
@@ -144,39 +144,47 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         return subMultiblockState;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({ "unused", "SameParameterValue" })
     protected void onPartsUpdated(BlockPos[] newValue, BlockPos[] oldValue) {
-        var list = new ObjectArrayList<IMultiPart>();
+        modules.clear();
+        var list = new ArrayList<IMultiPart>();
         for (var pos : newValue) {
             if (getMachine(getLevel(), pos) instanceof IMultiPart part) {
-                list.add(part);
+                if (part instanceof IMultiModule<?> module) {
+                    modules.add(module);
+                } else {
+                    list.add(part);
+                }
             }
         }
         parts = list.toArray(new IMultiPart[0]);
     }
 
     protected void updatePartPositions() {
-        this.partPositions = this.parts.length == 0 ? new BlockPos[0] : Arrays.stream(this.parts).map(part -> part.self().getPos()).toArray(BlockPos[]::new);
+        this.partPositions = new BlockPos[this.parts.length + modules.size()];
+        for (int i = 0; i < this.parts.length; i++) {
+            this.partPositions[i] = this.parts[i].self().getPos();
+        }
+        for (int i = 0; i < modules.size(); i++) {
+            this.partPositions[i + this.parts.length] = modules.get(i).self().getPos();
+        }
+    }
+
+    public Iterable<IWorkableMultiPart> getWorkableParts() {
+        return IteratorUtil.wrap(Arrays.stream(parts).filter(IWorkableMultiPart.class::isInstance).map(IWorkableMultiPart.class::cast).iterator());
     }
 
     @Override
     public IMultiPart[] getParts() {
         // for the client side, when the chunk unloaded
-        if (parts.length != this.partPositions.length) {
-            var list = new ObjectArrayList<IMultiPart>();
-            for (var pos : this.partPositions) {
-                if (getMachine(getLevel(), pos) instanceof IMultiPart part) {
-                    list.add(part);
-                }
-            }
-            parts = list.toArray(new IMultiPart[0]);
+        if (isRemote() && parts.length + modules.size() != this.partPositions.length) {
+            onPartsUpdated(this.partPositions, this.partPositions);
         }
         return this.parts;
     }
 
-    @Override
-    public Optional<IParallelHatch> getParallelHatch() {
-        return Optional.ofNullable(parallelHatch);
+    public <T extends IMultiModule<?>> List<T> getModules() {
+        return (List) modules;
     }
 
     //////////////////////////////////////
@@ -259,7 +267,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             simpleLock = true;
             if (checkPatternWithTryLock()) {
                 serverLevel.getServer().execute(() -> {
-                    setFlipped(getMultiblockState().isNeededFlip());
+                    isFlipped = getMultiblockState().isNeededFlip();
                     onStructureFormed();
                     requestSync();
                     var mwsd = MultiblockWorldData.getOrCreate(serverLevel);
@@ -284,7 +292,16 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         }
     }
 
-    protected void onStructureFormedAfter() {}
+    public void updateActiveBlock(boolean active) {
+        if (getLevel() instanceof ServerLevel serverLevel) {
+            serverLevel.getServer().tell(new TickTask(0, () -> GTNetwork.NETWORK.sendToAll(new SCPacketUpdateActiveBlock(self().getMultiblockState().matchContext.vaBlocks, active))));
+        }
+    }
+
+    @MustBeInvokedByOverriders
+    protected void onStructureFormedAfter() {
+        GTNetwork.NETWORK.sendToAll(new SCPacketStructureFormed(getPos().asLong(), true));
+    }
 
     @Override
     @MustBeInvokedByOverriders
@@ -293,22 +310,22 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             serverLevel.getServer().tell(new TickTask(1, this::onStructureFormedAfter));
         }
         isFormed = true;
-        var list = new ObjectArrayList<IMultiPart>();
+        modules.clear();
+        var list = new ArrayList<IMultiPart>();
         for (IMultiPart part : getMultiblockState().getMatchContext().parts) {
             if (shouldAddPartToController(part)) {
-                list.add(part);
+                if (part instanceof IMultiModule<?> module) {
+                    modules.add(module);
+                } else {
+                    list.add(part);
+                }
+                part.addedToController(this);
             }
         }
         parts = list.toArray(new IMultiPart[0]);
         var sorter = getPartSorter();
         if (sorter != null) {
             Arrays.sort(parts, sorter);
-        }
-        for (var part : parts) {
-            if (part instanceof IParallelHatch pHatch) {
-                parallelHatch = pHatch;
-            }
-            part.addedToController(this);
         }
         updatePartPositions();
     }
@@ -318,31 +335,14 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     public void onStructureInvalid() {
         isFormed = false;
         Arrays.fill(formeds, false);
+        modules.forEach(m -> m.removedFromController(this));
         for (IMultiPart part : parts) {
             part.removedFromController(this);
         }
-        parallelHatch = null;
+        modules.clear();
         this.parts = new IMultiPart[0];
         updatePartPositions();
-    }
-
-    /**
-     * mark multiblockState as unload error first.
-     * if it's actually cuz by block breaking.
-     * {@link #onStructureInvalid()} will be called from
-     * {@link MultiblockState#onBlockStateChanged(BlockPos, BlockState)}
-     */
-    @Override
-    @MustBeInvokedByOverriders
-    public void onPartUnload() {
-        var list = new ObjectArrayList<>(parts);
-        list.removeIf(part -> part.self().isInValid());
-        parts = list.toArray(new IMultiPart[0]);
-        getMultiblockState().setError(MultiblockState.UNLOAD_ERROR);
-        if (getLevel() instanceof ServerLevel serverLevel) {
-            MultiblockWorldData.getOrCreate(serverLevel).addAsyncLogic(this);
-        }
-        updatePartPositions();
+        GTNetwork.NETWORK.sendToAll(new SCPacketStructureFormed(getPos().asLong(), false));
     }
 
     @Override
@@ -358,7 +358,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     }
 
     @Override
-    public void setUpwardsFacing(@NotNull Direction upwardsFacing) {
+    public void setUpwardsFacing(Direction upwardsFacing) {
         if (!getDefinition().isAllowExtendedFacing()) {
             return;
         }
@@ -411,13 +411,13 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                 if (isFormed) {
                     if (requiresServerCheck()) {
                         if (checkPatternWithLock()) {
-                            setFlipped(getMultiblockState().isNeededFlip());
+                            isFlipped = getMultiblockState().isNeededFlip();
                             onStructureFormed();
                             requestSync();
                             return;
                         }
                     }
-                    setFlipped(false);
+                    isFlipped = false;
                     onStructureInvalid();
                     requestSync();
                     var mwsd = MultiblockWorldData.getOrCreate(serverLevel);
@@ -448,17 +448,5 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @Override
     public MultiblockControllerMachine self() {
         return this;
-    }
-
-    @Override
-    public void clientTick() {
-        super.clientTick();
-        if (getLevel() != null && getOffsetTimer() % 20 == 0) {
-            if (!isFormed) {
-                ILevel.getHighlightCache(getLevel()).add(getPos().asLong());
-            } else {
-                ILevel.getHighlightCache(getLevel()).remove(getPos().asLong());
-            }
-        }
     }
 }

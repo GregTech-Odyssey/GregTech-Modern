@@ -21,8 +21,8 @@ public class BiomeWeightModifier implements ToIntFunction<Holder<Biome>> {
             Codec.INT.fieldOf("added_weight").forGetter(mod -> mod.addedWeight))
             .apply(instance, (biomes, weight) -> new BiomeWeightModifier(() -> biomes, weight)));
 
-    public Supplier<HolderSet<Biome>> biomes;
-    public int addedWeight;
+    public final Supplier<HolderSet<Biome>> biomes;
+    public final int addedWeight;
 
     public BiomeWeightModifier(Supplier<HolderSet<Biome>> biomes, int addedWeight) {
         this.biomes = biomes;

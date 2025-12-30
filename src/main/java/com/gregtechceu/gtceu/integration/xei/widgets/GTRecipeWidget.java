@@ -38,11 +38,11 @@ import net.minecraftforge.fml.loading.FMLLoader;
 import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -61,7 +61,7 @@ public class GTRecipeWidget extends WidgetGroup {
 
     private final int xOffset;
     private final GTRecipe recipe;
-    private final List<LabelWidget> recipeParaTexts = new ObjectArrayList<>();
+    private final List<LabelWidget> recipeParaTexts = new ArrayList<>();
     private final int minTier;
     private int tier;
     private int yOffset;
@@ -186,7 +186,7 @@ public class GTRecipeWidget extends WidgetGroup {
 
     @NotNull
     private static List<Component> getRecipeParaText(GTRecipe recipe, int duration, long inputEUt, long outputEUt) {
-        List<Component> texts = new ObjectArrayList<>();
+        List<Component> texts = new ArrayList<>();
         if (!recipe.data.getBoolean("hide_duration")) {
             texts.add(Component.translatable("gtceu.recipe.duration", FormattingUtil.formatNumbers(duration / 20f)));
         }

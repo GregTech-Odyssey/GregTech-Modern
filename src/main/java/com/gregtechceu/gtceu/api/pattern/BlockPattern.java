@@ -40,13 +40,13 @@ import net.minecraftforge.items.IItemHandler;
 import it.unimi.dsi.fastutil.ints.IntObjectPair;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiPredicate;
@@ -63,7 +63,7 @@ public class BlockPattern {
     public final int thumbLength; // y size
     public final int palmLength; // x size
     public final int[] centerOffset; // x, y, z, minZ, maxZ
-    public int[] formedRepetitionCount;
+    public final int[] formedRepetitionCount;
     public Collection<TraceabilityPredicate> predicates;
     public PatternCondition condition;
 
@@ -304,7 +304,7 @@ public class BlockPattern {
                                     infos = ArrayUtils.addAll(infos, common.candidates == null ? null : common.candidates.get());
                                 }
                             }
-                            List<ItemStack> candidates = new ObjectArrayList<>();
+                            List<ItemStack> candidates = new ArrayList<>();
                             if (infos != null) {
                                 for (Block info : infos) {
                                     if (info != Blocks.AIR) {
@@ -663,9 +663,7 @@ public class BlockPattern {
     @Nullable
     protected static IntObjectPair<IItemHandler> getMatchStackWithHandler(List<ItemStack> candidates, LazyOptional<IItemHandler> cap) {
         IItemHandler handler = cap.orElse(null);
-        if (handler == null) {
-            return null;
-        }
+        if (handler == null) return null;
         for (int i = 0; i < handler.getSlots(); i++) {
             @NotNull
             ItemStack stack = handler.getStackInSlot(i);

@@ -1,16 +1,9 @@
 package com.gregtechceu.gtceu.api.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
-import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.utils.asm.EmptyMethodChecker;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
@@ -22,17 +15,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
-import java.util.SortedSet;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -40,69 +27,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
 
-    public static final Reference2BooleanOpenHashMap<Class<?>> ON_WORKING_METHOD = new Reference2BooleanOpenHashMap<>();
-    public static final Reference2BooleanOpenHashMap<Class<?>> BEFORE_WORKING_METHOD = new Reference2BooleanOpenHashMap<>();
-    public static final Reference2BooleanOpenHashMap<Class<?>> AFTER_WORKING_METHOD = new Reference2BooleanOpenHashMap<>();
-    public static final Reference2BooleanOpenHashMap<Class<?>> MODIFY_RECIPE_METHOD = new Reference2BooleanOpenHashMap<>();
-
     @DescSynced
     @RequireRerender
     @UpdateListener(methodName = "onControllersUpdated")
     protected final Set<Long> controllerPositions = new LongOpenHashSet(1);
-    protected final SortedSet<IMultiController> controllers = Collections.synchronizedSortedSet(new ReferenceLinkedOpenHashSet<>(1));
-
-    protected @Nullable RecipeHandlerList handlerList;
+    protected final Set<IMultiController> controllers = Collections.synchronizedSet(new ReferenceOpenHashSet<>());
 
     public MultiblockPartMachine(MetaMachineBlockEntity holder) {
         super(holder);
-    }
-
-    @Override
-    public boolean hasOnWorkingMethod() {
-        var c = getClass();
-        return ON_WORKING_METHOD.computeIfAbsent(c, k -> {
-            try {
-                return EmptyMethodChecker.hasMethodBody(c.getMethod("onWorking", IWorkableMultiController.class));
-            } catch (NoSuchMethodException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-
-    @Override
-    public boolean hasBeforeWorkingMethod() {
-        var c = getClass();
-        return BEFORE_WORKING_METHOD.computeIfAbsent(c, k -> {
-            try {
-                return EmptyMethodChecker.hasMethodBody(c.getMethod("beforeWorking", IWorkableMultiController.class, GTRecipe.class));
-            } catch (NoSuchMethodException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-
-    @Override
-    public boolean hasAfterWorkingMethod() {
-        var c = getClass();
-        return AFTER_WORKING_METHOD.computeIfAbsent(c, k -> {
-            try {
-                return EmptyMethodChecker.hasMethodBody(c.getMethod("afterWorking", IWorkableMultiController.class));
-            } catch (NoSuchMethodException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-
-    @Override
-    public boolean hasModifyRecipeMethod() {
-        var c = getClass();
-        return MODIFY_RECIPE_METHOD.computeIfAbsent(c, k -> {
-            try {
-                return EmptyMethodChecker.hasMethodBody(c.getMethod("modifyRecipe", IWorkableMultiController.class, GTRecipe.class));
-            } catch (NoSuchMethodException e) {
-                throw new RuntimeException(e);
-            }
-        });
     }
 
     @Override
@@ -116,6 +48,7 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
     }
 
     @Override
+    @MustBeInvokedByOverriders
     public void onRotated(Direction oldFacing, Direction newFacing) {
         super.onRotated(oldFacing, newFacing);
         for (var controller : controllers) {
@@ -135,7 +68,7 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
     }
 
     @Override
-    public SortedSet<IMultiController> getControllers() {
+    public Set<IMultiController> getControllers() {
         // Necessary to rebuild the set of controllers on client-side
         if (controllers.size() != controllerPositions.size()) {
             onControllersUpdated(controllerPositions, Collections.emptySet());
@@ -143,40 +76,15 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
         return controllers;
     }
 
-    public List<RecipeHandlerList> getRecipeHandlers() {
-        return List.of(getHandlerList());
-    }
-
-    protected RecipeHandlerList getHandlerList() {
-        if (handlerList == null) {
-            List<IRecipeHandler<?>> handlers = new ObjectArrayList<>();
-            IO handlerIO = null;
-            for (var trait : traits) {
-                if (trait instanceof IRecipeHandlerTrait<?> rht && rht.isAvailable() && rht.getHandlerIO() != IO.NONE) {
-                    if (handlerIO == null) handlerIO = rht.getHandlerIO();
-                    handlers.add(rht);
-                }
-            }
-
-            if (handlers.isEmpty()) {
-                handlerList = RecipeHandlerList.NO_DATA;
-            } else {
-                handlerList = RecipeHandlerList.of(handlerIO, this, handlers);
-            }
-        }
-        return handlerList;
-    }
-
     @Override
+    @MustBeInvokedByOverriders
     public void onUnload() {
         super.onUnload();
         if (getLevel() instanceof ServerLevel serverLevel) {
-            // Need to copy if > 1 so that we can call removedFromController safely without CME
-            Set<IMultiController> toIter = controllers.size() > 1 ? new ReferenceOpenHashSet<>(controllers) : controllers;
-            for (IMultiController controller : toIter) {
+            for (IMultiController controller : controllers) {
                 if (serverLevel.isLoaded(controller.self().getPos())) {
                     removedFromController(controller);
-                    controller.onPartUnload();
+                    controller.onStructureInvalid();
                 }
             }
         }

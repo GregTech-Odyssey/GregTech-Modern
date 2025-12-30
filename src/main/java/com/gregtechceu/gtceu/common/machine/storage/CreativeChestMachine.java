@@ -25,7 +25,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -111,7 +110,6 @@ public class CreativeChestMachine extends QuantumChestMachine {
         }
 
         @Override
-        @NotNull
         public ItemStack getStackInSlot(int slot) {
             return stored;
         }
@@ -122,21 +120,19 @@ public class CreativeChestMachine extends QuantumChestMachine {
         }
 
         @Override
-        @NotNull
-        public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
             if (!stored.isEmpty() && ItemStack.isSameItemSameTags(stored, stack)) return ItemStack.EMPTY;
             return stack;
         }
 
         @Override
-        @NotNull
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
             if (!stored.isEmpty()) return stored.copyWithCount(itemsPerCycle);
             return ItemStack.EMPTY;
         }
 
         @Override
-        public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+        public boolean isItemValid(int slot, ItemStack stack) {
             return true;
         }
 

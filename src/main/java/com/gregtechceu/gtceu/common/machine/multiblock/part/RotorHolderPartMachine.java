@@ -37,6 +37,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,6 +55,7 @@ public class RotorHolderPartMachine extends TieredPartMachine implements IMachin
     @Persisted
     @DescSynced
     public int rotorSpeed;
+    @Setter
     @Persisted
     @DescSynced
     @RequireRerender
@@ -113,7 +115,6 @@ public class RotorHolderPartMachine extends TieredPartMachine implements IMachin
     // ****** Rotor Holder ******//
     //////////////////////////////////////
     @Override
-    @NotNull
     public Material getRotorMaterial() {
         // handles clients trying to get the material before server data sync
         // noinspection ConstantValue
@@ -144,7 +145,7 @@ public class RotorHolderPartMachine extends TieredPartMachine implements IMachin
     }
 
     protected void updateRotorSubscription() {
-        if (getRotorSpeed() > 0) {
+        if (rotorSpeed > 0) {
             rotorSpeedSubs = subscribeServerTick(rotorSpeedSubs, this::updateRotorSpeed);
         } else if (rotorSpeedSubs != null) {
             rotorSpeedSubs.unsubscribe();
@@ -153,13 +154,13 @@ public class RotorHolderPartMachine extends TieredPartMachine implements IMachin
     }
 
     private void updateRotorSpeed() {
-        if (isFormed() && getControllers().first() instanceof IWorkableMultiController workable) {
+        if (isFormed() && getController() instanceof IWorkableMultiController workable) {
             if (workable.getRecipeLogic().isWorking()) return;
         }
         if (!hasRotor()) {
             setRotorSpeed(0);
-        } else if (getRotorSpeed() > 0) {
-            setRotorSpeed(Math.max(0, getRotorSpeed() - SPEED_DECREMENT));
+        } else if (rotorSpeed > 0) {
+            setRotorSpeed(Math.max(0, rotorSpeed - SPEED_DECREMENT));
         }
         updateRotorSubscription();
     }
@@ -173,13 +174,13 @@ public class RotorHolderPartMachine extends TieredPartMachine implements IMachin
 
     @Override
     public boolean onWorking(IWorkableMultiController controller) {
-        if (getRotorSpeed() < getMaxRotorHolderSpeed()) {
-            setRotorSpeed(getRotorSpeed() + SPEED_INCREMENT);
+        if (rotorSpeed < maxRotorHolderSpeed) {
+            setRotorSpeed(rotorSpeed + SPEED_INCREMENT);
             updateRotorSubscription();
         }
         if (getOffsetTimer() % 20 == 0) {
             var numMaintenanceProblems = 0;
-            if (isFormed() && getControllers().first() instanceof IMaintenanceMachine maintenance) {
+            if (isFormed() && getController() instanceof IMaintenanceMachine maintenance) {
                 numMaintenanceProblems = maintenance.getNumMaintenanceProblems();
             }
             damageRotor(1 + numMaintenanceProblems);
@@ -188,7 +189,7 @@ public class RotorHolderPartMachine extends TieredPartMachine implements IMachin
     }
 
     public int getTierDifference() {
-        if (isFormed() && getControllers().first() instanceof ITieredMachine tieredMachine) {
+        if (isFormed() && getController() instanceof ITieredMachine tieredMachine) {
             return getTier() - tieredMachine.getTier();
         }
         return -1;
@@ -206,7 +207,7 @@ public class RotorHolderPartMachine extends TieredPartMachine implements IMachin
     }
 
     public InteractionResult onUse(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (!isRemote() && getRotorSpeed() > 0 && !player.isCreative()) {
+        if (!isRemote() && rotorSpeed > 0 && !player.isCreative()) {
             player.hurt(GTDamageTypes.TURBINE.source(level), TurbineRotorBehaviour.getBehaviour(getRotorStack()).getDamage(getRotorStack()));
             return InteractionResult.FAIL;
         }
@@ -224,12 +225,5 @@ public class RotorHolderPartMachine extends TieredPartMachine implements IMachin
         container.setBackground(GuiTextures.BACKGROUND_INVERSE);
         group.addWidget(container);
         return group;
-    }
-
-    public void setRotorMaterial(@NotNull final Material rotorMaterial) {
-        if (rotorMaterial == null) {
-            throw new NullPointerException("rotorMaterial is marked non-null but is null");
-        }
-        this.rotorMaterial = rotorMaterial;
     }
 }

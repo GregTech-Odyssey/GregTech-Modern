@@ -22,7 +22,6 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import it.unimi.dsi.fastutil.objects.Object2LongMaps;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -91,8 +90,6 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
     }
 
     private void setTransferBucketMode(BucketMode transferBucketMode) {
-        var oldMultiplier = this.transferBucketMode.multiplier;
-        var newMultiplier = transferBucketMode.multiplier;
         this.transferBucketMode = transferBucketMode;
         if (stackSizeInput == null) return;
         stackSizeInput.setValue(getCurrentBucketModeTransferSize());
@@ -102,7 +99,6 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
     // *********** GUI ***********//
     //////////////////////////////////////
     @Override
-    @NotNull
     protected String getUITitle() {
         return "cover.fluid.voiding.advanced.title";
     }

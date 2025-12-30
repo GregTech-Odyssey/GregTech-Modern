@@ -8,7 +8,6 @@ import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
@@ -36,11 +35,10 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -76,7 +74,6 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
     // ***** Initialization ******//
     //////////////////////////////////////
     @Override
-    @NotNull
     public RecipeLogic createRecipeLogic(Object... args) {
         if (args[args.length - 3] instanceof Integer fortune && args[args.length - 2] instanceof Integer speed && args[args.length - 1] instanceof Integer maxRadius) {
             return new LargeMinerLogic(this, fortune, speed, maxRadius * CHUNK_LENGTH / 2);
@@ -85,7 +82,7 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
     }
 
     @Override
-    public @NotNull LargeMinerLogic getRecipeLogic() {
+    public LargeMinerLogic getRecipeLogic() {
         return (LargeMinerLogic) super.getRecipeLogic();
     }
 
@@ -121,9 +118,9 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
     }
 
     private void initializeAbilities() {
-        List<IEnergyContainer> energyContainers = new ObjectArrayList<>();
-        List<IFluidHandler> fluidTanks = new ObjectArrayList<>();
-        for (IMultiPart part : getParts()) {
+        List<IEnergyContainer> energyContainers = new ArrayList<>();
+        List<IFluidHandler> fluidTanks = new ArrayList<>();
+        for (var part : getWorkableParts()) {
             for (var handlerList : part.getRecipeHandlers()) {
                 handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).forEach(energyContainers::add);
                 handlerList.getCapability(FluidRecipeCapability.CAP).stream().filter(IFluidHandler.class::isInstance).map(IFluidHandler.class::cast).forEach(fluidTanks::add);
@@ -237,13 +234,12 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
         return InteractionResult.SUCCESS;
     }
 
-    @NotNull
     @Override
     public List<Component> getDataInfo(PortableScannerBehavior.DisplayMode mode) {
         if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_MACHINE_INFO) {
             int workingArea = IMiner.getWorkingArea(getRecipeLogic().getCurrentRadius());
             return Collections.singletonList(Component.translatable("gtceu.universal.tooltip.working_area", workingArea, workingArea));
         }
-        return new ObjectArrayList<>();
+        return new ArrayList<>();
     }
 }

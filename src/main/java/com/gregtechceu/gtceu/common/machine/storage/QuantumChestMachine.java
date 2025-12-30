@@ -53,7 +53,6 @@ import com.fast.fastcollection.O2LOpenCacheHashMap;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
@@ -143,7 +142,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     }
 
     @Override
-    public void saveCustomPersistedData(@NotNull CompoundTag tag, boolean forDrop) {
+    public void saveCustomPersistedData(CompoundTag tag, boolean forDrop) {
         super.saveCustomPersistedData(tag, forDrop);
         if (!forDrop) tag.put("lockedItem", lockedItem.serializeNBT());
         tag.put("stored", stored.serializeNBT());
@@ -151,7 +150,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     }
 
     @Override
-    public void loadCustomPersistedData(@NotNull CompoundTag tag) {
+    public void loadCustomPersistedData(CompoundTag tag) {
         super.loadCustomPersistedData(tag);
         lockedItem.deserializeNBT(tag.getCompound("lockedItem"));
         stored = ItemStack.of(tag.getCompound("stored"));
@@ -274,7 +273,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     @Override
     public boolean onLeftClick(Player player, Level world, InteractionHand hand, BlockPos pos, Direction direction) {
         if (direction == getFrontFacing() && !isRemote()) {
-            if (player.getItemInHand(hand).is(GTToolType.WRENCH.itemTags.get(0))) return false;
+            if (player.getItemInHand(hand).is(GTToolType.WRENCH.itemTags.getFirst())) return false;
             if (!stored.isEmpty()) {
                 // pull
                 var drained = cache.extractItem(0, player.isShiftKeyDown() ? stored.getMaxStackSize() : 1, false);
@@ -358,7 +357,6 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         return group;
     }
 
-    @NotNull
     private CustomItemStackHandler createImportItems() {
         var importItems = new CustomItemStackHandler();
         importItems.setFilter(cache::canInsert);
@@ -410,14 +408,12 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         }
 
         @Override
-        @NotNull
         public ItemStack getStackInSlot(int slot) {
             return stored.copyWithCount(GTMath.saturatedCast(storedAmount));
         }
 
         @Override
-        @NotNull
-        public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
             long free = isVoiding ? Long.MAX_VALUE : maxAmount - storedAmount;
             long canStore = 0;
             if ((stored.isEmpty() || ItemHandlerHelper.canItemStacksStack(stored, stack)) && filter.test(stack)) {
@@ -432,7 +428,6 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         }
 
         @Override
-        @NotNull
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
             if (stored.isEmpty()) return ItemStack.EMPTY;
             long toExtract = Math.min(storedAmount, amount);
@@ -456,11 +451,11 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         }
 
         @Override
-        public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+        public boolean isItemValid(int slot, ItemStack stack) {
             return filter.test(stack);
         }
 
-        public void exportToNearby(@NotNull Direction... facings) {
+        public void exportToNearby(Direction... facings) {
             if (stored.isEmpty()) return;
             var level = getMachine().getLevel();
             var pos = getMachine().getPos();

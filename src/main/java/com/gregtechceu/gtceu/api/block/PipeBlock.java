@@ -64,9 +64,9 @@ import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -184,7 +184,7 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
                 ItemStack offhand = placer.getOffhandItem();
                 for (int i = 0; i < DyeColor.values().length; i++) {
                     if (offhand.is(GTItems.SPRAY_CAN_DYES[i].get())) {
-                        ((IInteractionItem) GTItems.SPRAY_CAN_DYES[i].get().getComponents().get(0))
+                        ((IInteractionItem) GTItems.SPRAY_CAN_DYES[i].get().getComponents().getFirst())
                                 .useOn(new UseOnContext(player, InteractionHand.OFF_HAND,
                                         new BlockHitResult(Vec3.ZERO, player.getDirection(), pos, false)));
                         break;
@@ -392,7 +392,7 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
     public List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
         var context = builder.withParameter(LootContextParams.BLOCK_STATE, state).create(LootContextParamSets.BLOCK);
         BlockEntity tileEntity = context.getParamOrNull(LootContextParams.BLOCK_ENTITY);
-        List<ItemStack> drops = new ObjectArrayList<>(super.getDrops(state, builder));
+        List<ItemStack> drops = new ArrayList<>(super.getDrops(state, builder));
         if (tileEntity instanceof PipeBlockEntity<?, ?> pipeTile) {
             if (!pipeTile.getFrameMaterial().isNull()) {
                 drops.addAll(GTMaterialBlocks.MATERIAL_BLOCKS.get(TagPrefix.frameGt, pipeTile.getFrameMaterial())

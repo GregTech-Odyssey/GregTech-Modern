@@ -4,10 +4,10 @@ import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 
 import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -24,8 +24,8 @@ public class FactoryBlockPattern {
 
     private FactoryBlockPattern(RelativeDirection charDir, RelativeDirection stringDir, RelativeDirection aisleDir, MultiblockMachineDefinition definition) {
         this.definition = definition;
-        depth = new ObjectArrayList<>();
-        aisleRepetitions = new ObjectArrayList<>();
+        depth = new ArrayList<>();
+        aisleRepetitions = new ArrayList<>();
         symbolMap = new Char2ObjectOpenHashMap<>();
         structureDir = new RelativeDirection[3];
         structureDir[0] = charDir;
@@ -113,10 +113,8 @@ public class FactoryBlockPattern {
         if (blockMatcher.isAny()) return this;
         if (blockMatcher.isAir()) {
             this.symbolMap.put(symbol, TraceabilityPredicate.AIR);
-        } else if (!blockMatcher.isController && blockMatcher.getClass() == TraceabilityPredicate.class) {
-            this.symbolMap.put(symbol, new TraceabilityPredicate(blockMatcher).sort());
         } else {
-            this.symbolMap.put(symbol, blockMatcher);
+            this.symbolMap.put(symbol, blockMatcher.sort());
         }
         return this;
     }
@@ -150,7 +148,7 @@ public class FactoryBlockPattern {
                             pi[j] = pj = new TraceabilityPredicate[this.rowWidth];
                         }
                         pj[k] = tp;
-                        if (tp.isController) centerOffset = new int[] { k, j, i, minZ, maxZ };
+                        if (tp instanceof ControllerPredicate) centerOffset = new int[] { k, j, i, minZ, maxZ };
                     }
                 }
             }

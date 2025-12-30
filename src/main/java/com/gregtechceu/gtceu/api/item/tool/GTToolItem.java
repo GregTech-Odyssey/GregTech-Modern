@@ -48,7 +48,7 @@ public class GTToolItem extends DiggerItem implements IGTTool {
     private Integer getMaxDamage;
 
     protected GTToolItem(GTToolType toolType, MaterialToolTier tier, Material material, IGTToolDefinition definition, Properties properties) {
-        super(0, 0, tier, toolType.harvestTags.isEmpty() ? null : toolType.harvestTags.get(0), properties);
+        super(0, 0, tier, toolType.harvestTags.isEmpty() ? null : toolType.harvestTags.getFirst(), properties);
         this.toolType = toolType;
         this.material = material;
         this.electricTier = toolType.electricTier;

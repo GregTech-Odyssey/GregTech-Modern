@@ -187,7 +187,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
         return count;
     }
 
-    @NotNull
     public Material getFrameMaterial() {
         // backwards compat
         // noinspection ConstantValue
@@ -474,7 +473,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
         return (connections & (1 << side.ordinal())) > 0;
     }
 
-    public void setFrameMaterial(@NotNull final Material frameMaterial) {
+    public void setFrameMaterial(final Material frameMaterial) {
         if (frameMaterial == null) {
             throw new NullPointerException("frameMaterial is marked non-null but is null");
         }

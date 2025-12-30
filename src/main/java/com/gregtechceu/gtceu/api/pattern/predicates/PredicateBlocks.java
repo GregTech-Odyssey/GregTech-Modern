@@ -7,9 +7,9 @@ import com.lowdragmc.lowdraglib.utils.BlockInfo;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.commons.lang3.ArrayUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,7 +24,7 @@ public class PredicateBlocks extends SimplePredicate {
 
     @Override
     public SimplePredicate buildPredicate() {
-        List<Block> filteredBlocks = new ObjectArrayList<>(blocks.length);
+        List<Block> filteredBlocks = new ArrayList<>(blocks.length);
         for (Block block : blocks) {
             if (block != null && block != Blocks.AIR) {
                 filteredBlocks.add(block);

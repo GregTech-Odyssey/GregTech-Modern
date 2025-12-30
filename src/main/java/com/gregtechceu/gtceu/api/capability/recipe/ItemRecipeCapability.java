@@ -32,12 +32,12 @@ import net.minecraftforge.common.crafting.IntersectionIngredient;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import com.fast.recipesearch.IntLongMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -93,7 +93,7 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
                 .collect(Collectors.toList());
 
         if (io == IO.OUT && recipe.recipeType.isScanner()) {
-            List<Object> scannerPossibilities = new ObjectArrayList<>();
+            List<Object> scannerPossibilities = new ArrayList<>();
             // Scanner Output replacing, used for cycling research outputs
             ResearchManager.ResearchItem researchData = null;
             for (Content stack : recipe.getOutputContents(this)) {
@@ -112,7 +112,7 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
                         var outputs = r.getOutputContents(this);
                         if (outputs.isEmpty()) continue;
 
-                        Content outputContent = outputs.get(0);
+                        Content outputContent = outputs.getFirst();
                         ItemStack[] stacks = this.of(outputContent.content).getItems();
                         if (stacks.length == 0) continue;
 
@@ -123,7 +123,7 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
                         }
                     }
                 }
-                scannerPossibilities.add(entryLists.get(0));
+                scannerPossibilities.add(entryLists.getFirst());
                 entryLists = scannerPossibilities;
             }
         }
@@ -178,7 +178,7 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
                                 .filter(ResearchCondition.class::isInstance).findAny()
                                 .map(ResearchCondition.class::cast).orElse(null);
                         if (condition != null) {
-                            List<ItemStack> dataItems = new ObjectArrayList<>();
+                            List<ItemStack> dataItems = new ArrayList<>();
                             for (ResearchData.ResearchEntry entry : condition.data) {
                                 ItemStack dataStick = entry.getDataItem().copy();
                                 ResearchManager.writeResearchToNBT(dataStick.getOrCreateTag(), entry.getResearchId(),
@@ -239,7 +239,7 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
         List<Ingredient> children = ((IntersectionIngredientAccessor) intersection).getChildren();
         if (children.isEmpty()) return new ItemStackList();
 
-        var childList = mapItem(children.get(0));
+        var childList = mapItem(children.getFirst());
         ItemStackList stackList = new ItemStackList();
         for (var stack : childList.getStacks()) {
             if (children.stream().skip(1).allMatch(child -> child.test(stack))) {

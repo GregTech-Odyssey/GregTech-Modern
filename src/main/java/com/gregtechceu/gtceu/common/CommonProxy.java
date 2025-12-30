@@ -145,7 +145,7 @@ public class CommonProxy {
                     providers.add(
                             (provider) -> MaterialLangGenerator.generate((RegistrateLangProvider) provider, registry));
                 } else {
-                    providers.add(0,
+                    providers.addFirst(
                             (provider) -> MaterialLangGenerator.generate((RegistrateLangProvider) provider, registry));
                 }
             }

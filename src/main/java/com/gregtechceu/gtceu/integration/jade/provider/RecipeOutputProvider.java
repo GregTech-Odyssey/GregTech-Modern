@@ -24,7 +24,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.fluids.FluidStack;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.ITooltip;
@@ -33,6 +32,7 @@ import snownee.jade.api.fluid.JadeFluidObject;
 import snownee.jade.api.ui.IElementHelper;
 import snownee.jade.util.FluidTextHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class RecipeOutputProvider extends CapabilityBlockProvider<RecipeLogic> {
@@ -111,7 +111,7 @@ public class RecipeOutputProvider extends CapabilityBlockProvider<RecipeLogic> {
     protected void addTooltip(CompoundTag capData, ITooltip tooltip, Player player, BlockAccessor block,
                               BlockEntity blockEntity, IPluginConfig config) {
         if (capData.getBoolean("Working")) {
-            List<ItemStack> outputItems = new ObjectArrayList<>();
+            List<ItemStack> outputItems = new ArrayList<>();
             if (capData.contains("OutputItems", Tag.TAG_LIST)) {
                 ListTag itemTags = capData.getList("OutputItems", Tag.TAG_COMPOUND);
                 if (!itemTags.isEmpty()) {
@@ -125,7 +125,7 @@ public class RecipeOutputProvider extends CapabilityBlockProvider<RecipeLogic> {
                     }
                 }
             }
-            List<FluidStack> outputFluids = new ObjectArrayList<>();
+            List<FluidStack> outputFluids = new ArrayList<>();
             if (capData.contains("OutputFluids", Tag.TAG_LIST)) {
                 ListTag fluidTags = capData.getList("OutputFluids", Tag.TAG_COMPOUND);
                 for (Tag tag : fluidTags) {

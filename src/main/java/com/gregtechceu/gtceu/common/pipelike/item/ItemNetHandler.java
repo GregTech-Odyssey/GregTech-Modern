@@ -25,10 +25,10 @@ import com.fast.fastcollection.O2IOpenCacheHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -104,8 +104,8 @@ public class ItemNetHandler implements IItemHandlerModifiable {
     public ItemStack insertRoundRobin(ItemStack stack, boolean simulate, boolean global) {
         List<ItemRoutePath> routePaths = net.getNetData(pipe.getPipePosLong(), pipe.getPipePos(), facing);
         if (routePaths.isEmpty()) return stack;
-        if (routePaths.size() == 1) return insert(routePaths.get(0), stack, simulate);
-        List<ItemRoutePath> routePathsCopy = new ObjectArrayList<>(routePaths);
+        if (routePaths.size() == 1) return insert(routePaths.getFirst(), stack, simulate);
+        List<ItemRoutePath> routePathsCopy = new ArrayList<>(routePaths);
         if (global) {
             stack = insertToHandlersEnhanced(routePathsCopy, stack, simulate);
         } else {
@@ -156,7 +156,7 @@ public class ItemNetHandler implements IItemHandlerModifiable {
     }
 
     private ItemStack insertToHandlersEnhanced(List<ItemRoutePath> copy, ItemStack stack, boolean simulate) {
-        List<EnhancedRoundRobinData> transferred = new ObjectArrayList<>();
+        List<EnhancedRoundRobinData> transferred = new ArrayList<>();
         IntList steps = new IntArrayList();
         int min = Integer.MAX_VALUE;
         ItemStack simStack;
@@ -179,13 +179,13 @@ public class ItemNetHandler implements IItemHandlerModifiable {
         }
         transferred.sort(Comparator.comparingInt(data -> data.transferred));
         steps.sort(Integer::compare);
-        if (transferred.get(0).transferred != steps.getInt(0)) {
+        if (transferred.getFirst().transferred != steps.getInt(0)) {
             return stack;
         }
         int amount = stack.getCount();
         int c = amount / transferred.size();
         int m = amount % transferred.size();
-        List<EnhancedRoundRobinData> transferredCopy = new ObjectArrayList<>(transferred);
+        List<EnhancedRoundRobinData> transferredCopy = new ArrayList<>(transferred);
         int nextStep = steps.removeInt(0);
         // equally distribute items over all inventories
         // it takes into account how much was inserted in total

@@ -41,9 +41,9 @@ public class SteamSolarBoiler extends SteamBoilerMachine {
     @Override
     protected void updateCurrentTemperature() {
         if (GTUtil.canSeeSunClearly(getLevel(), getPos())) {
-            recipeLogic.setStatus(RecipeLogic.Status.WORKING);
+            recipeLogic.setStatus(RecipeLogic.WORKING);
         } else {
-            recipeLogic.setStatus(RecipeLogic.Status.IDLE);
+            recipeLogic.setStatus(RecipeLogic.IDLE);
         }
         super.updateCurrentTemperature();
     }

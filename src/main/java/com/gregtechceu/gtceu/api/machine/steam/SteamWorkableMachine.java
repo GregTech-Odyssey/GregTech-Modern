@@ -31,12 +31,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +49,7 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
 
     @Nullable
     private ICleanroomProvider cleanroom;
+    @Getter
     @Persisted
     @DescSynced
     public final RecipeLogic recipeLogic;
@@ -67,8 +67,9 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
     @Persisted
     @DescSynced
     protected boolean isMuffled;
-    protected boolean previouslyMuffled = true;
+    @Getter
     protected final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
+    @Getter
     protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
     protected final List<ISubscription> traitSubscriptions;
 
@@ -79,7 +80,7 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
         this.recipeLogic = createRecipeLogic(args);
         this.capabilitiesProxy = new EnumMap<>(IO.class);
         this.capabilitiesFlat = new EnumMap<>(IO.class);
-        this.traitSubscriptions = new ObjectArrayList<>();
+        this.traitSubscriptions = new ArrayList<>();
         this.outputFacing = hasFrontFacing() ? getFrontFacing().getOpposite() : Direction.UP;
     }
 
@@ -90,7 +91,7 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
         Map<IO, List<IRecipeHandler<?>>> ioTraits = new EnumMap<>(IO.class);
         for (MachineTrait trait : getTraits()) {
             if (trait instanceof IRecipeHandlerTrait<?> handlerTrait && handlerTrait.isAvailable() && handlerTrait.getHandlerIO() != IO.NONE) {
-                ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ObjectArrayList<>()).add(handlerTrait);
+                ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ArrayList<>()).add(handlerTrait);
             }
         }
         for (var entry : ioTraits.entrySet()) {
@@ -112,7 +113,7 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
     /**
      * @param outputFacing the facing to set
      */
-    public void setOutputFacing(@NotNull Direction outputFacing) {
+    public void setOutputFacing(Direction outputFacing) {
         if (!hasFrontFacing() || this.outputFacing != getFrontFacing()) {
             this.outputFacing = outputFacing;
         }
@@ -128,19 +129,9 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
         return super.onWrenchClick(playerIn, hand, gridSide, hitResult);
     }
 
-    @NotNull
     @Override
     public GTRecipeType getRecipeType() {
         return recipeTypes[activeRecipeType];
-    }
-
-    @Override
-    public void clientTick() {
-        super.clientTick();
-        if (previouslyMuffled != isMuffled) {
-            previouslyMuffled = isMuffled;
-            if (recipeLogic != null) recipeLogic.updateSound();
-        }
     }
 
     //////////////////////////////////////
@@ -167,22 +158,10 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
         this.cleanroom = cleanroom;
     }
 
-    public @NotNull RecipeLogic getRecipeLogic() {
-        return this.recipeLogic;
-    }
-
     public void setActiveRecipeType(final int activeRecipeType) {
         if (this.activeRecipeType != activeRecipeType) {
             getRecipeLogic().markLastRecipeDirty();
             getRecipeLogic().updateTickSubscription();
         }
-    }
-
-    public @NotNull Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {
-        return this.capabilitiesProxy;
-    }
-
-    public @NotNull Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> getCapabilitiesFlat() {
-        return this.capabilitiesFlat;
     }
 }

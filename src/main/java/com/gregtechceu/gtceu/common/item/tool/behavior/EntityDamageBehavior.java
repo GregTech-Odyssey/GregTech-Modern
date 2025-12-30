@@ -12,10 +12,10 @@ import net.minecraft.world.level.Level;
 
 import it.unimi.dsi.fastutil.objects.Object2FloatMap;
 import it.unimi.dsi.fastutil.objects.Object2FloatMaps;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -24,7 +24,7 @@ import java.util.List;
  */
 public class EntityDamageBehavior implements IToolBehavior {
 
-    private final List<EntityDamageFunction> shouldDoBonusList = new ObjectArrayList<>();
+    private final List<EntityDamageFunction> shouldDoBonusList = new ArrayList<>();
     private final String mobType;
 
     public EntityDamageBehavior(float bonus, Class<?>... entities) {

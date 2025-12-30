@@ -42,7 +42,7 @@ public class HarvestCropsBehavior implements IToolBehavior {
         } else {
             blocks = ToolHelper.iterateAoE(aoeDefinition, HarvestCropsBehavior::isBlockCrops, context);
             if (isBlockCrops(context)) {
-                blocks.add(0, context.getClickedPos());
+                blocks.addFirst(context.getClickedPos());
             }
         }
 

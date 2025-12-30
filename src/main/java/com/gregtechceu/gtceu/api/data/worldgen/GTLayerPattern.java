@@ -14,9 +14,9 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
@@ -57,7 +57,7 @@ public class GTLayerPattern {
 
     public static class Builder {
 
-        private final List<Layer> layers = new ObjectArrayList<>();
+        private final List<Layer> layers = new ArrayList<>();
         private final RuleTest[] rules;
 
         protected Builder(RuleTest... rules) {
@@ -112,13 +112,13 @@ public class GTLayerPattern {
 
         public Either<List<TargetBlockState>, Material> rollBlock(RandomSource random) {
             if (targets.size() == 1)
-                return targets.get(0);
+                return targets.getFirst();
             return targets.get(random.nextInt(targets.size()));
         }
 
         public static class Builder {
 
-            private final List<Either<List<TargetBlockState>, Material>> targets = new ObjectArrayList<>();
+            private final List<Either<List<TargetBlockState>, Material>> targets = new ArrayList<>();
             private int minSize = 1;
             private int maxSize = 1;
             private int weight = 1;

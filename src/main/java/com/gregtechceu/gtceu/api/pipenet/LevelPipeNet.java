@@ -12,16 +12,16 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public abstract class LevelPipeNet<NodeDataType, T extends PipeNet<NodeDataType>> extends SavedData {
 
     public final ServerLevel serverLevel;
-    protected List<T> pipeNets = new ObjectArrayList<>();
+    protected List<T> pipeNets = new ArrayList<>();
     protected final Long2ObjectOpenHashMap<List<T>> pipeNetsByChunk = new Long2ObjectOpenHashMap<>();
 
     public LevelPipeNet(ServerLevel serverLevel) {
@@ -30,7 +30,7 @@ public abstract class LevelPipeNet<NodeDataType, T extends PipeNet<NodeDataType>
 
     public LevelPipeNet(ServerLevel serverLevel, CompoundTag tag) {
         this(serverLevel);
-        this.pipeNets = new ObjectArrayList<>();
+        this.pipeNets = new ArrayList<>();
         ListTag allEnergyNets = tag.getList("PipeNets", Tag.TAG_COMPOUND);
         for (int i = 0; i < allEnergyNets.size(); i++) {
             CompoundTag pNetTag = allEnergyNets.getCompound(i);
@@ -69,7 +69,7 @@ public abstract class LevelPipeNet<NodeDataType, T extends PipeNet<NodeDataType>
     }
 
     protected void addPipeNetToChunk(long chunkPos, T pipeNet) {
-        this.pipeNetsByChunk.computeIfAbsent(chunkPos, any -> new ObjectArrayList<>()).add(pipeNet);
+        this.pipeNetsByChunk.computeIfAbsent(chunkPos, any -> new ArrayList<>()).add(pipeNet);
     }
 
     protected void removePipeNetFromChunk(long chunkPos, T pipeNet) {

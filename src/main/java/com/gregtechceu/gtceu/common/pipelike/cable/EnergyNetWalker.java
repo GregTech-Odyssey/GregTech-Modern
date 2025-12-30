@@ -10,11 +10,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class EnergyNetWalker extends PipeNetWalker<CableBlockEntity, WireProperties, EnergyNet> {
@@ -22,7 +22,7 @@ public class EnergyNetWalker extends PipeNetWalker<CableBlockEntity, WirePropert
     @Nullable
     public static List<EnergyRoutePath> createNetData(EnergyNet pipeNet, BlockPos sourcePipe) {
         try {
-            EnergyNetWalker walker = new EnergyNetWalker(pipeNet, sourcePipe, 1, new ObjectArrayList<>());
+            EnergyNetWalker walker = new EnergyNetWalker(pipeNet, sourcePipe, 1, new ArrayList<>());
             walker.traversePipeNet();
             return walker.routes;
         } catch (Exception e) {

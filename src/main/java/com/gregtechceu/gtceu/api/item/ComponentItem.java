@@ -35,10 +35,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 
 import com.google.common.collect.Multimap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -54,7 +54,7 @@ public class ComponentItem extends Item implements HeldItemUIFactory.IHeldItemUI
 
     protected ComponentItem(Properties properties) {
         super(properties);
-        components = new ObjectArrayList<>();
+        components = new ArrayList<>();
     }
 
     public static ComponentItem create(Item.Properties properties) {

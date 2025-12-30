@@ -26,10 +26,10 @@ import net.minecraft.world.level.block.Block;
 
 import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.fast.fastcollection.OpenCacheHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -135,8 +135,8 @@ public class GTToolType {
 
         private final String name;
         private String idFormat;
-        private final List<TagKey<Item>> itemTags = new ObjectArrayList<>();
-        private final List<TagKey<Block>> harvestTags = new ObjectArrayList<>();
+        private final List<TagKey<Item>> itemTags = new ArrayList<>();
+        private final List<TagKey<Block>> harvestTags = new ArrayList<>();
         private Set<String> toolClassNames = new OpenCacheHashSet<>();
         private final Set<GTToolType> toolClasses = new ReferenceOpenHashSet<>();
         private IGTToolDefinition toolStats;

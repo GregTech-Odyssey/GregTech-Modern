@@ -55,9 +55,6 @@ public class AlloyBlastProperty implements IMaterialProperty {
     }
 
     public void setRecipeProducer(@NotNull final AlloyBlastRecipeProducer recipeProducer) {
-        if (recipeProducer == null) {
-            throw new NullPointerException("recipeProducer is marked non-null but is null");
-        }
         this.recipeProducer = recipeProducer;
     }
 }

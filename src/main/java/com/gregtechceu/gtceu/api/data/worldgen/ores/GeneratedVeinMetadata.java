@@ -98,9 +98,6 @@ public final class GeneratedVeinMetadata {
      * @return {@code this}.
      */
     public GeneratedVeinMetadata definition(@NotNull final GTOreDefinition definition) {
-        if (definition == null) {
-            throw new NullPointerException("definition is marked non-null but is null");
-        }
         this.definition = definition;
         return this;
     }

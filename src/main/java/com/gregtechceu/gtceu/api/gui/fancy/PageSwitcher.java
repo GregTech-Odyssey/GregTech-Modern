@@ -71,7 +71,7 @@ public class PageSwitcher implements IFancyUIProvider {
                                 clickData -> onPageSwitched.accept(page)));
                         pageWidget.addWidget(new ImageWidget(4, 4, 17, 17, page.getTabIcon()));
                         // For some reason, this doesn't work in any other way:
-                        pageWidget.widgets.get(0).setHoverTooltips(page.getTitle().getString());
+                        pageWidget.widgets.getFirst().setHoverTooltips(page.getTitle().getString());
                         scrollableGroup.addWidget(pageWidget);
                     });
 

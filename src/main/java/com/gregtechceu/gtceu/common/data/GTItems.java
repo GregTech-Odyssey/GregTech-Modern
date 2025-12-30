@@ -1886,9 +1886,7 @@ public class GTItems {
     public static ItemEntry<ComponentItem> COVER_INFINITE_WATER = REGISTRATE
             .item("infinite_water_cover", ComponentItem::create)
             .lang("Infinite Water Cover")
-            .onRegister(attach(new TooltipBehavior(lines -> {
-                lines.add(Component.translatable("gtceu.universal.tooltip.produces_fluid", 16_000 / 20));
-            }), new CoverPlaceBehavior(GTCovers.INFINITE_WATER))).register();
+            .onRegister(attach(new TooltipBehavior(lines -> lines.add(Component.translatable("gtceu.universal.tooltip.produces_fluid", 16_000 / 20))), new CoverPlaceBehavior(GTCovers.INFINITE_WATER))).register();
 
     public static ItemEntry<ComponentItem> COVER_ENDER_FLUID_LINK = REGISTRATE
             .item("ender_fluid_link_cover", ComponentItem::create)
@@ -1936,9 +1934,7 @@ public class GTItems {
 
     // Solar Panels: ID 331-346
     public static ItemEntry<ComponentItem> COVER_SOLAR_PANEL = REGISTRATE.item("solar_panel", ComponentItem::create)
-            .lang("Solar Panel").onRegister(attach(new TooltipBehavior(lines -> {
-                lines.add(Component.translatable("gtceu.universal.tooltip.voltage_out", 1, GTValues.VNF[GTValues.ULV]));
-            }))).onRegister(attach(new CoverPlaceBehavior(GTCovers.SOLAR_PANEL_BASIC)))
+            .lang("Solar Panel").onRegister(attach(new TooltipBehavior(lines -> lines.add(Component.translatable("gtceu.universal.tooltip.voltage_out", 1, GTValues.VNF[GTValues.ULV]))))).onRegister(attach(new CoverPlaceBehavior(GTCovers.SOLAR_PANEL_BASIC)))
             .register();
     public static ItemEntry<ComponentItem> COVER_SOLAR_PANEL_ULV = REGISTRATE
             .item("ulv_solar_panel", ComponentItem::create).lang("Ultra Low Voltage Solar Panel")
@@ -2617,8 +2613,8 @@ public class GTItems {
 
     public static void registerToolTier(MaterialToolTier tier, ResourceLocation id, Collection<ResourceLocation> before,
                                         Collection<ResourceLocation> after) {
-        TierSortingRegistry.registerTier(tier, id, Arrays.asList((Object[]) before.toArray(ResourceLocation[]::new)),
-                Arrays.asList((Object[]) after.toArray(ResourceLocation[]::new)));
+        TierSortingRegistry.registerTier(tier, id, Arrays.asList(before.toArray()),
+                Arrays.asList(after.toArray()));
     }
 
     public static ResourceLocation getTierName(Tier tier) {

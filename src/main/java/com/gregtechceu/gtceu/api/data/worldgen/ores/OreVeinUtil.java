@@ -127,7 +127,7 @@ public class OreVeinUtil {
 
     private static JsonElement resolveBiomeCodecInput(List<String> biomes) {
         if (biomes.size() == 1)
-            return new JsonPrimitive(biomes.get(0));
+            return new JsonPrimitive(biomes.getFirst());
 
         if (biomes.stream().anyMatch(filter -> !filter.isEmpty() && filter.charAt(0) == '#'))
             throw new IllegalStateException(

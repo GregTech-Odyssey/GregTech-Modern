@@ -9,12 +9,12 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraftforge.common.data.LanguageProvider;
 
 import com.tterrag.registrate.providers.RegistrateLangProvider;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -1523,7 +1523,7 @@ public class LangHandler {
      * @return Returns all translation components from a multi lang's sub-keys
      */
     public static List<MutableComponent> getMultiLang(String key) {
-        var outputKeys = new ObjectArrayList<String>();
+        var outputKeys = new ArrayList<String>();
         var i = 0;
         var next = getSubKey(key, i);
         while (Language.getInstance().has(next)) {
@@ -1563,7 +1563,7 @@ public class LangHandler {
      * @return Returns all translation components from a multi lang's sub-keys.
      */
     public static List<MutableComponent> getMultiLang(String key, Object... args) {
-        var outputKeys = new ObjectArrayList<String>();
+        var outputKeys = new ArrayList<String>();
         var i = 0;
         var next = getSubKey(key, i);
         while (Language.getInstance().has(next)) {

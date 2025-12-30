@@ -17,7 +17,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 
-public interface IMufflerMachine extends IMultiPart {
+public interface IMufflerMachine extends IWorkableMultiPart {
 
     void recoverItemsTable(ItemStack recoveryItems);
 

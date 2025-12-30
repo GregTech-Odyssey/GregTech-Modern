@@ -43,7 +43,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.fluids.FluidStack;
 
 import dev.ftb.mods.ftbquests.quest.QuestObjectBase;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +65,7 @@ public class GTRecipeBuilder {
     public Map<RecipeCapability<?>, List<Content>> tickInput = new Reference2ObjectOpenHashMap<>();
     public Map<RecipeCapability<?>, List<Content>> output = new Reference2ObjectOpenHashMap<>();
     public Map<RecipeCapability<?>, List<Content>> tickOutput = new Reference2ObjectOpenHashMap<>();
-    public List<RecipeCondition> conditions = new ObjectArrayList<>();
+    public List<RecipeCondition> conditions = new ArrayList<>();
     @NotNull
     public CompoundTag data = new CompoundTag();
     public ResourceLocation id;
@@ -81,11 +80,11 @@ public class GTRecipeBuilder {
     public GTRecipeCategory recipeCategory;
     @Nullable
     public Consumer<GTRecipeBuilder> onSave;
-    protected final Collection<ResearchRecipeEntry> researchRecipeEntries = new ObjectArrayList<>();
+    protected final Collection<ResearchRecipeEntry> researchRecipeEntries = new ArrayList<>();
     protected boolean generatingRecipes = true;
-    protected List<ItemStack> tempItemStacks = new ObjectArrayList<>();
-    protected List<MaterialStack> tempItemMaterialStacks = new ObjectArrayList<>();
-    protected List<MaterialStack> tempFluidStacks = new ObjectArrayList<>();
+    protected List<ItemStack> tempItemStacks = new ArrayList<>();
+    protected List<MaterialStack> tempItemMaterialStacks = new ArrayList<>();
+    protected List<MaterialStack> tempFluidStacks = new ArrayList<>();
 
     public GTRecipeBuilder(ResourceLocation id, GTRecipeType recipeType) {
         this.id = id;
@@ -96,10 +95,10 @@ public class GTRecipeBuilder {
     public GTRecipeBuilder(GTRecipe toCopy, GTRecipeType recipeType) {
         this.id = toCopy.id;
         this.recipeType = recipeType;
-        toCopy.inputs.forEach((k, v) -> this.input.put(k, new ObjectArrayList<>(v)));
-        toCopy.outputs.forEach((k, v) -> this.output.put(k, new ObjectArrayList<>(v)));
-        toCopy.tickInputs.forEach((k, v) -> this.tickInput.put(k, new ObjectArrayList<>(v)));
-        toCopy.tickOutputs.forEach((k, v) -> this.tickOutput.put(k, new ObjectArrayList<>(v)));
+        toCopy.inputs.forEach((k, v) -> this.input.put(k, new ArrayList<>(v)));
+        toCopy.outputs.forEach((k, v) -> this.output.put(k, new ArrayList<>(v)));
+        toCopy.tickInputs.forEach((k, v) -> this.tickInput.put(k, new ArrayList<>(v)));
+        toCopy.tickOutputs.forEach((k, v) -> this.tickOutput.put(k, new ArrayList<>(v)));
         this.conditions.addAll(toCopy.conditions);
         this.data = toCopy.data.copy();
         this.duration = toCopy.duration;
@@ -120,10 +119,10 @@ public class GTRecipeBuilder {
 
     public GTRecipeBuilder copy(ResourceLocation id) {
         GTRecipeBuilder copy = new GTRecipeBuilder(id, this.recipeType);
-        this.input.forEach((k, v) -> copy.input.put(k, new ObjectArrayList<>(v)));
-        this.output.forEach((k, v) -> copy.output.put(k, new ObjectArrayList<>(v)));
-        this.tickInput.forEach((k, v) -> copy.tickInput.put(k, new ObjectArrayList<>(v)));
-        this.tickOutput.forEach((k, v) -> copy.tickOutput.put(k, new ObjectArrayList<>(v)));
+        this.input.forEach((k, v) -> copy.input.put(k, new ArrayList<>(v)));
+        this.output.forEach((k, v) -> copy.output.put(k, new ArrayList<>(v)));
+        this.tickInput.forEach((k, v) -> copy.tickInput.put(k, new ArrayList<>(v)));
+        this.tickOutput.forEach((k, v) -> copy.tickOutput.put(k, new ArrayList<>(v)));
         copy.conditions.addAll(this.conditions);
         copy.data = this.data.copy();
         copy.duration = this.duration;
@@ -145,28 +144,28 @@ public class GTRecipeBuilder {
     public <T> GTRecipeBuilder input(RecipeCapability<T> capability, T obj) {
         var t = (perTick ? tickInput : input);
         warnTooManyIngredients(capability, true, t, 1);
-        t.computeIfAbsent(capability, c -> new ObjectArrayList<>()).add(makeContent(capability.of(obj)));
+        t.computeIfAbsent(capability, c -> new ArrayList<>()).add(makeContent(capability.of(obj)));
         return this;
     }
 
     public <T> GTRecipeBuilder input(RecipeCapability<T> capability, T... obj) {
         var t = (perTick ? tickInput : input);
         warnTooManyIngredients(capability, true, t, obj.length);
-        t.computeIfAbsent(capability, c -> new ObjectArrayList<>()).addAll(Arrays.stream(obj).map(capability::of).map(this::makeContent).toList());
+        t.computeIfAbsent(capability, c -> new ArrayList<>()).addAll(Arrays.stream(obj).map(capability::of).map(this::makeContent).toList());
         return this;
     }
 
     public <T> GTRecipeBuilder output(RecipeCapability<T> capability, T obj) {
         var t = (perTick ? tickOutput : output);
         warnTooManyIngredients(capability, false, t, 1);
-        t.computeIfAbsent(capability, c -> new ObjectArrayList<>()).add(makeContent(capability.of(obj)));
+        t.computeIfAbsent(capability, c -> new ArrayList<>()).add(makeContent(capability.of(obj)));
         return this;
     }
 
     public <T> GTRecipeBuilder output(RecipeCapability<T> capability, T... obj) {
         var t = (perTick ? tickOutput : output);
         warnTooManyIngredients(capability, false, t, obj.length);
-        t.computeIfAbsent(capability, c -> new ObjectArrayList<>()).addAll(Arrays.stream(obj).map(capability::of).map(this::makeContent).toList());
+        t.computeIfAbsent(capability, c -> new ArrayList<>()).addAll(Arrays.stream(obj).map(capability::of).map(this::makeContent).toList());
         return this;
     }
 
@@ -301,7 +300,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder inputItems(Ingredient... inputs) {
-        List<Ingredient> ingredients = new ObjectArrayList<>();
+        List<Ingredient> ingredients = new ArrayList<>();
         for (int i = 0; i < inputs.length; i++) {
             var ingredient = inputs[i];
             if (missingIngredientError(i, true, ItemRecipeCapability.CAP, ingredient::isEmpty)) {
@@ -325,7 +324,7 @@ public class GTRecipeBuilder {
             return this;
         } else {
             var matInfo = ItemMaterialData.getMaterialInfo(input.getItem());
-            if (chance == Content.MAX_CHANCE && chance != 0) {
+            if (chance == Content.MAX_CHANCE) {
                 if (matInfo != null) {
                     for (var matStack : matInfo.getMaterials()) {
                         tempItemMaterialStacks.add(matStack.multiply(input.getCount()));
@@ -339,14 +338,14 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder inputItems(ItemStack... inputs) {
-        List<Ingredient> ingredients = new ObjectArrayList<>();
+        List<Ingredient> ingredients = new ArrayList<>();
         for (int i = 0; i < inputs.length; i++) {
             ItemStack itemStack = inputs[i];
             if (missingIngredientError(i, true, ItemRecipeCapability.CAP, itemStack::isEmpty)) {
                 return this;
             } else {
                 var matInfo = ItemMaterialData.getMaterialInfo(itemStack.getItem());
-                if (chance == Content.MAX_CHANCE && chance != 0) {
+                if (chance == Content.MAX_CHANCE) {
                     if (matInfo != null) {
                         for (var matStack : matInfo.getMaterials()) {
                             tempItemMaterialStacks.add(matStack.multiply(itemStack.getCount()));
@@ -397,7 +396,7 @@ public class GTRecipeBuilder {
         return inputItems(input.tagPrefix(), input.material(), count);
     }
 
-    public GTRecipeBuilder inputItems(TagPrefix tagPrefix, @NotNull Material material, int count) {
+    public GTRecipeBuilder inputItems(TagPrefix tagPrefix, Material material, int count) {
         if (tagPrefix.isEmpty() || material.isNull()) {
             GTCEu.LOGGER.error("Tried to set input item stack that doesn't exist, id: {}, TagPrefix: {}, Material: {}, Count: {}", id, tagPrefix, material, count);
             return this;
@@ -487,7 +486,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder outputItems(ItemStack... outputs) {
-        List<Ingredient> ingredients = new ObjectArrayList<>();
+        List<Ingredient> ingredients = new ArrayList<>();
         for (int i = 0; i < outputs.length; i++) {
             ItemStack itemStack = outputs[i];
             if (missingIngredientError(i, false, ItemRecipeCapability.CAP, itemStack::isEmpty)) {
@@ -519,7 +518,7 @@ public class GTRecipeBuilder {
         return outputItems(orePrefix, material, 1);
     }
 
-    public GTRecipeBuilder outputItems(TagPrefix orePrefix, @NotNull Material material, int count) {
+    public GTRecipeBuilder outputItems(TagPrefix orePrefix, Material material, int count) {
         if (orePrefix.isEmpty() || material.isNull()) {
             GTCEu.LOGGER.error("Tried to set output item stack that doesn't exist, id: {}, TagPrefix: {}, Material: {}, Count: {}", id, orePrefix, material, count);
             return this;
@@ -683,7 +682,7 @@ public class GTRecipeBuilder {
         return chancedOutput(ChemicalHelper.get(tag, mat, count), chance, tierChanceBoost);
     }
 
-    public GTRecipeBuilder inputFluids(@NotNull Material material, int amount) {
+    public GTRecipeBuilder inputFluids(Material material, int amount) {
         return inputFluids(material.getFluid(amount));
     }
 
@@ -699,7 +698,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder inputFluids(FluidStack... inputs) {
-        List<FluidIngredient> ingredients = new ObjectArrayList<>();
+        List<FluidIngredient> ingredients = new ArrayList<>();
         for (int i = 0; i < inputs.length; i++) {
             FluidStack fluid = inputs[i];
             if (missingIngredientError(i, true, FluidRecipeCapability.CAP, fluid::isEmpty)) {
@@ -707,7 +706,7 @@ public class GTRecipeBuilder {
             } else {
                 var matStack = ChemicalHelper.getMaterial(fluid.getFluid());
                 if (!matStack.isNull()) {
-                    if (chance == Content.MAX_CHANCE && chance != 0) {
+                    if (chance == Content.MAX_CHANCE) {
                         tempFluidStacks.add(new MaterialStack(matStack, fluid.getAmount() * GTValues.M / GTValues.L));
                     }
                 }
@@ -888,10 +887,6 @@ public class GTRecipeBuilder {
 
     private boolean applyResearchProperty(ResearchData.ResearchEntry researchEntry) {
         if (!ConfigHolder.INSTANCE.machines.enableResearch) return false;
-        if (researchEntry == null) {
-            GTCEu.LOGGER.error("Research Entry cannot be empty.", new IllegalArgumentException());
-            return false;
-        }
         if (!generatingRecipes) {
             GTCEu.LOGGER.error("Cannot generate recipes when using researchWithoutRecipe()", new IllegalArgumentException());
             return false;
@@ -913,7 +908,7 @@ public class GTRecipeBuilder {
      * @param researchId the researchId for the recipe
      * @return this
      */
-    public GTRecipeBuilder researchWithoutRecipe(@NotNull String researchId) {
+    public GTRecipeBuilder researchWithoutRecipe(String researchId) {
         return researchWithoutRecipe(researchId, ResearchManager.getDefaultScannerItem());
     }
 
@@ -924,7 +919,7 @@ public class GTRecipeBuilder {
      * @param dataStack  the stack to hold the data. Must have the {@link IDataItem} behavior.
      * @return this
      */
-    public GTRecipeBuilder researchWithoutRecipe(@NotNull String researchId, @NotNull ItemStack dataStack) {
+    public GTRecipeBuilder researchWithoutRecipe(String researchId, ItemStack dataStack) {
         applyResearchProperty(new ResearchData.ResearchEntry(researchId, dataStack));
         this.generatingRecipes = false;
         return this;
@@ -947,7 +942,7 @@ public class GTRecipeBuilder {
      * @param researchStack the stack to use for research
      * @return this
      */
-    public GTRecipeBuilder scannerResearch(@NotNull ItemStack researchStack) {
+    public GTRecipeBuilder scannerResearch(ItemStack researchStack) {
         return scannerResearch(b -> b.researchStack(researchStack));
     }
 
@@ -962,7 +957,7 @@ public class GTRecipeBuilder {
         return this;
     }
 
-    public GTRecipeBuilder category(@NotNull GTRecipeCategory category) {
+    public GTRecipeBuilder category(GTRecipeCategory category) {
         this.recipeCategory = category;
         return this;
     }
@@ -1026,10 +1021,10 @@ public class GTRecipeBuilder {
     }
 
     private void addOutputMaterialInfo() {
-        var itemOutputs = output.getOrDefault(ItemRecipeCapability.CAP, new ObjectArrayList<>());
-        var itemInputs = input.getOrDefault(ItemRecipeCapability.CAP, new ObjectArrayList<>());
+        var itemOutputs = output.getOrDefault(ItemRecipeCapability.CAP, new ArrayList<>());
+        var itemInputs = input.getOrDefault(ItemRecipeCapability.CAP, new ArrayList<>());
         if (itemOutputs.size() == 1 && (!itemInputs.isEmpty() || !tempFluidStacks.isEmpty())) {
-            var currOutput = ItemRecipeCapability.CAP.of(itemOutputs.get(0).content);
+            var currOutput = ItemRecipeCapability.CAP.of(itemOutputs.getFirst().content);
             Item out = null;
             int outputCount = 0;
             if (!currOutput.isEmpty()) {
@@ -1067,7 +1062,7 @@ public class GTRecipeBuilder {
     private void removeExistingMaterialInfo() {
         var itemOutputs = output.get(ItemRecipeCapability.CAP);
         if (itemOutputs.size() == 1) {
-            var currOutput = ItemRecipeCapability.CAP.of(itemOutputs.get(0).content);
+            var currOutput = ItemRecipeCapability.CAP.of(itemOutputs.getFirst().content);
             Item out = null;
             int outputCount = 0;
             if (!currOutput.isEmpty()) {
@@ -1131,7 +1126,7 @@ public class GTRecipeBuilder {
     public long EUt() {
         if (!tickInput.containsKey(EURecipeCapability.CAP)) return 0;
         if (tickInput.get(EURecipeCapability.CAP).isEmpty()) return 0;
-        return EURecipeCapability.CAP.of(tickInput.get(EURecipeCapability.CAP).get(0).content);
+        return EURecipeCapability.CAP.of(tickInput.get(EURecipeCapability.CAP).getFirst().content);
     }
 
     public int getSolderMultiplier() {
@@ -1152,7 +1147,7 @@ public class GTRecipeBuilder {
      * @param EUt           the EUt of the recipe
      * @param CWUt          how much computation per tick this recipe needs if in Research Station
      */
-    public record ResearchRecipeEntry(@NotNull String researchId, @NotNull ItemStack researchItem, @NotNull FluidStack researchFluid, @NotNull ItemStack dataStack, int duration, int EUt, int CWUt) {}
+    public record ResearchRecipeEntry(String researchId, ItemStack researchItem, FluidStack researchFluid, ItemStack dataStack, int duration, int EUt, int CWUt) {}
 
     /**
      * @return {@code this}.

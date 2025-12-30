@@ -8,11 +8,11 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.Lazy;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import xaero.common.minimap.waypoints.Waypoint;
 import xaero.hud.minimap.BuiltInHudModules;
 import xaero.hud.minimap.waypoint.WaypointColor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class XaeroWaypointHandler implements IWaypointHandler {
@@ -20,7 +20,7 @@ public class XaeroWaypointHandler implements IWaypointHandler {
     private final Lazy<Int2ObjectMap<Waypoint>> waypoints = Lazy.of(() -> BuiltInHudModules.MINIMAP.getCurrentSession()
             .getWorldManager()
             .getCustomWaypoints(GTCEu.id(GTCEu.MOD_ID)));
-    private final List<String> knownKeys = new ObjectArrayList<>();
+    private final List<String> knownKeys = new ArrayList<>();
 
     @Override
     public void setWaypoint(String key, String name, int color, ResourceKey<Level> dim, int x, int y, int z) {

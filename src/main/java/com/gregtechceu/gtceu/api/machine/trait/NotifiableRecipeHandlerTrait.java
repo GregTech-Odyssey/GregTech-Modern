@@ -1,33 +1,28 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait implements IRecipeHandlerTrait<T> {
 
-    protected List<Runnable> listeners = new ObjectArrayList<>();
+    protected List<Runnable> listeners = new ArrayList<>();
     @Getter
     @Setter
     @Persisted
     protected boolean isDistinct;
 
     protected boolean isDirty = true;
-
-    private final Runnable notify = () -> {
-        listeners.forEach(Runnable::run);
-        isDirty = true;
-    };
 
     public NotifiableRecipeHandlerTrait(MetaMachine machine) {
         super(machine);
@@ -51,11 +46,16 @@ public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait imple
         return () -> listeners.remove(listener);
     }
 
+    protected void runNotify() {
+        listeners.forEach(Runnable::run);
+        isDirty = true;
+    }
+
     public void notifyListeners() {
         if (isDirty) {
             if (machine.getLevel() instanceof ServerLevel serverLevel) {
                 isDirty = false;
-                TaskHandler.enqueueServerTask(serverLevel, notify, 0);
+                serverLevel.getServer().tell(new TickTask(0, this::runNotify));
             }
         }
     }

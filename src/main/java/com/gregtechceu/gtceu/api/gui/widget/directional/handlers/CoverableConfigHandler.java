@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.gui.widget.directional.handlers;
 
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
+import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.cover.IUICover;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
@@ -111,8 +112,8 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
         if (!item.isEmpty() && machine.getCoverAtSide(side) == null) {
             if (item.getItem() instanceof IComponentItem componentItem) {
                 for (IItemComponent component : componentItem.getComponents()) {
-                    if (component instanceof CoverPlaceBehavior placeBehavior) {
-                        machine.placeCoverOnSide(side, item, placeBehavior.coverDefinition(), serverPlayer);
+                    if (component instanceof CoverPlaceBehavior(CoverDefinition coverDefinition)) {
+                        machine.placeCoverOnSide(side, item, coverDefinition, serverPlayer);
                         break;
                     }
                 }

@@ -54,7 +54,6 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
@@ -134,7 +133,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     }
 
     @Override
-    public void saveCustomPersistedData(@NotNull CompoundTag tag, boolean forDrop) {
+    public void saveCustomPersistedData(CompoundTag tag, boolean forDrop) {
         super.saveCustomPersistedData(tag, forDrop);
         if (!forDrop) tag.put("lockedFluid", lockedFluid.writeToNBT(new CompoundTag()));
         tag.put("stored", stored.writeToNBT(new CompoundTag()));
@@ -142,7 +141,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     }
 
     @Override
-    public void loadCustomPersistedData(@NotNull CompoundTag tag) {
+    public void loadCustomPersistedData(CompoundTag tag) {
         super.loadCustomPersistedData(tag);
         var from = tag.contains("cache") ? tag.getCompound("cache") : tag;
         this.lockedFluid.readFromNBT(from.getCompound("lockedFluid"));
@@ -349,7 +348,6 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         }
 
         @Override
-        @NotNull
         public FluidStack getFluidInTank(int tank) {
             return new FluidStack(stored, GTMath.saturatedCast(storedAmount));
         }
@@ -370,7 +368,6 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         }
 
         @Override
-        @NotNull
         public FluidStack drain(int maxDrain, FluidAction action) {
             if (stored.isEmpty()) return FluidStack.EMPTY;
             long toDrain = Math.min(storedAmount, maxDrain);
@@ -384,7 +381,6 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         }
 
         @Override
-        @NotNull
         public FluidStack drain(FluidStack resource, FluidAction action) {
             if (!resource.isFluidEqual(stored)) return FluidStack.EMPTY;
             return drain(resource.getAmount(), action);
@@ -401,11 +397,11 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         }
 
         @Override
-        public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
+        public boolean isFluidValid(int tank, FluidStack stack) {
             return filter.test(stack);
         }
 
-        public void exportToNearby(@NotNull Direction... facings) {
+        public void exportToNearby(Direction... facings) {
             if (stored.isEmpty()) return;
             var level = getMachine().getLevel();
             var pos = getMachine().getPos();

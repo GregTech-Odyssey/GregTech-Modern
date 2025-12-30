@@ -25,8 +25,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.IItemHandler;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Set;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -96,7 +94,6 @@ public class ItemVoidingCover extends ConveyorCover {
         return group;
     }
 
-    @NotNull
     protected String getUITitle() {
         return "cover.item.voiding.title";
     }

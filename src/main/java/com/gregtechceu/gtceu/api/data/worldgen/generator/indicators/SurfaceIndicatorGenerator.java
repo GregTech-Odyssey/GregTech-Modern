@@ -33,7 +33,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.apache.commons.lang3.function.TriFunction;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -178,7 +177,6 @@ public class SurfaceIndicatorGenerator extends IndicatorGenerator {
             return name().toLowerCase(Locale.ROOT);
         }
 
-        @NotNull
         public static IndicatorPlacement getByName(String name) {
             return IndicatorPlacement.valueOf(name.toUpperCase(Locale.ROOT));
         }

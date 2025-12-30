@@ -28,7 +28,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,7 +64,7 @@ public class ClassicVeinGenerator extends VeinGenerator {
 
     @Override
     public List<VeinEntry> getAllEntries() {
-        List<VeinEntry> entries = new ObjectArrayList<>(primary.size() + secondary.size() + between.size() + sporadic.size());
+        List<VeinEntry> entries = new ArrayList<>(primary.size() + secondary.size() + between.size() + sporadic.size());
         VeinGenerator.mapTarget(primary.target, primary.layers).forEach(entries::add);
         VeinGenerator.mapTarget(secondary.target, secondary.layers).forEach(entries::add);
         VeinGenerator.mapTarget(between.target, between.layers).forEach(entries::add);

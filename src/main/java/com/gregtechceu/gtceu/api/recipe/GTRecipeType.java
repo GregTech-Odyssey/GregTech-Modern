@@ -59,7 +59,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     @Nullable
     protected SoundEntry sound;
     @Getter
-    protected List<Function<CompoundTag, String>> dataInfos = new ObjectArrayList<>();
+    protected List<Function<CompoundTag, String>> dataInfos = new ArrayList<>();
     @Getter
     protected boolean isScanner;
     // Does this recipe type have a research item slot? If this is true you MUST create a custom UI.
@@ -77,7 +77,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     protected int voltageTextOffset = 20;
     protected final Map<String, Collection<GTRecipe>> researchEntries = new O2OOpenCacheHashMap<>();
     @Getter
-    protected final List<ICustomRecipeLogic> customRecipeLogicRunners = new ObjectArrayList<>();
+    protected final List<ICustomRecipeLogic> customRecipeLogicRunners = new ArrayList<>();
     public final Map<ResourceLocation, GTRecipe> recipes = new O2OOpenCacheHashMap<>();
 
     public RecipeDB db;
@@ -193,7 +193,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
 
     protected void init() {
         if (db == null) {
-            var recipes = new ObjectArrayList<>(this.recipes.values());
+            var recipes = new ArrayList<>(this.recipes.values());
             proxyRecipes.forEach(t -> {
                 if (t instanceof GTRecipeType type) {
                     recipes.addAll(type.recipes.values());

@@ -301,11 +301,11 @@ public class VanillaRecipeHelper {
                     }
                 } else if (content instanceof ItemLike itemLike) {
                     builder.define(sign, itemLike);
-                } else if (content instanceof MaterialEntry entry) {
-                    TagKey<Item> tag = ChemicalHelper.getTag(entry.tagPrefix(), entry.material());
+                } else if (content instanceof MaterialEntry(TagPrefix tagPrefix, Material material)) {
+                    TagKey<Item> tag = ChemicalHelper.getTag(tagPrefix, material);
                     if (tag != null) {
                         builder.define(sign, tag);
-                    } else builder.define(sign, ChemicalHelper.getItem(entry.tagPrefix(), entry.material()));
+                    } else builder.define(sign, ChemicalHelper.getItem(tagPrefix, material));
                 } else if (content instanceof ItemProviderEntry<?> entry) {
                     builder.define(sign, entry.asStack());
                 }
@@ -313,7 +313,7 @@ public class VanillaRecipeHelper {
         }
         for (var it = foundTools.iterator(); it.hasNext();) {
             char c = it.nextChar();
-            builder.define(c, ToolHelper.getToolFromSymbol(c).itemTags.get(0));
+            builder.define(c, ToolHelper.getToolFromSymbol(c).itemTags.getFirst());
         }
         builder.save();
 
@@ -410,11 +410,11 @@ public class VanillaRecipeHelper {
                     builder.define(sign, (TagKey<Item>) key);
                 } else if (content instanceof ItemLike itemLike) {
                     builder.define(sign, itemLike);
-                } else if (content instanceof MaterialEntry entry) {
-                    TagKey<Item> tag = ChemicalHelper.getTag(entry.tagPrefix(), entry.material());
+                } else if (content instanceof MaterialEntry(TagPrefix tagPrefix, Material material)) {
+                    TagKey<Item> tag = ChemicalHelper.getTag(tagPrefix, material);
                     if (tag != null) {
                         builder.define(sign, tag);
-                    } else builder.define(sign, ChemicalHelper.getItem(entry.tagPrefix(), entry.material()));
+                    } else builder.define(sign, ChemicalHelper.getItem(tagPrefix, material));
                 } else if (content instanceof ItemProviderEntry<?> entry) {
                     builder.define(sign, entry.asStack());
                 }
@@ -422,7 +422,7 @@ public class VanillaRecipeHelper {
         }
         for (var it = foundTools.iterator(); it.hasNext();) {
             char c = it.nextChar();
-            builder.define(c, ToolHelper.getToolFromSymbol(c).itemTags.get(0));
+            builder.define(c, ToolHelper.getToolFromSymbol(c).itemTags.getFirst());
         }
         builder.save();
 
@@ -482,11 +482,11 @@ public class VanillaRecipeHelper {
                     }
                 } else if (content instanceof ItemLike itemLike) {
                     builder.define(sign, itemLike);
-                } else if (content instanceof MaterialEntry entry) {
-                    TagKey<Item> tag = ChemicalHelper.getTag(entry.tagPrefix(), entry.material());
+                } else if (content instanceof MaterialEntry(TagPrefix tagPrefix, Material material)) {
+                    TagKey<Item> tag = ChemicalHelper.getTag(tagPrefix, material);
                     if (tag != null) {
                         builder.define(sign, tag);
-                    } else builder.define(sign, ChemicalHelper.getItem(entry.tagPrefix(), entry.material()));
+                    } else builder.define(sign, ChemicalHelper.getItem(tagPrefix, material));
                 } else if (content instanceof ItemProviderEntry<?> entry) {
                     builder.define(sign, entry.asStack());
                 }
@@ -494,7 +494,7 @@ public class VanillaRecipeHelper {
         }
         for (var it = foundTools.iterator(); it.hasNext();) {
             char c = it.nextChar();
-            builder.define(c, ToolHelper.getToolFromSymbol(c).itemTags.get(0));
+            builder.define(c, ToolHelper.getToolFromSymbol(c).itemTags.getFirst());
         }
 
         builder.save();
@@ -557,15 +557,15 @@ public class VanillaRecipeHelper {
                 builder.requires((TagKey<Item>) key);
             } else if (content instanceof ItemLike itemLike) {
                 builder.requires(itemLike);
-            } else if (content instanceof MaterialEntry entry) {
-                TagKey<Item> tag = ChemicalHelper.getTag(entry.tagPrefix(), entry.material());
+            } else if (content instanceof MaterialEntry(TagPrefix tagPrefix, Material material)) {
+                TagKey<Item> tag = ChemicalHelper.getTag(tagPrefix, material);
                 if (tag != null) {
                     builder.requires(tag);
-                } else builder.requires(ChemicalHelper.getItem(entry.tagPrefix(), entry.material()));
+                } else builder.requires(ChemicalHelper.getItem(tagPrefix, material));
             } else if (content instanceof ItemProviderEntry<?> entry) {
                 builder.requires(entry.asStack());
             } else if (content instanceof Character c) {
-                builder.requires(ToolHelper.getToolFromSymbol(c).itemTags.get(0));
+                builder.requires(ToolHelper.getToolFromSymbol(c).itemTags.getFirst());
             }
         }
         builder.save();
@@ -622,8 +622,8 @@ public class VanillaRecipeHelper {
                 continue; // todo can this be improved?
             } else if (ingredient instanceof ItemLike) {
                 itemLike = (ItemLike) ingredient;
-            } else if (ingredient instanceof MaterialEntry entry) {
-                itemLike = ChemicalHelper.getItem(entry.tagPrefix(), entry.material());
+            } else if (ingredient instanceof MaterialEntry(TagPrefix tagPrefix, Material material)) {
+                itemLike = ChemicalHelper.getItem(tagPrefix, material);
                 if (itemLike == Items.AIR) continue;
             } else if (ingredient instanceof ItemProviderEntry<?> entry) {
                 itemLike = entry.asItem();

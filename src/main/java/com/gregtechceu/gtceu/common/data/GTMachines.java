@@ -815,10 +815,8 @@ public class GTMachines {
             .tooltips(Component.translatable("gtceu.part_sharing.disabled"),
                     Component.translatable("gtceu.machine.maintenance_hatch_cleanroom_auto.tooltip.0"),
                     Component.translatable("gtceu.machine.maintenance_hatch_cleanroom_auto.tooltip.1"))
-            .tooltipBuilder((stack, tooltips) -> {
-                tooltips.add(Component.literal("  ").append(Component
-                        .translatable(CleanroomType.CLEANROOM.getTranslationKey()).withStyle(ChatFormatting.GREEN)));
-            })
+            .tooltipBuilder((stack, tooltips) -> tooltips.add(Component.literal("  ").append(Component
+                    .translatable(CleanroomType.CLEANROOM.getTranslationKey()).withStyle(ChatFormatting.GREEN))))
             .renderer(() -> new MaintenanceHatchPartRenderer(3, GTCEu.id("block/machine/part/maintenance.cleaning")))
             .register();
 

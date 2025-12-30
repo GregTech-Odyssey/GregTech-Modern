@@ -20,8 +20,8 @@ import net.minecraftforge.fml.common.Mod;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import it.unimi.dsi.fastutil.booleans.BooleanBooleanMutablePair;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.WeakHashMap;
@@ -59,7 +59,7 @@ public enum KeyBind {
     @SubscribeEvent
     @OnlyIn(Dist.CLIENT)
     public static void onInputEvent(InputEvent.Key event) {
-        List<KeyBind> updating = new ObjectArrayList<>();
+        List<KeyBind> updating = new ArrayList<>();
         for (KeyBind keybind : VALUES) {
             boolean previousPressed = keybind.isPressed;
             boolean previousKeyDown = keybind.isKeyDown;

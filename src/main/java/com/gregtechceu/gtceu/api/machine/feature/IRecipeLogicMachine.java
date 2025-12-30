@@ -53,7 +53,7 @@ public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IWorkable,
     /**
      * Called when recipe logic status changed
      */
-    default void notifyStatusChanged(RecipeLogic.Status oldStatus, RecipeLogic.Status newStatus) {
+    default void notifyStatusChanged(int oldStatus, int newStatus) {
         self().requestSync();
     }
 

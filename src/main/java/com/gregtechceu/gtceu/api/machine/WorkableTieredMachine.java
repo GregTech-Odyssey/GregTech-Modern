@@ -15,12 +15,11 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +30,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public abstract class WorkableTieredMachine extends TieredEnergyMachine implements IRecipeLogicMachine, IMachineLife, IMufflableMachine, IOverclockMachine, IInputLimitableMachine {
 
+    @Getter
     @Persisted
     @DescSynced
     public final RecipeLogic recipeLogic;
@@ -51,7 +51,9 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     public final NotifiableFluidTank importFluids;
     @Persisted
     public final NotifiableFluidTank exportFluids;
+    @Getter
     protected final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
+    @Getter
     protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
     @Getter
     @Persisted
@@ -62,7 +64,6 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     @Persisted
     @DescSynced
     protected boolean isMuffled;
-    protected boolean previouslyMuffled = true;
     protected RecipeHandlerList currentHandlerList;
 
     public WorkableTieredMachine(MetaMachineBlockEntity holder, int tier, Int2IntFunction tankScalingFunction, Object... args) {
@@ -73,7 +74,7 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
         this.tankScalingFunction = tankScalingFunction;
         this.capabilitiesProxy = new EnumMap<>(IO.class);
         this.capabilitiesFlat = new EnumMap<>(IO.class);
-        this.traitSubscriptions = new ObjectArrayList<>();
+        this.traitSubscriptions = new ArrayList<>();
         this.recipeLogic = createRecipeLogic(args);
         this.importItems = createImportItemHandler(args);
         this.exportItems = createExportItemHandler(args);
@@ -131,7 +132,7 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
         Map<IO, List<IRecipeHandler<?>>> ioTraits = new EnumMap<>(IO.class);
         for (MachineTrait trait : getTraits()) {
             if (trait instanceof IRecipeHandlerTrait<?> handlerTrait && handlerTrait.isAvailable() && handlerTrait.getHandlerIO() != IO.NONE) {
-                ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ObjectArrayList<>()).add(handlerTrait);
+                ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ArrayList<>()).add(handlerTrait);
             }
         }
         for (var entry : ioTraits.entrySet()) {
@@ -187,28 +188,15 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
 
     @Override
     public long getOverclockVoltage() {
-        return Math.min(GTValues.V[getOverclockTier()], Math.max(energyContainer.getInputVoltage(), energyContainer.getOutputVoltage()));
+        return Math.min(GTValues.V[overclockTier], Math.max(energyContainer.getInputVoltage(), energyContainer.getOutputVoltage()));
     }
 
     //////////////////////////////////////
     // ****** RECIPE LOGIC *******//
     //////////////////////////////////////
-    @Override
-    public void clientTick() {
-        super.clientTick();
-        if (previouslyMuffled != isMuffled) {
-            previouslyMuffled = isMuffled;
-            if (recipeLogic != null) recipeLogic.updateSound();
-        }
-    }
 
-    @NotNull
     public GTRecipeType getRecipeType() {
         return recipeTypes[activeRecipeType];
-    }
-
-    public @NotNull RecipeLogic getRecipeLogic() {
-        return this.recipeLogic;
     }
 
     public void setActiveRecipeType(final int activeRecipeType) {
@@ -235,14 +223,6 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     @Override
     public void setCurrentHandlerList(RecipeHandlerList list) {
         this.currentHandlerList = list;
-    }
-
-    public @NotNull Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {
-        return this.capabilitiesProxy;
-    }
-
-    public @NotNull Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> getCapabilitiesFlat() {
-        return this.capabilitiesFlat;
     }
 
     @Override

@@ -52,11 +52,11 @@ import net.minecraftforge.fluids.capability.templates.FluidTank;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.emi.emi.api.forge.ForgeEmiStack;
 import dev.emi.emi.api.stack.EmiIngredient;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -193,9 +193,9 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
         if (self().isMouseOverElement(mouseX, mouseY)) {
             if (lastFluidInTank == null || lastFluidInTank.isEmpty()) return null;
             if (fluidTank instanceof CycleFluidStackHandler stackHandler) {
-                return getXEIIngredientsClickable(stackHandler, tank).get(0);
+                return getXEIIngredientsClickable(stackHandler, tank).getFirst();
             } else if (fluidTank instanceof CycleFluidEntryHandler entryHandler) {
-                return getXEIIngredientsClickable(entryHandler, tank).get(0);
+                return getXEIIngredientsClickable(entryHandler, tank).getFirst();
             }
             if (GTCEu.Mods.isEMILoaded()) {
                 return ForgeEmiStack.of(lastFluidInTank).setChance(XEIChance);
@@ -252,7 +252,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
 
     @Override
     public List<Component> getTooltipTexts() {
-        List<Component> tooltips = getAdditionalTooltips(new ObjectArrayList<>());
+        List<Component> tooltips = getAdditionalTooltips(new ArrayList<>());
         tooltips.addAll(tooltipTexts);
         return tooltips;
     }
@@ -266,7 +266,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
 
     @Override
     public List<Component> getFullTooltipTexts() {
-        List<Component> tooltips = new ObjectArrayList<>();
+        List<Component> tooltips = new ArrayList<>();
         boolean isPhantom = this instanceof PhantomFluidWidget;
         var fluidStack = this.lastFluidInTank;
         if (fluidStack != null && !fluidStack.isEmpty()) {

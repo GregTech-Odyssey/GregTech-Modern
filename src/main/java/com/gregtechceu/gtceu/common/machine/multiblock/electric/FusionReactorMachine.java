@@ -8,7 +8,6 @@ import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
@@ -35,11 +34,10 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2IntAVLTreeMap;
 import it.unimi.dsi.fastutil.longs.Long2IntSortedMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -107,8 +105,8 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     public void onStructureFormed() {
         super.onStructureFormed();
         // capture all energy containers
-        List<IEnergyContainer> energyContainers = new ObjectArrayList<>();
-        for (IMultiPart part : getParts()) {
+        List<IEnergyContainer> energyContainers = new ArrayList<>();
+        for (var part : getWorkableParts()) {
             for (var handlerList : part.getRecipeHandlers()) {
                 handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).forEach(energyContainers::add);
                 traitSubscriptions.add(handlerList.subscribe(this::updatePreHeatSubscription, EURecipeCapability.CAP));
@@ -155,7 +153,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
      * @param recipe  recipe
      * @return A {@link ModifierFunction} for the given Fusion Reactor and recipe
      */
-    public static ModifierFunction recipeModifier(@NotNull MetaMachine machine, @NotNull GTRecipe recipe) {
+    public static ModifierFunction recipeModifier(MetaMachine machine, GTRecipe recipe) {
         if (!(machine instanceof FusionReactorMachine fusionReactorMachine)) {
             return RecipeModifier.nullWrongType(FusionReactorMachine.class, machine);
         }
@@ -197,7 +195,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
         }
         if (color == -1) {
             if (!recipe.getOutputContents(FluidRecipeCapability.CAP).isEmpty()) {
-                var stack = FluidRecipeCapability.CAP.of(recipe.getOutputContents(FluidRecipeCapability.CAP).get(0).getContent()).getStacks()[0];
+                var stack = FluidRecipeCapability.CAP.of(recipe.getOutputContents(FluidRecipeCapability.CAP).getFirst().getContent()).getStacks()[0];
                 int newColor = -16777216 | GTUtil.getFluidColor(stack);
                 if (!Objects.equals(color, newColor)) {
                     color = newColor;
@@ -265,7 +263,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     //////////////////////////////////////
     // ******** MISC *********//
     //////////////////////////////////////
-    public static void registerFusionTier(int tier, @NotNull String name) {
+    public static void registerFusionTier(int tier, String name) {
         long maxEU = calculateEnergyStorageFactor(tier, 16);
         FUSION_ENERGY.put(maxEU, tier);
         FUSION_NAMES.put(tier, name);
@@ -302,7 +300,6 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
 
     public static IFusionCasingType getCasingType(int tier) {
         return switch (tier) {
-            case LuV -> FusionCasingBlock.CasingType.FUSION_CASING;
             case ZPM -> FusionCasingBlock.CasingType.FUSION_CASING_MK2;
             case UV -> FusionCasingBlock.CasingType.FUSION_CASING_MK3;
             default -> FusionCasingBlock.CasingType.FUSION_CASING;

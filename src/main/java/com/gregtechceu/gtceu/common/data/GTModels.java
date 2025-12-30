@@ -185,52 +185,42 @@ public class GTModels {
 
     public static NonNullBiConsumer<DataGenContext<Block, Block>, RegistrateBlockstateProvider> createSidedCasingModel(String name,
                                                                                                                        ResourceLocation texture) {
-        return (ctx, prov) -> {
-            prov.simpleBlock(ctx.getEntry(), prov.models().cubeBottomTop(name,
-                    texture.withSuffix("/side"),
-                    texture.withSuffix("/bottom"),
-                    texture.withSuffix("/top")));
-        };
+        return (ctx, prov) -> prov.simpleBlock(ctx.getEntry(), prov.models().cubeBottomTop(name,
+                texture.withSuffix("/side"),
+                texture.withSuffix("/bottom"),
+                texture.withSuffix("/top")));
     }
 
     public static NonNullBiConsumer<DataGenContext<Block, Block>, RegistrateBlockstateProvider> cubeAllModel(String name,
                                                                                                              ResourceLocation texture) {
-        return (ctx, prov) -> {
-            prov.simpleBlock(ctx.getEntry(), prov.models().cubeAll(name, texture));
-        };
+        return (ctx, prov) -> prov.simpleBlock(ctx.getEntry(), prov.models().cubeAll(name, texture));
     }
 
     public static NonNullBiConsumer<DataGenContext<Block, Block>, RegistrateBlockstateProvider> createMachineCasingModel(String tierName) {
-        return (ctx, prov) -> {
-            prov.simpleBlock(ctx.getEntry(),
-                    prov.models()
-                            .withExistingParent("%s_machine_casing".formatted(tierName),
-                                    GTCEu.id("block/cube/tinted/bottom_top"))
-                            .texture("bottom", GTCEu.id("block/casings/voltage/%s/bottom".formatted(tierName)))
-                            .texture("top", GTCEu.id("block/casings/voltage/%s/top".formatted(tierName)))
-                            .texture("side", GTCEu.id("block/casings/voltage/%s/side".formatted(tierName))));
-        };
+        return (ctx, prov) -> prov.simpleBlock(ctx.getEntry(),
+                prov.models()
+                        .withExistingParent("%s_machine_casing".formatted(tierName),
+                                GTCEu.id("block/cube/tinted/bottom_top"))
+                        .texture("bottom", GTCEu.id("block/casings/voltage/%s/bottom".formatted(tierName)))
+                        .texture("top", GTCEu.id("block/casings/voltage/%s/top".formatted(tierName)))
+                        .texture("side", GTCEu.id("block/casings/voltage/%s/side".formatted(tierName))));
     }
 
     public static NonNullBiConsumer<DataGenContext<Block, Block>, RegistrateBlockstateProvider> createHermeticCasingModel(String tierName) {
-        return (ctx, prov) -> {
-            prov.simpleBlock(ctx.getEntry(), prov.models()
-                    .withExistingParent("%s_hermetic_casing".formatted(tierName), GTCEu.id("block/hermetic_casing"))
-                    .texture("bot_bottom", GTCEu.id("block/casings/voltage/%s/bottom".formatted(tierName)))
-                    .texture("bot_top", GTCEu.id("block/casings/voltage/%s/top".formatted(tierName)))
-                    .texture("bot_side", GTCEu.id("block/casings/voltage/%s/side".formatted(tierName)))
-                    .texture("top_side", GTCEu.id("block/casings/hermetic_casing/hermetic_casing_overlay")));
-        };
+        return (ctx, prov) -> prov.simpleBlock(ctx.getEntry(), prov.models()
+                .withExistingParent("%s_hermetic_casing".formatted(tierName), GTCEu.id("block/hermetic_casing"))
+                .texture("bot_bottom", GTCEu.id("block/casings/voltage/%s/bottom".formatted(tierName)))
+                .texture("bot_top", GTCEu.id("block/casings/voltage/%s/top".formatted(tierName)))
+                .texture("bot_side", GTCEu.id("block/casings/voltage/%s/side".formatted(tierName)))
+                .texture("top_side", GTCEu.id("block/casings/hermetic_casing/hermetic_casing_overlay")));
     }
 
     public static NonNullBiConsumer<DataGenContext<Block, Block>, RegistrateBlockstateProvider> createSteamCasingModel(String name,
                                                                                                                        String material) {
-        return (ctx, prov) -> {
-            prov.simpleBlock(ctx.getEntry(), prov.models().cubeBottomTop(name,
-                    GTCEu.id("block/casings/steam/%s/side".formatted(material)),
-                    GTCEu.id("block/casings/steam/%s/bottom".formatted(material)),
-                    GTCEu.id("block/casings/steam/%s/top".formatted(material))));
-        };
+        return (ctx, prov) -> prov.simpleBlock(ctx.getEntry(), prov.models().cubeBottomTop(name,
+                GTCEu.id("block/casings/steam/%s/side".formatted(material)),
+                GTCEu.id("block/casings/steam/%s/bottom".formatted(material)),
+                GTCEu.id("block/casings/steam/%s/top".formatted(material))));
     }
 
     public static NonNullBiConsumer<DataGenContext<Block, CoilBlock>, RegistrateBlockstateProvider> createCoilModel(String name,
@@ -249,12 +239,10 @@ public class GTModels {
 
     public static NonNullBiConsumer<DataGenContext<Block, BatteryBlock>, RegistrateBlockstateProvider> createBatteryBlockModel(String name,
                                                                                                                                IBatteryData batteryData) {
-        return (ctx, prov) -> {
-            prov.simpleBlock(ctx.getEntry(), prov.models().cubeBottomTop(name,
-                    GTCEu.id("block/casings/battery/" + batteryData.getBatteryName() + "/side"),
-                    GTCEu.id("block/casings/battery/" + batteryData.getBatteryName() + "/top"),
-                    GTCEu.id("block/casings/battery/" + batteryData.getBatteryName() + "/top")));
-        };
+        return (ctx, prov) -> prov.simpleBlock(ctx.getEntry(), prov.models().cubeBottomTop(name,
+                GTCEu.id("block/casings/battery/" + batteryData.getBatteryName() + "/side"),
+                GTCEu.id("block/casings/battery/" + batteryData.getBatteryName() + "/top"),
+                GTCEu.id("block/casings/battery/" + batteryData.getBatteryName() + "/top")));
     }
 
     public static NonNullBiConsumer<DataGenContext<Block, FusionCasingBlock>, RegistrateBlockstateProvider> createFusionCasingModel(String name,
@@ -273,9 +261,7 @@ public class GTModels {
 
     public static NonNullBiConsumer<DataGenContext<Block, Block>, RegistrateBlockstateProvider> createCleanroomFilterModel(String name,
                                                                                                                            IFilterType type) {
-        return (ctx, prov) -> {
-            prov.simpleBlock(ctx.getEntry(), prov.models().cubeAll(name, GTCEu.id("block/casings/cleanroom/" + type)));
-        };
+        return (ctx, prov) -> prov.simpleBlock(ctx.getEntry(), prov.models().cubeAll(name, GTCEu.id("block/casings/cleanroom/" + type)));
     }
 
     public static NonNullBiConsumer<DataGenContext<Block, ActiveBlock>, RegistrateBlockstateProvider> createActiveModel(ResourceLocation modelPath) {

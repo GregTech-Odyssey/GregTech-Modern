@@ -35,13 +35,13 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -148,7 +148,7 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
     }
 
     protected boolean isSubscriptionActive() {
-        return isWorkingEnabled();
+        return isWorkingEnabled;
     }
 
     protected abstract String identifier();
@@ -189,7 +189,7 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
     protected abstract EntryTypes<T> getEntryType();
 
     protected void update() {
-        if (isWorkingEnabled() && !isRemote()) {
+        if (isWorkingEnabled && !isRemote()) {
             var entry = VirtualEnderRegistry.getInstance().getOrCreateEntry(getOwner(), getEntryType(), getChannelName());
             if (!entry.getColorStr().equals(this.colorStr)) {
                 entry.setColor(this.colorStr);
@@ -451,7 +451,7 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
             super.readUpdateInfo(id, buffer);
             if (id == 101) {
                 int size = buffer.readVarInt();
-                List<VirtualEntry> entries = new ObjectArrayList<>(size);
+                List<VirtualEntry> entries = new ArrayList<>(size);
                 for (int i = 0; i < size; i++) {
                     VirtualEntry entry = cover.getEntryType().createInstance();
                     entry.deserializeNBT(Objects.requireNonNull(buffer.readNbt()));

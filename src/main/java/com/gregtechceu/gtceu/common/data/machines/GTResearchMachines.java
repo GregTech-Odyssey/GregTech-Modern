@@ -38,10 +38,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -217,7 +216,7 @@ public class GTResearchMachines {
                             .or(autoAbilities(true, false, false)))
                     .build())
             .shapeInfos(definition -> {
-                List<MultiblockShapeInfo> shapeInfo = new ObjectArrayList<>();
+                List<MultiblockShapeInfo> shapeInfo = new ArrayList<>();
                 MultiblockShapeInfo.ShapeInfoBuilder builder = MultiblockShapeInfo.builder()
                         .aisle("SA", "CC", "CC", "OC", "AA")
                         .aisle("VA", "8V", "5V", "2V", "VA")
@@ -421,7 +420,6 @@ public class GTResearchMachines {
                     Component.translatable("gtceu.part_sharing.disabled"))
             .register();
 
-    @NotNull
     private static MachineBuilder<MachineDefinition> registerDataHatch(String name, String displayName, int tier,
                                                                        Function<MetaMachineBlockEntity, MetaMachine> constructor,
                                                                        String model, PartAbility... abilities) {

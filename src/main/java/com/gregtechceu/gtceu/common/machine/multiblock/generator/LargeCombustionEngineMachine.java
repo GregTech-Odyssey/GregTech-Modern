@@ -31,7 +31,6 @@ import net.minecraft.network.chat.Style;
 import net.minecraftforge.fluids.FluidStack;
 
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -115,7 +114,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
      * @param recipe  recipe
      * @return A {@link ModifierFunction} for the given Combustion Engine
      */
-    public static ModifierFunction recipeModifier(@NotNull MetaMachine machine, @NotNull GTRecipe recipe) {
+    public static ModifierFunction recipeModifier(MetaMachine machine, GTRecipe recipe) {
         if (!(machine instanceof LargeCombustionEngineMachine engineMachine)) {
             return RecipeModifier.nullWrongType(LargeCombustionEngineMachine.class, machine);
         }
@@ -191,7 +190,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
                 return false;
             });
         }
-        FluidStack requiredFluidInput = RecipeHelper.getInputFluids(recipe.get()).get(0);
+        FluidStack requiredFluidInput = RecipeHelper.getInputFluids(recipe.get()).getFirst();
         long ocAmount = getMaxVoltage() / recipe.get().getOutputEUt();
         int neededAmount = GTMath.saturatedCast(ocAmount * requiredFluidInput.getAmount());
         return ChatFormatting.RED + FormattingUtil.formatNumbers(neededAmount) + "mB";

@@ -64,13 +64,9 @@ public class GTCommands {
                         .then(literal("place_vein")
                                 .requires(ctx -> ctx.hasPermission(LEVEL_ADMINS))
                                 .then(argument("vein", GTRegistryArgument.registry(GTRegistries.ORE_VEINS, ResourceLocation.class))
-                                        .executes(context -> {
-                                            return GTCommands.placeVein(context, BlockPos.containing(context.getSource().getPosition()));
-                                        })
+                                        .executes(context -> GTCommands.placeVein(context, BlockPos.containing(context.getSource().getPosition())))
                                         .then(argument("position", BlockPosArgument.blockPos())
-                                                .executes(context -> {
-                                                    return GTCommands.placeVein(context, BlockPosArgument.getBlockPos(context, "position"));
-                                                })))));
+                                                .executes(context -> GTCommands.placeVein(context, BlockPosArgument.getBlockPos(context, "position")))))));
     }
     // spotless:on
 

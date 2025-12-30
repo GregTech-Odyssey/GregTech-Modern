@@ -83,7 +83,6 @@ public class GTRegistrate extends Registrate {
                         .setData(ProviderType.LANG, NonNullBiConsumer.noop()));
     }
 
-    @NotNull
     public static GTRegistrate create(String modId) {
         return new GTRegistrate(modId);
     }

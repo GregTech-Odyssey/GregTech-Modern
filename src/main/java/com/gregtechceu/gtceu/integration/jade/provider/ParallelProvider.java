@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import net.minecraft.ChatFormatting;
@@ -17,6 +18,8 @@ import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.IServerDataProvider;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
+
+import java.util.Optional;
 
 public class ParallelProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
 
@@ -46,8 +49,8 @@ public class ParallelProvider implements IBlockComponentProvider, IServerDataPro
                         rlm.getRecipeLogic().getLastRecipe() != null) {
                     compoundTag.putInt("parallel", (int) rlm.getRecipeLogic().getLastRecipe().parallels);
                     compoundTag.putBoolean("exact", true);
-                } else {
-                    controller.getParallelHatch()
+                } else if (controller instanceof IWorkableMultiController workableMultiController) {
+                    Optional.ofNullable(workableMultiController.getParallelHatch())
                             .ifPresent(parallelHatch -> compoundTag.putInt("parallel",
                                     parallelHatch.getCurrentParallel()));
                 }

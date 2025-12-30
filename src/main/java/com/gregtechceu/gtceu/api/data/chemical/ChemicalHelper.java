@@ -30,8 +30,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 
 import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -59,7 +57,7 @@ public class ChemicalHelper {
         } else if (object instanceof MaterialEntry entry) {
             var items = getItems(entry);
             if (!items.isEmpty()) {
-                return ItemMaterialData.getMaterialInfo(items.get(0));
+                return ItemMaterialData.getMaterialInfo(items.getFirst());
             }
         } else if (object instanceof Ingredient ing) {
             for (var stack : ing.getItems()) {
@@ -75,7 +73,7 @@ public class ChemicalHelper {
         return getMaterialStack(itemStack.getItem());
     }
 
-    public static MaterialStack getMaterialStack(@NotNull MaterialEntry entry) {
+    public static MaterialStack getMaterialStack(MaterialEntry entry) {
         Material entryMaterial = entry.material();
         if (!entryMaterial.isNull()) {
             return new MaterialStack(entryMaterial, entry.tagPrefix().getMaterialAmount(entryMaterial));
@@ -209,7 +207,7 @@ public class ChemicalHelper {
             if (items != null) {
                 return (List<Item>) items.stream().map(Supplier::get).toList();
             }
-            items = new ObjectArrayList<>();
+            items = new ArrayList<>();
             for (TagKey<Item> tag : tagPrefix.getItemTags(material)) {
                 for (Holder<Item> itemHolder : BuiltInRegistries.ITEM.getTagOrEmpty(tag)) {
                     items.add(itemHolder::value);
@@ -239,7 +237,7 @@ public class ChemicalHelper {
     public static ItemStack get(TagPrefix orePrefix, Material material, int stackSize) {
         var list = getItems(orePrefix, material);
         if (list.isEmpty()) return ItemStack.EMPTY;
-        var stack = list.get(0).asItem().getDefaultInstance();
+        var stack = list.getFirst().asItem().getDefaultInstance();
         stack.setCount(stackSize);
         return stack;
     }
@@ -259,7 +257,7 @@ public class ChemicalHelper {
             if (blocks != null) {
                 return (List<Block>) blocks.stream().map(Supplier::get).toList();
             }
-            blocks = new ObjectArrayList<>();
+            blocks = new ArrayList<>();
             for (TagKey<Block> tag : tagPrefix.getBlockTags(material)) {
                 for (Holder<Block> itemHolder : BuiltInRegistries.BLOCK.getTagOrEmpty(tag)) {
                     blocks.add(itemHolder::value);
@@ -284,11 +282,11 @@ public class ChemicalHelper {
     public static Block getBlock(TagPrefix orePrefix, Material material) {
         var list = getBlocks(orePrefix, material);
         if (list.isEmpty()) return null;
-        return list.get(0);
+        return list.getFirst();
     }
 
     @Nullable
-    public static TagKey<Block> getBlockTag(TagPrefix orePrefix, @NotNull Material material) {
+    public static TagKey<Block> getBlockTag(TagPrefix orePrefix, Material material) {
         var tags = orePrefix.getBlockTags(material);
         if (tags.length > 0) {
             return tags[0];
@@ -297,7 +295,7 @@ public class ChemicalHelper {
     }
 
     @Nullable
-    public static TagKey<Item> getTag(TagPrefix orePrefix, @NotNull Material material) {
+    public static TagKey<Item> getTag(TagPrefix orePrefix, Material material) {
         var tags = orePrefix.getItemTags(material);
         if (tags.length > 0) {
             return tags[0];
@@ -306,7 +304,7 @@ public class ChemicalHelper {
     }
 
     public static List<Pair<ItemStack, ItemMaterialInfo>> getAllItemInfos() {
-        List<Pair<ItemStack, ItemMaterialInfo>> f = new ObjectArrayList<>(ITEM_MATERIAL_INFO.size());
+        List<Pair<ItemStack, ItemMaterialInfo>> f = new ArrayList<>(ITEM_MATERIAL_INFO.size());
         for (var entry : ITEM_MATERIAL_INFO.entrySet()) {
             f.add(Pair.of(new ItemStack(entry.getKey()), entry.getValue()));
         }

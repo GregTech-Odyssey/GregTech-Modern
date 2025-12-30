@@ -21,8 +21,6 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -49,7 +47,7 @@ public class BedrockOreMinerMachine extends WorkableElectricMultiblockMachine {
     }
 
     @Override
-    public @NotNull BedrockOreMinerLogic getRecipeLogic() {
+    public BedrockOreMinerLogic getRecipeLogic() {
         return (BedrockOreMinerLogic) super.getRecipeLogic();
     }
 

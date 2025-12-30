@@ -13,12 +13,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -75,7 +75,7 @@ public class MultiblockMachineDefinition extends MachineDefinition {
         if (!designs.isEmpty()) return designs;
         var structurePattern = patternFactory.get();
         int[][] aisleRepetitions = structurePattern.aisleRepetitions;
-        return repetitionDFS(structurePattern, new ObjectArrayList<>(), aisleRepetitions, new IntArrayList());
+        return repetitionDFS(structurePattern, new ArrayList<>(), aisleRepetitions, new IntArrayList());
     }
 
     private List<MultiblockShapeInfo> repetitionDFS(BlockPattern pattern, List<MultiblockShapeInfo> pages, int[][] aisleRepetitions, IntArrayList repetitionStack) {

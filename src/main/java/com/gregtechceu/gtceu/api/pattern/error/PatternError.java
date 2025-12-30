@@ -9,9 +9,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PatternError {
@@ -26,7 +26,7 @@ public class PatternError {
     }
 
     public List<List<ItemStack>> getCandidates() {
-        List<List<ItemStack>> candidates = new ObjectArrayList<>();
+        List<List<ItemStack>> candidates = new ArrayList<>();
         for (SimplePredicate common : predicate.common) {
             candidates.add(common.getCandidates());
         }

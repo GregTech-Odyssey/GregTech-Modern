@@ -26,9 +26,9 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -64,7 +64,7 @@ public class CuboidVeinGenerator extends VeinGenerator {
 
     @Override
     public List<VeinEntry> getAllEntries() {
-        List<VeinEntry> entries = new ObjectArrayList<>(top.size() + middle.size() + bottom.size() + spread.size());
+        List<VeinEntry> entries = new ArrayList<>(top.size() + middle.size() + bottom.size() + spread.size());
         VeinGenerator.mapTarget(top.target, top.layers).forEach(entries::add);
         VeinGenerator.mapTarget(middle.target, middle.layers).forEach(entries::add);
         VeinGenerator.mapTarget(bottom.target, bottom.layers).forEach(entries::add);

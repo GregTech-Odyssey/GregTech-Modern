@@ -12,7 +12,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @Getter
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class TieredPartMachine extends MultiblockPartMachine implements ITieredMachine {
+public class TieredPartMachine extends WorkableMultiblockPartMachine implements ITieredMachine {
 
     protected final int tier;
 

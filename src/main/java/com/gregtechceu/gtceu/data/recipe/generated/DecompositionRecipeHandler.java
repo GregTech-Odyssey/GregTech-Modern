@@ -12,9 +12,9 @@ import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.gregtechceu.gtceu.api.GTValues.LV;
@@ -41,8 +41,8 @@ public final class DecompositionRecipeHandler {
                 material.getMaterialComponents().size() > 6)
             return;
 
-        List<ItemStack> outputs = new ObjectArrayList<>();
-        List<FluidStack> fluidOutputs = new ObjectArrayList<>();
+        List<ItemStack> outputs = new ArrayList<>();
+        List<FluidStack> fluidOutputs = new ArrayList<>();
         long totalInputAmount = 0;
 
         // compute outputs
@@ -73,7 +73,7 @@ public final class DecompositionRecipeHandler {
 
             // divide components
             if (highestDivisor != 1) {
-                List<ItemStack> reducedOutputs = new ObjectArrayList<>();
+                List<ItemStack> reducedOutputs = new ArrayList<>();
 
                 for (ItemStack itemStack : outputs) {
                     ItemStack reducedStack = itemStack.copy();
@@ -81,7 +81,7 @@ public final class DecompositionRecipeHandler {
                     reducedOutputs.add(reducedStack);
                 }
 
-                List<FluidStack> reducedFluidOutputs = new ObjectArrayList<>();
+                List<FluidStack> reducedFluidOutputs = new ArrayList<>();
 
                 for (FluidStack fluidStack : fluidOutputs) {
                     FluidStack reducedFluidStack = fluidStack.copy();

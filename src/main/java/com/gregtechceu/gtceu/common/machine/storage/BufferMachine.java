@@ -48,11 +48,13 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
     @Persisted
     @DescSynced
     @RequireRerender
+    @Nullable
     protected Direction outputFacingItems;
     @Getter
     @Persisted
     @DescSynced
     @RequireRerender
+    @Nullable
     protected Direction outputFacingFluids;
     @Getter
     @Persisted

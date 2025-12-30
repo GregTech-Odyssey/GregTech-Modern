@@ -29,13 +29,14 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -73,8 +74,8 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        List<IEnergyContainer> containers = new ObjectArrayList<>();
-        List<IOpticalComputationProvider> providers = new ObjectArrayList<>();
+        List<IEnergyContainer> containers = new ArrayList<>();
+        List<IOpticalComputationProvider> providers = new ArrayList<>();
         var handlers = getCapabilitiesFlat(IO.IN, EURecipeCapability.CAP);
         if (handlers.isEmpty()) handlers = getCapabilitiesFlat(IO.OUT, EURecipeCapability.CAP);
         for (IRecipeHandler<?> handler : handlers) {
@@ -92,14 +93,6 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
         this.tier = GTUtil.getFloorTierByVoltage(getMaxVoltage());
     }
 
-    @Override
-    public void onPartUnload() {
-        super.onPartUnload();
-        this.energyContainer = EnergyContainerList.EMPTY;
-        this.computationProviderList = ComputationProviderList.EMPTY;
-        this.tier = 0;
-    }
-
     //////////////////////////////////////
     // ********** GUI ***********//
     //////////////////////////////////////
@@ -113,7 +106,7 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
             batchParallels = recipeLogic.getLastRecipe().batchParallels;
             exact = true;
         } else {
-            numParallels = getParallelHatch().map(IParallelHatch::getCurrentParallel).orElse(0);
+            numParallels = Optional.ofNullable(getParallelHatch()).map(IParallelHatch::getCurrentParallel).orElse(0);
             batchParallels = 0;
         }
         MultiblockDisplayText.builder(textList, isFormed()).setWorkingStatus(recipeLogic.isWorkingEnabled(), recipeLogic.isActive()).addEnergyUsageLine(energyContainer).addEnergyTierLine(tier).addMachineModeLine(getRecipeType(), getRecipeTypes().length > 1).addParallelsLine(numParallels, exact).addBatchModeLine(isBatchEnabled(), batchParallels).addWorkingStatusLine().addProgressLine(recipeLogic.getProgress(), recipeLogic.getMaxProgress(), recipeLogic.getProgressPercent()).addOutputLines(recipeLogic.getLastRecipe());
@@ -193,7 +186,7 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     }
 
     @Override
-    public @NotNull IOpticalComputationProvider getComputationProvider() {
+    public IOpticalComputationProvider getComputationProvider() {
         return computationProviderList;
     }
 }

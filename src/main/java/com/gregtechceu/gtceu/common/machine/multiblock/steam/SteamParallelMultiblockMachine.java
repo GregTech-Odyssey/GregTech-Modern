@@ -35,7 +35,6 @@ import net.minecraft.world.entity.player.Player;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -72,7 +71,7 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
     }
 
     protected void addSteamEnergy() {
-        for (var part : getParts()) {
+        for (var part : getWorkableParts()) {
             if (!PartAbility.STEAM.isApplicable(part.self().getDefinition().get())) continue;
             var handlers = part.getRecipeHandlers();
             for (var hl : handlers) {
@@ -106,7 +105,7 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
      * @param recipe  recipe
      * @return A {@link ModifierFunction} for the given Steam Multiblock Machine and recipe
      */
-    public static ModifierFunction recipeModifier(@NotNull MetaMachine machine, @NotNull GTRecipe recipe) {
+    public static ModifierFunction recipeModifier(MetaMachine machine, GTRecipe recipe) {
         if (!(machine instanceof SteamParallelMultiblockMachine steamMachine)) {
             return RecipeModifier.nullWrongType(SteamParallelMultiblockMachine.class, machine);
         }

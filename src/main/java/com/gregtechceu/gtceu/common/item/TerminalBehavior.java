@@ -36,7 +36,7 @@ public class TerminalBehavior implements IInteractionItem {
                 } else {
                     var self = controller.self();
                     if (level.isClientSide && self.getDefinition().isRenderWorldPreview()) {
-                        MultiblockInWorldPreviewRenderer.showPreview(blockPos, self.getFrontFacing(), self.getUpwardsFacing(), self.getDefinition().getMatchingShapes().get(0), ConfigHolder.INSTANCE.client.inWorldPreviewDuration * 20);
+                        MultiblockInWorldPreviewRenderer.showPreview(blockPos, self.getFrontFacing(), self.getUpwardsFacing(), self.getDefinition().getMatchingShapes().getFirst(), ConfigHolder.INSTANCE.client.inWorldPreviewDuration * 20);
                     }
                     return InteractionResult.SUCCESS;
                 }

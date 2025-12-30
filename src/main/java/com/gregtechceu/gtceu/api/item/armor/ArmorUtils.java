@@ -28,9 +28,9 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntIntPair;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -61,7 +61,7 @@ public class ArmorUtils {
      * @return Map of the inventory and a list of the index of a chargable item
      */
     public static List<Pair<NonNullList<ItemStack>, IntList>> getChargeableItem(Player player, int tier) {
-        List<Pair<NonNullList<ItemStack>, IntList>> inventorySlotMap = new ObjectArrayList<>();
+        List<Pair<NonNullList<ItemStack>, IntList>> inventorySlotMap = new ArrayList<>();
 
         IntList openMainSlots = new IntArrayList();
         for (int i = 0; i < player.getInventory().items.size(); i++) {
@@ -95,7 +95,7 @@ public class ArmorUtils {
             inventorySlotMap.add(Pair.of(player.getInventory().armor, openArmorSlots));
         }
 
-        ItemStack offHand = player.getInventory().offhand.get(0);
+        ItemStack offHand = player.getInventory().offhand.getFirst();
         IElectricItem offHandItem = GTCapabilityHelper.getElectricItem(offHand);
         if (offHandItem == null) {
             return inventorySlotMap;
@@ -166,7 +166,7 @@ public class ArmorUtils {
     public static List<ItemStack> format(List<ItemStack> input) {
         Object2IntMap<ItemStack> items = new O2IOpenCustomCacheHashMap<>(
                 ItemStackHashStrategy.ITEM_AND_TAG);
-        List<ItemStack> output = new ObjectArrayList<>();
+        List<ItemStack> output = new ArrayList<>();
         for (ItemStack itemStack : input) {
             if (items.containsKey(itemStack)) {
                 int amount = items.getInt(itemStack);
@@ -205,7 +205,7 @@ public class ArmorUtils {
         private static final Minecraft mc = Minecraft.getInstance();
 
         public ModularHUD() {
-            this.stringList = new ObjectArrayList<>();
+            this.stringList = new ArrayList<>();
         }
 
         public void newString(Component string) {

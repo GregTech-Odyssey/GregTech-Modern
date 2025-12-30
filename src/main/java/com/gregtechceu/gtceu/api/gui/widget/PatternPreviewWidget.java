@@ -51,7 +51,6 @@ import dev.emi.emi.screen.RecipeScreen;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.longs.LongSets;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
@@ -81,7 +80,7 @@ public class PatternPreviewWidget extends WidgetGroup {
         super(0, 0, 160, 160);
         setClientSideWidget();
         this.controllerDefinition = controllerDefinition;
-        predicates = new ObjectArrayList<>();
+        predicates = new ArrayList<>();
         layer = -1;
 
         addWidget(sceneWidget = new SceneWidget(3, 3, 150, 150, LEVEL) {
@@ -304,8 +303,8 @@ public class PatternPreviewWidget extends WidgetGroup {
                     removeWidget(candidate);
                 }
             }
-            List<List<ItemStack>> candidateStacks = new ObjectArrayList<>();
-            List<List<Component>> predicateTips = new ObjectArrayList<>();
+            List<List<ItemStack>> candidateStacks = new ArrayList<>();
+            List<List<Component>> predicateTips = new ArrayList<>();
             for (SimplePredicate simplePredicate : predicates) {
                 List<ItemStack> itemStacks = simplePredicate.getCandidates();
                 if (!itemStacks.isEmpty()) {

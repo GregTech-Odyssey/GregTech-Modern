@@ -5,9 +5,9 @@ import com.gregtechceu.gtceu.integration.xei.entry.item.ItemStackList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -17,7 +17,7 @@ public class CycleItemStackHandler implements IItemHandlerModifiable {
     private final List<ItemStackList> stacks;
 
     public CycleItemStackHandler(List<List<ItemStack>> stacks) {
-        this.stacks = new ObjectArrayList<>();
+        this.stacks = new ArrayList<>();
         for (var list : stacks) {
             this.stacks.add(ItemStackList.of(list));
         }

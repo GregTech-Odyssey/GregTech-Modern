@@ -42,9 +42,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import com.fast.fastcollection.OpenCacheHashSet;
 import it.unimi.dsi.fastutil.longs.Long2BooleanMap;
 import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -132,7 +132,7 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
         }
 
         StringBuilder[] floorLayer = new StringBuilder[fDist + bDist + 1];
-        List<StringBuilder[]> wallLayers = new ObjectArrayList<>();
+        List<StringBuilder[]> wallLayers = new ArrayList<>();
         StringBuilder[] ceilingLayer = new StringBuilder[fDist + bDist + 1];
 
         for (int i = 0; i < floorLayer.length; i++) {
@@ -179,8 +179,8 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
             f[i] = floorLayer[i].toString();
         }
         String[] m = new String[bDist + fDist + 1];
-        for (int i = 0; i < wallLayers.get(0).length; i++) {
-            m[i] = wallLayers.get(0)[i].toString();
+        for (int i = 0; i < wallLayers.getFirst().length; i++) {
+            m[i] = wallLayers.getFirst()[i].toString();
         }
         String[] c = new String[bDist + fDist + 1];
         for (int i = 0; i < ceilingLayer.length; i++) {
@@ -341,7 +341,7 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
             }
 
             if (shouldActivate) {
-                getRecipeLogic().setStatus(RecipeLogic.Status.WORKING);
+                getRecipeLogic().setStatus(RecipeLogic.WORKING);
 
                 level.playSound(null, pos,
                         stack.is(Items.FIRE_CHARGE) ? SoundEvents.FIRECHARGE_USE : SoundEvents.FLINTANDSTEEL_USE,
@@ -369,7 +369,7 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
                     progress = 0;
                     duration = 0;
                     this.machine.convertLogBlocks();
-                    setStatus(Status.IDLE);
+                    setStatus(IDLE);
                 }
             }
         }

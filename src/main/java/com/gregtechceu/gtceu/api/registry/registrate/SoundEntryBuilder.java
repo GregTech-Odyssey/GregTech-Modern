@@ -16,9 +16,9 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 
 import com.google.gson.JsonObject;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -68,8 +68,8 @@ public class SoundEntryBuilder {
     protected int attenuationDistance;
 
     public SoundEntryBuilder(ResourceLocation id) {
-        wrappedEvents = new ObjectArrayList<>();
-        variants = new ObjectArrayList<>();
+        wrappedEvents = new ArrayList<>();
+        variants = new ArrayList<>();
         this.id = id;
     }
 

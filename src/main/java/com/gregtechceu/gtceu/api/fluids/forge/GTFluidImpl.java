@@ -22,7 +22,7 @@ public abstract class GTFluidImpl extends GTFluid {
 
     private final Supplier<FluidType> fluidType;
 
-    public GTFluidImpl(@NotNull FluidState state, Supplier<? extends Fluid> stillFluid,
+    public GTFluidImpl(FluidState state, Supplier<? extends Fluid> stillFluid,
                        Supplier<? extends Fluid> flowingFluid, Supplier<? extends LiquidBlock> block,
                        Supplier<? extends Item> bucket, int burnTime, Supplier<FluidType> fluidType) {
         super(state, stillFluid, flowingFluid, block, bucket, burnTime);
@@ -36,7 +36,7 @@ public abstract class GTFluidImpl extends GTFluid {
 
     public static class Source extends GTFluidImpl {
 
-        public Source(@NotNull FluidState state, Supplier<? extends Fluid> stillFluid,
+        public Source(FluidState state, Supplier<? extends Fluid> stillFluid,
                       Supplier<? extends Fluid> flowingFluid, Supplier<? extends LiquidBlock> block,
                       Supplier<? extends Item> bucket, int burnTime, Supplier<FluidType> fluidType) {
             super(state, stillFluid, flowingFluid, block, bucket, burnTime, fluidType);
@@ -55,7 +55,7 @@ public abstract class GTFluidImpl extends GTFluid {
 
     public static class Flowing extends GTFluidImpl {
 
-        public Flowing(@NotNull FluidState state, Supplier<? extends Fluid> stillFluid,
+        public Flowing(FluidState state, Supplier<? extends Fluid> stillFluid,
                        Supplier<? extends Fluid> flowingFluid, Supplier<? extends LiquidBlock> block,
                        Supplier<? extends Item> bucket, int burnTime, Supplier<FluidType> fluidType) {
             super(state, stillFluid, flowingFluid, block, bucket, burnTime, fluidType);

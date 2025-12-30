@@ -3,18 +3,18 @@ package com.gregtechceu.gtceu.api.data.chemical.material.stack;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2LongMap;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import org.jetbrains.annotations.UnmodifiableView;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 public class ItemMaterialInfo {
 
-    private final List<MaterialStack> sortedMaterials = new ObjectArrayList<>();
+    private final List<MaterialStack> sortedMaterials = new ArrayList<>();
     private int sortedHash = 0;
     private String toStringValue;
 
@@ -42,7 +42,7 @@ public class ItemMaterialInfo {
      * Returns the first MaterialStack in the "materials" list
      */
     public MaterialStack getMaterial() {
-        return sortedMaterials.isEmpty() ? MaterialStack.EMPTY : sortedMaterials.get(0);
+        return sortedMaterials.isEmpty() ? MaterialStack.EMPTY : sortedMaterials.getFirst();
     }
 
     /**

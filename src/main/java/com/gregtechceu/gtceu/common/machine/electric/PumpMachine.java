@@ -128,7 +128,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
      * the vector first.
      */
     private List<Direction> biasedInVecDirections(RandomSource randomSource, Vec3i vec, boolean goUp) {
-        List<Direction> searchList = new ObjectArrayList<>();
+        List<Direction> searchList = new ArrayList<>();
         if (goUp) {
             searchList.add(Direction.UP);
         }
@@ -252,7 +252,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
         checked.add(headPos);
         checked.add(headPosBelow);
         int maxPumpRange = getMaxPumpRadius(getTier());
-        List<BlockPos> pathStack = new ObjectArrayList<>();
+        List<BlockPos> pathStack = new ArrayList<>();
         Deque<BlockPos> nonSources = new ArrayDeque<>();
         Deque<BlockPos> pathToLastSource = new ArrayDeque<>();
         Deque<BlockPos> sourceStack = new ArrayDeque<>();
@@ -261,11 +261,11 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
         int iterations = 0;
         int previousSources = 0;
         Queue<Deque<BlockPos>> paths = new ArrayDeque<>();
-        List<BlockPos> sources = new ObjectArrayList<>();
+        List<BlockPos> sources = new ArrayList<>();
         // We do at most 1000 iterations to try and find source blocks
         while (!pathStack.isEmpty() && iterations < 1000) {
             // Peeks at the tail
-            BlockPos searchHead = pathStack.get(pathStack.size() - 1);
+            BlockPos searchHead = pathStack.getLast();
             SearchResult next = searchNext(level, headPosBelow, searchHead, fluidType, maxPumpRange, upSources, checked);
             iterations++;
             if (next == null) {
@@ -282,7 +282,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
                     return new PumpQueue(paths, fluidType);
                 }
                 // Now we need to rewind our stack
-                BlockPos last = pathStack.remove(pathStack.size() - 1);
+                BlockPos last = pathStack.removeLast();
                 BlockPos lastSource = sourceStack.peekLast();
                 if (last.equals(lastSource)) {
                     BlockPos prevSource = sourceStack.removeLast();

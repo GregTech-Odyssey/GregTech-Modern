@@ -34,6 +34,7 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhan
 
     private final IEnhancedManaged container;
     private final ManagedFieldHolder managedFieldHolder = MetaMachine.getManagedFieldHolder(getClass());
+    @Getter
     @Persisted
     @DescSynced
     @NotNull
@@ -142,7 +143,7 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhan
         this.filterItem = filterContainer.getStackInSlot(0);
         if (this.filter != null) {
             this.filter = null;
-            this.onFilterRemoved.accept(this.filter);
+            this.onFilterRemoved.accept(null);
         }
         loadFilterFromItem();
     }
@@ -184,10 +185,5 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhan
     @Override
     public void scheduleRenderUpdate() {
         this.container.scheduleRenderUpdate();
-    }
-
-    @NotNull
-    public ItemStack getFilterItem() {
-        return this.filterItem;
     }
 }

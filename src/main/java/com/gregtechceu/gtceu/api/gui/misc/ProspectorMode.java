@@ -39,7 +39,6 @@ import net.minecraftforge.fluids.FluidStack;
 
 import com.fast.fastcollection.O2IOpenCacheHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
@@ -95,7 +94,7 @@ public abstract class ProspectorMode<T> {
                 if (name.startsWith("material_")) {
                     var mat = GTMaterials.get(name.substring(9));
                     if (!mat.isNull()) {
-                        var list = new ObjectArrayList<ItemStack>();
+                        var list = new ArrayList<ItemStack>();
                         for (TagPrefix oreTag : TagPrefix.ORES.keySet()) {
                             for (var block : ChemicalHelper.getBlocks(oreTag, mat)) {
                                 list.add(new ItemStack(block));

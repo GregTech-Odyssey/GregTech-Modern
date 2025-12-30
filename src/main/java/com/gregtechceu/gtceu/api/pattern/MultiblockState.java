@@ -15,12 +15,12 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MultiblockState {
@@ -54,7 +54,7 @@ public class MultiblockState {
     public final PatternMatchContext matchContext;
     public final LongOpenHashSet cache = new LongOpenHashSet();
 
-    public final List<PatternError> errorRecord = new ObjectArrayList<>();
+    public final List<PatternError> errorRecord = new ArrayList<>();
 
     public Long2ObjectOpenHashMap<BlockState> blockStateCache;
     public final LongOpenHashSet blockEntityCache;

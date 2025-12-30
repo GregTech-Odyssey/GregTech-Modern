@@ -23,7 +23,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import com.fast.fastcollection.O2OOpenCacheHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +45,7 @@ public class RecyclingRecipes {
         for (var entry : ChemicalHelper.getAllItemInfos()) {
             ItemStack itemStack = entry.getFirst();
             ItemMaterialInfo materialInfo = entry.getSecond();
-            List<MaterialStack> materialStacks = new ObjectArrayList<>(materialInfo.getMaterials());
+            List<MaterialStack> materialStacks = new ArrayList<>(materialInfo.getMaterials());
             registerRecyclingRecipes(itemStack, materialStacks, false, null);
         }
     }
@@ -79,7 +78,7 @@ public class RecyclingRecipes {
         if (ignoreArcSmelting) return;
 
         if (components.size() == 1) {
-            Material m = components.get(0).material();
+            Material m = components.getFirst().material();
 
             // skip non-ingot materials
             if (!m.hasProperty(PropertyKey.INGOT)) {
@@ -305,7 +304,7 @@ public class RecyclingRecipes {
                                                   @NotNull List<ItemStack> outputs) {
         if (prefix == TagPrefix.nugget || prefix == TagPrefix.ingot || prefix == TagPrefix.block) {
             if (outputs.size() == 1) {
-                MaterialEntry entry = ChemicalHelper.getMaterialEntry(outputs.get(0).getItem());
+                MaterialEntry entry = ChemicalHelper.getMaterialEntry(outputs.getFirst().getItem());
                 if (!entry.isEmpty()) {
                     Material mat = inputStack.material();
                     if (!mat.hasFlag(IS_MAGNETIC) && mat.hasProperty(PropertyKey.INGOT)) {
@@ -440,7 +439,7 @@ public class RecyclingRecipes {
     private static List<ItemStack> finalizeOutputs(List<MaterialStack> materials, int maxOutputs,
                                                    Function<MaterialStack, ItemStack> toItemStackMapper) {
         // Map of ItemStack, Long to properly sort by the true material amount for outputs
-        List<Tuple<ItemStack, MaterialStack>> outputs = new ObjectArrayList<>();
+        List<Tuple<ItemStack, MaterialStack>> outputs = new ArrayList<>();
 
         for (MaterialStack ms : materials) {
             ms = new MaterialStack(ms.material().hasFlag(IS_MAGNETIC) ?
@@ -459,12 +458,12 @@ public class RecyclingRecipes {
                     } else {
                         // Attempt to split and to shrink the stack, and choose the option that creates the
                         // "larger" single stack, in terms of raw material amount.
-                        List<Tuple<ItemStack, MaterialStack>> split = new ObjectArrayList<>();
-                        List<Tuple<ItemStack, MaterialStack>> shrink = new ObjectArrayList<>();
+                        List<Tuple<ItemStack, MaterialStack>> split = new ArrayList<>();
+                        List<Tuple<ItemStack, MaterialStack>> shrink = new ArrayList<>();
                         splitStacks(split, stack, entry);
                         shrinkStacks(shrink, stack, entry);
 
-                        if (split.get(0).getB().amount() > shrink.get(0).getB().amount()) {
+                        if (split.getFirst().getB().amount() > shrink.getFirst().getB().amount()) {
                             outputs.addAll(split);
                         } else outputs.addAll(shrink);
                     }
@@ -555,10 +554,10 @@ public class RecyclingRecipes {
         // Split the "highest level" stack (either Blocks or Dusts) if needed, as it is
         // the only stack that could possibly be above 64.
         if (tempList.containsKey(chosenList.get(0))) {
-            TagPrefix prefix = chosenList.get(0);
+            TagPrefix prefix = chosenList.getFirst();
             MaterialStack ms = tempList.get(prefix);
             splitStacks(list,
-                    ChemicalHelper.get(chosenList.get(0), ms.material(),
+                    ChemicalHelper.get(chosenList.getFirst(), ms.material(),
                             (int) (ms.amount() / prefix.getMaterialAmount(material))),
                     new MaterialEntry(prefix, material));
         }

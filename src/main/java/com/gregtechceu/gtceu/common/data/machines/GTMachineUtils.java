@@ -61,10 +61,10 @@ import net.minecraftforge.fluids.FluidType;
 
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.BiConsumer;
@@ -657,7 +657,7 @@ public class GTMachineUtils {
 
     public static Component[] workableTiered(int tier, long voltage, long energyCapacity, GTRecipeType recipeType,
                                              long tankCapacity, boolean input) {
-        List<Component> tooltipComponents = new ObjectArrayList<>();
+        List<Component> tooltipComponents = new ArrayList<>();
         tooltipComponents
                 .add(input ?
                         Component.translatable("gtceu.universal.tooltip.voltage_in",

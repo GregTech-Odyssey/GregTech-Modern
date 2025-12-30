@@ -38,12 +38,11 @@ import net.minecraft.world.level.block.Block;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -81,7 +80,6 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     // ***** Initialization ******//
     //////////////////////////////////////
     @Override
-    @NotNull
     public RecipeLogic createRecipeLogic(Object... args) {
         if (args.length > 2 && args[args.length - 3] instanceof Integer fortune && args[args.length - 2] instanceof Integer speed && args[args.length - 1] instanceof Integer maxRadius) {
             return new SteamMinerLogic(this, fortune, speed, maxRadius);
@@ -90,7 +88,7 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     }
 
     @Override
-    public @NotNull SteamMinerLogic getRecipeLogic() {
+    public SteamMinerLogic getRecipeLogic() {
         return (SteamMinerLogic) super.getRecipeLogic();
     }
 
@@ -207,7 +205,6 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     }
 
     @Override
-    @NotNull
     public Direction getVentingDirection() {
         return Direction.UP;
     }
@@ -222,13 +219,12 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
         return isHighPressure() ? 12.0F : 6.0F;
     }
 
-    @NotNull
     @Override
     public List<Component> getDataInfo(PortableScannerBehavior.DisplayMode mode) {
         if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_MACHINE_INFO) {
             int workingArea = IMiner.getWorkingArea(getRecipeLogic().getCurrentRadius());
             return Collections.singletonList(Component.translatable("gtceu.universal.tooltip.working_area", workingArea, workingArea));
         }
-        return new ObjectArrayList<>();
+        return new ArrayList<>();
     }
 }

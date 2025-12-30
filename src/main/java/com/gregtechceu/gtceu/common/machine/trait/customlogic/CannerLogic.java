@@ -12,9 +12,9 @@ import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 
 import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
@@ -27,9 +27,9 @@ public enum CannerLogic implements GTRecipeType.ICustomRecipeLogic {
     public @Nullable GTRecipe createCustomRecipe(IRecipeCapabilityHolder holder) {
         var handlerLists = holder.getInputList();
         if (handlerLists.isEmpty()) return null;
-        List<RecipeHandlerList> distinct = new ObjectArrayList<>();
-        List<IRecipeHandler<?>> notDistinctItems = new ObjectArrayList<>();
-        List<IRecipeHandler<?>> notDistinctFluids = new ObjectArrayList<>();
+        List<RecipeHandlerList> distinct = new ArrayList<>();
+        List<IRecipeHandler<?>> notDistinctItems = new ArrayList<>();
+        List<IRecipeHandler<?>> notDistinctFluids = new ArrayList<>();
 
         for (var handlerList : handlerLists) {
             if (handlerList.isDistinct()) {
@@ -42,11 +42,11 @@ public enum CannerLogic implements GTRecipeType.ICustomRecipeLogic {
 
         if (distinct.isEmpty() && notDistinctItems.isEmpty() && notDistinctFluids.isEmpty()) return null;
 
-        List<ItemStack> itemStacks = new ObjectArrayList<>();
-        List<FluidStack> fluidStacks = new ObjectArrayList<>();
+        List<ItemStack> itemStacks = new ArrayList<>();
+        List<FluidStack> fluidStacks = new ArrayList<>();
 
-        List<Pair<ItemStack, IFluidHandlerItem>> validItems = new ObjectArrayList<>();
-        List<FluidStack> validFluids = new ObjectArrayList<>();
+        List<Pair<ItemStack, IFluidHandlerItem>> validItems = new ArrayList<>();
+        List<FluidStack> validFluids = new ArrayList<>();
 
         for (var rhl : distinct) {
             itemStacks.clear();

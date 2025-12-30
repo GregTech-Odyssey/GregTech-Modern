@@ -11,8 +11,6 @@ import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
@@ -177,7 +175,7 @@ public class ParallelLogic {
      * @param parallelLimit max parallel limited
      * @return Returns the number of parallels that can be done (fast calc)
      */
-    public static int getParallelAmountFast(MetaMachine machine, @NotNull GTRecipe recipe, int parallelLimit) {
+    public static int getParallelAmountFast(MetaMachine machine, GTRecipe recipe, int parallelLimit) {
         if (parallelLimit <= 1) return parallelLimit;
         if (!(machine instanceof IRecipeCapabilityHolder holder)) return 1;
 

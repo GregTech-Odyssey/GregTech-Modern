@@ -50,11 +50,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.BlockHitResult;
 
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -133,7 +132,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
     }
 
     @Override
-    public @NotNull MinerLogic getRecipeLogic() {
+    public MinerLogic getRecipeLogic() {
         return (MinerLogic) super.getRecipeLogic();
     }
 
@@ -277,9 +276,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
                     slot.setCanPutItems(false);
                 }
             });
-            WidgetUtils.widgetByIdForEach(group, "^component_panel$", ComponentPanelWidget.class, panel -> {
-                panel.textSupplier(machine::addDisplayText);
-            });
+            WidgetUtils.widgetByIdForEach(group, "^component_panel$", ComponentPanelWidget.class, panel -> panel.textSupplier(machine::addDisplayText));
         });
     }
 
@@ -299,7 +296,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
         });
     }
 
-    private void addDisplayText(@NotNull List<Component> textList) {
+    private void addDisplayText(List<Component> textList) {
         int workingArea = IMiner.getWorkingArea(getRecipeLogic().getCurrentRadius());
         textList.add(Component.translatable("gtceu.machine.miner.startx", getRecipeLogic().getX()).append(" ").append(Component.translatable("gtceu.machine.miner.minex", getRecipeLogic().getMineX())));
         textList.add(Component.translatable("gtceu.machine.miner.starty", getRecipeLogic().getY()).append(" ").append(Component.translatable("gtceu.machine.miner.miney", getRecipeLogic().getMineY())));
@@ -342,14 +339,13 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
         return InteractionResult.SUCCESS;
     }
 
-    @NotNull
     @Override
     public List<Component> getDataInfo(PortableScannerBehavior.DisplayMode mode) {
         if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_MACHINE_INFO) {
             int workingArea = IMiner.getWorkingArea(getRecipeLogic().getCurrentRadius());
             return Collections.singletonList(Component.translatable("gtceu.universal.tooltip.working_area", workingArea, workingArea));
         }
-        return new ObjectArrayList<>();
+        return new ArrayList<>();
     }
 
     public void setAllowInputFromOutputSideItems(final boolean allowInputFromOutputSideItems) {

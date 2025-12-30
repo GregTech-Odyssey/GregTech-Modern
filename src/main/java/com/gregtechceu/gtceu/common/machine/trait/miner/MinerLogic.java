@@ -165,7 +165,7 @@ public class MinerLogic extends RecipeLogic {
                 // always drain storages when working, even if blocksToMine ends up being empty
                 miner.drainInput(false);
                 // since energy is being consumed the miner is now active
-                setStatus(Status.WORKING);
+                setStatus(WORKING);
             } else {
                 // the miner cannot drain, therefore it is inactive
                 if (this.isWorking()) {
@@ -178,7 +178,7 @@ public class MinerLogic extends RecipeLogic {
                 var pipePos = new BlockPos(miningPos.getX(), pipeY, miningPos.getZ());
                 if (serverLevel.getBlockState(pipePos).getDestroySpeed(serverLevel, pipePos) < 0) {
                     isDone = true;
-                    setStatus(Status.IDLE);
+                    setStatus(IDLE);
                     return;
                 }
                 serverLevel.destroyBlock(pipePos, false);
@@ -225,12 +225,12 @@ public class MinerLogic extends RecipeLogic {
                 blocksToMine.addAll(getBlocksToMine());
                 if (blocksToMine.isEmpty()) {
                     this.isDone = true;
-                    this.setStatus(Status.IDLE);
+                    this.setStatus(IDLE);
                 }
             }
         } else {
             // machine isn't working enabled
-            this.setStatus(Status.IDLE);
+            this.setStatus(IDLE);
             unsubscribe();
         }
     }
@@ -454,7 +454,7 @@ public class MinerLogic extends RecipeLogic {
      * @param values to find the mean of
      * @return the mean value
      */
-    private static long mean(@NotNull long[] values) {
+    private static long mean(long[] values) {
         if (values.length == 0L) return 0L;
         long sum = 0L;
         for (long v : values) sum += v;

@@ -20,7 +20,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -141,7 +140,6 @@ public class RobotArmCover extends ConveyorCover {
     // *********** GUI ***********//
     //////////////////////////////////////
     @Override
-    @NotNull
     protected String getUITitle() {
         return "cover.robotic_arm.title";
     }

@@ -5,8 +5,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -210,7 +209,7 @@ public class TagExprFilter {
         }
 
         private List<Token> tokenize(String expr) {
-            List<Token> result = new ObjectArrayList<>();
+            List<Token> result = new ArrayList<>();
 
             int idx = 0;
             while (idx < expr.length()) {

@@ -21,10 +21,10 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.world.level.Level;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -46,7 +46,7 @@ public class ToolHeadReplaceRecipe extends CustomRecipe {
 
     @Override
     public boolean matches(CraftingContainer inv, @NotNull Level level) {
-        List<ItemStack> list = new ObjectArrayList<>();
+        List<ItemStack> list = new ArrayList<>();
 
         for (int i = 0; i < inv.getContainerSize(); i++) {
             ItemStack stack = inv.getItem(i);
@@ -82,7 +82,7 @@ public class ToolHeadReplaceRecipe extends CustomRecipe {
 
     @Override
     public @NotNull ItemStack assemble(CraftingContainer inv, @NotNull RegistryAccess registryAccess) {
-        List<ItemStack> list = new ObjectArrayList<>();
+        List<ItemStack> list = new ArrayList<>();
 
         for (int i = 0; i < inv.getContainerSize(); i++) {
             ItemStack itemstack = inv.getItem(i);
