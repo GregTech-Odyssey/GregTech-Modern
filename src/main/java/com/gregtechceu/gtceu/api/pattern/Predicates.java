@@ -50,10 +50,6 @@ public class Predicates {
         return new ControllerPredicate(definition);
     }
 
-    public static TraceabilityPredicate module(MachineDefinition definition) {
-        return air().or(blocks(definition.get()).setPreviewCount(0));
-    }
-
     public static TraceabilityPredicate blocks(Block... blocks) {
         if (blocks.length == 0) return any();
         if (blocks.length == 1 && blocks[0] == Blocks.AIR) return air();

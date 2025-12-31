@@ -40,11 +40,6 @@ public interface IMultiModule<T extends IMultiController> extends IMultiPart {
     }
 
     @Override
-    default boolean canShared() {
-        return false;
-    }
-
-    @Override
     default boolean hasController(BlockPos controllerPos) {
         return false;
     }

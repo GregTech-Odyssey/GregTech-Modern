@@ -41,6 +41,7 @@ import it.unimi.dsi.fastutil.ints.IntObjectPair;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,10 +50,17 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 
 public class BlockPattern {
+
+    private static final Set<Class<?>> WHITELIST = new ReferenceOpenHashSet<>();
+
+    public static void addWhitelistBlockEntity(Class<?> clazz) {
+        WHITELIST.add(clazz);
+    }
 
     public final static Direction[] FACINGS = { Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST, Direction.UP, Direction.DOWN };
     public final static Direction[] FACINGS_H = { Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST };
@@ -143,7 +151,7 @@ public class BlockPattern {
                                 var blockentity = worldState.getTileEntity();
                                 if (blockentity != null) {
                                     if (blockentity instanceof MetaMachineBlockEntity machineBlockEntity) {
-                                        if (machineBlockEntity.metaMachine instanceof IMultiPart part) {
+                                        if (machineBlockEntity.metaMachine instanceof IMultiPart part && part != worldState.controller) {
                                             if (!worldState.world.isLoaded(pos)) {
                                                 worldState.setError(MultiblockState.UNLOAD_ERROR);
                                                 return false;
@@ -157,7 +165,7 @@ public class BlockPattern {
                                                 matchContext.parts.add(part);
                                             }
                                         }
-                                    } else if (!(blockentity instanceof IManagedBlockEntity)) {
+                                    } else if (!(blockentity instanceof IManagedBlockEntity) && !WHITELIST.contains(blockentity.getClass())) {
                                         worldState.blockEntityCache.add(posLong);
                                     }
                                 }
