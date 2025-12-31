@@ -1,26 +1,79 @@
 package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableMultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.utils.asm.EmptyMethodChecker;
 
 import java.util.List;
 
 public interface IWorkableMultiPart extends IMultiPart {
 
-    boolean hasOnWorkingMethod();
+    static boolean hasOnWorkingMethod(IWorkableMultiPart part) {
+        var c = part.getClass();
+        return WorkableMultiblockPartMachine.ON_WORKING_METHOD.computeIfAbsent(c, k -> {
+            try {
+                return EmptyMethodChecker.hasMethodBody(c.getMethod("onWorking", IWorkableMultiController.class));
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
 
-    boolean hasBeforeWorkingMethod();
+    static boolean hasBeforeWorkingMethod(IWorkableMultiPart part) {
+        var c = part.getClass();
+        return WorkableMultiblockPartMachine.BEFORE_WORKING_METHOD.computeIfAbsent(c, k -> {
+            try {
+                return EmptyMethodChecker.hasMethodBody(c.getMethod("beforeWorking", IWorkableMultiController.class, GTRecipe.class));
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
 
-    boolean hasAfterWorkingMethod();
+    static boolean hasAfterWorkingMethod(IWorkableMultiPart part) {
+        var c = part.getClass();
+        return WorkableMultiblockPartMachine.AFTER_WORKING_METHOD.computeIfAbsent(c, k -> {
+            try {
+                return EmptyMethodChecker.hasMethodBody(c.getMethod("afterWorking", IWorkableMultiController.class));
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
 
-    boolean hasModifyRecipeMethod();
+    static boolean hasModifyRecipeMethod(IWorkableMultiPart part) {
+        var c = part.getClass();
+        return WorkableMultiblockPartMachine.MODIFY_RECIPE_METHOD.computeIfAbsent(c, k -> {
+            try {
+                return EmptyMethodChecker.hasMethodBody(c.getMethod("modifyRecipe", IWorkableMultiController.class, GTRecipe.class));
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
 
-    /**
-     * Get all available traits for recipe logic.
-     */
-    List<RecipeHandlerList> getRecipeHandlers();
+    default boolean hasOnWorkingMethod() {
+        return IWorkableMultiPart.hasOnWorkingMethod(this);
+    }
+
+    default boolean hasBeforeWorkingMethod() {
+        return IWorkableMultiPart.hasBeforeWorkingMethod(this);
+    }
+
+    default boolean hasAfterWorkingMethod() {
+        return IWorkableMultiPart.hasAfterWorkingMethod(this);
+    }
+
+    default boolean hasModifyRecipeMethod() {
+        return IWorkableMultiPart.hasModifyRecipeMethod(this);
+    }
+
+    default List<RecipeHandlerList> getRecipeHandlers() {
+        return List.of(getHandlerList());
+    }
 
     /**
      * Called per tick in {@link RecipeLogic#handleRecipeWorking()}
@@ -61,4 +114,6 @@ public interface IWorkableMultiPart extends IMultiPart {
     default GTRecipe modifyRecipe(IWorkableMultiController controller, GTRecipe recipe) {
         return recipe;
     }
+
+    RecipeHandlerList getHandlerList();
 }

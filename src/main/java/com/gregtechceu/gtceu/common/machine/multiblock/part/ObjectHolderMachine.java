@@ -10,7 +10,7 @@ import com.gregtechceu.gtceu.api.item.component.IDataItem;
 import com.gregtechceu.gtceu.api.item.component.IItemComponent;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
-import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableMultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 
@@ -32,7 +32,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class ObjectHolderMachine extends MultiblockPartMachine implements IObjectHolder, IMachineLife {
+public class ObjectHolderMachine extends WorkableMultiblockPartMachine implements IObjectHolder, IMachineLife {
 
     // purposefully not exposed to automation or capabilities
     @Persisted

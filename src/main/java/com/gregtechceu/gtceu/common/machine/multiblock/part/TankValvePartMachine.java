@@ -4,7 +4,7 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableMultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.FluidTankProxyTrait;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.MultiblockTankMachine;
 
@@ -22,7 +22,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class TankValvePartMachine extends MultiblockPartMachine {
+public class TankValvePartMachine extends WorkableMultiblockPartMachine {
 
     private FluidTankProxyTrait tankProxy;
     private ConditionalSubscriptionHandler autoIOSubscription;
