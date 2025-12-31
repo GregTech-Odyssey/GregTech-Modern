@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
+import com.gregtechceu.gtceu.client.ClientProxy;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 
 import net.minecraft.ChatFormatting;
@@ -361,7 +362,7 @@ public class GTUtil {
 
     public static Level getClientLevel() {
         if (GTCEu.isClientSide()) {
-            return Minecraft.getInstance().level;
+            return ClientProxy.level();
         } else {
             return null;
         }
