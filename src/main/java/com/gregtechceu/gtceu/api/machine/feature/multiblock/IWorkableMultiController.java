@@ -39,4 +39,12 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
             self.updateActiveBlock(false);
         }
     }
+
+    IWorkableMultiPart[] getOnWorkingPart();
+
+    IWorkableMultiPart[] getBeforeWorkingPart();
+
+    IWorkableMultiPart[] getAfterWorkingPart();
+
+    IWorkableMultiPart[] getModifyRecipePart();
 }

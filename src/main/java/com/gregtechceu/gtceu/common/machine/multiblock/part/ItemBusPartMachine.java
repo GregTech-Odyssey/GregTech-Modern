@@ -11,7 +11,7 @@ import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigura
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDistinctPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachine;
-import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.CircuitHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.common.data.GTMachines;
@@ -42,7 +42,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class ItemBusPartMachine extends TieredIOPartMachine implements IDistinctPart, IMachineLife, IInputLimitableMachine {
+public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements IDistinctPart, IMachineLife, IInputLimitableMachine {
 
     @Getter
     @Persisted

@@ -2,9 +2,7 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 
 public class AutoMaintenanceHatchPartMachine extends TieredPartMachine implements IMaintenanceMachine {
 
@@ -45,12 +43,4 @@ public class AutoMaintenanceHatchPartMachine extends TieredPartMachine implement
 
     @Override
     public void setTimeActive(int time) {}
-
-    @Override
-    public void afterWorking(IWorkableMultiController controller) {}
-
-    @Override
-    public GTRecipe modifyRecipe(IWorkableMultiController controller, GTRecipe recipe) {
-        return recipe;
-    }
 }

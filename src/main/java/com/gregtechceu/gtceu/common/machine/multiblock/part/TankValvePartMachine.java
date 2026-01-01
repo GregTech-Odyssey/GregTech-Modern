@@ -24,8 +24,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class TankValvePartMachine extends MultiblockPartMachine {
 
-    private FluidTankProxyTrait tankProxy;
-    private ConditionalSubscriptionHandler autoIOSubscription;
+    private final FluidTankProxyTrait tankProxy;
+    private final ConditionalSubscriptionHandler autoIOSubscription;
     private ISubscription tankChangeListener;
 
     public TankValvePartMachine(MetaMachineBlockEntity holder, boolean isMetal, Object... args) {

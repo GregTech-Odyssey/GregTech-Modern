@@ -12,7 +12,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
-import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
@@ -47,7 +47,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class DataAccessHatchMachine extends TieredPartMachine implements IMachineLife, IDataAccessHatch, IDataInfoProvider {
+public class DataAccessHatchMachine extends WorkableTieredPartMachine implements IMachineLife, IDataAccessHatch, IDataInfoProvider {
 
     private final Set<GTRecipe> recipes;
     @Getter

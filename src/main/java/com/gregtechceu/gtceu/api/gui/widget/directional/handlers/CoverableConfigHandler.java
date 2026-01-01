@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.api.gui.widget.directional.IDirectionalConfigHandle
 import com.gregtechceu.gtceu.api.item.IComponentItem;
 import com.gregtechceu.gtceu.api.item.component.IItemComponent;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 import com.gregtechceu.gtceu.common.item.CoverPlaceBehavior;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
@@ -56,14 +57,7 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
     }
 
     private CustomItemStackHandler createItemStackHandler() {
-        var handler = new CustomItemStackHandler(1) {
-
-            @Override
-            public int getSlotLimit(int slot) {
-                return 1;
-            }
-        };
-
+        var handler = new SingleCustomItemStackHandler(1);
         handler.setFilter(itemStack -> {
             if (itemStack.isEmpty()) return true;
             if (this.side == null) return false;

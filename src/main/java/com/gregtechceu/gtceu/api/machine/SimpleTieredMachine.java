@@ -24,6 +24,7 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
 
@@ -120,12 +121,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     }
 
     protected CustomItemStackHandler createChargerItemHandler(Object... args) {
-        var handler = new CustomItemStackHandler() {
-
-            public int getSlotLimit(int slot) {
-                return 1;
-            }
-        };
+        var handler = new SingleCustomItemStackHandler(1);
         handler.setFilter(item -> GTCapabilityHelper.getElectricItem(item) != null || (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE && GTCapabilityHelper.getForgeEnergyItem(item) != null));
         return handler;
     }

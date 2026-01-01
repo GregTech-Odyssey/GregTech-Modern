@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.machine.MachineCoverContainer;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -121,13 +122,7 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhan
     ///////////////////////////////////////
     private CustomItemStackHandler getFilterSlot() {
         if (this.filterSlot == null) {
-            this.filterSlot = new CustomItemStackHandler(this.filterItem) {
-
-                @Override
-                public int getSlotLimit(int slot) {
-                    return 1;
-                }
-            };
+            this.filterSlot = new SingleCustomItemStackHandler(this.filterItem);
             this.filterSlot.setFilter(this::canInsertFilterItem);
         }
         return this.filterSlot;

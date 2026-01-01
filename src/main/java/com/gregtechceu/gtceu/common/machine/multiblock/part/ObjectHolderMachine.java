@@ -12,7 +12,7 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -102,16 +102,10 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
         }
     }
 
-    private class ObjectHolderHandler extends NotifiableItemStackHandler {
+    public class ObjectHolderHandler extends NotifiableItemStackHandler {
 
         public ObjectHolderHandler(MetaMachine metaTileEntity) {
-            super(metaTileEntity, 2, IO.IN, IO.BOTH, size -> new CustomItemStackHandler(size) {
-
-                @Override
-                public int getSlotLimit(int slot) {
-                    return 1;
-                }
-            });
+            super(metaTileEntity, 2, IO.IN, IO.BOTH, SingleCustomItemStackHandler::new);
         }
 
         // only allow a single item, no stack size

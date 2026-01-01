@@ -13,7 +13,7 @@ import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IRotorHolderMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
-import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.common.data.GTDamageTypes;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
@@ -45,7 +45,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class RotorHolderPartMachine extends TieredPartMachine implements IMachineLife, IRotorHolderMachine, IInteractedMachine {
+public class RotorHolderPartMachine extends WorkableTieredPartMachine implements IMachineLife, IRotorHolderMachine, IInteractedMachine {
 
     @Persisted
     public final NotifiableItemStackHandler inventory;
