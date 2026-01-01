@@ -10,6 +10,11 @@ public class SingleCustomItemStackHandler extends CustomItemStackHandler {
         super(size);
     }
 
+    public SingleCustomItemStackHandler(@NotNull ItemStack itemStack) {
+        this.stacks = new ItemStack[] { itemStack };
+        this.size = 1;
+    }
+
     @Override
     public int getSlotLimit(int slot) {
         return 1;

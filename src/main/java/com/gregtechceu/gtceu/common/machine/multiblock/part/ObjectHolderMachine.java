@@ -10,9 +10,9 @@ import com.gregtechceu.gtceu.api.item.component.IDataItem;
 import com.gregtechceu.gtceu.api.item.component.IItemComponent;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
-import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableMultiblockPartMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -32,7 +32,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class ObjectHolderMachine extends WorkableMultiblockPartMachine implements IObjectHolder, IMachineLife {
+public class ObjectHolderMachine extends MultiblockPartMachine implements IObjectHolder, IMachineLife {
 
     // purposefully not exposed to automation or capabilities
     @Persisted
@@ -102,16 +102,10 @@ public class ObjectHolderMachine extends WorkableMultiblockPartMachine implement
         }
     }
 
-    private class ObjectHolderHandler extends NotifiableItemStackHandler {
+    public class ObjectHolderHandler extends NotifiableItemStackHandler {
 
         public ObjectHolderHandler(MetaMachine metaTileEntity) {
-            super(metaTileEntity, 2, IO.IN, IO.BOTH, size -> new CustomItemStackHandler(size) {
-
-                @Override
-                public int getSlotLimit(int slot) {
-                    return 1;
-                }
-            });
+            super(metaTileEntity, 2, IO.IN, IO.BOTH, SingleCustomItemStackHandler::new);
         }
 
         // only allow a single item, no stack size

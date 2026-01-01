@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfigurator;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.machine.MachineCoverContainer;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
@@ -37,13 +38,7 @@ public class StorageCover extends CoverBehavior implements IUICover {
     public StorageCover(@NotNull CoverDefinition definition, @NotNull ICoverable coverableView,
                         @NotNull Direction attachedSide) {
         super(definition, coverableView, attachedSide);
-        inventory = new CustomItemStackHandler(SIZE) {
-
-            @Override
-            public int getSlotLimit(int slot) {
-                return 1;
-            }
-        };
+        inventory = new SingleCustomItemStackHandler(SIZE);
     }
 
     @Override
