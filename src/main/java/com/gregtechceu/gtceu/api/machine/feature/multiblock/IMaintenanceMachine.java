@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import net.minecraft.ChatFormatting;
@@ -13,7 +12,7 @@ import net.minecraft.network.chat.Style;
 
 import java.util.ArrayList;
 
-public interface IMaintenanceMachine extends IWorkableMultiPart {
+public interface IMaintenanceMachine extends IMultiPart {
 
     int MINIMUM_MAINTENANCE_TIME = 3456000; // 48 real-life hours = 3456000 ticks
     byte ALL_PROBLEMS = 0;
@@ -57,7 +56,7 @@ public interface IMaintenanceMachine extends IWorkableMultiPart {
     void setTimeActive(int time);
 
     /**
-     * Duration modifier for recipe. {@link IMaintenanceMachine#modifyRecipe(IWorkableMultiController,GTRecipe)}
+     * Duration modifier for recipe.
      * It's configurable in the Configurable Maintenance Part.
      */
     default float getDurationMultiplier() {
@@ -124,31 +123,6 @@ public interface IMaintenanceMachine extends IWorkableMultiPart {
     default void causeRandomMaintenanceProblems() {
         setMaintenanceProblems(
                 (byte) (getMaintenanceProblems() & (byte) ~(1 << GTValues.RNG.nextInt(6))));
-    }
-
-    @Override
-    default void afterWorking(IWorkableMultiController controller) {
-        if (ConfigHolder.INSTANCE.machines.enableMaintenance) {
-            calculateMaintenance(this, controller.getRecipeLogic().getProgress());
-            if (hasMaintenanceProblems()) {
-                controller.getRecipeLogic().markLastRecipeDirty();
-            }
-        }
-    }
-
-    @Override
-    default GTRecipe modifyRecipe(IWorkableMultiController controller, GTRecipe recipe) {
-        if (ConfigHolder.INSTANCE.machines.enableMaintenance) {
-            if (hasMaintenanceProblems()) {
-                return null;
-            }
-            var durationMultiplier = getDurationMultiplier();
-            if (durationMultiplier != 1) {
-                recipe = recipe.copy();
-                recipe.duration = (int) (recipe.duration * durationMultiplier);
-            }
-        }
-        return recipe;
     }
 
     //////////////////////////////////////

@@ -6,11 +6,11 @@ import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import lombok.Getter;
 
 @Getter
-public class TieredPartMachine extends MultiblockPartMachine implements ITieredMachine {
+public class WorkableTieredPartMachine extends WorkableMultiblockPartMachine implements ITieredMachine {
 
     protected final int tier;
 
-    public TieredPartMachine(MetaMachineBlockEntity holder, int tier) {
+    public WorkableTieredPartMachine(MetaMachineBlockEntity holder, int tier) {
         super(holder);
         this.tier = tier;
     }

@@ -1,19 +1,32 @@
 package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 
+import com.gregtechceu.gtceu.api.capability.recipe.IO;
+import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
-import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableMultiblockPartMachine;
+import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.utils.asm.EmptyMethodChecker;
 
+import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public interface IWorkableMultiPart extends IMultiPart {
 
+    Reference2BooleanOpenHashMap<Class<?>> ON_WORKING_METHOD = new Reference2BooleanOpenHashMap<>();
+    Reference2BooleanOpenHashMap<Class<?>> BEFORE_WORKING_METHOD = new Reference2BooleanOpenHashMap<>();
+    Reference2BooleanOpenHashMap<Class<?>> AFTER_WORKING_METHOD = new Reference2BooleanOpenHashMap<>();
+    Reference2BooleanOpenHashMap<Class<?>> MODIFY_RECIPE_METHOD = new Reference2BooleanOpenHashMap<>();
+
     static boolean hasOnWorkingMethod(IWorkableMultiPart part) {
         var c = part.getClass();
-        return WorkableMultiblockPartMachine.ON_WORKING_METHOD.computeIfAbsent(c, k -> {
+        return ON_WORKING_METHOD.computeIfAbsent(c, k -> {
             try {
                 return EmptyMethodChecker.hasMethodBody(c.getMethod("onWorking", IWorkableMultiController.class));
             } catch (NoSuchMethodException e) {
@@ -24,7 +37,7 @@ public interface IWorkableMultiPart extends IMultiPart {
 
     static boolean hasBeforeWorkingMethod(IWorkableMultiPart part) {
         var c = part.getClass();
-        return WorkableMultiblockPartMachine.BEFORE_WORKING_METHOD.computeIfAbsent(c, k -> {
+        return BEFORE_WORKING_METHOD.computeIfAbsent(c, k -> {
             try {
                 return EmptyMethodChecker.hasMethodBody(c.getMethod("beforeWorking", IWorkableMultiController.class, GTRecipe.class));
             } catch (NoSuchMethodException e) {
@@ -35,7 +48,7 @@ public interface IWorkableMultiPart extends IMultiPart {
 
     static boolean hasAfterWorkingMethod(IWorkableMultiPart part) {
         var c = part.getClass();
-        return WorkableMultiblockPartMachine.AFTER_WORKING_METHOD.computeIfAbsent(c, k -> {
+        return AFTER_WORKING_METHOD.computeIfAbsent(c, k -> {
             try {
                 return EmptyMethodChecker.hasMethodBody(c.getMethod("afterWorking", IWorkableMultiController.class));
             } catch (NoSuchMethodException e) {
@@ -46,7 +59,7 @@ public interface IWorkableMultiPart extends IMultiPart {
 
     static boolean hasModifyRecipeMethod(IWorkableMultiPart part) {
         var c = part.getClass();
-        return WorkableMultiblockPartMachine.MODIFY_RECIPE_METHOD.computeIfAbsent(c, k -> {
+        return MODIFY_RECIPE_METHOD.computeIfAbsent(c, k -> {
             try {
                 return EmptyMethodChecker.hasMethodBody(c.getMethod("modifyRecipe", IWorkableMultiController.class, GTRecipe.class));
             } catch (NoSuchMethodException e) {
@@ -72,7 +85,30 @@ public interface IWorkableMultiPart extends IMultiPart {
     }
 
     default List<RecipeHandlerList> getRecipeHandlers() {
-        return List.of(getHandlerList());
+        return Collections.singletonList(getHandlerList());
+    }
+
+    default RecipeHandlerList getHandlerList() {
+        var list = getRecipeHandlerList();
+        if (list == null) {
+            List<IRecipeHandler<?>> handlers = new ArrayList<>();
+            IO handlerIO = null;
+            for (var trait : self().getTraits()) {
+                if (trait instanceof IRecipeHandlerTrait<?> rht && rht.isAvailable() && rht.getHandlerIO() != IO.NONE) {
+                    if (handlerIO == null) handlerIO = rht.getHandlerIO();
+                    handlers.add(rht);
+                }
+            }
+
+            if (handlers.isEmpty()) {
+                list = RecipeHandlerList.NO_DATA;
+                setRecipeHandlerList(list);
+            } else {
+                list = RecipeHandlerList.of(handlerIO, this, handlers);
+                setRecipeHandlerList(list);
+            }
+        }
+        return list;
     }
 
     /**
@@ -100,7 +136,7 @@ public interface IWorkableMultiPart extends IMultiPart {
     /**
      * Called in {@link RecipeLogic#setupRecipe(GTRecipe)}
      */
-    default boolean beforeWorking(IWorkableMultiController controller, GTRecipe recipe) {
+    default boolean beforeWorking(IWorkableMultiController controller, @NotNull GTRecipe recipe) {
         return true;
     }
 
@@ -111,9 +147,11 @@ public interface IWorkableMultiPart extends IMultiPart {
      * @return modified recipe.
      *         null -- this recipe is unavailable
      */
-    default GTRecipe modifyRecipe(IWorkableMultiController controller, GTRecipe recipe) {
+    default @Nullable GTRecipe modifyRecipe(IWorkableMultiController controller, @NotNull GTRecipe recipe) {
         return recipe;
     }
 
-    RecipeHandlerList getHandlerList();
+    RecipeHandlerList getRecipeHandlerList();
+
+    void setRecipeHandlerList(RecipeHandlerList list);
 }

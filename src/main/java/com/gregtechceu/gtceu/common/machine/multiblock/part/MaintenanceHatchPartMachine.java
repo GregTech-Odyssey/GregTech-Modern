@@ -12,9 +12,12 @@ import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
-import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.common.data.GTItems;
+import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
@@ -57,7 +60,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class MaintenanceHatchPartMachine extends TieredPartMachine implements IMachineLife, IMaintenanceMachine, IInteractedMachine {
+public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine implements IMachineLife, IMaintenanceMachine, IInteractedMachine {
 
     private static final float MAX_DURATION_MULTIPLIER = 1.1F;
     private static final float MIN_DURATION_MULTIPLIER = 0.9F;
@@ -128,6 +131,30 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine implements IM
         }
     }
 
+    @Override
+    public void afterWorking(IWorkableMultiController controller) {
+        if (ConfigHolder.INSTANCE.machines.enableMaintenance) {
+            calculateMaintenance(this, controller.getRecipeLogic().getProgress());
+            if (hasMaintenanceProblems()) {
+                controller.getRecipeLogic().markLastRecipeDirty();
+            }
+        }
+    }
+
+    @Override
+    public @Nullable GTRecipe modifyRecipe(IWorkableMultiController controller, GTRecipe recipe) {
+        if (ConfigHolder.INSTANCE.machines.enableMaintenance) {
+            if (hasMaintenanceProblems()) {
+                return null;
+            }
+            var durationMultiplier = this.durationMultiplier;
+            if (durationMultiplier != 1) {
+                recipe.duration = (int) (recipe.duration * durationMultiplier);
+            }
+        }
+        return recipe;
+    }
+
     protected void updateMaintenanceSubscription() {
         if (hasMaintenanceProblems()) {
             maintenanceSubs = subscribeServerTick(maintenanceSubs, this::update, 80);
@@ -141,7 +168,7 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine implements IM
         if (hasMaintenanceProblems()) {
             if (consumeDuctTape(this.itemStackHandler, 0)) {
                 fixAllMaintenanceProblems();
-                setTaped(true);
+                isTaped = true;
             }
         } else {
             updateMaintenanceSubscription();
@@ -165,7 +192,7 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine implements IM
             for (int i = 0; i < entityPlayer.getInventory().items.size(); i++) {
                 if (consumeDuctTape(new InvWrapper(entityPlayer.getInventory()), i)) {
                     fixAllMaintenanceProblems();
-                    setTaped(true);
+                    isTaped = true;
                     return;
                 }
             }
@@ -259,7 +286,7 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine implements IM
         if (player instanceof ServerPlayer serverPlayer) {
             ToolHelper.damageItem(stack, serverPlayer, 1);
         }
-        setTaped(false);
+        isTaped = false;
     }
 
     /**
@@ -295,7 +322,7 @@ public class MaintenanceHatchPartMachine extends TieredPartMachine implements IM
         if (hasMaintenanceProblems()) {
             if (consumeDuctTape(player, hand)) {
                 fixAllMaintenanceProblems();
-                setTaped(true);
+                isTaped = true;
                 return InteractionResult.SUCCESS;
             }
         }

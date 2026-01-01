@@ -146,27 +146,20 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
 
     @SuppressWarnings({ "unused", "SameParameterValue" })
     protected void onPartsUpdated(BlockPos[] newValue, BlockPos[] oldValue) {
-        modules.clear();
         var list = new ArrayList<IMultiPart>();
         for (var pos : newValue) {
             if (getMachine(getLevel(), pos) instanceof IMultiPart part) {
-                if (part instanceof IMultiModule<?> module) {
-                    modules.add(module);
-                } else {
-                    list.add(part);
-                }
+                if (part instanceof IMultiModule<?> module) continue;
+                list.add(part);
             }
         }
         parts = list.toArray(new IMultiPart[0]);
     }
 
     protected void updatePartPositions() {
-        this.partPositions = new BlockPos[this.parts.length + modules.size()];
+        this.partPositions = new BlockPos[this.parts.length];
         for (int i = 0; i < this.parts.length; i++) {
             this.partPositions[i] = this.parts[i].self().getPos();
-        }
-        for (int i = 0; i < modules.size(); i++) {
-            this.partPositions[i + this.parts.length] = modules.get(i).self().getPos();
         }
     }
 
@@ -177,14 +170,10 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @Override
     public IMultiPart[] getParts() {
         // for the client side, when the chunk unloaded
-        if (isRemote() && parts.length + modules.size() != this.partPositions.length) {
+        if (parts.length != this.partPositions.length) {
             onPartsUpdated(this.partPositions, this.partPositions);
         }
         return this.parts;
-    }
-
-    public <T extends IMultiModule<?>> List<T> getModules() {
-        return (List) modules;
     }
 
     //////////////////////////////////////

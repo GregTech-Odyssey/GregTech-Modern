@@ -62,10 +62,14 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Nullable
     protected IParallelHatch parallelHatch = null;
 
-    protected IWorkableMultiPart[] onWorkings = new IWorkableMultiPart[0];
-    protected IWorkableMultiPart[] beforeWorkings = new IWorkableMultiPart[0];
-    protected IWorkableMultiPart[] afterWorkings = new IWorkableMultiPart[0];
-    protected IWorkableMultiPart[] modifyRecipes = new IWorkableMultiPart[0];
+    @Getter
+    protected IWorkableMultiPart[] onWorkingPart = new IWorkableMultiPart[0];
+    @Getter
+    protected IWorkableMultiPart[] beforeWorkingPart = new IWorkableMultiPart[0];
+    @Getter
+    protected IWorkableMultiPart[] afterWorkingPart = new IWorkableMultiPart[0];
+    @Getter
+    protected IWorkableMultiPart[] modifyRecipePart = new IWorkableMultiPart[0];
 
     public WorkableMultiblockMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder);
@@ -116,10 +120,10 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
             }
         }
 
-        onWorkings = onWorkingList.toArray(new IWorkableMultiPart[0]);
-        beforeWorkings = beforeWorkingList.toArray(new IWorkableMultiPart[0]);
-        afterWorkings = afterWorkingList.toArray(new IWorkableMultiPart[0]);
-        modifyRecipes = modifyRecipeList.toArray(new IWorkableMultiPart[0]);
+        onWorkingPart = onWorkingList.toArray(new IWorkableMultiPart[0]);
+        beforeWorkingPart = beforeWorkingList.toArray(new IWorkableMultiPart[0]);
+        afterWorkingPart = afterWorkingList.toArray(new IWorkableMultiPart[0]);
+        modifyRecipePart = modifyRecipeList.toArray(new IWorkableMultiPart[0]);
 
         // attach parts' traits
         capabilitiesProxy.clear();
@@ -150,10 +154,10 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     public void onStructureInvalid() {
         super.onStructureInvalid();
         parallelHatch = null;
-        onWorkings = new IWorkableMultiPart[0];
-        beforeWorkings = new IWorkableMultiPart[0];
-        afterWorkings = new IWorkableMultiPart[0];
-        modifyRecipes = new IWorkableMultiPart[0];
+        onWorkingPart = new IWorkableMultiPart[0];
+        beforeWorkingPart = new IWorkableMultiPart[0];
+        afterWorkingPart = new IWorkableMultiPart[0];
+        modifyRecipePart = new IWorkableMultiPart[0];
         capabilitiesProxy.clear();
         capabilitiesFlat.clear();
         traitSubscriptions.forEach(ISubscription::unsubscribe);
@@ -169,7 +173,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Nullable
     @Override
     public final GTRecipe doModifyRecipe(GTRecipe recipe) {
-        for (var part : modifyRecipes) {
+        for (var part : modifyRecipePart) {
             recipe = part.modifyRecipe(this, recipe);
             if (recipe == null) return null;
         }
@@ -188,7 +192,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Override
     public void afterWorking() {
-        for (var part : afterWorkings) {
+        for (var part : afterWorkingPart) {
             part.afterWorking(this);
         }
         IWorkableMultiController.super.afterWorking();
@@ -196,7 +200,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Override
     public boolean beforeWorking(GTRecipe recipe) {
-        for (var part : beforeWorkings) {
+        for (var part : beforeWorkingPart) {
             if (!part.beforeWorking(this, recipe)) {
                 return false;
             }
@@ -206,7 +210,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Override
     public boolean onWorking() {
-        for (var part : onWorkings) {
+        for (var part : onWorkingPart) {
             if (!part.onWorking(this)) {
                 return false;
             }
