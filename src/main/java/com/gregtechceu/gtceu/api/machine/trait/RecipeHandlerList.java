@@ -2,7 +2,9 @@ package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
@@ -24,17 +26,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class RecipeHandlerList {
+
+    public static Function<Object, RecipeHandlerList> WRAPPER = o -> new RecipeHandlerList(o instanceof RecipeHandlerList list ? list.handlerIO : (IO) o);
 
     public static ParallelFunction<RecipeHandlerList> ITEM_PARALLEL = (holder, contents, parallelAmount, args) -> parallelAmount;
     public static ParallelFunction<RecipeHandlerList> FLUID_PARALLEL = (holder, contents, parallelAmount, args) -> parallelAmount;
 
     public static final RecipeHandlerList NO_DATA = new RecipeHandlerList(IO.NONE);
-
-    public static Consumer<IMultiPart> NOTIFY = p -> {};
 
     public final Reference2ObjectOpenHashMap<RecipeCapability<?>, List<IRecipeHandler<?>>> handlerMap = new Reference2ObjectOpenHashMap<>();
     public final List<IRecipeHandler<?>> allHandlers = new ArrayList<>();
@@ -80,6 +82,10 @@ public class RecipeHandlerList {
         return rhl;
     }
 
+    public void addList(RecipeHandlerList list) {
+        addHandlers(list.allHandlers);
+    }
+
     public void addHandlers(IRecipeHandler<?>... handlers) {
         addHandlers(Arrays.asList(handlers));
     }
@@ -100,7 +106,7 @@ public class RecipeHandlerList {
     public final void setDistinctAndNotify(boolean distinct) {
         setDistinct(distinct);
         if (part != null) {
-            NOTIFY.accept(part);
+            notify(part);
         }
     }
 
@@ -120,7 +126,15 @@ public class RecipeHandlerList {
     public void setColor(int color, boolean notify) {
         this.color = color;
         if (notify && part != null) {
-            NOTIFY.accept(part);
+            notify(part);
+        }
+    }
+
+    public static void notify(IMultiPart part) {
+        for (IMultiController controller : part.getControllers()) {
+            if (controller instanceof IWorkableMultiController workableMultiController) {
+                workableMultiController.arrangeHandlerList();
+            }
         }
     }
 
@@ -206,5 +220,15 @@ public class RecipeHandlerList {
             handler.fastForEachItems(itemFunction);
             handler.fastForEachFluids(FluidFunction);
         }
+    }
+
+    public static List<RecipeHandlerList> filter(List<RecipeHandlerList> list) {
+        List<RecipeHandlerList> output = new ArrayList<>();
+        for (var handler : list) {
+            if (!handler.allHandlers.isEmpty() && handler.hasCapability(ItemRecipeCapability.CAP) || handler.hasCapability(FluidRecipeCapability.CAP)) {
+                output.add(handler);
+            }
+        }
+        return output;
     }
 }

@@ -23,6 +23,7 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 
+import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -46,10 +47,15 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Getter
     @Persisted
     protected int activeRecipeType;
+
     @Getter
     protected final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
     @Getter
     protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
+
+    @Getter
+    protected final Int2ReferenceOpenHashMap<RecipeHandlerList> outputColorMap;
+
     protected final List<ISubscription> traitSubscriptions;
     @Getter
     @Setter
@@ -58,6 +64,13 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     protected boolean isMuffled;
 
     protected RecipeHandlerList currentHandlerList;
+
+    @Getter
+    @Setter
+    protected List<RecipeHandlerList> inputList;
+    @Getter
+    @Setter
+    protected List<RecipeHandlerList> outputList;
 
     @Nullable
     protected IParallelHatch parallelHatch = null;
@@ -79,6 +92,9 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         this.capabilitiesProxy = new EnumMap<>(IO.class);
         this.capabilitiesFlat = new EnumMap<>(IO.class);
         this.traitSubscriptions = new ArrayList<>();
+        this.outputColorMap = new Int2ReferenceOpenHashMap<>();
+        this.inputList = Collections.emptyList();
+        this.outputList = Collections.emptyList();
     }
 
     @Override
@@ -94,7 +110,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     protected void onStructureFormedAfter() {
         super.onStructureFormedAfter();
-        recipeLogic.updateTickSubscription();
+        arrangeHandlerList();
         if (getRecipeLogic().isWorking()) updateActiveBlock(true);
     }
 
@@ -160,8 +176,11 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         modifyRecipePart = new IWorkableMultiPart[0];
         capabilitiesProxy.clear();
         capabilitiesFlat.clear();
+        outputColorMap.clear();
         traitSubscriptions.forEach(ISubscription::unsubscribe);
         traitSubscriptions.clear();
+        inputList = Collections.emptyList();
+        outputList = Collections.emptyList();
         // reset recipe Logic
         recipeLogic.resetRecipeLogic();
     }

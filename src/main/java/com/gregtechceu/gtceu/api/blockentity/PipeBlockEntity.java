@@ -116,6 +116,8 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
 
     public boolean autoTransfer;
 
+    protected LevelChunk chunk;
+
     public PipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
         this.coverContainer = new PipeCoverContainer(this);
@@ -145,14 +147,19 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     }
 
     public @Nullable LevelChunk getChunk() {
-        if (level != null) {
-            return level.getChunkAt(worldPosition);
-        }
+        if (chunk != null) return chunk;
+        if (level != null) return chunk = level.getChunkAt(worldPosition);
         return null;
     }
 
     public int getOffsetTimer() {
         return level == null ? offset : (level.getServer().getTickCount() + offset);
+    }
+
+    @Override
+    public void setLevel(Level level) {
+        super.setLevel(level);
+        chunk = null;
     }
 
     @Override
@@ -164,10 +171,12 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
             transferSubs.unsubscribe();
             transferSubs = null;
         }
+        chunk = null;
     }
 
     @Override
     public void clearRemoved() {
+        chunk = null;
         tickDelay = offset;
         blockEntityDirectionCache.clearCache();
         super.clearRemoved();

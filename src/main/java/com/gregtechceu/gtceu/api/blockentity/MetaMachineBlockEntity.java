@@ -66,6 +66,7 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
     public final BooleanSupplier isRemove = () -> remove;
     public int tickDelay = 0;
     protected boolean asyncSyncing;
+    protected LevelChunk chunk;
 
     protected MetaMachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
@@ -79,9 +80,8 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
     }
 
     public @Nullable LevelChunk getChunk() {
-        if (level != null) {
-            return level.getChunkAt(worldPosition);
-        }
+        if (chunk != null) return chunk;
+        if (level != null) return chunk = level.getChunkAt(worldPosition);
         return null;
     }
 
@@ -103,13 +103,21 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
     }
 
     @Override
+    public void setLevel(@NotNull Level level) {
+        super.setLevel(level);
+        chunk = null;
+    }
+
+    @Override
     public void setRemoved() {
         super.setRemoved();
         metaMachine.onUnload();
+        chunk = null;
     }
 
     @Override
     public void clearRemoved() {
+        chunk = null;
         tickDelay = offset;
         super.clearRemoved();
         metaMachine.onLoad();
