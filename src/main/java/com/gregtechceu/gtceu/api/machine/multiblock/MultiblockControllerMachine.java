@@ -319,9 +319,19 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         updatePartPositions();
     }
 
+    protected void onStructureInvalidAfter() {
+        getMultiblockState().clear();
+        for (var state : subMultiblockState) {
+            if (state != null) state.clear();;
+        }
+    }
+
     @Override
     @MustBeInvokedByOverriders
     public void onStructureInvalid() {
+        if (getLevel() instanceof ServerLevel serverLevel) {
+            serverLevel.getServer().tell(new TickTask(1, this::onStructureInvalidAfter));
+        }
         isFormed = false;
         Arrays.fill(formeds, false);
         modules.forEach(m -> m.removedFromController(this));

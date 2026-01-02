@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.api.machine.multiblock;
 
+import com.gregtechceu.gtceu.api.block.ActiveBlock;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
@@ -22,8 +23,14 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -84,6 +91,12 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Getter
     protected IWorkableMultiPart[] modifyRecipePart = new IWorkableMultiPart[0];
 
+    @DescSynced
+    protected Set<Long> activeBlocks = new LongOpenHashSet();
+    @DescSynced
+    protected boolean activated;
+    protected ActiveBlock.State activeState = ActiveBlock.State.UNKNOWN;
+
     public WorkableMultiblockMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder);
         this.recipeTypes = getDefinition().getRecipeTypes();
@@ -98,10 +111,27 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     }
 
     @Override
+    public void onLoad() {
+        super.onLoad();
+        if (isRemote()) activeState = ActiveBlock.State.UNKNOWN;
+    }
+
+    @Override
     public void onUnload() {
         super.onUnload();
+        if (isRemote()) deleteActive();
         traitSubscriptions.forEach(ISubscription::unsubscribe);
         traitSubscriptions.clear();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private void deleteActive() {
+        if (activeState.ordinal() != 2) {
+            Minecraft.getInstance().tell(() -> {
+                updateClientActiveBlocks(false);
+                activeState = ActiveBlock.State.NON_ACTIVE;
+            });
+        }
     }
 
     //////////////////////////////////////
@@ -111,7 +141,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     protected void onStructureFormedAfter() {
         super.onStructureFormedAfter();
         arrangeHandlerList();
-        if (getRecipeLogic().isWorking()) updateActiveBlock(true);
     }
 
     @Override
@@ -141,6 +170,8 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         afterWorkingPart = afterWorkingList.toArray(new IWorkableMultiPart[0]);
         modifyRecipePart = modifyRecipeList.toArray(new IWorkableMultiPart[0]);
 
+        activeBlocks = getMultiblockState().getMatchContext().vaBlocks;
+
         // attach parts' traits
         capabilitiesProxy.clear();
         capabilitiesFlat.clear();
@@ -168,6 +199,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Override
     public void onStructureInvalid() {
+        updateActiveBlock(false);
         super.onStructureInvalid();
         parallelHatch = null;
         onWorkingPart = new IWorkableMultiPart[0];
@@ -183,6 +215,30 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         outputList = Collections.emptyList();
         // reset recipe Logic
         recipeLogic.resetRecipeLogic();
+    }
+
+    @Override
+    public void clientTick() {
+        var shouldActive = isFormed && (activated || getRecipeLogic().isWorking());
+        var state = shouldActive ? ActiveBlock.State.ACTIVE : ActiveBlock.State.NON_ACTIVE;
+        if (activeState.ordinal() == 0 || state != activeState) {
+            activeState = state;
+            updateClientActiveBlocks(shouldActive);
+        }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    protected void updateClientActiveBlocks(boolean active) {
+        for (long pos : activeBlocks) {
+            var blockPos = BlockPos.of(pos);
+            var blockState = getLevel().getBlockState(blockPos);
+            if (blockState.hasProperty(ActiveBlock.ACTIVE)) {
+                var newState = blockState.setValue(ActiveBlock.ACTIVE, active);
+                if (newState != blockState) {
+                    getLevel().setBlock(blockPos, newState, Block.UPDATE_KNOWN_SHAPE);
+                }
+            }
+        }
     }
 
     //////////////////////////////////////

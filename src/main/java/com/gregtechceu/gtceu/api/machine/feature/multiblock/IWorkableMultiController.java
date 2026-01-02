@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.capability.IParallelHatch;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
@@ -36,18 +35,6 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
 
     default boolean hasBatchConfig() {
         return true;
-    }
-
-    @Override
-    default void notifyStatusChanged(int oldStatus, int newStatus) {
-        var self = self();
-        if (self.isRemote()) return;
-        self.requestSync();
-        if (newStatus == RecipeLogic.WORKING) {
-            self.updateActiveBlock(true);
-        } else if (oldStatus == RecipeLogic.WORKING) {
-            self.updateActiveBlock(false);
-        }
     }
 
     default void arrangeHandlerList() {
