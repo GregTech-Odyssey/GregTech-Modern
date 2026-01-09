@@ -395,7 +395,7 @@ public class GTMachineUtils {
                         .blockProp(BlockBehaviour.Properties::dynamicShape)
                         .allRotation()
                         .allowExtendedFacing(true)
-                        .renderer(() -> new QuantumTankRenderer(tier))
+                        .renderer(() -> new QuantumChestRenderer(tier))
                         .hasTESR(true)
                         .tooltipBuilder(CHEST_TOOLTIPS)
                         .tooltips(Component.translatable("gtceu.machine.quantum_chest.tooltip"),
