@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.api.item.component.IDataItem;
 import com.gregtechceu.gtceu.api.item.component.IItemComponent;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
+import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
@@ -46,6 +47,10 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
     public ObjectHolderMachine(MetaMachineBlockEntity holder) {
         super(holder);
         heldItems = new ObjectHolderHandler(this);
+        heldItems.addChangedListener(() -> getControllers().forEach(controller -> {
+            if (controller instanceof IRecipeLogicMachine rlm)
+                rlm.getRecipeLogic().updateTickSubscription();
+        }));
     }
 
     @Override
