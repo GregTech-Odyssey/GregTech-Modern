@@ -2,6 +2,8 @@ package com.gregtechceu.gtceu.utils.memoization;
 
 import net.minecraft.world.level.block.Block;
 
+import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class GTMemoizer {
@@ -15,6 +17,10 @@ public class GTMemoizer {
      */
     public static <T> MemoizedSupplier<T> memoize(Supplier<T> delegate) {
         return new MemoizedSupplier<>(delegate);
+    }
+
+    public static <T, R> Function<T, R> memoize(Function<T, R> delegate, Map<T, R> map) {
+        return new MemoizedFunction<>(delegate, map);
     }
 
     public static <T> CleanableMemoizedSupplier<T> memoizeCleanable(Supplier<T> delegate) {

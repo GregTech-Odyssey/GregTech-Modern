@@ -165,10 +165,6 @@ public class MultiblockState {
                         }
                     }
                     controller.requestCheck();
-                } else {
-                    var mwsd = MultiblockWorldData.getOrCreate(serverLevel);
-                    mwsd.removeMapping(controller.getMultiblockState());
-                    mwsd.addAsyncLogic(controller);
                 }
             }
         }

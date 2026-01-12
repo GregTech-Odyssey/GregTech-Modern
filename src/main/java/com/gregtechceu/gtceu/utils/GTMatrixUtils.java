@@ -1,19 +1,20 @@
 package com.gregtechceu.gtceu.utils;
 
+import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
+
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraftforge.client.model.SimpleModelState;
 
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
-import com.google.common.collect.Tables;
 import com.mojang.math.Transformation;
 import org.jetbrains.annotations.Contract;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.security.InvalidParameterException;
+import java.util.EnumMap;
+import java.util.function.Function;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -21,8 +22,13 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class GTMatrixUtils {
 
-    protected static final Table<Direction, Direction, SimpleModelState> rotations = Tables
-            .synchronizedTable(HashBasedTable.create());
+    protected static final Function<Direction, Function<Direction, SimpleModelState>> rotations = GTMemoizer.memoize(frontFace -> GTMemoizer.memoize(upwardFace -> {
+        var matrix = new Matrix4f();
+        var front = rotateMatrixToFront(matrix, frontFace);
+        front.absolute();
+        rotateMatrixToUp(matrix, front, upwardFace);
+        return new SimpleModelState(new Transformation(matrix));
+    }, new EnumMap<>(Direction.class)), new EnumMap<>(Direction.class));
 
     /**
      * @param from the original vector
@@ -119,17 +125,6 @@ public class GTMatrixUtils {
     }
 
     public static SimpleModelState createRotationState(Direction frontFace, Direction upwardFace) {
-        if (rotations.contains(frontFace, upwardFace)) {
-            var rotation = rotations.get(frontFace, upwardFace);
-            assert rotation != null;
-            return rotation;
-        }
-        var matrix = new Matrix4f();
-        var front = rotateMatrixToFront(matrix, frontFace);
-        front.absolute();
-        rotateMatrixToUp(matrix, front, upwardFace);
-        var rotation = new SimpleModelState(new Transformation(matrix));
-        rotations.put(frontFace, upwardFace, rotation);
-        return rotation;
+        return rotations.apply(frontFace).apply(upwardFace);
     }
 }

@@ -84,7 +84,7 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
             for (IMultiController controller : controllers) {
                 if (serverLevel.isLoaded(controller.self().getPos())) {
                     removedFromController(controller);
-                    controller.onStructureInvalid();
+                    controller.requestCheck();
                 }
             }
         }

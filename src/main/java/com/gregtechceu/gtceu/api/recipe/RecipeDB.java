@@ -18,10 +18,7 @@ public class RecipeDB extends AbstractContainerRecipeDB<GTRecipe> {
 
     public boolean find(IntLongMap map, Predicate<GTRecipe> canHandle) {
         if (rootBranch != null) {
-            searchContext.reset(this.rootBranch, map, map.toIntArray(), r -> {
-                if (r.getIntContainer().match(map) && canHandle.test(r)) return r;
-                return null;
-            }, null);
+            searchContext.reset(this.rootBranch, map, map.toIntArray(), r -> r.getIntContainer().match(map) && canHandle.test(r), null);
             if (searchContext.findAny() != null) {
                 return true;
             }

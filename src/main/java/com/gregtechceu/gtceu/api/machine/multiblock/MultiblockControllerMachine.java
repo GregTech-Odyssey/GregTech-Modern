@@ -319,6 +319,10 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         updatePartPositions();
     }
 
+    protected void onStructureInvalidAfter() {
+        GTNetwork.NETWORK.sendToAll(new SCPacketStructureFormed(getPos().asLong(), false));
+    }
+
     @Override
     @MustBeInvokedByOverriders
     public void onStructureInvalid() {
@@ -331,7 +335,9 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         modules.clear();
         this.parts = new IMultiPart[0];
         updatePartPositions();
-        GTNetwork.NETWORK.sendToAll(new SCPacketStructureFormed(getPos().asLong(), false));
+        if (getLevel() instanceof ServerLevel serverLevel) {
+            serverLevel.getServer().tell(new TickTask(1, this::onStructureInvalidAfter));
+        }
     }
 
     @Override
