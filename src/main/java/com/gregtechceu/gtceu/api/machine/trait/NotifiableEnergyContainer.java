@@ -125,7 +125,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
 
     public void setEnergyStored(long energyStored) {
         if (this.energyStored == energyStored) return;
-        this.energyStored = Math.max(0, energyStored);
+        this.energyStored = energyStored;
         checkOutput = true;
         notify = true;
     }
@@ -261,11 +261,17 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
 
     @Override
     public long changeEnergy(long energyToAdd) {
-        long oldEnergyStored = getEnergyStored();
-        long newEnergyStored = (energyCapacity - oldEnergyStored < energyToAdd) ? energyCapacity : (oldEnergyStored + energyToAdd);
-        if (newEnergyStored < 0) newEnergyStored = 0;
-        setEnergyStored(newEnergyStored);
-        return newEnergyStored - oldEnergyStored;
+        if (energyToAdd == 0) return 0;
+        final long stored = getEnergyStored();
+        if (energyToAdd > 0) {
+            energyToAdd = Math.min(energyToAdd, getEnergyCapacity() - stored);
+            setEnergyStored(stored + energyToAdd);
+            return energyToAdd;
+        } else {
+            energyToAdd = Math.max(energyToAdd, -stored);
+            setEnergyStored(stored + energyToAdd);
+            return energyToAdd;
+        }
     }
 
     @Override
