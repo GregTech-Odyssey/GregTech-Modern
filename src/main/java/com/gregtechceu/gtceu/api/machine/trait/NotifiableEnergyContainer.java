@@ -125,7 +125,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
 
     public void setEnergyStored(long energyStored) {
         if (this.energyStored == energyStored) return;
-        this.energyStored = energyStored;
+        this.energyStored = Math.max(0, energyStored);
         checkOutput = true;
         notify = true;
     }
