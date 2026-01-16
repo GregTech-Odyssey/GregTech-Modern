@@ -26,10 +26,7 @@ public class ControlPartMachine extends MultiblockPartMachine implements IContro
     @Persisted
     private int minRedstoneStrength = 1;
     @Persisted
-    private boolean isRed = false;
-
-    @Persisted
-    protected boolean enabled;
+    protected boolean enabled = true;
 
     public ControlPartMachine(MetaMachineBlockEntity holder) {
         super(holder);
@@ -43,11 +40,6 @@ public class ControlPartMachine extends MultiblockPartMachine implements IContro
     @Override
     public void setWorkingEnabled(boolean isWorkingAllowed) {
         enabled = isWorkingAllowed;
-        for (var controller : getControllers()) {
-            if (controller instanceof IControllable controllable) {
-                controllable.setWorkingEnabled(isWorkingAllowed);
-            }
-        }
     }
 
     @Override
@@ -74,27 +66,29 @@ public class ControlPartMachine extends MultiblockPartMachine implements IContro
         updateInput();
     }
 
-    public void setRed(boolean isRed) {
-        this.isRed = isRed;
-        updateInput();
-    }
-
     private void updateInput() {
-        if (isRed) {
+        if (enabled) {
             Level level = getLevel();
             if (level == null || level.isClientSide) return;
             boolean shouldAllowWorking = level.getSignal(getPos().relative(getFrontFacing()), getFrontFacing()) < minRedstoneStrength;
-            setWorkingEnabled(isInverted != shouldAllowWorking);
+            setControlWorkingEnabled(isInverted != shouldAllowWorking);
+        }
+    }
+
+    private void setControlWorkingEnabled(boolean b) {
+        for (var controller : getControllers()) {
+            if (controller instanceof IControllable controllable) {
+                controllable.setWorkingEnabled(b);
+            }
         }
     }
 
     @Override
     public Widget createUIWidget() {
-        WidgetGroup group = new WidgetGroup(0, 0, 176, 75);
+        WidgetGroup group = new WidgetGroup(0, 0, 176, 55);
         group.addWidget(new LabelWidget(10, 5, "cover.machine_controller.title"));
-        group.addWidget(new IntInputWidget(10, 50, 131, 20, () -> minRedstoneStrength, this::setMinRedstoneStrength).setMin(1).setMax(15));
-        group.addWidget(new ToggleButtonWidget(146, 50, 20, 20, GuiTextures.INVERT_REDSTONE_BUTTON, () -> isInverted, this::setInverted).isMultiLang().setTooltipText("cover.machine_controller.invert"));
-        group.addWidget(new ToggleButtonWidget(20, 20, 20, 20, GuiTextures.INVERT_REDSTONE_BUTTON, () -> isRed, this::setRed).setTooltipText("gui.tooltips.redstone_mode"));
+        group.addWidget(new IntInputWidget(10, 20, 131, 20, () -> minRedstoneStrength, this::setMinRedstoneStrength).setMin(1).setMax(15));
+        group.addWidget(new ToggleButtonWidget(146, 20, 20, 20, GuiTextures.INVERT_REDSTONE_BUTTON, () -> isInverted, this::setInverted).isMultiLang().setTooltipText("cover.machine_controller.invert"));
         return group;
     }
 }
