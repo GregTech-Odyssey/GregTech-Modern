@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.stack.ItemMaterialInfo;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
-import com.gregtechceu.gtceu.api.item.component.IDataItem;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
 import com.gregtechceu.gtceu.api.recipe.*;
@@ -20,11 +19,11 @@ import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.SizedIngredient;
+import com.gregtechceu.gtceu.api.recipe.research.ScannerBuilder;
+import com.gregtechceu.gtceu.api.recipe.research.StationBuilder;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.common.recipe.condition.*;
-import com.gregtechceu.gtceu.config.ConfigHolder;
-import com.gregtechceu.gtceu.utils.ResearchManager;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.Registries;
@@ -885,76 +884,20 @@ public class GTRecipeBuilder {
         return ftbQuest(questId, false);
     }
 
-    private boolean applyResearchProperty(ResearchData.ResearchEntry researchEntry) {
-        if (!ConfigHolder.INSTANCE.machines.enableResearch) return false;
-        if (!generatingRecipes) {
-            GTCEu.LOGGER.error("Cannot generate recipes when using researchWithoutRecipe()", new IllegalArgumentException());
-            return false;
-        }
-        ResearchCondition condition = this.conditions.stream().filter(ResearchCondition.class::isInstance).findAny().map(ResearchCondition.class::cast).orElse(null);
-        if (condition != null) {
-            condition.data.add(researchEntry);
-        } else {
-            condition = new ResearchCondition();
-            condition.data.add(researchEntry);
-            this.addCondition(condition);
-        }
-        return true;
+    public GTRecipeBuilder researchStation(UnaryOperator<StationBuilder> research) {
+        return addCondition(research.apply(new StationBuilder()).build(recipeType));
     }
 
-    /**
-     * Does not generate a research recipe.
-     *
-     * @param researchId the researchId for the recipe
-     * @return this
-     */
-    public GTRecipeBuilder researchWithoutRecipe(String researchId) {
-        return researchWithoutRecipe(researchId, ResearchManager.getDefaultScannerItem());
+    public GTRecipeBuilder scanner(UnaryOperator<ScannerBuilder> research) {
+        return addCondition(research.apply(new ScannerBuilder()).build(recipeType));
     }
 
-    /**
-     * Does not generate a research recipe.
-     *
-     * @param researchId the researchId for the recipe
-     * @param dataStack  the stack to hold the data. Must have the {@link IDataItem} behavior.
-     * @return this
-     */
-    public GTRecipeBuilder researchWithoutRecipe(String researchId, ItemStack dataStack) {
-        applyResearchProperty(new ResearchData.ResearchEntry(researchId, dataStack));
-        this.generatingRecipes = false;
-        return this;
+    public GTRecipeBuilder scanner(ItemStack researchStack) {
+        return scanner(b -> b.researchStack(researchStack));
     }
 
-    /**
-     * Generates a research recipe for the Scanner.
-     */
-    public GTRecipeBuilder scannerResearch(UnaryOperator<ResearchRecipeBuilder.ScannerRecipeBuilder> research) {
-        ResearchRecipeEntry entry = research.apply(new ResearchRecipeBuilder.ScannerRecipeBuilder()).build();
-        if (applyResearchProperty(new ResearchData.ResearchEntry(entry.researchId, entry.dataStack))) {
-            this.researchRecipeEntries.add(entry);
-        }
-        return this;
-    }
-
-    /**
-     * Generates a research recipe for the Scanner. All values are defaults other than the research stack.
-     *
-     * @param researchStack the stack to use for research
-     * @return this
-     */
-    public GTRecipeBuilder scannerResearch(ItemStack researchStack) {
-        return scannerResearch(b -> b.researchStack(researchStack));
-    }
-
-    /**
-     * Generates a research recipe for the Research Station.
-     */
-    public GTRecipeBuilder stationResearch(UnaryOperator<ResearchRecipeBuilder.StationRecipeBuilder> research) {
-        ResearchRecipeEntry entry = research.apply(new ResearchRecipeBuilder.StationRecipeBuilder()).build();
-        if (applyResearchProperty(new ResearchData.ResearchEntry(entry.researchId, entry.dataStack))) {
-            this.researchRecipeEntries.add(entry);
-        }
-        return this;
+    public GTRecipeBuilder scanner(ItemLike researchStack) {
+        return scanner(b -> b.researchStack(researchStack));
     }
 
     public GTRecipeBuilder category(GTRecipeCategory category) {
@@ -996,9 +939,7 @@ public class GTRecipeBuilder {
         recipeType.recipes.put(recipe.id, recipe);
         ResearchCondition condition = this.conditions.stream().filter(ResearchCondition.class::isInstance).findAny().map(ResearchCondition.class::cast).orElse(null);
         if (condition != null) {
-            for (ResearchData.ResearchEntry entry : condition.data) {
-                this.recipeType.addDataStickEntry(entry.getResearchId(), recipe);
-            }
+            this.recipeType.addDataStickEntry(condition.researchId, recipe);
         }
         if (recipeType != null) {
             if (recipeCategory == null) {

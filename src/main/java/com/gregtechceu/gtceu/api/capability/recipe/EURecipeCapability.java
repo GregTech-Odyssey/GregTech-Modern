@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 import com.gregtechceu.gtceu.api.recipe.content.SerializerLong;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +34,7 @@ public class EURecipeCapability extends RecipeCapability<Long> {
      * @return Singleton list of a new Content with the given EU value
      */
     public static List<Content> makeEUContent(Long eu) {
-        return List.of(
+        return Collections.singletonList(
                 new Content(eu, ChanceLogic.getMaxChancedValue(), 0));
     }
 

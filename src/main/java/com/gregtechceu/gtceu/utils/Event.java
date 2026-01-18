@@ -33,7 +33,7 @@ public class Event<C> {
         this.listeners.remove(clazz);
     }
 
-    public void call(Class<?> clazz,C context) {
+    public void call(Class<?> clazz, C context) {
         this.listeners.get(clazz).accept(context);
     }
 

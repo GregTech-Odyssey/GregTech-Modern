@@ -27,7 +27,7 @@ public class AssemblyLineLoader {
                 .inputFluids(SolderingAlloy.getFluid(L * 8))
                 .inputFluids(NiobiumTitanium.getFluid(L * 8))
                 .outputItems(FUSION_REACTOR[LuV].asStack())
-                .scannerResearch(b -> b
+                .scanner(b -> b
                         .researchStack(ChemicalHelper.get(wireGtSingle, IndiumTinBariumTitaniumCuprate))
                         .duration(1200)
                         .EUt(VA[IV]))
@@ -45,7 +45,7 @@ public class AssemblyLineLoader {
                 .inputFluids(SolderingAlloy.getFluid(L * 8))
                 .inputFluids(VanadiumGallium.getFluid(L * 8))
                 .outputItems(FUSION_REACTOR[ZPM].asStack())
-                .stationResearch(b -> b
+                .researchStation(b -> b
                         .researchStack(FUSION_REACTOR[LuV].asStack())
                         .CWUt(16)
                         .EUt(VA[ZPM]))
@@ -63,7 +63,7 @@ public class AssemblyLineLoader {
                 .inputFluids(SolderingAlloy.getFluid(L * 8))
                 .inputFluids(YttriumBariumCuprate.getFluid(L * 8))
                 .outputItems(FUSION_REACTOR[UV].asStack())
-                .stationResearch(b -> b
+                .researchStation(b -> b
                         .researchStack(FUSION_REACTOR[ZPM].asStack())
                         .CWUt(96)
                         .EUt(VA[UV]))

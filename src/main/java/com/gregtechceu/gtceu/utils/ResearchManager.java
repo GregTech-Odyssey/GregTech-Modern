@@ -12,39 +12,38 @@ import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.transfer.item.ItemHandlerList;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
-import com.gregtechceu.gtceu.config.ConfigHolder;
-import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class ResearchManager {
+
+    public static Int2ObjectFunction<Item> DATA_ITEM_PROVIDER = cwut -> {
+        if (cwut > 32) {
+            return GTItems.TOOL_DATA_MODULE.get();
+        } else {
+            return GTItems.TOOL_DATA_ORB.get();
+        }
+    };
 
     public static final String RESEARCH_NBT_TAG = "assembly_line_research";
     public static final String RESEARCH_ID_NBT_TAG = "research_id";
     public static final String RESEARCH_TYPE_NBT_TAG = "research_type";
 
     @NotNull
-    public static ItemStack getDefaultScannerItem() {
-        return GTItems.TOOL_DATA_STICK.asStack();
-    }
-
-    @NotNull
     public static ItemStack getDefaultResearchStationItem(int cwut) {
-        if (cwut > 32) {
-            return GTItems.TOOL_DATA_MODULE.asStack();
-        }
-        return GTItems.TOOL_DATA_ORB.asStack();
+        return DATA_ITEM_PROVIDER.apply(cwut).getDefaultInstance();
     }
 
     private ResearchManager() {}
@@ -105,61 +104,6 @@ public final class ResearchManager {
     private static boolean hasResearchTag(@Nullable CompoundTag compound) {
         if (compound == null || compound.isEmpty()) return false;
         return compound.contains(RESEARCH_NBT_TAG, Tag.TAG_COMPOUND);
-    }
-
-    /**
-     * Create the default research recipe
-     *
-     * @param builder the builder to retrieve recipe info from
-     */
-    public static void createDefaultResearchRecipe(@NotNull GTRecipeBuilder builder) {
-        if (!ConfigHolder.INSTANCE.machines.enableResearch) return;
-
-        for (GTRecipeBuilder.ResearchRecipeEntry entry : builder.researchRecipeEntries()) {
-            if (entry.researchItem().isEmpty() && entry.researchFluid().isEmpty())
-                throw new IllegalStateException("Both entry types in the research entry are null!");
-
-            createDefaultResearchRecipe(builder.recipeType, entry.researchId(), entry.researchItem(),
-                    entry.researchFluid(),
-                    entry.dataStack(), entry.duration(), entry.EUt(), entry.CWUt());
-        }
-    }
-
-    public static void createDefaultResearchRecipe(@NotNull GTRecipeType recipeType, @NotNull String researchId,
-                                                   @NotNull ItemStack researchItem, @NotNull FluidStack researchFluid,
-                                                   @NotNull ItemStack dataItem,
-                                                   int duration, int EUt, int CWUt) {
-        if (!ConfigHolder.INSTANCE.machines.enableResearch) return;
-
-        CompoundTag compound = dataItem.getOrCreateTag();
-        writeResearchToNBT(compound, researchId, recipeType);
-
-        if (CWUt > 0) {
-            var builder = GTRecipeTypes.RESEARCH_STATION_RECIPES
-                    .recipeBuilder(researchId)
-                    .inputItems(dataItem.getItem());
-
-            if (!researchItem.isEmpty()) builder.inputItems(researchItem);
-            if (!researchFluid.isEmpty()) builder.inputFluids(researchFluid);
-
-            builder.outputItems(dataItem)
-                    .EUt(EUt)
-                    .CWUt(CWUt)
-                    .totalCWU(duration)
-                    .save();
-        } else {
-            var builder = GTRecipeTypes.SCANNER_RECIPES.recipeBuilder(FormattingUtil.toLowerCaseUnderscore(researchId))
-                    .inputItems(dataItem.getItem());
-
-            if (!researchItem.isEmpty()) builder.inputItems(researchItem);
-            if (!researchFluid.isEmpty()) builder.inputFluids(researchFluid);
-
-            builder.outputItems(dataItem)
-                    .duration(duration)
-                    .EUt(EUt)
-                    .researchScan(true)
-                    .save();
-        }
     }
 
     public record ResearchItem(@NotNull String researchId, @NotNull GTRecipeType recipeType) {

@@ -12,10 +12,5 @@ public interface IDataAccessHatch {
      */
     boolean isRecipeAvailable(@NotNull GTRecipe recipe);
 
-    /**
-     * @return true if this Data Access Hatch is creative or not
-     */
-    boolean isCreative();
-
     default void updateRecipeLogic() {}
 }

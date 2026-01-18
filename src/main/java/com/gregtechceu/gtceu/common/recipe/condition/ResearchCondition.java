@@ -1,26 +1,24 @@
 package com.gregtechceu.gtceu.common.recipe.condition;
 
+import com.gregtechceu.gtceu.api.capability.IDataAccessHatch;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
-import com.gregtechceu.gtceu.api.recipe.ResearchData;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
 
 import org.jetbrains.annotations.NotNull;
 
 public class ResearchCondition extends RecipeCondition {
 
-    public static final ResearchCondition INSTANCE = new ResearchCondition();
-    public ResearchData data;
+    public final String researchId;
+    public final ItemStack dataStack;
 
-    public ResearchCondition() {
-        this.data = new ResearchData();
-    }
-
-    public ResearchCondition(boolean isReverse, ResearchData data) {
-        super(isReverse);
-        this.data = data;
+    public ResearchCondition(String researchId, ItemStack dataStack) {
+        this.researchId = researchId;
+        this.dataStack = dataStack;
     }
 
     @Override
@@ -30,10 +28,15 @@ public class ResearchCondition extends RecipeCondition {
 
     @Override
     public boolean testCondition(@NotNull GTRecipe recipe, @NotNull RecipeLogic recipeLogic) {
-        return true;
-    }
-
-    public ResearchCondition(final ResearchData data) {
-        this.data = data;
+        if (recipeLogic.machine instanceof IDataAccessHatch dataAccessHatch && dataAccessHatch.isRecipeAvailable(recipe)) {
+            return true;
+        } else if (recipeLogic.machine instanceof IMultiController controller) {
+            for (var p : controller.getParts()) {
+                if (p instanceof IDataAccessHatch dataAccessHatch && dataAccessHatch.isRecipeAvailable(recipe)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

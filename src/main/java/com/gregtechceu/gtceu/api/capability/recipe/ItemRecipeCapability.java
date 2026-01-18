@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.api.capability.recipe;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.api.recipe.ResearchData;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 import com.gregtechceu.gtceu.api.recipe.content.SerializerIngredient;
@@ -37,10 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
@@ -178,14 +174,7 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
                                 .filter(ResearchCondition.class::isInstance).findAny()
                                 .map(ResearchCondition.class::cast).orElse(null);
                         if (condition != null) {
-                            List<ItemStack> dataItems = new ArrayList<>();
-                            for (ResearchData.ResearchEntry entry : condition.data) {
-                                ItemStack dataStick = entry.getDataItem().copy();
-                                ResearchManager.writeResearchToNBT(dataStick.getOrCreateTag(), entry.getResearchId(),
-                                        recipeType);
-                                dataItems.add(dataStick);
-                            }
-                            CycleItemStackHandler handler = new CycleItemStackHandler(List.of(dataItems));
+                            CycleItemStackHandler handler = new CycleItemStackHandler(Collections.singletonList(Collections.singletonList(condition.dataStack)));
                             slot.setHandlerSlot(handler, 0);
                             slot.setIngredientIO(IngredientIO.CATALYST);
                             slot.setCanTakeItems(false);

@@ -164,10 +164,5 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
         public boolean isRecipeAvailable(@NotNull GTRecipe recipe) {
             return false;
         }
-
-        @Override
-        public boolean isCreative() {
-            return false;
-        }
     }
 }

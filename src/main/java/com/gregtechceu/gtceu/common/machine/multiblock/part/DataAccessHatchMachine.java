@@ -11,13 +11,11 @@ import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
-import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredPartMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.research.DataBankMachine;
-import com.gregtechceu.gtceu.common.recipe.condition.ResearchCondition;
 import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 import com.gregtechceu.gtceu.utils.ResearchManager;
 
@@ -34,8 +32,6 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import com.fast.fastcollection.OpenCacheHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
-import lombok.Getter;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,10 +43,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class DataAccessHatchMachine extends WorkableTieredPartMachine implements IMachineLife, IDataAccessHatch, IDataInfoProvider {
+public class DataAccessHatchMachine extends TieredPartMachine implements IMachineLife, IDataAccessHatch, IDataInfoProvider {
 
     private final Set<GTRecipe> recipes;
-    @Getter
     private final boolean isCreative;
     @Persisted
     public final NotifiableItemStackHandler importItems;
@@ -140,7 +135,7 @@ public class DataAccessHatchMachine extends WorkableTieredPartMachine implements
 
     @Override
     public boolean isRecipeAvailable(GTRecipe recipe) {
-        return recipes.contains(recipe);
+        return isCreative || recipes.contains(recipe);
     }
 
     @Override
@@ -172,15 +167,5 @@ public class DataAccessHatchMachine extends WorkableTieredPartMachine implements
     public void addedToController(IMultiController controller) {
         rebuildData(controller instanceof DataBankMachine);
         super.addedToController(controller);
-    }
-
-    @Override
-    public @Nullable GTRecipe modifyRecipe(IWorkableMultiController controller, GTRecipe recipe) {
-        // creative hatches do not need to check, they always have the recipe
-        if (this.isCreative) return recipe;
-        if (recipe.conditions.stream().noneMatch(ResearchCondition.class::isInstance)) return recipe;
-        // hatches need to have the recipe available
-        if (this.isRecipeAvailable(recipe)) return recipe;
-        return null;
     }
 }

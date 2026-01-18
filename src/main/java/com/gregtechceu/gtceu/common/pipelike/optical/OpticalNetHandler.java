@@ -51,11 +51,6 @@ public class OpticalNetHandler implements IDataAccessHatch, IOpticalComputationP
     }
 
     @Override
-    public boolean isCreative() {
-        return false;
-    }
-
-    @Override
     public long requestCWU(long cwu, boolean simulate) {
         IOpticalComputationProvider provider = getComputationProvider();
         if (provider == null) return 0;

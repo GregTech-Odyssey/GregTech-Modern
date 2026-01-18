@@ -5,12 +5,10 @@ import com.gregtechceu.gtceu.api.capability.IDataAccessHatch;
 import com.gregtechceu.gtceu.api.capability.IOpticalDataAccessHatch;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
-import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableMultiblockPartMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.common.blockentity.OpticalPipeBlockEntity;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.research.DataBankMachine;
-import com.gregtechceu.gtceu.common.recipe.condition.ResearchCondition;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.InteractionHand;
@@ -24,7 +22,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class OpticalDataHatchMachine extends WorkableMultiblockPartMachine implements IOpticalDataAccessHatch {
+public class OpticalDataHatchMachine extends MultiblockPartMachine implements IOpticalDataAccessHatch {
 
     @Getter
     private final boolean isTransmitter;
@@ -84,11 +82,6 @@ public class OpticalDataHatchMachine extends WorkableMultiblockPartMachine imple
     }
 
     @Override
-    public boolean isCreative() {
-        return false;
-    }
-
-    @Override
     public boolean shouldOpenUI(Player player, InteractionHand hand, BlockHitResult hit) {
         return false;
     }
@@ -96,13 +89,6 @@ public class OpticalDataHatchMachine extends WorkableMultiblockPartMachine imple
     @Override
     public boolean canShared() {
         return false;
-    }
-
-    @Override
-    public @Nullable GTRecipe modifyRecipe(IWorkableMultiController controller, GTRecipe recipe) {
-        if (recipe.conditions.stream().noneMatch(ResearchCondition.class::isInstance)) return recipe;
-        if (this.isRecipeAvailable(recipe)) return recipe;
-        return null;
     }
 
     protected @Nullable IDataAccessHatch getAccessHatch() {
