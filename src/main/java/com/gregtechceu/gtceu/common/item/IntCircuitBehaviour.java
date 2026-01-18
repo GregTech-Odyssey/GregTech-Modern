@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IItemUIFactory;
+import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.common.data.GTItems;
 
@@ -15,6 +16,7 @@ import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.IntTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -42,26 +44,23 @@ public class IntCircuitBehaviour implements IItemUIFactory, IAddInformation {
     }
 
     public static void setCircuitConfiguration(ItemStack itemStack, int configuration) {
-        if (configuration < 0 || configuration > CIRCUIT_MAX)
-            throw new IllegalArgumentException("Given configuration number is out of range!");
-        var tagCompound = itemStack.getOrCreateTag();
-        tagCompound.putInt("Configuration", configuration);
+        itemStack.getOrCreateTag().putInt(IntCircuitIngredient.Configuration, configuration);
     }
 
     public static int getCircuitConfiguration(ItemStack itemStack) {
-        if (!isIntegratedCircuit(itemStack)) return 0;
+        if (!itemStack.is(IntCircuitIngredient.PROGRAMMED_CIRCUIT)) return 0;
         var tagCompound = itemStack.getTag();
-        if (tagCompound != null) {
-            return tagCompound.getInt("Configuration");
+        if (tagCompound != null && tagCompound.tags.get(IntCircuitIngredient.Configuration) instanceof IntTag intTag) {
+            return intTag.getAsInt();
         }
         return 0;
     }
 
     public static boolean isIntegratedCircuit(ItemStack itemStack) {
-        boolean isCircuit = GTItems.PROGRAMMED_CIRCUIT.isIn(itemStack);
-        if (isCircuit && !itemStack.hasTag()) {
+        boolean isCircuit = itemStack.is(IntCircuitIngredient.PROGRAMMED_CIRCUIT);
+        if (isCircuit && itemStack.getTag() == null) {
             var compound = new CompoundTag();
-            compound.putInt("Configuration", 0);
+            compound.putInt(IntCircuitIngredient.Configuration, 0);
             itemStack.setTag(compound);
         }
         return isCircuit;

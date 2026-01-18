@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.data;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.syncdata.*;
+import com.gregtechceu.gtceu.utils.Event;
 
 import com.lowdragmc.lowdraglib.syncdata.IAccessor;
 import com.lowdragmc.lowdraglib.syncdata.payload.FriendlyBufPayload;
@@ -15,9 +16,15 @@ import static com.lowdragmc.lowdraglib.syncdata.TypedPayloadRegistries.registerS
 
 public class GTSyncedFieldAccessors {
 
+    public static final Event<Object> EVENT = Event.createRegister();
+
+    static {
+        EVENT.addListener(GTSyncedFieldAccessors.class, GTSyncedFieldAccessors::init);
+    }
+
     public static final IAccessor GT_RECIPE_TYPE_ACCESSOR = new GTRecipeTypeAccessor();
 
-    public static void init() {
+    private static void init() {
         register(FriendlyBufPayload.class, FriendlyBufPayload::new, GT_RECIPE_TYPE_ACCESSOR, 1000);
         register(NbtTagPayload.class, NbtTagPayload::new, VirtualTankAccessor.INSTANCE, 2);
         register(NbtTagPayload.class, NbtTagPayload::new, VirtualItemStorageAccessor.INSTANCE, 2);

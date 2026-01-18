@@ -54,8 +54,8 @@ public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Contai
     public int ocLevel = 0;
     public final GTRecipeCategory recipeCategory;
 
-    public GTRecipe(GTRecipeType recipeType, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, List<RecipeCondition> conditions, CompoundTag data, int duration, GTRecipeCategory recipeCategory) {
-        this(recipeType, null, inputs, outputs, tickInputs, tickOutputs, conditions, data, duration, recipeCategory);
+    public GTRecipe(GTRecipeType recipeType, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, CompoundTag data, int duration, GTRecipeCategory recipeCategory) {
+        this(recipeType, null, inputs, outputs, tickInputs, tickOutputs, Collections.emptyList(), data, duration, recipeCategory);
     }
 
     public GTRecipe(GTRecipeType recipeType, @Nullable ResourceLocation id, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, List<RecipeCondition> conditions, CompoundTag data, int duration, GTRecipeCategory recipeCategory) {

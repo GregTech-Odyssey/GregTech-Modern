@@ -3,8 +3,6 @@ package com.gregtechceu.gtceu.common.recipe.condition;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
-import com.gregtechceu.gtceu.api.recipe.condition.RecipeConditionType;
-import com.gregtechceu.gtceu.common.data.GTRecipeConditions;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.Direction;
@@ -13,13 +11,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import org.jetbrains.annotations.NotNull;
 
 public class AdjacentBlockCondition extends RecipeCondition {
 
-    public static final Codec<AdjacentBlockCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).apply(instance, AdjacentBlockCondition::new));
     public static final AdjacentBlockCondition INSTANCE = new AdjacentBlockCondition();
 
     private Block A;
@@ -27,11 +22,6 @@ public class AdjacentBlockCondition extends RecipeCondition {
 
     public AdjacentBlockCondition(boolean isReverse) {
         super(isReverse);
-    }
-
-    @Override
-    public RecipeConditionType<?> getType() {
-        return GTRecipeConditions.ADJACENT_BLOCK;
     }
 
     @Override
@@ -59,11 +49,6 @@ public class AdjacentBlockCondition extends RecipeCondition {
             }
         }
         return false;
-    }
-
-    @Override
-    public RecipeCondition createTemplate() {
-        return new AdjacentBlockCondition();
     }
 
     public AdjacentBlockCondition() {}

@@ -18,6 +18,7 @@ import com.gregtechceu.gtceu.common.data.GTMaterialItems;
 import com.gregtechceu.gtceu.common.unification.material.MaterialRegistryManager;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
+import com.gregtechceu.gtceu.utils.Event;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.Registry;
@@ -35,10 +36,10 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 
 import com.fast.fastcollection.O2OOpenCacheHashMap;
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -48,10 +49,15 @@ import java.util.stream.Collectors;
 @SuppressWarnings("deprecation")
 public class MixinHelpers {
 
-    public static final Reference2ReferenceOpenHashMap<Registry<?>, Map<ResourceLocation, Collection<?>>> TAG_CACHE = new Reference2ReferenceOpenHashMap<>();
-    public static final Reference2ReferenceOpenHashMap<Registry<?>, O2OOpenCacheHashMap<ResourceLocation, List<TagLoader.EntryWithSource>>> DYNAMIC_TAG_CACHE = new Reference2ReferenceOpenHashMap<>();
+    public static final Event<Pair<Map<ResourceLocation, List<TagLoader.EntryWithSource>>, Registry<?>>> TAG_LOAD_EVENT = Event.create();
 
-    public static <T> void generateGTDynamicTags(Map<ResourceLocation, List<TagLoader.EntryWithSource>> tagMap, Registry<T> registry) {
+    static {
+        TAG_LOAD_EVENT.addListener(MixinHelpers.class, pair -> generateGTDynamicTags(pair.first(), pair.second()));
+    }
+
+    private static final Reference2ReferenceOpenHashMap<Registry<?>, O2OOpenCacheHashMap<ResourceLocation, List<TagLoader.EntryWithSource>>> DYNAMIC_TAG_CACHE = new Reference2ReferenceOpenHashMap<>();
+
+    private static <T> void generateGTDynamicTags(Map<ResourceLocation, List<TagLoader.EntryWithSource>> tagMap, Registry<T> registry) {
         if (tagMap == GTUtil.EMPTY_MAP) return;
         var tags = DYNAMIC_TAG_CACHE.get(registry);
         if (tags == null) return;

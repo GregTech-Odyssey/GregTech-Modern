@@ -3,6 +3,8 @@ package com.gregtechceu.gtceu.common.data;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.addon.AddonFinder;
+import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.api.capability.IMiner;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
@@ -33,7 +35,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fml.ModLoader;
 
 import com.google.common.math.IntMath;
 import it.unimi.dsi.fastutil.Pair;
@@ -926,8 +927,7 @@ public class GTMachines {
     public static void init() {
         GTMultiMachines.init();
         GTResearchMachines.init();
-
-        ModLoader.get().postEvent(new GTCEuAPI.RegisterEvent<>(GTRegistries.MACHINES, MachineDefinition.class));
+        AddonFinder.getAddons().forEach(IGTAddon::registerMachiness);
         GTRegistries.MACHINES.freeze();
     }
 

@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.client.renderer.block.SurfaceRockRenderer;
 import com.gregtechceu.gtceu.client.renderer.item.TagPrefixItemRenderer;
 import com.gregtechceu.gtceu.client.renderer.item.ToolItemRenderer;
 import com.gregtechceu.gtceu.common.data.GTModels;
+import com.gregtechceu.gtceu.utils.Event;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.SharedConstants;
@@ -41,6 +42,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class GTDynamicResourcePack implements PackResources {
 
+    public static final Event<Object> EVENT = Event.createRegister();
+
+    static {
+        EVENT.addListener(GTDynamicResourcePack.class, GTDynamicResourcePack::reinitModels);
+    }
+
     protected static final ObjectSet<String> CLIENT_DOMAINS = new OpenCacheHashSet<>();
     protected static final GTDynamicPackContents CONTENTS = new GTDynamicPackContents();
     protected static boolean loaded;
@@ -60,17 +67,21 @@ public class GTDynamicResourcePack implements PackResources {
         CLIENT_DOMAINS.addAll(domains);
     }
 
-    public static void load() {
-        if (loaded) return;
-        if (!ModLoader.isLoadingStateValid()) return;
-        loaded = true;
-        long startTime = System.currentTimeMillis();
+    private static void reinitModels() {
         MaterialBlockRenderer.reinitModels();
         TagPrefixItemRenderer.reinitModels();
         OreBlockRenderer.reinitModels();
         ToolItemRenderer.reinitModels();
         SurfaceRockRenderer.reinitModels();
         GTModels.registerMaterialFluidModels();
+    }
+
+    public synchronized static void load() {
+        if (loaded) return;
+        if (!ModLoader.isLoadingStateValid()) return;
+        loaded = true;
+        long startTime = System.currentTimeMillis();
+        EVENT.call(null);
         MaterialIconType.clear();
         GTCEu.LOGGER.info("GregTech Model loading took {}ms", System.currentTimeMillis() - startTime);
     }

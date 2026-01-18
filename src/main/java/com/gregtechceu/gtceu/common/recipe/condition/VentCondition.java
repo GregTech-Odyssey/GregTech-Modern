@@ -4,27 +4,17 @@ import com.gregtechceu.gtceu.api.machine.feature.IExhaustVentMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
-import com.gregtechceu.gtceu.api.recipe.condition.RecipeConditionType;
-import com.gregtechceu.gtceu.common.data.GTRecipeConditions;
 
 import net.minecraft.network.chat.Component;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import org.jetbrains.annotations.NotNull;
 
 public class VentCondition extends RecipeCondition {
 
-    public static final Codec<VentCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).apply(instance, VentCondition::new));
     public static final VentCondition INSTANCE = new VentCondition();
 
     public VentCondition(boolean isReverse) {
         super(isReverse);
-    }
-
-    @Override
-    public RecipeConditionType<?> getType() {
-        return GTRecipeConditions.VENT;
     }
 
     @Override
@@ -38,11 +28,6 @@ public class VentCondition extends RecipeCondition {
             return !(ventMachine.isNeedsVenting() && ventMachine.isVentingBlocked());
         }
         return true;
-    }
-
-    @Override
-    public RecipeCondition createTemplate() {
-        return new VentCondition();
     }
 
     public VentCondition() {}

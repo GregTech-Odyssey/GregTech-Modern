@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.common.data.GTFluids;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.fluid.potion.PotionFluidHelper;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
+import com.gregtechceu.gtceu.utils.Event;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.ChatFormatting;
@@ -31,11 +32,15 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
 
+import org.apache.commons.lang3.tuple.Triple;
+
 import java.util.List;
 import java.util.function.Consumer;
 
 @OnlyIn(Dist.CLIENT)
 public class TooltipsHandler {
+
+    public static final Event<Triple<FluidStack, Consumer<Component>, TooltipFlag>> FLUID_EVENT = Event.create();
 
     private static final String ITEM_PREFIX = "item." + GTCEu.MOD_ID;
     private static final String BLOCK_PREFIX = "block." + GTCEu.MOD_ID;
@@ -129,5 +134,6 @@ public class TooltipsHandler {
         if (fluidType.getTemperature() < FluidConstants.CRYOGENIC_FLUID_THRESHOLD) {
             tooltips.accept(Component.translatable("gtceu.fluid.temperature.cryogenic"));
         }
+        FLUID_EVENT.call(Triple.of(fluidStack, tooltips, flag));
     }
 }

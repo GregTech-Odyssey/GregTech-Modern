@@ -5,33 +5,25 @@ import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
-import com.gregtechceu.gtceu.api.recipe.condition.RecipeConditionType;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
-import com.gregtechceu.gtceu.common.data.GTRecipeConditions;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.jei.IngredientIO;
 
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 
-import com.google.gson.JsonObject;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 @Getter
 public class DimensionCondition extends RecipeCondition {
 
-    public static final Codec<DimensionCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(ResourceLocation.CODEC.fieldOf("dimension").forGetter(val -> val.dimension)).apply(instance, DimensionCondition::new));
     public static final DimensionCondition INSTANCE = new DimensionCondition();
     private ResourceLocation dimension = new ResourceLocation("dummy");
 
@@ -42,11 +34,6 @@ public class DimensionCondition extends RecipeCondition {
     public DimensionCondition(boolean isReverse, ResourceLocation dimension) {
         super(isReverse);
         this.dimension = dimension;
-    }
-
-    @Override
-    public RecipeConditionType<?> getType() {
-        return GTRecipeConditions.DIMENSION;
     }
 
     @Override
@@ -75,39 +62,6 @@ public class DimensionCondition extends RecipeCondition {
     public boolean testCondition(@NotNull GTRecipe recipe, @NotNull RecipeLogic recipeLogic) {
         Level level = recipeLogic.machine.self().getLevel();
         return level != null && dimension.equals(level.dimension().location());
-    }
-
-    @Override
-    public RecipeCondition createTemplate() {
-        return new DimensionCondition();
-    }
-
-    @NotNull
-    @Override
-    public JsonObject serialize() {
-        JsonObject config = super.serialize();
-        config.addProperty("dimension", dimension.toString());
-        return config;
-    }
-
-    @Override
-    public RecipeCondition deserialize(@NotNull JsonObject config) {
-        super.deserialize(config);
-        dimension = new ResourceLocation(GsonHelper.getAsString(config, "dimension", "dummy"));
-        return this;
-    }
-
-    @Override
-    public RecipeCondition fromNetwork(FriendlyByteBuf buf) {
-        super.fromNetwork(buf);
-        dimension = buf.readResourceLocation();
-        return this;
-    }
-
-    @Override
-    public void toNetwork(FriendlyByteBuf buf) {
-        super.toNetwork(buf);
-        buf.writeResourceLocation(dimension);
     }
 
     public DimensionCondition() {}

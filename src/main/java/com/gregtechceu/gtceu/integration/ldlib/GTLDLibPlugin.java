@@ -10,6 +10,6 @@ public class GTLDLibPlugin implements ILDLibPlugin {
 
     @Override
     public void onLoad() {
-        GTSyncedFieldAccessors.init();
+        GTSyncedFieldAccessors.EVENT.call(null);
     }
 }

@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
-import com.gregtechceu.gtceu.common.recipe.condition.ResearchCondition;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -23,6 +22,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -52,16 +52,6 @@ public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
         buf.writeCollection(contents, capability.serializer::toNetworkContent);
     }
 
-    public static RecipeCondition conditionReader(FriendlyByteBuf buf) {
-        RecipeCondition condition = GTRegistries.RECIPE_CONDITIONS.get(buf.readUtf()).factory.createDefault();
-        return condition.fromNetwork(buf);
-    }
-
-    public static void conditionWriter(FriendlyByteBuf buf, RecipeCondition condition) {
-        buf.writeUtf(GTRegistries.RECIPE_CONDITIONS.getKey(condition.getType()));
-        condition.toNetwork(buf);
-    }
-
     public static Map<RecipeCapability<?>, List<Content>> tuplesToMap(List<Tuple<RecipeCapability<?>, List<Content>>> entries) {
         Map<RecipeCapability<?>, List<Content>> map = new Reference2ReferenceOpenHashMap<>();
         entries.forEach(entry -> map.put(entry.getA(), entry.getB()));
@@ -82,9 +72,6 @@ public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
         Map<RecipeCapability<?>, List<Content>> tickOutputs = tuplesToMap(
                 buf.readCollection(c -> new ArrayList<>(), GTRecipeSerializer::entryReader));
 
-        List<RecipeCondition> conditions = buf.readCollection(c -> new ArrayList<>(),
-                GTRecipeSerializer::conditionReader);
-
         CompoundTag data = buf.readNbt();
         if (data == null) {
             data = new CompoundTag();
@@ -94,20 +81,9 @@ public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
         GTRecipeType type = (GTRecipeType) BuiltInRegistries.RECIPE_TYPE.get(recipeType);
         GTRecipeCategory category = GTRegistries.RECIPE_CATEGORIES.get(categoryLoc);
 
-        GTRecipe recipe = new GTRecipe(type, id,
+        return new GTRecipe(type, id,
                 inputs, outputs, tickInputs, tickOutputs,
-                conditions, data, duration, category);
-
-        // a little special piece of code for loading all the research entries into the recipe type's list on the
-        // client.
-        ResearchCondition researchCondition = conditions.stream().filter(ResearchCondition.class::isInstance).findAny()
-                .map(ResearchCondition.class::cast).orElse(null);
-        if (researchCondition != null) {
-            for (ResearchData.ResearchEntry entry : researchCondition.data) {
-                type.addDataStickEntry(entry.getResearchId(), recipe);
-            }
-        }
-        return recipe;
+                Collections.emptyList(), data, duration, category);
     }
 
     @Override
@@ -118,8 +94,6 @@ public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
         buf.writeCollection(recipe.tickInputs.entrySet(), GTRecipeSerializer::entryWriter);
         buf.writeCollection(recipe.outputs.entrySet(), GTRecipeSerializer::entryWriter);
         buf.writeCollection(recipe.tickOutputs.entrySet(), GTRecipeSerializer::entryWriter);
-
-        buf.writeCollection(recipe.conditions, GTRecipeSerializer::conditionWriter);
         buf.writeNbt(recipe.data);
         buf.writeResourceLocation(recipe.recipeCategory.registryKey);
     }
@@ -131,7 +105,6 @@ public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
                 RecipeCapability.CODEC.optionalFieldOf("outputs", Map.of()).forGetter(val -> val.outputs),
                 RecipeCapability.CODEC.optionalFieldOf("tickInputs", Map.of()).forGetter(val -> val.tickInputs),
                 RecipeCapability.CODEC.optionalFieldOf("tickOutputs", Map.of()).forGetter(val -> val.tickOutputs),
-                RecipeCondition.CODEC.listOf().optionalFieldOf("recipeConditions", List.of()).forGetter(val -> val.conditions),
                 CompoundTag.CODEC.optionalFieldOf("data", new CompoundTag()).forGetter(val -> val.data),
                 ExtraCodecs.NON_NEGATIVE_INT.fieldOf("duration").forGetter(val -> val.duration),
                 GTRegistries.RECIPE_CATEGORIES.codec().optionalFieldOf("category", GTRecipeCategory.DEFAULT).forGetter(val -> val.recipeCategory))

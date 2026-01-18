@@ -107,20 +107,12 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
         protected boolean matchRecipe(GTRecipe recipe) {
             var match = matchRecipeNoOutput(recipe);
             if (!match) return false;
-            return matchTickRecipeNoOutput(recipe);
+            return RecipeHelper.matchTickRecipe(machine, recipe);
         }
 
         protected boolean matchRecipeNoOutput(GTRecipe recipe) {
             if (!machine.hasCapabilityProxies()) return false;
             return RecipeHelper.handleRecipe(machine, recipe, IO.IN, recipe.inputs, Collections.emptyMap(), true);
-        }
-
-        protected boolean matchTickRecipeNoOutput(GTRecipe recipe) {
-            if (recipe.hasTick()) {
-                if (!machine.hasCapabilityProxies()) return false;
-                return RecipeHelper.handleRecipe(machine, recipe, IO.IN, recipe.tickInputs, Collections.emptyMap(), true);
-            }
-            return true;
         }
 
         // Handle RecipeIO manually
@@ -146,7 +138,7 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
                 outputItem = ItemRecipeCapability.CAP.of(contents.getFirst().content).getItems()[0];
             }
             if (!outputItem.isEmpty()) {
-                holder.setDataItem(outputItem);
+                holder.setDataItem(outputItem.copy());
             }
             holder.setLocked(false);
             return true;

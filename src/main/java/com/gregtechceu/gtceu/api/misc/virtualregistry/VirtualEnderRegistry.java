@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.GTCEu;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraftforge.server.ServerLifecycleHooks;
 
 import com.fast.fastcollection.O2OOpenCacheHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +30,7 @@ public class VirtualEnderRegistry extends SavedData {
 
     public static VirtualEnderRegistry getInstance() {
         if (data == null) {
-            var server = ServerLifecycleHooks.getCurrentServer();
+            var server = GTCEu.getMinecraftServer();
             if (server != null) {
                 data = server.overworld().getDataStorage()
                         .computeIfAbsent(VirtualEnderRegistry::new, VirtualEnderRegistry::new, DATA_ID);

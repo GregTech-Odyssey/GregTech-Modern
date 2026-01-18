@@ -28,7 +28,6 @@ import net.minecraft.world.item.crafting.AbstractCookingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.server.ServerLifecycleHooks;
 
 import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.fast.fastcollection.OpenCacheHashSet;
@@ -198,7 +197,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
                 if (t instanceof GTRecipeType type) {
                     recipes.addAll(type.recipes.values());
                 } else {
-                    var map = (Map<ResourceLocation, Recipe>) ServerLifecycleHooks.getCurrentServer().getRecipeManager().byType((RecipeType) t);
+                    var map = (Map<ResourceLocation, Recipe>) GTCEu.getMinecraftServer().getRecipeManager().byType((RecipeType) t);
                     recipes.addAll(map.entrySet().stream().map(e -> this.toGTrecipe(e.getKey(), e.getValue())).toList());
                 }
             });

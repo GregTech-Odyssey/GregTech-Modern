@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.common.data;
 
-import com.gregtechceu.gtceu.api.GTCEuAPI;
+import com.gregtechceu.gtceu.api.addon.AddonFinder;
+import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.api.data.DimensionMarker;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -10,7 +11,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.fml.ModLoader;
 
 import com.tterrag.registrate.util.entry.BlockEntry;
 import org.jetbrains.annotations.Nullable;
@@ -69,7 +69,7 @@ public class GTDimensionMarkers {
     }
 
     public static void init() {
-        ModLoader.get().postEvent(new GTCEuAPI.RegisterEvent<>(GTRegistries.DIMENSION_MARKERS, DimensionMarker.class));
+        AddonFinder.getAddons().forEach(IGTAddon::registerDimensionMarkers);
         GTRegistries.DIMENSION_MARKERS.freeze();
     }
 }

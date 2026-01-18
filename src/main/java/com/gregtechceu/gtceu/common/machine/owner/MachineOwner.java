@@ -3,13 +3,12 @@ package com.gregtechceu.gtceu.common.machine.owner;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.utils.Event;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.UsernameCache;
-import net.minecraftforge.fml.ModLoader;
-import net.minecraftforge.server.ServerLifecycleHooks;
 
 import com.fast.fastcollection.O2OOpenCacheHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -20,9 +19,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 public abstract sealed class MachineOwner permits PlayerOwner, FTBOwner {
+
+    public static final Event<AtomicReference<Function<UUID, MachineOwner>>> REGISTER_EVENT = Event.createRegister();
 
     private static Function<UUID, MachineOwner> machineOwnerGenerator;
     public static final UUID EMPTY = new UUID(0, 0);
@@ -42,14 +44,14 @@ public abstract sealed class MachineOwner permits PlayerOwner, FTBOwner {
     public abstract Component getTypeDisplayName();
 
     public static void init() {
-        var event = new RegisterOwnerTypeEvent();
+        AtomicReference<Function<UUID, MachineOwner>> reference = new AtomicReference<>();
         if (GTCEu.Mods.isFTBTeamsLoaded()) {
-            event.register(0, FTBOwner::new);
+            reference.set(FTBOwner::new);
         } else {
-            event.register(0, PlayerOwner::new);
+            reference.set(PlayerOwner::new);
         }
-        ModLoader.get().postEvent(event);
-        machineOwnerGenerator = event.ownershipProvider;
+        REGISTER_EVENT.call(reference);
+        machineOwnerGenerator = reference.get();
     }
 
     public void displayInfo(List<Component> compList) {
@@ -115,7 +117,7 @@ public abstract sealed class MachineOwner permits PlayerOwner, FTBOwner {
                 online += "unknown";
             }
         } else {
-            online += ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(playerUUID) != null;
+            online += GTCEu.getMinecraftServer().getPlayerList().getPlayer(playerUUID) != null;
         }
         compList.add(Component.translatable("behavior.portable_scanner.player_name", playerName, Component.translatable(online)));
     }
