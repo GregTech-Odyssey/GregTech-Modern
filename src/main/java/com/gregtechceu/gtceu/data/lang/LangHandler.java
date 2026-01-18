@@ -163,6 +163,7 @@ public class LangHandler {
                 "Removes all of current conditions' effects");
 
         provider.add("gtceu.multiblock.dimension", "§eDimensions: §r%sx%sx%s");
+        provider.add("gtceu.multiblock.subpatterns", "§eSubpatterns: §r%s");
 
         provider.add("item.gtceu.tool.replace_tool_head", "Craft with a new Tool Head to replace it");
         provider.add("item.gtceu.tool.usable_as", "§8Usable as: §f%s");

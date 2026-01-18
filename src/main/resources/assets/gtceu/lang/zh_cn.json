@@ -3264,6 +3264,7 @@
     "gtceu.multiblock.steam.steam_stored": "蒸汽：%s / %s mB",
     "gtceu.multiblock.steam_grinder.description": "蒸汽时代的多方块研磨机。需要至少14块青铜机械方块成型。仅可使用输入/输出总线（蒸汽），并且只能用蒸汽仓供给蒸汽。",
     "gtceu.multiblock.steam_oven.description": "蒸汽时代的多方块熔炉。需要至少6块青铜机械方块成型。仅可使用输入/输出总线（蒸汽），并且只能用蒸汽仓供给蒸汽。蒸汽仓必须放置于结构底层，数量至多为一个。",
+    "gtceu.multiblock.subpatterns": "§附属结构: §r%s",
     "gtceu.multiblock.title": "多方块结构",
     "gtceu.multiblock.turbine.efficiency": "涡轮效率：%s%%",
     "gtceu.multiblock.turbine.efficiency_tooltip": "转子支架等级超过%s§r时，每级§7增加§f10%%效率，并翻倍输出功率§7。",

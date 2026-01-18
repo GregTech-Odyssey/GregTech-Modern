@@ -214,8 +214,12 @@ public class MetaMachineBlock extends AppearanceBlock implements IBlockRendererP
         if (GTUtil.isShiftDown()) {
             if (definition instanceof MultiblockMachineDefinition multiblockDefinition) {
                 var pattern = multiblockDefinition.getPatternFactory().get();
+                var SubPatter = multiblockDefinition.getSubPatternFactory();
                 if (pattern != null) {
                     tooltip.add(Component.translatable("gtceu.multiblock.dimension", pattern.fingerLength, pattern.thumbLength, pattern.palmLength));
+                }
+                if (SubPatter != null && SubPatter.length > 0) {
+                    tooltip.add(Component.translatable("gtceu.multiblock.subpatterns", SubPatter.length));
                 }
             }
         }
