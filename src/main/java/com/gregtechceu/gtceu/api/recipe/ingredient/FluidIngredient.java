@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.recipe.ingredient;
 
-import com.gregtechceu.gtceu.utils.GTMath;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.HolderSet;
@@ -229,7 +228,7 @@ public final class FluidIngredient implements Predicate<FluidStack> {
         if (this.stacks == null) {
             switch (value) {
                 case null -> this.stacks = EMPTY_STACKS;
-                case Fluid fluid -> this.stacks = new FluidStack[] { new FluidStack(fluid, GTMath.saturatedCast(amount)) };
+                case Fluid fluid -> this.stacks = new FluidStack[] { new FluidStack(fluid, getAmount()) };
                 case TagKey tagKey -> {
                     Optional<HolderSet.Named<Fluid>> optional = BuiltInRegistries.FLUID.getTag(tagKey);
                     if (optional.isPresent()) {
@@ -237,7 +236,7 @@ public final class FluidIngredient implements Predicate<FluidStack> {
                         var size = fluids.size();
                         var stacks = new FluidStack[size];
                         for (int i = 0; i < size; i++) {
-                            stacks[i] = new FluidStack(fluids.get(i).value(), GTMath.saturatedCast(amount));
+                            stacks[i] = new FluidStack(fluids.get(i).value(), getAmount());
                         }
                         this.stacks = stacks;
                     } else {

@@ -157,7 +157,7 @@ public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Contai
         if (inputs == null) return 0;
         long eut = 0;
         for (var content : inputs) {
-            eut += EURecipeCapability.CAP.of(content.content);
+            eut += EURecipeCapability.CAP.of(content);
         }
         return eut;
     }
@@ -168,7 +168,7 @@ public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Contai
         if (outputs == null) return 0;
         long eut = 0;
         for (var content : outputs) {
-            eut += EURecipeCapability.CAP.of(content.content);
+            eut += EURecipeCapability.CAP.of(content);
         }
         return eut;
     }

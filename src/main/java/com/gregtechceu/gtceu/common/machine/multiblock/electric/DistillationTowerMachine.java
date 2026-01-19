@@ -206,7 +206,7 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
         }
 
         private boolean applyFluidOutputs(GTRecipe recipe, FluidAction action) {
-            var fluids = recipe.getOutputContents(FluidRecipeCapability.CAP).stream().map(Content::getContent).map(FluidRecipeCapability.CAP::of).toList();
+            var fluids = recipe.getOutputContents(FluidRecipeCapability.CAP).stream().map(FluidRecipeCapability.CAP::of).toList();
             // Distillery recipes should output to the first non-void handler
             if (recipe.recipeType == GTRecipeTypes.DISTILLERY_RECIPES) {
                 var fluid = fluids.getFirst().getLatestStacks()[0];

@@ -146,28 +146,28 @@ public class GTRecipeBuilder {
     public <T> GTRecipeBuilder input(RecipeCapability<T> capability, T obj) {
         var t = (perTick ? tickInput : input);
         warnTooManyIngredients(capability, true, t, 1);
-        t.computeIfAbsent(capability, c -> new ArrayList<>()).add(makeContent(capability.of(obj)));
+        t.computeIfAbsent(capability, c -> new ArrayList<>()).add(makeContent(capability.ofInner(obj)));
         return this;
     }
 
     public <T> GTRecipeBuilder input(RecipeCapability<T> capability, T... obj) {
         var t = (perTick ? tickInput : input);
         warnTooManyIngredients(capability, true, t, obj.length);
-        t.computeIfAbsent(capability, c -> new ArrayList<>()).addAll(Arrays.stream(obj).map(capability::of).map(this::makeContent).toList());
+        t.computeIfAbsent(capability, c -> new ArrayList<>()).addAll(Arrays.stream(obj).map(capability::ofInner).map(this::makeContent).toList());
         return this;
     }
 
     public <T> GTRecipeBuilder output(RecipeCapability<T> capability, T obj) {
         var t = (perTick ? tickOutput : output);
         warnTooManyIngredients(capability, false, t, 1);
-        t.computeIfAbsent(capability, c -> new ArrayList<>()).add(makeContent(capability.of(obj)));
+        t.computeIfAbsent(capability, c -> new ArrayList<>()).add(makeContent(capability.ofInner(obj)));
         return this;
     }
 
     public <T> GTRecipeBuilder output(RecipeCapability<T> capability, T... obj) {
         var t = (perTick ? tickOutput : output);
         warnTooManyIngredients(capability, false, t, obj.length);
-        t.computeIfAbsent(capability, c -> new ArrayList<>()).addAll(Arrays.stream(obj).map(capability::of).map(this::makeContent).toList());
+        t.computeIfAbsent(capability, c -> new ArrayList<>()).addAll(Arrays.stream(obj).map(capability::ofInner).map(this::makeContent).toList());
         return this;
     }
 
@@ -992,7 +992,7 @@ public class GTRecipeBuilder {
         var itemOutputs = output.getOrDefault(ItemRecipeCapability.CAP, new ArrayList<>());
         var itemInputs = input.getOrDefault(ItemRecipeCapability.CAP, new ArrayList<>());
         if (itemOutputs.size() == 1 && (!itemInputs.isEmpty() || !tempFluidStacks.isEmpty())) {
-            var currOutput = ItemRecipeCapability.CAP.of(itemOutputs.getFirst().content);
+            var currOutput = ItemRecipeCapability.CAP.of(itemOutputs.getFirst());
             Item out = null;
             int outputCount = 0;
             if (!currOutput.isEmpty()) {
@@ -1030,7 +1030,7 @@ public class GTRecipeBuilder {
     private void removeExistingMaterialInfo() {
         var itemOutputs = output.get(ItemRecipeCapability.CAP);
         if (itemOutputs.size() == 1) {
-            var currOutput = ItemRecipeCapability.CAP.of(itemOutputs.getFirst().content);
+            var currOutput = ItemRecipeCapability.CAP.of(itemOutputs.getFirst());
             Item out = null;
             int outputCount = 0;
             if (!currOutput.isEmpty()) {
@@ -1094,7 +1094,7 @@ public class GTRecipeBuilder {
     public long EUt() {
         if (!tickInput.containsKey(EURecipeCapability.CAP)) return 0;
         if (tickInput.get(EURecipeCapability.CAP).isEmpty()) return 0;
-        return EURecipeCapability.CAP.of(tickInput.get(EURecipeCapability.CAP).getFirst().content);
+        return EURecipeCapability.CAP.of(tickInput.get(EURecipeCapability.CAP).getFirst());
     }
 
     public int getSolderMultiplier() {

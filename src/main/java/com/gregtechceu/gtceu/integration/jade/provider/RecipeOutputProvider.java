@@ -60,7 +60,7 @@ public class RecipeOutputProvider extends CapabilityBlockProvider<RecipeLogic> {
 
                 ListTag itemTags = new ListTag();
                 for (var item : itemContents) {
-                    var stacks = ItemRecipeCapability.CAP.of(item.content).getItems();
+                    var stacks = ItemRecipeCapability.CAP.of(item).getItems();
                     if (stacks.length == 0) continue;
                     if (stacks[0].isEmpty()) continue;
                     var stack = stacks[0];
@@ -83,7 +83,7 @@ public class RecipeOutputProvider extends CapabilityBlockProvider<RecipeLogic> {
 
                 ListTag fluidTags = new ListTag();
                 for (var fluid : fluidContents) {
-                    var ingredient = FluidRecipeCapability.CAP.of(fluid.content);
+                    var ingredient = FluidRecipeCapability.CAP.of(fluid);
                     var stacks = ingredient.getStacks();
                     if (stacks.length == 0) continue;
                     if (stacks[0].isEmpty()) continue;

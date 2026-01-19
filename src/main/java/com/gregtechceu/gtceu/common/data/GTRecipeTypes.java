@@ -78,11 +78,11 @@ public class GTRecipeTypes {
                 }
                 var list = builder.input.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList());
                 if (!list.isEmpty()) {
-                    Arrays.stream(FluidRecipeCapability.CAP.of(list.getFirst().content).getStacks()).forEach(stack -> SteamLiquidBoilerMachine.FUEL_CACHE.add(stack.getFluid()));
+                    Arrays.stream(FluidRecipeCapability.CAP.of(list.getFirst()).getStacks()).forEach(stack -> SteamLiquidBoilerMachine.FUEL_CACHE.add(stack.getFluid()));
                 }
                 list = builder.input.getOrDefault(ItemRecipeCapability.CAP, Collections.emptyList());
                 if (!list.isEmpty()) {
-                    Arrays.stream(ItemRecipeCapability.CAP.of(list.getFirst().content).getItems()).forEach(stack -> SteamSolidBoilerMachine.FUEL_CACHE.add(stack.getItem()));
+                    Arrays.stream(ItemRecipeCapability.CAP.of(list.getFirst()).getItems()).forEach(stack -> SteamSolidBoilerMachine.FUEL_CACHE.add(stack.getItem()));
                 }
             })
             .setMaxTooltips(1)
@@ -543,12 +543,12 @@ public class GTRecipeTypes {
                 if (recipeBuilder.data.getBoolean("disable_distillery")) return;
                 if (recipeBuilder.output.containsKey(FluidRecipeCapability.CAP)) {
                     long EUt = EURecipeCapability.CAP
-                            .of(recipeBuilder.tickInput.get(EURecipeCapability.CAP).getFirst().getContent());
+                            .of(recipeBuilder.tickInput.get(EURecipeCapability.CAP).getFirst());
                     Content inputContent = recipeBuilder.input.get(FluidRecipeCapability.CAP).getFirst();
-                    FluidIngredient input = FluidRecipeCapability.CAP.of(inputContent.getContent());
+                    FluidIngredient input = FluidRecipeCapability.CAP.of(inputContent);
                     ItemStack[] outputs = recipeBuilder.output.containsKey(ItemRecipeCapability.CAP) ?
                             ItemRecipeCapability.CAP
-                                    .of(recipeBuilder.output.get(ItemRecipeCapability.CAP).getFirst().getContent())
+                                    .of(recipeBuilder.output.get(ItemRecipeCapability.CAP).getFirst())
                                     .getItems() :
                             null;
                     ItemStack outputItem = outputs == null || outputs.length == 0 ? ItemStack.EMPTY : outputs[0];
@@ -556,7 +556,7 @@ public class GTRecipeTypes {
                     List<Content> contents = recipeBuilder.output.get(FluidRecipeCapability.CAP);
                     for (int i = 0; i < contents.size(); ++i) {
                         Content outputContent = contents.get(i);
-                        FluidIngredient output = FluidRecipeCapability.CAP.of(outputContent.getContent());
+                        FluidIngredient output = FluidRecipeCapability.CAP.of(outputContent);
                         if (output.isEmpty()) continue;
                         GTRecipeBuilder builder = DISTILLERY_RECIPES
                                 .recipeBuilder(recipeBuilder.id.getPath() + "_to_" +
@@ -571,9 +571,9 @@ public class GTRecipeTypes {
                                 RecipeUtil.isFluidStackDivisibleForDistillery(output, ratio);
 
                         FluidIngredient dividedInputFluid = input.depthCopy();
-                        dividedInputFluid.changeAmount(Math.max(1, dividedInputFluid.getAmount() / ratio));
+                        dividedInputFluid.changeAmount(Math.max(1, dividedInputFluid.amount / ratio));
                         FluidIngredient dividedOutputFluid = output.depthCopy();
-                        dividedOutputFluid.changeAmount(Math.max(1, dividedOutputFluid.getAmount() / ratio));
+                        dividedOutputFluid.changeAmount(Math.max(1, dividedOutputFluid.amount / ratio));
 
                         if (shouldDivide && fluidsDivisible) {
                             builder.chance(inputContent.chance)

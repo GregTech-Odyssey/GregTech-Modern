@@ -36,7 +36,7 @@ public class SteamEnergyRecipeHandler implements IRecipeHandler<Long> {
             list.add(steam);
             var leftSteam = steamTank.handleRecipeInner(io, recipe, list, simulate);
             if (leftSteam == null || leftSteam.isEmpty()) return null;
-            eut = (long) (leftSteam.getFirst().getAmount() / conversionRate);
+            eut = (long) (leftSteam.getFirst().amount / conversionRate);
         }
         return eut <= 0 ? null : Collections.singletonList(eut);
     }

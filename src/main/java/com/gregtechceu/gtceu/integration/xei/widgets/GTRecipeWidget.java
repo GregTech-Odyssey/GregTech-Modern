@@ -202,7 +202,7 @@ public class GTRecipeWidget extends WidgetGroup {
             if (recipe.data.getBoolean("duration_is_total_cwu") &&
                     recipe.tickInputs.containsKey(CWURecipeCapability.CAP)) {
                 long minimumCWUt = Math.max(recipe.tickInputs.get(CWURecipeCapability.CAP).stream()
-                        .map(Content::getContent).mapToLong(CWURecipeCapability.CAP::of).sum(), 1);
+                        .mapToLong(CWURecipeCapability.CAP::of).sum(), 1);
                 texts.add(Component.translatable("gtceu.recipe.max_eu",
                         FormattingUtil.formatNumbers(euTotal / minimumCWUt)));
             } else {

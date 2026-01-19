@@ -195,7 +195,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
         }
         if (color == -1) {
             if (!recipe.getOutputContents(FluidRecipeCapability.CAP).isEmpty()) {
-                var stack = FluidRecipeCapability.CAP.of(recipe.getOutputContents(FluidRecipeCapability.CAP).getFirst().getContent()).getStacks()[0];
+                var stack = FluidRecipeCapability.CAP.of(recipe.getOutputContents(FluidRecipeCapability.CAP).getFirst()).getStacks()[0];
                 int newColor = -16777216 | GTUtil.getFluidColor(stack);
                 if (!Objects.equals(color, newColor)) {
                     color = newColor;

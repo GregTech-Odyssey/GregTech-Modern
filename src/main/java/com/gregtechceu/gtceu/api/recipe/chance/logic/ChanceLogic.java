@@ -54,7 +54,7 @@ public abstract class ChanceLogic {
                     chance -= maxChance;
                     newChance -= maxChance;
                 }
-                updateCachedChance(entry.content, cache, newChance / 2 + cached);
+                updateCachedChance(entry.inner, cache, newChance / 2 + cached);
             }
             return builder.build();
         }
@@ -89,7 +89,7 @@ public abstract class ChanceLogic {
                     int chance = newChance + cached;
                     if (passesChance(chance, Content.MAX_CHANCE)) newChance -= Content.MAX_CHANCE;
                     else failed = true;
-                    updateCachedChance(entry.content, cache, newChance / 2 + cached);
+                    updateCachedChance(entry.inner, cache, newChance / 2 + cached);
                     if (failed) break;
                 }
                 if (!failed) builder.addAll(chancedEntries);
@@ -129,7 +129,7 @@ public abstract class ChanceLogic {
                         selected = entry;
                         newChance -= Content.MAX_CHANCE;
                     }
-                    updateCachedChance(entry.content, cache, newChance / 2 + cached);
+                    updateCachedChance(entry.inner, cache, newChance / 2 + cached);
                     if (selected != null) break;
                 }
                 if (selected != null) builder.add(selected);
@@ -189,7 +189,7 @@ public abstract class ChanceLogic {
             // Finally, generate a new Content list with the changes
             List<Content> normalizedEntries = new ArrayList<>();
             for (int i = 0; i < chancesOutOfTenThousand.size(); i++) {
-                normalizedEntries.add(new Content(chancedEntries.get(i).content, chancesOutOfTenThousand.getInt(i), chancedEntries.get(i).tierChanceBoost));
+                normalizedEntries.add(new Content(chancedEntries.get(i).inner, chancesOutOfTenThousand.getInt(i), chancedEntries.get(i).tierChanceBoost));
             }
 
             // Use the new, normalized list for the logic
@@ -205,7 +205,7 @@ public abstract class ChanceLogic {
                         selected = entry;
                         newChance -= maxChance;
                     }
-                    updateCachedChance(entry.content, cache, newChance / 2 + cached);
+                    updateCachedChance(entry.inner, cache, newChance / 2 + cached);
                     if (selected != null) break;
                     maxChance -= newChance;
                 }
@@ -285,10 +285,10 @@ public abstract class ChanceLogic {
      *         between 0 and {@link Content#MAX_CHANCE} (exclusive)
      */
     static int getCachedChance(Content entry, @Nullable Object2IntMap<?> cache) {
-        if (cache == null || !cache.containsKey(entry.content))
+        if (cache == null || !cache.containsKey(entry.inner))
             return GTValues.RNG.nextInt(Content.MAX_CHANCE);
 
-        return cache.getInt(entry.content);
+        return cache.getInt(entry.inner);
     }
 
     /**

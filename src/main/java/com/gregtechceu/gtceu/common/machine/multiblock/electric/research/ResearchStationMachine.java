@@ -135,7 +135,7 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
             ItemStack outputItem = ItemStack.EMPTY;
             var contents = lastRecipe.getOutputContents(ItemRecipeCapability.CAP);
             if (!contents.isEmpty()) {
-                outputItem = ItemRecipeCapability.CAP.of(contents.getFirst().content).getItems()[0];
+                outputItem = ItemRecipeCapability.CAP.of(contents.getFirst()).getItems()[0];
             }
             if (!outputItem.isEmpty()) {
                 holder.setDataItem(outputItem.copy());

@@ -36,7 +36,7 @@ public class CWURecipeCapability extends RecipeCapability<Long> {
     public void addXEIInfo(WidgetGroup group, int xOffset, GTRecipe recipe, List<Content> contents, boolean perTick,
                            boolean isInput, MutableInt yOffset) {
         if (perTick) {
-            long cwu = contents.stream().map(Content::getContent).mapToLong(CWURecipeCapability.CAP::of).sum();
+            long cwu = contents.stream().mapToLong(CWURecipeCapability.CAP::of).sum();
             group.addWidget(new LabelWidget(3 - xOffset, yOffset.addAndGet(10),
                     LocalizationUtils.format("gtceu.recipe.computation_per_tick", FormattingUtil.formatNumbers(cwu))));
         }

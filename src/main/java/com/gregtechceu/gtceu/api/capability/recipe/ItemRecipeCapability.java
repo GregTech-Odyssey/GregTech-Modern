@@ -83,7 +83,7 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
     @Override
     public @NotNull List<Object> createXEIContainerContents(List<Content> contents, GTRecipe recipe, IO io) {
         List<Object> entryLists = contents.stream()
-                .map(Content::getContent)
+
                 .map(this::of)
                 .map(ItemRecipeCapability::mapItem)
                 .collect(Collectors.toList());
@@ -93,7 +93,7 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
             // Scanner Output replacing, used for cycling research outputs
             ResearchManager.ResearchItem researchData = null;
             for (Content stack : recipe.getOutputContents(this)) {
-                ItemStack[] stacks = this.of(stack.content).getItems();
+                ItemStack[] stacks = this.of(stack).getItems();
                 if (stacks.length == 0 || stacks[0].isEmpty()) continue;
 
                 researchData = ResearchManager.readResearchId(stacks[0]);
@@ -109,7 +109,7 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
                         if (outputs.isEmpty()) continue;
 
                         Content outputContent = outputs.getFirst();
-                        ItemStack[] stacks = this.of(outputContent.content).getItems();
+                        ItemStack[] stacks = this.of(outputContent).getItems();
                         if (stacks.length == 0) continue;
 
                         ItemStack researchStack = stacks[0];
@@ -195,7 +195,7 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
                         tooltips.add(Component.translatable("gtceu.gui.content.per_tick"));
                     }
                 });
-                if (io == IO.IN && (content.chance == 0 || this.of(content.content) instanceof IntCircuitIngredient)) {
+                if (io == IO.IN && (content.chance == 0 || this.of(content) instanceof IntCircuitIngredient)) {
                     slot.setIngredientIO(IngredientIO.CATALYST);
                 }
             }

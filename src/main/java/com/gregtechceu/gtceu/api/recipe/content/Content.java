@@ -22,7 +22,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,30 +29,29 @@ public class Content {
 
     public static final int MAX_CHANCE = 10_000;
 
-    @Getter
-    public Object content;
+    public Object inner;
     public int chance;
     public int tierChanceBoost;
 
-    public Content(Object content, int chance, int tierChanceBoost) {
-        this.content = content;
+    public Content(Object inner, int chance, int tierChanceBoost) {
+        this.inner = inner;
         this.chance = chance;
         this.tierChanceBoost = tierChanceBoost;
     }
 
     public static <T> Codec<Content> codec(RecipeCapability<T> capability) {
-        return RecordCodecBuilder.create(instance -> instance.group(capability.serializer.codec().fieldOf("content").forGetter(val -> capability.of(val.content)), ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("chance", ChanceLogic.getMaxChancedValue()).forGetter(val -> val.chance), Codec.INT.optionalFieldOf("tierChanceBoost", 0).forGetter(val -> val.tierChanceBoost)).apply(instance, Content::new));
+        return RecordCodecBuilder.create(instance -> instance.group(capability.serializer.codec().fieldOf("content").forGetter(capability::of), ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("chance", ChanceLogic.getMaxChancedValue()).forGetter(val -> val.chance), Codec.INT.optionalFieldOf("tierChanceBoost", 0).forGetter(val -> val.tierChanceBoost)).apply(instance, Content::new));
     }
 
     public Content copy(RecipeCapability<?> capability) {
-        return new Content(capability.copyContent(content), chance, tierChanceBoost);
+        return new Content(capability.copyContent(inner), chance, tierChanceBoost);
     }
 
     public Content copy(RecipeCapability<?> capability, @NotNull ContentModifier modifier) {
         if (modifier == ContentModifier.IDENTITY || chance < MAX_CHANCE) {
             return copy(capability);
         } else {
-            return new Content(capability.copyContent(content, modifier), chance, tierChanceBoost);
+            return new Content(capability.copyContent(inner, modifier), chance, tierChanceBoost);
         }
     }
 
@@ -94,11 +92,11 @@ public class Content {
 
     @OnlyIn(Dist.CLIENT)
     public void drawFluidAmount(GuiGraphics graphics, float x, float y, int width, int height) {
-        if (content instanceof FluidIngredient ingredient) {
+        if (inner instanceof FluidIngredient ingredient) {
             graphics.pose().pushPose();
             graphics.pose().translate(0, 0, 400);
             graphics.pose().scale(0.5F, 0.5F, 1);
-            int amount = ingredient.getAmount();
+            long amount = ingredient.amount;
             Font fontRenderer = Minecraft.getInstance().font;
             String s = FormattingUtil.formatBuckets(amount);
             if (fontRenderer.width(s) > 32) s = FormattingUtil.formatNumberReadable(amount, true, FormattingUtil.DECIMAL_FORMAT_1F, "B");
@@ -148,6 +146,6 @@ public class Content {
 
     @Override
     public String toString() {
-        return "Content{" + "content=" + content + ", chance=" + chance + ", tierChanceBoost=" + tierChanceBoost + '}';
+        return "Content{" + "inner=" + inner + ", chance=" + chance + ", tierChanceBoost=" + tierChanceBoost + '}';
     }
 }

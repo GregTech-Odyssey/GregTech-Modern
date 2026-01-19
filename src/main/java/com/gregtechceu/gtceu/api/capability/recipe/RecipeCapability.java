@@ -89,15 +89,12 @@ public abstract class RecipeCapability<T> {
         return copyWithModifier((T) content, modifier);
     }
 
-    /**
-     * used for recipe builder via KubeJs.
-     */
-    public T of(Object o) {
+    public T ofInner(Object o) {
         return serializer.of(o);
     }
 
     public T of(Content content) {
-        return serializer.of(content.content);
+        return serializer.of(content.inner);
     }
 
     public String slotName(IO io) {

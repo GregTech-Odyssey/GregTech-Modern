@@ -42,9 +42,9 @@ public class RecipeDB extends AbstractContainerRecipeDB<GTRecipe> {
         recipe.inputs.forEach((cap, contents) -> {
             for (Content content : contents) {
                 if (recipe.recipeType != null) {
-                    recipe.recipeType.convert(cap, content.content, intMap);
+                    recipe.recipeType.convert(cap, content.inner, intMap);
                 } else {
-                    GTRecipeTypes.DUMMY_RECIPES.convert(cap, content.content, intMap);
+                    GTRecipeTypes.DUMMY_RECIPES.convert(cap, content.inner, intMap);
                 }
             }
         });

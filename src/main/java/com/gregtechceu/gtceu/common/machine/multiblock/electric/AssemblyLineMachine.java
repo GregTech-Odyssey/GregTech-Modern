@@ -65,7 +65,7 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
         var itemInventory = itemStackTransfers.stream().map(container -> container.getStackInSlot(0)).filter(i -> !i.isEmpty()).limit(inputsSize).toList();
         if (itemInventory.size() < inputsSize) return false;
         for (int i = 0; i < inputsSize; i++) {
-            if (!ItemRecipeCapability.CAP.of(itemInputs.get(i).content).test(itemInventory.get(i))) {
+            if (!ItemRecipeCapability.CAP.of(itemInputs.get(i)).test(itemInventory.get(i))) {
                 return false;
             }
         }
@@ -80,7 +80,7 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
         var fluidInventory = fluidStackTransfers.stream().map(FluidTank::getFluid).filter(f -> !f.isEmpty()).limit(inputsSize).toList();
         if (fluidInventory.size() < inputsSize) return false;
         for (int i = 0; i < inputsSize; i++) {
-            if (!FluidRecipeCapability.CAP.of(fluidInputs.get(i).content).test(fluidInventory.get(i))) {
+            if (!FluidRecipeCapability.CAP.of(fluidInputs.get(i)).test(fluidInventory.get(i))) {
                 return false;
             }
         }
@@ -146,7 +146,7 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
 
             for (int i = 0; i < itemInputs.size(); i++) {
                 var inputSlot = machineInputs.get(i);
-                var recipeInput = ItemRecipeCapability.CAP.of(itemInputs.get(i).content);
+                var recipeInput = ItemRecipeCapability.CAP.of(itemInputs.get(i));
 
                 if (inputSlot.getStackInSlot(0).isEmpty() ||
                         !recipeInput.test(inputSlot.getStackInSlot(0))) {
@@ -167,7 +167,7 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
 
             for (int i = 0; i < fluidInputs.size(); i++) {
                 var inputTank = machineInputs.get(i);
-                var recipeInput = FluidRecipeCapability.CAP.of(fluidInputs.get(i).content);
+                var recipeInput = FluidRecipeCapability.CAP.of(fluidInputs.get(i));
 
                 if (inputTank.getFluid().isEmpty() ||
                         !recipeInput.test(inputTank.getFluid())) {

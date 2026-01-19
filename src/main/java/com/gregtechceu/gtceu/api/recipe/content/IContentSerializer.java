@@ -28,7 +28,7 @@ public interface IContentSerializer<T> {
 
     @SuppressWarnings("unchecked")
     default void toNetworkContent(FriendlyByteBuf buf, Content content) {
-        T inner = (T) content.getContent();
+        T inner = (T) content.inner;
         toNetwork(buf, inner);
         buf.writeVarInt(content.chance);
         buf.writeVarInt(content.tierChanceBoost);

@@ -170,12 +170,12 @@ public class RenderUtil {
         }
 
         var fluidContent = contents.stream()
-                .filter(content -> content.content instanceof FluidIngredient ingredient && !ingredient.isEmpty())
+                .filter(content -> content.inner instanceof FluidIngredient ingredient && !ingredient.isEmpty())
                 .findAny();
         if (fluidContent.isEmpty()) {
             return null;
         }
-        var ingredient = (FluidIngredient) fluidContent.get().content;
+        var ingredient = (FluidIngredient) fluidContent.get().inner;
 
         var stacks = ingredient.getStacks();
         if (stacks.length == 0) {
@@ -207,7 +207,7 @@ public class RenderUtil {
             // check item outputs first
             List<Content> outputs = recipe.getOutputContents(ItemRecipeCapability.CAP);
             if (!outputs.isEmpty()) {
-                ItemStack[] items = ItemRecipeCapability.CAP.of(outputs.getFirst().content).getItems();
+                ItemStack[] items = ItemRecipeCapability.CAP.of(outputs.getFirst()).getItems();
                 if (items.length > 0) {
                     ItemStack output = items[0];
                     if (!output.isEmpty() && !ItemStack.isSameItemSameTags(output, stack)) {
@@ -219,7 +219,7 @@ public class RenderUtil {
             // if there are no item outputs, try to find a fluid output
             outputs = recipe.getOutputContents(FluidRecipeCapability.CAP);
             if (!outputs.isEmpty()) {
-                FluidStack[] fluids = FluidRecipeCapability.CAP.of(outputs.getFirst().content).getStacks();
+                FluidStack[] fluids = FluidRecipeCapability.CAP.of(outputs.getFirst()).getStacks();
                 if (fluids.length != 0) {
                     FluidStack output = fluids[0];
                     if (!output.isEmpty()) {

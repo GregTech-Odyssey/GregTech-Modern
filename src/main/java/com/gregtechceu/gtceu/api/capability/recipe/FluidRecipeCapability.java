@@ -71,7 +71,7 @@ public class FluidRecipeCapability extends RecipeCapability<FluidIngredient> {
     @Override
     public @NotNull List<Object> createXEIContainerContents(List<Content> contents, GTRecipe recipe, IO io) {
         List<Object> entryLists = contents.stream()
-                .map(Content::getContent)
+
                 .map(this::of)
                 .map(FluidRecipeCapability::mapFluid)
                 .collect(Collectors.toList());
@@ -124,7 +124,7 @@ public class FluidRecipeCapability extends RecipeCapability<FluidIngredient> {
                         .getBoostedChance(content, recipeTier, chanceTier) / Content.MAX_CHANCE;
                 tank.setXEIChance(chance);
                 tank.setOnAddedTooltips((w, tooltips) -> {
-                    FluidIngredient ingredient = FluidRecipeCapability.CAP.of(content.content);
+                    FluidIngredient ingredient = FluidRecipeCapability.CAP.of(content);
                     if (!isXEI && ingredient.getStacks().length > 0) {
                         FluidStack stack = ingredient.getStacks()[0];
                         TooltipsHandler.appendFluidTooltips(stack, tooltips::add, TooltipFlag.NORMAL);
