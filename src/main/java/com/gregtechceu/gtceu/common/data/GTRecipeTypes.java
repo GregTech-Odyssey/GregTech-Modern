@@ -45,7 +45,6 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidStack;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -78,11 +77,15 @@ public class GTRecipeTypes {
                 }
                 var list = builder.input.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList());
                 if (!list.isEmpty()) {
-                    Arrays.stream(FluidRecipeCapability.CAP.of(list.getFirst()).getStacks()).forEach(stack -> SteamLiquidBoilerMachine.FUEL_CACHE.add(stack.getFluid()));
+                    var fluid = FluidRecipeCapability.CAP.of(list.getFirst()).getFluid();
+                    if (fluid != null) SteamLiquidBoilerMachine.FUEL_CACHE.add(fluid);
                 }
                 list = builder.input.getOrDefault(ItemRecipeCapability.CAP, Collections.emptyList());
                 if (!list.isEmpty()) {
-                    Arrays.stream(ItemRecipeCapability.CAP.of(list.getFirst()).getItems()).forEach(stack -> SteamSolidBoilerMachine.FUEL_CACHE.add(stack.getItem()));
+                    var items = ItemRecipeCapability.CAP.of(list.getFirst()).getInnerItemStack();
+                    if (!items.isEmpty()) {
+                        SteamSolidBoilerMachine.FUEL_CACHE.add(items.getItem());
+                    }
                 }
             })
             .setMaxTooltips(1)
@@ -546,12 +549,14 @@ public class GTRecipeTypes {
                             .of(recipeBuilder.tickInput.get(EURecipeCapability.CAP).getFirst());
                     Content inputContent = recipeBuilder.input.get(FluidRecipeCapability.CAP).getFirst();
                     FluidIngredient input = FluidRecipeCapability.CAP.of(inputContent);
-                    ItemStack[] outputs = recipeBuilder.output.containsKey(ItemRecipeCapability.CAP) ?
+                    ItemStack outputItem = recipeBuilder.output.containsKey(ItemRecipeCapability.CAP) ?
                             ItemRecipeCapability.CAP
                                     .of(recipeBuilder.output.get(ItemRecipeCapability.CAP).getFirst())
-                                    .getItems() :
-                            null;
-                    ItemStack outputItem = outputs == null || outputs.length == 0 ? ItemStack.EMPTY : outputs[0];
+                                    .getInnerItemStack() :
+                            ItemStack.EMPTY;
+                    var count = recipeBuilder.output.containsKey(ItemRecipeCapability.CAP) ? ItemRecipeCapability.CAP
+                            .of(recipeBuilder.output.get(ItemRecipeCapability.CAP).getFirst())
+                            .getAmount() : 0;
                     if (input.isEmpty()) return;
                     List<Content> contents = recipeBuilder.output.get(FluidRecipeCapability.CAP);
                     for (int i = 0; i < contents.size(); ++i) {
@@ -560,10 +565,10 @@ public class GTRecipeTypes {
                         if (output.isEmpty()) continue;
                         GTRecipeBuilder builder = DISTILLERY_RECIPES
                                 .recipeBuilder(recipeBuilder.id.getPath() + "_to_" +
-                                        GTUtil.FLUID_ID.apply(output.getStacks()[0].getFluid()).getPath())
+                                        GTUtil.FLUID_ID.apply(output.getFluid()).getPath())
                                 .EUt(Math.max(1, EUt / 4)).circuitMeta(i + 1);
 
-                        int ratio = RecipeUtil.getRatioForDistillery(input, output, outputItem);
+                        int ratio = RecipeUtil.getRatioForDistillery(input, output, count);
                         int recipeDuration = (int) (recipeBuilder.duration * OverclockingLogic.STD_DURATION_FACTOR_INV);
                         boolean shouldDivide = ratio != 1;
 
@@ -585,7 +590,7 @@ public class GTRecipeTypes {
                                     .duration(Math.max(1, recipeDuration / ratio));
                         } else if (!shouldDivide) {
                             if (!outputItem.isEmpty()) {
-                                builder.outputItems(outputItem);
+                                builder.outputItems(outputItem, count);
                             }
                             builder.conditions.addAll(recipeBuilder.conditions);
                             builder.chance(inputContent.chance)
@@ -600,13 +605,10 @@ public class GTRecipeTypes {
                         }
 
                         if (!outputItem.isEmpty()) {
-                            boolean itemsDivisible = outputItem.getCount() % ratio == 0 && fluidsDivisible;
+                            boolean itemsDivisible = count % ratio == 0 && fluidsDivisible;
 
                             if (fluidsDivisible && itemsDivisible) {
-                                ItemStack stack = outputItem.copy();
-                                stack.setCount(stack.getCount() / ratio);
-
-                                builder.outputItems(stack);
+                                builder.outputItems(outputItem, count / ratio);
                             }
                         }
                         builder.save();

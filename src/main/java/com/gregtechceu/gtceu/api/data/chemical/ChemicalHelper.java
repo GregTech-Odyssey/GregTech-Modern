@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.data.tag.TagUtil;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKey;
 import com.gregtechceu.gtceu.api.item.IGTTool;
+import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -46,23 +47,36 @@ import static com.gregtechceu.gtceu.api.data.chemical.material.ItemMaterialData.
 public class ChemicalHelper {
 
     public static @Nullable ItemMaterialInfo getMaterialInfo(@Nullable Object object) {
-        if (object instanceof ItemMaterialInfo materialInfo) {
-            return materialInfo;
-        } else if (object instanceof MaterialStack materialStack) {
-            return new ItemMaterialInfo(materialStack);
-        } else if (object instanceof ItemStack itemStack) {
-            return ItemMaterialData.getMaterialInfo(itemStack.getItem());
-        } else if (object instanceof ItemLike item) {
-            return ItemMaterialData.getMaterialInfo(item);
-        } else if (object instanceof MaterialEntry entry) {
-            var items = getItems(entry);
-            if (!items.isEmpty()) {
-                return ItemMaterialData.getMaterialInfo(items.getFirst());
+        switch (object) {
+            case ItemMaterialInfo materialInfo -> {
+                return materialInfo;
             }
-        } else if (object instanceof Ingredient ing) {
-            for (var stack : ing.getItems()) {
-                var ms = ItemMaterialData.getMaterialInfo(stack.getItem());
-                if (ms != null) return ms;
+            case MaterialStack materialStack -> {
+                return new ItemMaterialInfo(materialStack);
+            }
+            case ItemStack itemStack -> {
+                return ItemMaterialData.getMaterialInfo(itemStack.getItem());
+            }
+            case ItemLike item -> {
+                return ItemMaterialData.getMaterialInfo(item);
+            }
+            case MaterialEntry entry -> {
+                var items = getItems(entry);
+                if (!items.isEmpty()) {
+                    return ItemMaterialData.getMaterialInfo(items.getFirst());
+                }
+            }
+            case Ingredient ing -> {
+                for (var stack : ing.getItems()) {
+                    var ms = ItemMaterialData.getMaterialInfo(stack.getItem());
+                    if (ms != null) return ms;
+                }
+            }
+            case ItemIngredient ing -> {
+                return getMaterialInfo(ing.inner);
+            }
+            case null, default -> {
+                return null;
             }
         }
         return null;

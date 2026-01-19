@@ -4,13 +4,13 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
 
 import com.fast.recipesearch.IntLongMap;
 import org.jetbrains.annotations.NotNull;
@@ -98,12 +98,12 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     }
 
     @Override
-    public List<Ingredient> handleRecipe(IO io, GTRecipe recipe, List<?> left, boolean simulate) {
-        return handleRecipeInner(io, recipe, (List<Ingredient>) left, simulate);
+    public List<ItemIngredient> handleRecipe(IO io, GTRecipe recipe, List<?> left, boolean simulate) {
+        return handleRecipeInner(io, recipe, (List<ItemIngredient>) left, simulate);
     }
 
     @Override
-    public List<Ingredient> handleRecipeInner(IO io, GTRecipe recipe, List<Ingredient> left, boolean simulate) {
+    public List<ItemIngredient> handleRecipeInner(IO io, GTRecipe recipe, List<ItemIngredient> left, boolean simulate) {
         if (simulate && io == IO.IN) {
             ItemStack stored = storage.stacks[0];
             int count = stored.getCount();

@@ -2,11 +2,11 @@ package com.gregtechceu.gtceu.utils;
 
 public class SimpleStack<T> {
 
-    public final T value;
+    public final T inner;
     public long amount;
 
-    public SimpleStack(T value, long amount) {
-        this.value = value;
+    public SimpleStack(T inner, long amount) {
+        this.inner = inner;
         this.amount = amount;
     }
 

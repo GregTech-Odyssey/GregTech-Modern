@@ -12,14 +12,12 @@ import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
 import com.fast.fastcollection.O2IOpenCacheHashMap;
 import com.fast.recipesearch.IntLongMap;
 import com.mojang.serialization.Codec;
-import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -67,9 +65,7 @@ public abstract class RecipeCapability<T> {
      * deep copy of this content. recipe need it for searching and such things
      */
     public T copyInner(T content) {
-        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-        serializer.toNetwork(buf, content);
-        return serializer.fromNetwork(buf);
+        return content;
     }
 
     /**

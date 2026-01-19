@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.common.machine.multiblock.generator;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
@@ -190,7 +191,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
                 return false;
             });
         }
-        FluidStack requiredFluidInput = RecipeHelper.getInputFluids(recipe.get()).getFirst();
+        var requiredFluidInput = RecipeHelper.getInputContents(recipe.get(), FluidRecipeCapability.CAP).getFirst();
         long ocAmount = getMaxVoltage() / recipe.get().getOutputEUt();
         int neededAmount = GTMath.saturatedCast(ocAmount * requiredFluidInput.getAmount());
         return ChatFormatting.RED + FormattingUtil.formatNumbers(neededAmount) + "mB";

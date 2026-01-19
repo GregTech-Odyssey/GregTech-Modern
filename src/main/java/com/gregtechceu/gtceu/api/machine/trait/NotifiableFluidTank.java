@@ -113,6 +113,10 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
         IFluidHandler.FluidAction action = simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE;
         for (var it = left.iterator(); it.hasNext();) {
             var ingredient = it.next();
+            if (ingredient.isEmpty()) {
+                it.remove();
+                continue;
+            }
             if (io == IO.IN) {
                 for (int tank = 0; tank < length; ++tank) {
                     var storage = storages[tank];
@@ -146,7 +150,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
                     var visited = visiteds[tank];
                     var stored = storage.getFluid();
                     int amount = (visited == null ? stored.getAmount() : visited.getAmount());
-                    if (amount < storage.getCapacity() && (lockedFluid.isEmpty() || lockedFluid.getFluid().getFluid() == fluid) && (stored.isEmpty() || stored.getFluid() == fluid) && (visited == null || visited.value.getFluid() == fluid)) {
+                    if (amount < storage.getCapacity() && (lockedFluid.isEmpty() || lockedFluid.getFluid().getFluid() == fluid) && (stored.isEmpty() || stored.getFluid() == fluid) && (visited == null || visited.inner.getFluid() == fluid)) {
                         FluidStack output = new FluidStack(fluid, ingredient.getAmount(), ingredient.nbt);
                         int filled = storage.fill(output, action);
                         if (filled > 0) {

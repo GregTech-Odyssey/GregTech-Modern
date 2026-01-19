@@ -11,6 +11,8 @@ dependencies {
     implementation("dev:RecipeSearch-1.2")
     modCompileOnly("curse.maven:tool-belt-260262:5929061")
 
+    modImplementation("org.appliedenergistics:guideme:20.1.13")
+
     // LDLib
     modApi(forge.ldlib.get())
 

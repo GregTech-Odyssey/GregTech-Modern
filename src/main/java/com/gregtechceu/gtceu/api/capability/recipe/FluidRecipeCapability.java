@@ -125,9 +125,8 @@ public class FluidRecipeCapability extends RecipeCapability<FluidIngredient> {
                 tank.setXEIChance(chance);
                 tank.setOnAddedTooltips((w, tooltips) -> {
                     FluidIngredient ingredient = FluidRecipeCapability.CAP.of(content);
-                    if (!isXEI && ingredient.getStacks().length > 0) {
-                        FluidStack stack = ingredient.getStacks()[0];
-                        TooltipsHandler.appendFluidTooltips(stack, tooltips::add, TooltipFlag.NORMAL);
+                    if (!isXEI && !ingredient.getFluidStack().isEmpty()) {
+                        TooltipsHandler.appendFluidTooltips(ingredient.getFluidStack(), tooltips::add, TooltipFlag.NORMAL);
                     }
 
                     GTRecipeWidget.setConsumedChance(content,

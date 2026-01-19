@@ -6,17 +6,17 @@ import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
 
 import lombok.Getter;
 
 import java.util.List;
 
-public class ItemRecipeHandler implements IRecipeHandler<Ingredient> {
+public class ItemRecipeHandler implements IRecipeHandler<ItemIngredient> {
 
     @Getter
     public final IO handlerIO;
@@ -28,8 +28,8 @@ public class ItemRecipeHandler implements IRecipeHandler<Ingredient> {
     }
 
     @Override
-    public List<Ingredient> handleRecipeInner(IO io, GTRecipe recipe, List<Ingredient> left, boolean simulate) {
-        return NotifiableItemStackHandler.handleRecipe(io, recipe, left, simulate, this.handlerIO, storage);
+    public List<ItemIngredient> handleRecipeInner(IO io, GTRecipe recipe, List<ItemIngredient> left, boolean simulate) {
+        return NotifiableItemStackHandler.handleRecipe(io, left, simulate, this.handlerIO, storage);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class ItemRecipeHandler implements IRecipeHandler<Ingredient> {
     }
 
     @Override
-    public RecipeCapability<Ingredient> getCapability() {
+    public RecipeCapability<ItemIngredient> getCapability() {
         return ItemRecipeCapability.CAP;
     }
 }

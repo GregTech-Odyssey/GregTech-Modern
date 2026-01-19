@@ -60,15 +60,13 @@ public class RecipeOutputProvider extends CapabilityBlockProvider<RecipeLogic> {
 
                 ListTag itemTags = new ListTag();
                 for (var item : itemContents) {
-                    var stacks = ItemRecipeCapability.CAP.of(item).getItems();
-                    if (stacks.length == 0) continue;
-                    if (stacks[0].isEmpty()) continue;
-                    var stack = stacks[0];
-
+                    var ingredient = ItemRecipeCapability.CAP.of(item);
+                    var stack = ingredient.getInnerItemStack();
+                    if (stack.isEmpty()) continue;
                     var itemTag = new CompoundTag();
                     GTUtil.saveItemStack(stack, itemTag);
                     if (item.chance < Content.MAX_CHANCE) {
-                        int count = stack.getCount();
+                        int count = ingredient.getAmount();
                         double countD = (double) count * recipe.parallels *
                                 function.getBoostedChance(item, recipeTier, chanceTier) / Content.MAX_CHANCE;
                         count = countD < 1 ? 1 : (int) Math.round(countD);
@@ -84,11 +82,8 @@ public class RecipeOutputProvider extends CapabilityBlockProvider<RecipeLogic> {
                 ListTag fluidTags = new ListTag();
                 for (var fluid : fluidContents) {
                     var ingredient = FluidRecipeCapability.CAP.of(fluid);
-                    var stacks = ingredient.getStacks();
-                    if (stacks.length == 0) continue;
-                    if (stacks[0].isEmpty()) continue;
-                    var stack = stacks[0];
-
+                    var stack = ingredient.getFluidStack();
+                    if (stack.isEmpty()) continue;
                     var fluidTag = new CompoundTag();
                     stack.writeToNBT(fluidTag);
                     if (fluid.chance < Content.MAX_CHANCE) {

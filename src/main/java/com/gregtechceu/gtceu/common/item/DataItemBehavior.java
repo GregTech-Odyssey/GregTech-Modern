@@ -63,7 +63,7 @@ public class DataItemBehavior implements IInteractionItem, IAddInformation, IDat
                 outer:
                 for (GTRecipe recipe : recipes) {
                     ItemStack output = ItemRecipeCapability.CAP
-                            .of(recipe.getOutputContents(ItemRecipeCapability.CAP).getFirst()).getItems()[0];
+                            .of(recipe.getOutputContents(ItemRecipeCapability.CAP).getFirst()).getInnerItemStack();
                     for (var item : added) {
                         if (output.is(item.getItem())) continue outer;
                     }

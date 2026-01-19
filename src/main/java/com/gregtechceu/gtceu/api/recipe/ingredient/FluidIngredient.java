@@ -89,15 +89,15 @@ public final class FluidIngredient implements Predicate<FluidStack> {
             }
             default -> throw new IllegalStateException("Unknown fluid ingredient type");
         }
-        buffer.writeLong(amount);
+        buffer.writeVarLong(amount);
         buffer.writeNbt(nbt);
     }
 
     public static FluidIngredient fromNetwork(FriendlyByteBuf buffer) {
         return switch (buffer.readByte()) {
             case 0 -> EMPTY;
-            case 1 -> new FluidIngredient(BuiltInRegistries.FLUID.byId(buffer.readInt()), buffer.readLong(), buffer.readNbt());
-            case 2 -> new FluidIngredient(TagKey.create(Registries.FLUID, buffer.readResourceLocation()), buffer.readLong(), buffer.readNbt());
+            case 1 -> new FluidIngredient(BuiltInRegistries.FLUID.byId(buffer.readInt()), buffer.readVarLong(), buffer.readNbt());
+            case 2 -> new FluidIngredient(TagKey.create(Registries.FLUID, buffer.readResourceLocation()), buffer.readVarLong(), buffer.readNbt());
             default -> throw new IllegalStateException("Unknown fluid ingredient type");
         };
     }
@@ -152,11 +152,15 @@ public final class FluidIngredient implements Predicate<FluidStack> {
         var jsonObject = json.getAsJsonObject();
         if (jsonObject.has("empty")) return EMPTY;
         var amount = jsonObject.get("amount").getAsLong();
-        var nbt = jsonObject.has("nbt") ? CraftingHelper.getNBT(jsonObject.get("nbt")) : null;
-        if (jsonObject.has("fluid")) {
-            return new FluidIngredient(GTUtil.FLUID_VALUE.apply(GTUtil.getResourceLocation(jsonObject.get("fluid").getAsString())), amount, nbt);
-        } else if (jsonObject.has("tag")) {
-            return new FluidIngredient(TagKey.create(Registries.FLUID, GTUtil.getResourceLocation(jsonObject.get("tag").getAsString())), amount, nbt);
+        var nbtjson = jsonObject.get("nbt");
+        var nbt = nbtjson != null ? CraftingHelper.getNBT(nbtjson) : null;
+        var fluid = jsonObject.get("fluid");
+        if (fluid != null) {
+            return new FluidIngredient(GTUtil.FLUID_VALUE.apply(GTUtil.getResourceLocation(fluid.getAsString())), amount, nbt);
+        }
+        var tag = jsonObject.get("tag");
+        if (tag != null) {
+            return new FluidIngredient(TagKey.create(Registries.FLUID, GTUtil.getResourceLocation(tag.getAsString())), amount, nbt);
         }
         throw new JsonSyntaxException("Unknown fluid ingredient type");
     }
@@ -170,7 +174,7 @@ public final class FluidIngredient implements Predicate<FluidStack> {
     }
 
     public FluidIngredient depthCopy() {
-        return new FluidIngredient(value, amount, nbt == null ? null : nbt.copy());
+        return new FluidIngredient(value, amount, nbt);
     }
 
     public boolean testFluid(@NotNull Fluid fluid) {
@@ -218,6 +222,13 @@ public final class FluidIngredient implements Predicate<FluidStack> {
         return null;
     }
 
+    @NotNull
+    public FluidStack getFluidStack() {
+        var stacks = getStacks();
+        if (stacks.length == 0) return FluidStack.EMPTY;
+        return stacks[0];
+    }
+
     public FluidStack[] getLatestStacks() {
         if (changed) this.stacks = null;
         return getStacks();
@@ -251,7 +262,7 @@ public final class FluidIngredient implements Predicate<FluidStack> {
     }
 
     public void changeAmount(long amount) {
-        this.amount -= amount;
+        this.amount = amount;
         this.changed = true;
     }
 

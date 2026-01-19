@@ -176,20 +176,7 @@ public class RenderUtil {
             return null;
         }
         var ingredient = (FluidIngredient) fluidContent.get().inner;
-
-        var stacks = ingredient.getStacks();
-        if (stacks.length == 0) {
-            return null;
-        }
-
-        Fluid fluid = null;
-        for (int i = 0; i < stacks.length && fluid == null; i++) {
-            if (!stacks[i].isEmpty()) {
-                fluid = stacks[i].getFluid();
-            }
-        }
-
-        return fluid;
+        return ingredient.getFluid();
     }
 
     public static boolean renderResearchItemContent(GuiGraphics graphics, Operation<Void> originalMethod,
@@ -207,29 +194,23 @@ public class RenderUtil {
             // check item outputs first
             List<Content> outputs = recipe.getOutputContents(ItemRecipeCapability.CAP);
             if (!outputs.isEmpty()) {
-                ItemStack[] items = ItemRecipeCapability.CAP.of(outputs.getFirst()).getItems();
-                if (items.length > 0) {
-                    ItemStack output = items[0];
-                    if (!output.isEmpty() && !ItemStack.isSameItemSameTags(output, stack)) {
-                        originalMethod.call(entity, level, output, x, y, seed, z);
-                        return true;
-                    }
+                var output = ItemRecipeCapability.CAP.of(outputs.getFirst()).getInnerItemStack();
+                if (!output.isEmpty() && !ItemStack.isSameItemSameTags(output, stack)) {
+                    originalMethod.call(entity, level, output, x, y, seed, z);
+                    return true;
                 }
             }
             // if there are no item outputs, try to find a fluid output
             outputs = recipe.getOutputContents(FluidRecipeCapability.CAP);
             if (!outputs.isEmpty()) {
-                FluidStack[] fluids = FluidRecipeCapability.CAP.of(outputs.getFirst()).getStacks();
-                if (fluids.length != 0) {
-                    FluidStack output = fluids[0];
-                    if (!output.isEmpty()) {
-                        var clientExt = IClientFluidTypeExtensions.of(output.getFluid());
-                        var texture = RenderUtil.FluidTextureType.STILL.map(clientExt, output);
-                        int color = clientExt.getTintColor(output);
+                FluidStack output = FluidRecipeCapability.CAP.of(outputs.getFirst()).getFluidStack();
+                if (!output.isEmpty()) {
+                    var clientExt = IClientFluidTypeExtensions.of(output.getFluid());
+                    var texture = RenderUtil.FluidTextureType.STILL.map(clientExt, output);
+                    int color = clientExt.getTintColor(output);
 
-                        DrawerHelper.drawFluidTexture(graphics, x, y, texture, 0, 0, z, color);
-                        return true;
-                    }
+                    DrawerHelper.drawFluidTexture(graphics, x, y, texture, 0, 0, z, color);
+                    return true;
                 }
             }
         }

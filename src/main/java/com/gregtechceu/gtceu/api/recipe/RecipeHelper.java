@@ -12,8 +12,6 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.objects.*;
 import org.jetbrains.annotations.Contract;
@@ -23,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class RecipeHelper {
 
@@ -48,113 +45,44 @@ public class RecipeHelper {
         return GTUtil.getTierByVoltage(EUt);
     }
 
-    public static <T> List<T> getInputContents(GTRecipeBuilder builder, RecipeCapability<T> capability) {
-        return builder.input.getOrDefault(capability, Collections.emptyList()).stream()
-                .map(capability::of)
-                .collect(Collectors.toList());
-    }
-
     public static <T> List<T> getInputContents(GTRecipe recipe, RecipeCapability<T> capability) {
-        return recipe.getInputContents(capability).stream()
-                .map(capability::of)
-                .collect(Collectors.toList());
-    }
-
-    public static <T> List<T> getOutputContents(GTRecipeBuilder builder, RecipeCapability<T> capability) {
-        return builder.output.getOrDefault(capability, Collections.emptyList()).stream()
-                .map(capability::of)
-                .collect(Collectors.toList());
+        var inputs = recipe.inputs.get(capability);
+        if (inputs == null) return Collections.emptyList();
+        var result = new ArrayList<T>();
+        for (var input : inputs) {
+            result.add(capability.of(input));
+        }
+        return result;
     }
 
     public static <T> List<T> getOutputContents(GTRecipe recipe, RecipeCapability<T> capability) {
-        return recipe.getOutputContents(capability).stream()
-                .map(capability::of)
-                .collect(Collectors.toList());
+        var outputs = recipe.outputs.get(capability);
+        if (outputs == null) return Collections.emptyList();
+        var result = new ArrayList<T>();
+        for (var output : outputs) {
+            result.add(capability.of(output));
+        }
+        return result;
     }
 
-    /*
-     * Those who use these methods should note that these methods do not guarantee that the returned values are valid,
-     * because the relevant data, such as tag information, may not be loaded at the time these methods are called.
-     * Methods for getting Recipe Builder input items or fluids are not provided, as these data are not yet loaded when
-     * they are needed.
-     */
-
-    /**
-     * get all input items from GTRecipes
-     *
-     * @param recipe GTRecipe
-     * @return all input items
-     */
-    public static List<ItemStack> getInputItems(GTRecipe recipe) {
-        return recipe.getInputContents(ItemRecipeCapability.CAP).stream()
-                .map(ItemRecipeCapability.CAP::of)
-                .map(ingredient -> ingredient.getItems()[0])
-                .collect(Collectors.toList());
+    public static <T> List<T> getInputContents(GTRecipeBuilder builder, RecipeCapability<T> capability) {
+        var inputs = builder.input.get(capability);
+        if (inputs == null) return Collections.emptyList();
+        var result = new ArrayList<T>();
+        for (var input : inputs) {
+            result.add(capability.of(input));
+        }
+        return result;
     }
 
-    /**
-     * get all input fluids from GTRecipes
-     *
-     * @param recipe GTRecipe
-     * @return all input fluids
-     */
-    public static List<FluidStack> getInputFluids(GTRecipe recipe) {
-        return recipe.getInputContents(FluidRecipeCapability.CAP).stream()
-                .map(FluidRecipeCapability.CAP::of)
-                .map(ingredient -> ingredient.getLatestStacks()[0])
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * get all output items from GTRecipes
-     *
-     * @param recipe GTRecipe
-     * @return all output items
-     */
-    public static List<ItemStack> getOutputItems(GTRecipe recipe) {
-        return recipe.getOutputContents(ItemRecipeCapability.CAP).stream()
-                .map(ItemRecipeCapability.CAP::of)
-                .map(ingredient -> ingredient.getItems()[0])
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * get all output items from GTRecipeBuilder
-     *
-     * @param builder GTRecipeBuilder
-     * @return all output items
-     */
-    public static List<ItemStack> getOutputItems(GTRecipeBuilder builder) {
-        return builder.output.getOrDefault(ItemRecipeCapability.CAP, Collections.emptyList()).stream()
-                .map(ItemRecipeCapability.CAP::of)
-                .map(ingredient -> ingredient.getItems()[0])
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * get all output fluids from GTRecipes
-     *
-     * @param recipe GTRecipe
-     * @return all output fluids
-     */
-    public static List<FluidStack> getOutputFluids(GTRecipe recipe) {
-        return recipe.getOutputContents(FluidRecipeCapability.CAP).stream()
-                .map(FluidRecipeCapability.CAP::of)
-                .map(ingredient -> ingredient.getLatestStacks()[0])
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * get all output fluids from GTRecipeBuilder
-     *
-     * @param builder GTRecipeBuilder
-     * @return all output fluids
-     */
-    public static List<FluidStack> getOutputFluids(GTRecipeBuilder builder) {
-        return builder.output.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList()).stream()
-                .map(FluidRecipeCapability.CAP::of)
-                .map(ingredient -> ingredient.getLatestStacks()[0])
-                .collect(Collectors.toList());
+    public static <T> List<T> getOutputContents(GTRecipeBuilder builder, RecipeCapability<T> capability) {
+        var outputs = builder.output.get(capability);
+        if (outputs == null) return Collections.emptyList();
+        var result = new ArrayList<T>();
+        for (var output : outputs) {
+            result.add(capability.of(output));
+        }
+        return result;
     }
 
     public static boolean matchRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe) {

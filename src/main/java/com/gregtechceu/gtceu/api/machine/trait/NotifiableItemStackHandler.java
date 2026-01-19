@@ -6,16 +6,19 @@ import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.api.recipe.ingredient.SizedIngredient;
+import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.utils.GTMath;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
+import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.SimpleStack;
 import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import com.fast.recipesearch.IntLongMap;
@@ -28,7 +31,7 @@ import java.util.function.IntFunction;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Predicate;
 
-public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ingredient> implements ICapabilityTrait, IItemHandlerModifiable {
+public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<ItemIngredient> implements ICapabilityTrait, IItemHandlerModifiable {
 
     public static NotifiableItemStackHandler empty(MetaMachine machine) {
         return new NotifiableItemStackHandler(machine, 0, IO.NONE).shouldSearchContent(false);
@@ -77,79 +80,87 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     }
 
     @Override
-    public List<Ingredient> handleRecipeInner(IO io, GTRecipe recipe, List<Ingredient> left, boolean simulate) {
-        return handleRecipe(io, recipe, left, simulate, handlerIO, storage);
+    public List<ItemIngredient> handleRecipeInner(IO io, GTRecipe recipe, List<ItemIngredient> left, boolean simulate) {
+        return handleRecipe(io, left, simulate, handlerIO, storage);
     }
 
-    // TODO: See if implementable in outside callers and unstatic; or move to different common class if not
-    // Notable caller is ItemRecipeHandler, used for MinerLogic
-    public static List<Ingredient> handleRecipe(IO io, GTRecipe recipe, List<Ingredient> left, boolean simulate, IO handlerIO, CustomItemStackHandler storage) {
+    public static List<ItemIngredient> handleRecipe(IO io, List<ItemIngredient> left, boolean simulate, IO handlerIO, CustomItemStackHandler storage) {
         if (io != handlerIO) return left;
         if (io != IO.IN && io != IO.OUT) return left.isEmpty() ? null : left;
-        // Store the ItemStack in each slot after an operation
-        // Necessary for simulation since we don't actually modify the slot's contents
-        // Doesn't hurt for execution, and definitely cheaper than copying the entire storage
-        ItemStack[] visited = new ItemStack[storage.size];
-        for (var it = left.listIterator(0); it.hasNext();) {
+        Runnable listener = null;
+        if (!simulate) {
+            listener = storage.getOnContentsChanged();
+            storage.setOnContentsChangedAndfreeze(GTUtil.NOOP);
+        }
+        boolean changed = false;
+        var size = storage.size;
+        SimpleStack<ItemStack>[] visiteds = new SimpleStack[size];
+        for (var it = left.iterator(); it.hasNext();) {
             var ingredient = it.next();
             if (ingredient.isEmpty()) {
                 it.remove();
                 continue;
             }
-            ItemStack[] items;
-            int amount;
-            items = ingredient.getItems();
-            if (items.length == 0 || items[0].isEmpty()) {
-                it.remove();
-                continue;
-            }
-            if (ingredient instanceof SizedIngredient si) amount = si.getAmount();
-            else amount = items[0].getCount();
-            for (int slot = 0; slot < storage.size; ++slot) {
-                ItemStack current = visited[slot] == null ? storage.stacks[slot] : visited[slot];
-                int count = current.getCount();
-                if (io == IO.IN) {
-                    if (current.isEmpty()) continue;
-                    if (ingredient.test(current)) {
-                        var extracted = storage.extractItem(slot, Math.min(count, amount), simulate);
-                        if (!extracted.isEmpty()) {
-                            visited[slot] = extracted.copyWithCount(count - extracted.getCount());
-                        }
-                        amount -= extracted.getCount();
-                    }
-                } else {
-                    // IO.OUT
-                    ItemStack output = items[0].copyWithCount(amount);
-                    // Only try this slot if not visited or if visited with the same type of item
-                    if (visited[slot] == null || ItemStack.isSameItemSameTags(visited[slot], output)) {
-                        if (count < output.getMaxStackSize() && count < storage.getSlotLimit(slot)) {
-                            var remainder = storage.insertItem(slot, output, simulate);
-                            if (remainder.getCount() < amount) {
-                                visited[slot] = output.copyWithCount(count + amount - remainder.getCount());
+            long amount = ingredient.amount;
+            if (io == IO.IN) {
+                for (int slot = 0; slot < size; ++slot) {
+                    ItemStack stored = storage.stacks[slot];
+                    var visited = visiteds[slot];
+                    int count = (visited == null ? stored.getCount() : visited.getAmount());
+                    if (count == 0) continue;
+                    if (ingredient.test(stored)) {
+                        var extracted = storage.extractItem(slot, GTMath.saturatedCast(amount), simulate).getCount();
+                        if (extracted > 0) {
+                            if (simulate) {
+                                visiteds[slot] = new SimpleStack<>(stored, count - extracted);
                             }
-                            amount = remainder.getCount();
+                            changed = true;
+                            amount -= extracted;
+                            if (amount <= 0) {
+                                it.remove();
+                                break;
+                            }
                         }
                     }
                 }
-                if (amount <= 0) {
+            } else {
+                var itemStack = ingredient.getInnerItemStack();
+                var item = itemStack.getItem();
+                if (item == Items.AIR) {
                     it.remove();
-                    break;
+                    continue;
+                }
+                for (int slot = 0; slot < size; ++slot) {
+                    ItemStack stored = storage.stacks[slot];
+                    var visited = visiteds[slot];
+                    int count = (visited == null ? stored.getCount() : visited.getAmount());
+                    if (count < itemStack.getMaxStackSize() && count < storage.getSlotLimit(slot) && (count == 0 || stored.is(item)) && (visited == null || visited.inner.is(item))) {
+                        var remainder = storage.insertItemFast(slot, itemStack, GTMath.saturatedCast(amount), simulate);
+                        if (remainder < amount) {
+                            if (simulate) {
+                                visiteds[slot] = new SimpleStack<>(itemStack, remainder);
+                            }
+                            changed = true;
+                            if (remainder <= 0) {
+                                it.remove();
+                                break;
+                            }
+                            amount = remainder;
+                        }
+                    }
                 }
             }
-            // Modify ingredient if we didn't finish it off
-            if (amount > 0) {
-                if (ingredient instanceof SizedIngredient si) {
-                    si.setAmount(amount);
-                } else {
-                    items[0].setCount(amount);
-                }
-            }
+            if (amount > 0) ingredient.amount = amount;
+        }
+        if (listener != null) {
+            storage.setOnContentsChangedAndfreeze(listener);
+            if (changed) listener.run();
         }
         return left.isEmpty() ? null : left;
     }
 
     @Override
-    public RecipeCapability<Ingredient> getCapability() {
+    public RecipeCapability<ItemIngredient> getCapability() {
         return ItemRecipeCapability.CAP;
     }
 

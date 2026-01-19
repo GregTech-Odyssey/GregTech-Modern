@@ -5,9 +5,9 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
-import com.gregtechceu.gtceu.api.recipe.content.SerializerIngredient;
+import com.gregtechceu.gtceu.api.recipe.content.SerializerItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
-import com.gregtechceu.gtceu.api.recipe.ingredient.SizedIngredient;
+import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 import com.gregtechceu.gtceu.common.recipe.condition.ResearchCondition;
 import com.gregtechceu.gtceu.config.ConfigHolder;
@@ -39,40 +39,36 @@ import org.jetbrains.annotations.UnknownNullability;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
+public class ItemRecipeCapability extends RecipeCapability<ItemIngredient> {
 
     public final static ItemRecipeCapability CAP = new ItemRecipeCapability();
 
     protected ItemRecipeCapability() {
-        super("item", 0xFFD96106, true, 0, SerializerIngredient.INSTANCE);
+        super("item", 0xFFD96106, true, 0, SerializerItemIngredient.INSTANCE);
     }
 
     @Override
-    public void convert(Ingredient ingredient, IntLongMap map) {
-        if (ingredient instanceof SizedIngredient sized) {
-            convert(sized.getInner(), map);
-        } else if (ingredient instanceof IntCircuitIngredient circuitIngredient) {
+    public void convert(ItemIngredient ingredient, IntLongMap map) {
+        if (ingredient instanceof IntCircuitIngredient circuitIngredient) {
             map.add(circuitIngredient.configuration, 1);
-        } else if (ingredient.isVanilla() && ingredient.values.length == 1) {
-            if (ingredient.values[0] instanceof Ingredient.ItemValue itemValue) {
-                map.add(itemValue.item.getItem().hashCode(), 1);
-            } else if (ingredient.values[0] instanceof Ingredient.TagValue tagValue) {
-                map.add(tagValue.tag.hashCode(), 1);
+        } else if (ingredient.inner.isVanilla() && ingredient.inner.values.length == 1) {
+            if (ingredient.inner.values[0] instanceof Ingredient.ItemValue itemValue) {
+                map.add(itemValue.item.getItem().hashCode(), ingredient.amount);
+            } else if (ingredient.inner.values[0] instanceof Ingredient.TagValue tagValue) {
+                map.add(tagValue.tag.hashCode(), ingredient.amount);
             }
         }
     }
 
     @Override
-    public Ingredient copyInner(Ingredient content) {
-        return SizedIngredient.copy(content);
+    public ItemIngredient copyInner(ItemIngredient content) {
+        return content.copy();
     }
 
     @Override
-    public Ingredient copyWithModifier(Ingredient content, ContentModifier modifier) {
-        if (content instanceof SizedIngredient sizedIngredient) {
-            return SizedIngredient.create(sizedIngredient.getInner(), modifier.apply(sizedIngredient.getAmount()));
-        }
-        return SizedIngredient.create(content, modifier.apply(1));
+    public ItemIngredient copyWithModifier(ItemIngredient content, ContentModifier modifier) {
+        var amount = modifier.apply(content.amount);
+        return amount == content.amount ? content.copy() : content.copy(modifier.apply(content.amount));
     }
 
     @Override
@@ -93,10 +89,10 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
             // Scanner Output replacing, used for cycling research outputs
             ResearchManager.ResearchItem researchData = null;
             for (Content stack : recipe.getOutputContents(this)) {
-                ItemStack[] stacks = this.of(stack).getItems();
-                if (stacks.length == 0 || stacks[0].isEmpty()) continue;
+                ItemStack stacks = this.of(stack).getInnerItemStack();
+                if (stacks.isEmpty()) continue;
 
-                researchData = ResearchManager.readResearchId(stacks[0]);
+                researchData = ResearchManager.readResearchId(stacks);
                 if (researchData != null) break;
             }
             if (researchData != null) {
@@ -109,13 +105,11 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
                         if (outputs.isEmpty()) continue;
 
                         Content outputContent = outputs.getFirst();
-                        ItemStack[] stacks = this.of(outputContent).getItems();
-                        if (stacks.length == 0) continue;
-
-                        ItemStack researchStack = stacks[0];
-                        if (!researchStack.isEmpty() && !cache.contains(researchStack)) {
-                            cache.add(researchStack);
-                            scannerPossibilities.add(ItemStackList.of(researchStack.copyWithCount(1)));
+                        var stack = this.of(outputContent).getInnerItemStack();
+                        if (stack.isEmpty()) continue;
+                        if (!cache.contains(stack)) {
+                            cache.add(stack);
+                            scannerPossibilities.add(ItemStackList.of(stack.copyWithCount(1)));
                         }
                     }
                 }
@@ -195,7 +189,7 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
                         tooltips.add(Component.translatable("gtceu.gui.content.per_tick"));
                     }
                 });
-                if (io == IO.IN && (content.chance == 0 || this.of(content) instanceof IntCircuitIngredient)) {
+                if (io == IO.IN && (content.chance == 0)) {
                     slot.setIngredientIO(IngredientIO.CATALYST);
                 }
             }
@@ -203,24 +197,15 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
     }
 
     // Maps ingredients to an ItemEntryList for XEI: either an ItemTagList or an ItemStackList
-    private static ItemEntryList mapItem(final Ingredient ingredient) {
-        if (ingredient instanceof SizedIngredient sizedIngredient) {
-            final int amount = sizedIngredient.getAmount();
-            var mapped = tryMapInner(sizedIngredient.getInner(), amount);
-            if (mapped != null) return mapped;
-        }
-        if (ingredient instanceof IntersectionIngredient intersection) {
-            return mapIntersection(intersection, -1);
-        } else {
-            var tagList = tryMapTag(ingredient, 1);
-            if (tagList != null) return tagList;
-        }
-        return new ItemStackList(ingredient.getItems());
+    private static ItemEntryList mapItem(final ItemIngredient ingredient) {
+        return tryMapInner(ingredient.inner, ingredient.getAmount());
     }
 
-    private static @Nullable ItemEntryList tryMapInner(final Ingredient inner, int amount) {
-        if (inner instanceof IntersectionIngredient intersection) return mapIntersection(intersection, amount);
-        return tryMapTag(inner, amount);
+    private static ItemEntryList tryMapInner(final Ingredient ingredient, int amount) {
+        if (ingredient instanceof IntersectionIngredient intersection) return mapIntersection(intersection, amount);
+        var tagList = tryMapTag(ingredient, amount);
+        if (tagList != null) return tagList;
+        return new ItemStackList(ingredient.getItems());
     }
 
     // Map intersection ingredients to the items inside, as recipe viewers don't support them.
@@ -228,7 +213,7 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
         List<Ingredient> children = ((IntersectionIngredientAccessor) intersection).getChildren();
         if (children.isEmpty()) return new ItemStackList();
 
-        var childList = mapItem(children.getFirst());
+        var childList = tryMapInner(children.getFirst(), amount);
         ItemStackList stackList = new ItemStackList();
         for (var stack : childList.getStacks()) {
             if (children.stream().skip(1).allMatch(child -> child.test(stack))) {
@@ -239,7 +224,7 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
         return stackList;
     }
 
-    private static @Nullable ItemTagList tryMapTag(final Ingredient ingredient, int amount) {
+    private static ItemTagList tryMapTag(final Ingredient ingredient, int amount) {
         var values = ingredient.values;
         if (values.length > 0 && values[0] instanceof Ingredient.TagValue tagValue) {
             return ItemTagList.of(tagValue.tag, amount, null);

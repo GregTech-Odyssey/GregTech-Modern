@@ -481,6 +481,10 @@ public class GTUtil {
         return null;
     }
 
+    public static int getFluidColor(Fluid fluid) {
+        return IClientFluidTypeExtensions.of(fluid).getTintColor();
+    }
+
     public static int getFluidColor(FluidStack fluid) {
         return IClientFluidTypeExtensions.of(fluid.getFluid()).getTintColor(fluid);
     }

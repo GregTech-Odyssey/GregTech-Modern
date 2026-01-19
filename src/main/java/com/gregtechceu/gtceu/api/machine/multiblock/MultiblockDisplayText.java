@@ -334,10 +334,10 @@ public class MultiblockDisplayText {
                 var fluidOutputs = recipe.getOutputContents(FluidRecipeCapability.CAP);
 
                 for (var item : itemOutputs) {
-                    var stacks = ItemRecipeCapability.CAP.of(item).getItems();
-                    if (stacks.length == 0) continue;
-                    var stack = stacks[0];
-                    int count = stack.getCount();
+                    var ingredient = ItemRecipeCapability.CAP.of(item);
+                    var stack = ingredient.getInnerItemStack();
+                    if (stack.isEmpty()) continue;
+                    int count = ingredient.getAmount();
                     double countD = count;
                     if (item.chance < Content.MAX_CHANCE) {
                         countD = countD * recipe.parallels *
@@ -356,9 +356,8 @@ public class MultiblockDisplayText {
                 }
                 for (var fluid : fluidOutputs) {
                     var ingredient = FluidRecipeCapability.CAP.of(fluid);
-                    var stacks = ingredient.getStacks();
-                    if (stacks.length == 0) continue;
-                    var stack = stacks[0];
+                    var stack = ingredient.getFluidStack();
+                    if (stack.isEmpty()) continue;
                     int amount = ingredient.getAmount();
                     double amountD = amount;
                     if (fluid.chance < Content.MAX_CHANCE) {

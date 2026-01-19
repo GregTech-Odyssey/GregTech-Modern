@@ -153,7 +153,7 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
                     return false;
                 }
 
-                inputSlot.extractItem(0, recipeInput.getItems()[0].getCount(), false);
+                inputSlot.extractItem(0, recipeInput.getAmount(), false);
             }
             return true;
         }

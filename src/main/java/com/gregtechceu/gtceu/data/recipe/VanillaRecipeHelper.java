@@ -21,7 +21,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 
-import com.tterrag.registrate.util.entry.ItemProviderEntry;
 import it.unimi.dsi.fastutil.chars.Char2IntOpenHashMap;
 import it.unimi.dsi.fastutil.chars.CharArraySet;
 import it.unimi.dsi.fastutil.chars.CharSet;
@@ -289,25 +288,23 @@ public class VanillaRecipeHelper {
             if (o instanceof Character sign) {
                 var content = recipe[i + 1];
                 i++;
-                if (content instanceof Ingredient ingredient) {
-                    builder.define(sign, ingredient);
-                } else if (content instanceof ItemStack itemStack) {
-                    builder.define(sign, itemStack);
-                } else if (content instanceof TagKey<?> key) {
-                    builder.define(sign, (TagKey<Item>) key);
-                } else if (content instanceof TagPrefix prefix) {
-                    if (prefix.getItemParentTags().length > 0) {
-                        builder.define(sign, prefix.getItemParentTags()[0]);
+                switch (content) {
+                    case Ingredient ingredient -> builder.define(sign, ingredient);
+                    case ItemStack itemStack -> builder.define(sign, itemStack);
+                    case TagKey<?> key -> builder.define(sign, (TagKey<Item>) key);
+                    case TagPrefix prefix -> {
+                        if (prefix.getItemParentTags().length > 0) {
+                            builder.define(sign, prefix.getItemParentTags()[0]);
+                        }
                     }
-                } else if (content instanceof ItemLike itemLike) {
-                    builder.define(sign, itemLike);
-                } else if (content instanceof MaterialEntry(TagPrefix tagPrefix, Material material)) {
-                    TagKey<Item> tag = ChemicalHelper.getTag(tagPrefix, material);
-                    if (tag != null) {
-                        builder.define(sign, tag);
-                    } else builder.define(sign, ChemicalHelper.getItem(tagPrefix, material));
-                } else if (content instanceof ItemProviderEntry<?> entry) {
-                    builder.define(sign, entry.asStack());
+                    case ItemLike itemLike -> builder.define(sign, itemLike);
+                    case MaterialEntry(TagPrefix tagPrefix, Material material) -> {
+                        TagKey<Item> tag = ChemicalHelper.getTag(tagPrefix, material);
+                        if (tag != null) {
+                            builder.define(sign, tag);
+                        } else builder.define(sign, ChemicalHelper.getItem(tagPrefix, material));
+                    }
+                    default -> {}
                 }
             }
         }
@@ -402,21 +399,18 @@ public class VanillaRecipeHelper {
             if (o instanceof Character sign) {
                 var content = recipe[i + 1];
                 i++;
-                if (content instanceof Ingredient ingredient) {
-                    builder.define(sign, ingredient);
-                } else if (content instanceof ItemStack itemStack) {
-                    builder.define(sign, itemStack);
-                } else if (content instanceof TagKey<?> key) {
-                    builder.define(sign, (TagKey<Item>) key);
-                } else if (content instanceof ItemLike itemLike) {
-                    builder.define(sign, itemLike);
-                } else if (content instanceof MaterialEntry(TagPrefix tagPrefix, Material material)) {
-                    TagKey<Item> tag = ChemicalHelper.getTag(tagPrefix, material);
-                    if (tag != null) {
-                        builder.define(sign, tag);
-                    } else builder.define(sign, ChemicalHelper.getItem(tagPrefix, material));
-                } else if (content instanceof ItemProviderEntry<?> entry) {
-                    builder.define(sign, entry.asStack());
+                switch (content) {
+                    case Ingredient ingredient -> builder.define(sign, ingredient);
+                    case ItemStack itemStack -> builder.define(sign, itemStack);
+                    case TagKey<?> key -> builder.define(sign, (TagKey<Item>) key);
+                    case ItemLike itemLike -> builder.define(sign, itemLike);
+                    case MaterialEntry(TagPrefix tagPrefix, Material material) -> {
+                        TagKey<Item> tag = ChemicalHelper.getTag(tagPrefix, material);
+                        if (tag != null) {
+                            builder.define(sign, tag);
+                        } else builder.define(sign, ChemicalHelper.getItem(tagPrefix, material));
+                    }
+                    default -> {}
                 }
             }
         }
@@ -470,25 +464,23 @@ public class VanillaRecipeHelper {
             if (o instanceof Character sign) {
                 var content = recipe[i + 1];
                 i++;
-                if (content instanceof Ingredient ingredient) {
-                    builder.define(sign, ingredient);
-                } else if (content instanceof ItemStack itemStack) {
-                    builder.define(sign, itemStack);
-                } else if (content instanceof TagKey<?> key) {
-                    builder.define(sign, (TagKey<Item>) key);
-                } else if (content instanceof TagPrefix prefix) {
-                    if (prefix.getItemParentTags().length > 0) {
-                        builder.define(sign, prefix.getItemParentTags()[0]);
+                switch (content) {
+                    case Ingredient ingredient -> builder.define(sign, ingredient);
+                    case ItemStack itemStack -> builder.define(sign, itemStack);
+                    case TagKey<?> key -> builder.define(sign, (TagKey<Item>) key);
+                    case TagPrefix prefix -> {
+                        if (prefix.getItemParentTags().length > 0) {
+                            builder.define(sign, prefix.getItemParentTags()[0]);
+                        }
                     }
-                } else if (content instanceof ItemLike itemLike) {
-                    builder.define(sign, itemLike);
-                } else if (content instanceof MaterialEntry(TagPrefix tagPrefix, Material material)) {
-                    TagKey<Item> tag = ChemicalHelper.getTag(tagPrefix, material);
-                    if (tag != null) {
-                        builder.define(sign, tag);
-                    } else builder.define(sign, ChemicalHelper.getItem(tagPrefix, material));
-                } else if (content instanceof ItemProviderEntry<?> entry) {
-                    builder.define(sign, entry.asStack());
+                    case ItemLike itemLike -> builder.define(sign, itemLike);
+                    case MaterialEntry(TagPrefix tagPrefix, Material material) -> {
+                        TagKey<Item> tag = ChemicalHelper.getTag(tagPrefix, material);
+                        if (tag != null) {
+                            builder.define(sign, tag);
+                        } else builder.define(sign, ChemicalHelper.getItem(tagPrefix, material));
+                    }
+                    default -> {}
                 }
             }
         }
@@ -549,23 +541,19 @@ public class VanillaRecipeHelper {
                                           @NotNull ItemStack result, @NotNull Object... recipe) {
         var builder = new ShapelessRecipeBuilder(regName).output(result);
         for (Object content : recipe) {
-            if (content instanceof Ingredient ingredient) {
-                builder.requires(ingredient);
-            } else if (content instanceof ItemStack itemStack) {
-                builder.requires(itemStack);
-            } else if (content instanceof TagKey<?> key) {
-                builder.requires((TagKey<Item>) key);
-            } else if (content instanceof ItemLike itemLike) {
-                builder.requires(itemLike);
-            } else if (content instanceof MaterialEntry(TagPrefix tagPrefix, Material material)) {
-                TagKey<Item> tag = ChemicalHelper.getTag(tagPrefix, material);
-                if (tag != null) {
-                    builder.requires(tag);
-                } else builder.requires(ChemicalHelper.getItem(tagPrefix, material));
-            } else if (content instanceof ItemProviderEntry<?> entry) {
-                builder.requires(entry.asStack());
-            } else if (content instanceof Character c) {
-                builder.requires(ToolHelper.getToolFromSymbol(c).itemTags.getFirst());
+            switch (content) {
+                case Ingredient ingredient -> builder.requires(ingredient);
+                case ItemStack itemStack -> builder.requires(itemStack);
+                case TagKey<?> key -> builder.requires((TagKey<Item>) key);
+                case ItemLike itemLike -> builder.requires(itemLike);
+                case MaterialEntry(TagPrefix tagPrefix, Material material) -> {
+                    TagKey<Item> tag = ChemicalHelper.getTag(tagPrefix, material);
+                    if (tag != null) {
+                        builder.requires(tag);
+                    } else builder.requires(ChemicalHelper.getItem(tagPrefix, material));
+                }
+                case Character c -> builder.requires(ToolHelper.getToolFromSymbol(c).itemTags.getFirst());
+                default -> {}
             }
         }
         builder.save();
@@ -610,24 +598,27 @@ public class VanillaRecipeHelper {
             }
 
             ItemLike itemLike;
-            if (ingredient instanceof Ingredient ingr) {
-                ItemStack[] stacks = ingr.getItems();
-                if (stacks.length == 0) continue;
-                ItemStack stack = stacks[0];
-                if (stack == ItemStack.EMPTY) continue;
-                itemLike = stack.getItem();
-            } else if (ingredient instanceof ItemStack itemStack) {
-                itemLike = itemStack.getItem();
-            } else if (ingredient instanceof TagKey<?> key) {
-                continue; // todo can this be improved?
-            } else if (ingredient instanceof ItemLike) {
-                itemLike = (ItemLike) ingredient;
-            } else if (ingredient instanceof MaterialEntry(TagPrefix tagPrefix, Material material)) {
-                itemLike = ChemicalHelper.getItem(tagPrefix, material);
-                if (itemLike == Items.AIR) continue;
-            } else if (ingredient instanceof ItemProviderEntry<?> entry) {
-                itemLike = entry.asItem();
-            } else continue; // throw out bad entries
+            switch (ingredient) {
+                case Ingredient ingr -> {
+                    ItemStack[] stacks = ingr.getItems();
+                    if (stacks.length == 0) continue;
+                    ItemStack stack = stacks[0];
+                    if (stack == ItemStack.EMPTY) continue;
+                    itemLike = stack.getItem();
+                }
+                case ItemStack itemStack -> itemLike = itemStack.getItem();
+                case TagKey<?> key -> {
+                    continue; // todo can this be improved?
+                }
+                case ItemLike like -> itemLike = like;
+                case MaterialEntry(TagPrefix tagPrefix, Material material) -> {
+                    itemLike = ChemicalHelper.getItem(tagPrefix, material);
+                    if (itemLike == Items.AIR) continue;
+                }
+                default -> {
+                    continue; // throw out bad entries
+                }
+            }
 
             // First try to get ItemMaterialInfo
             ItemMaterialInfo info = ItemMaterialData.getMaterialInfo(itemLike);

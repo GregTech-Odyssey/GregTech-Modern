@@ -1,33 +1,28 @@
 package com.gregtechceu.gtceu.api.recipe.ingredient;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.common.crafting.IIngredientSerializer;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
+import appeng.api.stacks.AEItemKey;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class IntCircuitIngredient extends StrictNBTIngredient {
-
-    public static final ResourceLocation TYPE = GTCEu.id("circuit");
+public final class IntCircuitIngredient extends ItemIngredient {
 
     public static final Item PROGRAMMED_CIRCUIT = GTItems.PROGRAMMED_CIRCUIT.get();
 
     public static final String Configuration = "Configuration";
 
-    private static final IntCircuitIngredient[] CIRCUIT_INPUTS = new IntCircuitIngredient[33];
+    public static final IntCircuitIngredient[] CIRCUIT_INPUTS = new IntCircuitIngredient[33];
 
     static {
         for (int i = 0; i < 33; i++) {
@@ -42,10 +37,16 @@ public class IntCircuitIngredient extends StrictNBTIngredient {
     public final int configuration;
 
     private IntCircuitIngredient(int configuration) {
-        super(IntCircuitBehaviour.stack(configuration));
+        super(StrictNBTIngredient.of(IntCircuitBehaviour.stack(configuration)), 1);
         this.configuration = configuration;
     }
 
+    @Override
+    public void toNetwork(FriendlyByteBuf buffer) {
+        buffer.writeByte(-configuration);
+    }
+
+    @Override
     public CompoundTag toNbt() {
         var tag = new CompoundTag();
         tag.putInt(Configuration, configuration);
@@ -55,9 +56,35 @@ public class IntCircuitIngredient extends StrictNBTIngredient {
     @Override
     public @NotNull JsonElement toJson() {
         JsonObject json = new JsonObject();
-        json.addProperty("type", "gtceu:circuit");
         json.addProperty("configuration", configuration);
         return json;
+    }
+
+    @Override
+    public ItemIngredient copy(long amount) {
+        return this;
+    }
+
+    @Override
+    public ItemIngredient copy() {
+        return this;
+    }
+
+    @Override
+    public boolean testItem(Item item) {
+        return item == PROGRAMMED_CIRCUIT;
+    }
+
+    @Override
+    public boolean testAeKay(@NotNull AEItemKey key) {
+        var item = key.getItem();
+        if (item != PROGRAMMED_CIRCUIT) return false;
+        var tag = key.getTag();
+        if (tag == null) return false;
+        if (tag.tags.get(IntCircuitIngredient.Configuration) instanceof IntTag intTag) {
+            return intTag.getAsInt() == configuration;
+        }
+        return false;
     }
 
     @Override
@@ -74,26 +101,12 @@ public class IntCircuitIngredient extends StrictNBTIngredient {
     }
 
     @Override
-    @NotNull
-    public IIngredientSerializer<? extends Ingredient> getSerializer() {
-        return SERIALIZER;
+    public boolean equals(Object obj) {
+        return obj == this;
     }
 
-    public static final IIngredientSerializer<IntCircuitIngredient> SERIALIZER = new IIngredientSerializer<>() {
-
-        @Override
-        public @NotNull IntCircuitIngredient parse(FriendlyByteBuf buffer) {
-            return of(buffer.readVarInt());
-        }
-
-        @Override
-        public @NotNull IntCircuitIngredient parse(JsonObject json) {
-            return of(json.get("configuration").getAsInt());
-        }
-
-        @Override
-        public void write(FriendlyByteBuf buffer, IntCircuitIngredient ingredient) {
-            buffer.writeVarInt(ingredient.configuration);
-        }
-    };
+    @Override
+    public int hashCode() {
+        return configuration;
+    }
 }

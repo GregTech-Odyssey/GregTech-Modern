@@ -18,7 +18,7 @@ import com.gregtechceu.gtceu.api.recipe.chance.logic.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
-import com.gregtechceu.gtceu.api.recipe.ingredient.SizedIngredient;
+import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.research.ScannerBuilder;
 import com.gregtechceu.gtceu.api.recipe.research.StationBuilder;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
@@ -150,24 +150,10 @@ public class GTRecipeBuilder {
         return this;
     }
 
-    public <T> GTRecipeBuilder input(RecipeCapability<T> capability, T... obj) {
-        var t = (perTick ? tickInput : input);
-        warnTooManyIngredients(capability, true, t, obj.length);
-        t.computeIfAbsent(capability, c -> new ArrayList<>()).addAll(Arrays.stream(obj).map(capability::ofInner).map(this::makeContent).toList());
-        return this;
-    }
-
     public <T> GTRecipeBuilder output(RecipeCapability<T> capability, T obj) {
         var t = (perTick ? tickOutput : output);
         warnTooManyIngredients(capability, false, t, 1);
         t.computeIfAbsent(capability, c -> new ArrayList<>()).add(makeContent(capability.ofInner(obj)));
-        return this;
-    }
-
-    public <T> GTRecipeBuilder output(RecipeCapability<T> capability, T... obj) {
-        var t = (perTick ? tickOutput : output);
-        warnTooManyIngredients(capability, false, t, obj.length);
-        t.computeIfAbsent(capability, c -> new ArrayList<>()).addAll(Arrays.stream(obj).map(capability::ofInner).map(this::makeContent).toList());
         return this;
     }
 
@@ -239,6 +225,9 @@ public class GTRecipeBuilder {
             case ItemStack stack -> {
                 return inputItems(stack);
             }
+            case ItemIngredient ingredient -> {
+                return inputItems(ingredient);
+            }
             case Ingredient ingredient -> {
                 return inputItems(ingredient);
             }
@@ -294,31 +283,25 @@ public class GTRecipeBuilder {
         }
     }
 
+    public GTRecipeBuilder inputItems(ItemIngredient input) {
+        if (missingIngredientError(0, true, ItemRecipeCapability.CAP, input::isEmpty)) {
+            return this;
+        }
+        return input(ItemRecipeCapability.CAP, input);
+    }
+
     public GTRecipeBuilder inputItems(Ingredient inputs) {
         if (missingIngredientError(0, true, ItemRecipeCapability.CAP, inputs::isEmpty)) {
             return this;
         }
-        return input(ItemRecipeCapability.CAP, inputs);
-    }
-
-    public GTRecipeBuilder inputItems(Ingredient... inputs) {
-        List<Ingredient> ingredients = new ArrayList<>();
-        for (int i = 0; i < inputs.length; i++) {
-            var ingredient = inputs[i];
-            if (missingIngredientError(i, true, ItemRecipeCapability.CAP, ingredient::isEmpty)) {
-                return this;
-            } else {
-                ingredients.add(ingredient);
-            }
-        }
-        return input(ItemRecipeCapability.CAP, ingredients.toArray(Ingredient[]::new));
+        return input(ItemRecipeCapability.CAP, ItemIngredient.of(inputs));
     }
 
     public GTRecipeBuilder inputItems(Ingredient inputs, int count) {
         if (missingIngredientError(0, true, ItemRecipeCapability.CAP, inputs::isEmpty)) {
             return this;
         }
-        return input(ItemRecipeCapability.CAP, SizedIngredient.create(inputs, count));
+        return input(ItemRecipeCapability.CAP, ItemIngredient.of(inputs, count));
     }
 
     public GTRecipeBuilder inputItems(ItemStack input) {
@@ -336,34 +319,11 @@ public class GTRecipeBuilder {
                 }
             }
         }
-        return input(ItemRecipeCapability.CAP, SizedIngredient.create(input));
-    }
-
-    public GTRecipeBuilder inputItems(ItemStack... inputs) {
-        List<Ingredient> ingredients = new ArrayList<>();
-        for (int i = 0; i < inputs.length; i++) {
-            ItemStack itemStack = inputs[i];
-            if (missingIngredientError(i, true, ItemRecipeCapability.CAP, itemStack::isEmpty)) {
-                return this;
-            } else {
-                var matInfo = ItemMaterialData.getMaterialInfo(itemStack.getItem());
-                if (chance == Content.MAX_CHANCE) {
-                    if (matInfo != null) {
-                        for (var matStack : matInfo.getMaterials()) {
-                            tempItemMaterialStacks.add(matStack.multiply(itemStack.getCount()));
-                        }
-                    } else {
-                        tempItemStacks.add(itemStack);
-                    }
-                }
-                ingredients.add(SizedIngredient.create(itemStack));
-            }
-        }
-        return input(ItemRecipeCapability.CAP, ingredients.toArray(Ingredient[]::new));
+        return input(ItemRecipeCapability.CAP, ItemIngredient.of(input));
     }
 
     public GTRecipeBuilder inputItems(TagKey<Item> tag, int amount) {
-        return inputItems(SizedIngredient.create(tag, amount));
+        return inputItems(ItemIngredient.of(tag, amount));
     }
 
     public GTRecipeBuilder inputItems(TagKey<Item> tag) {
@@ -413,7 +373,7 @@ public class GTRecipeBuilder {
                 return inputItems(tag, count);
             }
         } else {
-            return input(ItemRecipeCapability.CAP, SizedIngredient.create(item));
+            return input(ItemRecipeCapability.CAP, ItemIngredient.of(item));
         }
         return this;
     }
@@ -484,20 +444,14 @@ public class GTRecipeBuilder {
         if (missingIngredientError(0, false, ItemRecipeCapability.CAP, output::isEmpty)) {
             return this;
         }
-        return output(ItemRecipeCapability.CAP, SizedIngredient.create(output));
+        return output(ItemRecipeCapability.CAP, ItemIngredient.of(output));
     }
 
     public GTRecipeBuilder outputItems(ItemStack... outputs) {
-        List<Ingredient> ingredients = new ArrayList<>();
-        for (int i = 0; i < outputs.length; i++) {
-            ItemStack itemStack = outputs[i];
-            if (missingIngredientError(i, false, ItemRecipeCapability.CAP, itemStack::isEmpty)) {
-                return this;
-            } else {
-                ingredients.add(SizedIngredient.create(itemStack));
-            }
+        for (ItemStack output : outputs) {
+            outputItems(output);
         }
-        return output(ItemRecipeCapability.CAP, ingredients.toArray(Ingredient[]::new));
+        return this;
     }
 
     public GTRecipeBuilder outputItems(Item output, int amount) {
@@ -549,14 +503,26 @@ public class GTRecipeBuilder {
         return outputItems(machine.asStack(count));
     }
 
-    protected GTRecipeBuilder outputItems(Ingredient ingredient) {
+    public GTRecipeBuilder outputItems(ItemIngredient ingredient) {
         return output(ItemRecipeCapability.CAP, ingredient);
+    }
+
+    public GTRecipeBuilder outputItems(Ingredient ingredient) {
+        return output(ItemRecipeCapability.CAP, ItemIngredient.of(ingredient));
     }
 
     public GTRecipeBuilder notConsumable(ItemStack itemStack) {
         int lastChance = this.chance;
         this.chance = 0;
         inputItems(itemStack);
+        this.chance = lastChance;
+        return this;
+    }
+
+    public GTRecipeBuilder notConsumable(ItemIngredient ingredient) {
+        int lastChance = this.chance;
+        this.chance = 0;
+        inputItems(ingredient);
         this.chance = lastChance;
         return this;
     }
@@ -699,26 +665,7 @@ public class GTRecipeBuilder {
         return input(FluidRecipeCapability.CAP, FluidIngredient.of(input));
     }
 
-    public GTRecipeBuilder inputFluids(FluidStack... inputs) {
-        List<FluidIngredient> ingredients = new ArrayList<>();
-        for (int i = 0; i < inputs.length; i++) {
-            FluidStack fluid = inputs[i];
-            if (missingIngredientError(i, true, FluidRecipeCapability.CAP, fluid::isEmpty)) {
-                return this;
-            } else {
-                var matStack = ChemicalHelper.getMaterial(fluid.getFluid());
-                if (!matStack.isNull()) {
-                    if (chance == Content.MAX_CHANCE) {
-                        tempFluidStacks.add(new MaterialStack(matStack, fluid.getAmount() * GTValues.M / GTValues.L));
-                    }
-                }
-                ingredients.add(FluidIngredient.of(fluid));
-            }
-        }
-        return input(FluidRecipeCapability.CAP, ingredients.toArray(FluidIngredient[]::new));
-    }
-
-    public GTRecipeBuilder inputFluids(FluidIngredient... inputs) {
+    public GTRecipeBuilder inputFluids(FluidIngredient inputs) {
         return input(FluidRecipeCapability.CAP, inputs);
     }
 
@@ -727,10 +674,13 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder outputFluids(FluidStack... outputs) {
-        return output(FluidRecipeCapability.CAP, Arrays.stream(outputs).map(FluidIngredient::of).toArray(FluidIngredient[]::new));
+        for (var output : outputs) {
+            outputFluids(output);
+        }
+        return this;
     }
 
-    public GTRecipeBuilder outputFluids(FluidIngredient... outputs) {
+    public GTRecipeBuilder outputFluids(FluidIngredient outputs) {
         return output(FluidRecipeCapability.CAP, outputs);
     }
 
@@ -996,10 +946,10 @@ public class GTRecipeBuilder {
             Item out = null;
             int outputCount = 0;
             if (!currOutput.isEmpty()) {
-                ItemStack[] items = currOutput.getItems();
-                if (items.length > 0) {
-                    out = items[0].getItem();
-                    outputCount = items[0].getCount();
+                ItemStack items = currOutput.getInnerItemStack();
+                if (!items.isEmpty()) {
+                    out = items.getItem();
+                    outputCount = currOutput.getAmount();
                 }
             }
             if (out == null || out == Items.AIR) {
@@ -1034,10 +984,10 @@ public class GTRecipeBuilder {
             Item out = null;
             int outputCount = 0;
             if (!currOutput.isEmpty()) {
-                ItemStack[] items = currOutput.getItems();
-                if (items.length > 0) {
-                    out = items[0].getItem();
-                    outputCount = items[0].getCount();
+                ItemStack items = currOutput.getInnerItemStack();
+                if (!items.isEmpty()) {
+                    out = items.getItem();
+                    outputCount = currOutput.getAmount();
                 }
             }
             if (out == null || out == Items.AIR) {

@@ -76,9 +76,9 @@ public class SteamSolidBoilerMachine extends SteamBoilerMachine {
             var inputs = recipeLogic.getLastRecipe().inputs.getOrDefault(ItemRecipeCapability.CAP,
                     Collections.emptyList());
             if (!inputs.isEmpty()) {
-                var input = ItemRecipeCapability.CAP.of(inputs.getFirst()).getItems();
-                if (input.length > 0) {
-                    var remaining = getBurningFuelRemainder(input[0]);
+                var input = ItemRecipeCapability.CAP.of(inputs.getFirst()).getInnerItemStack();
+                if (!input.isEmpty()) {
+                    var remaining = getBurningFuelRemainder(input);
                     if (!remaining.isEmpty()) {
                         ashHandler.insertItem(0, remaining, false);
                     }

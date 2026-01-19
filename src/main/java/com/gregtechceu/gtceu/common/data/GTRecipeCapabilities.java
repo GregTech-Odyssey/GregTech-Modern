@@ -4,13 +4,12 @@ import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
+import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
-
-import net.minecraft.world.item.crafting.Ingredient;
 
 public class GTRecipeCapabilities {
 
-    public final static RecipeCapability<Ingredient> ITEM = ItemRecipeCapability.CAP;
+    public final static RecipeCapability<ItemIngredient> ITEM = ItemRecipeCapability.CAP;
     public final static RecipeCapability<FluidIngredient> FLUID = FluidRecipeCapability.CAP;
     public final static RecipeCapability<Long> EU = EURecipeCapability.CAP;
     public final static RecipeCapability<Long> CWU = CWURecipeCapability.CAP;
