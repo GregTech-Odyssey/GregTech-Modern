@@ -7,21 +7,14 @@ import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
-@Getter
 public class RainingCondition extends RecipeCondition {
 
-    public static final RainingCondition INSTANCE = new RainingCondition();
-    private float level;
+    public final float level;
 
     public RainingCondition(boolean isReverse, float level) {
         super(isReverse);
-        this.level = level;
-    }
-
-    public RainingCondition(float level) {
         this.level = level;
     }
 
@@ -35,6 +28,4 @@ public class RainingCondition extends RecipeCondition {
         Level level = recipeLogic.machine.self().getLevel();
         return level != null && level.getRainLevel(1) >= this.level;
     }
-
-    public RainingCondition() {}
 }

@@ -2,8 +2,8 @@ package com.gregtechceu.gtceu.data.recipe.serialized.chemistry;
 
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.dust;
@@ -96,19 +96,19 @@ public class ChemistryRecipes {
         GAS_COLLECTOR_RECIPES.recipeBuilder("air")
                 .circuitMeta(1)
                 .outputFluids(Air.getFluid(10000))
-                .dimension(new ResourceLocation("overworld"))
+                .dimension(Level.OVERWORLD)
                 .duration(200).EUt(16).save();
 
         GAS_COLLECTOR_RECIPES.recipeBuilder("nether_air")
                 .circuitMeta(2)
                 .outputFluids(NetherAir.getFluid(10000))
-                .dimension(new ResourceLocation("the_nether"))
+                .dimension(Level.NETHER)
                 .duration(200).EUt(64).save();
 
         GAS_COLLECTOR_RECIPES.recipeBuilder("ender_air")
                 .circuitMeta(3)
                 .outputFluids(EnderAir.getFluid(10000))
-                .dimension(new ResourceLocation("the_end"))
+                .dimension(Level.END)
                 .duration(200).EUt(256).save();
 
         // CaCO3 + 2NaCl -> Na2CO3 + CaCl2

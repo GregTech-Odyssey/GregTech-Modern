@@ -6,20 +6,12 @@ import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 
 import net.minecraft.network.chat.Component;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
-@Getter
 public class PositionYCondition extends RecipeCondition {
 
-    public static final PositionYCondition INSTANCE = new PositionYCondition();
-    private int min;
-    private int max;
-
-    public PositionYCondition(int min, int max) {
-        this.min = min;
-        this.max = max;
-    }
+    public final int min;
+    public final int max;
 
     public PositionYCondition(boolean isReverse, int min, int max) {
         super(isReverse);
@@ -37,6 +29,4 @@ public class PositionYCondition extends RecipeCondition {
         int y = recipeLogic.machine.self().getPos().getY();
         return y >= this.min && y <= this.max;
     }
-
-    public PositionYCondition() {}
 }

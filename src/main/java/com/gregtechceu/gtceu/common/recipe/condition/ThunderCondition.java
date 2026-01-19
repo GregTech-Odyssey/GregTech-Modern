@@ -7,21 +7,14 @@ import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
-@Getter
 public class ThunderCondition extends RecipeCondition {
 
-    public static final ThunderCondition INSTANCE = new ThunderCondition();
-    private float level;
+    public final float level;
 
     public ThunderCondition(boolean isReverse, float level) {
         super(isReverse);
-        this.level = level;
-    }
-
-    public ThunderCondition(float level) {
         this.level = level;
     }
 
@@ -35,6 +28,4 @@ public class ThunderCondition extends RecipeCondition {
         Level level = recipeLogic.machine.self().getLevel();
         return level != null && level.getThunderLevel(1) >= this.level;
     }
-
-    public ThunderCondition() {}
 }

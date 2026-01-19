@@ -6,22 +6,20 @@ import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.material.Fluid;
 
 import org.jetbrains.annotations.NotNull;
 
-public class RockBreakerCondition extends RecipeCondition {
+public class AdjacentFluidCondition extends RecipeCondition {
 
-    public static final RockBreakerCondition INSTANCE = new RockBreakerCondition();
+    public final Fluid A;
+    public final Fluid B;
 
-    private Fluid A;
-    private Fluid B;
-
-    public RockBreakerCondition(boolean isReverse) {
+    public AdjacentFluidCondition(boolean isReverse, Fluid a, Fluid b) {
         super(isReverse);
+        A = a;
+        B = b;
     }
 
     @Override
@@ -31,10 +29,6 @@ public class RockBreakerCondition extends RecipeCondition {
 
     @Override
     public boolean testCondition(@NotNull GTRecipe recipe, @NotNull RecipeLogic recipeLogic) {
-        if (A == null || B == null) {
-            A = BuiltInRegistries.FLUID.get(new ResourceLocation(recipe.data.getString("fluidA")));
-            B = BuiltInRegistries.FLUID.get(new ResourceLocation(recipe.data.getString("fluidB")));
-        }
         boolean hasFluidA = false;
         boolean hasFluidB = false;
         for (Direction side : GTUtil.DIRECTIONS) {
@@ -50,6 +44,4 @@ public class RockBreakerCondition extends RecipeCondition {
         }
         return false;
     }
-
-    public RockBreakerCondition() {}
 }

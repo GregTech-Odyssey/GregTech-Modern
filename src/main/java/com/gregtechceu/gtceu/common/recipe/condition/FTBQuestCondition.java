@@ -18,12 +18,7 @@ import org.jetbrains.annotations.NotNull;
 public class FTBQuestCondition extends RecipeCondition {
 
     private static final Long2ObjectMap<QuestObject> QUEST_CACHE = new Long2ObjectOpenHashMap<>();
-    public static final FTBQuestCondition INSTANCE = new FTBQuestCondition();
-    private long parsedQuestId;
-
-    public FTBQuestCondition(long questId) {
-        this.parsedQuestId = questId;
-    }
+    private final long parsedQuestId;
 
     public FTBQuestCondition(boolean isReverse, long questId) {
         super(isReverse);
@@ -52,6 +47,4 @@ public class FTBQuestCondition extends RecipeCondition {
         BaseQuestFile questFile = FTBQuestsAPI.api().getQuestFile(false);
         return questFile.getOrCreateTeamData(ftbOwner.getTeam()).isCompleted(getQuest());
     }
-
-    public FTBQuestCondition() {}
 }

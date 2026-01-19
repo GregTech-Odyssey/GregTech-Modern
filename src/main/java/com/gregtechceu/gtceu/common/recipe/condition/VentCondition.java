@@ -13,9 +13,7 @@ public class VentCondition extends RecipeCondition {
 
     public static final VentCondition INSTANCE = new VentCondition();
 
-    public VentCondition(boolean isReverse) {
-        super(isReverse);
-    }
+    private VentCondition() {}
 
     @Override
     public Component getTooltips() {
@@ -29,6 +27,4 @@ public class VentCondition extends RecipeCondition {
         }
         return true;
     }
-
-    public VentCondition() {}
 }

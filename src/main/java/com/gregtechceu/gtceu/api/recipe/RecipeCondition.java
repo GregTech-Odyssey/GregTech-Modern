@@ -4,13 +4,11 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 
 import net.minecraft.network.chat.Component;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
-@Getter
 public abstract class RecipeCondition {
 
-    protected boolean isReverse;
+    protected final boolean isReverse;
 
     public RecipeCondition() {
         this(false);
@@ -32,12 +30,4 @@ public abstract class RecipeCondition {
     }
 
     protected abstract boolean testCondition(@NotNull GTRecipe recipe, @NotNull RecipeLogic recipeLogic);
-
-    /**
-     * @return {@code this}.
-     */
-    public RecipeCondition setReverse(final boolean isReverse) {
-        this.isReverse = isReverse;
-        return this;
-    }
 }

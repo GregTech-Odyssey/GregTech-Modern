@@ -5,28 +5,19 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
-@Getter
 public class BiomeCondition extends RecipeCondition {
 
-    public static final BiomeCondition INSTANCE = new BiomeCondition();
-    private ResourceKey<Biome> biome = ResourceKey.create(Registries.BIOME, new ResourceLocation("dummy"));
+    public final ResourceKey<Biome> biome;
 
     public BiomeCondition(boolean isReverse, ResourceKey<Biome> biome) {
         super(isReverse);
-        this.biome = biome;
-    }
-
-    public BiomeCondition(ResourceKey<Biome> biome) {
         this.biome = biome;
     }
 
@@ -47,6 +38,4 @@ public class BiomeCondition extends RecipeCondition {
         Holder<Biome> biome = level.getBiome(recipeLogic.machine.self().getPos());
         return biome.is(this.biome);
     }
-
-    public BiomeCondition() {}
 }

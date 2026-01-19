@@ -11,8 +11,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class DaytimeCondition extends RecipeCondition {
 
-    public DaytimeCondition(boolean isReverse) {
-        super(isReverse);
+    public static final DaytimeCondition DAY = new DaytimeCondition(false);
+    public static final DaytimeCondition NIGHT = new DaytimeCondition(true);
+
+    private DaytimeCondition(boolean isNight) {
+        super(isNight);
     }
 
     @Override
@@ -29,6 +32,4 @@ public class DaytimeCondition extends RecipeCondition {
         Level level = recipeLogic.machine.self().getLevel();
         return level != null && !level.isNight();
     }
-
-    public DaytimeCondition() {}
 }

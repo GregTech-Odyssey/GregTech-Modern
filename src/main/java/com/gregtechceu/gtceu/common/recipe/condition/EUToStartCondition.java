@@ -11,12 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class EUToStartCondition extends RecipeCondition {
 
-    public static final EUToStartCondition INSTANCE = new EUToStartCondition();
-    private long euToStart;
-
-    public EUToStartCondition(long euToStart) {
-        this.euToStart = euToStart;
-    }
+    public final long euToStart;
 
     public EUToStartCondition(boolean isReverse, long euToStart) {
         super(isReverse);
@@ -32,6 +27,4 @@ public class EUToStartCondition extends RecipeCondition {
     public boolean testCondition(@NotNull GTRecipe recipe, @NotNull RecipeLogic recipeLogic) {
         return recipeLogic.getMachine().getTraits().stream().filter(IEnergyContainer.class::isInstance).anyMatch(energyContainer -> ((IEnergyContainer) energyContainer).getEnergyCapacity() > euToStart);
     }
-
-    public EUToStartCondition() {}
 }

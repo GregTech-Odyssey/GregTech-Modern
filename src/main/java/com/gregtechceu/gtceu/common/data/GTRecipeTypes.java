@@ -26,7 +26,7 @@ import com.gregtechceu.gtceu.common.machine.trait.customlogic.ArcFurnaceLogic;
 import com.gregtechceu.gtceu.common.machine.trait.customlogic.BreweryLogic;
 import com.gregtechceu.gtceu.common.machine.trait.customlogic.CannerLogic;
 import com.gregtechceu.gtceu.common.machine.trait.customlogic.MaceratorLogic;
-import com.gregtechceu.gtceu.common.recipe.condition.RockBreakerCondition;
+import com.gregtechceu.gtceu.common.recipe.condition.AdjacentFluidCondition;
 import com.gregtechceu.gtceu.data.recipe.RecipeUtil;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemStackHandler;
@@ -436,10 +436,9 @@ public class GTRecipeTypes {
             .setProgressBar(GuiTextures.PROGRESS_BAR_MACERATE, LEFT_TO_RIGHT)
             .setIconSupplier(() -> GTMachines.ROCK_CRUSHER[GTValues.LV].asStack())
             .setSteamProgressBar(GuiTextures.PROGRESS_BAR_MACERATE_STEAM, LEFT_TO_RIGHT)
-            .prepareBuilder(recipeBuilder -> recipeBuilder.addCondition(RockBreakerCondition.INSTANCE))
-            .setUiBuilder((recipe, widgetGroup) -> {
-                var fluidA = BuiltInRegistries.FLUID.get(new ResourceLocation(recipe.data.getString("fluidA")));
-                var fluidB = BuiltInRegistries.FLUID.get(new ResourceLocation(recipe.data.getString("fluidB")));
+            .setUiBuilder((recipe, widgetGroup) -> recipe.conditions.stream().filter(AdjacentFluidCondition.class::isInstance).map(AdjacentFluidCondition.class::cast).findFirst().ifPresent(c -> {
+                var fluidA = c.A;
+                var fluidB = c.B;
                 if (fluidA != Fluids.EMPTY) {
                     widgetGroup.addWidget(new TankWidget(new CustomFluidTank(new FluidStack(fluidA, 1000)),
                             widgetGroup.getSize().width - 30, widgetGroup.getSize().height - 30, false, false)
@@ -450,7 +449,7 @@ public class GTRecipeTypes {
                             widgetGroup.getSize().width - 30 - 20, widgetGroup.getSize().height - 30, false, false)
                             .setBackground(GuiTextures.FLUID_SLOT).setShowAmount(false));
                 }
-            })
+            }))
             .setMaxTooltips(4)
             .setSound(GTSoundEntries.FIRE);
 

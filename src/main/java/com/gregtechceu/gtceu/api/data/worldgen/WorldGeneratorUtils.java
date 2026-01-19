@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.data.worldgen;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.IndicatorGenerator;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
+import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.utils.PosUtils;
 import com.gregtechceu.gtceu.utils.WeightedEntry;
@@ -37,8 +38,6 @@ import java.util.stream.Collectors;
 public class WorldGeneratorUtils {
 
     public static final RuleTest END_ORE_REPLACEABLES = new TagMatchTest(CustomTags.ENDSTONE_ORE_REPLACEABLES);
-
-    private static final Map<ServerLevel, WorldOreVeinCache> oreVeinCache = new WeakHashMap<>();
 
     public static final SortedMap<String, IWorldGenLayer> WORLD_GEN_LAYERS = new Object2ObjectLinkedOpenHashMap<>();
 
@@ -79,7 +78,12 @@ public class WorldGeneratorUtils {
     }
 
     public static List<WeightedVein> getCachedBiomeVeins(ServerLevel level, Holder<Biome> biome) {
-        return oreVeinCache.computeIfAbsent(level, WorldOreVeinCache::new).getEntry(biome);
+        WorldOreVeinCache cache = ILevel.getCapability(level, WorldOreVeinCache.class);
+        if (cache == null) {
+            cache = new WorldOreVeinCache(level);
+            ILevel.setCapability(level, WorldOreVeinCache.class, cache);
+        }
+        return cache.getEntry(biome);
     }
 
     public static Optional<String> getWorldGenLayerKey(IWorldGenLayer layer) {
@@ -141,9 +145,5 @@ public class WorldGeneratorUtils {
         }
 
         return Optional.empty();
-    }
-
-    public static void invalidateOreVeinCache() {
-        oreVeinCache.clear();
     }
 }

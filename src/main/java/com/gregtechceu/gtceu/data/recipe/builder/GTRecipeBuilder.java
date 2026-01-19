@@ -37,8 +37,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
 import dev.ftb.mods.ftbquests.quest.QuestObjectBase;
@@ -804,14 +807,22 @@ public class GTRecipeBuilder {
     // ******* CONDITIONS ********//
     //////////////////////////////////////
     public GTRecipeBuilder cleanroom(CleanroomType cleanroomType) {
-        return addCondition(new CleanroomCondition(cleanroomType));
+        return addCondition(CleanroomCondition.get(cleanroomType));
     }
 
     public GTRecipeBuilder dimension(ResourceLocation dimension, boolean reverse) {
-        return addCondition(new DimensionCondition(dimension).setReverse(reverse));
+        return dimension(ResourceKey.create(Registries.DIMENSION, dimension), reverse);
     }
 
     public GTRecipeBuilder dimension(ResourceLocation dimension) {
+        return dimension(dimension, false);
+    }
+
+    public GTRecipeBuilder dimension(ResourceKey<Level> dimension, boolean reverse) {
+        return addCondition(new DimensionCondition(reverse, dimension));
+    }
+
+    public GTRecipeBuilder dimension(ResourceKey<Level> dimension) {
         return dimension(dimension, false);
     }
 
@@ -824,7 +835,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder biome(ResourceKey<Biome> biome, boolean reverse) {
-        return addCondition(new BiomeCondition(biome).setReverse(reverse));
+        return addCondition(new BiomeCondition(reverse, biome));
     }
 
     public GTRecipeBuilder biome(ResourceKey<Biome> biome) {
@@ -832,7 +843,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder rain(float level, boolean reverse) {
-        return addCondition(new RainingCondition(level).setReverse(reverse));
+        return addCondition(new RainingCondition(reverse, level));
     }
 
     public GTRecipeBuilder rain(float level) {
@@ -840,7 +851,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder thunder(float level, boolean reverse) {
-        return addCondition(new ThunderCondition(level).setReverse(reverse));
+        return addCondition(new ThunderCondition(reverse, level));
     }
 
     public GTRecipeBuilder thunder(float level) {
@@ -848,7 +859,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder posY(int min, int max, boolean reverse) {
-        return addCondition(new PositionYCondition(min, max).setReverse(reverse));
+        return addCondition(new PositionYCondition(reverse, min, max));
     }
 
     public GTRecipeBuilder posY(int min, int max) {
@@ -856,11 +867,27 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder daytime(boolean isNight) {
-        return addCondition(new DaytimeCondition().setReverse(isNight));
+        return addCondition(isNight ? DaytimeCondition.NIGHT : DaytimeCondition.DAY);
     }
 
     public GTRecipeBuilder daytime() {
         return daytime(false);
+    }
+
+    public GTRecipeBuilder adjacentBlock(Block A, Block B) {
+        return addCondition(new AdjacentBlockCondition(false, A, B));
+    }
+
+    public GTRecipeBuilder adjacentBlock(Block A, Block B, boolean reverse) {
+        return addCondition(new AdjacentBlockCondition(reverse, A, B));
+    }
+
+    public GTRecipeBuilder adjacentFluid(Fluid A, Fluid B) {
+        return addCondition(new AdjacentFluidCondition(false, A, B));
+    }
+
+    public GTRecipeBuilder adjacentFluid(Fluid A, Fluid B, boolean reverse) {
+        return addCondition(new AdjacentFluidCondition(reverse, A, B));
     }
 
     public GTRecipeBuilder ftbQuest(String questId, boolean isReverse) {

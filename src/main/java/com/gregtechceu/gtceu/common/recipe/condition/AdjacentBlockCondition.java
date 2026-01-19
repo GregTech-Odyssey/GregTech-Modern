@@ -6,22 +6,20 @@ import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 
 import org.jetbrains.annotations.NotNull;
 
 public class AdjacentBlockCondition extends RecipeCondition {
 
-    public static final AdjacentBlockCondition INSTANCE = new AdjacentBlockCondition();
+    public final Block A;
+    public final Block B;
 
-    private Block A;
-    private Block B;
-
-    public AdjacentBlockCondition(boolean isReverse) {
+    public AdjacentBlockCondition(boolean isReverse, Block a, Block b) {
         super(isReverse);
+        A = a;
+        B = b;
     }
 
     @Override
@@ -31,10 +29,6 @@ public class AdjacentBlockCondition extends RecipeCondition {
 
     @Override
     public boolean testCondition(@NotNull GTRecipe recipe, @NotNull RecipeLogic recipeLogic) {
-        if (A == null || B == null) {
-            A = BuiltInRegistries.BLOCK.get(new ResourceLocation(recipe.data.getString("blockA")));
-            B = BuiltInRegistries.BLOCK.get(new ResourceLocation(recipe.data.getString("blockB")));
-        }
         boolean hasBlockA = false;
         boolean hasBlockB = false;
         for (Direction side : GTUtil.DIRECTIONS) {
@@ -50,6 +44,4 @@ public class AdjacentBlockCondition extends RecipeCondition {
         }
         return false;
     }
-
-    public AdjacentBlockCondition() {}
 }

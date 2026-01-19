@@ -13,25 +13,18 @@ import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.jei.IngredientIO;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
-@Getter
 public class DimensionCondition extends RecipeCondition {
 
-    public static final DimensionCondition INSTANCE = new DimensionCondition();
-    private ResourceLocation dimension = new ResourceLocation("dummy");
+    public final ResourceKey<Level> dimension;
 
-    public DimensionCondition(ResourceLocation dimension) {
-        this.dimension = dimension;
-    }
-
-    public DimensionCondition(boolean isReverse, ResourceLocation dimension) {
+    public DimensionCondition(boolean isReverse, ResourceKey<Level> dimension) {
         super(isReverse);
         this.dimension = dimension;
     }
@@ -47,7 +40,7 @@ public class DimensionCondition extends RecipeCondition {
     }
 
     public SlotWidget setupDimensionMarkers(int xOffset, int yOffset) {
-        DimensionMarker dimMarker = GTRegistries.DIMENSION_MARKERS.getOrDefault(this.dimension, new DimensionMarker(DimensionMarker.MAX_TIER, () -> Blocks.BARRIER, this.dimension.toString()));
+        DimensionMarker dimMarker = GTRegistries.DIMENSION_MARKERS.getOrDefault(this.dimension.location(), new DimensionMarker(DimensionMarker.MAX_TIER, () -> Blocks.BARRIER, this.dimension.toString()));
         ItemStack icon = dimMarker.getIcon();
         CustomItemStackHandler handler = new CustomItemStackHandler(1);
         SlotWidget dimSlot = new SlotWidget(handler, 0, xOffset, yOffset, false, false).setIngredientIO(IngredientIO.INPUT);
@@ -61,8 +54,6 @@ public class DimensionCondition extends RecipeCondition {
     @Override
     public boolean testCondition(@NotNull GTRecipe recipe, @NotNull RecipeLogic recipeLogic) {
         Level level = recipeLogic.machine.self().getLevel();
-        return level != null && dimension.equals(level.dimension().location());
+        return level != null && dimension == level.dimension();
     }
-
-    public DimensionCondition() {}
 }

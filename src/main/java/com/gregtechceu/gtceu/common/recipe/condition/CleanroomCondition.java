@@ -12,18 +12,21 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import net.minecraft.network.chat.Component;
 
-import lombok.Getter;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
-@Getter
 public class CleanroomCondition extends RecipeCondition {
 
-    public static final CleanroomCondition INSTANCE = new CleanroomCondition();
-    private CleanroomType cleanroom = CleanroomType.CLEANROOM;
+    private static final Reference2ReferenceOpenHashMap<CleanroomType, CleanroomCondition> CACHE = new Reference2ReferenceOpenHashMap<>();
+    public final CleanroomType cleanroom;
 
     public CleanroomCondition(boolean isReverse, CleanroomType cleanroom) {
         super(isReverse);
         this.cleanroom = cleanroom;
+    }
+
+    public static CleanroomCondition get(CleanroomType cleanroom) {
+        return CACHE.computeIfAbsent(cleanroom, k -> new CleanroomCondition(false, cleanroom));
     }
 
     @Override
@@ -43,10 +46,4 @@ public class CleanroomCondition extends RecipeCondition {
         }
         return true;
     }
-
-    public CleanroomCondition(final CleanroomType cleanroom) {
-        this.cleanroom = cleanroom;
-    }
-
-    public CleanroomCondition() {}
 }
