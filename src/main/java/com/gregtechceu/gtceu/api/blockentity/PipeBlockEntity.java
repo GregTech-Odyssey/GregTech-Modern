@@ -182,7 +182,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
         super.clearRemoved();
         coverContainer.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
-            TaskHandler.enqueueServerTask(serverLevel, () -> tickDelay = 0, 1);
+            TaskHandler.enqueueTask(serverLevel, () -> tickDelay = 0, 1);
         }
     }
 
@@ -242,7 +242,17 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     @Override
     public TickableSubscription subscribeServerTick(Runnable runnable, int cycle) {
         if (getLevel() instanceof ServerLevel serverLevel) {
-            return TaskHandler.enqueueServerTick(serverLevel, isRemove, runnable, cycle, tickDelay);
+            return TaskHandler.enqueueTick(serverLevel, isRemove, runnable, cycle, tickDelay);
+        }
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public TickableSubscription subscribeClientTick(Runnable runnable, int cycle) {
+        var level = getLevel();
+        if (level != null && level.isClientSide) {
+            return TaskHandler.enqueueTick(level, isRemove, runnable, cycle, 0);
         }
         return null;
     }

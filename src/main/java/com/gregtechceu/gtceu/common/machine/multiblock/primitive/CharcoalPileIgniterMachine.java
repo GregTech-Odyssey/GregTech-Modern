@@ -1,8 +1,10 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.primitive;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.item.ComponentItem;
+import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
@@ -69,9 +71,20 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
     private int hDist = 0;
 
     private boolean hasAir = false;
+    private TickableSubscription particleSubscription;
 
     public CharcoalPileIgniterMachine(MetaMachineBlockEntity holder) {
         super(holder);
+    }
+
+    @Override
+    public void onStructureFormedClient() {
+        particleSubscription = subscribeClientTick(particleSubscription, this::particleTick);
+    }
+
+    @Override
+    public void onStructureInvalidClient() {
+        particleSubscription = ITickSubscription.unsubscribe(particleSubscription);
     }
 
     @Override
@@ -273,10 +286,8 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
         return level.getBlockState(pos.move(Direction.DOWN)).is(Blocks.BRICKS);
     }
 
-    @Override
     @OnlyIn(Dist.CLIENT)
-    public void clientTick() {
-        super.clientTick();
+    private void particleTick() {
         if (isActive()) {
             var pos = this.getPos();
             var facing = Direction.UP;

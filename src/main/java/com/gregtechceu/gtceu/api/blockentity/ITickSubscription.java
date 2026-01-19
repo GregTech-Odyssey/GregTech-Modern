@@ -17,6 +17,9 @@ public interface ITickSubscription {
     @Nullable
     TickableSubscription subscribeServerTick(Runnable runnable, int cycle);
 
+    @Nullable
+    TickableSubscription subscribeClientTick(Runnable runnable, int cycle);
+
     static <T extends ISubscription> T unsubscribe(@Nullable T current) {
         if (current != null) {
             current.unsubscribe();
@@ -28,10 +31,22 @@ public interface ITickSubscription {
         return subscribeServerTick(last, runnable, 0);
     }
 
+    default TickableSubscription subscribeClientTick(@Nullable TickableSubscription last, Runnable runnable) {
+        return subscribeClientTick(last, runnable, 0);
+    }
+
     @Nullable
     default TickableSubscription subscribeServerTick(@Nullable TickableSubscription last, Runnable runnable, int cycle) {
         if (last == null || !last.stillSubscribed) {
             return subscribeServerTick(runnable, cycle);
+        }
+        return last;
+    }
+
+    @Nullable
+    default TickableSubscription subscribeClientTick(@Nullable TickableSubscription last, Runnable runnable, int cycle) {
+        if (last == null || !last.stillSubscribed) {
+            return subscribeClientTick(runnable, cycle);
         }
         return last;
     }

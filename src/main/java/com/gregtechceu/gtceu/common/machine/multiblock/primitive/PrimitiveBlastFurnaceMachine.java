@@ -38,6 +38,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class PrimitiveBlastFurnaceMachine extends PrimitiveWorkableMachine implements IUIMachine {
 
     private TickableSubscription hurtSubscription;
+    private TickableSubscription particleSubscription;
 
     public PrimitiveBlastFurnaceMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder, args);
@@ -56,25 +57,33 @@ public class PrimitiveBlastFurnaceMachine extends PrimitiveWorkableMachine imple
     @Override
     public void onUnload() {
         super.onUnload();
-        ITickSubscription.unsubscribe(hurtSubscription);
+        hurtSubscription = ITickSubscription.unsubscribe(hurtSubscription);
+    }
+
+    @Override
+    public void onStructureFormedClient() {
+        particleSubscription = subscribeClientTick(particleSubscription, this::particleTick);
     }
 
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        this.hurtSubscription = subscribeServerTick(hurtSubscription, this::hurtEntities, 20);
+        hurtSubscription = subscribeServerTick(hurtSubscription, this::hurtEntities, 20);
+    }
+
+    @Override
+    public void onStructureInvalidClient() {
+        particleSubscription = ITickSubscription.unsubscribe(particleSubscription);
     }
 
     @Override
     public void onStructureInvalid() {
         super.onStructureInvalid();
-        ITickSubscription.unsubscribe(hurtSubscription);
+        hurtSubscription = ITickSubscription.unsubscribe(hurtSubscription);
     }
 
-    @Override
     @OnlyIn(Dist.CLIENT)
-    public void clientTick() {
-        super.clientTick();
+    private void particleTick() {
         if (isFormed) {
             var pos = this.getPos();
             var facing = this.getFrontFacing().getOpposite();

@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.core.mixins;
 
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
 import com.gregtechceu.gtceu.core.ILevel;
-import com.gregtechceu.gtceu.utils.TaskHandler;
+import com.gregtechceu.gtceu.utils.TaskRunnableEntry;
 
 import com.lowdragmc.lowdraglib.async.AsyncThreadData;
 
@@ -17,7 +17,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
@@ -28,6 +28,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Mixin(Level.class)
 public abstract class LevelMixin implements LevelAccessor, ILevel {
@@ -49,34 +50,33 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
     public abstract LevelChunk getChunk(int chunkX, int chunkZ);
 
     @Unique
-    private MultiblockWorldData gtceu$worldSavedData;
+    private final Map<Class<?>, Object> gtceu$capabilitie = new Reference2ObjectOpenHashMap<>();
 
     @Unique
-    private List<TaskHandler.RunnableEntry> gtceu$tasks;
+    private MultiblockWorldData gtceu$multiblockWorldData;
 
     @Unique
-    private LongOpenHashSet gtceu$highlightCache;
+    private List<TaskRunnableEntry> gtceu$tasks;
+
+    @Override
+    public Map<Class<?>, Object> gtceu$getCapabilities() {
+        return gtceu$capabilitie;
+    }
 
     @Override
     public MultiblockWorldData gtceu$getMultiblockWorldSavedData() {
-        return gtceu$worldSavedData;
+        return gtceu$multiblockWorldData;
     }
 
     @Override
     public void gtceu$setMultiblockWorldSavedData(MultiblockWorldData data) {
-        gtceu$worldSavedData = data;
+        gtceu$multiblockWorldData = data;
     }
 
     @Override
-    public @NotNull List<TaskHandler.RunnableEntry> gtceu$getTasks() {
+    public @NotNull List<TaskRunnableEntry> gtceu$getTasks() {
         if (gtceu$tasks == null) gtceu$tasks = new ArrayList<>();
         return gtceu$tasks;
-    }
-
-    @Override
-    public LongOpenHashSet gtceu$getHighlightCache() {
-        if (gtceu$highlightCache == null) gtceu$highlightCache = new LongOpenHashSet();
-        return gtceu$highlightCache;
     }
 
     @Unique
@@ -137,8 +137,8 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
     @Inject(method = "markAndNotifyBlock", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;blockUpdated(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;)V"))
     private void gtceu$updateChunkMultiblocks(BlockPos pos, LevelChunk chunk, BlockState oldState, BlockState newState, int flags, int recursionLeft, CallbackInfo ci) {
         if (((Object) this) instanceof ServerLevel serverLevel) {
-            if (gtceu$worldSavedData != null) {
-                var states = gtceu$worldSavedData.getControllersInChunk(chunk.getPos().toLong());
+            if (gtceu$multiblockWorldData != null) {
+                var states = gtceu$multiblockWorldData.getControllersInChunk(chunk.getPos().toLong());
                 if (states != null) {
                     var pl = pos.asLong();
                     for (var structure : states) {

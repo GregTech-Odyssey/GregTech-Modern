@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.block;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.data.RotationState;
 import com.gregtechceu.gtceu.api.item.IGTTool;
@@ -44,8 +43,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
@@ -75,7 +72,6 @@ public class MetaMachineBlock extends AppearanceBlock implements IBlockRendererP
     public final MachineDefinition definition;
     public final RotationState rotationState;
 
-    private boolean hasClientTick;
     private boolean hasAnimateTick;
 
     private boolean needCheck = true;
@@ -389,7 +385,6 @@ public class MetaMachineBlock extends AppearanceBlock implements IBlockRendererP
         if (needCheck && be instanceof MetaMachineBlockEntity metaMachine) {
             try {
                 var c = metaMachine.metaMachine.getClass();
-                if (GTCEu.isClientSide()) hasClientTick = EmptyMethodChecker.hasMethodBody(c.getMethod("clientTick"));
                 hasAnimateTick = EmptyMethodChecker.hasMethodBody(c.getMethod("animateTick", RandomSource.class));
                 needCheck = false;
             } catch (NoSuchMethodException e) {
@@ -397,19 +392,6 @@ public class MetaMachineBlock extends AppearanceBlock implements IBlockRendererP
             }
         }
         return be;
-    }
-
-    @Nullable
-    @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        if (level.isClientSide && hasClientTick && blockEntityType == definition.getBlockEntityType()) {
-            return (pLevel, pPos, pState, pTile) -> {
-                if (pTile instanceof MetaMachineBlockEntity metaMachine) {
-                    metaMachine.metaMachine.clientTick();
-                }
-            };
-        }
-        return null;
     }
 
     public static int colorTinted(BlockState blockState, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos,

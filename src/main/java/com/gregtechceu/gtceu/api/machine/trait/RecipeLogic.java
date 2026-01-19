@@ -152,7 +152,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     public void updateTickSubscription() {
         if (status != SUSPEND && machine.isRecipeLogicAvailable()) {
             if ((subscription == null || !subscription.stillSubscribed) && super.machine.getLevel() instanceof ServerLevel serverLevel) {
-                subscription = TaskHandler.enqueueServerTick(serverLevel, super.machine.holder.isRemove, this::serverTick, interval, 5);
+                subscription = TaskHandler.enqueueTick(serverLevel, super.machine.holder.isRemove, this::serverTick, interval, 5);
                 if (isActive) subscription.cycle = 0;
             }
         } else {

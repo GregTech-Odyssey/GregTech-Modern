@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.utils.function;
 
 @FunctionalInterface
-public interface ObjectLongConsumer<T> {
+public interface ObjLongPredicate<T> {
 
-    void accept(T o, long l);
+    boolean test(T o, long l);
 }

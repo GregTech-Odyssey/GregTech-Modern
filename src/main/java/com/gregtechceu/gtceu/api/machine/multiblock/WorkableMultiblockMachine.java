@@ -1,11 +1,13 @@
 package com.gregtechceu.gtceu.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.api.block.ActiveBlock;
+import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
+import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.ICleanroomProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
@@ -23,7 +25,6 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.api.distmarker.Dist;
@@ -91,6 +92,8 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Getter
     protected IWorkableMultiPart[] modifyRecipePart = new IWorkableMultiPart[0];
 
+    @Nullable
+    protected TickableSubscription activeBlocksSubs;
     @DescSynced
     protected Set<Long> activeBlocks = new LongOpenHashSet();
     @DescSynced
@@ -119,19 +122,9 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void onUnload() {
         super.onUnload();
-        if (isRemote()) deleteActive();
+        if (isRemote()) activeState = ActiveBlock.State.UNKNOWN;
         traitSubscriptions.forEach(ISubscription::unsubscribe);
         traitSubscriptions.clear();
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    private void deleteActive() {
-        if (activeState.ordinal() != 2) {
-            Minecraft.getInstance().tell(() -> {
-                updateClientActiveBlocks(false);
-                activeState = ActiveBlock.State.NON_ACTIVE;
-            });
-        }
     }
 
     //////////////////////////////////////
@@ -141,6 +134,12 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     protected void onStructureFormedAfter() {
         super.onStructureFormedAfter();
         arrangeHandlerList();
+    }
+
+    @Override
+    public void onStructureFormedClient() {
+        activeState = ActiveBlock.State.UNKNOWN;
+        activeBlocksSubs = subscribeClientTick(activeBlocksSubs, this::updateActiveBlocks, 20);
     }
 
     @Override
@@ -198,6 +197,12 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     }
 
     @Override
+    public void onStructureInvalidClient() {
+        activeState = ActiveBlock.State.UNKNOWN;
+        activeBlocksSubs = ITickSubscription.unsubscribe(activeBlocksSubs);
+    }
+
+    @Override
     public void onStructureInvalid() {
         updateActiveBlock(false);
         super.onStructureInvalid();
@@ -217,8 +222,8 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         recipeLogic.resetRecipeLogic();
     }
 
-    @Override
-    public void clientTick() {
+    @OnlyIn(Dist.CLIENT)
+    protected void updateActiveBlocks() {
         var shouldActive = isFormed && (activated || getRecipeLogic().isWorking());
         var state = shouldActive ? ActiveBlock.State.ACTIVE : ActiveBlock.State.NON_ACTIVE;
         if (activeState.ordinal() == 0 || state != activeState) {

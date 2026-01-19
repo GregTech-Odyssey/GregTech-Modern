@@ -9,8 +9,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.ingredient.SizedIngredient;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
-import com.gregtechceu.gtceu.utils.function.ObjectLongConsumer;
-import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
+import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
@@ -26,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.IntFunction;
+import java.util.function.ObjLongConsumer;
 import java.util.function.Predicate;
 
 public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ingredient> implements ICapabilityTrait, IItemHandlerModifiable {
@@ -163,7 +163,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     }
 
     @Override
-    public boolean forEachItems(ObjectLongPredicate<ItemStack> function) {
+    public boolean forEachItems(ObjLongPredicate<ItemStack> function) {
         for (int i = 0; i < storage.size; ++i) {
             var stack = storage.stacks[i];
             var amount = stack.getCount();
@@ -175,7 +175,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
     }
 
     @Override
-    public void fastForEachItems(ObjectLongConsumer<ItemStack> function) {
+    public void fastForEachItems(ObjLongConsumer<ItemStack> function) {
         for (int i = 0; i < storage.size; ++i) {
             var stack = storage.stacks[i];
             var amount = stack.getCount();

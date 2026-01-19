@@ -5,9 +5,13 @@ import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
+import com.gregtechceu.gtceu.common.network.GTNetwork;
+import com.gregtechceu.gtceu.common.network.packets.SCPacketUpdateActiveBlock;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.TickTask;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 
 import org.jetbrains.annotations.NotNull;
@@ -184,5 +188,13 @@ public interface IMultiController extends IMachineFeature {
 
     default @Nullable Comparator<IMultiPart> getPartSorter() {
         return null;
+    }
+
+    default void updateActiveBlock(boolean active) {
+        if (self().getLevel() instanceof ServerLevel serverLevel) {
+            var vaBlocks = getMultiblockState().matchContext.vaBlocks;
+            if (vaBlocks.isEmpty()) return;
+            serverLevel.getServer().tell(new TickTask(0, () -> GTNetwork.NETWORK.sendToAll(new SCPacketUpdateActiveBlock(vaBlocks, active))));
+        }
     }
 }

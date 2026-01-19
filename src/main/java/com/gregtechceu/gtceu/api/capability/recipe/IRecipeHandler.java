@@ -2,8 +2,7 @@ package com.gregtechceu.gtceu.api.capability.recipe;
 
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.utils.function.ObjectLongConsumer;
-import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
+import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
@@ -13,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.ObjLongConsumer;
 
 public interface IRecipeHandler<K> extends IFilteredHandler<K> {
 
@@ -39,20 +39,20 @@ public interface IRecipeHandler<K> extends IFilteredHandler<K> {
     /**
      * @return interruption
      */
-    default boolean forEachItems(ObjectLongPredicate<ItemStack> function) {
+    default boolean forEachItems(ObjLongPredicate<ItemStack> function) {
         return false;
     }
 
     /**
      * @return interruption
      */
-    default boolean forEachFluids(ObjectLongPredicate<FluidStack> function) {
+    default boolean forEachFluids(ObjLongPredicate<FluidStack> function) {
         return false;
     }
 
-    default void fastForEachItems(ObjectLongConsumer<ItemStack> function) {}
+    default void fastForEachItems(ObjLongConsumer<ItemStack> function) {}
 
-    default void fastForEachFluids(ObjectLongConsumer<FluidStack> function) {}
+    default void fastForEachFluids(ObjLongConsumer<FluidStack> function) {}
 
     default IntLongMap getIngredientMap(@NotNull GTRecipeType type) {
         return IntLongMap.EMPTY;

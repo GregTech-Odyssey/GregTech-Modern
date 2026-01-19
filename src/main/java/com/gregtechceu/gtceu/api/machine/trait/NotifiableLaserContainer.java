@@ -42,7 +42,7 @@ public class NotifiableLaserContainer extends NotifiableEnergyContainer implemen
                 outputSubs.cycle++;
             }
         } else {
-            ITickSubscription.unsubscribe(outputSubs);
+            outputSubs = ITickSubscription.unsubscribe(outputSubs);
         }
     }
 }

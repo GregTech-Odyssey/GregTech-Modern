@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.forge;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
@@ -45,6 +46,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.PotionItem;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
@@ -77,11 +79,13 @@ public class ForgeCommonEventListener {
 
     public static void init() {
         MinecraftForge.EVENT_BUS.register(ForgeCommonEventListener.class);
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGH, (TickEvent.LevelTickEvent event) -> {
-            if (event.phase == TickEvent.Phase.END && event.level instanceof ServerLevel serverLevel) {
-                TaskHandler.onTickUpdate(serverLevel);
-            }
-        });
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGH, ForgeCommonEventListener::onLevelTickEvent);
+    }
+
+    private static void onLevelTickEvent(TickEvent.LevelTickEvent event) {
+        if (event.phase == TickEvent.Phase.END) {
+            TaskHandler.onTickUpdate(event.level, event.level instanceof ServerLevel serverLevel ? serverLevel.getServer().getTickCount() : GTValues.CLIENT_TIME);
+        }
     }
 
     @SubscribeEvent
@@ -177,8 +181,8 @@ public class ForgeCommonEventListener {
 
     @SubscribeEvent
     public static void worldUnload(LevelEvent.Unload event) {
+        if (event.getLevel() instanceof Level level) TaskHandler.onWorldUnLoad(level);
         if (event.getLevel() instanceof ServerLevel serverLevel) {
-            TaskHandler.onWorldUnLoad(serverLevel);
             var multiblockWorldData = MultiblockWorldData.get(serverLevel);
             if (multiblockWorldData != null) multiblockWorldData.clear();
             ServerCache.instance.invalidateWorld(serverLevel);
@@ -279,7 +283,7 @@ public class ForgeCommonEventListener {
     @SubscribeEvent
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer serverPlayer) {
-            TaskHandler.enqueueServerTask(serverPlayer.serverLevel(), () -> {
+            TaskHandler.enqueueTask(serverPlayer.serverLevel(), () -> {
                 MultiblockControllerMachine.MESSAGE_CACHE.get(serverPlayer.getUUID()).stream()
                         .filter(Objects::nonNull).forEach(serverPlayer::sendSystemMessage);
                 MultiblockControllerMachine.MESSAGE_CACHE.removeAll(serverPlayer.getUUID());

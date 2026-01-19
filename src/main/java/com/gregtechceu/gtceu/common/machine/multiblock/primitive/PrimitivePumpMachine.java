@@ -82,7 +82,7 @@ public class PrimitivePumpMachine extends MultiblockControllerMachine implements
     }
 
     private void resetState() {
-        ITickSubscription.unsubscribe(produceWaterSubscription);
+        produceWaterSubscription = ITickSubscription.unsubscribe(produceWaterSubscription);
         hatchModifier = 0;
         fluidTank = null;
     }

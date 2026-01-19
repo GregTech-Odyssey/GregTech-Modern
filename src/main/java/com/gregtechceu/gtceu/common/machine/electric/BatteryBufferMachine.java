@@ -257,7 +257,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                     outputSubs.cycle++;
                 }
             } else {
-                ITickSubscription.unsubscribe(outputSubs);
+                outputSubs = ITickSubscription.unsubscribe(outputSubs);
             }
         }
 

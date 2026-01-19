@@ -7,8 +7,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
-import com.gregtechceu.gtceu.utils.function.ObjectLongConsumer;
-import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
+import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -19,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntFunction;
+import java.util.function.ObjLongConsumer;
 
 public class CircuitHandler extends NotifiableItemStackHandler {
 
@@ -59,7 +59,7 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     }
 
     @Override
-    public boolean forEachItems(ObjectLongPredicate<ItemStack> function) {
+    public boolean forEachItems(ObjLongPredicate<ItemStack> function) {
         var stack = storage.stacks[0];
         var amount = stack.getCount();
         if (amount > 0) {
@@ -69,7 +69,7 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     }
 
     @Override
-    public void fastForEachItems(ObjectLongConsumer<ItemStack> function) {
+    public void fastForEachItems(ObjLongConsumer<ItemStack> function) {
         var stack = storage.stacks[0];
         var amount = stack.getCount();
         if (amount > 0) {

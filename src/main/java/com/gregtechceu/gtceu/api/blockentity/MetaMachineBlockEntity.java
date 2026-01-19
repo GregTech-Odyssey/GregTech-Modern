@@ -122,7 +122,7 @@ public class MetaMachineBlockEntity extends BlockEntity implements IToolGridHigh
         super.clearRemoved();
         metaMachine.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
-            TaskHandler.enqueueServerTask(serverLevel, () -> tickDelay = 0, 1);
+            TaskHandler.enqueueTask(serverLevel, () -> tickDelay = 0, 1);
         }
     }
 

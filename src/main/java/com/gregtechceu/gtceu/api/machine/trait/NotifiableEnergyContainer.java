@@ -162,7 +162,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
                 outputSubs.cycle++;
             }
         } else {
-            ITickSubscription.unsubscribe(outputSubs);
+            outputSubs = ITickSubscription.unsubscribe(outputSubs);
         }
     }
 

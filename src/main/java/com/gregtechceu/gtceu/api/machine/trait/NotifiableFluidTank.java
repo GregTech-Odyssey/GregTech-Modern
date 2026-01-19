@@ -11,8 +11,7 @@ import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
 import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.function.ObjectLongConsumer;
-import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
+import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
@@ -27,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.ObjLongConsumer;
 import java.util.function.Predicate;
 
 public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngredient> implements ICapabilityTrait, IFluidHandlerModifiable {
@@ -210,7 +210,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     }
 
     @Override
-    public boolean forEachFluids(ObjectLongPredicate<FluidStack> function) {
+    public boolean forEachFluids(ObjLongPredicate<FluidStack> function) {
         var tanks = getTanks();
         for (int i = 0; i < tanks; ++i) {
             var stack = getFluidInTank(i);
@@ -223,7 +223,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     }
 
     @Override
-    public void fastForEachFluids(ObjectLongConsumer<FluidStack> function) {
+    public void fastForEachFluids(ObjLongConsumer<FluidStack> function) {
         var tanks = getTanks();
         for (int i = 0; i < tanks; ++i) {
             var stack = getFluidInTank(i);

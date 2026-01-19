@@ -1,10 +1,12 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
+import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMufflerMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
@@ -23,6 +25,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -34,6 +37,8 @@ public class MufflerPartMachine extends WorkableTieredPartMachine implements IMu
     private final int recoveryChance;
     @Persisted
     private final CustomItemStackHandler inventory;
+    @Nullable
+    protected TickableSubscription particleSubs;
 
     public MufflerPartMachine(MetaMachineBlockEntity holder, int tier) {
         super(holder, tier);
@@ -60,9 +65,21 @@ public class MufflerPartMachine extends WorkableTieredPartMachine implements IMu
     }
 
     @Override
+    public void onLoad() {
+        super.onLoad();
+        if (isRemote()) {
+            particleSubs = subscribeClientTick(particleSubs, this::particlesTick);
+        }
+    }
+
+    @Override
+    public void onUnload() {
+        super.onUnload();
+        particleSubs = ITickSubscription.unsubscribe(particleSubs);
+    }
+
     @OnlyIn(Dist.CLIENT)
-    public void clientTick() {
-        super.clientTick();
+    private void particlesTick() {
         for (IMultiController controller : this.getControllers()) {
             if (controller instanceof IRecipeLogicMachine recipeLogicMachine && recipeLogicMachine.getRecipeLogic().isWorking()) {
                 emitPollutionParticles();

@@ -170,6 +170,12 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
         return machine.subscribeServerTick(runnable, cycle);
     }
 
+    @Nullable
+    @Override
+    public TickableSubscription subscribeClientTick(Runnable runnable, int cycle) {
+        return machine.subscribeClientTick(runnable, cycle);
+    }
+
     @Override
     public CoverBehavior getCoverAtSide(Direction side) {
         return switch (side) {

@@ -65,8 +65,6 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
@@ -269,7 +267,17 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     @Override
     public TickableSubscription subscribeServerTick(Runnable runnable, int cycle) {
         if (holder.level() instanceof ServerLevel serverLevel) {
-            return TaskHandler.enqueueServerTick(serverLevel, holder.isRemove, runnable, cycle, holder.tickDelay);
+            return TaskHandler.enqueueTick(serverLevel, holder.isRemove, runnable, cycle, holder.tickDelay);
+        }
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public TickableSubscription subscribeClientTick(Runnable runnable, int cycle) {
+        var level = holder.level();
+        if (level != null && level.isClientSide) {
+            return TaskHandler.enqueueTick(level, holder.isRemove, runnable, cycle, 0);
         }
         return null;
     }
@@ -277,9 +285,6 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     public int getOffsetTimer() {
         return holder.getOffsetTimer();
     }
-
-    @OnlyIn(Dist.CLIENT)
-    public void clientTick() {}
 
     //////////////////////////////////////
     // ******* Interaction *******//

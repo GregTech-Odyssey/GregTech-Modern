@@ -15,7 +15,6 @@ import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.SCPacketStructureFormed;
-import com.gregtechceu.gtceu.common.network.packets.SCPacketUpdateActiveBlock;
 import com.gregtechceu.gtceu.core.ILevel;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
@@ -36,6 +35,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.fast.recipesearch.IteratorUtil;
 import com.google.common.collect.HashMultimap;
@@ -281,11 +282,8 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         }
     }
 
-    public void updateActiveBlock(boolean active) {
-        if (getLevel() instanceof ServerLevel serverLevel) {
-            serverLevel.getServer().tell(new TickTask(0, () -> GTNetwork.NETWORK.sendToAll(new SCPacketUpdateActiveBlock(self().getMultiblockState().matchContext.vaBlocks, active))));
-        }
-    }
+    @OnlyIn(Dist.CLIENT)
+    public void onStructureFormedClient() {}
 
     @MustBeInvokedByOverriders
     protected void onStructureFormedAfter() {
@@ -318,6 +316,9 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         }
         updatePartPositions();
     }
+
+    @OnlyIn(Dist.CLIENT)
+    public void onStructureInvalidClient() {}
 
     protected void onStructureInvalidAfter() {
         GTNetwork.NETWORK.sendToAll(new SCPacketStructureFormed(getPos().asLong(), false));

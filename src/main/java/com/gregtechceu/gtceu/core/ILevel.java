@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.core;
 
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
-import com.gregtechceu.gtceu.utils.TaskHandler;
+import com.gregtechceu.gtceu.utils.TaskRunnableEntry;
 
 import net.minecraft.world.level.Level;
 
@@ -12,24 +12,38 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ILevel {
+
+    Map<Class<?>, Object> gtceu$getCapabilities();
+
+    @NotNull
+    List<TaskRunnableEntry> gtceu$getTasks();
 
     MultiblockWorldData gtceu$getMultiblockWorldSavedData();
 
     void gtceu$setMultiblockWorldSavedData(MultiblockWorldData data);
 
-    @NotNull
-    List<TaskHandler.RunnableEntry> gtceu$getTasks();
+    static <T> T getCapability(@NotNull Level level, Class<?> clazz) {
+        return (T) ((ILevel) level).gtceu$getCapabilities().get(clazz);
+    }
 
-    LongOpenHashSet gtceu$getHighlightCache();
+    static void setCapability(@NotNull Level level, Class<?> clazz, Object capability) {
+        ((ILevel) level).gtceu$getCapabilities().put(clazz, capability);
+    }
 
-    static List<TaskHandler.RunnableEntry> getTasks(@NotNull Level level) {
+    static List<TaskRunnableEntry> getTasks(@NotNull Level level) {
         return ((ILevel) level).gtceu$getTasks();
     }
 
     static LongSet getHighlightCache(@Nullable Level level) {
         if (level == null) return LongSets.emptySet();
-        return ((ILevel) level).gtceu$getHighlightCache();
+        LongSet cache = getCapability(level, LongSet.class);
+        if (cache == null) {
+            cache = new LongOpenHashSet();
+            setCapability(level, LongSet.class, cache);
+        }
+        return cache;
     }
 }

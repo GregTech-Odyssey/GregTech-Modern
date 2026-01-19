@@ -45,8 +45,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -220,17 +218,6 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
             }
         }
         updateBreakerSubscription();
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void clientTick() {
-        super.clientTick();
-        if (blockBreakProgress > 0) {
-            var pos = getPos().relative(getFrontFacing());
-            var blockState = getLevel().getBlockState(pos);
-            getLevel().addDestroyBlockEffect(pos, blockState);
-        }
     }
 
     private List<ItemStack> tryDestroyBlockAndGetDrops(BlockPos pos) {
