@@ -209,7 +209,7 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
             var fluids = recipe.getOutputContents(FluidRecipeCapability.CAP).stream().map(Content::getContent).map(FluidRecipeCapability.CAP::of).toList();
             // Distillery recipes should output to the first non-void handler
             if (recipe.recipeType == GTRecipeTypes.DISTILLERY_RECIPES) {
-                var fluid = fluids.getFirst().getStacks()[0];
+                var fluid = fluids.getFirst().getLatestStacks()[0];
                 var handler = getMachine().getFirstValid();
                 if (handler == null) return false;
                 int filled = (handler instanceof NotifiableFluidTank nft) ? nft.fillInternal(fluid, action) : handler.fill(fluid, action);
@@ -219,7 +219,7 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
             var outputs = getMachine().getFluidOutputs();
             for (int i = 0; i < Math.min(fluids.size(), outputs.size()); ++i) {
                 var handler = outputs.get(i);
-                var fluid = fluids.get(i).getStacks()[0];
+                var fluid = fluids.get(i).getLatestStacks()[0];
                 int filled = (handler instanceof NotifiableFluidTank nft) ? nft.fillInternal(fluid, action) : handler.fill(fluid, action);
                 if (filled != fluid.getAmount()) valid = false;
                 if (action.simulate() && !valid) break;

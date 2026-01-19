@@ -115,7 +115,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     private String langValue = null;
 
     protected MachineBuilder(Registrate registrate, String name, Function<ResourceLocation, DEFINITION> definition, Function<MetaMachineBlockEntity, MetaMachine> machine, BiFunction<BlockBehaviour.Properties, DEFINITION, MetaMachineBlock> blockFactory, BiFunction<MetaMachineBlock, Item.Properties, MetaMachineItem> itemFactory, TriFunction<BlockEntityType<?>, BlockPos, BlockState, MetaMachineBlockEntity> blockEntityFactory) {
-        super(new ResourceLocation(registrate.getModid(), name));
+        super(GTUtil.getResourceLocation(registrate.getModid(), name));
         this.registrate = registrate;
         this.name = name;
         this.machine = machine;
@@ -147,7 +147,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     }
 
     public MachineBuilder<DEFINITION> defaultModelRenderer() {
-        return modelRenderer(() -> new ResourceLocation(registrate.getModid(), "block/" + name));
+        return modelRenderer(() -> GTUtil.getResourceLocation(registrate.getModid(), "block/" + name));
     }
 
     public MachineBuilder<DEFINITION> tieredHullRenderer(ResourceLocation model) {
@@ -155,11 +155,11 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     }
 
     public MachineBuilder<DEFINITION> overlayTieredHullRenderer(String name) {
-        return renderer(() -> new OverlayTieredMachineRenderer(tier, new ResourceLocation(registrate.getModid(), "block/machine/part/" + name)));
+        return renderer(() -> new OverlayTieredMachineRenderer(tier, GTUtil.getResourceLocation(registrate.getModid(), "block/machine/part/" + name)));
     }
 
     public MachineBuilder<DEFINITION> overlaySteamHullRenderer(String name) {
-        return renderer(() -> new OverlaySteamMachineRenderer(new ResourceLocation(registrate.getModid(), "block/machine/part/" + name)));
+        return renderer(() -> new OverlaySteamMachineRenderer(GTUtil.getResourceLocation(registrate.getModid(), "block/machine/part/" + name)));
     }
 
     public MachineBuilder<DEFINITION> workableTieredHullRenderer(ResourceLocation workableModel) {
@@ -246,7 +246,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     }
 
     protected DEFINITION createDefinition() {
-        return definition.apply(new ResourceLocation(registrate.getModid(), name));
+        return definition.apply(GTUtil.getResourceLocation(registrate.getModid(), name));
     }
 
     public DEFINITION register() {
@@ -287,7 +287,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
         definition.setRegressWhenWaiting(this.regressWhenWaiting);
         definition.setAllowCoverOnFront(this.allowCoverOnFront);
         if (renderer == null) {
-            renderer = () -> new MachineRenderer(new ResourceLocation(registrate.getModid(), "block/machine/" + name));
+            renderer = () -> new MachineRenderer(GTUtil.getResourceLocation(registrate.getModid(), "block/machine/" + name));
         }
         if (recipeTypes != null) {
             for (GTRecipeType type : recipeTypes) {

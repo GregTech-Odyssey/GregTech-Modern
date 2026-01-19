@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.client.renderer.entity;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.common.entity.GTBoat;
 import com.gregtechceu.gtceu.common.entity.GTChestBoat;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.client.model.BoatModel;
 import net.minecraft.client.model.ChestBoatModel;
@@ -27,7 +28,7 @@ public class GTBoatRenderer extends BoatRenderer {
     public GTBoatRenderer(EntityRendererProvider.Context context, boolean chestBoat) {
         super(context, chestBoat);
         boats = Stream.of(GTBoat.BoatType.values()).collect(ImmutableMap.toImmutableMap(k -> k,
-                (m) -> Pair.of(new ResourceLocation(GTCEu.MOD_ID,
+                (m) -> Pair.of(GTUtil.getResourceLocation(GTCEu.MOD_ID,
                         getTextureLocation(m, chestBoat)), createBoatModel(context, m, chestBoat))));
     }
 
@@ -51,10 +52,10 @@ public class GTBoatRenderer extends BoatRenderer {
     }
 
     public static ModelLayerLocation getChestBoatModelName(GTBoat.BoatType type) {
-        return new ModelLayerLocation(new ResourceLocation(GTCEu.MOD_ID, "chest_boat/" + type.getName()), "main");
+        return new ModelLayerLocation(GTUtil.getResourceLocation(GTCEu.MOD_ID, "chest_boat/" + type.getName()), "main");
     }
 
     public static ModelLayerLocation getBoatModelName(GTBoat.BoatType type) {
-        return new ModelLayerLocation(new ResourceLocation(GTCEu.MOD_ID, "boat/" + type.getName()), "main");
+        return new ModelLayerLocation(GTUtil.getResourceLocation(GTCEu.MOD_ID, "boat/" + type.getName()), "main");
     }
 }

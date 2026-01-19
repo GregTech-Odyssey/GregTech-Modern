@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid;
 
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -56,7 +57,7 @@ public class FluidVeinWorldEntry {
         info.fluidYield = tag.getInt("fluidYield");
         info.operationsRemaining = tag.getInt("operationsRemaining");
         if (tag.contains("vein")) {
-            ResourceLocation id = new ResourceLocation(tag.getString("vein"));
+            ResourceLocation id = GTUtil.getResourceLocation(tag.getString("vein"));
             if (GTRegistries.BEDROCK_FLUID_DEFINITIONS.containKey(id)) {
                 info.vein = GTRegistries.BEDROCK_FLUID_DEFINITIONS.get(id);
             }

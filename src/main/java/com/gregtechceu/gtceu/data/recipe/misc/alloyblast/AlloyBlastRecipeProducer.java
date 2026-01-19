@@ -131,8 +131,8 @@ public class AlloyBlastRecipeProducer {
         // build the gas recipe if it exists
         if (property.getGasTier() != null) {
             GTRecipeBuilder builderGas = builder.copy(builder.id.getPath() + "_gas");
-            FluidIngredient gas = property.getGasTier().getFluid();
-            gas.setAmount(gas.getAmount() * outputAmount);
+            FluidIngredient gas = property.getGasTier().getFluid().depthCopy();
+            gas.changeAmount(gas.amount * outputAmount);
             builderGas.circuitMeta(getGasCircuitNum(componentAmount))
                     .inputFluids(gas)
                     .duration((int) (duration * 0.67))

@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.data.worldgen.*;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.indicators.SurfaceIndicatorGenerator;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.veins.NoopVeinGenerator;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -118,11 +119,11 @@ public class GTOres {
         if (block == null) {
             ResourceLocation oreKey;
             if (oreTag == ore) {
-                oreKey = new ResourceLocation("%s_ore".formatted(material.getName()));
+                oreKey = GTUtil.getResourceLocation("%s_ore".formatted(material.getName()));
             } else if (oreTag == oreNetherrack) {
-                oreKey = new ResourceLocation("nether_%s_ore".formatted(material.getName()));
+                oreKey = GTUtil.getResourceLocation("nether_%s_ore".formatted(material.getName()));
             } else {
-                oreKey = new ResourceLocation("%s_%s_ore".formatted(oreTag.name, material.getName()));
+                oreKey = GTUtil.getResourceLocation("%s_%s_ore".formatted(oreTag.name, material.getName()));
             }
             return BuiltInRegistries.BLOCK.containsKey(oreKey) ? () -> BuiltInRegistries.BLOCK.get(oreKey) : () -> Blocks.AIR;
         }

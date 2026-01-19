@@ -71,7 +71,7 @@ public class CampfireRecipeBuilder {
 
     public ResourceLocation getId() {
         var ID = id == null ? defaultId() : id;
-        return new ResourceLocation(ID.getNamespace(), "campfire" + "/" + ID.getPath());
+        return GTUtil.getResourceLocation(ID.getNamespace(), "campfire" + "/" + ID.getPath());
     }
 
     public void save() {

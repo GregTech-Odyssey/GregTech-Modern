@@ -69,7 +69,7 @@ public class SmokingRecipeBuilder {
 
     public ResourceLocation getId() {
         var ID = id == null ? defaultId() : id;
-        return new ResourceLocation(ID.getNamespace(), "smoking" + "/" + ID.getPath());
+        return GTUtil.getResourceLocation(ID.getNamespace(), "smoking" + "/" + ID.getPath());
     }
 
     public void save() {

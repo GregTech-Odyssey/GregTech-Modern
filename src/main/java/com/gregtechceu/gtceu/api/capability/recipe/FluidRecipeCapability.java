@@ -21,7 +21,9 @@ import com.lowdragmc.lowdraglib.jei.IngredientIO;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
@@ -43,9 +45,10 @@ public class FluidRecipeCapability extends RecipeCapability<FluidIngredient> {
 
     @Override
     public void convert(FluidIngredient ingredient, IntLongMap map) {
-        if (ingredient.values.length == 1 && ingredient.values[0] instanceof FluidIngredient.FluidValue fluidValue) {
-            map.add(fluidValue.fluid.hashCode(), 1);
-
+        if (ingredient.value instanceof Fluid fluid) {
+            map.add(fluid.hashCode(), ingredient.amount);
+        } else if (ingredient.value instanceof TagKey<?> tagKey) {
+            map.add(tagKey.hashCode(), ingredient.amount);
         }
     }
 
@@ -56,10 +59,8 @@ public class FluidRecipeCapability extends RecipeCapability<FluidIngredient> {
 
     @Override
     public FluidIngredient copyWithModifier(FluidIngredient content, ContentModifier modifier) {
-        if (content.isEmpty()) return content.copy();
-        FluidIngredient copy = content.copy();
-        copy.setAmount(modifier.apply(copy.getAmount()));
-        return copy;
+        var amount = modifier.apply(content.amount);
+        return amount == content.amount ? content.copy() : content.copy(modifier.apply(content.amount));
     }
 
     @Override
@@ -146,17 +147,12 @@ public class FluidRecipeCapability extends RecipeCapability<FluidIngredient> {
     // Maps fluids to a FluidEntryList for XEI: either a FluidTagList or a FluidStackList
     public static FluidEntryList mapFluid(FluidIngredient ingredient) {
         int amount = ingredient.getAmount();
-        CompoundTag tag = ingredient.getNbt();
-
-        FluidTagList tags = new FluidTagList();
-        FluidStackList fluids = new FluidStackList();
-        for (FluidIngredient.Value value : ingredient.values) {
-            fluids.addAll(value.getFluids().stream().map(fluid -> new FluidStack(fluid, amount, tag)).toList());
+        CompoundTag nbt = ingredient.nbt;
+        if (ingredient.value instanceof Fluid fluid) {
+            return FluidStackList.of(new FluidStack(fluid, amount, nbt));
+        } else if (ingredient.value instanceof TagKey tag) {
+            return FluidTagList.of(tag, amount, nbt);
         }
-        if (!tags.isEmpty()) {
-            return tags;
-        } else {
-            return fluids;
-        }
+        return new FluidStackList();
     }
 }

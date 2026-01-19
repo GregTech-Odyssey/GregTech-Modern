@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -88,7 +89,7 @@ public class AutoOutputBlockProvider implements IBlockComponentProvider, IServer
         if (direction != null) {
             iTooltip.add(Component.translatable(text, StringUtils.capitalize(direction.getName())));
             if (blockAccessor.showDetails()) {
-                var block = BuiltInRegistries.BLOCK.get(new ResourceLocation(compoundTag.getString("block"))).asItem()
+                var block = BuiltInRegistries.BLOCK.get(GTUtil.getResourceLocation(compoundTag.getString("block"))).asItem()
                         .getDefaultInstance();
                 if (!block.isEmpty()) {
                     iTooltip.append(iTooltip.getElementHelper().smallItem(block));

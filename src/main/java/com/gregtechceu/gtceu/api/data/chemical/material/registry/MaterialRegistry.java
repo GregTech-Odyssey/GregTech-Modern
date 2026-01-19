@@ -6,8 +6,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.registry.GTRegistry;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 import com.gregtechceu.gtceu.common.registry.GTRegistration;
-
-import net.minecraft.resources.ResourceLocation;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +19,7 @@ public abstract class MaterialRegistry extends GTRegistry.String<Material> {
     private final GTRegistrate registrate;
 
     public MaterialRegistry(java.lang.String modId) {
-        super(new ResourceLocation(modId, "material"));
+        super(GTUtil.getResourceLocation(modId, "material"));
         this.registrate = GTCEu.MOD_ID.equals(modId) ? GTRegistration.REGISTRATE : AddonFinder.getAddons().getFirst().getRegistrate();
     }
 

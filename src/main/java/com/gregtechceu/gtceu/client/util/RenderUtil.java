@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
+import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.ResearchManager;
 
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
@@ -59,7 +60,7 @@ public class RenderUtil {
             else return fluidTypeExtensions.getOverlayTexture();
         });
 
-        private static final ResourceLocation WATER_STILL = new ResourceLocation("minecraft", "block/water_still");
+        private static final ResourceLocation WATER_STILL = GTUtil.getResourceLocation("minecraft", "block/water_still");
 
         private final BiFunction<IClientFluidTypeExtensions, FluidStack, ResourceLocation> mapper;
 

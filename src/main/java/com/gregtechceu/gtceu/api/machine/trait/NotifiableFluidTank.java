@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
 import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.SimpleStack;
 import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
@@ -19,6 +20,7 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import com.fast.recipesearch.IntLongMap;
 import lombok.Getter;
@@ -97,60 +99,75 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     public List<FluidIngredient> handleRecipeInner(IO io, GTRecipe recipe, List<FluidIngredient> left, boolean simulate) {
         if (io != handlerIO) return left;
         if (io != IO.IN && io != IO.OUT) return left.isEmpty() ? null : left;
-        FluidAction action = simulate ? FluidAction.SIMULATE : FluidAction.EXECUTE;
-        // Store the FluidStack in each slot after an operation
-        // Necessary for simulation since we don't actually modify the slot's contents
-        // Doesn't hurt for execution, and definitely cheaper than copying the entire storage
-        FluidStack[] visited = new FluidStack[storages.length];
-        for (var it = left.listIterator(0); it.hasNext();) {
+        Runnable[] listeners = null;
+        var length = storages.length;
+        if (!simulate) {
+            listeners = new Runnable[length];
+            for (int i = 0; i < length; i++) {
+                listeners[i] = storages[i].getOnContentsChanged();
+                storages[i].setOnContentsChangedAndfreeze(GTUtil.NOOP);
+            }
+        }
+        boolean changed = false;
+        SimpleStack<FluidStack>[] visiteds = new SimpleStack[length];
+        IFluidHandler.FluidAction action = simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE;
+        for (var it = left.iterator(); it.hasNext();) {
             var ingredient = it.next();
-            if (ingredient.isEmpty()) {
-                it.remove();
-                continue;
-            }
-            var fluids = ingredient.getStacks();
-            if (fluids.length == 0 || fluids[0].isEmpty()) {
-                it.remove();
-                continue;
-            }
-            int amount = ingredient.getAmount();
-            for (int tank = 0; tank < storages.length; ++tank) {
-                FluidStack current = visited[tank] == null ? getFluidInTank(tank) : visited[tank];
-                int count = current.getAmount();
-                if (io == IO.IN) {
-                    if (current.isEmpty()) continue;
-                    if (ingredient.test(current)) {
-                        var drained = storages[tank].drain(Math.min(count, amount), action);
-                        if (!drained.isEmpty()) {
-                            visited[tank] = drained.copy();
-                            visited[tank].setAmount(count - drained.getAmount());
-                        }
-                        amount -= drained.getAmount();
-                    }
-                } else {
-                    FluidStack output = fluids[0].copy();
-                    output.setAmount(amount);
-                    if (visited[tank] == null || visited[tank].isFluidEqual(output)) {
-                        if (count < storages[tank].getCapacity()) {
-                            int filled = storages[tank].fill(output, action);
-                            if (filled > 0) {
-                                visited[tank] = output.copy();
-                                visited[tank].setAmount(count + filled);
-                                amount -= filled;
-                                if (amount <= 0) it.remove();
+            if (io == IO.IN) {
+                for (int tank = 0; tank < length; ++tank) {
+                    var storage = storages[tank];
+                    var visited = visiteds[tank];
+                    var stored = storage.getFluid();
+                    int amount = (visited == null ? stored.getAmount() : visited.getAmount());
+                    if (amount == 0) continue;
+                    if (ingredient.test(stored)) {
+                        var drained = storage.drain(ingredient.getAmount(), action);
+                        if (drained.getAmount() > 0) {
+                            if (simulate) {
+                                visiteds[tank] = new SimpleStack<>(drained, amount - drained.getAmount());
+                            }
+                            changed = true;
+                            ingredient.shrink(drained.getAmount());
+                            if (ingredient.amount <= 0) {
+                                it.remove();
                                 break;
                             }
                         }
                     }
                 }
-                if (amount <= 0) {
+            } else {
+                var fluid = ingredient.getFluid();
+                if (fluid == null) {
                     it.remove();
-                    break;
+                    continue;
+                }
+                for (int tank = 0; tank < length; ++tank) {
+                    var storage = storages[tank];
+                    var visited = visiteds[tank];
+                    var stored = storage.getFluid();
+                    int amount = (visited == null ? stored.getAmount() : visited.getAmount());
+                    if (amount < storage.getCapacity() && (lockedFluid.isEmpty() || lockedFluid.getFluid().getFluid() == fluid) && (stored.isEmpty() || stored.getFluid() == fluid) && (visited == null || visited.value.getFluid() == fluid)) {
+                        FluidStack output = new FluidStack(fluid, ingredient.getAmount(), ingredient.nbt);
+                        int filled = storage.fill(output, action);
+                        if (filled > 0) {
+                            if (simulate) {
+                                visiteds[tank] = new SimpleStack<>(output, filled);
+                            }
+                            changed = true;
+                            ingredient.shrink(filled);
+                            if (ingredient.amount <= 0) {
+                                it.remove();
+                                break;
+                            }
+                        }
+                    }
                 }
             }
-            // Modify ingredient if we didn't finish it off
-            if (amount > 0) {
-                ingredient.setAmount(amount);
+        }
+        if (listeners != null) {
+            for (int i = 0; i < length; i++) {
+                storages[i].setOnContentsChangedAndfreeze(listeners[i]);
+                if (changed) listeners[i].run();
             }
         }
         return left.isEmpty() ? null : left;

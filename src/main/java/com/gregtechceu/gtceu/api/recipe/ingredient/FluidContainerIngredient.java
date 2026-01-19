@@ -44,7 +44,7 @@ public class FluidContainerIngredient extends Ingredient {
     }
 
     public FluidContainerIngredient(Fluid fluid, int amount) {
-        this(FluidIngredient.of(amount, fluid));
+        this(FluidIngredient.of(fluid, amount));
     }
 
     private ItemStack[] cachedStacks;

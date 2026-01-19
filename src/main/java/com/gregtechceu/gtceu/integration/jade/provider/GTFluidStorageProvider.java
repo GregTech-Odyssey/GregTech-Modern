@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.common.machine.storage.CreativeTankMachine;
 import com.gregtechceu.gtceu.common.machine.storage.QuantumTankMachine;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -68,7 +69,7 @@ public enum GTFluidStorageProvider implements IServerExtensionProvider<MetaMachi
         long capacity = tag.getLong("capacity");
         if (capacity <= 0) return null;
 
-        Fluid fluid = BuiltInRegistries.FLUID.get(new ResourceLocation(tag.getString("fluid")));
+        Fluid fluid = BuiltInRegistries.FLUID.get(GTUtil.getResourceLocation(tag.getString("fluid")));
         CompoundTag nbt = tag.contains("tag") ? tag.getCompound("tag") : null;
         long amount = tag.getLong("amount");
         JadeFluidObject fluidObject = JadeFluidObject.of(fluid, 1000, nbt);

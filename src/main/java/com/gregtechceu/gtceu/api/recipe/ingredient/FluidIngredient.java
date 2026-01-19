@@ -3,179 +3,261 @@ package com.gregtechceu.gtceu.api.recipe.ingredient;
 import com.gregtechceu.gtceu.utils.GTMath;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.common.crafting.CraftingHelper;
 import net.minecraftforge.fluids.FluidStack;
 
-import com.google.common.collect.Lists;
+import appeng.api.stacks.AEFluidKey;
 import com.google.gson.*;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
-public class FluidIngredient implements Predicate<FluidStack> {
+public final class FluidIngredient implements Predicate<FluidStack> {
 
     public static Codec<FluidIngredient> CODEC = Codec.PASSTHROUGH.xmap(dynamic -> FluidIngredient.fromJson(dynamic.convert(JsonOps.INSTANCE).getValue()), ingredient -> new Dynamic<>(JsonOps.INSTANCE, ingredient.toJson()));
-    public static FluidIngredient EMPTY = new FluidIngredient(new Value[0], 0, null);
-    public FluidIngredient.Value[] values;
-    @Nullable
-    public FluidStack[] stacks;
-    public long amount;
-    @Getter
-    public CompoundTag nbt;
-    public boolean changed = true;
+    public static FluidIngredient EMPTY = new FluidIngredient(null, 0, null);
 
-    protected FluidIngredient(Value[] values, long amount, @Nullable CompoundTag nbt) {
-        this.values = values;
+    public static final FluidStack[] EMPTY_STACKS = new FluidStack[0];
+
+    public final Object value;
+    public final CompoundTag nbt;
+
+    public long amount;
+
+    private FluidStack[] stacks;
+    private boolean changed = true;
+
+    private int hashCode;
+
+    private FluidIngredient(Object value, long amount, @Nullable CompoundTag nbt) {
+        this.value = value;
         this.amount = amount;
         this.nbt = nbt;
     }
 
-    public static FluidIngredient fromValues(Stream<? extends FluidIngredient.Value> stream, int amount, @Nullable CompoundTag nbt) {
-        FluidIngredient ingredient = new FluidIngredient(stream.toArray(Value[]::new), amount, nbt);
-        return ingredient.isEmpty() ? EMPTY : ingredient;
+    private FluidIngredient(FluidIngredient ingredient, long amount) {
+        this.amount = amount;
+        this.value = ingredient.value;
+        this.nbt = ingredient.nbt;
+        this.stacks = ingredient.stacks;
+        this.hashCode = ingredient.hashCode;
+    }
+
+    private FluidIngredient(FluidIngredient ingredient) {
+        this.amount = ingredient.amount;
+        this.value = ingredient.value;
+        this.nbt = ingredient.nbt;
+        this.stacks = ingredient.stacks;
+        this.changed = ingredient.changed;
+        this.hashCode = ingredient.hashCode;
     }
 
     public int getAmount() {
-        return (int) amount;
+        if (amount > 2147483647L) {
+            return Integer.MAX_VALUE;
+        } else {
+            return (int) amount;
+        }
     }
 
     public void toNetwork(FriendlyByteBuf buffer) {
-        buffer.writeCollection(Arrays.asList(this.getStacks()), (buf, stack) -> stack.writeToPacket(buf));
+        switch (value) {
+            case null -> {
+                buffer.writeByte(0);
+                return;
+            }
+            case Fluid fluid -> {
+                buffer.writeByte(1);
+                buffer.writeInt(BuiltInRegistries.FLUID.getId(fluid));
+            }
+            case TagKey<?> tagKey -> {
+                buffer.writeByte(2);
+                buffer.writeResourceLocation(tagKey.location());
+            }
+            default -> throw new IllegalStateException("Unknown fluid ingredient type");
+        }
         buffer.writeLong(amount);
         buffer.writeNbt(nbt);
     }
 
+    public static FluidIngredient fromNetwork(FriendlyByteBuf buffer) {
+        return switch (buffer.readByte()) {
+            case 0 -> EMPTY;
+            case 1 -> new FluidIngredient(BuiltInRegistries.FLUID.byId(buffer.readInt()), buffer.readLong(), buffer.readNbt());
+            case 2 -> new FluidIngredient(TagKey.create(Registries.FLUID, buffer.readResourceLocation()), buffer.readLong(), buffer.readNbt());
+            default -> throw new IllegalStateException("Unknown fluid ingredient type");
+        };
+    }
+
+    public CompoundTag toNbt() {
+        var tag = new CompoundTag();
+        switch (value) {
+            case null -> {
+                tag.putBoolean("empty", true);
+                return tag;
+            }
+            case Fluid fluid -> tag.putString("fluid", GTUtil.FLUID_ID.apply(fluid).toString());
+            case TagKey<?> tagKey -> tag.putString("tag", tagKey.location().toString());
+            default -> throw new IllegalStateException("Unknown fluid ingredient type");
+        }
+        tag.putLong("amount", amount);
+        if (nbt != null) tag.put("nbt", nbt);
+        return tag;
+    }
+
+    public static FluidIngredient fromNbt(CompoundTag tag) {
+        if (tag.getBoolean("empty")) return EMPTY;
+        var amount = tag.getLong("amount");
+        var nbt = tag.tags.get("nbt") instanceof CompoundTag nbtTag ? nbtTag : null;
+        if (tag.tags.get("fluid") instanceof StringTag stringTag) {
+            return new FluidIngredient(GTUtil.FLUID_VALUE.apply(GTUtil.getResourceLocation(stringTag.getAsString())), amount, nbt);
+        } else if (tag.tags.get("tag") instanceof StringTag stringTag) {
+            return new FluidIngredient(TagKey.create(Registries.FLUID, GTUtil.getResourceLocation(stringTag.getAsString())), amount, nbt);
+        } else {
+            throw new IllegalStateException("Unknown fluid ingredient type");
+        }
+    }
+
     public JsonElement toJson() {
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("amount", this.amount);
-        if (this.nbt != null) {
-            jsonObject.addProperty("nbt", this.nbt.getAsString());
+        switch (value) {
+            case null -> {
+                jsonObject.addProperty("empty", true);
+                return jsonObject;
+            }
+            case Fluid fluid -> jsonObject.addProperty("fluid", GTUtil.FLUID_ID.apply(fluid).toString());
+            case TagKey<?> tagKey -> jsonObject.addProperty("tag", tagKey.location().toString());
+            default -> throw new IllegalStateException("Unknown fluid ingredient type");
         }
-        if (this.values.length == 1) {
-            jsonObject.add("value", this.values[0].serialize());
-        }
-        JsonArray jsonArray = new JsonArray();
-        for (FluidIngredient.Value value : this.values) {
-            jsonArray.add(value.serialize());
-        }
-        jsonObject.add("value", jsonArray);
+        jsonObject.addProperty("amount", amount);
+        if (nbt != null) jsonObject.addProperty("nbt", nbt.getAsString());
         return jsonObject;
     }
 
+    public static FluidIngredient fromJson(JsonElement json) {
+        if (json == null || json.isJsonNull()) throw new JsonSyntaxException("Fluid ingredient cannot be null");
+        var jsonObject = json.getAsJsonObject();
+        if (jsonObject.has("empty")) return EMPTY;
+        var amount = jsonObject.get("amount").getAsLong();
+        var nbt = jsonObject.has("nbt") ? CraftingHelper.getNBT(jsonObject.get("nbt")) : null;
+        if (jsonObject.has("fluid")) {
+            return new FluidIngredient(GTUtil.FLUID_VALUE.apply(GTUtil.getResourceLocation(jsonObject.get("fluid").getAsString())), amount, nbt);
+        } else if (jsonObject.has("tag")) {
+            return new FluidIngredient(TagKey.create(Registries.FLUID, GTUtil.getResourceLocation(jsonObject.get("tag").getAsString())), amount, nbt);
+        }
+        throw new JsonSyntaxException("Unknown fluid ingredient type");
+    }
+
+    public FluidIngredient copy(long amount) {
+        return new FluidIngredient(this, amount);
+    }
+
     public FluidIngredient copy() {
-        return new FluidIngredient(values, this.amount, this.nbt == null ? null : this.nbt.copy());
+        return new FluidIngredient(this);
+    }
+
+    public FluidIngredient depthCopy() {
+        return new FluidIngredient(value, amount, nbt == null ? null : nbt.copy());
+    }
+
+    public boolean testFluid(@NotNull Fluid fluid) {
+        if (value == null) return fluid == Fluids.EMPTY;
+        return ((Value) value).gtceu$testFluid(fluid);
+    }
+
+    public boolean testAeKay(@NotNull AEFluidKey key) {
+        Fluid fluid = key.getFluid();
+        if (value == null) return fluid == Fluids.EMPTY;
+        if (!((Value) value).gtceu$testFluid(fluid)) return false;
+        return nbt == null || nbt.equals(key.getTag());
     }
 
     @Override
     public boolean test(@Nullable FluidStack stack) {
-        if (stack == null) {
-            return false;
-        }
-        if (this.isEmpty()) {
-            return stack.isEmpty();
-        }
-        if (this.nbt != null && !this.nbt.equals(stack.getTag())) {
-            return false;
-        }
-        for (FluidStack fluidStack : this.getStacks()) {
-            if (fluidStack.getFluid() != stack.getFluid()) continue;
-            return true;
-        }
-        return false;
+        if (stack == null) return false;
+        if (value == null) return stack.isEmpty();
+        if (!((Value) value).gtceu$testFluid(stack.getFluid())) return false;
+        return this.nbt == null || this.nbt.equals(stack.getTag());
     }
 
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof FluidIngredient other)) {
-            return false;
+        if (obj instanceof FluidIngredient other) {
+            return this.value == other.value && Objects.equals(this.nbt, other.nbt);
         }
-        if (!Objects.equals(this.nbt, other.nbt)) return false;
-        if (this.values.length != other.values.length) return false;
-        Value[] myValues = this.values.clone();
-        Value[] otherValues = other.values.clone();
-        Arrays.parallelSort(myValues, VALUE_COMPARATOR);
-        Arrays.parallelSort(otherValues, VALUE_COMPARATOR);
-        for (Value value1 : myValues) {
-            for (Value value2 : otherValues) {
-                if (value1 instanceof TagValue first) {
-                    if (!(value2 instanceof TagValue second)) {
-                        return false;
-                    }
-                    if (first.tag != second.tag) {
-                        return false;
-                    }
-                } else if (value1 instanceof FluidValue first) {
-                    if (!(value2 instanceof FluidValue second)) {
-                        return false;
-                    }
-                    if (first.fluid != second.fluid) {
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
+        return false;
     }
 
     @Override
     public int hashCode() {
-        int result = Arrays.hashCode(values);
-        result = 31 * result + Long.hashCode(amount);
-        result = 31 * result + Objects.hashCode(nbt);
-        return result;
+        if (hashCode == 0) hashCode = Objects.hashCode(value) + 31 * Objects.hashCode(nbt);
+        return hashCode;
     }
 
     public boolean isEmpty() {
-        return this.values.length == 0;
+        return value == null;
     }
 
+    @Nullable
+    public Fluid getFluid() {
+        if (value instanceof Fluid fluid) return fluid;
+        return null;
+    }
+
+    public FluidStack[] getLatestStacks() {
+        if (changed) this.stacks = null;
+        return getStacks();
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public FluidStack[] getStacks() {
-        if (changed || this.stacks == null) {
-            List<FluidStack> fluidStacks = new ObjectArrayList<>(1);
-            List<Fluid> found = new ObjectArrayList<>(1);
-            for (Value value : this.values) {
-                for (Fluid fluid : value.getFluids()) {
-                    if (found.contains(fluid)) continue;
-                    found.add(fluid);
-                    fluidStacks.add(new FluidStack(fluid, GTMath.saturatedCast(amount), this.nbt));
+        if (this.stacks == null) {
+            switch (value) {
+                case null -> this.stacks = EMPTY_STACKS;
+                case Fluid fluid -> this.stacks = new FluidStack[] { new FluidStack(fluid, GTMath.saturatedCast(amount)) };
+                case TagKey tagKey -> {
+                    Optional<HolderSet.Named<Fluid>> optional = BuiltInRegistries.FLUID.getTag(tagKey);
+                    if (optional.isPresent()) {
+                        var fluids = optional.get();
+                        var size = fluids.size();
+                        var stacks = new FluidStack[size];
+                        for (int i = 0; i < size; i++) {
+                            stacks[i] = new FluidStack(fluids.get(i).value(), GTMath.saturatedCast(amount));
+                        }
+                        this.stacks = stacks;
+                    } else {
+                        this.stacks = EMPTY_STACKS;
+                    }
                 }
+                default -> throw new IllegalStateException("Unknown fluid ingredient type");
             }
-            this.stacks = fluidStacks.toArray(FluidStack[]::new);
             this.changed = false;
         }
         return this.stacks;
     }
 
-    public void setAmount(long amount) {
-        this.amount = amount;
+    public void changeAmount(long amount) {
+        this.amount -= amount;
         this.changed = true;
     }
 
-    public void shrink(int amount) {
-        setAmount(this.amount - amount);
-    }
-
-    public void setNbt(CompoundTag nbt) {
-        this.nbt = nbt;
+    public void shrink(long amount) {
+        this.amount -= amount;
         this.changed = true;
     }
 
@@ -183,160 +265,33 @@ public class FluidIngredient implements Predicate<FluidStack> {
         return EMPTY;
     }
 
-    public static FluidIngredient of(int amount, Fluid... items) {
-        return FluidIngredient.of(Arrays.stream(items), amount, null);
+    public static FluidIngredient of(Fluid fluid, long amount) {
+        return fromValues(fluid, amount, null);
     }
 
-    public static FluidIngredient of(FluidStack... stacks) {
-        return FluidIngredient.of(Arrays.stream(stacks).map(FluidStack::getFluid), stacks.length == 0 ? 0 : stacks[0].getAmount(), stacks.length == 0 ? null : stacks[0].getTag());
+    public static FluidIngredient of(Fluid fluid, long amount, CompoundTag nbt) {
+        return fromValues(fluid, amount, nbt);
     }
 
-    public static FluidIngredient of(Stream<Fluid> stacks, int amount, CompoundTag nbt) {
-        return FluidIngredient.fromValues(stacks.filter(stack -> stack != null && !stack.isSame(Fluids.EMPTY)).map(FluidValue::new), amount, nbt);
+    public static FluidIngredient of(FluidStack stack) {
+        return fromValues(stack.getFluid(), stack.getAmount(), stack.getTag());
     }
 
-    /**
-     * {@return a new ingredient which accepts items which are in the given tag}
-     *
-     * @param tag the tag key
-     */
-    public static FluidIngredient of(TagKey<Fluid> tag, int amount) {
-        return FluidIngredient.fromValues(Stream.of(new FluidIngredient.TagValue(tag)), amount, null);
+    public static FluidIngredient of(TagKey<Fluid> tag, long amount) {
+        return fromValues(tag, amount, null);
     }
 
-    public static FluidIngredient of(TagKey<Fluid> tag, int amount, CompoundTag nbt) {
-        return FluidIngredient.fromValues(Stream.of(new FluidIngredient.TagValue(tag)), amount, nbt);
+    public static FluidIngredient of(TagKey<Fluid> tag, long amount, CompoundTag nbt) {
+        return fromValues(tag, amount, nbt);
     }
 
-    public static FluidIngredient fromNetwork(FriendlyByteBuf buffer) {
-        return FluidIngredient.fromValues(buffer.readList(FluidStack::readFromPacket).stream().map(stack -> new FluidValue(stack.getFluid())), buffer.readVarInt(), buffer.readNbt());
-    }
-
-    public static FluidIngredient fromJson(@Nullable JsonElement json) {
-        return FluidIngredient.fromJson(json, true);
-    }
-
-    public static FluidIngredient fromJson(@Nullable JsonElement json, boolean allowAir) {
-        if (json == null || json.isJsonNull()) {
-            throw new JsonSyntaxException("Fluid ingredient cannot be null");
-        }
-        if (!json.isJsonObject()) {
-            throw new JsonSyntaxException("Expected fluid ingredient to be object");
-        }
-        JsonObject jsonObject = GsonHelper.convertToJsonObject(json, "ingredient");
-        int amount = GsonHelper.getAsInt(jsonObject, "amount", 0);
-        CompoundTag nbt = jsonObject.has("nbt") ? CraftingHelper.getNBT(jsonObject.get("nbt")) : null;
-        if (GsonHelper.isObjectNode(jsonObject, "value")) {
-            return FluidIngredient.fromValues(Stream.of(FluidIngredient.valueFromJson(GsonHelper.getAsJsonObject(jsonObject, "value"))), amount, nbt);
-        } else if (GsonHelper.isArrayNode(jsonObject, "value")) {
-            JsonArray jsonArray = GsonHelper.getAsJsonArray(jsonObject, "value");
-            if (jsonArray.isEmpty() && !allowAir) {
-                throw new JsonSyntaxException("Fluid array cannot be empty, at least one item must be defined");
-            }
-            return FluidIngredient.fromValues(StreamSupport.stream(jsonArray.spliterator(), false).map(jsonElement -> FluidIngredient.valueFromJson(GsonHelper.convertToJsonObject(jsonElement, "fluid"))), amount, nbt);
-        }
-        throw new JsonSyntaxException("expected value to be either object or array.");
-    }
-
-    private static FluidIngredient.Value valueFromJson(JsonObject json) {
-        if (json.has("fluid") && json.has("tag")) {
-            throw new JsonParseException("A fluid ingredient entry is either a tag or a fluid, not both");
-        }
-        if (json.has("fluid")) {
-            Fluid fluid = BuiltInRegistries.FLUID.get(new ResourceLocation(GsonHelper.getAsString(json, "fluid")));
-            return new FluidIngredient.FluidValue(fluid);
-        }
-        if (json.has("tag")) {
-            ResourceLocation resourceLocation = new ResourceLocation(GsonHelper.getAsString(json, "tag"));
-            TagKey<Fluid> tagKey = TagKey.create(Registries.FLUID, resourceLocation);
-            return new FluidIngredient.TagValue(tagKey);
-        }
-        throw new JsonParseException("A fluid ingredient entry needs either a tag or a fluid");
+    private static FluidIngredient fromValues(@Nullable Object value, long amount, @Nullable CompoundTag nbt) {
+        if (value == null) return EMPTY;
+        return new FluidIngredient(value, amount, nbt);
     }
 
     public interface Value {
 
-        Collection<Fluid> getFluids();
-
-        JsonObject serialize();
+        boolean gtceu$testFluid(Object o);
     }
-
-    @Getter
-    public static class TagValue implements Value {
-
-        private final TagKey<Fluid> tag;
-
-        public TagValue(TagKey<Fluid> tag) {
-            this.tag = tag;
-        }
-
-        @Override
-        public Collection<Fluid> getFluids() {
-            ArrayList<Fluid> list = Lists.newArrayList();
-            for (Holder<Fluid> holder : BuiltInRegistries.FLUID.getTagOrEmpty(this.tag)) {
-                list.add(holder.value());
-            }
-            return list;
-        }
-
-        @Override
-        public JsonObject serialize() {
-            JsonObject jsonObject = new JsonObject();
-            jsonObject.addProperty("tag", this.tag.location().toString());
-            return jsonObject;
-        }
-
-        @Override
-        public int hashCode() {
-            return tag.hashCode();
-        }
-    }
-
-    public static class FluidValue implements Value {
-
-        public final Fluid fluid;
-
-        public FluidValue(Fluid item) {
-            this.fluid = item;
-        }
-
-        @Override
-        public Collection<Fluid> getFluids() {
-            return Collections.singleton(this.fluid);
-        }
-
-        @Override
-        public JsonObject serialize() {
-            JsonObject jsonObject = new JsonObject();
-            jsonObject.addProperty("fluid", GTUtil.FLUID_ID.apply(this.fluid).toString());
-            return jsonObject;
-        }
-
-        @Override
-        public int hashCode() {
-            return fluid.hashCode();
-        }
-    }
-
-    public static final Comparator<Fluid> FLUID_COMPARATOR = Comparator.comparing(BuiltInRegistries.FLUID::getKey);
-    public static final Comparator<FluidIngredient.Value> VALUE_COMPARATOR = new Comparator<>() {
-
-        @Override
-        public int compare(FluidIngredient.Value value1, FluidIngredient.Value value2) {
-            if (value1 instanceof FluidIngredient.TagValue first) {
-                if (!(value2 instanceof FluidIngredient.TagValue second)) {
-                    return 1;
-                }
-                if (first.getTag() != second.getTag()) {
-                    return 1;
-                }
-            } else if (value1 instanceof FluidIngredient.FluidValue first) {
-                if (!(value2 instanceof FluidIngredient.FluidValue second)) {
-                    return 1;
-                }
-                return FLUID_COMPARATOR.compare(first.fluid, second.fluid);
-            }
-            return 0;
-        }
-    };
 }

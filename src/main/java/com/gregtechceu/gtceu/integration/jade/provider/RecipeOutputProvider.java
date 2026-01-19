@@ -83,7 +83,8 @@ public class RecipeOutputProvider extends CapabilityBlockProvider<RecipeLogic> {
 
                 ListTag fluidTags = new ListTag();
                 for (var fluid : fluidContents) {
-                    var stacks = FluidRecipeCapability.CAP.of(fluid.content).getStacks();
+                    var ingredient = FluidRecipeCapability.CAP.of(fluid.content);
+                    var stacks = ingredient.getStacks();
                     if (stacks.length == 0) continue;
                     if (stacks[0].isEmpty()) continue;
                     var stack = stacks[0];
@@ -91,7 +92,7 @@ public class RecipeOutputProvider extends CapabilityBlockProvider<RecipeLogic> {
                     var fluidTag = new CompoundTag();
                     stack.writeToNBT(fluidTag);
                     if (fluid.chance < Content.MAX_CHANCE) {
-                        int amount = stack.getAmount();
+                        int amount = ingredient.getAmount();
                         double amountD = (double) amount * recipe.parallels *
                                 function.getBoostedChance(fluid, recipeTier, chanceTier) / Content.MAX_CHANCE;
                         amount = amountD < 1 ? 1 : (int) Math.round(amountD);

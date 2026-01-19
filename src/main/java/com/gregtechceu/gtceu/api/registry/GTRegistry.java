@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.registry;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.StringTag;
@@ -252,7 +253,7 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
 
         @Override
         public V loadFromNBT(Tag tag) {
-            return get(new ResourceLocation(tag.getAsString()));
+            return get(GTUtil.getResourceLocation(tag.getAsString()));
         }
 
         @Override

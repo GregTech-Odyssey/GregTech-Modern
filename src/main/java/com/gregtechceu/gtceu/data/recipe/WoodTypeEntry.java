@@ -5,9 +5,9 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.data.tag.TagUtil;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.common.Tags;
@@ -688,7 +688,7 @@ public final class WoodTypeEntry {
             // add default tag if logTag is null
             if (logTag == null)
                 logTag = TagUtil.optionalTag(BuiltInRegistries.ITEM,
-                        new ResourceLocation(modid, woodName + "_logs"));
+                        GTUtil.getResourceLocation(modid, woodName + "_logs"));
 
             return new WoodTypeEntry(modid, woodName, logTag, log, strippedLog, wood, strippedWood,
                     removeCharcoalRecipe, addCharcoalRecipe,

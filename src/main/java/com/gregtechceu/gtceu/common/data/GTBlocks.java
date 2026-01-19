@@ -24,6 +24,7 @@ import com.gregtechceu.gtceu.common.pipelike.laser.LaserPipeType;
 import com.gregtechceu.gtceu.common.pipelike.optical.OpticalPipeType;
 import com.gregtechceu.gtceu.core.mixins.BlockPropertiesAccessor;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
+import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
 
 import net.minecraft.advancements.critereon.StatePropertiesPredicate;
@@ -637,8 +638,8 @@ public class GTBlocks {
             .tag(BlockTags.MINEABLE_WITH_AXE)
             .blockstate((ctx, prov) -> prov.simpleBlock(ctx.get(), prov.models().cubeBottomTop(ctx.getName(),
                     GTCEu.id("block/misc/industrial_tnt_side"),
-                    new ResourceLocation("minecraft", "block/tnt_bottom"),
-                    new ResourceLocation("minecraft", "block/tnt_top"))))
+                    GTUtil.getResourceLocation("minecraft", "block/tnt_bottom"),
+                    GTUtil.getResourceLocation("minecraft", "block/tnt_top"))))
             .simpleItem()
             .register();
 
@@ -1164,7 +1165,7 @@ public class GTBlocks {
             if (!strata.generateBlocks) continue;
             for (StoneBlockType type : StoneBlockType.values()) {
                 String blockId = type.blockId.formatted(strata.getSerializedName());
-                if (BuiltInRegistries.BLOCK.containsKey(new ResourceLocation(blockId))) continue;
+                if (BuiltInRegistries.BLOCK.containsKey(GTUtil.getResourceLocation(blockId))) continue;
                 var entry = REGISTRATE.block(blockId, Block::new)
                         .initialProperties(() -> Blocks.STONE)
                         .properties(p -> p.strength(type.hardness, type.resistance).mapColor(strata.mapColor))

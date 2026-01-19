@@ -31,8 +31,7 @@ public class SteamEnergyRecipeHandler implements IRecipeHandler<Long> {
         long eut = left.stream().reduce(0L, Long::sum);
         int totalSteam = GTMath.saturatedCast((long) Math.ceil(eut * conversionRate));
         if (totalSteam > 0) {
-            var steam = io == IO.IN ? FluidIngredient.of(totalSteam, GTMaterials.Steam.getFluid()) :
-                    FluidIngredient.of(GTMaterials.Steam.getFluid(totalSteam));
+            var steam = FluidIngredient.of(GTMaterials.Steam.getFluid(), totalSteam);
             var list = new ArrayList<FluidIngredient>();
             list.add(steam);
             var leftSteam = steamTank.handleRecipeInner(io, recipe, list, simulate);

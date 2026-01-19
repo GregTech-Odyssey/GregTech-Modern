@@ -68,7 +68,7 @@ public class ShapelessRecipeBuilder {
 
     public ResourceLocation getId() {
         var ID = id == null ? defaultId() : id;
-        return new ResourceLocation(ID.getNamespace(), "shapeless" + "/" + ID.getPath());
+        return GTUtil.getResourceLocation(ID.getNamespace(), "shapeless" + "/" + ID.getPath());
     }
 
     public void save() {

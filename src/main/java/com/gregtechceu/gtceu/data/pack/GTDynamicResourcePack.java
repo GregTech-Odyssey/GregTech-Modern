@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.client.renderer.item.TagPrefixItemRenderer;
 import com.gregtechceu.gtceu.client.renderer.item.ToolItemRenderer;
 import com.gregtechceu.gtceu.common.data.GTModels;
 import com.gregtechceu.gtceu.utils.Event;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.SharedConstants;
@@ -149,15 +150,15 @@ public class GTDynamicResourcePack implements PackResources {
     }
 
     public static ResourceLocation getBlockStateLocation(ResourceLocation blockId) {
-        return new ResourceLocation(blockId.getNamespace(),
+        return GTUtil.getResourceLocation(blockId.getNamespace(),
                 String.join("", "blockstates/", blockId.getPath(), ".json"));
     }
 
     public static ResourceLocation getModelLocation(ResourceLocation blockId) {
-        return new ResourceLocation(blockId.getNamespace(), String.join("", "models/", blockId.getPath(), ".json"));
+        return GTUtil.getResourceLocation(blockId.getNamespace(), String.join("", "models/", blockId.getPath(), ".json"));
     }
 
     public static ResourceLocation getItemModelLocation(ResourceLocation itemId) {
-        return new ResourceLocation(itemId.getNamespace(), String.join("", "models/item/", itemId.getPath(), ".json"));
+        return GTUtil.getResourceLocation(itemId.getNamespace(), String.join("", "models/item/", itemId.getPath(), ".json"));
     }
 }

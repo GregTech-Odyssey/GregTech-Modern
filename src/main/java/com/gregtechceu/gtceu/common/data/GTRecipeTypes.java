@@ -37,7 +37,6 @@ import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
@@ -226,14 +225,14 @@ public class GTRecipeTypes {
                         recipeBuilder.tickInput.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList())
                                 .isEmpty()) {
                     recipeBuilder
-                            .copy(new ResourceLocation(recipeBuilder.id.toString() + "_water"))
+                            .copy(GTUtil.getResourceLocation(recipeBuilder.id.toString() + "_water"))
                             .inputFluids(GTMaterials.Water.getFluid((int) Math.max(4,
                                     Math.min(1000, recipeBuilder.duration * recipeBuilder.EUt() / 320))))
                             .duration(recipeBuilder.duration * 2)
                             .save();
 
                     recipeBuilder
-                            .copy(new ResourceLocation(recipeBuilder.id.toString() + "_distilled_water"))
+                            .copy(GTUtil.getResourceLocation(recipeBuilder.id.toString() + "_distilled_water"))
                             .inputFluids(GTMaterials.DistilledWater.getFluid((int) Math.max(3,
                                     Math.min(750, recipeBuilder.duration * recipeBuilder.EUt() / 426))))
                             .duration((int) (recipeBuilder.duration * 1.5))
@@ -392,7 +391,7 @@ public class GTRecipeTypes {
                 if (recipeBuilder.input.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList()).isEmpty() &&
                         recipeBuilder.tickInput.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList())
                                 .isEmpty()) {
-                    recipeBuilder.copy(new ResourceLocation(recipeBuilder.id.toString() + "_soldering_alloy"))
+                    recipeBuilder.copy(GTUtil.getResourceLocation(recipeBuilder.id.toString() + "_soldering_alloy"))
                             .inputFluids(GTMaterials.SolderingAlloy
                                     .getFluid(Math.max(1, (GTValues.L / 2) * recipeBuilder.getSolderMultiplier())))
                             .save();
@@ -571,10 +570,10 @@ public class GTRecipeTypes {
                         boolean fluidsDivisible = RecipeUtil.isFluidStackDivisibleForDistillery(input, ratio) &&
                                 RecipeUtil.isFluidStackDivisibleForDistillery(output, ratio);
 
-                        FluidIngredient dividedInputFluid = input.copy();
-                        dividedInputFluid.setAmount(Math.max(1, dividedInputFluid.getAmount() / ratio));
-                        FluidIngredient dividedOutputFluid = output.copy();
-                        dividedOutputFluid.setAmount(Math.max(1, dividedOutputFluid.getAmount() / ratio));
+                        FluidIngredient dividedInputFluid = input.depthCopy();
+                        dividedInputFluid.changeAmount(Math.max(1, dividedInputFluid.getAmount() / ratio));
+                        FluidIngredient dividedOutputFluid = output.depthCopy();
+                        dividedOutputFluid.changeAmount(Math.max(1, dividedOutputFluid.getAmount() / ratio));
 
                         if (shouldDivide && fluidsDivisible) {
                             builder.chance(inputContent.chance)

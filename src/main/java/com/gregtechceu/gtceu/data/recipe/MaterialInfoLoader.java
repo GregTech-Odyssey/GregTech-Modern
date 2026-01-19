@@ -5,9 +5,9 @@ import com.gregtechceu.gtceu.api.data.chemical.material.stack.ItemMaterialInfo;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -23,10 +23,10 @@ public class MaterialInfoLoader {
         for (DyeColor color : DyeColor.values()) {
             String dye = color.getName();
             ItemMaterialData.registerMaterialInfo(
-                    new ItemStack(BuiltInRegistries.ITEM.get(new ResourceLocation(dye + "_terracotta"))).getItem(),
+                    new ItemStack(BuiltInRegistries.ITEM.get(GTUtil.getResourceLocation(dye + "_terracotta"))).getItem(),
                     new ItemMaterialInfo(new MaterialStack(GTMaterials.Clay, M * 4)));
             ItemMaterialData.registerMaterialInfo(
-                    new ItemStack(BuiltInRegistries.ITEM.get(new ResourceLocation(dye + "_glazed_terracotta")))
+                    new ItemStack(BuiltInRegistries.ITEM.get(GTUtil.getResourceLocation(dye + "_glazed_terracotta")))
                             .getItem(),
                     new ItemMaterialInfo(new MaterialStack(GTMaterials.Clay, M * 4)));
         }

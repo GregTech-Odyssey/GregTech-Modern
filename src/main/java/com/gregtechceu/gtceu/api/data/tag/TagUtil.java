@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.data.tag;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -28,8 +29,8 @@ public class TagUtil {
      * @return optional tag #forge:path or #minecraft:path
      */
     public static <T> TagKey<T> createTag(Registry<T> registry, String path, boolean vanilla) {
-        if (vanilla) return optionalTag(registry, new ResourceLocation("minecraft", path));
-        return optionalTag(registry, new ResourceLocation("forge", path));
+        if (vanilla) return optionalTag(registry, GTUtil.getResourceLocation("minecraft", path));
+        return optionalTag(registry, GTUtil.getResourceLocation("forge", path));
     }
 
     /**
@@ -40,8 +41,8 @@ public class TagUtil {
      */
     public static <T> TagKey<T> createTag(ResourceKey<? extends Registry<T>> registryKey, String path,
                                           boolean vanilla) {
-        if (vanilla) return optionalTag(registryKey, new ResourceLocation("minecraft", path));
-        return optionalTag(registryKey, new ResourceLocation("forge", path));
+        if (vanilla) return optionalTag(registryKey, GTUtil.getResourceLocation("minecraft", path));
+        return optionalTag(registryKey, GTUtil.getResourceLocation("forge", path));
     }
 
     /**

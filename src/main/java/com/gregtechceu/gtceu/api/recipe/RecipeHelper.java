@@ -101,7 +101,7 @@ public class RecipeHelper {
     public static List<FluidStack> getInputFluids(GTRecipe recipe) {
         return recipe.getInputContents(FluidRecipeCapability.CAP).stream()
                 .map(content -> FluidRecipeCapability.CAP.of(content.getContent()))
-                .map(ingredient -> ingredient.getStacks()[0])
+                .map(ingredient -> ingredient.getLatestStacks()[0])
                 .collect(Collectors.toList());
     }
 
@@ -140,7 +140,7 @@ public class RecipeHelper {
     public static List<FluidStack> getOutputFluids(GTRecipe recipe) {
         return recipe.getOutputContents(FluidRecipeCapability.CAP).stream()
                 .map(content -> FluidRecipeCapability.CAP.of(content.getContent()))
-                .map(ingredient -> ingredient.getStacks()[0])
+                .map(ingredient -> ingredient.getLatestStacks()[0])
                 .collect(Collectors.toList());
     }
 
@@ -153,7 +153,7 @@ public class RecipeHelper {
     public static List<FluidStack> getOutputFluids(GTRecipeBuilder builder) {
         return builder.output.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList()).stream()
                 .map(content -> FluidRecipeCapability.CAP.of(content.getContent()))
-                .map(ingredient -> ingredient.getStacks()[0])
+                .map(ingredient -> ingredient.getLatestStacks()[0])
                 .collect(Collectors.toList());
     }
 

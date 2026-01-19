@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.api.recipe.content;
 
+import net.minecraft.nbt.LongTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 
 import com.google.gson.JsonElement;
@@ -31,6 +33,16 @@ public class SerializerLong implements IContentSerializer<Long> {
     @Override
     public JsonElement toJson(Long content) {
         return new JsonPrimitive(content);
+    }
+
+    @Override
+    public Tag toNbt(Long content) {
+        return LongTag.valueOf(content);
+    }
+
+    @Override
+    public Long fromNbt(Tag tag) {
+        return ((LongTag) tag).getAsLong();
     }
 
     @Override

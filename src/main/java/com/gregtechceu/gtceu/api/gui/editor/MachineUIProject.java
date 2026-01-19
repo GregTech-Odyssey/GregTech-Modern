@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.gui.editor;
 
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.LDLib;
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
@@ -21,7 +22,6 @@ import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.resources.ResourceLocation;
 
 import com.fast.fastcollection.OpenCacheHashSet;
 import org.jetbrains.annotations.Nullable;
@@ -84,7 +84,7 @@ public class MachineUIProject extends UIProject {
     public void deserializeNBT(CompoundTag tag) {
         super.deserializeNBT(tag);
         if (tag.contains("machine")) {
-            machineDefinition = GTRegistries.MACHINES.get(new ResourceLocation(tag.getString("machine")));
+            machineDefinition = GTRegistries.MACHINES.get(GTUtil.getResourceLocation(tag.getString("machine")));
         }
     }
 

@@ -95,7 +95,7 @@ public class ShapedEnergyTransferRecipeBuilder extends Builder<Ingredient, Shape
     }
 
     public ShapedEnergyTransferRecipeBuilder id(String id) {
-        this.id = new ResourceLocation(id);
+        this.id = GTUtil.getResourceLocation(id);
         return this;
     }
 
@@ -113,7 +113,7 @@ public class ShapedEnergyTransferRecipeBuilder extends Builder<Ingredient, Shape
 
     public ResourceLocation getId() {
         var ID = id == null ? defaultId() : id;
-        return new ResourceLocation(ID.getNamespace(), "shaped" + "/" + ID.getPath());
+        return GTUtil.getResourceLocation(ID.getNamespace(), "shaped" + "/" + ID.getPath());
     }
 
     protected ResourceLocation defaultId() {

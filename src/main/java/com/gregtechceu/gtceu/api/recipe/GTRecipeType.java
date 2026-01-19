@@ -304,10 +304,11 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     }
 
     public void convertItem(ItemStack stack, long amount, IntLongMap map) {
-        map.add(stack.getItem().hashCode(), amount);
-        stack.getItem().builtInRegistryHolder().tags.forEach(t -> map.add(t.hashCode(), amount));
+        var item = stack.getItem();
+        map.add(item.hashCode(), amount);
+        item.builtInRegistryHolder().tags.forEach(t -> map.add(t.hashCode(), amount));
         var nbt = stack.getTag();
-        if (nbt != null && stack.getItem() == IntCircuitIngredient.PROGRAMMED_CIRCUIT) {
+        if (nbt != null && item == IntCircuitIngredient.PROGRAMMED_CIRCUIT) {
             if (nbt.tags.get(IntCircuitIngredient.Configuration) instanceof IntTag intTag) {
                 map.add(intTag.getAsInt(), amount);
             }
@@ -315,7 +316,9 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     }
 
     public void convertFluid(FluidStack stack, long amount, IntLongMap map) {
-        map.add(stack.getFluid().hashCode(), amount);
+        var fluid = stack.getFluid();
+        map.add(fluid.hashCode(), amount);
+        fluid.builtInRegistryHolder().tags.forEach(t -> map.add(t.hashCode(), amount));
     }
 
     public interface ICustomRecipeLogic {

@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.data.worldgen.bedrockore;
 
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -52,7 +53,7 @@ public class OreVeinWorldEntry {
         info.oreYield = tag.getInt("oreYield");
         info.operationsRemaining = tag.getInt("operationsRemaining");
         if (tag.contains("vein")) {
-            ResourceLocation id = new ResourceLocation(tag.getString("vein"));
+            ResourceLocation id = GTUtil.getResourceLocation(tag.getString("vein"));
             if (GTRegistries.BEDROCK_ORE_DEFINITIONS.containKey(id)) {
                 info.definition = GTRegistries.BEDROCK_ORE_DEFINITIONS.get(id);
             }

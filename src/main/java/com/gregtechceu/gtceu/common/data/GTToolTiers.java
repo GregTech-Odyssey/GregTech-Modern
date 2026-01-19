@@ -4,8 +4,8 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.common.ForgeTier;
@@ -20,7 +20,7 @@ public class GTToolTiers {
     private static Tier NEUTRONIUM;
 
     public static void init() {
-        var netherite = new ResourceLocation("netherite");
+        var netherite = GTUtil.getResourceLocation("netherite");
         var duranium = GTCEu.id("duranium");
         var neutronium = GTCEu.id("neutronium");
         DURANIUM = TierSortingRegistry.registerTier(

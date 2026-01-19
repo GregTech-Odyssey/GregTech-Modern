@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.client.renderer.cover;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.client.util.StaticFaceBakery;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.client.model.ModelFactory;
 import com.lowdragmc.lowdraglib.utils.ResourceHelper;
@@ -40,7 +41,7 @@ public class SimpleCoverRenderer implements ICoverRenderer {
     public void onPrepareTextureAtlas(ResourceLocation atlasName, Consumer<ResourceLocation> register) {
         if (atlasName.equals(TextureAtlas.LOCATION_BLOCKS)) {
             register.accept(texture);
-            emissiveTexture = new ResourceLocation(texture.getNamespace(), texture.getPath() + "_emissive");
+            emissiveTexture = GTUtil.getResourceLocation(texture.getNamespace(), texture.getPath() + "_emissive");
             if (ResourceHelper.isTextureExist(emissiveTexture)) register.accept(emissiveTexture);
             else emissiveTexture = null;
         }

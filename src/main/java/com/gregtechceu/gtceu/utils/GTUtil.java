@@ -65,6 +65,9 @@ public class GTUtil {
     public static Function<Item, ResourceLocation> ITEM_ID = ForgeRegistries.ITEMS::getKey;
     public static Function<Fluid, ResourceLocation> FLUID_ID = ForgeRegistries.FLUIDS::getKey;
 
+    public static Function<ResourceLocation, Item> ITEM_VALUE = ForgeRegistries.ITEMS::getValue;
+    public static Function<ResourceLocation, Fluid> FLUID_VALUE = ForgeRegistries.FLUIDS::getValue;
+
     public static final Map EMPTY_MAP = Map.of();
 
     public static final Runnable NOOP = () -> {};
@@ -97,6 +100,23 @@ public class GTUtil {
             // Skip MapColor.NONE
             MAP_COLORS[i] = MapColor.byId(i + 1);
         }
+    }
+
+    public static ResourceLocation getResourceLocation(String location) {
+        String namespace = "minecraft";
+        String path = location;
+        int i = location.indexOf(':');
+        if (i >= 0) {
+            path = location.substring(i + 1);
+            if (i >= 1) {
+                namespace = location.substring(0, i);
+            }
+        }
+        return new ResourceLocation(namespace, path);
+    }
+
+    public static ResourceLocation getResourceLocation(String namespace, String path) {
+        return new ResourceLocation(namespace, path);
     }
 
     @Nullable
@@ -512,7 +532,7 @@ public class GTUtil {
 
     public static ItemStack loadItemStack(CompoundTag compoundTag) {
         try {
-            Item item = BuiltInRegistries.ITEM.get(new ResourceLocation(compoundTag.getString("id")));
+            Item item = BuiltInRegistries.ITEM.get(GTUtil.getResourceLocation(compoundTag.getString("id")));
             int count = compoundTag.getInt("Count");
             ItemStack stack = new ItemStack(item, count);
             if (compoundTag.contains("tag", Tag.TAG_COMPOUND)) {

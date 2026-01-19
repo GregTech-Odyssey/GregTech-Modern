@@ -25,7 +25,6 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -239,7 +238,7 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
 
     @SuppressWarnings("unused")
     private CoverBehavior deserializeCoverUid(CompoundTag uid) {
-        var definitionId = new ResourceLocation(uid.getString("id"));
+        var definitionId = GTUtil.getResourceLocation(uid.getString("id"));
         var side = GTUtil.DIRECTIONS[uid.getInt("side")];
         var definition = GTRegistries.COVERS.get(definitionId);
         if (definition != null) {

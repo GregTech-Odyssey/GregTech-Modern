@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.data.pack;
 
+import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
 
 import net.minecraft.resources.ResourceLocation;
@@ -61,7 +62,7 @@ public class GTDynamicPackContents {
         void outputResources(String namespace, String path, PackResources.ResourceOutput output) {
             if (isTerminalNode()) {
                 // This is a terminal node.
-                ResourceLocation location = new ResourceLocation(namespace, path);
+                ResourceLocation location = GTUtil.getResourceLocation(namespace, path);
                 output.accept(location, this.createIoSupplier());
             } else {
                 for (var entry : getChildren().entrySet()) {

@@ -2,6 +2,8 @@ package com.gregtechceu.gtceu.api.recipe.content;
 
 import com.gregtechceu.gtceu.api.recipe.ingredient.SizedIngredient;
 
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
@@ -44,18 +46,26 @@ public class SerializerIngredient implements IContentSerializer<Ingredient> {
     }
 
     @Override
+    public Tag toNbt(Ingredient content) {
+        return JsonOps.INSTANCE.convertTo(NbtOps.INSTANCE, this.toJson(content));
+    }
+
+    @Override
+    public Ingredient fromNbt(Tag tag) {
+        var json = NbtOps.INSTANCE.convertTo(JsonOps.INSTANCE, tag);
+        return fromJson(json);
+    }
+
+    @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public Ingredient of(Object o) {
-        if (o instanceof Ingredient ingredient) {
-            return ingredient;
-        } else if (o instanceof ItemStack itemStack) {
-            return SizedIngredient.create(itemStack);
-        } else if (o instanceof ItemLike itemLike) {
-            return Ingredient.of(itemLike);
-        } else if (o instanceof TagKey tag) {
-            return Ingredient.of(tag);
-        }
-        return Ingredient.EMPTY;
+        return switch (o) {
+            case Ingredient ingredient -> ingredient;
+            case ItemStack itemStack -> SizedIngredient.create(itemStack);
+            case ItemLike itemLike -> Ingredient.of(itemLike);
+            case TagKey tag -> Ingredient.of(tag);
+            case null, default -> Ingredient.EMPTY;
+        };
     }
 
     @Override

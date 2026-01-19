@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.data.worldgen.ores.GeneratedVeinMetadata;
 import com.gregtechceu.gtceu.client.util.DrawUtil;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.integration.map.GroupingMapRenderer;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -24,7 +25,7 @@ import xaero.map.graphics.renderer.multitexture.MultiTextureRenderTypeRendererPr
 public class OreVeinElementRenderer extends
                                     MapElementRenderer<OreVeinElement, OreVeinElementContext, OreVeinElementRenderer> {
 
-    protected static final ResourceLocation STONE = new ResourceLocation("block/stone");
+    protected static final ResourceLocation STONE = GTUtil.getResourceLocation("block/stone");
 
     protected OreVeinElementRenderer(OreVeinElementContext context,
                                      MapElementRenderProvider<OreVeinElement, OreVeinElementContext> provider,

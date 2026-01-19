@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
@@ -31,7 +32,7 @@ public class MachineModeProvider implements IBlockComponentProvider, IServerData
             if (blockAccessor.showDetails()) {
                 iTooltip.add(Component.translatable("gtceu.top.machine_mode"));
                 for (int i = 0; i < recipeTypesTagList.size(); i++) {
-                    ResourceLocation recipeType = new ResourceLocation(recipeTypesTagList.getString(i));
+                    ResourceLocation recipeType = GTUtil.getResourceLocation(recipeTypesTagList.getString(i));
                     MutableComponent text;
                     if (currentRecipeTypeIndex == i) {
                         text = Component.literal(" > ").withStyle(ChatFormatting.BLUE);
@@ -43,7 +44,7 @@ public class MachineModeProvider implements IBlockComponentProvider, IServerData
                     iTooltip.add(text);
                 }
             } else {
-                ResourceLocation recipeType = new ResourceLocation(
+                ResourceLocation recipeType = GTUtil.getResourceLocation(
                         recipeTypesTagList.getString(currentRecipeTypeIndex));
                 iTooltip.add(Component.translatable("gtceu.top.machine_mode").append(
                         Component.translatable("%s.%s".formatted(recipeType.getNamespace(), recipeType.getPath()))));

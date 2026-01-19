@@ -69,7 +69,7 @@ public class SmeltingRecipeBuilder {
 
     public ResourceLocation getId() {
         var ID = id == null ? defaultId() : id;
-        return new ResourceLocation(ID.getNamespace(), "smelting" + "/" + ID.getPath());
+        return GTUtil.getResourceLocation(ID.getNamespace(), "smelting" + "/" + ID.getPath());
     }
 
     public void save() {

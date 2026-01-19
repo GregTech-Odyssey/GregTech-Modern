@@ -3,13 +3,13 @@ package com.gregtechceu.gtceu.integration.map.cache.fluid;
 import com.gregtechceu.gtceu.api.gui.misc.ProspectorMode;
 import com.gregtechceu.gtceu.integration.map.GroupingMapRenderer;
 import com.gregtechceu.gtceu.integration.map.layer.builtin.FluidRenderLayer;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
@@ -34,7 +34,7 @@ public class FluidCache {
         for (var fluidTagRaw : fluidList) {
             if (fluidTagRaw instanceof CompoundTag fluidTag) {
                 ResourceKey<Level> dim = ResourceKey.create(Registries.DIMENSION,
-                        new ResourceLocation(fluidTag.getString("dim")));
+                        GTUtil.getResourceLocation(fluidTag.getString("dim")));
                 ChunkPos pos = new ChunkPos(fluidTag.getLong("pos"));
                 var fluid = ProspectorMode.FluidInfo.fromNbt(fluidTag);
                 fluidCache.put(dim, pos, fluid);

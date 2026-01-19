@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.common.commands.arguments;
 
 import com.gregtechceu.gtceu.api.registry.GTRegistry;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.ResourceLocationException;
@@ -52,7 +53,7 @@ public class GTRegistryArgument<K, V> implements ArgumentType<V> {
     public V parse(StringReader reader) throws CommandSyntaxException {
         String id = readId(reader);
         if (ResourceLocation.class.isAssignableFrom(keyClass)) {
-            K loc = (K) new ResourceLocation(id);
+            K loc = (K) GTUtil.getResourceLocation(id);
             if (!registry.containKey(loc)) {
                 throw new SimpleCommandExceptionType(new LiteralMessage("Failed to find object" + id + " in registry"))
                         .createWithContext(reader);

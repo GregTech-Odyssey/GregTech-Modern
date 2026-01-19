@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.capability.IWorkable;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.client.model.WorkableOverlayModel;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -34,7 +35,7 @@ public class WorkableSidedCasingMachineRenderer extends MachineRenderer {
     }
 
     public WorkableSidedCasingMachineRenderer(String basePath, ResourceLocation workableModel, boolean tint) {
-        super(tint ? GTCEu.id("block/cube/tinted/bottom_top") : new ResourceLocation("block/cube_bottom_top"));
+        super(tint ? GTCEu.id("block/cube/tinted/bottom_top") : GTUtil.getResourceLocation("block/cube_bottom_top"));
         setTextureOverride(Map.of(
                 "bottom", GTCEu.id(basePath + "/bottom"),
                 "top", GTCEu.id(basePath + "/top"),

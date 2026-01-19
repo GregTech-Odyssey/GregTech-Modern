@@ -96,6 +96,10 @@ public abstract class RecipeCapability<T> {
         return serializer.of(o);
     }
 
+    public T of(Content content) {
+        return serializer.of(content.content);
+    }
+
     public String slotName(IO io) {
         return "%s_%s".formatted(name, io.name().toLowerCase(Locale.ROOT));
     }

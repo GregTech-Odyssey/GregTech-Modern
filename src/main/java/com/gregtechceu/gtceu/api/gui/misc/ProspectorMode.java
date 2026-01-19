@@ -85,7 +85,7 @@ public abstract class ProspectorMode<T> {
                     return mat.getMaterialRGB();
                 }
             }
-            return BuiltInRegistries.BLOCK.get(new ResourceLocation(item)).defaultMapColor().col;
+            return BuiltInRegistries.BLOCK.get(GTUtil.getResourceLocation(item)).defaultMapColor().col;
         }
 
         @Override
@@ -103,7 +103,7 @@ public abstract class ProspectorMode<T> {
                         return new ItemStackTexture(list.toArray(ItemStack[]::new)).scale(0.8F);
                     }
                 }
-                return new ItemStackTexture(new ItemStack(BuiltInRegistries.BLOCK.get(new ResourceLocation(name)))).scale(0.8F);
+                return new ItemStackTexture(new ItemStack(BuiltInRegistries.BLOCK.get(GTUtil.getResourceLocation(name)))).scale(0.8F);
             });
         }
 
@@ -115,7 +115,7 @@ public abstract class ProspectorMode<T> {
                     return mat.getUnlocalizedName();
                 }
             }
-            return BuiltInRegistries.BLOCK.get(new ResourceLocation(item)).getDescriptionId();
+            return BuiltInRegistries.BLOCK.get(GTUtil.getResourceLocation(item)).getDescriptionId();
         }
 
         @Override
@@ -159,7 +159,7 @@ public abstract class ProspectorMode<T> {
         private int left;
 
         public static FluidInfo fromNbt(CompoundTag tag) {
-            Fluid fluid = BuiltInRegistries.FLUID.get(new ResourceLocation(tag.getString("fluid")));
+            Fluid fluid = BuiltInRegistries.FLUID.get(GTUtil.getResourceLocation(tag.getString("fluid")));
             int left = tag.getInt("left");
             int yield = tag.getInt("yield");
             return new FluidInfo(fluid, yield, left);

@@ -14,9 +14,9 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.machines.GTMultiMachines;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
@@ -1273,9 +1273,9 @@ public class RecipeAddition {
     private static void addBedRecipe(DyeColor color) {
         String colorName = color.getName();
         VanillaRecipeHelper.addShapedRecipe(colorName + "_bed",
-                new ItemStack(BuiltInRegistries.ITEM.get(new ResourceLocation(colorName + "_bed"))), "WWW", "PPP",
+                new ItemStack(BuiltInRegistries.ITEM.get(GTUtil.getResourceLocation(colorName + "_bed"))), "WWW", "PPP",
                 "FrF",
-                'W', BuiltInRegistries.ITEM.get(new ResourceLocation(colorName + "_carpet")),
+                'W', BuiltInRegistries.ITEM.get(GTUtil.getResourceLocation(colorName + "_carpet")),
                 'P', ItemTags.PLANKS,
                 'F', ItemTags.WOODEN_FENCES);
     }
@@ -1283,8 +1283,8 @@ public class RecipeAddition {
     private static void addCarpetRecipe(DyeColor color) {
         String colorName = color.getName();
         VanillaRecipeHelper.addShapedRecipe(colorName + "_carpet",
-                new ItemStack(BuiltInRegistries.ITEM.get(new ResourceLocation(colorName + "_carpet"))), "WW",
-                'W', BuiltInRegistries.ITEM.get(new ResourceLocation(colorName + "_wool")));
+                new ItemStack(BuiltInRegistries.ITEM.get(GTUtil.getResourceLocation(colorName + "_carpet"))), "WW",
+                'W', BuiltInRegistries.ITEM.get(GTUtil.getResourceLocation(colorName + "_wool")));
     }
 
     private static void hardGlassRecipes() {
@@ -1294,9 +1294,9 @@ public class RecipeAddition {
         for (DyeColor color : DyeColor.values()) {
             String dyeName = color.getName();
             VanillaRecipeHelper.addShapedRecipe(dyeName + "_glass_pane",
-                    new ItemStack(BuiltInRegistries.ITEM.get(new ResourceLocation(dyeName + "_stained_glass_pane")), 2),
+                    new ItemStack(BuiltInRegistries.ITEM.get(GTUtil.getResourceLocation(dyeName + "_stained_glass_pane")), 2),
                     "sG",
-                    'G', BuiltInRegistries.ITEM.get(new ResourceLocation(dyeName + "_stained_glass")));
+                    'G', BuiltInRegistries.ITEM.get(GTUtil.getResourceLocation(dyeName + "_stained_glass")));
         }
 
         ALLOY_SMELTER_RECIPES.recipeBuilder("tinted_glass")

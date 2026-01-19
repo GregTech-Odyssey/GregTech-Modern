@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.common.data.GTRecipes;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.data.recipes.FinishedRecipe;
@@ -162,11 +163,11 @@ public class GTDynamicDataPack implements PackResources {
     }
 
     public static ResourceLocation getRecipeLocation(ResourceLocation recipeId) {
-        return new ResourceLocation(recipeId.getNamespace(), String.join("", "recipes/", recipeId.getPath(), ".json"));
+        return GTUtil.getResourceLocation(recipeId.getNamespace(), String.join("", "recipes/", recipeId.getPath(), ".json"));
     }
 
     public static ResourceLocation getTagLocation(String identifier, ResourceLocation tagId) {
-        return new ResourceLocation(tagId.getNamespace(),
+        return GTUtil.getResourceLocation(tagId.getNamespace(),
                 String.join("", "tags/", identifier, "/", tagId.getPath(), ".json"));
     }
 }

@@ -3,8 +3,8 @@ package com.gregtechceu.gtceu.data.tags;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -48,12 +48,12 @@ public class BlockTagLoader {
                 .addTag(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WIRE_CUTTER);
 
         provider.addTag(CustomTags.CLEANROOM_FLOORS)
-                .addOptionalTag(new ResourceLocation("elevatorid:elevators"))
-                .addOptional(new ResourceLocation("enderio:travel_anchor"))
-                .addOptional(new ResourceLocation("rftoolsutility:matter_transmitter"))
-                .addOptional(new ResourceLocation("rftoolsutility:matter_receiver"))
-                .addOptional(new ResourceLocation("rftoolsutility:dialing_device"))
-                .addOptional(new ResourceLocation("travelanchors:travel_anchor"));
+                .addOptionalTag(GTUtil.getResourceLocation("elevatorid:elevators"))
+                .addOptional(GTUtil.getResourceLocation("enderio:travel_anchor"))
+                .addOptional(GTUtil.getResourceLocation("rftoolsutility:matter_transmitter"))
+                .addOptional(GTUtil.getResourceLocation("rftoolsutility:matter_receiver"))
+                .addOptional(GTUtil.getResourceLocation("rftoolsutility:dialing_device"))
+                .addOptional(GTUtil.getResourceLocation("travelanchors:travel_anchor"));
 
         provider.addTag(CustomTags.CHARCOAL_PILE_IGNITER_WALLS)
                 .addTag(BlockTags.DIRT) // any dirt blocks

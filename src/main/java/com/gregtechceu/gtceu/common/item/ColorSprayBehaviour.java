@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.common.data.GTSoundEntries;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.utils.BreadthFirstBlockSearch;
+import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.GradientUtil;
 
 import net.minecraft.core.BlockPos;
@@ -65,7 +66,7 @@ public class ColorSprayBehaviour implements IDurabilityBar, IInteractionItem, IA
 
     @SuppressWarnings("deprecation")
     private static Block getBlock(DyeColor color, String postfix) {
-        ResourceLocation id = new ResourceLocation("minecraft", color.getSerializedName() + "_" + postfix);
+        ResourceLocation id = GTUtil.getResourceLocation("minecraft", color.getSerializedName() + "_" + postfix);
         return BuiltInRegistries.BLOCK.get(id);
     }
 

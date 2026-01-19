@@ -105,7 +105,7 @@ public class ShapedRecipeBuilder extends Builder<Ingredient, ShapedRecipeBuilder
     }
 
     public ShapedRecipeBuilder id(String id) {
-        this.id = new ResourceLocation(id);
+        this.id = GTUtil.getResourceLocation(id);
         return this;
     }
 
@@ -128,7 +128,7 @@ public class ShapedRecipeBuilder extends Builder<Ingredient, ShapedRecipeBuilder
 
     public ResourceLocation getId() {
         var ID = id == null ? defaultId() : id;
-        return new ResourceLocation(ID.getNamespace(), "shaped" + "/" + ID.getPath());
+        return GTUtil.getResourceLocation(ID.getNamespace(), "shaped" + "/" + ID.getPath());
     }
 
     protected ResourceLocation defaultId() {

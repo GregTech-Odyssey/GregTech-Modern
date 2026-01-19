@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.syncdata;
 
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeSerializer;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.syncdata.payload.ObjectTypedPayload;
 
@@ -9,7 +10,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +32,7 @@ public class GTRecipePayload extends ObjectTypedPayload<GTRecipe> {
         if (tag instanceof CompoundTag compoundTag) {
             payload = GTRecipeSerializer.CODEC.parse(NbtOps.INSTANCE, compoundTag.get("recipe")).result().orElse(null);
             if (payload != null) {
-                payload.id = new ResourceLocation(compoundTag.getString("id"));
+                payload.id = GTUtil.getResourceLocation(compoundTag.getString("id"));
                 payload.parallels = compoundTag.contains("parallels") ? compoundTag.getInt("parallels") : 1;
                 payload.ocLevel = compoundTag.getInt("ocLevel");
             }

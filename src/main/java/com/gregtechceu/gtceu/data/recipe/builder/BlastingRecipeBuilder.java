@@ -71,7 +71,7 @@ public class BlastingRecipeBuilder {
 
     public ResourceLocation getId() {
         var ID = id == null ? defaultId() : id;
-        return new ResourceLocation(ID.getNamespace(), "blasting" + "/" + ID.getPath());
+        return GTUtil.getResourceLocation(ID.getNamespace(), "blasting" + "/" + ID.getPath());
     }
 
     public void save() {
