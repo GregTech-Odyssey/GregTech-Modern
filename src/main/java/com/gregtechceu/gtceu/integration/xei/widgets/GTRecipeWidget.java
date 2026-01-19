@@ -38,13 +38,13 @@ import net.minecraftforge.fml.loading.FMLLoader;
 import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -91,9 +91,9 @@ public class GTRecipeWidget extends WidgetGroup {
     private void setRecipeWidget() {
         setClientSideWidget();
 
-        var storages = Tables.newCustomTable(new EnumMap<>(IO.class), LinkedHashMap<RecipeCapability<?>, Object>::new);
+        var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeCapability<?>, Object>::new);
         var contents = Tables.newCustomTable(new EnumMap<>(IO.class),
-                LinkedHashMap<RecipeCapability<?>, List<Content>>::new);
+                Reference2ReferenceLinkedOpenHashMap<RecipeCapability<?>, List<Content>>::new);
         collectStorage(storages, contents, recipe);
 
         WidgetGroup group = recipe.recipeType.getRecipeUI().createUITemplate(ProgressWidget.JEIProgress, storages,

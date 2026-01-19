@@ -32,11 +32,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.fluids.FluidType;
 
 import com.google.common.collect.Tables;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import lombok.Setter;
 
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.LinkedHashMap;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -153,7 +153,7 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
     //////////////////////////////////////
     @Override
     public ModularUI createUI(Player entityPlayer) {
-        var storages = Tables.newCustomTable(new EnumMap<>(IO.class), LinkedHashMap<RecipeCapability<?>, Object>::new);
+        var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeCapability<?>, Object>::new);
         storages.put(IO.IN, ItemRecipeCapability.CAP, importItems.storage);
         storages.put(IO.OUT, ItemRecipeCapability.CAP, exportItems.storage);
         var group = getRecipeType().getRecipeUI().createUITemplate(recipeLogic::getProgressPercent, storages, new CompoundTag(), Collections.emptyList(), true, isHighPressure);

@@ -52,6 +52,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import com.google.common.collect.Tables;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -324,7 +325,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
         return group;
     }, (template, machine) -> {
         if (machine instanceof SimpleTieredMachine tieredMachine) {
-            var storages = Tables.newCustomTable(new EnumMap<>(IO.class), LinkedHashMap<RecipeCapability<?>, Object>::new);
+            var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeCapability<?>, Object>::new);
             storages.put(IO.IN, ItemRecipeCapability.CAP, tieredMachine.importItems.storage);
             storages.put(IO.OUT, ItemRecipeCapability.CAP, tieredMachine.exportItems.storage);
             storages.put(IO.IN, FluidRecipeCapability.CAP, tieredMachine.importFluids);

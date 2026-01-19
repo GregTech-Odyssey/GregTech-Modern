@@ -189,7 +189,7 @@ public class ItemRecipeCapability extends RecipeCapability<ItemIngredient> {
                         tooltips.add(Component.translatable("gtceu.gui.content.per_tick"));
                     }
                 });
-                if (io == IO.IN && (content.chance == 0)) {
+                if (io == IO.IN && content.chance == 0) {
                     slot.setIngredientIO(IngredientIO.CATALYST);
                 }
             }
@@ -205,7 +205,7 @@ public class ItemRecipeCapability extends RecipeCapability<ItemIngredient> {
         if (ingredient instanceof IntersectionIngredient intersection) return mapIntersection(intersection, amount);
         var tagList = tryMapTag(ingredient, amount);
         if (tagList != null) return tagList;
-        return new ItemStackList(ingredient.getItems());
+        return new ItemStackList(Arrays.stream(ingredient.getItems()).map(stack -> stack.copyWithCount(amount)).toArray(ItemStack[]::new));
     }
 
     // Map intersection ingredients to the items inside, as recipe viewers don't support them.

@@ -8,12 +8,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 
 import com.google.common.base.CaseFormat;
-import it.unimi.dsi.fastutil.Function;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceFunction;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Map;
 
 public final class MaterialIconType {
 
@@ -101,15 +99,15 @@ public final class MaterialIconType {
     public static final MaterialIconType crop = new MaterialIconType("crop");
     public static final MaterialIconType essence = new MaterialIconType("essence");
 
-    public static Map<MaterialIconType, Map<MaterialIconSet, ResourceLocation>> ITEM_MODEL_CACHE = new Reference2ReferenceOpenHashMap<>();
+    public static Reference2ReferenceOpenHashMap<MaterialIconType, Reference2ReferenceOpenHashMap<MaterialIconSet, ResourceLocation>> ITEM_MODEL_CACHE = new Reference2ReferenceOpenHashMap<>();
 
-    public static final Map<MaterialIconType, Map<MaterialIconSet, ResourceLocation>> ITEM_TEXTURE_CACHE = new Reference2ReferenceOpenHashMap<>();
-    private static final Map<MaterialIconType, Map<MaterialIconSet, ResourceLocation>> ITEM_TEXTURE_CACHE_SECONDARY = new Reference2ReferenceOpenHashMap<>();
+    public static final Reference2ReferenceOpenHashMap<MaterialIconType, Reference2ReferenceOpenHashMap<MaterialIconSet, ResourceLocation>> ITEM_TEXTURE_CACHE = new Reference2ReferenceOpenHashMap<>();
+    private static final Reference2ReferenceOpenHashMap<MaterialIconType, Reference2ReferenceOpenHashMap<MaterialIconSet, ResourceLocation>> ITEM_TEXTURE_CACHE_SECONDARY = new Reference2ReferenceOpenHashMap<>();
 
-    private static Map<MaterialIconType, Map<MaterialIconSet, ResourceLocation>> BLOCK_MODEL_CACHE = new Reference2ReferenceOpenHashMap<>();
+    private static Reference2ReferenceOpenHashMap<MaterialIconType, Reference2ReferenceOpenHashMap<MaterialIconSet, ResourceLocation>> BLOCK_MODEL_CACHE = new Reference2ReferenceOpenHashMap<>();
 
-    private static final Map<MaterialIconType, Map<MaterialIconSet, ResourceLocation>> BLOCK_TEXTURE_CACHE = new Reference2ReferenceOpenHashMap<>();
-    private static final Map<MaterialIconType, Map<MaterialIconSet, ResourceLocation>> BLOCK_TEXTURE_CACHE_SECONDARY = new Reference2ReferenceOpenHashMap<>();
+    private static final Reference2ReferenceOpenHashMap<MaterialIconType, Reference2ReferenceOpenHashMap<MaterialIconSet, ResourceLocation>> BLOCK_TEXTURE_CACHE = new Reference2ReferenceOpenHashMap<>();
+    private static final Reference2ReferenceOpenHashMap<MaterialIconType, Reference2ReferenceOpenHashMap<MaterialIconSet, ResourceLocation>> BLOCK_TEXTURE_CACHE_SECONDARY = new Reference2ReferenceOpenHashMap<>();
 
     private final String name;
 
@@ -124,9 +122,9 @@ public final class MaterialIconType {
         BLOCK_MODEL_CACHE = null;
     }
 
-    private static final Function<MaterialIconType, Map<MaterialIconSet, ResourceLocation>> FUNCTION = k -> new Reference2ReferenceOpenHashMap<>();
+    private static final Reference2ReferenceFunction<MaterialIconType, Reference2ReferenceOpenHashMap<MaterialIconSet, ResourceLocation>> FUNCTION = k -> new Reference2ReferenceOpenHashMap<>();
 
-    private ResourceLocation getCache(Map<MaterialIconType, Map<MaterialIconSet, ResourceLocation>> map, MaterialIconSet materialIconSet, Function<MaterialIconSet, ResourceLocation> function) {
+    private ResourceLocation getCache(Reference2ReferenceOpenHashMap<MaterialIconType, Reference2ReferenceOpenHashMap<MaterialIconSet, ResourceLocation>> map, MaterialIconSet materialIconSet, Reference2ReferenceFunction<MaterialIconSet, ResourceLocation> function) {
         return map.computeIfAbsent(this, FUNCTION).computeIfAbsent(materialIconSet, function);
     }
 

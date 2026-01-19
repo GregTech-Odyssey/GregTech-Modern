@@ -9,7 +9,6 @@ import com.fast.fastcollection.O2OOpenCacheHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -20,7 +19,7 @@ public class VirtualEnderRegistry extends SavedData {
     private static final String PUBLIC_KEY = "Public";
     private static final String PRIVATE_KEY = "Private";
     private static volatile VirtualEnderRegistry data;
-    private final Map<UUID, VirtualRegistryMap> VIRTUAL_REGISTRIES = new O2OOpenCacheHashMap<>();
+    private final O2OOpenCacheHashMap<UUID, VirtualRegistryMap> VIRTUAL_REGISTRIES = new O2OOpenCacheHashMap<>();
 
     public VirtualEnderRegistry() {}
 
@@ -116,7 +115,7 @@ public class VirtualEnderRegistry extends SavedData {
     @Override
     public final CompoundTag save(@NotNull CompoundTag tag) {
         var privateTag = new CompoundTag();
-        for (Map.Entry<UUID, VirtualRegistryMap> entry : VIRTUAL_REGISTRIES.entrySet()) {
+        VIRTUAL_REGISTRIES.object2ObjectEntrySet().fastForEach(entry -> {
             var owner = entry.getKey();
             var mapTag = entry.getValue().serializeNBT();
             if (owner != null) {
@@ -124,7 +123,7 @@ public class VirtualEnderRegistry extends SavedData {
             } else {
                 tag.put(PUBLIC_KEY, mapTag);
             }
-        }
+        });
         tag.put(PRIVATE_KEY, privateTag);
         return tag;
     }
