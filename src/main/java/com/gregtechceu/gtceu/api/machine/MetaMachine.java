@@ -28,7 +28,6 @@ import com.gregtechceu.gtceu.common.item.tool.behavior.ToolModeSwitchBehavior;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 import com.gregtechceu.gtceu.common.machine.owner.PlayerOwner;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 
@@ -48,7 +47,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.locale.Language;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -155,10 +153,6 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
 
     protected Direction frontFacing;
 
-    protected boolean sync = true;
-
-    public boolean observe;
-
     public MetaMachine(MetaMachineBlockEntity holder) {
         this.definition = holder.definition;
         this.holder = holder;
@@ -176,6 +170,10 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     @Override
     public void onChanged() {
         holder.setChanged();
+    }
+
+    public int getOffsetTimer() {
+        return holder.getOffsetTimer();
     }
 
     @Nullable
@@ -254,36 +252,6 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
         for (MachineTrait trait : this.getTraits()) {
             trait.loadCustomPersistedData(tag);
         }
-    }
-
-    //////////////////////////////////////
-    // ***** Tickable Manager ****//
-    //////////////////////////////////////
-    /**
-     * For initialization. To get level and property fields after auto sync, you can subscribe it in {@link #onLoad()}
-     * event.
-     */
-    @Nullable
-    @Override
-    public TickableSubscription subscribeServerTick(Runnable runnable, int cycle) {
-        if (holder.level() instanceof ServerLevel serverLevel) {
-            return TaskHandler.enqueueTick(serverLevel, holder.isRemove, runnable, cycle, holder.tickDelay);
-        }
-        return null;
-    }
-
-    @Nullable
-    @Override
-    public TickableSubscription subscribeClientTick(Runnable runnable, int cycle) {
-        var level = holder.level();
-        if (level != null && level.isClientSide) {
-            return TaskHandler.enqueueTick(level, holder.isRemove, runnable, cycle, 0);
-        }
-        return null;
-    }
-
-    public int getOffsetTimer() {
-        return holder.getOffsetTimer();
     }
 
     //////////////////////////////////////
@@ -821,25 +789,12 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
         return getDefinition().getDefaultPaintingColor();
     }
 
-    public void observe() {
-        observe = true;
-        sync = true;
-    }
-
     public void syncNow() {
         holder.defaultServerTick();
     }
 
-    public boolean needSync() {
-        if (sync) {
-            sync = false;
-            return true;
-        }
-        return false;
-    }
-
     public void requestSync() {
-        sync = true;
+        holder.sync = true;
     }
 
     public void onCoverUpdate(@Nullable CoverBehavior coverBehavior, Direction side) {

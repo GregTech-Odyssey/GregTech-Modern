@@ -421,7 +421,7 @@ public class ConfigHolder {
         @Configurable.Comment({
                 "Whether machines explode in rainy weather or when placed next to certain terrain, such as fire or lava",
                 "Default: false" })
-        public boolean shouldWeatherOrTerrainExplosion = false;
+        public boolean shouldWeatherOrTerrainExplosion = true;
         @Configurable
         @Configurable.Comment({ "Energy use multiplier for electric items.", "Default: 100" })
         public int energyUsageMultiplier = 100;

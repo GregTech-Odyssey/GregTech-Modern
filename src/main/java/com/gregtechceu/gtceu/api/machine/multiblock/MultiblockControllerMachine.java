@@ -72,6 +72,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     protected BlockPos[] partPositions = new BlockPos[0];
     @Getter
     @DescSynced
+    @UpdateListener(methodName = "onFormedUpdated")
     @RequireRerender
     protected boolean isFormed;
 
@@ -145,7 +146,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         return subMultiblockState;
     }
 
-    @SuppressWarnings({ "unused", "SameParameterValue" })
+    @SuppressWarnings("unused")
     protected void onPartsUpdated(BlockPos[] newValue, BlockPos[] oldValue) {
         var list = new ArrayList<IMultiPart>();
         for (var pos : newValue) {
@@ -155,6 +156,13 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             }
         }
         parts = list.toArray(new IMultiPart[0]);
+    }
+
+    @SuppressWarnings("unused")
+    protected void onFormedUpdated(boolean newValue, boolean oldValue) {
+        if (newValue) {
+            onStructureFormedClient();
+        }
     }
 
     protected void updatePartPositions() {
@@ -253,10 +261,14 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             data.removeAsyncLogic(this);
             return;
         }
-        if ((holder.offset + data.periodID) % 4 == 0 && getLevel() instanceof ServerLevel serverLevel) {
+        if (getLevel() instanceof ServerLevel serverLevel) {
             simpleLock = true;
             if (checkPatternWithTryLock()) {
                 serverLevel.getServer().execute(() -> {
+                    if (requiresServerCheck() && !checkPatternWithLock()) {
+                        simpleLock = false;
+                        return;
+                    }
                     isFlipped = getMultiblockState().isNeededFlip();
                     onStructureFormed();
                     requestSync();
@@ -405,13 +417,11 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             patternLock.lock();
             try {
                 if (isFormed) {
-                    if (requiresServerCheck()) {
-                        if (checkPatternWithLock()) {
-                            isFlipped = getMultiblockState().isNeededFlip();
-                            onStructureFormed();
-                            requestSync();
-                            return;
-                        }
+                    if (requiresServerCheck() && checkPatternWithLock()) {
+                        isFlipped = getMultiblockState().isNeededFlip();
+                        onStructureFormed();
+                        requestSync();
+                        return;
                     }
                     isFlipped = false;
                     onStructureInvalid();

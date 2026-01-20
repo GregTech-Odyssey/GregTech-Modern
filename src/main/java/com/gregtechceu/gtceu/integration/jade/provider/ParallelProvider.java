@@ -40,7 +40,6 @@ public class ParallelProvider implements IBlockComponentProvider, IServerDataPro
     @Override
     public void appendServerData(CompoundTag compoundTag, BlockAccessor blockAccessor) {
         if (blockAccessor.getBlockEntity() instanceof MetaMachineBlockEntity blockEntity) {
-            blockEntity.getMetaMachine().observe();
             if (blockEntity.getMetaMachine() instanceof IParallelHatch parallelHatch) {
                 compoundTag.putInt("parallel", parallelHatch.getCurrentParallel());
             } else if (blockEntity.getMetaMachine() instanceof IMultiController controller) {

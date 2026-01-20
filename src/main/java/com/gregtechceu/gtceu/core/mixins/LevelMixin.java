@@ -2,9 +2,7 @@ package com.gregtechceu.gtceu.core.mixins;
 
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
 import com.gregtechceu.gtceu.core.ILevel;
-import com.gregtechceu.gtceu.utils.TaskRunnableEntry;
-
-import com.lowdragmc.lowdraglib.async.AsyncThreadData;
+import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -26,8 +24,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 @Mixin(Level.class)
@@ -50,16 +46,20 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
     public abstract LevelChunk getChunk(int chunkX, int chunkZ);
 
     @Unique
-    private final Map<Class<?>, Object> gtceu$capabilitie = new Reference2ObjectOpenHashMap<>();
+    private Map<Class<?>, Object> gtceu$capabilitie;
+
+    @Unique
+    private TaskHandler gtceu$taskHandler;
+
+    @Unique
+    private TaskHandler gtceu$taskAsyncHandler;
 
     @Unique
     private MultiblockWorldData gtceu$multiblockWorldData;
 
-    @Unique
-    private List<TaskRunnableEntry> gtceu$tasks;
-
     @Override
     public Map<Class<?>, Object> gtceu$getCapabilities() {
+        if (gtceu$capabilitie == null) gtceu$capabilitie = new Reference2ObjectOpenHashMap<>();
         return gtceu$capabilitie;
     }
 
@@ -74,16 +74,21 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
     }
 
     @Override
-    public @NotNull List<TaskRunnableEntry> gtceu$getTasks() {
-        if (gtceu$tasks == null) gtceu$tasks = new ArrayList<>();
-        return gtceu$tasks;
+    public @NotNull TaskHandler gtceu$getTaskHandler() {
+        if (gtceu$taskHandler == null) gtceu$taskHandler = TaskHandler.create();
+        return gtceu$taskHandler;
+    }
+
+    @Override
+    public @NotNull TaskHandler gtceu$getAsyncTaskHandler() {
+        if (gtceu$taskAsyncHandler == null) gtceu$taskAsyncHandler = TaskHandler.createAsync(50);
+        return gtceu$taskAsyncHandler;
     }
 
     @Unique
     private @Nullable ChunkAccess gtceu$maybeGetChunkAsync(int chunkX, int chunkZ) {
-        if (this.isClientSide) return null;
         if (Thread.currentThread() == this.thread) return null;
-        if (!MultiblockWorldData.isThreadService() && !AsyncThreadData.isThreadService()) return null;
+        if (!TaskHandler.isAsyncService()) return null;
         if (!this.getChunkSource().hasChunk(chunkX, chunkZ)) return null;
         return this.getChunkSource().getChunkNow(chunkX, chunkZ);
     }

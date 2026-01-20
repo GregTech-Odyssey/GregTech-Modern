@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.core;
 
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
-import com.gregtechceu.gtceu.utils.TaskRunnableEntry;
+import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.world.level.Level;
 
@@ -11,7 +11,6 @@ import it.unimi.dsi.fastutil.longs.LongSets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Map;
 
 public interface ILevel {
@@ -19,7 +18,10 @@ public interface ILevel {
     Map<Class<?>, Object> gtceu$getCapabilities();
 
     @NotNull
-    List<TaskRunnableEntry> gtceu$getTasks();
+    TaskHandler gtceu$getTaskHandler();
+
+    @NotNull
+    TaskHandler gtceu$getAsyncTaskHandler();
 
     MultiblockWorldData gtceu$getMultiblockWorldSavedData();
 
@@ -31,10 +33,6 @@ public interface ILevel {
 
     static void setCapability(@NotNull Level level, Class<?> clazz, Object capability) {
         ((ILevel) level).gtceu$getCapabilities().put(clazz, capability);
-    }
-
-    static List<TaskRunnableEntry> getTasks(@NotNull Level level) {
-        return ((ILevel) level).gtceu$getTasks();
     }
 
     static LongSet getHighlightCache(@Nullable Level level) {

@@ -42,11 +42,7 @@ public class SCPacketStructureFormed implements IPacket {
             cache.remove(pos);
         } else {
             cache.add(pos);
-        }
-        if (MetaMachine.getMachine(level, BlockPos.of(pos)) instanceof MultiblockControllerMachine controller) {
-            if (formed) {
-                controller.onStructureFormedClient();
-            } else {
+            if (MetaMachine.getMachine(level, BlockPos.of(pos)) instanceof MultiblockControllerMachine controller) {
                 controller.onStructureInvalidClient();
             }
         }

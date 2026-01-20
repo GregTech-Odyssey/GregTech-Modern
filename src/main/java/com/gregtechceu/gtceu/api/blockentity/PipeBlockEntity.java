@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.blockentity;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.MaterialPipeBlock;
 import com.gregtechceu.gtceu.api.block.PipeBlock;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
@@ -17,24 +16,17 @@ import com.gregtechceu.gtceu.api.pipenet.*;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 
-import com.lowdragmc.lowdraglib.Platform;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.networking.LDLNetworking;
-import com.lowdragmc.lowdraglib.networking.s2c.SPacketManagedPayload;
 import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
 import com.lowdragmc.lowdraglib.syncdata.IManagedStorage;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
-import com.lowdragmc.lowdraglib.syncdata.blockentity.IAsyncAutoSyncBlockEntity;
-import com.lowdragmc.lowdraglib.syncdata.blockentity.IAutoPersistBlockEntity;
 import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
-import com.lowdragmc.lowdraglib.syncdata.managed.IRef;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -50,7 +42,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.BlockHitResult;
 
 import com.mojang.datafixers.util.Pair;
@@ -60,19 +51,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
-import java.util.function.BooleanSupplier;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDataType>, NodeDataType> extends BlockEntity implements ITickSubscription, IPaintable, IEnhancedManaged, IAsyncAutoSyncBlockEntity, IAutoPersistBlockEntity, IToolGridHighlight {
+public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDataType>, NodeDataType> extends TickBlockEntity implements IPaintable, IEnhancedManaged, IToolGridHighlight {
 
     @Getter
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
     private final ManagedFieldHolder managedFieldHolder = MetaMachine.getManagedFieldHolder(getClass());
-    private final int offset = GTValues.RNG.nextInt(20);
-    private final BooleanSupplier isRemove = () -> remove;
+
     @Getter
     @DescSynced
     @Persisted(key = "cover")
@@ -102,11 +91,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     @NotNull
     private Material frameMaterial = GTMaterials.NULL;
 
-    protected int tickDelay = 0;
-
-    private boolean asyncSyncing;
-    private boolean sync = true;
-
     private final long posLong;
 
     public final BlockEntityDirectionCache blockEntityDirectionCache = BlockEntityDirectionCache.create();
@@ -115,8 +99,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     protected TickableSubscription transferSubs;
 
     public boolean autoTransfer;
-
-    protected LevelChunk chunk;
 
     public PipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
@@ -140,26 +122,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
 
     @Override
     public void onChanged() {
-        var chunk = getChunk();
-        if (chunk != null) {
-            chunk.setUnsaved(true);
-        }
-    }
-
-    public @Nullable LevelChunk getChunk() {
-        if (chunk != null) return chunk;
-        if (level != null) return chunk = level.getChunkAt(worldPosition);
-        return null;
-    }
-
-    public int getOffsetTimer() {
-        return level == null ? offset : (level.getServer().getTickCount() + offset);
-    }
-
-    @Override
-    public void setLevel(Level level) {
-        super.setLevel(level);
-        chunk = null;
+        setChanged();
     }
 
     @Override
@@ -171,19 +134,13 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
             transferSubs.unsubscribe();
             transferSubs = null;
         }
-        chunk = null;
     }
 
     @Override
     public void clearRemoved() {
-        chunk = null;
-        tickDelay = offset;
         blockEntityDirectionCache.clearCache();
         super.clearRemoved();
         coverContainer.onLoad();
-        if (getLevel() instanceof ServerLevel serverLevel) {
-            TaskHandler.enqueueTask(serverLevel, () -> tickDelay = 0, 1);
-        }
     }
 
     public int getNumConnections() {
@@ -209,11 +166,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
         return canHaveBlockedFaces() ? blockedConnections : 0;
     }
 
-    @Override
-    public PipeBlockEntity<PipeType, NodeDataType> getSelf() {
-        return this;
-    }
-
     public void onNeighborChanged() {
         blockEntityDirectionCache.clearCache();
         sync = true;
@@ -236,25 +188,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
             this.cachedNodeData = getPipeBlock().createProperties(this);
         }
         return cachedNodeData;
-    }
-
-    @Nullable
-    @Override
-    public TickableSubscription subscribeServerTick(Runnable runnable, int cycle) {
-        if (getLevel() instanceof ServerLevel serverLevel) {
-            return TaskHandler.enqueueTick(serverLevel, isRemove, runnable, cycle, tickDelay);
-        }
-        return null;
-    }
-
-    @Nullable
-    @Override
-    public TickableSubscription subscribeClientTick(Runnable runnable, int cycle) {
-        var level = getLevel();
-        if (level != null && level.isClientSide) {
-            return TaskHandler.enqueueTick(level, isRemove, runnable, cycle, 0);
-        }
-        return null;
     }
 
     protected void updateTransferTick(boolean tick, Runnable runnable) {
@@ -354,30 +287,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
             return blockedConnections | index;
         } else {
             return blockedConnections & ~index;
-        }
-    }
-
-    public void notifyBlockUpdate() {
-        getLevel().updateNeighborsAt(getBlockPos(), getPipeBlock());
-        sync = true;
-    }
-
-    @Override
-    public boolean triggerEvent(int id, int para) {
-        if (id == 1) {
-            // chunk re render
-            if (level != null && level.isClientSide) {
-                scheduleRenderUpdate();
-            }
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public void setChanged() {
-        if (getLevel() != null) {
-            getLevel().blockEntityChanged(getBlockPos());
         }
     }
 
@@ -500,45 +409,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
         sync = true;
     }
 
-    private boolean needSync() {
-        if (sync) {
-            sync = false;
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public void asyncTick(long periodID) {
-        if (Platform.isServerNotSafe()) return;
-        if (needSync() || periodID + offset % 20 == 0) {
-            if (useAsyncThread() && !isRemoved()) {
-                for (IRef field : getNonLazyFields()) {
-                    field.update();
-                }
-                if (syncStorage.hasDirtySyncFields() && !asyncSyncing) {
-                    asyncSyncing = true;
-                    Platform.getMinecraftServer().execute(() -> {
-                        if (Platform.isServerNotSafe()) return;
-                        var packet = SPacketManagedPayload.of(this, false);
-                        LDLNetworking.NETWORK.sendToTrackingChunk(packet, getChunk());
-                        asyncSyncing = false;
-                    });
-                }
-            }
-        }
-    }
-
-    @Override
-    public boolean isAsyncSyncing() {
-        return asyncSyncing;
-    }
-
-    @Override
-    public void setAsyncSyncing(boolean syncing) {
-        asyncSyncing = syncing;
-    }
-
     /**
      * If tube is set to block connection from the specific side
      *
@@ -589,17 +459,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
 
     public PipeType getPipeType() {
         return getPipeBlock().pipeType;
-    }
-
-    public void scheduleRenderUpdate() {
-        var level = this.level;
-        if (level != null) {
-            if (level.isClientSide) {
-                level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_IMMEDIATE);
-            } else {
-                level.blockEvent(worldPosition, getBlockState().getBlock(), 1, 0);
-            }
-        }
     }
 
     public void scheduleNeighborShapeUpdate() {

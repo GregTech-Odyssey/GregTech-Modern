@@ -2,11 +2,11 @@ package com.gregtechceu.gtceu.api.pipenet;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
+import com.gregtechceu.gtceu.api.blockentity.TickBlockEntity;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import com.gregtechceu.gtceu.common.blockentity.FluidPipeBlockEntity;
@@ -161,16 +161,9 @@ public class PipeCoverContainer implements ICoverable, IEnhancedManaged {
         return true;
     }
 
-    @Nullable
     @Override
-    public TickableSubscription subscribeServerTick(Runnable runnable, int cycle) {
-        return pipeTile.subscribeServerTick(runnable, cycle);
-    }
-
-    @Nullable
-    @Override
-    public TickableSubscription subscribeClientTick(Runnable runnable, int cycle) {
-        return pipeTile.subscribeClientTick(runnable, cycle);
+    public TickBlockEntity getHolder() {
+        return pipeTile;
     }
 
     @Override

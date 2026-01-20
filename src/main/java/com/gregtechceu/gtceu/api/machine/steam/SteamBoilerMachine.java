@@ -142,7 +142,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
 
     protected void updateAutoOutputSubscription() {
         if (Direction.stream().filter(direction -> direction != getFrontFacing() && direction != Direction.DOWN).anyMatch(direction -> blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), direction))) {
-            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput, 5);
+            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput, 20);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;

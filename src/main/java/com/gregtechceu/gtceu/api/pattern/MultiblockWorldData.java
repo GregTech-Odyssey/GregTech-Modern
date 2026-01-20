@@ -1,13 +1,15 @@
 package com.gregtechceu.gtceu.api.pattern;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
+import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.utils.PosUtils;
+import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.server.level.ServerLevel;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
@@ -35,14 +37,15 @@ public class MultiblockWorldData {
         return ((ILevel) serverLevel).gtceu$getMultiblockWorldSavedData();
     }
 
+    public static final TaskHandler TASK_HANDLER = TaskHandler.createAsync(2000);
+
+    private TickableSubscription subscription;
+
     /**
      * Chunk pos mapping.
      */
-    private final Long2ObjectOpenHashMap<Set<MultiblockState>> chunkPosMapping;
-
-    public MultiblockWorldData() {
-        this.chunkPosMapping = new Long2ObjectOpenHashMap<>();
-    }
+    private final Long2ObjectOpenHashMap<Set<MultiblockState>> chunkPosMapping = new Long2ObjectOpenHashMap<>();
+    private final Set<IMultiController> controllers = ConcurrentHashMap.newKeySet();
 
     public MultiblockState[] getControllersInChunk(long chunkPos) {
         synchronized (chunkPosMapping) {
@@ -68,33 +71,14 @@ public class MultiblockWorldData {
         }
     }
 
-    // ********************************* thread for searching ********************************* //
-    private final CopyOnWriteArrayList<IMultiController> controllers = new CopyOnWriteArrayList<>();
-    private ScheduledExecutorService executorService;
-    private final static ThreadFactory THREAD_FACTORY = new ThreadFactoryBuilder()
-            .setNameFormat("GTCEu Multiblock Async Thread-%d")
-            .setDaemon(true)
-            .setPriority(1)
-            .build();
-    public static final ThreadLocal<Boolean> IN_SERVICE = ThreadLocal.withInitial(() -> false);
-    public int periodID = 0;
-    private int waiting;
-
-    public void createExecutorService() {
-        if (executorService != null && !executorService.isShutdown()) return;
-        executorService = Executors.newSingleThreadScheduledExecutor(THREAD_FACTORY);
-        executorService.scheduleAtFixedRate(this::searchingTask, 0, 500, TimeUnit.MILLISECONDS);
-        waiting = 10;
-    }
-
     /**
      * add a async logic runnable
      * 
      * @param controller controller
      */
     public void addAsyncLogic(IMultiController controller) {
-        controllers.addIfAbsent(controller);
-        createExecutorService();
+        controllers.add(controller);
+        subscription = TASK_HANDLER.enqueueTick(subscription, this::searchingTask, 0, 0);
     }
 
     /**
@@ -104,55 +88,22 @@ public class MultiblockWorldData {
      */
     public void removeAsyncLogic(IMultiController controller) {
         if (controllers.remove(controller) && controllers.isEmpty()) {
-            releaseExecutorService();
+            subscription = ITickSubscription.unsubscribe(subscription);
         }
     }
 
     private void searchingTask() {
-        try {
-            if (!GTCEu.canGetServerLevel()) return;
-            boolean delay = waiting > 0;
-            if (delay) {
-                waiting--;
-            }
-            IN_SERVICE.set(true);
+        if (GTCEu.canGetServerLevel()) {
             var arr = controllers.toArray(new IMultiController[0]);
             Arrays.parallelSort(arr, COMPARATOR);
             for (var controller : arr) {
-                if (delay && controller.checkPriority() < -1000) continue;
-                try {
-                    controller.asyncCheckPattern(this);
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    GTCEu.LOGGER.error("Error while assembling multiblock {}: {}", controller, e.getMessage());
-                }
+                controller.asyncCheckPattern(this);
             }
-        } catch (Throwable e) {
-            e.printStackTrace();
-            GTCEu.LOGGER.error("Error while assembling multiblocks: {}", e.getMessage());
-        } finally {
-            IN_SERVICE.set(false);
         }
-        if (periodID > 100) {
-            periodID = 0;
-        } else {
-            periodID++;
-        }
-    }
-
-    public static boolean isThreadService() {
-        return IN_SERVICE.get() && GTCEu.canGetServerLevel();
-    }
-
-    public void releaseExecutorService() {
-        if (executorService != null) {
-            executorService.shutdownNow();
-        }
-        executorService = null;
     }
 
     public void clear() {
-        releaseExecutorService();
+        subscription = ITickSubscription.unsubscribe(subscription);
         controllers.clear();
         chunkPosMapping.clear();
     }

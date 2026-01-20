@@ -19,16 +19,16 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -139,7 +139,26 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void onStructureFormedClient() {
         activeState = ActiveBlock.State.UNKNOWN;
-        activeBlocksSubs = subscribeClientTick(activeBlocksSubs, this::updateActiveBlocks, 20);
+        activeBlocksSubs = subscribeAsyncTick(activeBlocksSubs, () -> {
+            if (GTUtil.getClientLevel() == null) return;
+            var shouldActive = isFormed && (activated || getRecipeLogic().isWorking());
+            var state = shouldActive ? ActiveBlock.State.ACTIVE : ActiveBlock.State.NON_ACTIVE;
+            if (activeState.ordinal() == 0 || state != activeState) {
+                activeState = state;
+                List<Runnable> runnables = new ArrayList<>();
+                for (long pos : activeBlocks) {
+                    var blockPos = BlockPos.of(pos);
+                    var blockState = getLevel().getBlockState(blockPos);
+                    if (blockState.hasProperty(ActiveBlock.ACTIVE)) {
+                        var newState = blockState.setValue(ActiveBlock.ACTIVE, shouldActive);
+                        if (newState != blockState) {
+                            runnables.add(() -> getLevel().setBlock(blockPos, newState, Block.UPDATE_KNOWN_SHAPE));
+                        }
+                    }
+                }
+                if (!runnables.isEmpty()) Minecraft.getInstance().tell(() -> runnables.forEach(Runnable::run));
+            }
+        }, 10);
     }
 
     @Override
@@ -220,30 +239,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         outputList = Collections.emptyList();
         // reset recipe Logic
         recipeLogic.resetRecipeLogic();
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    protected void updateActiveBlocks() {
-        var shouldActive = isFormed && (activated || getRecipeLogic().isWorking());
-        var state = shouldActive ? ActiveBlock.State.ACTIVE : ActiveBlock.State.NON_ACTIVE;
-        if (activeState.ordinal() == 0 || state != activeState) {
-            activeState = state;
-            updateClientActiveBlocks(shouldActive);
-        }
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    protected void updateClientActiveBlocks(boolean active) {
-        for (long pos : activeBlocks) {
-            var blockPos = BlockPos.of(pos);
-            var blockState = getLevel().getBlockState(blockPos);
-            if (blockState.hasProperty(ActiveBlock.ACTIVE)) {
-                var newState = blockState.setValue(ActiveBlock.ACTIVE, active);
-                if (newState != blockState) {
-                    getLevel().setBlock(blockPos, newState, Block.UPDATE_KNOWN_SHAPE);
-                }
-            }
-        }
     }
 
     //////////////////////////////////////

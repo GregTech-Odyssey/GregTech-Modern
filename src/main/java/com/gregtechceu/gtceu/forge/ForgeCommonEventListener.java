@@ -215,6 +215,7 @@ public class ForgeCommonEventListener {
                 TaskHandler.onWorldUnLoad(level);
             }
         }
+        MultiblockWorldData.TASK_HANDLER.unsubscribe();
     }
 
     @SubscribeEvent

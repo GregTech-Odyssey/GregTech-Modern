@@ -102,7 +102,7 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
         var controllers = getControllers();
         for (var controller : controllers) {
             if (controller != null && controller.isFormed()) {
-                controller.checkPatternWithLock();
+                controller.requestCheck();
             }
         }
     }

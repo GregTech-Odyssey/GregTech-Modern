@@ -1,30 +1,96 @@
 package com.gregtechceu.gtceu.utils;
 
+import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.utils.collection.FastObjectArrayList;
 
 import net.minecraft.world.level.Level;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.concurrent.*;
 import java.util.function.BooleanSupplier;
 
 public class TaskHandler {
 
-    // schedule tick event here
+    public static boolean isAsyncService() {
+        return AsyncTask.IN_SERVICE.get();
+    }
+
+    public static int getTickCount(TaskHandler handler) {
+        if (handler instanceof AsyncTask asyncTask) return asyncTask.tickCount;
+        var server = GTCEu.getMinecraftServer();
+        if (server != null) return server.getTickCount();
+        return GTValues.CLIENT_TIME;
+    }
+
+    public static TaskHandler createAsync(long period) {
+        return new AsyncTask(period);
+    }
+
+    public static TaskHandler create() {
+        return new TaskHandler();
+    }
+
+    private ObjectArrayList<TaskRunnableEntry> waitingTasks = new ObjectArrayList<>();
+
+    private FastObjectArrayList<TaskRunnableEntry> tasks = new FastObjectArrayList<>();
+
+    TaskHandler() {}
+
     public static void onTickUpdate(Level level, int tickCount) {
-        var list = ILevel.getTasks(level);
-        FastObjectArrayList<TaskRunnableEntry> tasks = ILevel.getCapability(level, TaskHandler.class);
-        synchronized (list) {
-            if (!list.isEmpty()) {
-                if (tasks == null) {
-                    tasks = new FastObjectArrayList<>();
-                    ILevel.setCapability(level, TaskHandler.class, tasks);
-                }
-                tasks.addAll(list);
-                list.clear();
+        ((ILevel) level).gtceu$getTaskHandler().runTask(tickCount);
+    }
+
+    public static void onWorldUnLoad(Level level) {
+        ((ILevel) level).gtceu$getTaskHandler().unsubscribe();
+        ((ILevel) level).gtceu$getAsyncTaskHandler().unsubscribe();
+    }
+
+    public static void enqueueTask(Level level, Runnable task, int delay) {
+        ((ILevel) level).gtceu$getTaskHandler().enqueueTask(task, delay);
+    }
+
+    public static TickableSubscription enqueueTick(Level level, @Nullable TickableSubscription subscription, BooleanSupplier isRemove, Runnable runnable, int cycle, int delay) {
+        return ((ILevel) level).gtceu$getTaskHandler().enqueueTick(subscription, isRemove, runnable, cycle, delay);
+    }
+
+    public static TickableSubscription enqueueTick(Level level, BooleanSupplier isRemove, Runnable runnable, int cycle, int delay) {
+        return ((ILevel) level).gtceu$getTaskHandler().enqueueTick(isRemove, runnable, cycle, delay);
+    }
+
+    public static TickableSubscription enqueueTick(Level level, Runnable runnable, int cycle, int delay) {
+        return ((ILevel) level).gtceu$getTaskHandler().enqueueTick(TaskRunnableEntry.FALSE, runnable, cycle, delay);
+    }
+
+    public static void enqueueAsyncTask(Level level, Runnable task, int delay) {
+        ((ILevel) level).gtceu$getAsyncTaskHandler().enqueueTask(task, delay);
+    }
+
+    public static TickableSubscription enqueueAsyncTick(Level level, @Nullable TickableSubscription subscription, BooleanSupplier isRemove, Runnable runnable, int cycle, int delay) {
+        return ((ILevel) level).gtceu$getAsyncTaskHandler().enqueueTick(subscription, isRemove, runnable, cycle, delay);
+    }
+
+    public static TickableSubscription enqueueAsyncTick(Level level, BooleanSupplier isRemove, Runnable runnable, int cycle, int delay) {
+        return ((ILevel) level).gtceu$getAsyncTaskHandler().enqueueTick(isRemove, runnable, cycle, delay);
+    }
+
+    public static TickableSubscription enqueueAsyncTick(Level level, Runnable runnable, int cycle, int delay) {
+        return ((ILevel) level).gtceu$getAsyncTaskHandler().enqueueTick(TaskRunnableEntry.FALSE, runnable, cycle, delay);
+    }
+
+    void runTask(int tickCount) {
+        synchronized (this) {
+            if (!waitingTasks.isEmpty()) {
+                tasks.addAll(waitingTasks);
+                waitingTasks.clear();
             }
+            if (tasks.isEmpty()) return;
         }
-        if (tasks == null || tasks.isEmpty()) return;
         Object[] array = tasks.getArray();
         for (int i = 0, size = tasks.size(); i < size; i++) {
             var o = array[i];
@@ -52,39 +118,116 @@ public class TaskHandler {
         }
     }
 
-    // clean up here
-    public static void onWorldUnLoad(Level level) {
-        FastObjectArrayList<TaskRunnableEntry> tasks = ILevel.getCapability(level, TaskHandler.class);
-        if (tasks != null) {
-            tasks.forEach(TickableSubscription::unsubscribe);
-            tasks.clear();
+    public void unsubscribe() {
+        synchronized (this) {
+            waitingTasks.forEach(TickableSubscription::unsubscribe);
+            waitingTasks = new ObjectArrayList<>();
         }
-        var list = ILevel.getTasks(level);
-        synchronized (list) {
-            list.forEach(TickableSubscription::unsubscribe);
-            list.clear();
-        }
+        tasks.forEach(TickableSubscription::unsubscribe);
+        tasks = new FastObjectArrayList<>();
     }
 
-    public static void enqueueTask(Level level, Runnable task, int delay) {
+    public void enqueueTask(Runnable task, int delay) {
         var entry = new TaskRunnableEntry(task, TaskRunnableEntry.FALSE, true, delay);
-        var list = ILevel.getTasks(level);
-        synchronized (list) {
-            list.add(entry);
+        synchronized (this) {
+            waitingTasks.add(entry);
         }
     }
 
-    public static TickableSubscription enqueueTick(Level level, BooleanSupplier isRemove, Runnable runnable, int cycle, int delay) {
+    public TickableSubscription enqueueTick(BooleanSupplier isRemove, Runnable runnable, int cycle, int delay) {
         var entry = new TaskRunnableEntry(runnable, isRemove, false, delay);
         entry.cycle = cycle;
-        var list = ILevel.getTasks(level);
-        synchronized (list) {
-            list.add(entry);
+        synchronized (this) {
+            waitingTasks.add(entry);
             return entry;
         }
     }
 
-    public static TickableSubscription enqueueTick(Level level, Runnable runnable, int cycle, int delay) {
-        return enqueueTick(level, TaskRunnableEntry.FALSE, runnable, cycle, delay);
+    public TickableSubscription enqueueTick(@Nullable TickableSubscription subscription, BooleanSupplier isRemove, Runnable runnable, int cycle, int delay) {
+        if (subscription == null || !subscription.stillSubscribed) {
+            return enqueueTick(isRemove, runnable, cycle, delay);
+        }
+        return subscription;
+    }
+
+    public TickableSubscription enqueueTick(@Nullable TickableSubscription subscription, Runnable runnable, int cycle, int delay) {
+        return enqueueTick(subscription, TaskRunnableEntry.FALSE, runnable, cycle, delay);
+    }
+
+    private static final class AsyncTask extends TaskHandler {
+
+        private static final ThreadLocal<Boolean> IN_SERVICE = ThreadLocal.withInitial(() -> false);
+
+        private final static ThreadFactory THREAD_FACTORY = new ThreadFactoryBuilder()
+                .setNameFormat("Async Task Thread-%d")
+                .setDaemon(true)
+                .setPriority(1)
+                .build();
+
+        private ScheduledExecutorService executorService;
+        private int tickCount;
+
+        private final long period;
+
+        private AsyncTask(long period) {
+            this.period = period;
+        }
+
+        private void createExecutorService() {
+            if (executorService != null && !executorService.isShutdown()) return;
+            executorService = Executors.newSingleThreadScheduledExecutor(THREAD_FACTORY);
+            executorService.scheduleAtFixedRate(this::tick, 0, period, TimeUnit.MILLISECONDS);
+        }
+
+        @Override
+        public void unsubscribe() {
+            super.unsubscribe();
+            if (executorService != null) {
+                executorService.shutdownNow();
+                executorService = null;
+            }
+        }
+
+        @Override
+        public void enqueueTask(Runnable task, int delay) {
+            super.enqueueTask(task, delay);
+            createExecutorService();
+        }
+
+        @Override
+        public TickableSubscription enqueueTick(BooleanSupplier isRemove, Runnable runnable, int cycle, int delay) {
+            var entry = super.enqueueTick(isRemove, runnable, cycle, delay);
+            createExecutorService();
+            return entry;
+        }
+
+        private void tick() {
+            try {
+                IN_SERVICE.set(true);
+                runTask(tickCount);
+            } catch (Throwable e) {
+                GTCEu.LOGGER.error("Error while AsyncTask: {}", e.getMessage());
+                e.printStackTrace();
+            } finally {
+                tickCount++;
+                IN_SERVICE.set(false);
+            }
+        }
+    }
+
+    private static final class TaskRunnableEntry extends TickableSubscription {
+
+        private static final BooleanSupplier FALSE = () -> false;
+
+        private final BooleanSupplier remove;
+        private final boolean task;
+        private int delay;
+
+        private TaskRunnableEntry(Runnable runnable, BooleanSupplier remove, boolean task, int delay) {
+            super(runnable);
+            this.remove = remove;
+            this.task = task;
+            this.delay = delay;
+        }
     }
 }

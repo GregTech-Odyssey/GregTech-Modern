@@ -16,6 +16,7 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -71,7 +72,7 @@ public class TieredEnergyMachine extends TieredMachine implements IExplosionMach
     protected void updateExplosionSubscription() {
         if (ConfigHolder.INSTANCE.machines.shouldWeatherOrTerrainExplosion && shouldWeatherOrTerrainExplosion() &&
                 energyContainer.getEnergyStored() > 0) {
-            explosionSubs = subscribeServerTick(explosionSubs, this::checkExplosion, 100);
+            explosionSubs = subscribeAsyncTick(explosionSubs, this::checkExplosion, 100);
         } else if (explosionSubs != null) {
             explosionSubs.unsubscribe();
             explosionSubs = null;
@@ -79,8 +80,10 @@ public class TieredEnergyMachine extends TieredMachine implements IExplosionMach
     }
 
     protected void checkExplosion() {
-        checkWeatherOrTerrainExplosion(tier, tier * 10);
-        updateExplosionSubscription();
+        if (getLevel() instanceof ServerLevel level) {
+            checkWeatherOrTerrainExplosion(level, tier, tier * 10);
+            updateExplosionSubscription();
+        }
     }
 
     //////////////////////////////////////

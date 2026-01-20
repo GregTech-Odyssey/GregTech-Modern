@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 
@@ -20,30 +21,34 @@ public interface IExplosionMachine extends IMachineFeature {
      * @param explosionPower       explosion level
      * @param additionalFireChance fire chance
      */
-    default void checkWeatherOrTerrainExplosion(float explosionPower, double additionalFireChance) {
+    default void checkWeatherOrTerrainExplosion(ServerLevel level, float explosionPower, double additionalFireChance) {
         if (!shouldWeatherOrTerrainExplosion()) return;
-        var machine = self();
-        var level = machine.getLevel();
-        var pos = machine.getPos();
-        if (GTValues.RNG.nextInt(10) == 0) {
-            for (Direction side : GTUtil.DIRECTIONS) {
-                var fluidState = level.getBlockState(pos.relative(side)).getFluidState();
-                if (!fluidState.isEmpty()) {
-                    doExplosion(explosionPower);
-                    return;
+        try {
+            var pos = self().getPos();
+            if (GTValues.RNG.nextInt(10) == 0) {
+                for (Direction side : GTUtil.DIRECTIONS) {
+                    var fluidState = level.getBlockState(pos.relative(side)).getFluidState();
+                    if (!fluidState.isEmpty()) {
+                        executeExplosion(level, explosionPower);
+                        return;
+                    }
                 }
             }
-        }
-        if (GTValues.RNG.nextInt(10) == 0) {
-            if (level.isRainingAt(pos) || level.isRainingAt(pos.east()) || level.isRainingAt(pos.west()) ||
-                    level.isRainingAt(pos.north()) || level.isRainingAt(pos.south())) {
-                if (level.isThundering() && GTValues.RNG.nextInt(3) == 0) {
-                    doExplosion(explosionPower);
-                } else if (GTValues.RNG.nextInt(10) == 0) {
-                    doExplosion(explosionPower);
-                } else setOnFire(additionalFireChance);
+            if (GTValues.RNG.nextInt(10) == 0) {
+                if (level.isRainingAt(pos) || level.isRainingAt(pos.east()) || level.isRainingAt(pos.west()) ||
+                        level.isRainingAt(pos.north()) || level.isRainingAt(pos.south())) {
+                    if (level.isThundering() && GTValues.RNG.nextInt(3) == 0) {
+                        executeExplosion(level, explosionPower);
+                    } else if (GTValues.RNG.nextInt(10) == 0) {
+                        executeExplosion(level, explosionPower);
+                    } else level.getServer().execute(() -> setOnFire(additionalFireChance));
+                }
             }
-        }
+        } catch (Exception ignored) {}
+    }
+
+    default void executeExplosion(ServerLevel serverLevel, float explosionPower) {
+        serverLevel.getServer().execute(() -> doExplosion(explosionPower));
     }
 
     default void doExplosion(float explosionPower) {

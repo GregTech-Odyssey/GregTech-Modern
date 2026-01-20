@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.machine;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.blockentity.TickBlockEntity;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
@@ -163,16 +164,9 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
         return !machine.getBlockState().canOcclude();
     }
 
-    @Nullable
     @Override
-    public TickableSubscription subscribeServerTick(Runnable runnable, int cycle) {
-        return machine.subscribeServerTick(runnable, cycle);
-    }
-
-    @Nullable
-    @Override
-    public TickableSubscription subscribeClientTick(Runnable runnable, int cycle) {
-        return machine.subscribeClientTick(runnable, cycle);
+    public TickBlockEntity getHolder() {
+        return machine.holder;
     }
 
     @Override

@@ -13,6 +13,7 @@ import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
@@ -87,7 +88,7 @@ public class EnergyHatchPartMachine extends WorkableTieredIOPartMachine implemen
     //////////////////////////////////////
     protected void updateExplosionSubscription() {
         if (ConfigHolder.INSTANCE.machines.shouldWeatherOrTerrainExplosion && shouldWeatherOrTerrainExplosion() && energyContainer.getEnergyStored() > 0) {
-            explosionSubs = subscribeServerTick(explosionSubs, this::checkExplosion, 100);
+            explosionSubs = subscribeAsyncTick(explosionSubs, this::checkExplosion, 100);
         } else if (explosionSubs != null) {
             explosionSubs.unsubscribe();
             explosionSubs = null;
@@ -95,8 +96,10 @@ public class EnergyHatchPartMachine extends WorkableTieredIOPartMachine implemen
     }
 
     protected void checkExplosion() {
-        checkWeatherOrTerrainExplosion(tier, tier * 10);
-        updateExplosionSubscription();
+        if (getLevel() instanceof ServerLevel level) {
+            checkWeatherOrTerrainExplosion(level, tier, tier * 10);
+            updateExplosionSubscription();
+        }
     }
 
     //////////////////////////////////////

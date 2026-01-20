@@ -263,7 +263,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
             if (this.status == WORKING) {
                 this.totalContinuousRunningTime = 0;
             }
-            machine.notifyStatusChanged(this.status, status);
+            machine.self().requestSync();
             this.status = status;
             updateTickSubscription();
             if (this.status != WAITING) {
