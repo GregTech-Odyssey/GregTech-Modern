@@ -8,7 +8,6 @@ import com.gregtechceu.gtceu.utils.collection.FastObjectArrayList;
 
 import net.minecraft.world.level.Level;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,8 +27,8 @@ public class TaskHandler {
         return GTValues.CLIENT_TIME;
     }
 
-    public static TaskHandler createAsync(long period) {
-        return new AsyncTask(period);
+    public static TaskHandler createAsync(ScheduledExecutorService service, long period) {
+        return new AsyncTask(service, period);
     }
 
     public static TaskHandler create() {
@@ -158,33 +157,26 @@ public class TaskHandler {
 
         private static final ThreadLocal<Boolean> IN_SERVICE = ThreadLocal.withInitial(() -> false);
 
-        private final static ThreadFactory THREAD_FACTORY = new ThreadFactoryBuilder()
-                .setNameFormat("Async Task Thread-%d")
-                .setDaemon(true)
-                .setPriority(1)
-                .build();
-
-        private ScheduledExecutorService executorService;
+        private ScheduledFuture<?> scheduledFuture;
         private int tickCount;
-
+        private final ScheduledExecutorService service;
         private final long period;
 
-        private AsyncTask(long period) {
+        private AsyncTask(ScheduledExecutorService service, long period) {
+            this.service = service;
             this.period = period;
         }
 
         private void createExecutorService() {
-            if (executorService != null && !executorService.isShutdown()) return;
-            executorService = Executors.newSingleThreadScheduledExecutor(THREAD_FACTORY);
-            executorService.scheduleAtFixedRate(this::tick, 0, period, TimeUnit.MILLISECONDS);
+            if (scheduledFuture == null) scheduledFuture = service.scheduleAtFixedRate(this::tick, 0, period, TimeUnit.MILLISECONDS);
         }
 
         @Override
         public void unsubscribe() {
             super.unsubscribe();
-            if (executorService != null) {
-                executorService.shutdownNow();
-                executorService = null;
+            if (scheduledFuture != null) {
+                scheduledFuture.cancel(true);
+                scheduledFuture = null;
             }
         }
 

@@ -37,7 +37,13 @@ public class MultiblockWorldData {
         return ((ILevel) serverLevel).gtceu$getMultiblockWorldSavedData();
     }
 
-    public static final TaskHandler TASK_HANDLER = TaskHandler.createAsync(2000);
+    public static final TaskHandler TASK_HANDLER = TaskHandler.createAsync(Executors.newSingleThreadScheduledExecutor(r -> {
+        var thread = new Thread(r);
+        thread.setName("Multiblock World Data");
+        thread.setPriority(1);
+        thread.setDaemon(true);
+        return thread;
+    }), 2000);
 
     private TickableSubscription subscription;
 

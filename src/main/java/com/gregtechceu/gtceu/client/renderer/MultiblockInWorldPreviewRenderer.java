@@ -38,6 +38,7 @@ import org.lwjgl.opengl.GL11;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -56,7 +57,7 @@ public class MultiblockInWorldPreviewRenderer {
     @Nullable
     private static TrackedDummyWorld LEVEL = null;
     @Nullable
-    private static Thread THREAD = null;
+    private static Future<?> THREAD = null;
     private static final AtomicInteger LEFT_TICK = new AtomicInteger(-1);
 
     /**
@@ -267,12 +268,12 @@ public class MultiblockInWorldPreviewRenderer {
 
     private static void prepareBuffers(TrackedDummyWorld level, Map<BlockPos, BlockInfo> renderedBlocks, int duration) {
         if (THREAD != null) {
-            THREAD.interrupt();
+            THREAD.cancel(true);
         }
         CACHE_STATE.set(CacheState.COMPILING);
         // call it to init the buffers
         getBUFFERS();
-        THREAD = Thread.startVirtualThread(() -> {
+        THREAD = GTUtil.ASYNC_EXECUTOR.submit(() -> {
             var dispatcher = Minecraft.getInstance().getBlockRenderer();
             ModelBlockRenderer.enableCaching();
             PoseStack poseStack = new PoseStack();

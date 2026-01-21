@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.commands;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.SCPacketShareProspection;
 import com.gregtechceu.gtceu.integration.map.ClientCacheManager;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -25,7 +26,7 @@ public class GTClientCommands {
                         .then(argument("player", EntityArgument.player())
                                 .executes(ctx -> {
                                     Player player = EntityArgument.getPlayer(ctx, "player");
-                                    Thread.startVirtualThread(new ProspectingShareTask(
+                                    GTUtil.ASYNC_EXECUTOR.execute(new ProspectingShareTask(
                                             ctx.getSource().getPlayerOrException().getUUID(), player.getUUID()));
                                     return 1;
                                 }))));

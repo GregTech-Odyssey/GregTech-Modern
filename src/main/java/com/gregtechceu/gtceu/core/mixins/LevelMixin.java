@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.core.mixins;
 
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
 import com.gregtechceu.gtceu.core.ILevel;
+import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.core.BlockPos;
@@ -81,7 +82,7 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
 
     @Override
     public @NotNull TaskHandler gtceu$getAsyncTaskHandler() {
-        if (gtceu$taskAsyncHandler == null) gtceu$taskAsyncHandler = TaskHandler.createAsync(50);
+        if (gtceu$taskAsyncHandler == null) gtceu$taskAsyncHandler = TaskHandler.createAsync(GTUtil.ASYNC_EXECUTOR, 50);
         return gtceu$taskAsyncHandler;
     }
 

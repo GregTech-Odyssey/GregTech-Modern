@@ -53,6 +53,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -101,6 +103,21 @@ public class GTUtil {
             MAP_COLORS[i] = MapColor.byId(i + 1);
         }
     }
+
+    public static final int ASYNC_AVAILABLE_PROCESSORS = Math.max(Runtime.getRuntime().availableProcessors() - (GTCEu.isClientSide() ? 2 : 1), 1);
+
+    public static final ScheduledExecutorService ASYNC_EXECUTOR = Util.make(() -> {
+        AtomicInteger workercount = new AtomicInteger(0);
+        ThreadFactory factory = r -> {
+            var thread = new Thread(r);
+            thread.setName("Async-worker-" + workercount.getAndIncrement());
+            thread.setDaemon(true);
+            thread.setPriority(1);
+            return thread;
+        };
+        if (ASYNC_AVAILABLE_PROCESSORS > 1) return Executors.newScheduledThreadPool(ASYNC_AVAILABLE_PROCESSORS, factory);
+        return Executors.newSingleThreadScheduledExecutor(factory);
+    });
 
     public static ResourceLocation getResourceLocation(String location) {
         String namespace = "minecraft";
