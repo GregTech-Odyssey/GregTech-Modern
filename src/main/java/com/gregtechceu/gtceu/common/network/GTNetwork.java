@@ -22,7 +22,5 @@ public class GTNetwork {
         NETWORK.registerS2C(SPacketSendWorldID.class);
         NETWORK.registerS2C(SCPacketUpdateActiveBlock.class);
         NETWORK.registerS2C(SCPacketStructureFormed.class);
-
-        NETWORK.registerBoth(SCPacketShareProspection.class);
     }
 }

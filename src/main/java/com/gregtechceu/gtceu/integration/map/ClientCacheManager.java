@@ -23,7 +23,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -140,40 +139,6 @@ public class ClientCacheManager {
         caches.get(cache).singleFiles.add(prefix);
     }
 
-    public static List<ProspectionInfo> getProspectionShareData() {
-        List<ProspectionInfo> result = new ArrayList<>();
-        for (IClientCache cache : caches.keySet()) {
-            ClientCacheInfo cacheInfo = caches.get(cache);
-            for (String dimPrefix : cacheInfo.dimFilePrefixes) {
-                for (ResourceKey<Level> dim : cache.getExistingDimensions(dimPrefix)) {
-                    CompoundTag data = cache.saveDimFile(dimPrefix, dim);
-                    if (data == null) continue;
-                    result.add(new ProspectionInfo(cacheInfo.key, dimPrefix, true, dim, data));
-                }
-            }
-            for (String singleFileName : cacheInfo.singleFiles) {
-                CompoundTag data = cache.saveSingleFile(singleFileName);
-                if (data == null) continue;
-                result.add(new ProspectionInfo(cacheInfo.key, singleFileName, false, Level.OVERWORLD, data));
-            }
-        }
-        return result;
-    }
-
-    public static void processProspectionShare(String cacheName, String key, boolean isDimCache, ResourceKey<Level> dim, CompoundTag data) {
-        for (IClientCache cache : caches.keySet()) {
-            ClientCacheInfo cacheInfo = caches.get(cache);
-            if (cacheInfo.key.equals(cacheName)) {
-                if (isDimCache) {
-                    cache.readDimFile(key, dim, data);
-                } else {
-                    cache.readSingleFile(key, data);
-                }
-                break;
-            }
-        }
-    }
-
     public static void allowReinit() {
         shouldInit = true;
     }
@@ -197,23 +162,6 @@ public class ClientCacheManager {
             this.key = key;
             dimFilePrefixes = new OpenCacheHashSet<>();
             singleFiles = new OpenCacheHashSet<>();
-        }
-    }
-
-    public static class ProspectionInfo {
-
-        public String cacheName;
-        public String key;
-        public boolean isDimCache;
-        public ResourceKey<Level> dim;
-        public CompoundTag data;
-
-        public ProspectionInfo(String cacheName, String key, boolean isDimCache, ResourceKey<Level> dim, CompoundTag data) {
-            this.cacheName = cacheName;
-            this.key = key;
-            this.isDimCache = isDimCache;
-            this.dim = dim;
-            this.data = data;
         }
     }
 
