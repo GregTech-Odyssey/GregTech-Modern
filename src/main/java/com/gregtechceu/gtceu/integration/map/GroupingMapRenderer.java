@@ -61,6 +61,16 @@ public class GroupingMapRenderer extends GenericMapRenderer {
     }
 
     @Override
+    public boolean addMarker(String name, String id, ResourceKey<Level> dim, ChunkPos pos,
+                             ProspectorMode.OreInfo[] ores) {
+        boolean value = false;
+        for (GenericMapRenderer renderer : rendererList) {
+            value |= renderer.addMarker(name, id, dim, pos, ores);
+        }
+        return value;
+    }
+
+    @Override
     public boolean removeMarker(ResourceKey<Level> dim, String id) {
         boolean value = false;
         for (GenericMapRenderer renderer : rendererList) {

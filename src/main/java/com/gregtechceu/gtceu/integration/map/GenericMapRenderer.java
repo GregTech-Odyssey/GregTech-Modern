@@ -38,6 +38,9 @@ public abstract class GenericMapRenderer {
 
     public abstract boolean addMarker(String name, ResourceKey<Level> dim, GeneratedVeinMetadata vein, String id);
 
+    public abstract boolean addMarker(String name, String id, ResourceKey<Level> dim, ChunkPos pos,
+                                      ProspectorMode.OreInfo[] ores);
+
     public abstract boolean removeMarker(ResourceKey<Level> dim, String id);
 
     public abstract boolean doShowLayer(String name);

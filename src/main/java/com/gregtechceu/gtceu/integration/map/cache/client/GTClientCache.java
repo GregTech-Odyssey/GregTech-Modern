@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.integration.map.GroupingMapRenderer;
 import com.gregtechceu.gtceu.integration.map.cache.DimensionCache;
 import com.gregtechceu.gtceu.integration.map.cache.GridCache;
 import com.gregtechceu.gtceu.integration.map.cache.WorldCache;
+import com.gregtechceu.gtceu.integration.map.cache.bedrockore.BedrockOreCache;
 import com.gregtechceu.gtceu.integration.map.cache.fluid.FluidCache;
 import com.gregtechceu.gtceu.integration.map.layer.builtin.OreRenderLayer;
 
@@ -25,6 +26,7 @@ public class GTClientCache extends WorldCache implements IClientCache {
     public static final GTClientCache instance = new GTClientCache();
 
     private final FluidCache fluids = new FluidCache();
+    private final BedrockOreCache bedrockOres = new BedrockOreCache();
 
     public void notifyNewVeins(GeneratedVeinMetadata... veins) {
         if (veins.length == 0) return;
@@ -50,6 +52,10 @@ public class GTClientCache extends WorldCache implements IClientCache {
 
     public void addFluid(ResourceKey<Level> dim, int chunkX, int chunkZ, ProspectorMode.FluidInfo fluid) {
         fluids.addFluid(dim, chunkX, chunkZ, fluid);
+    }
+
+    public void addBedrockOre(ResourceKey<Level> dim, int chunkX, int chunkZ, ProspectorMode.OreInfo[] ores) {
+        bedrockOres.addBedrockOre(dim, chunkX, chunkZ, ores);
     }
 
     @Override
@@ -78,7 +84,12 @@ public class GTClientCache extends WorldCache implements IClientCache {
 
     @Override
     public CompoundTag saveSingleFile(String name) {
-        return fluids.toNbt();
+        if (name.equals("fluids")) {
+            return fluids.toNbt();
+        } else if (name.equals("bedrock_ore_veins")) {
+            return bedrockOres.toNbt();
+        }
+        return null;
     }
 
     @Override
@@ -101,18 +112,24 @@ public class GTClientCache extends WorldCache implements IClientCache {
 
     @Override
     public void readSingleFile(String name, CompoundTag data) {
-        fluids.fromNbt(data);
+        if (name.equals("fluids")) {
+            fluids.fromNbt(data);
+        } else if (name.equals("bedrock_ore_veins")) {
+            bedrockOres.fromNbt(data);
+        }
     }
 
     @Override
     public void setupCacheFiles() {
         addDimFiles();
         addSingleFile("fluids");
+        addSingleFile("bedrock_ore_veins");
     }
 
     @Override
     public void clear() {
         super.clear();
         fluids.clear();
+        bedrockOres.clear();
     }
 }

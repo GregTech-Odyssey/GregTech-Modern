@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.core.mixins.xaeroworldmap;
 
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.integration.map.xaeros.worldmap.bedrockore.BedrockOreChunkHighlighter;
 import com.gregtechceu.gtceu.integration.map.xaeros.worldmap.fluid.FluidChunkHighlighter;
 
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -26,5 +27,6 @@ public abstract class WorldMapSessionMixin {
                                              @Local(name = "highlightRegistry") HighlighterRegistry highlightRegistry) {
         if (!ConfigHolder.INSTANCE.compat.minimap.toggle.xaerosMapIntegration) return;
         highlightRegistry.register(new FluidChunkHighlighter());
+        highlightRegistry.register(new BedrockOreChunkHighlighter());
     }
 }

@@ -5459,5 +5459,8 @@
     "tile.gtceu.petrified_foam.name": "石化建筑泡沫",
     "tile.gtceu.reinforced_foam.name": "强化建筑泡沫",
     "tile.gtceu.reinforced_stone.name": "防爆石",
-    "tile.gtceu.seal.name": "密封方块"
+    "tile.gtceu.seal.name": "密封方块",
+    "gtceu.button.bedrock_ore_veins": "显示基岩矿脉",
+    "gtceu.minimap.bedrock_ore.title": "基岩矿脉",
+    "gtceu.minimap.bedrock_ore.unknown": "未知矿脉"
 }
