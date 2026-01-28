@@ -3029,7 +3029,7 @@
     "gtceu.machine.zpm_thermal_centrifuge.tooltip": "§7烈焰血汗工厂 T-6352",
     "gtceu.machine.zpm_wiremill.tooltip": "§7锭材拉伸机",
     "gtceu.maintenance.configurable_duration": "处理耗时：%fx",
-    "gtceu.maintenance.configurable_duration.changed_description": "配方处理速度现为正常速度（不计超频）的%f倍。",
+    "gtceu.maintenance.configurable_duration.changed_description": "配方处理耗时现为正常耗时（不计超频）的%f倍。",
     "gtceu.maintenance.configurable_duration.modify": "修改耗时：",
     "gtceu.maintenance.configurable_duration.unchanged_description": "配方以正常速度运行。更改配置以更新。",
     "gtceu.maintenance.configurable_time": "故障概率：%fx",
