@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.core.mixins.xaerominimap;
 
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.integration.map.xaeros.minimap.bedrockore.BedrockOreChunkHighlighter;
 import com.gregtechceu.gtceu.integration.map.xaeros.minimap.fluid.FluidChunkHighlighter;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -22,5 +23,6 @@ public abstract class HighlighterRegistryMixin {
     private void gtceu$registerHighlighters(CallbackInfo ci) {
         if (!ConfigHolder.INSTANCE.compat.minimap.toggle.xaerosMapIntegration) return;
         this.register(new FluidChunkHighlighter());
+        this.register(new BedrockOreChunkHighlighter());
     }
 }

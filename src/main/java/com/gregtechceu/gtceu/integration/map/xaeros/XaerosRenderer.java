@@ -17,6 +17,8 @@ public class XaerosRenderer extends GenericMapRenderer {
     public static final Table<ResourceKey<Level>, String, OreVeinElement> oreElements = HashBasedTable.create();
     public static final Table<ResourceKey<Level>, ChunkPos, ProspectorMode.FluidInfo> fluidElements = HashBasedTable
             .create();
+    public static final Table<ResourceKey<Level>, ChunkPos, ProspectorMode.OreInfo[]> bedrockOreElements = HashBasedTable
+            .create();
 
     public XaerosRenderer() {
         super();
@@ -32,6 +34,13 @@ public class XaerosRenderer extends GenericMapRenderer {
     @Override
     public boolean addMarker(String name, ResourceKey<Level> dim, GeneratedVeinMetadata vein, String id) {
         oreElements.put(dim, id, new OreVeinElement(vein, name));
+        return true;
+    }
+
+    @Override
+    public boolean addMarker(String name, String id, ResourceKey<Level> dim, ChunkPos pos,
+                             ProspectorMode.OreInfo[] ores) {
+        bedrockOreElements.put(dim, pos, ores);
         return true;
     }
 
@@ -55,5 +64,6 @@ public class XaerosRenderer extends GenericMapRenderer {
     public void clear() {
         oreElements.clear();
         fluidElements.clear();
+        bedrockOreElements.clear();
     }
 }

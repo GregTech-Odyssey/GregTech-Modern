@@ -116,6 +116,10 @@ public class IntegrationLang {
         provider.add("gtceu.journeymap.options.layers.ore_veins", "Show Ore Veins");
         provider.add("gtceu.journeymap.options.layers.bedrock_fluids", "Show Bedrock Fluid Veins");
         provider.add("gtceu.journeymap.options.layers.hide_depleted", "Hide Depleted Veins");
+
+        provider.add("gtceu.minimap.bedrock_ore.title", "Bedrock Ore Vein");
+        provider.add("gtceu.button.bedrock_ore_veins", "Show Bedrock Ore Veins");
+        provider.add("gtceu.minimap.bedrock_ore.unknown", "Unknown Vein");
     }
 
     private static void initOwnershipLang(RegistrateLangProvider provider) {

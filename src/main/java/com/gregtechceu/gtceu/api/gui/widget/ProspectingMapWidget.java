@@ -191,6 +191,8 @@ public class ProspectingMapWidget extends WidgetGroup implements SearchComponent
         packetQueue.add(packet);
         if (mode == ProspectorMode.FLUID && packet.data[0][0].length > 0) {
             GTClientCache.instance.addFluid(gui.entityPlayer.level().dimension(), packet.chunkX, packet.chunkZ, (ProspectorMode.FluidInfo) packet.data[0][0][0]);
+        } else if (mode == ProspectorMode.BEDROCK_ORE && packet.data[0][0].length > 0) {
+            GTClientCache.instance.addBedrockOre(gui.entityPlayer.level().dimension(), packet.chunkX, packet.chunkZ, (ProspectorMode.OreInfo[]) packet.data[0][0]);
         }
     }
 
