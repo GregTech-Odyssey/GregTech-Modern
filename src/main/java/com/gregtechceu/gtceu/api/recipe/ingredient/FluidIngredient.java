@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.api.recipe.ingredient;
 
+import com.gregtechceu.gtceu.api.recipe.content.ContentInner;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.HolderSet;
@@ -25,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
 
-public final class FluidIngredient implements Predicate<FluidStack> {
+public final class FluidIngredient extends ContentInner implements Predicate<FluidStack> {
 
     public static Codec<FluidIngredient> CODEC = Codec.PASSTHROUGH.xmap(dynamic -> FluidIngredient.fromJson(dynamic.convert(JsonOps.INSTANCE).getValue()), ingredient -> new Dynamic<>(JsonOps.INSTANCE, ingredient.toJson()));
     public static FluidIngredient EMPTY = new FluidIngredient(null, 0, null);
@@ -35,12 +36,8 @@ public final class FluidIngredient implements Predicate<FluidStack> {
     public final Object value;
     public final CompoundTag nbt;
 
-    public long amount;
-
     private FluidStack[] stacks;
     private boolean changed = true;
-
-    private int hashCode;
 
     private FluidIngredient(Object value, long amount, @Nullable CompoundTag nbt) {
         this.value = value;
@@ -102,6 +99,7 @@ public final class FluidIngredient implements Predicate<FluidStack> {
         };
     }
 
+    @Override
     public CompoundTag toNbt() {
         var tag = new CompoundTag();
         switch (value) {

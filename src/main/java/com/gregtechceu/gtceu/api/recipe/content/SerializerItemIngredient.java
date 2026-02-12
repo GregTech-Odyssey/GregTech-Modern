@@ -5,9 +5,6 @@ import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ItemLike;
 
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
@@ -52,18 +49,6 @@ public class SerializerItemIngredient implements IContentSerializer<ItemIngredie
     @Override
     public ItemIngredient fromNbt(Tag tag) {
         return ItemIngredient.fromNbt((CompoundTag) tag);
-    }
-
-    @Override
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public ItemIngredient of(Object o) {
-        return switch (o) {
-            case ItemIngredient ingredient -> ingredient;
-            case ItemStack itemStack -> ItemIngredient.of(itemStack);
-            case ItemLike itemLike -> ItemIngredient.of(itemLike);
-            case TagKey tag -> ItemIngredient.of(tag);
-            case null, default -> ItemIngredient.EMPTY;
-        };
     }
 
     @Override

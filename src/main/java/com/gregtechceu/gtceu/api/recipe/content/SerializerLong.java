@@ -7,7 +7,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import com.mojang.serialization.Codec;
-import org.apache.commons.lang3.math.NumberUtils;
 
 public class SerializerLong implements IContentSerializer<Long> {
 
@@ -43,18 +42,6 @@ public class SerializerLong implements IContentSerializer<Long> {
     @Override
     public Long fromNbt(Tag tag) {
         return ((LongTag) tag).getAsLong();
-    }
-
-    @Override
-    public Long of(Object o) {
-        if (o instanceof Long) {
-            return (Long) o;
-        } else if (o instanceof Number) {
-            return ((Number) o).longValue();
-        } else if (o instanceof CharSequence) {
-            return NumberUtils.toLong(o.toString(), 1);
-        }
-        return 0L;
     }
 
     @Override

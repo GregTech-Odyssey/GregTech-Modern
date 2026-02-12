@@ -1,10 +1,9 @@
 package com.gregtechceu.gtceu.api.capability.recipe;
 
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 import com.gregtechceu.gtceu.api.recipe.content.SerializerItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
@@ -24,7 +23,6 @@ import com.gregtechceu.gtceu.utils.ResearchManager;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.jei.IngredientIO;
 
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.common.crafting.IntersectionIngredient;
@@ -39,7 +37,7 @@ import org.jetbrains.annotations.UnknownNullability;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ItemRecipeCapability extends RecipeCapability<ItemIngredient> {
+public class ItemRecipeCapability extends ContentRecipeCapability<ItemIngredient> {
 
     public final static ItemRecipeCapability CAP = new ItemRecipeCapability();
 
@@ -61,23 +59,7 @@ public class ItemRecipeCapability extends RecipeCapability<ItemIngredient> {
     }
 
     @Override
-    public ItemIngredient copyInner(ItemIngredient content) {
-        return content.copy();
-    }
-
-    @Override
-    public ItemIngredient copyWithModifier(ItemIngredient content, ContentModifier modifier) {
-        var amount = modifier.apply(content.amount);
-        return amount == content.amount ? content.copy() : content.copy(modifier.apply(content.amount));
-    }
-
-    @Override
-    public boolean isRecipeSearchFilter() {
-        return true;
-    }
-
-    @Override
-    public @NotNull List<Object> createXEIContainerContents(List<Content> contents, GTRecipe recipe, IO io) {
+    public @NotNull List<Object> createXEIContainerContents(List<Content> contents, GTRecipeDefinition recipe, IO io) {
         List<Object> entryLists = contents.stream()
 
                 .map(this::of)
@@ -96,11 +78,11 @@ public class ItemRecipeCapability extends RecipeCapability<ItemIngredient> {
                 if (researchData != null) break;
             }
             if (researchData != null) {
-                Collection<GTRecipe> possibleRecipes = researchData.recipeType()
+                Collection<GTRecipeDefinition> possibleRecipes = researchData.recipeType()
                         .getDataStickEntry(researchData.researchId());
                 Set<ItemStack> cache = new ObjectOpenCustomHashSet<>(ItemStackHashStrategy.ITEM);
                 if (possibleRecipes != null) {
-                    for (GTRecipe r : possibleRecipes) {
+                    for (GTRecipeDefinition r : possibleRecipes) {
                         var outputs = r.getOutputContents(this);
                         if (outputs.isEmpty()) continue;
 
@@ -149,7 +131,7 @@ public class ItemRecipeCapability extends RecipeCapability<ItemIngredient> {
                                 IO io,
                                 GTRecipeTypeUI.@UnknownNullability("null when storage == null") RecipeHolder recipeHolder,
                                 @NotNull GTRecipeType recipeType,
-                                @UnknownNullability("null when content == null") GTRecipe recipe,
+                                @UnknownNullability("null when content == null") GTRecipeDefinition recipe,
                                 @Nullable Content content,
                                 @Nullable Object storage, int recipeTier, int chanceTier) {
         if (widget instanceof SlotWidget slot) {
@@ -183,11 +165,8 @@ public class ItemRecipeCapability extends RecipeCapability<ItemIngredient> {
                 slot.setXEIChance(chance);
                 slot.setOnAddedTooltips((w, tooltips) -> {
                     GTRecipeWidget.setConsumedChance(content,
-                            recipe.getChanceLogicForCapability(this, io, isTickSlot(index, io, recipe)),
+                            recipe.getChanceLogicForCapability(this, io),
                             tooltips, recipeTier, chanceTier, recipeType.getChanceFunction());
-                    if (isTickSlot(index, io, recipe)) {
-                        tooltips.add(Component.translatable("gtceu.gui.content.per_tick"));
-                    }
                 });
                 if (io == IO.IN && content.chance == 0) {
                     slot.setIngredientIO(IngredientIO.CATALYST);

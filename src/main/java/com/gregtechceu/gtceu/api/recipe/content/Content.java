@@ -14,6 +14,9 @@ import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.IntTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
@@ -41,6 +44,30 @@ public class Content {
 
     public static <T> Codec<Content> codec(RecipeCapability<T> capability) {
         return RecordCodecBuilder.create(instance -> instance.group(capability.serializer.codec().fieldOf("content").forGetter(capability::of), ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("chance", ChanceLogic.getMaxChancedValue()).forGetter(val -> val.chance), Codec.INT.optionalFieldOf("tierChanceBoost", 0).forGetter(val -> val.tierChanceBoost)).apply(instance, Content::new));
+    }
+
+    @Nullable
+    public static Content fromNbt(RecipeCapability<?> capability, @Nullable Tag tag) {
+        if (tag instanceof CompoundTag compoundTag && compoundTag.tags.get("content") instanceof CompoundTag content) {
+            var ingredient = capability.serializer.fromNbt(content);
+            if (ingredient instanceof ContentInner inner && !inner.isEmpty()) return new Content(ingredient, getChance(compoundTag), getTierChanceBoost(compoundTag));
+        }
+        return null;
+    }
+
+    @Nullable
+    public CompoundTag toNbt() {
+        if (inner instanceof ContentInner contentInner && !contentInner.isEmpty()) {
+            var t = new CompoundTag();
+            addChance(t, this);
+            t.put("content", contentInner.toNbt());
+            return t;
+        }
+        return null;
+    }
+
+    public <T> T getInner() {
+        return (T) inner;
     }
 
     public Content copy(RecipeCapability<?> capability) {
@@ -146,6 +173,29 @@ public class Content {
 
     @Override
     public String toString() {
-        return "Content{" + "inner=" + inner + ", chance=" + chance + ", tierChanceBoost=" + tierChanceBoost + '}';
+        return "Content{" + "ContentInner=" + inner + ", chance=" + chance + ", tierChanceBoost=" + tierChanceBoost + '}';
+    }
+
+    private static int getChance(CompoundTag tag) {
+        if (tag.tags.get("chance") instanceof IntTag chance) {
+            return chance.getAsInt();
+        }
+        return Content.MAX_CHANCE;
+    }
+
+    private static int getTierChanceBoost(CompoundTag tag) {
+        if (tag.tags.get("tierChanceBoost") instanceof IntTag tierChanceBoost) {
+            return tierChanceBoost.getAsInt();
+        }
+        return 0;
+    }
+
+    private static void addChance(CompoundTag tag, Content content) {
+        if (content.chance != Content.MAX_CHANCE) {
+            tag.putInt("chance", content.chance);
+            if (content.tierChanceBoost != 0) {
+                tag.putInt("tierChanceBoost", content.tierChanceBoost);
+            }
+        }
     }
 }

@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.gui.SteamTexture;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.chance.boost.ChanceBoostFunction;
+import com.gregtechceu.gtceu.api.recipe.content.ContentInner;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 import com.gregtechceu.gtceu.api.sound.SoundEntry;
@@ -32,6 +33,7 @@ import net.minecraftforge.fluids.FluidStack;
 import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.fast.fastcollection.OpenCacheHashSet;
 import com.fast.recipesearch.IntLongMap;
+import com.fast.recipesearch.RecipeSearcher;
 import it.unimi.dsi.fastutil.objects.*;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.*;
 
-public class GTRecipeType implements RecipeType<GTRecipe> {
+public class GTRecipeType implements RecipeType<GTRecipeDefinition> {
 
     public final ResourceLocation registryName;
     public final String group;
@@ -69,17 +71,17 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     @Getter
     protected final GTRecipeCategory category;
     @Getter
-    protected final Map<GTRecipeCategory, Set<GTRecipe>> categoryMap = new O2OOpenCacheHashMap<>();
+    protected final Map<GTRecipeCategory, Set<GTRecipeDefinition>> categoryMap = new O2OOpenCacheHashMap<>();
     @Getter
     protected boolean offsetVoltageText = false;
     @Getter
     protected int voltageTextOffset = 20;
-    protected final Map<String, Collection<GTRecipe>> researchEntries = new O2OOpenCacheHashMap<>();
+    protected final Map<String, Collection<GTRecipeDefinition>> researchEntries = new O2OOpenCacheHashMap<>();
     @Getter
     protected final List<ICustomRecipeLogic> customRecipeLogicRunners = new ArrayList<>();
-    public final Map<ResourceLocation, GTRecipe> recipes = new O2OOpenCacheHashMap<>();
+    public final Map<ResourceLocation, GTRecipeDefinition> recipes = new O2OOpenCacheHashMap<>();
 
-    public RecipeDB db;
+    protected RecipeDB db;
 
     public GTRecipeType(ResourceLocation registryName, String group, RecipeType<?>... proxyRecipes) {
         this.registryName = registryName;
@@ -143,7 +145,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         return this;
     }
 
-    public GTRecipeType setUiBuilder(BiConsumer<GTRecipe, WidgetGroup> uiBuilder) {
+    public GTRecipeType setUiBuilder(BiConsumer<GTRecipeDefinition, WidgetGroup> uiBuilder) {
         this.recipeUI.setUiBuilder(uiBuilder);
         return this;
     }
@@ -178,8 +180,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public boolean findRecipe(IRecipeCapabilityHolder holder, Predicate<GTRecipe> canHandle) {
-        init();
+    public boolean findRecipe(IRecipeCapabilityHolder holder, Predicate<GTRecipeDefinition> canHandle) {
         for (var list : holder.getInputList()) {
             if (list.findRecipe(holder, this, canHandle)) return true;
         }
@@ -190,26 +191,31 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         return false;
     }
 
-    protected void init() {
-        if (db == null) {
-            var recipes = new ArrayList<>(this.recipes.values());
-            proxyRecipes.forEach(t -> {
-                if (t instanceof GTRecipeType type) {
-                    recipes.addAll(type.recipes.values());
-                } else {
-                    var map = (Map<ResourceLocation, Recipe>) GTCEu.getMinecraftServer().getRecipeManager().byType((RecipeType) t);
-                    recipes.addAll(map.entrySet().stream().map(e -> this.toGTrecipe(e.getKey(), e.getValue())).toList());
-                }
-            });
-            db = RecipeDB.create(recipes, RecipeDB::new);
-        }
+    public boolean search(IntLongMap map, Predicate<GTRecipeDefinition> canHandle) {
+        if (db == null) initDB();
+        return db.search(map, canHandle);
+    }
+
+    protected void initDB() {
+        var recipes = new ArrayList<>(this.recipes.values());
+        proxyRecipes.forEach(t -> {
+            if (t instanceof GTRecipeType type) {
+                recipes.addAll(type.recipes.values());
+            } else {
+                var map = (Map<ResourceLocation, Recipe>) GTCEu.getMinecraftServer().getRecipeManager().byType((RecipeType) t);
+                recipes.addAll(map.entrySet().stream().map(e -> this.toGTrecipe(e.getKey(), e.getValue())).toList());
+            }
+        });
+        db = RecipeDB.build(new RecipeDB(), recipes);
     }
 
     public void clear() {
-        if (db != null) db.clear();
+        if (db != null) {
+            db.searchContext = new RecipeSearcher<>();
+        }
     }
 
-    protected GTRecipe toGTrecipe(ResourceLocation id, Recipe<?> recipe) {
+    protected GTRecipeDefinition toGTrecipe(ResourceLocation id, Recipe<?> recipe) {
         var builder = recipeBuilder(id);
         for (var ingredient : recipe.getIngredients()) {
             builder.inputItems(ingredient);
@@ -219,7 +225,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
             builder.duration(cookingRecipe.getCookingTime() / 4);
             builder.EUt(GTValues.VA[GTValues.LV]);
         }
-        return builder.buildRawRecipe();
+        return builder.build();
     }
 
     public int getMaxInputs(RecipeCapability<?> cap) {
@@ -267,13 +273,13 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         return this;
     }
 
-    public void addDataStickEntry(@NotNull String researchId, @NotNull GTRecipe recipe) {
-        Collection<GTRecipe> collection = researchEntries.computeIfAbsent(researchId, k -> new OpenCacheHashSet<>());
+    public void addDataStickEntry(@NotNull String researchId, @NotNull GTRecipeDefinition recipe) {
+        Collection<GTRecipeDefinition> collection = researchEntries.computeIfAbsent(researchId, k -> new OpenCacheHashSet<>());
         collection.add(recipe);
     }
 
     @Nullable
-    public Collection<GTRecipe> getDataStickEntry(@NotNull String researchId) {
+    public Collection<GTRecipeDefinition> getDataStickEntry(@NotNull String researchId) {
         return researchEntries.get(researchId);
     }
 
@@ -283,23 +289,23 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         }
     }
 
-    public void addToMainCategory(GTRecipe recipe) {
+    public void addToMainCategory(GTRecipeDefinition recipe) {
         addToCategoryMap(category, recipe);
     }
 
-    public void addToCategoryMap(GTRecipeCategory category, GTRecipe recipe) {
-        categoryMap.computeIfAbsent(category, k -> new ObjectLinkedOpenHashSet<>()).add(recipe);
+    public void addToCategoryMap(GTRecipeCategory category, GTRecipeDefinition recipe) {
+        categoryMap.computeIfAbsent(category, k -> new ReferenceOpenHashSet<>()).add(recipe);
     }
 
     public Set<GTRecipeCategory> getCategories() {
         return Collections.unmodifiableSet(categoryMap.keySet());
     }
 
-    public Set<GTRecipe> getRecipesInCategory(GTRecipeCategory category) {
-        return Collections.unmodifiableSet(categoryMap.getOrDefault(category, Set.of()));
+    public Set<GTRecipeDefinition> getRecipesInCategory(GTRecipeCategory category) {
+        return categoryMap.getOrDefault(category, Set.of());
     }
 
-    public <T> void convert(RecipeCapability<T> capability, Object object, IntLongMap map) {
+    public <T extends ContentInner> void convert(ContentRecipeCapability<T> capability, Object object, IntLongMap map) {
         capability.convert((T) object, map);
     }
 
@@ -328,7 +334,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
          *         recipe is not found to run. Return null if no recipe should be run by your logic.
          */
         @Nullable
-        GTRecipe createCustomRecipe(IRecipeCapabilityHolder holder);
+        GTRecipeDefinition createCustomRecipe(IRecipeCapabilityHolder holder);
 
         /**
          * Build all representative recipes in this method, then add them to the appropriate recipe category.

@@ -22,8 +22,6 @@ public interface IContentSerializer<T> {
 
     T fromNbt(Tag tag);
 
-    T of(Object o);
-
     T defaultValue();
 
     @SuppressWarnings("unchecked")

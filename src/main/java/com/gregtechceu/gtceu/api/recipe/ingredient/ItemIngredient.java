@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.api.recipe.ingredient;
 
+import com.gregtechceu.gtceu.api.recipe.content.ContentInner;
 import com.gregtechceu.gtceu.core.mixins.StrictNBTIngredientAccessor;
 import com.gregtechceu.gtceu.data.recipe.builder.ShapedRecipeBuilder;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -31,15 +32,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Predicate;
 
-public class ItemIngredient implements Predicate<ItemStack> {
+public class ItemIngredient extends ContentInner implements Predicate<ItemStack> {
 
     public static final ItemIngredient EMPTY = new ItemIngredient(Ingredient.of(), 0);
 
-    public long amount;
-
     public final Ingredient inner;
 
-    private int hashCode;
     @Getter
     private final boolean isEmpty;
     private final Ingredient.Value value;
@@ -103,6 +101,7 @@ public class ItemIngredient implements Predicate<ItemStack> {
         };
     }
 
+    @Override
     public CompoundTag toNbt() {
         var tag = new CompoundTag();
         switch (value) {
@@ -247,7 +246,7 @@ public class ItemIngredient implements Predicate<ItemStack> {
     //
     // private ItemStack[] getStacks() {
     // if (this.stacks == null) {
-    // var stacks = inner.getItems();
+    // var stacks = ContentInner.getItems();
     // var length = stacks.length;
     // if (length < 1) {
     // this.stacks = EMPTY_STACKS;

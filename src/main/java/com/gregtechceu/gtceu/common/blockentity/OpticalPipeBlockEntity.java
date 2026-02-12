@@ -5,7 +5,7 @@ import com.gregtechceu.gtceu.api.capability.IDataAccessHatch;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.misc.ComputationProviderList;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.common.pipelike.optical.*;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.TaskHandler;
@@ -161,7 +161,7 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
     private static class DefaultDataHandler implements IDataAccessHatch {
 
         @Override
-        public boolean isRecipeAvailable(@NotNull GTRecipe recipe) {
+        public boolean isRecipeAvailable(@NotNull GTRecipeDefinition recipe) {
             return false;
         }
     }

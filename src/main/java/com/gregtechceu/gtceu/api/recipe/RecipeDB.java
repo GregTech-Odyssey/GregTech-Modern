@@ -1,30 +1,31 @@
 package com.gregtechceu.gtceu.api.recipe;
 
-import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
+import com.gregtechceu.gtceu.api.capability.recipe.ContentRecipeCapability;
 
-import com.fast.recipesearch.AbstractContainerRecipeDB;
+import com.fast.recipesearch.AbstractRecipeDB;
 import com.fast.recipesearch.IntLongMap;
+import com.fast.recipesearch.IntMapContainer;
 import com.fast.recipesearch.RecipeSearcher;
 
-import java.util.List;
 import java.util.function.Predicate;
 
-public class RecipeDB extends AbstractContainerRecipeDB<GTRecipe> {
+public class RecipeDB extends AbstractRecipeDB<GTRecipeDefinition> {
 
-    public RecipeDB(List<Runnable> branchBuilder) {
-        super(branchBuilder);
+    protected RecipeSearcher<GTRecipeDefinition> searchContext = new RecipeSearcher<>();
+
+    public RecipeDB() {
+        super();
     }
 
-    public boolean find(IntLongMap map, Predicate<GTRecipe> canHandle) {
+    public boolean search(IntLongMap map, Predicate<GTRecipeDefinition> canHandle) {
         if (rootBranch != null) {
-            searchContext.reset(this.rootBranch, map, map.toIntArray(), r -> r.getIntContainer().match(map) && canHandle.test(r), null);
+            searchContext.reset(maxSearchDepth, rootBranch, map, map.toIntArray(), r -> r.container.match(map) && canHandle.test(r), null);
             if (searchContext.findAny() != null) {
                 return true;
             }
         }
         if (!serialRecipes.isEmpty()) {
-            for (GTRecipe recipe : serialRecipes) {
+            for (var recipe : serialRecipes) {
                 if (canHandle.test(recipe)) return true;
             }
         }
@@ -32,27 +33,21 @@ public class RecipeDB extends AbstractContainerRecipeDB<GTRecipe> {
     }
 
     @Override
-    protected boolean supportsParallel(GTRecipe recipe) {
+    protected boolean supportsParallel(GTRecipeDefinition recipe) {
         return false;
     }
 
     @Override
-    protected IntLongMap extractIntMap(GTRecipe recipe) {
+    protected IntLongMap extractIntMap(GTRecipeDefinition recipe) {
         var intMap = new IntLongMap();
         recipe.inputs.forEach((cap, contents) -> {
-            for (Content content : contents) {
-                if (recipe.recipeType != null) {
-                    recipe.recipeType.convert(cap, content.inner, intMap);
-                } else {
-                    GTRecipeTypes.DUMMY_RECIPES.convert(cap, content.inner, intMap);
-                }
-            }
+            if (cap instanceof ContentRecipeCapability<?> capability) contents.forEach(content -> recipe.recipeType.convert(capability, content.inner, intMap));
         });
         return intMap;
     }
 
     @Override
-    public void clear() {
-        this.searchContext = new RecipeSearcher<>();
+    protected void setRecipeContainer(GTRecipeDefinition gtRecipe, IntMapContainer intMapContainer) {
+        gtRecipe.container = intMapContainer;
     }
 }

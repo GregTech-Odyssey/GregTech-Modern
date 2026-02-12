@@ -5,9 +5,6 @@ import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.FluidStack;
 
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
@@ -46,18 +43,6 @@ public class SerializerFluidIngredient implements IContentSerializer<FluidIngred
     @Override
     public FluidIngredient fromNbt(Tag tag) {
         return FluidIngredient.fromNbt((CompoundTag) tag);
-    }
-
-    @Override
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public FluidIngredient of(Object o) {
-        return switch (o) {
-            case FluidIngredient ingredient -> ingredient;
-            case FluidStack stack -> FluidIngredient.of(stack.copy());
-            case Fluid fluid -> FluidIngredient.of(fluid, 1);
-            case TagKey tagKey -> FluidIngredient.of(tagKey, 1);
-            case null, default -> FluidIngredient.EMPTY;
-        };
     }
 
     @Override

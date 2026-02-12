@@ -8,7 +8,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
@@ -31,9 +31,9 @@ public enum ArcFurnaceLogic implements GTRecipeType.ICustomRecipeLogic {
     INSTANCE;
 
     @Override
-    public @Nullable GTRecipe createCustomRecipe(IRecipeCapabilityHolder holder) {
+    public @Nullable GTRecipeDefinition createCustomRecipe(IRecipeCapabilityHolder holder) {
         var recipeHandlers = holder.getCapabilitiesFlat(IO.IN, ItemRecipeCapability.CAP);
-        AtomicReference<GTRecipe> recipe = new AtomicReference<>();
+        AtomicReference<GTRecipeDefinition> recipe = new AtomicReference<>();
         for (var handler : recipeHandlers) {
             if (!handler.shouldSearchContent()) continue;
             if (handler.forEachItems((stack, amount) -> {
@@ -47,7 +47,7 @@ public enum ArcFurnaceLogic implements GTRecipeType.ICustomRecipeLogic {
         return null;
     }
 
-    private @Nullable GTRecipe search(ItemStack stack) {
+    private @Nullable GTRecipeDefinition search(ItemStack stack) {
         var turbineBehaviour = TurbineRotorBehaviour.getBehaviour(stack);
         if (turbineBehaviour != null) {
             float durability = 1f - (float) turbineBehaviour.getPartDamage(stack) /
@@ -67,9 +67,9 @@ public enum ArcFurnaceLogic implements GTRecipeType.ICustomRecipeLogic {
         return null;
     }
 
-    public @Nullable GTRecipe applyDurabilityRecipe(String id, ItemStack inputStack, @NotNull Material mat,
-                                                    float fullAmount, float durability, long voltage,
-                                                    int durationFactor) {
+    public @Nullable GTRecipeDefinition applyDurabilityRecipe(String id, ItemStack inputStack, @NotNull Material mat,
+                                                              float fullAmount, float durability, long voltage,
+                                                              int durationFactor) {
         if (!mat.hasProperty(PropertyKey.INGOT)) return null;
 
         var material = mat.getProperty(PropertyKey.INGOT);
@@ -94,7 +94,7 @@ public enum ArcFurnaceLogic implements GTRecipeType.ICustomRecipeLogic {
             builder.outputItems(nugget, materialArc, leftover);
         }
 
-        return builder.buildRawRecipe();
+        return builder.build();
     }
 
     @Override
@@ -102,7 +102,7 @@ public enum ArcFurnaceLogic implements GTRecipeType.ICustomRecipeLogic {
         // ItemStack stack = GTItems.TURBINE_ROTOR.asStack();
         // stack.setHoverName(Component.translatable("gtceu.auto_decomp.rotor"));
         // GTRecipe rotorRecipe;
-        GTRecipe pickaxeRecipe;
+        GTRecipeDefinition pickaxeRecipe;
         float durability = 0.69f;
         // var turbineBehaviour = TurbineRotorBehaviour.getBehaviour(stack);
         // assert turbineBehaviour != null : "Default Turbine Stack doesn't have Turbine Behaviour";
@@ -123,8 +123,6 @@ public enum ArcFurnaceLogic implements GTRecipeType.ICustomRecipeLogic {
                 GTValues.VH[GTValues.LV], 2);
 
         assert pickaxeRecipe != null : "Default Tool Decomp recipe couldn't be generated";
-        pickaxeRecipe.setId(pickaxeRecipe.getId().withPrefix("/"));
         ARC_FURNACE_RECYCLING.addRecipe(pickaxeRecipe);
-        // ARC_FURNACE_RECYCLING.addRecipe(rotorRecipe);
     }
 }

@@ -184,8 +184,9 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
         AtomicReference<GTRecipe> recipe = new AtomicReference<>(recipeLogic.getLastRecipe());
         if (recipe.get() == null) {
             getRecipeType().findRecipe(this, r -> {
-                if (RecipeHelper.matchContents(this, r)) {
-                    recipe.set(r);
+                var re = r.toRuntime();
+                if (RecipeHelper.matchContents(this, re)) {
+                    recipe.set(re);
                     return true;
                 }
                 return false;

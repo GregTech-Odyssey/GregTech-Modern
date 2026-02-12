@@ -143,9 +143,8 @@ public interface ModifierFunction {
         public ModifierFunction build() {
             if (parallels == 0) return NULL;
             return recipe -> {
-                var newConditions = new ArrayList<>(recipe.conditions);
-                newConditions.addAll(addedConditions);
-                var copied = new GTRecipe(recipe.recipeType, recipe.id, inputModifier.applyContents(recipe.inputs), outputModifier.applyContents(recipe.outputs), applyAllButEU(tickInputModifier, recipe.tickInputs), applyAllButEU(tickOutputModifier, recipe.tickOutputs), newConditions, recipe.data, recipe.duration, recipe.recipeCategory);
+
+                var copied = new GTRecipe(recipe.recipeType, recipe.id, inputModifier.copyContents(recipe.inputs), outputModifier.copyContents(recipe.outputs), applyAllButEU(tickInputModifier, recipe.tickInputs), applyAllButEU(tickOutputModifier, recipe.tickOutputs), recipe.data, recipe.duration, recipe.recipeCategory);
                 copied.parallels = recipe.parallels * parallels;
                 copied.ocLevel = recipe.ocLevel + addOCs;
                 copied.batchParallels = recipe.batchParallels * batchParallels;

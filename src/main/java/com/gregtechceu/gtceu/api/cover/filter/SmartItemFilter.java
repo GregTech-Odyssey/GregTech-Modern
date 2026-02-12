@@ -92,7 +92,7 @@ public class SmartItemFilter implements ItemFilter {
         var map = new IntLongMap();
         filterMode.type.convertItem(itemStack, Integer.MAX_VALUE, map);
         AtomicInteger count = new AtomicInteger();
-        filterMode.type.db.find(map, recipe -> {
+        filterMode.type.search(map, recipe -> {
             for (Content content : recipe.getInputContents(ItemRecipeCapability.CAP)) {
                 var ingredient = ItemRecipeCapability.CAP.of(content);
                 var stacks = ingredient.inner.getItems();

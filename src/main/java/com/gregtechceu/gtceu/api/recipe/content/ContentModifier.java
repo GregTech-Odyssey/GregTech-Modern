@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.recipe.content;
 
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapabilityMap;
 
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 
@@ -8,32 +9,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public record ContentModifier(double multiplier, double addition) {
+public record ContentModifier(double multiplier) {
 
-    public static final ContentModifier IDENTITY = new ContentModifier(1, 0);
+    public static final ContentModifier IDENTITY = new ContentModifier(1);
 
     public static ContentModifier multiplier(double multiplier) {
-        return multiplier == 1 ? IDENTITY : new ContentModifier(multiplier, 0);
-    }
-
-    public static ContentModifier addition(double addition) {
-        return addition == 0 ? IDENTITY : new ContentModifier(1, addition);
+        return multiplier == 1 ? IDENTITY : new ContentModifier(multiplier);
     }
 
     public int apply(int number) {
-        return (int) (number * multiplier + addition);
+        return (int) (number * multiplier);
     }
 
     public long apply(long number) {
-        return (long) (number * multiplier + addition);
+        return (long) (number * multiplier);
     }
 
     public float apply(float number) {
-        return (float) (number * multiplier + addition);
+        return (float) (number * multiplier);
     }
 
     public double apply(double number) {
-        return number * multiplier + addition;
+        return number * multiplier;
     }
 
     /**
@@ -42,20 +39,46 @@ public record ContentModifier(double multiplier, double addition) {
      * @param contents the content map to apply to
      * @return A new Content map that is the modified version of the argument
      */
-    public Map<RecipeCapability<?>, List<Content>> applyContents(Map<RecipeCapability<?>, List<Content>> contents) {
-        if (this == IDENTITY) return new Reference2ReferenceOpenHashMap<>(contents);
-        Map<RecipeCapability<?>, List<Content>> copyContents = new Reference2ReferenceOpenHashMap<>();
-        for (var entry : contents.entrySet()) {
-            var contentList = entry.getValue();
-            var cap = entry.getKey();
+    public RecipeCapabilityMap<List<Content>> copyContents(Map<RecipeCapability<?>, List<Content>> contents) {
+        if (this == IDENTITY) return new RecipeCapabilityMap<>(contents);
+        var copyContents = new RecipeCapabilityMap<List<Content>>();
+        contents.forEach((cap, contentList) -> {
             if (contentList != null && !contentList.isEmpty()) {
                 List<Content> contentsCopy = new ArrayList<>();
                 for (Content content : contentList) {
                     contentsCopy.add(content.copy(cap, this));
                 }
-                copyContents.put(entry.getKey(), contentsCopy);
+                copyContents.put(cap, contentsCopy);
+            }
+        });
+        return copyContents;
+    }
+
+    public Map<RecipeCapability<?>, List<Content>> copy(Map<RecipeCapability<?>, List<Content>> contents) {
+        if (this == IDENTITY) return new Reference2ReferenceOpenHashMap<>(contents);
+        var copyContents = new Reference2ReferenceOpenHashMap<RecipeCapability<?>, List<Content>>();
+        contents.forEach((cap, contentList) -> {
+            if (contentList != null && !contentList.isEmpty()) {
+                List<Content> contentsCopy = new ArrayList<>();
+                for (Content content : contentList) {
+                    contentsCopy.add(content.copy(cap, this));
+                }
+                copyContents.put(cap, contentsCopy);
+            }
+        });
+        return copyContents;
+    }
+
+    public void applyContents(Map<RecipeCapability<?>, List<Content>> contents) {
+        for (Map.Entry<RecipeCapability<?>, List<Content>> entry : contents.entrySet()) {
+            var contentList = entry.getValue();
+            if (contentList != null && !contentList.isEmpty()) {
+                List<Content> contentsCopy = new ArrayList<>(contentList.size());
+                for (Content content : contentList) {
+                    contentsCopy.add(content.copy(entry.getKey(), this));
+                }
+                entry.setValue(contentsCopy);
             }
         }
-        return copyContents;
     }
 }

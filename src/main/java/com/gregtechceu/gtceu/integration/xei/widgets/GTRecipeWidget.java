@@ -2,16 +2,11 @@ package com.gregtechceu.gtceu.integration.xei.widgets;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.capability.recipe.CWURecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.WidgetUtils;
 import com.gregtechceu.gtceu.api.gui.widget.PredicatedButtonWidget;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.OverclockingLogic;
-import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
+import com.gregtechceu.gtceu.api.recipe.*;
 import com.gregtechceu.gtceu.api.recipe.chance.boost.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.chance.logic.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
@@ -37,7 +32,6 @@ import net.minecraftforge.fml.loading.FMLLoader;
 
 import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +40,6 @@ import org.lwjgl.glfw.GLFW;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -60,14 +53,14 @@ public class GTRecipeWidget extends WidgetGroup {
     public static final int LINE_HEIGHT = 10;
 
     private final int xOffset;
-    private final GTRecipe recipe;
+    private final GTRecipeDefinition recipe;
     private final List<LabelWidget> recipeParaTexts = new ArrayList<>();
     private final int minTier;
     private int tier;
     private int yOffset;
     private LabelWidget voltageTextWidget;
 
-    public GTRecipeWidget(GTRecipe recipe) {
+    public GTRecipeWidget(GTRecipeDefinition recipe) {
         super(getXOffset(recipe), 0, recipe.recipeType.getRecipeUI().getJEISize().width,
                 recipe.recipeType.getRecipeUI().getJEISize().height);
         this.recipe = recipe;
@@ -79,7 +72,7 @@ public class GTRecipeWidget extends WidgetGroup {
         addButtons();
     }
 
-    private static int getXOffset(GTRecipe recipe) {
+    private static int getXOffset(GTRecipeDefinition recipe) {
         if (recipe.recipeType.getRecipeUI().getOriginalWidth() != recipe.recipeType.getRecipeUI().getJEISize().width) {
             return (recipe.recipeType.getRecipeUI().getJEISize().width -
                     recipe.recipeType.getRecipeUI().getOriginalWidth()) / 2;
@@ -122,17 +115,11 @@ public class GTRecipeWidget extends WidgetGroup {
 
         /// add text based on i/o's
         MutableInt yOff = new MutableInt(yOffset);
-        for (var capability : recipe.inputs.entrySet()) {
-            capability.getKey().addXEIInfo(this, xOffset, recipe, capability.getValue(), false, true, yOff);
-        }
         for (var capability : recipe.tickInputs.entrySet()) {
-            capability.getKey().addXEIInfo(this, xOffset, recipe, capability.getValue(), true, true, yOff);
-        }
-        for (var capability : recipe.outputs.entrySet()) {
-            capability.getKey().addXEIInfo(this, xOffset, recipe, capability.getValue(), false, false, yOff);
+            capability.getKey().addXEIInfo(this, xOffset, recipe, capability.getValue().getFirst().getInner(), true, true, yOff);
         }
         for (var capability : recipe.tickOutputs.entrySet()) {
-            capability.getKey().addXEIInfo(this, xOffset, recipe, capability.getValue(), true, false, yOff);
+            capability.getKey().addXEIInfo(this, xOffset, recipe, capability.getValue().getFirst().getInner(), true, false, yOff);
         }
 
         for (RecipeCondition condition : recipe.conditions) {
@@ -185,7 +172,7 @@ public class GTRecipeWidget extends WidgetGroup {
     }
 
     @NotNull
-    private static List<Component> getRecipeParaText(GTRecipe recipe, int duration, long inputEUt, long outputEUt) {
+    private static List<Component> getRecipeParaText(GTRecipeDefinition recipe, int duration, long inputEUt, long outputEUt) {
         List<Component> texts = new ArrayList<>();
         if (!recipe.data.getBoolean("hide_duration")) {
             texts.add(Component.translatable("gtceu.recipe.duration", FormattingUtil.formatNumbers(duration / 20f)));
@@ -327,78 +314,71 @@ public class GTRecipeWidget extends WidgetGroup {
     }
 
     public void collectStorage(Table<IO, RecipeCapability<?>, Object> extraTable,
-                               Table<IO, RecipeCapability<?>, List<Content>> extraContents, GTRecipe recipe) {
-        Map<RecipeCapability<?>, List<Object>> inputCapabilities = new Object2ObjectLinkedOpenHashMap<>();
+                               Table<IO, RecipeCapability<?>, List<Content>> extraContents, GTRecipeDefinition recipe) {
+        var inputCapabilities = new RecipeCapabilityMap<List<Object>>();
         for (var entry : recipe.inputs.entrySet()) {
-            RecipeCapability<?> cap = entry.getKey();
-            List<Content> contents = entry.getValue();
-
-            extraContents.put(IO.IN, cap, contents);
-            inputCapabilities.put(cap, cap.createXEIContainerContents(contents, recipe, IO.IN));
-        }
-        for (var entry : recipe.tickInputs.entrySet()) {
-            RecipeCapability<?> cap = entry.getKey();
-            List<Content> contents = entry.getValue();
-
-            extraContents.put(IO.IN, cap, contents);
-            inputCapabilities.put(cap, cap.createXEIContainerContents(contents, recipe, IO.IN));
+            if (entry.getKey() instanceof ContentRecipeCapability<?> cap) {
+                List<Content> contents = entry.getValue();
+                extraContents.put(IO.IN, cap, contents);
+                inputCapabilities.put(cap, cap.createXEIContainerContents(contents, recipe, IO.IN));
+            }
         }
         for (var entry : inputCapabilities.entrySet()) {
-            while (entry.getValue().size() < recipe.recipeType.getMaxInputs(entry.getKey())) entry.getValue().add(null);
-            var container = entry.getKey().createXEIContainer(entry.getValue());
-            if (container != null) {
-                extraTable.put(IO.IN, entry.getKey(), container);
+            if (entry.getKey() instanceof ContentRecipeCapability<?> cap) {
+                while (entry.getValue().size() < recipe.recipeType.getMaxInputs(cap))
+                    entry.getValue().add(null);
+                var container = cap.createXEIContainer(entry.getValue());
+                if (container != null) {
+                    extraTable.put(IO.IN, cap, container);
+                }
             }
         }
 
-        Map<RecipeCapability<?>, List<Object>> outputCapabilities = new Object2ObjectLinkedOpenHashMap<>();
+        var outputCapabilities = new RecipeCapabilityMap<List<Object>>();
         for (var entry : recipe.outputs.entrySet()) {
-            RecipeCapability<?> cap = entry.getKey();
-            List<Content> contents = entry.getValue();
+            if (entry.getKey() instanceof ContentRecipeCapability<?> cap) {
+                List<Content> contents = entry.getValue();
 
-            extraContents.put(IO.OUT, cap, contents);
-            outputCapabilities.put(cap, cap.createXEIContainerContents(contents, recipe, IO.OUT));
-        }
-        for (var entry : recipe.tickOutputs.entrySet()) {
-            RecipeCapability<?> cap = entry.getKey();
-            List<Content> contents = entry.getValue();
-
-            extraContents.put(IO.OUT, cap, contents);
-            outputCapabilities.put(cap, cap.createXEIContainerContents(contents, recipe, IO.OUT));
+                extraContents.put(IO.OUT, cap, contents);
+                outputCapabilities.put(cap, cap.createXEIContainerContents(contents, recipe, IO.OUT));
+            }
         }
         for (var entry : outputCapabilities.entrySet()) {
-            while (entry.getValue().size() < recipe.recipeType.getMaxOutputs(entry.getKey()))
-                entry.getValue().add(null);
-            var container = entry.getKey().createXEIContainer(entry.getValue());
-            if (container != null) {
-                extraTable.put(IO.OUT, entry.getKey(), container);
+            if (entry.getKey() instanceof ContentRecipeCapability<?> cap) {
+                while (entry.getValue().size() < recipe.recipeType.getMaxOutputs(cap))
+                    entry.getValue().add(null);
+                var container = cap.createXEIContainer(entry.getValue());
+                if (container != null) {
+                    extraTable.put(IO.OUT, cap, container);
+                }
             }
         }
     }
 
     public void addSlots(Table<IO, RecipeCapability<?>, List<Content>> contentTable, WidgetGroup group,
-                         GTRecipe recipe) {
+                         GTRecipeDefinition recipe) {
         for (var capabilityEntry : contentTable.rowMap().entrySet()) {
             IO io = capabilityEntry.getKey();
             for (var contentsEntry : capabilityEntry.getValue().entrySet()) {
-                RecipeCapability<?> cap = contentsEntry.getKey();
-                int nonTickCount = (io == IO.IN ? recipe.getInputContents(cap) : recipe.getOutputContents(cap)).size();
-                List<Content> contents = contentsEntry.getValue();
-                // bind fluid out overlay
-                var widgetClass = cap.getWidgetClass();
-                if (widgetClass != null) {
-                    WidgetUtils.widgetByIdForEach(group, "^%s_[0-9]+$".formatted(cap.slotName(io)), widgetClass,
-                            widget -> {
-                                var index = WidgetUtils.widgetIdIndex(widget);
-                                if (index >= 0 && index < contents.size()) {
-                                    var content = contents.get(index);
-                                    cap.applyWidgetInfo(widget, index, true, io, null, recipe.getType(), recipe,
-                                            content,
-                                            null, minTier, tier);
-                                    widget.setOverlay(content.createOverlay(index >= nonTickCount, minTier, tier,
-                                            recipe.getType().getChanceFunction()));
-                                }
-                            });
+                if (contentsEntry.getKey() instanceof ContentRecipeCapability<?> cap) {
+                    int nonTickCount = (io == IO.IN ? recipe.getInputContents(cap) : recipe.getOutputContents(cap)).size();
+                    List<Content> contents = contentsEntry.getValue();
+                    // bind fluid out overlay
+                    var widgetClass = cap.getWidgetClass();
+                    if (widgetClass != null) {
+                        WidgetUtils.widgetByIdForEach(group, "^%s_[0-9]+$".formatted(cap.slotName(io)), widgetClass,
+                                widget -> {
+                                    var index = WidgetUtils.widgetIdIndex(widget);
+                                    if (index >= 0 && index < contents.size()) {
+                                        var content = contents.get(index);
+                                        cap.applyWidgetInfo(widget, index, true, io, null, recipe.recipeType, recipe,
+                                                content,
+                                                null, minTier, tier);
+                                        widget.setOverlay(content.createOverlay(index >= nonTickCount, minTier, tier,
+                                                recipe.recipeType.getChanceFunction()));
+                                    }
+                                });
+                    }
                 }
             }
         }

@@ -16,7 +16,6 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
@@ -114,10 +113,6 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
         fluidOutputs = null;
         firstValid = null;
         super.onStructureInvalid();
-    }
-
-    private static GTRecipe modifyOutputs(GTRecipe recipe, ContentModifier cm) {
-        return new GTRecipe(recipe.recipeType, recipe.id, recipe.inputs, cm.applyContents(recipe.outputs), recipe.tickInputs, cm.applyContents(recipe.tickOutputs), recipe.conditions, recipe.data, recipe.duration, recipe.recipeCategory);
     }
 
     public static class DistillationTowerLogic extends RecipeLogic {

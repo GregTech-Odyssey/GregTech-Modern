@@ -18,11 +18,6 @@ public class EURecipeCapability extends RecipeCapability<Long> {
     }
 
     @Override
-    public Long copyInner(Long content) {
-        return content;
-    }
-
-    @Override
     public Long copyWithModifier(Long content, ContentModifier modifier) {
         return modifier.apply(content);
     }

@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.common.machine.trait.customlogic;
 
 import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 
@@ -24,7 +24,7 @@ public enum CannerLogic implements GTRecipeType.ICustomRecipeLogic {
     INSTANCE;
 
     @Override
-    public @Nullable GTRecipe createCustomRecipe(IRecipeCapabilityHolder holder) {
+    public @Nullable GTRecipeDefinition createCustomRecipe(IRecipeCapabilityHolder holder) {
         var handlerLists = holder.getInputList();
         if (handlerLists.isEmpty()) return null;
         List<RecipeHandlerList> distinct = new ArrayList<>();
@@ -68,7 +68,7 @@ public enum CannerLogic implements GTRecipeType.ICustomRecipeLogic {
                             .outputFluids(fluid)
                             .duration(Math.max(16, fluid.getAmount() / 64))
                             .EUt(4)
-                            .buildRawRecipe();
+                            .build();
                 }
 
                 for (var fluidStack : fluidStacks) {
@@ -83,7 +83,7 @@ public enum CannerLogic implements GTRecipeType.ICustomRecipeLogic {
                             .outputItems(fluidHandler.getContainer())
                             .duration(Math.max(16, filled / 64))
                             .EUt(4)
-                            .buildRawRecipe();
+                            .build();
                 }
                 validItems.add(Pair.of(copy, fluidHandler));
             }
@@ -111,7 +111,7 @@ public enum CannerLogic implements GTRecipeType.ICustomRecipeLogic {
                         .outputFluids(fluid)
                         .duration(Math.max(16, fluid.getAmount() / 64))
                         .EUt(4)
-                        .buildRawRecipe();
+                        .build();
             }
 
             for (var fluidStack : fluidStacks) {
@@ -126,7 +126,7 @@ public enum CannerLogic implements GTRecipeType.ICustomRecipeLogic {
                         .outputItems(fluidHandler.getContainer())
                         .duration(Math.max(16, filled / 64))
                         .EUt(4)
-                        .buildRawRecipe();
+                        .build();
             }
         }
 
@@ -151,7 +151,7 @@ public enum CannerLogic implements GTRecipeType.ICustomRecipeLogic {
                         .outputItems(fluidHandler.getContainer())
                         .duration(Math.max(16, filled / 64))
                         .EUt(4)
-                        .buildRawRecipe();
+                        .build();
             }
         }
 

@@ -1,10 +1,7 @@
 package com.gregtechceu.gtceu.api.recipe.ui;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.SteamTexture;
 import com.gregtechceu.gtceu.api.gui.WidgetUtils;
@@ -12,7 +9,7 @@ import com.gregtechceu.gtceu.api.gui.editor.IEditableUI;
 import com.gregtechceu.gtceu.api.gui.widget.DualProgressWidget;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import com.gregtechceu.gtceu.integration.emi.recipe.GTRecipeEMICategory;
@@ -70,7 +67,7 @@ public class GTRecipeTypeUI {
     @Setter
     private ProgressTexture.FillDirection steamMoveType = ProgressTexture.FillDirection.LEFT_TO_RIGHT;
     @Nullable
-    protected BiConsumer<GTRecipe, WidgetGroup> uiBuilder;
+    protected BiConsumer<GTRecipeDefinition, WidgetGroup> uiBuilder;
     @Getter
     @Setter
     protected int maxTooltips = 3;
@@ -210,15 +207,16 @@ public class GTRecipeTypeUI {
             for (var capabilityEntry : recipeHolder.storages.rowMap().entrySet()) {
                 IO io = capabilityEntry.getKey();
                 for (var storagesEntry : capabilityEntry.getValue().entrySet()) {
-                    RecipeCapability<?> cap = storagesEntry.getKey();
-                    Object storage = storagesEntry.getValue();
-                    // bind overlays
-                    var widgetClass = cap.getWidgetClass();
-                    if (widgetClass != null) {
-                        WidgetUtils.widgetByIdForEach(template, "^%s_[0-9]+$".formatted(cap.slotName(io)), widgetClass, widget -> {
-                            var index = WidgetUtils.widgetIdIndex(widget);
-                            cap.applyWidgetInfo(widget, index, isJEI, io, recipeHolder, recipeType, null, null, storage, 0, 0);
-                        });
+                    if (storagesEntry.getKey() instanceof ContentRecipeCapability<?> cap) {
+                        Object storage = storagesEntry.getValue();
+                        // bind overlays
+                        var widgetClass = cap.getWidgetClass();
+                        if (widgetClass != null) {
+                            WidgetUtils.widgetByIdForEach(template, "^%s_[0-9]+$".formatted(cap.slotName(io)), widgetClass, widget -> {
+                                var index = WidgetUtils.widgetIdIndex(widget);
+                                cap.applyWidgetInfo(widget, index, isJEI, io, recipeHolder, recipeType, null, null, storage, 0, 0);
+                            });
+                        }
                     }
                 }
             }
@@ -255,22 +253,23 @@ public class GTRecipeTypeUI {
         WidgetGroup group = new WidgetGroup(0, 0, maxCount * 18 + 8, totalR * 18 + 8);
         int index = 0;
         for (var entry : map.object2IntEntrySet()) {
-            RecipeCapability<?> cap = entry.getKey();
-            var widgetClass = cap.getWidgetClass();
-            if (widgetClass == null) {
-                continue;
+            if (entry.getKey() instanceof ContentRecipeCapability<?> cap) {
+                var widgetClass = cap.getWidgetClass();
+                if (widgetClass == null) {
+                    continue;
+                }
+                int capCount = entry.getIntValue();
+                for (int slotIndex = 0; slotIndex < capCount; slotIndex++) {
+                    var slot = cap.createWidget();
+                    slot.setSelfPosition(new Position((index % 3) * 18 + 4, (index / 3) * 18 + 4));
+                    slot.setBackground(getOverlaysForSlot(isOutputs, cap, slotIndex == capCount - 1, isSteam, isHighPressure));
+                    slot.setId(cap.slotName(isOutputs ? IO.OUT : IO.IN, slotIndex));
+                    group.addWidget(slot);
+                    index++;
+                }
+                // move to new row
+                index += (3 - (index % 3)) % 3;
             }
-            int capCount = entry.getIntValue();
-            for (int slotIndex = 0; slotIndex < capCount; slotIndex++) {
-                var slot = cap.createWidget();
-                slot.setSelfPosition(new Position((index % 3) * 18 + 4, (index / 3) * 18 + 4));
-                slot.setBackground(getOverlaysForSlot(isOutputs, cap, slotIndex == capCount - 1, isSteam, isHighPressure));
-                slot.setId(cap.slotName(isOutputs ? IO.OUT : IO.IN, slotIndex));
-                group.addWidget(slot);
-                index++;
-            }
-            // move to new row
-            index += (3 - (index % 3)) % 3;
         }
         return group;
     }
@@ -339,7 +338,7 @@ public class GTRecipeTypeUI {
         return maxPropertyCount * 10; // GTRecipeWidget#LINE_HEIGHT
     }
 
-    public void appendJEIUI(GTRecipe recipe, WidgetGroup widgetGroup) {
+    public void appendJEIUI(GTRecipeDefinition recipe, WidgetGroup widgetGroup) {
         if (uiBuilder != null) {
             uiBuilder.accept(recipe, widgetGroup);
         }
@@ -359,7 +358,7 @@ public class GTRecipeTypeUI {
         return this;
     }
 
-    public void setUiBuilder(@Nullable final BiConsumer<GTRecipe, WidgetGroup> uiBuilder) {
+    public void setUiBuilder(@Nullable final BiConsumer<GTRecipeDefinition, WidgetGroup> uiBuilder) {
         this.uiBuilder = uiBuilder;
     }
 }

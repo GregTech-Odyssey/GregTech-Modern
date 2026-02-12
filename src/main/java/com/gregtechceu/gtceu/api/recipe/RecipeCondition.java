@@ -24,10 +24,10 @@ public abstract class RecipeCondition {
 
     public abstract Component getTooltips();
 
-    public boolean check(@NotNull GTRecipe recipe, @NotNull RecipeLogic recipeLogic) {
+    public boolean check(@NotNull GTRecipeDefinition recipe, @NotNull RecipeLogic recipeLogic) {
         boolean test = testCondition(recipe, recipeLogic);
         return test != isReverse;
     }
 
-    protected abstract boolean testCondition(@NotNull GTRecipe recipe, @NotNull RecipeLogic recipeLogic);
+    protected abstract boolean testCondition(@NotNull GTRecipeDefinition recipe, @NotNull RecipeLogic recipeLogic);
 }

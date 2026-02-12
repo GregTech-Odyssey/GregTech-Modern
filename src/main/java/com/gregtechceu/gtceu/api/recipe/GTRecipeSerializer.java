@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.recipe;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapabilityMap;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
@@ -12,7 +13,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Tuple;
-import net.minecraft.world.item.crafting.RecipeSerializer;
 
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
@@ -22,17 +22,15 @@ import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
+public class GTRecipeSerializer {
 
     public static final Codec<GTRecipe> CODEC = makeCodec();
 
     public static final GTRecipeSerializer SERIALIZER = new GTRecipeSerializer();
 
-    @Override
     public @NotNull GTRecipe fromJson(@NotNull ResourceLocation id, @NotNull JsonObject json) {
         GTRecipe recipe = CODEC.parse(JsonOps.INSTANCE, json).getOrThrow(false, GTCEu.LOGGER::error);
         recipe.setId(id);
@@ -58,7 +56,6 @@ public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
         return map;
     }
 
-    @Override
     @NotNull
     public GTRecipe fromNetwork(@NotNull ResourceLocation id, @NotNull FriendlyByteBuf buf) {
         ResourceLocation recipeType = buf.readResourceLocation();
@@ -82,11 +79,9 @@ public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
         GTRecipeCategory category = GTRegistries.RECIPE_CATEGORIES.get(categoryLoc);
 
         return new GTRecipe(type, id,
-                inputs, outputs, tickInputs, tickOutputs,
-                Collections.emptyList(), data, duration, category);
+                inputs, outputs, tickInputs, tickOutputs, data, duration, category);
     }
 
-    @Override
     public void toNetwork(FriendlyByteBuf buf, GTRecipe recipe) {
         buf.writeResourceLocation(recipe.recipeType.registryName);
         buf.writeVarInt(recipe.duration);
@@ -101,8 +96,8 @@ public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
     private static Codec<GTRecipe> makeCodec() {
         return RecordCodecBuilder.create(instance -> instance.group(
                 GTRegistries.RECIPE_TYPES.codec().fieldOf("type").forGetter(val -> val.recipeType),
-                RecipeCapability.CODEC.optionalFieldOf("inputs", Map.of()).forGetter(val -> val.inputs),
-                RecipeCapability.CODEC.optionalFieldOf("outputs", Map.of()).forGetter(val -> val.outputs),
+                RecipeCapabilityMap.CODEC.optionalFieldOf("inputs", Map.of()).forGetter(val -> val.inputs),
+                RecipeCapabilityMap.CODEC.optionalFieldOf("outputs", Map.of()).forGetter(val -> val.outputs),
                 RecipeCapability.CODEC.optionalFieldOf("tickInputs", Map.of()).forGetter(val -> val.tickInputs),
                 RecipeCapability.CODEC.optionalFieldOf("tickOutputs", Map.of()).forGetter(val -> val.tickOutputs),
                 CompoundTag.CODEC.optionalFieldOf("data", new CompoundTag()).forGetter(val -> val.data),

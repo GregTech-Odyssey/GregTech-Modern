@@ -37,6 +37,12 @@ public class RecipeHelper {
         return GTUtil.getTierByVoltage(EUt);
     }
 
+    public static int getRecipeEUtTier(GTRecipeDefinition recipe) {
+        long EUt = recipe.getInputEUt();
+        if (EUt == 0) EUt = recipe.getOutputEUt();
+        return GTUtil.getTierByVoltage(EUt);
+    }
+
     public static int getPreOCRecipeEuTier(GTRecipe recipe) {
         long EUt = recipe.getInputEUt();
         if (EUt == 0) EUt = recipe.getOutputEUt();
@@ -133,7 +139,6 @@ public class RecipeHelper {
         int chanceTier = recipeTier + recipe.ocLevel;
         for (Map.Entry<RecipeCapability<?>, List<Content>> entry : contents.entrySet()) {
             var cap = entry.getKey();
-            if (!cap.doMatchInRecipe()) continue;
             var list = entry.getValue();
             if (list.isEmpty()) continue;
             List<Content> chancedContents = new ArrayList<>(list.size());
@@ -213,7 +218,7 @@ public class RecipeHelper {
      * @param recipeLogic the logic to test against the conditions
      * @return the list of failed conditions, or success if all conditions are satisfied
      */
-    public static ActionResult checkConditions(GTRecipe recipe, @NotNull RecipeLogic recipeLogic) {
+    public static ActionResult checkConditions(GTRecipeDefinition recipe, @NotNull RecipeLogic recipeLogic) {
         if (recipe.conditions.isEmpty()) return ActionResult.SUCCESS;
         Map<Class<?>, List<RecipeCondition>> or = new Reference2ObjectArrayMap<>();
         for (RecipeCondition condition : recipe.conditions) {
@@ -250,18 +255,11 @@ public class RecipeHelper {
     @Contract(pure = true)
     public static GTRecipe trimRecipeOutputs(GTRecipe recipe, Reference2IntOpenHashMap<RecipeCapability<?>> trimLimits) {
         // Fast return early if no trimming desired
-        if (trimLimits.isEmpty() || trimLimits.values().intStream().allMatch(integer -> integer == -1)) {
-            return recipe;
-        }
-
-        GTRecipe copy = recipe.copy();
-
-        copy.outputs.clear();
-        copy.outputs.putAll(doTrim(recipe.outputs, trimLimits));
-        copy.tickOutputs.clear();
-        copy.tickOutputs.putAll(doTrim(recipe.tickOutputs, trimLimits));
-
-        return copy;
+        if (trimLimits.isEmpty()) return recipe;
+        var outputs = doTrim(recipe.outputs, trimLimits);
+        recipe.outputs.clear();
+        recipe.outputs.putAll(outputs);
+        return recipe;
     }
 
     /**
@@ -273,9 +271,9 @@ public class RecipeHelper {
      * @return All recipe outputs, limited by some factor(s)
      */
     @Contract(pure = true)
-    public static Map<RecipeCapability<?>, List<Content>> doTrim(Map<RecipeCapability<?>, List<Content>> current,
-                                                                 Reference2IntOpenHashMap<RecipeCapability<?>> trimLimits) {
-        Reference2ObjectOpenHashMap<RecipeCapability<?>, List<Content>> outputs = new Reference2ObjectOpenHashMap<>(current.size());
+    public static RecipeCapabilityMap<List<Content>> doTrim(Map<RecipeCapability<?>, List<Content>> current,
+                                                            Reference2IntOpenHashMap<RecipeCapability<?>> trimLimits) {
+        var outputs = new RecipeCapabilityMap<List<Content>>();
 
         for (var entry : current.entrySet()) {
             var cap = entry.getKey();

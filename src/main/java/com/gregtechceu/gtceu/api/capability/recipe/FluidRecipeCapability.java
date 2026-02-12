@@ -1,10 +1,9 @@
 package com.gregtechceu.gtceu.api.capability.recipe;
 
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 import com.gregtechceu.gtceu.api.recipe.content.SerializerFluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
@@ -20,7 +19,6 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.jei.IngredientIO;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.material.Fluid;
@@ -35,7 +33,7 @@ import org.jetbrains.annotations.UnknownNullability;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class FluidRecipeCapability extends RecipeCapability<FluidIngredient> {
+public class FluidRecipeCapability extends ContentRecipeCapability<FluidIngredient> {
 
     public final static FluidRecipeCapability CAP = new FluidRecipeCapability();
 
@@ -53,23 +51,7 @@ public class FluidRecipeCapability extends RecipeCapability<FluidIngredient> {
     }
 
     @Override
-    public FluidIngredient copyInner(FluidIngredient content) {
-        return content.copy();
-    }
-
-    @Override
-    public FluidIngredient copyWithModifier(FluidIngredient content, ContentModifier modifier) {
-        var amount = modifier.apply(content.amount);
-        return amount == content.amount ? content.copy() : content.copy(modifier.apply(content.amount));
-    }
-
-    @Override
-    public boolean isRecipeSearchFilter() {
-        return true;
-    }
-
-    @Override
-    public @NotNull List<Object> createXEIContainerContents(List<Content> contents, GTRecipe recipe, IO io) {
+    public @NotNull List<Object> createXEIContainerContents(List<Content> contents, GTRecipeDefinition recipe, IO io) {
         List<Object> entryLists = contents.stream()
 
                 .map(this::of)
@@ -108,7 +90,7 @@ public class FluidRecipeCapability extends RecipeCapability<FluidIngredient> {
                                 IO io,
                                 GTRecipeTypeUI.@UnknownNullability("null when storage == null") RecipeHolder recipeHolder,
                                 @NotNull GTRecipeType recipeType,
-                                @UnknownNullability("null when content == null") GTRecipe recipe,
+                                @UnknownNullability("null when content == null") GTRecipeDefinition recipe,
                                 @Nullable Content content,
                                 @Nullable Object storage, int recipeTier, int chanceTier) {
         if (widget instanceof TankWidget tank) {
@@ -128,13 +110,7 @@ public class FluidRecipeCapability extends RecipeCapability<FluidIngredient> {
                     if (!isXEI && !ingredient.getFluidStack().isEmpty()) {
                         TooltipsHandler.appendFluidTooltips(ingredient.getFluidStack(), tooltips::add, TooltipFlag.NORMAL);
                     }
-
-                    GTRecipeWidget.setConsumedChance(content,
-                            recipe.getChanceLogicForCapability(this, io, isTickSlot(index, io, recipe)),
-                            tooltips, recipeTier, chanceTier, recipeType.getChanceFunction());
-                    if (isTickSlot(index, io, recipe)) {
-                        tooltips.add(Component.translatable("gtceu.gui.content.per_tick"));
-                    }
+                    GTRecipeWidget.setConsumedChance(content, recipe.getChanceLogicForCapability(this, io), tooltips, recipeTier, chanceTier, recipeType.getChanceFunction());
                 });
                 if (io == IO.IN && (content.chance == 0)) {
                     tank.setIngredientIO(IngredientIO.CATALYST);

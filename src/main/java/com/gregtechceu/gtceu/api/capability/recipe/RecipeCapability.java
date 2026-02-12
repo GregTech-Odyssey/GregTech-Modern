@@ -1,29 +1,22 @@
 package com.gregtechceu.gtceu.api.capability.recipe;
 
 import com.gregtechceu.gtceu.api.codec.DispatchedMapCodec;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 import com.gregtechceu.gtceu.api.recipe.content.IContentSerializer;
-import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 
-import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
 import com.fast.fastcollection.O2IOpenCacheHashMap;
-import com.fast.recipesearch.IntLongMap;
 import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -86,11 +79,11 @@ public abstract class RecipeCapability<T> {
     }
 
     public T ofInner(Object o) {
-        return serializer.of(o);
+        return (T) o;
     }
 
     public T of(Content content) {
-        return serializer.of(content.inner);
+        return (T) content.inner;
     }
 
     public String slotName(IO io) {
@@ -109,89 +102,8 @@ public abstract class RecipeCapability<T> {
         return getName().withStyle(style -> style.withColor(this.color));
     }
 
-    public boolean isRecipeSearchFilter() {
-        return false;
-    }
-
-    /**
-     * Does the recipe test if this capability is workable? if not, you should test validity somewhere else.
-     */
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public boolean doMatchInRecipe() {
-        return true;
-    }
-
-    public void convert(T object, IntLongMap map) {}
-
-    /**
-     * Calculate the maximum parallel amount based on the output space of the holder
-     *
-     * @param holder        the {@link IRecipeCapabilityHolder} that contains all the inputs and outputs of the machine.
-     * @param recipe        the recipe from which we get the input to product ratio
-     * @param maxMultiplier the upper bound on the multiplier, see {@link #getMaxParallelByInput}
-     * @param tick          whether to check regular outputs or tick outputs
-     * @return the amount of times a {@link GTRecipe} outputs can be merged into an inventory without voiding products.
-     */
-    // returns Integer.MAX_VALUE by default, to skip processing.
-    public int limitMaxParallelByOutput(IRecipeCapabilityHolder holder, GTRecipe recipe, int maxMultiplier,
-                                        boolean tick) {
-        return Integer.MAX_VALUE;
-    }
-
-    /**
-     * Finds the maximum number of GTRecipes that can be performed at the same time based on the contents of input
-     * inventories
-     *
-     * @param holder The {@link IRecipeCapabilityHolder} that contains all the inputs and outputs of the machine.
-     * @param recipe The {@link GTRecipe} for which to find the maximum that can be run simultaneously
-     * @param limit  The hard limit on the amount of recipes that can be performed at one time
-     * @param tick   whether to check regular outputs or tick outputs
-     * @return The Maximum number of GTRecipes that can be performed at a single time based on the available Items
-     */
-    // returns Integer.MAX_VALUE by default, to skip processing.
-    public int getMaxParallelByInput(IRecipeCapabilityHolder holder, GTRecipe recipe, int limit, boolean tick) {
-        return Integer.MAX_VALUE;
-    }
-
-    public boolean doAddGuiSlots() {
-        return isRecipeSearchFilter();
-    }
-
-    public void addXEIInfo(WidgetGroup group, int xOffset, GTRecipe recipe, List<Content> contents, boolean perTick,
+    public void addXEIInfo(WidgetGroup group, int xOffset, GTRecipeDefinition recipe, T content, boolean perTick,
                            boolean isInput, MutableInt yOffset) {}
-
-    @NotNull
-    public List<Object> createXEIContainerContents(List<Content> contents, GTRecipe recipe, IO io) {
-        return new ArrayList<>();
-    }
-
-    @Nullable
-    public Object createXEIContainer(List<?> contents) {
-        return null;
-    }
-
-    @Nullable("null when getWidgetClass() == null")
-    public Widget createWidget() {
-        return null;
-    }
-
-    /**
-     * Return the class of the supported widget that should be used to display this capability.
-     */
-    @Nullable
-    public Class<? extends Widget> getWidgetClass() {
-        return null;
-    }
-
-    public void applyWidgetInfo(@NotNull Widget widget,
-                                int index,
-                                boolean isXEI,
-                                IO io,
-                                @Nullable("null when storage == null") GTRecipeTypeUI.RecipeHolder recipeHolder,
-                                @NotNull GTRecipeType recipeType,
-                                @Nullable("null when content == null") GTRecipe recipe,
-                                @Nullable Content content,
-                                @Nullable Object storage, int recipeTier, int chanceTier) {}
 
     /**
      * Create a cache map for chanced outputs
@@ -200,9 +112,5 @@ public abstract class RecipeCapability<T> {
      */
     public Object2IntMap<T> makeChanceCache() {
         return new O2IOpenCacheHashMap<>();
-    }
-
-    public boolean isTickSlot(int index, IO io, GTRecipe recipe) {
-        return index >= (io == IO.IN ? recipe.getInputContents(this) : recipe.getOutputContents(this)).size();
     }
 }

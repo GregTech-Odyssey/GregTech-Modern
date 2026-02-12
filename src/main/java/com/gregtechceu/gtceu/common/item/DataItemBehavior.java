@@ -6,7 +6,7 @@ import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IDataItem;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.machine.feature.IDataStickInteractable;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 import com.gregtechceu.gtceu.utils.ResearchManager;
 
@@ -56,12 +56,12 @@ public class DataItemBehavior implements IInteractionItem, IAddInformation, IDat
                         Component.literal("" + posArray[2]).withStyle(ChatFormatting.LIGHT_PURPLE)));
             }
         } else {
-            Collection<GTRecipe> recipes = researchData.recipeType().getDataStickEntry(researchData.researchId());
+            Collection<GTRecipeDefinition> recipes = researchData.recipeType().getDataStickEntry(researchData.researchId());
             if (recipes != null && !recipes.isEmpty()) {
                 tooltipComponents.add(Component.translatable("behavior.data_item.assemblyline.title"));
                 Collection<ItemStack> added = new OpenCacheHashSet<>();
                 outer:
-                for (GTRecipe recipe : recipes) {
+                for (GTRecipeDefinition recipe : recipes) {
                     ItemStack output = ItemRecipeCapability.CAP
                             .of(recipe.getOutputContents(ItemRecipeCapability.CAP).getFirst()).getInnerItemStack();
                     for (var item : added) {

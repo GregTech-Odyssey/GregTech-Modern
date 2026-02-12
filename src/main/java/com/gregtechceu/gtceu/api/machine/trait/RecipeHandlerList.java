@@ -5,7 +5,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelFunction;
@@ -168,11 +168,11 @@ public class RecipeHandlerList {
         return () -> subs.forEach(ISubscription::unsubscribe);
     }
 
-    public boolean findRecipe(IRecipeCapabilityHolder holder, GTRecipeType recipeType, Predicate<GTRecipe> canHandle) {
+    public boolean findRecipe(IRecipeCapabilityHolder holder, GTRecipeType recipeType, Predicate<GTRecipeDefinition> canHandle) {
         var map = this.getIngredientMap(recipeType);
         if (map.isEmpty()) return false;
         holder.setCurrentHandlerList(this);
-        return recipeType.db.find(map, canHandle);
+        return recipeType.search(map, canHandle);
     }
 
     public long getInputItemParallel(IRecipeLogicMachine holder, List<Content> contents, long parallelAmount) {

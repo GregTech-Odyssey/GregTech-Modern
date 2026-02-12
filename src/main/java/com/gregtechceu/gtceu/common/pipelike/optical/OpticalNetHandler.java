@@ -3,7 +3,7 @@ package com.gregtechceu.gtceu.common.pipelike.optical;
 import com.gregtechceu.gtceu.api.capability.IDataAccessHatch;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
 import com.gregtechceu.gtceu.api.capability.IOpticalDataAccessHatch;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.common.blockentity.OpticalPipeBlockEntity;
 
 import net.minecraft.core.BlockPos;
@@ -35,7 +35,7 @@ public class OpticalNetHandler implements IDataAccessHatch, IOpticalComputationP
     }
 
     @Override
-    public boolean isRecipeAvailable(@NotNull GTRecipe recipe) {
+    public boolean isRecipeAvailable(@NotNull GTRecipeDefinition recipe) {
         IOpticalDataAccessHatch provider = getDataProvider();
         if (provider == null) return false;
         boolean isAvailable = provider.isRecipeAvailable(recipe);

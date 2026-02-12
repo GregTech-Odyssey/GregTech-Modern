@@ -13,7 +13,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.research.DataBankMachine;
 import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
@@ -30,8 +30,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 
-import com.fast.fastcollection.OpenCacheHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,7 +45,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class DataAccessHatchMachine extends TieredPartMachine implements IMachineLife, IDataAccessHatch, IDataInfoProvider {
 
-    private final Set<GTRecipe> recipes;
+    private final Set<GTRecipeDefinition> recipes;
     private final boolean isCreative;
     @Persisted
     public final NotifiableItemStackHandler importItems;
@@ -53,7 +53,7 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
     public DataAccessHatchMachine(MetaMachineBlockEntity holder, int tier, boolean isCreative) {
         super(holder, tier);
         this.isCreative = isCreative;
-        this.recipes = isCreative ? Collections.emptySet() : new OpenCacheHashSet<>();
+        this.recipes = isCreative ? Collections.emptySet() : new ReferenceOpenHashSet<>();
         this.importItems = createImportItemHandler();
     }
 
@@ -114,7 +114,7 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
             ResearchManager.ResearchItem researchData = ResearchManager.readResearchId(stack);
             boolean isValid = ResearchManager.isStackDataItem(stack, isDataBank);
             if (researchData != null && isValid) {
-                Collection<GTRecipe> collection = researchData.recipeType().getDataStickEntry(researchData.researchId());
+                Collection<GTRecipeDefinition> collection = researchData.recipeType().getDataStickEntry(researchData.researchId());
                 if (collection != null) {
                     recipes.addAll(collection);
                 }
@@ -134,7 +134,7 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
     }
 
     @Override
-    public boolean isRecipeAvailable(GTRecipe recipe) {
+    public boolean isRecipeAvailable(GTRecipeDefinition recipe) {
         return isCreative || recipes.contains(recipe);
     }
 
@@ -146,7 +146,7 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
             list.add(Component.translatable("behavior.data_item.assemblyline.title"));
             list.add(Component.empty());
             Collection<ItemStack> itemsAdded = new ObjectOpenCustomHashSet<>(ItemStackHashStrategy.ALL);
-            for (GTRecipe recipe : recipes) {
+            for (GTRecipeDefinition recipe : recipes) {
                 ItemStack stack = ItemRecipeCapability.CAP.of(recipe.getOutputContents(ItemRecipeCapability.CAP).getFirst()).getInnerItemStack();
                 if (!itemsAdded.contains(stack)) {
                     itemsAdded.add(stack);

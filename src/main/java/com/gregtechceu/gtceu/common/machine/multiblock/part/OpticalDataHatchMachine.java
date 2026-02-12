@@ -6,7 +6,7 @@ import com.gregtechceu.gtceu.api.capability.IOpticalDataAccessHatch;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.common.blockentity.OpticalPipeBlockEntity;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.research.DataBankMachine;
 
@@ -53,7 +53,7 @@ public class OpticalDataHatchMachine extends MultiblockPartMachine implements IO
     }
 
     @Override
-    public boolean isRecipeAvailable(GTRecipe recipe) {
+    public boolean isRecipeAvailable(GTRecipeDefinition recipe) {
         if (!isFormed()) {
             return false;
         }
@@ -72,7 +72,7 @@ public class OpticalDataHatchMachine extends MultiblockPartMachine implements IO
         return result;
     }
 
-    private static boolean isRecipeAvailable(Iterable<? extends IDataAccessHatch> hatches, GTRecipe recipe) {
+    private static boolean isRecipeAvailable(Iterable<? extends IDataAccessHatch> hatches, GTRecipeDefinition recipe) {
         for (IDataAccessHatch hatch : hatches) {
             if (hatch.isRecipeAvailable(recipe)) {
                 return true;

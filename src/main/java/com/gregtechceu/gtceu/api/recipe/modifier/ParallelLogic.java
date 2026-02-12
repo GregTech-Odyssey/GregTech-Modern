@@ -1,8 +1,6 @@
 package com.gregtechceu.gtceu.api.recipe.modifier;
 
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.IRecipeCapabilityHolder;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -51,25 +49,7 @@ public class ParallelLogic {
      */
     public static int getMaxByInput(IRecipeCapabilityHolder holder, GTRecipe recipe, int parallelLimit,
                                     List<RecipeCapability<?>> capsToSkip) {
-        int minimum = Integer.MAX_VALUE;
-
-        // non-tick inputs.
-        for (RecipeCapability<?> cap : recipe.inputs.keySet()) {
-            if (cap.doMatchInRecipe() && !capsToSkip.contains(cap)) {
-                // Find the maximum number of recipes that can be performed from the contents of the input inventories
-                minimum = Math.min(minimum, cap.getMaxParallelByInput(holder, recipe, parallelLimit, false));
-            }
-        }
-
-        // tick inputs.
-        for (RecipeCapability<?> cap : recipe.tickInputs.keySet()) {
-            if (cap.doMatchInRecipe() && !capsToSkip.contains(cap)) {
-                // Find the maximum number of recipes that can be performed from the contents of the input inventories
-                minimum = Math.min(minimum, cap.getMaxParallelByInput(holder, recipe, parallelLimit, true));
-            }
-        }
-        if (minimum == Integer.MAX_VALUE) return 0;
-        return minimum;
+        return 0;
     }
 
     /**
@@ -83,36 +63,7 @@ public class ParallelLogic {
     public static int limitByOutputMerging(IRecipeCapabilityHolder holder, GTRecipe recipe, int parallelLimit,
                                            Predicate<RecipeCapability<?>> canVoid,
                                            List<RecipeCapability<?>> capsToSkip) {
-        int max = parallelLimit;
-        for (RecipeCapability<?> cap : recipe.outputs.keySet()) {
-            if (canVoid.test(cap) || !cap.doMatchInRecipe() || capsToSkip.contains(cap)) {
-                continue;
-            }
-            // Check both normal item outputs and chanced item outputs
-            if (!recipe.getOutputContents(cap).isEmpty()) {
-                int limit = cap.limitMaxParallelByOutput(holder, recipe, parallelLimit, false);
-                // If we are not voiding, and cannot fit any items, return 0
-                if (limit == 0) {
-                    return 0;
-                }
-                max = Math.min(max, limit);
-            }
-        }
-        for (RecipeCapability<?> cap : recipe.tickOutputs.keySet()) {
-            if (canVoid.test(cap) || !cap.doMatchInRecipe() || capsToSkip.contains(cap)) {
-                continue;
-            }
-            // Check both normal item outputs and chanced item outputs
-            if (!recipe.getTickOutputContents(cap).isEmpty()) {
-                int limit = cap.limitMaxParallelByOutput(holder, recipe, parallelLimit, true);
-                // If we are not voiding, and cannot fit any items, return 0
-                if (limit == 0) {
-                    return 0;
-                }
-                max = Math.min(max, limit);
-            }
-        }
-        return max;
+        return 0;
     }
 
     /**

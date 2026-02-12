@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.sound.AutoReleasedSound;
@@ -70,9 +71,9 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
      * which can be found
      * from {@link RecipeManager}.
      */
+    @Getter
     @Nullable
-    @Persisted
-    protected GTRecipe lastOriginRecipe;
+    protected GTRecipeDefinition lastOriginRecipe;
     @Getter
     @Setter
     @Persisted
@@ -191,12 +192,12 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
         return RecipeHelper.matchContents(machine, recipe);
     }
 
-    protected boolean checkConditions(GTRecipe recipe) {
+    protected boolean checkConditions(GTRecipeDefinition recipe) {
         return RecipeHelper.checkConditions(recipe, this).isSuccess();
     }
 
-    public boolean checkMatchedRecipeAvailable(GTRecipe match) {
-        var modified = machine.fullModifyRecipe(match.copy());
+    public boolean checkMatchedRecipeAvailable(GTRecipeDefinition match) {
+        var modified = machine.fullModifyRecipe(match.toRuntime());
         if (modified != null) {
             if (matchRecipe(modified)) {
                 setupRecipe(modified);
@@ -225,7 +226,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     public void findAndHandleRecipe() {
         lastRecipe = null;
         lastOriginRecipe = null;
-        machine.getRecipeType().findRecipe(machine, match -> matchRecipe(match) && checkMatchedRecipeAvailable(match));
+        machine.getRecipeType().findRecipe(machine, match -> checkConditions(match) && checkMatchedRecipeAvailable(match));
     }
 
     public boolean handleTickRecipe(GTRecipe recipe) {
@@ -342,7 +343,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
             if (!recipeDirty && !machine.alwaysSearchRecipe()) {
                 lastRecipe = null;
                 if (lastOriginRecipe != null && checkConditions(lastOriginRecipe)) {
-                    lastRecipe = machine.fullModifyRecipe(lastOriginRecipe.copy());
+                    lastRecipe = machine.fullModifyRecipe(lastOriginRecipe.toRuntime());
                 }
                 if (lastRecipe != null && matchRecipe(lastRecipe)) {
                     setupRecipe(lastRecipe);
@@ -429,21 +430,8 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
         return map;
     }
 
-    /**
-     * unsafe, it may not be found from {@link RecipeManager}. Do not index it.
-     */
     @Nullable
     public GTRecipe getLastRecipe() {
         return this.lastRecipe;
-    }
-
-    /**
-     * safe, it is the origin recipe before {@link IRecipeLogicMachine#fullModifyRecipe(GTRecipe)}'
-     * which can be found
-     * from {@link RecipeManager}.
-     */
-    @Nullable
-    public GTRecipe getLastOriginRecipe() {
-        return this.lastOriginRecipe;
     }
 }
