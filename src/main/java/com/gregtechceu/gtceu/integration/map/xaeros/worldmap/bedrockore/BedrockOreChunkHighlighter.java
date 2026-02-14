@@ -38,7 +38,7 @@ public class BedrockOreChunkHighlighter extends ChunkHighlighter {
     protected int[] getColors(ResourceKey<Level> dimension, int chunkX, int chunkZ) {
         if (!isEnabled()) return null;
 
-        var dimensionMap = XaerosRenderer.bedrockOreElements.row(dimension);
+        var dimensionMap = XaerosRenderer.bedrockOreElements.getMap(dimension);
         ProspectorMode.OreInfo[] ores = dimensionMap.get(new ChunkPos(chunkX, chunkZ));
         if (ores == null || ores.length == 0) return null;
 

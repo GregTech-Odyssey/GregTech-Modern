@@ -8,6 +8,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 
 import com.mojang.serialization.Codec;
 
+import java.util.Collections;
 import java.util.Set;
 
 public interface IWorldGenLayer extends StringRepresentable {
@@ -36,7 +37,7 @@ public interface IWorldGenLayer extends StringRepresentable {
 
         @Override
         public Set<ResourceLocation> getLevels() {
-            return Set.of();
+            return Collections.emptySet();
         }
 
         @Override

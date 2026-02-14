@@ -22,7 +22,7 @@ public class OreVeinElementRenderProvider extends MinimapElementRenderProvider<O
     public void begin(MinimapElementRenderLocation location, OreVeinElementContext context) {
         if (WorldMap.settings.waypoints) {
             ResourceKey<Level> currentDim = Minecraft.getInstance().level.dimension();
-            this.iterator = XaerosRenderer.oreElements.row(currentDim).values().iterator();
+            this.iterator = XaerosRenderer.oreElements.getMap(currentDim).values().iterator();
         } else {
             this.iterator = null;
         }

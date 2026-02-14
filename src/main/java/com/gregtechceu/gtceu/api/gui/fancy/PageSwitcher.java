@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -26,7 +27,7 @@ public class PageSwitcher implements IFancyUIProvider {
 
     private final Consumer<IFancyUIProvider> onPageSwitched;
 
-    private List<IFancyUIProvider> pages = List.of();
+    private List<IFancyUIProvider> pages = Collections.emptyList();
     private IFancyUIProvider currentPage = null;
 
     public PageSwitcher(Consumer<IFancyUIProvider> onPageSwitched) {

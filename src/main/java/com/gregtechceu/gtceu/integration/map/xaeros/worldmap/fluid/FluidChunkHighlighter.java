@@ -41,7 +41,7 @@ public class FluidChunkHighlighter extends ChunkHighlighter {
     protected int[] getColors(ResourceKey<Level> dimension, int chunkX, int chunkZ) {
         if (!isEnabled()) return null;
 
-        var dimensionMap = XaerosRenderer.fluidElements.row(dimension);
+        var dimensionMap = XaerosRenderer.fluidElements.getMap(dimension);
         ProspectorMode.FluidInfo vein = dimensionMap.get(new ChunkPos(chunkX, chunkZ));
         if (vein == null) return null;
 

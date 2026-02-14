@@ -4,21 +4,21 @@ import com.gregtechceu.gtceu.api.data.worldgen.ores.GeneratedVeinMetadata;
 import com.gregtechceu.gtceu.api.gui.misc.ProspectorMode;
 import com.gregtechceu.gtceu.integration.map.GenericMapRenderer;
 import com.gregtechceu.gtceu.integration.map.xaeros.minimap.ore.OreVeinElement;
+import com.gregtechceu.gtceu.utils.collection.NestedMap;
 
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+
+import java.util.HashMap;
 
 public class XaerosRenderer extends GenericMapRenderer {
 
-    public static final Table<ResourceKey<Level>, String, OreVeinElement> oreElements = HashBasedTable.create();
-    public static final Table<ResourceKey<Level>, ChunkPos, ProspectorMode.FluidInfo> fluidElements = HashBasedTable
-            .create();
-    public static final Table<ResourceKey<Level>, ChunkPos, ProspectorMode.OreInfo[]> bedrockOreElements = HashBasedTable
-            .create();
+    public static final NestedMap<ResourceKey<Level>, String, OreVeinElement> oreElements = NestedMap.create(new Reference2ReferenceOpenHashMap<>(), HashMap::new);
+    public static final NestedMap<ResourceKey<Level>, ChunkPos, ProspectorMode.FluidInfo> fluidElements = NestedMap.create(new Reference2ReferenceOpenHashMap<>(), HashMap::new);
+    public static final NestedMap<ResourceKey<Level>, ChunkPos, ProspectorMode.OreInfo[]> bedrockOreElements = NestedMap.create(new Reference2ReferenceOpenHashMap<>(), HashMap::new);
 
     public XaerosRenderer() {
         super();
@@ -33,7 +33,7 @@ public class XaerosRenderer extends GenericMapRenderer {
 
     @Override
     public boolean addMarker(String name, ResourceKey<Level> dim, GeneratedVeinMetadata vein, String id) {
-        oreElements.put(dim, id, new OreVeinElement(vein, name));
+        oreElements.computeIfAbsent(dim, id, k -> new OreVeinElement(vein, name));
         return true;
     }
 

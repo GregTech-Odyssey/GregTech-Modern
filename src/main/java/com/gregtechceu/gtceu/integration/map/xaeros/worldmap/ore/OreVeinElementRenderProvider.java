@@ -20,7 +20,7 @@ public class OreVeinElementRenderProvider extends MapElementRenderProvider<OreVe
     public void begin(int location, OreVeinElementContext context) {
         if (WorldMap.settings.waypoints) {
             ResourceKey<Level> currentDim = Minecraft.getInstance().level.dimension();
-            this.iterator = XaerosRenderer.oreElements.row(currentDim).values()
+            this.iterator = XaerosRenderer.oreElements.getMap(currentDim).values()
                     .stream()
                     .map(element -> new OreVeinElement(element.getVein(), element.getName()))
                     .iterator();

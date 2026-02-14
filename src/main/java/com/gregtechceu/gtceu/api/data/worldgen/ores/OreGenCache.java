@@ -14,6 +14,7 @@ import com.google.common.cache.CacheBuilder;
 import lombok.Getter;
 import org.apache.commons.lang3.mutable.MutableInt;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
@@ -46,7 +47,7 @@ public class OreGenCache {
             return veinMetadataByOrigin.get(chunkPos, () -> oreGenerator.generateMetadata(level, generator, chunkPos));
         } catch (ExecutionException e) {
             GTCEu.LOGGER.error("Cannot create vein position in chunk {}", chunkPos, e);
-            return List.of();
+            return Collections.emptyList();
         }
     }
 

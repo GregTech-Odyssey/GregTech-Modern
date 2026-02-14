@@ -29,10 +29,7 @@ import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
 
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class HazardProperty implements IMaterialProperty {
 
@@ -79,8 +76,8 @@ public class HazardProperty implements IMaterialProperty {
 
         MASK(Set.of("head"), ArmorItem.Type.HELMET),
         HANDS(Set.of("hands"), ArmorItem.Type.CHESTPLATE),
-        FULL(Set.of(), ArmorItem.Type.BOOTS, ArmorItem.Type.HELMET, ArmorItem.Type.CHESTPLATE, ArmorItem.Type.LEGGINGS),
-        NONE(Set.of());
+        FULL(Collections.emptySet(), ArmorItem.Type.BOOTS, ArmorItem.Type.HELMET, ArmorItem.Type.CHESTPLATE, ArmorItem.Type.LEGGINGS),
+        NONE(Collections.emptySet());
 
         private final Set<ArmorItem.Type> equipmentTypes;
         private final Set<String> curioSlots;

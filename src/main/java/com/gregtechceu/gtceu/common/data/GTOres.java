@@ -24,7 +24,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
 
 import java.util.ArrayList;
-import java.util.Set;
+import java.util.Collections;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -139,7 +139,7 @@ public class GTOres {
     }
 
     public static GTOreDefinition blankOreDefinition() {
-        return new GTOreDefinition(ConstantInt.ZERO, 0, 0, IWorldGenLayer.NOWHERE, Set.of(), HeightRangePlacement.uniform(VerticalAnchor.absolute(0), VerticalAnchor.absolute(0)), 0, HolderSet::direct, BiomeWeightModifier.EMPTY, NoopVeinGenerator.INSTANCE, new ArrayList<>());
+        return new GTOreDefinition(ConstantInt.ZERO, 0, 0, IWorldGenLayer.NOWHERE, Collections.emptySet(), HeightRangePlacement.uniform(VerticalAnchor.absolute(0), VerticalAnchor.absolute(0)), 0, HolderSet::direct, BiomeWeightModifier.EMPTY, NoopVeinGenerator.INSTANCE, new ArrayList<>());
     }
 
     /**

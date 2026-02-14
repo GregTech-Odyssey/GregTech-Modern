@@ -41,6 +41,7 @@ import java.math.BigInteger;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class PowerSubstationMachine extends WorkableMultiblockMachine implements IEnergyInfoProvider, IFancyUIMachine, IDisplayUIMachine {
@@ -73,7 +74,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
     public PowerSubstationMachine(MetaMachineBlockEntity holder) {
         super(holder);
         this.tickSubscription = new ConditionalSubscriptionHandler(this, this::transferEnergyTick, 20, this::isFormed);
-        this.energyBank = new PowerStationEnergyBank(this, List.of());
+        this.energyBank = new PowerStationEnergyBank(this, Collections.emptyList());
     }
 
     @Override

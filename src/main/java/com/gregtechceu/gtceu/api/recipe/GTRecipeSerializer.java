@@ -22,6 +22,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -96,10 +97,10 @@ public class GTRecipeSerializer {
     private static Codec<GTRecipe> makeCodec() {
         return RecordCodecBuilder.create(instance -> instance.group(
                 GTRegistries.RECIPE_TYPES.codec().fieldOf("type").forGetter(val -> val.recipeType),
-                RecipeCapabilityMap.CODEC.optionalFieldOf("inputs", Map.of()).forGetter(val -> val.inputs),
-                RecipeCapabilityMap.CODEC.optionalFieldOf("outputs", Map.of()).forGetter(val -> val.outputs),
-                RecipeCapability.CODEC.optionalFieldOf("tickInputs", Map.of()).forGetter(val -> val.tickInputs),
-                RecipeCapability.CODEC.optionalFieldOf("tickOutputs", Map.of()).forGetter(val -> val.tickOutputs),
+                RecipeCapabilityMap.CODEC.optionalFieldOf("inputs", Collections.emptyMap()).forGetter(val -> val.inputs),
+                RecipeCapabilityMap.CODEC.optionalFieldOf("outputs", Collections.emptyMap()).forGetter(val -> val.outputs),
+                RecipeCapability.CODEC.optionalFieldOf("tickInputs", Collections.emptyMap()).forGetter(val -> val.tickInputs),
+                RecipeCapability.CODEC.optionalFieldOf("tickOutputs", Collections.emptyMap()).forGetter(val -> val.tickOutputs),
                 CompoundTag.CODEC.optionalFieldOf("data", new CompoundTag()).forGetter(val -> val.data),
                 ExtraCodecs.NON_NEGATIVE_INT.fieldOf("duration").forGetter(val -> val.duration),
                 GTRegistries.RECIPE_CATEGORIES.codec().optionalFieldOf("category", GTRecipeCategory.DEFAULT).forGetter(val -> val.recipeCategory))

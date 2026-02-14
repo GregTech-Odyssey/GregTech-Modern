@@ -11,6 +11,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.common.ForgeTier;
 import net.minecraftforge.common.TierSortingRegistry;
 
+import java.util.Collections;
 import java.util.List;
 
 @SuppressWarnings({ "unused", "FieldCanBeLocal" })
@@ -34,6 +35,6 @@ public class GTToolTiers {
                         () -> Ingredient.of(ChemicalHelper.getTag(TagPrefix.ingot, GTMaterials.Neutronium))),
                 neutronium,
                 List.of(duranium),
-                List.of());
+                Collections.emptyList());
     }
 }

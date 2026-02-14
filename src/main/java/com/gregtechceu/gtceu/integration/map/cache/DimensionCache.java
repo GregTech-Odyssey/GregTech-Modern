@@ -10,6 +10,7 @@ import net.minecraft.world.level.ChunkPos;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,11 +23,7 @@ public class DimensionCache {
     public boolean dirty;
 
     public boolean addVein(int gridX, int gridZ, GeneratedVeinMetadata vein) {
-        GridPos key = new GridPos(gridX, gridZ);
-        if (!cache.containsKey(key)) {
-            cache.put(key, new GridCache());
-        }
-        boolean added = cache.get(key).addVein(vein);
+        boolean added = cache.computeIfAbsent(new GridPos(gridX, gridZ), k -> new GridCache()).addVein(vein);
         dirty = added || dirty;
         return added;
     }
@@ -47,10 +44,7 @@ public class DimensionCache {
         for (String gridPos : tag.getAllKeys()) {
             String[] split = gridPos.split(",");
             GridPos key = new GridPos(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
-            if (!cache.containsKey(key)) {
-                cache.put(key, new GridCache());
-            }
-            cache.get(key).fromNBT(tag.getList(gridPos, Tag.TAG_COMPOUND), isClient);
+            cache.computeIfAbsent(key, k -> new GridCache()).fromNBT(tag.getList(gridPos, Tag.TAG_COMPOUND), isClient);
         }
     }
 
@@ -65,8 +59,9 @@ public class DimensionCache {
         for (int i = topLeft.x; i <= bottomRight.x; i++) {
             for (int j = topLeft.z; j <= bottomRight.z; j++) {
                 GridPos curPos = new GridPos(i, j);
-                if (cache.containsKey(curPos)) {
-                    found.addAll(cache.get(curPos).getVeinsMatching(vein -> vein.center().getX() >= topLeftBlock.getX() && vein.center().getX() <= bottomRightBlock.getX() && vein.center().getZ() >= topLeftBlock.getZ() && vein.center().getZ() <= bottomRightBlock.getZ()));
+                var c = cache.get(curPos);
+                if (c != null) {
+                    found.addAll(c.getVeinsMatching(vein -> vein.center().getX() >= topLeftBlock.getX() && vein.center().getX() <= bottomRightBlock.getX() && vein.center().getZ() >= topLeftBlock.getZ() && vein.center().getZ() <= bottomRightBlock.getZ()));
                 }
             }
         }
@@ -75,16 +70,15 @@ public class DimensionCache {
 
     public List<GeneratedVeinMetadata> getVeinsInChunk(ChunkPos pos) {
         GridPos gPos = new GridPos(pos);
-        if (cache.containsKey(gPos)) {
-            return cache.get(gPos).getVeinsMatching(vein -> pos.equals(vein.originChunk()));
-        }
-        return new ArrayList<>();
+        var c = cache.get(gPos);
+        if (c == null) return Collections.emptyList();
+        return c.getVeinsMatching(vein -> pos.equals(vein.originChunk()));
     }
 
     public void removeAllInChunk(ChunkPos pos) {
         GridPos gPos = new GridPos(pos);
-        if (cache.containsKey(gPos)) {
-            cache.get(gPos).removeVeinsMatching(vein -> pos.equals(vein.originChunk()));
-        }
+        var c = cache.get(gPos);
+        if (c == null) return;
+        c.removeVeinsMatching(vein -> pos.equals(vein.originChunk()));
     }
 }

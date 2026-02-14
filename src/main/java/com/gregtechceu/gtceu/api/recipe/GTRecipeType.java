@@ -302,7 +302,7 @@ public class GTRecipeType implements RecipeType<GTRecipeDefinition> {
     }
 
     public Set<GTRecipeDefinition> getRecipesInCategory(GTRecipeCategory category) {
-        return categoryMap.getOrDefault(category, Set.of());
+        return categoryMap.getOrDefault(category, Collections.emptySet());
     }
 
     public <T extends ContentInner> void convert(ContentRecipeCapability<T> capability, Object object, IntLongMap map) {

@@ -32,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -128,7 +129,7 @@ public class GTDynamicDataPack implements PackResources {
 
     @Override
     public Set<String> getNamespaces(PackType type) {
-        return type == PackType.SERVER_DATA ? SERVER_DOMAINS : Set.of();
+        return type == PackType.SERVER_DATA ? SERVER_DOMAINS : Collections.emptySet();
     }
 
     @Nullable

@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -126,7 +127,7 @@ public class GTDynamicResourcePack implements PackResources {
 
     @Override
     public Set<String> getNamespaces(PackType type) {
-        return type == PackType.CLIENT_RESOURCES ? CLIENT_DOMAINS : Set.of();
+        return type == PackType.CLIENT_RESOURCES ? CLIENT_DOMAINS : Collections.emptySet();
     }
 
     @Nullable

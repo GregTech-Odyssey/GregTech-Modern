@@ -452,7 +452,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
 
     @Override
     public Set<CleanroomType> getTypes() {
-        return this.cleanroomType == null ? Set.of() : Set.of(this.cleanroomType);
+        return this.cleanroomType == null ? Collections.emptySet() : Set.of(this.cleanroomType);
     }
 
     /**

@@ -19,10 +19,7 @@ public abstract class WorldCache {
     protected final Map<ResourceKey<Level>, DimensionCache> cache = new Reference2ObjectOpenHashMap<>();
 
     public boolean addVein(ResourceKey<Level> dim, int gridX, int gridZ, GeneratedVeinMetadata vein) {
-        if (!cache.containsKey(dim)) {
-            cache.put(dim, new DimensionCache());
-        }
-        return cache.get(dim).addVein(gridX, gridZ, vein);
+        return cache.computeIfAbsent(dim, k -> new DimensionCache()).addVein(gridX, gridZ, vein);
     }
 
     public List<GeneratedVeinMetadata> getNearbyVeins(ResourceKey<Level> dim, BlockPos pos, int blockRadius) {

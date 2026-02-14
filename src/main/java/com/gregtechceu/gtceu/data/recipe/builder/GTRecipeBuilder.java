@@ -1007,7 +1007,7 @@ public class GTRecipeBuilder {
         var recipeCapabilityMax = isInput ? recipeType.maxInputs : recipeType.maxOutputs;
         if (!recipeCapabilityMax.containsKey(capability)) return;
         int max = recipeCapabilityMax.getInt(capability);
-        if (table.getOrDefault(capability, List.of()).size() + addedEntries > max) {
+        if (table.getOrDefault(capability, Collections.emptyList()).size() + addedEntries > max) {
             String io = isInput ? "inputs" : "outputs";
             GTCEu.LOGGER.warn("Recipe {} is trying to add more {} than its recipe type can support, Max {} {}: {}", id, io, capability.name, io, max);
         }
@@ -1016,7 +1016,7 @@ public class GTRecipeBuilder {
     protected boolean missingIngredientError(boolean isInput, ContentRecipeCapability<?> cap, BooleanSupplier empty) {
         if (empty.getAsBoolean()) {
             String io = isInput ? "Input" : "Output";
-            int size = output.getOrDefault(cap, List.of()).size();
+            int size = output.getOrDefault(cap, Collections.emptyList()).size();
             GTCEu.LOGGER.error("{} {} {} of recipe {} is empty", io, cap.name, size, id);
             return true;
         }

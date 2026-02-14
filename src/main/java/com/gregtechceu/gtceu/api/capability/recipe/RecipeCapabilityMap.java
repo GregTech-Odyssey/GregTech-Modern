@@ -36,7 +36,12 @@ public final class RecipeCapabilityMap<T> implements Map<RecipeCapability<?>, T>
     }
 
     public RecipeCapabilityMap(Map<RecipeCapability<?>, T> map) {
-        putAll(map);
+        if (!map.isEmpty()) putAll(map);
+    }
+
+    public static <T> Map<RecipeCapability<?>, T> copyOf(Map<RecipeCapability<?>, T> map) {
+        if (map.isEmpty()) return Collections.emptyMap();
+        return new RecipeCapabilityMap<>(map);
     }
 
     @Override
@@ -339,10 +344,7 @@ public final class RecipeCapabilityMap<T> implements Map<RecipeCapability<?>, T>
     }
 
     public static RecipeCapabilityMap<List<Content>> fromNbt(CompoundTag tag) {
-        var map = new RecipeCapabilityMap<List<Content>>();
-        map.item = fromNbt(ItemRecipeCapability.CAP, tag);
-        map.fluid = fromNbt(FluidRecipeCapability.CAP, tag);
-        return map;
+        return new RecipeCapabilityMap<>(fromNbt(ItemRecipeCapability.CAP, tag), fromNbt(FluidRecipeCapability.CAP, tag));
     }
 
     private static List<Content> fromNbt(RecipeCapability<?> capability, CompoundTag tag) {

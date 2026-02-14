@@ -6,6 +6,7 @@ import net.minecraft.world.level.ChunkPos;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import lombok.Getter;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,7 +37,7 @@ public class GeneratedIndicators {
      * Retrieve the indicator placers for the specified chunk.
      */
     public List<OreIndicatorPlacer> consumeIndicators(ChunkPos chunk) {
-        return this.generatedIndicators.getOrDefault(chunk.toLong(), List.of());
+        return this.generatedIndicators.getOrDefault(chunk.toLong(), Collections.emptyList());
     }
 
     @Override

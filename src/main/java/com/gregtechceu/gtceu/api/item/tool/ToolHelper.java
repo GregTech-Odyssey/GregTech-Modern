@@ -456,11 +456,11 @@ public class ToolHelper {
     }
 
     public static List<BlockPos> getHarvestableBlocks(ItemStack stack, Player player) {
-        if (!hasBehaviorsTag(stack)) return List.of();
+        if (!hasBehaviorsTag(stack)) return Collections.emptyList();
 
         var aoeDefinition = getAoEDefinition(stack);
         if (aoeDefinition.isZero()) {
-            return List.of();
+            return Collections.emptyList();
         }
 
         BlockHitResult hitResult = getPlayerDefaultRaytrace(player);

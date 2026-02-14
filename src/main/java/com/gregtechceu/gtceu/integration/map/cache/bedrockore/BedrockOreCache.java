@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.gui.misc.ProspectorMode;
 import com.gregtechceu.gtceu.integration.map.GroupingMapRenderer;
 import com.gregtechceu.gtceu.integration.map.layer.builtin.BedrockOreRenderLayer;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.collection.NestedMap;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -13,20 +14,21 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+
+import java.util.HashMap;
 
 public class BedrockOreCache {
 
-    private final Table<ResourceKey<Level>, ChunkPos, ProspectorMode.OreInfo[]> bedrockOreCache = HashBasedTable.create();
+    private final NestedMap<ResourceKey<Level>, ChunkPos, ProspectorMode.OreInfo[]> bedrockOreCache = NestedMap.create(new Reference2ReferenceOpenHashMap<>(), HashMap::new);
 
     public void addBedrockOre(ResourceKey<Level> dim, int chunkX, int chunkZ, ProspectorMode.OreInfo[] ores) {
         ChunkPos pos = new ChunkPos(chunkX, chunkZ);
-        if (!bedrockOreCache.contains(dim, pos)) {
-            bedrockOreCache.put(dim, pos, ores);
+        bedrockOreCache.computeIfAbsent(dim, pos, k -> {
             GroupingMapRenderer.getInstance().addMarker(BedrockOreRenderLayer.getName(ores).getString(),
                     BedrockOreRenderLayer.getId(ores, pos), dim, pos, ores);
-        }
+            return ores;
+        });
     }
 
     public void fromNbt(CompoundTag nbt) {
@@ -56,7 +58,7 @@ public class BedrockOreCache {
     public CompoundTag toNbt() {
         var result = new CompoundTag();
         var bedrockOreList = new ListTag();
-        for (var dimensions : bedrockOreCache.rowMap().entrySet()) {
+        for (var dimensions : bedrockOreCache.getMap().entrySet()) {
             for (var entry : dimensions.getValue().entrySet()) {
                 CompoundTag tag = new CompoundTag();
                 tag.putLong("pos", entry.getKey().toLong());

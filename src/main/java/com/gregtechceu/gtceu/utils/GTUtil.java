@@ -51,6 +51,7 @@ import org.lwjgl.glfw.GLFW;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -70,7 +71,7 @@ public class GTUtil {
     public static Function<ResourceLocation, Item> ITEM_VALUE = ForgeRegistries.ITEMS::getValue;
     public static Function<ResourceLocation, Fluid> FLUID_VALUE = ForgeRegistries.FLUIDS::getValue;
 
-    public static final Map EMPTY_MAP = Map.of();
+    public static final Map EMPTY_MAP = Collections.emptyMap();
 
     public static final Runnable NOOP = () -> {};
     public static final Consumer NOOP_CONSUMER = o -> {};

@@ -7,22 +7,20 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 
+import com.fast.fastcollection.OpenCacheHashSet;
 import lombok.Getter;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 @Getter
 public class GridCache {
 
-    private final List<GeneratedVeinMetadata> veins = new ArrayList<>();
+    private final Set<GeneratedVeinMetadata> veins = new OpenCacheHashSet<>();
 
     public boolean addVein(GeneratedVeinMetadata vein) {
-        if (veins.contains(vein)) return false;
-        veins.add(vein);
-        return true;
+        return veins.add(vein);
     }
 
     public ListTag toNBT(boolean isClient) {
@@ -36,22 +34,15 @@ public class GridCache {
     public void fromNBT(ListTag tag, boolean isClient) {
         for (Tag veinTag : tag) {
             GeneratedVeinMetadata vein = (isClient ? GeneratedVeinMetadata.CLIENT_CODEC : GeneratedVeinMetadata.CODEC).parse(NbtOps.INSTANCE, veinTag).getOrThrow(false, GTCEu.LOGGER::error);
-            if (!veins.contains(vein)) {
-                veins.add(vein);
-            }
+            veins.add(vein);
         }
     }
 
     public List<GeneratedVeinMetadata> getVeinsMatching(Predicate<GeneratedVeinMetadata> predicate) {
-        return veins.stream().filter(predicate).collect(Collectors.toList());
+        return veins.stream().filter(predicate).toList();
     }
 
     public void removeVeinsMatching(Predicate<GeneratedVeinMetadata> predicate) {
-        for (int i = 0; i < veins.size(); i++) {
-            if (predicate.test(veins.get(i))) {
-                veins.remove(i);
-                i--;
-            }
-        }
+        veins.removeIf(predicate);
     }
 }
