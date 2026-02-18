@@ -12,6 +12,8 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BooleanSupplier;
 
 public class TaskHandler {
@@ -158,6 +160,7 @@ public class TaskHandler {
         private static final ThreadLocal<Boolean> IN_SERVICE = ThreadLocal.withInitial(() -> false);
 
         private ScheduledFuture<?> scheduledFuture;
+        private final Lock lock = new ReentrantLock();
         private int tickCount;
         private final ScheduledExecutorService service;
         private final long period;
@@ -173,10 +176,15 @@ public class TaskHandler {
 
         @Override
         public void unsubscribe() {
-            super.unsubscribe();
-            if (scheduledFuture != null) {
-                scheduledFuture.cancel(true);
-                scheduledFuture = null;
+            lock.lock();
+            try {
+                if (scheduledFuture != null) {
+                    scheduledFuture.cancel(false);
+                    scheduledFuture = null;
+                }
+                super.unsubscribe();
+            } finally {
+                lock.unlock();
             }
         }
 
@@ -194,6 +202,7 @@ public class TaskHandler {
         }
 
         private void tick() {
+            lock.lock();
             try {
                 IN_SERVICE.set(true);
                 runTask(tickCount);
@@ -201,6 +210,7 @@ public class TaskHandler {
                 GTCEu.LOGGER.error("Error while AsyncTask: {}", e.getMessage());
                 e.printStackTrace();
             } finally {
+                lock.unlock();
                 tickCount++;
                 IN_SERVICE.set(false);
             }

@@ -19,7 +19,6 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
@@ -116,13 +115,36 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void onLoad() {
         super.onLoad();
-        if (isRemote()) activeState = ActiveBlock.State.UNKNOWN;
+        if (isRemote()) {
+            activeState = ActiveBlock.State.UNKNOWN;
+            activeBlocksSubs = subscribeAsyncTick(activeBlocksSubs, () -> {
+                if (getLevel() == null) return;
+                var shouldActive = isFormed && (activated || getRecipeLogic().isWorking());
+                var state = shouldActive ? ActiveBlock.State.ACTIVE : ActiveBlock.State.NON_ACTIVE;
+                if (activeState.ordinal() == 0 || state != activeState) {
+                    activeState = state;
+                    List<Runnable> runnables = new ArrayList<>();
+                    for (long pos : activeBlocks) {
+                        var blockPos = BlockPos.of(pos);
+                        var blockState = getLevel().getBlockState(blockPos);
+                        if (blockState.hasProperty(ActiveBlock.ACTIVE)) {
+                            var newState = blockState.setValue(ActiveBlock.ACTIVE, shouldActive);
+                            if (newState != blockState) {
+                                runnables.add(() -> getLevel().setBlock(blockPos, newState, Block.UPDATE_KNOWN_SHAPE));
+                            }
+                        }
+                    }
+                    if (!runnables.isEmpty()) Minecraft.getInstance().tell(() -> runnables.forEach(Runnable::run));
+                }
+            }, 10);
+        }
     }
 
     @Override
     public void onUnload() {
         super.onUnload();
-        if (isRemote()) activeState = ActiveBlock.State.UNKNOWN;
+        activeState = ActiveBlock.State.UNKNOWN;
+        activeBlocksSubs = ITickSubscription.unsubscribe(activeBlocksSubs);
         traitSubscriptions.forEach(ISubscription::unsubscribe);
         traitSubscriptions.clear();
     }
@@ -134,31 +156,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     protected void onStructureFormedAfter() {
         super.onStructureFormedAfter();
         arrangeHandlerList();
-    }
-
-    @Override
-    public void onStructureFormedClient() {
-        activeState = ActiveBlock.State.UNKNOWN;
-        activeBlocksSubs = subscribeAsyncTick(activeBlocksSubs, () -> {
-            if (GTUtil.getClientLevel() == null) return;
-            var shouldActive = isFormed && (activated || getRecipeLogic().isWorking());
-            var state = shouldActive ? ActiveBlock.State.ACTIVE : ActiveBlock.State.NON_ACTIVE;
-            if (activeState.ordinal() == 0 || state != activeState) {
-                activeState = state;
-                List<Runnable> runnables = new ArrayList<>();
-                for (long pos : activeBlocks) {
-                    var blockPos = BlockPos.of(pos);
-                    var blockState = getLevel().getBlockState(blockPos);
-                    if (blockState.hasProperty(ActiveBlock.ACTIVE)) {
-                        var newState = blockState.setValue(ActiveBlock.ACTIVE, shouldActive);
-                        if (newState != blockState) {
-                            runnables.add(() -> getLevel().setBlock(blockPos, newState, Block.UPDATE_KNOWN_SHAPE));
-                        }
-                    }
-                }
-                if (!runnables.isEmpty()) Minecraft.getInstance().tell(() -> runnables.forEach(Runnable::run));
-            }
-        }, 10);
     }
 
     @Override
@@ -213,12 +210,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
             this.addHandlerList(handlerList);
             traitSubscriptions.add(handlerList.subscribe(recipeLogic::updateTickSubscription));
         }
-    }
-
-    @Override
-    public void onStructureInvalidClient() {
-        activeState = ActiveBlock.State.UNKNOWN;
-        activeBlocksSubs = ITickSubscription.unsubscribe(activeBlocksSubs);
     }
 
     @Override
