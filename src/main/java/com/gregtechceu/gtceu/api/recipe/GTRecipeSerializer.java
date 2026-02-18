@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.api.recipe;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapabilityMap;
-import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 
@@ -32,10 +31,8 @@ public class GTRecipeSerializer {
 
     public static final GTRecipeSerializer SERIALIZER = new GTRecipeSerializer();
 
-    public @NotNull GTRecipe fromJson(@NotNull ResourceLocation id, @NotNull JsonObject json) {
-        GTRecipe recipe = CODEC.parse(JsonOps.INSTANCE, json).getOrThrow(false, GTCEu.LOGGER::error);
-        recipe.setId(id);
-        return recipe;
+    public @NotNull GTRecipe fromJson(@NotNull JsonObject json) {
+        return CODEC.parse(JsonOps.INSTANCE, json).getOrThrow(false, GTCEu.LOGGER::error);
     }
 
     public static Tuple<RecipeCapability<?>, List<Content>> entryReader(FriendlyByteBuf buf) {
@@ -58,7 +55,7 @@ public class GTRecipeSerializer {
     }
 
     @NotNull
-    public GTRecipe fromNetwork(@NotNull ResourceLocation id, @NotNull FriendlyByteBuf buf) {
+    public GTRecipe fromNetwork(@NotNull FriendlyByteBuf buf) {
         ResourceLocation recipeType = buf.readResourceLocation();
         int duration = buf.readVarInt();
         Map<RecipeCapability<?>, List<Content>> inputs = tuplesToMap(
@@ -74,13 +71,9 @@ public class GTRecipeSerializer {
         if (data == null) {
             data = new CompoundTag();
         }
-        ResourceLocation categoryLoc = buf.readResourceLocation();
 
         GTRecipeType type = (GTRecipeType) BuiltInRegistries.RECIPE_TYPE.get(recipeType);
-        GTRecipeCategory category = GTRegistries.RECIPE_CATEGORIES.get(categoryLoc);
-
-        return new GTRecipe(type, id,
-                inputs, outputs, tickInputs, tickOutputs, data, duration, category);
+        return new GTRecipe(type, inputs, outputs, tickInputs, tickOutputs, data, duration, buf.readVarInt());
     }
 
     public void toNetwork(FriendlyByteBuf buf, GTRecipe recipe) {
@@ -91,7 +84,7 @@ public class GTRecipeSerializer {
         buf.writeCollection(recipe.outputs.entrySet(), GTRecipeSerializer::entryWriter);
         buf.writeCollection(recipe.tickOutputs.entrySet(), GTRecipeSerializer::entryWriter);
         buf.writeNbt(recipe.data);
-        buf.writeResourceLocation(recipe.recipeCategory.registryKey);
+        buf.writeVarInt(recipe.tier);
     }
 
     private static Codec<GTRecipe> makeCodec() {
@@ -103,7 +96,7 @@ public class GTRecipeSerializer {
                 RecipeCapability.CODEC.optionalFieldOf("tickOutputs", Collections.emptyMap()).forGetter(val -> val.tickOutputs),
                 CompoundTag.CODEC.optionalFieldOf("data", new CompoundTag()).forGetter(val -> val.data),
                 ExtraCodecs.NON_NEGATIVE_INT.fieldOf("duration").forGetter(val -> val.duration),
-                GTRegistries.RECIPE_CATEGORIES.codec().optionalFieldOf("category", GTRecipeCategory.DEFAULT).forGetter(val -> val.recipeCategory))
+                ExtraCodecs.NON_NEGATIVE_INT.fieldOf("tier").forGetter(val -> val.tier))
                 .apply(instance, GTRecipe::new));
     }
 }

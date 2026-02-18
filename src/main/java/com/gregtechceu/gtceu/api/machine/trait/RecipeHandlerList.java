@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
+import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
@@ -230,5 +231,41 @@ public class RecipeHandlerList {
             }
         }
         return output;
+    }
+
+    public boolean handleRecipeContent(IO io, GTRecipe recipe, RecipeCapabilityMap<List<Object>> contents, boolean simulate, boolean distinct) {
+        if (this.allHandlers.isEmpty()) return false;
+        int success = 0;
+        if (contents.item != null) {
+            List left = contents.item;
+            for (var handler : this.getCapability(ItemRecipeCapability.CAP)) {
+                left = handler.handleRecipe(io, recipe, left, simulate);
+                if (left == null) {
+                    if (distinct) {
+                        success++;
+                    } else {
+                        contents.item = null;
+                    }
+                    break;
+                }
+            }
+            if (left != null && !distinct) contents.item = left;
+        }
+        if (contents.fluid != null) {
+            List left = contents.fluid;
+            for (var handler : this.getCapability(FluidRecipeCapability.CAP)) {
+                left = handler.handleRecipe(io, recipe, left, simulate);
+                if (left == null) {
+                    if (distinct) {
+                        success++;
+                    } else {
+                        contents.fluid = null;
+                    }
+                    break;
+                }
+            }
+            if (left != null && !distinct) contents.fluid = left;
+        }
+        return success == contents.size();
     }
 }

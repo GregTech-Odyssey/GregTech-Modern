@@ -680,6 +680,7 @@ public class GTRecipeTypes {
     }
 
     public static void init() {
+        GTRecipeBuilder.RAW = new GTRecipeBuilder(GTCEu.id("raw"), GTRecipeTypes.DUMMY_RECIPES);
         GCYMRecipeTypes.init();
         AddonFinder.getAddons().forEach(IGTAddon::registerRecipeTypes);
         GTRegistries.RECIPE_TYPES.freeze();

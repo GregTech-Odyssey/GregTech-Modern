@@ -87,7 +87,6 @@ public class GTRecipes {
 
         // Must run recycling recipes very last
         RecyclingRecipes.init();
-        ItemMaterialData.resolveItemMaterialInfos();
     }
 
     /*

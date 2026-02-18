@@ -366,7 +366,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     }
 
     protected boolean handleTickRecipeIO(GTRecipe recipe, IO io) {
-        return RecipeHelper.handleTickRecipeIO(machine, recipe, io, this.chanceCaches);
+        return RecipeHelper.handleTickRecipeIO(machine, recipe, io);
     }
 
     /**

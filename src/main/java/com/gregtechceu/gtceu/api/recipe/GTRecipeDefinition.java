@@ -34,6 +34,7 @@ public class GTRecipeDefinition implements net.minecraft.world.item.crafting.Rec
 
     IntMapContainer container;
 
+    public final boolean registered;
     public final GTRecipeType recipeType;
     public final GTRecipeCategory recipeCategory;
 
@@ -47,8 +48,10 @@ public class GTRecipeDefinition implements net.minecraft.world.item.crafting.Rec
     public final List<RecipeCondition> conditions;
     public final CompoundTag data;
     public final int duration;
+    public final int tier;
 
-    public GTRecipeDefinition(GTRecipeType recipeType, GTRecipeCategory recipeCategory, ResourceLocation id, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, List<RecipeCondition> conditions, CompoundTag data, int duration) {
+    public GTRecipeDefinition(boolean registered, GTRecipeType recipeType, GTRecipeCategory recipeCategory, ResourceLocation id, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, List<RecipeCondition> conditions, CompoundTag data, int duration, int tier) {
+        this.registered = registered;
         this.recipeType = recipeType;
         this.recipeCategory = recipeCategory;
         this.id = id;
@@ -59,6 +62,7 @@ public class GTRecipeDefinition implements net.minecraft.world.item.crafting.Rec
         this.conditions = conditions;
         this.data = data;
         this.duration = duration;
+        this.tier = tier;
     }
 
     public List<Content> getInputContents(RecipeCapability<?> capability) {
@@ -134,6 +138,11 @@ public class GTRecipeDefinition implements net.minecraft.world.item.crafting.Rec
     }
 
     public GTRecipe toRuntime() {
-        return new GTRecipe(recipeType, id, new RecipeCapabilityMap<>(inputs), new RecipeCapabilityMap<>(outputs), new Reference2ReferenceOpenHashMap<>(tickInputs), new Reference2ReferenceOpenHashMap<>(tickOutputs), data, duration, recipeCategory);
+        return new GTRecipe(this, recipeType, new RecipeCapabilityMap<>(inputs), new RecipeCapabilityMap<>(outputs), new Reference2ReferenceOpenHashMap<>(tickInputs), new Reference2ReferenceOpenHashMap<>(tickOutputs), data, duration, tier);
+    }
+
+    @Override
+    public String toString() {
+        return id.toString();
     }
 }

@@ -1,26 +1,31 @@
 package com.gregtechceu.gtceu.api.recipe;
 
+import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
+import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.chance.boost.ChanceBoostFunction;
-import com.gregtechceu.gtceu.api.recipe.chance.logic.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
-import com.gregtechceu.gtceu.utils.GTMath;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
+import it.unimi.dsi.fastutil.longs.AbstractLong2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.LongSupplier;
 
 public class RecipeHelper {
 
@@ -92,119 +97,25 @@ public class RecipeHelper {
     }
 
     public static boolean matchRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe) {
-        return matchRecipe(holder, recipe, false);
+        return holder.hasCapabilityProxies() && handleRecipe(holder, recipe, IO.IN, recipe.inputs, Collections.emptyMap(), true) && handleRecipe(holder, recipe, IO.OUT, recipe.outputs, Collections.emptyMap(), true);
     }
 
     public static boolean matchTickRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe) {
-        return !recipe.hasTick() || matchRecipe(holder, recipe, true);
-    }
-
-    private static boolean matchRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe, boolean tick) {
-        if (!holder.hasCapabilityProxies()) return false;
-
-        var result = handleRecipe(holder, recipe, IO.IN, tick ? recipe.tickInputs : recipe.inputs,
-                Collections.emptyMap(), true);
-        if (!result) return result;
-
-        result = handleRecipe(holder, recipe, IO.OUT, tick ? recipe.tickOutputs : recipe.outputs,
-                Collections.emptyMap(), true);
-        return result;
+        if (recipe.hasTick()) {
+            return holder.hasCapabilityProxies() && handleTickRecipe(holder, recipe, IO.IN, recipe.tickInputs, true) && handleTickRecipe(holder, recipe, IO.OUT, recipe.tickOutputs, true);
+        }
+        return true;
     }
 
     public static boolean handleRecipeIO(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io,
                                          Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches) {
         if (!holder.hasCapabilityProxies() || io == IO.BOTH) return false;
-        return handleRecipe(holder, recipe, io, io == IO.IN ? recipe.inputs : recipe.outputs, chanceCaches,
-                false);
+        return handleRecipe(holder, recipe, io, io == IO.IN ? recipe.inputs : recipe.outputs, chanceCaches, false);
     }
 
-    public static boolean handleTickRecipeIO(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io,
-                                             Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches) {
+    public static boolean handleTickRecipeIO(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io) {
         if (!holder.hasCapabilityProxies() || io == IO.BOTH) return false;
-        return handleRecipe(holder, recipe, io, io == IO.IN ? recipe.tickInputs : recipe.tickOutputs, chanceCaches,
-                false);
-    }
-
-    /**
-     * Checks if all the contents of the recipe are located in the holder.
-     *
-     * @param simulated checks that the recipe ingredients are in the holder if true,
-     *                  process the recipe contents if false
-     */
-    public static boolean handleRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io, Map<RecipeCapability<?>, List<Content>> contents, Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches, boolean simulated) {
-        if (contents.isEmpty()) return true;
-        Reference2ReferenceOpenHashMap<RecipeCapability<?>, List<Object>> recipeContents = new Reference2ReferenceOpenHashMap<>();
-        Reference2ReferenceOpenHashMap<RecipeCapability<?>, List<Object>> searchRecipeContents = simulated ? recipeContents : new Reference2ReferenceOpenHashMap<>();
-        int recipeTier = getRecipeEUtTier(recipe);
-        int chanceTier = recipeTier + recipe.ocLevel;
-        for (Map.Entry<RecipeCapability<?>, List<Content>> entry : contents.entrySet()) {
-            var cap = entry.getKey();
-            var list = entry.getValue();
-            if (list.isEmpty()) continue;
-            List<Content> chancedContents = new ArrayList<>(list.size());
-            var contentList = new ArrayList<>(list.size());
-            var searchContentList = simulated ? null : new ArrayList<>(list.size());
-            for (Content cont : list) {
-                if (simulated) {
-                    contentList.add(cont.inner);
-                } else {
-                    searchContentList.add(cont.inner);
-                    if (cont.chance == 0) continue;
-                    if (cont.chance >= ChanceLogic.getMaxChancedValue()) {
-                        contentList.add(cont.inner);
-                    } else {
-                        chancedContents.add(cont);
-                    }
-                }
-            }
-            if (!chancedContents.isEmpty()) {
-                for (var c : ChanceLogic.OR.roll(chancedContents, ChanceBoostFunction.OVERCLOCK, recipeTier, chanceTier, chanceCaches.get(cap), GTMath.saturatedCast(recipe.parallels))) {
-                    contentList.add(c.inner);
-                }
-            }
-
-            if (!contentList.isEmpty()) {
-                recipeContents.put(cap, contentList);
-            }
-            if (!simulated && !searchContentList.isEmpty()) {
-                searchRecipeContents.put(cap, searchContentList);
-            }
-        }
-
-        if (searchRecipeContents.isEmpty()) return true;
-
-        List<RecipeHandlerList> list;
-        var handlers = holder.getCapabilitiesProxy().get(io);
-        if (handlers == null) return false;
-        list = handlers;
-
-        for (var handler : list) {
-            recipeContents = handleRecipe(handler, io, recipe, recipeContents, simulated);
-            if (recipeContents.isEmpty()) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static Reference2ReferenceOpenHashMap<RecipeCapability<?>, List<Object>> handleRecipe(RecipeHandlerList list, IO io, GTRecipe recipe, Reference2ReferenceOpenHashMap<RecipeCapability<?>, List<Object>> contents, boolean simulate) {
-        if (list.handlerMap.isEmpty()) return contents;
-        var copy = new Reference2ReferenceOpenHashMap<>(contents);
-        for (var it = copy.reference2ReferenceEntrySet().fastIterator(); it.hasNext();) {
-            var entry = it.next();
-            var handlerList = list.getCapability(entry.getKey());
-            for (var handler : handlerList) {
-                var left = handler.handleRecipe(io, recipe, entry.getValue(), simulate);
-                if (left == null) {
-                    it.remove();
-                    break;
-                } else {
-                    entry.setValue(new ArrayList<>(left));
-                }
-            }
-        }
-        return copy;
+        return handleTickRecipe(holder, recipe, io, io == IO.IN ? recipe.tickInputs : recipe.tickOutputs, false);
     }
 
     public static boolean matchContents(IRecipeCapabilityHolder holder, GTRecipe recipe) {
@@ -309,5 +220,203 @@ public class RecipeHelper {
         }
 
         return outputs;
+    }
+
+    public static boolean handleTickRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io, Map<RecipeCapability<?>, List<Content>> contents, boolean simulated) {
+        if (contents.isEmpty()) return true;
+        Reference2ReferenceOpenHashMap<RecipeCapability<?>, List<Object>> recipeContents = new Reference2ReferenceOpenHashMap<>();
+        for (Map.Entry<RecipeCapability<?>, List<Content>> entry : contents.entrySet()) {
+            var list = entry.getValue();
+            if (list.isEmpty()) continue;
+            var contentList = new ArrayList<>(list.size());
+            for (Content cont : list) {
+                contentList.add(cont.inner);
+            }
+            recipeContents.put(entry.getKey(), contentList);
+        }
+        if (recipeContents.isEmpty()) return true;
+        List<RecipeHandlerList> list;
+        var handlers = holder.getCapabilitiesProxy().get(io);
+        if (handlers == null) return false;
+        list = handlers;
+        for (var rhl : list) {
+            if (rhl.handlerMap.isEmpty()) continue;
+            for (var it = recipeContents.reference2ReferenceEntrySet().fastIterator(); it.hasNext();) {
+                var entry = it.next();
+                var handlerList = rhl.getCapability(entry.getKey());
+                for (var handler : handlerList) {
+                    var left = handler.handleRecipe(io, recipe, entry.getValue(), simulated);
+                    if (left == null) {
+                        it.remove();
+                        break;
+                    } else {
+                        entry.setValue(new ArrayList<>(left));
+                    }
+                }
+            }
+            if (recipeContents.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean handleRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io, Map<RecipeCapability<?>, List<Content>> contents, Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches, boolean simulated) {
+        if (contents.isEmpty()) return true;
+        boolean in = io == IO.IN;
+        RecipeHandlerList currentDistinc = in ? holder.getCurrentHandlerList() : null;
+        IWorkableMultiController multiController = null;
+        IVoidable voidable = null;
+        if (holder instanceof IWorkableMultiController controller) {
+            multiController = controller;
+        }
+        if (simulated && !in && holder instanceof IVoidable voidableHolder) {
+            voidable = voidableHolder;
+        }
+
+        boolean search = in && !simulated && currentDistinc == null && multiController != null;
+
+        RecipeCapabilityMap<List<Object>> recipeContents = new RecipeCapabilityMap<>();
+        RecipeCapabilityMap<List<Object>> searchRecipeContents = search ? new RecipeCapabilityMap<>() : recipeContents;
+        int chanceTier = recipe.tier + recipe.ocLevel;
+        for (Map.Entry<RecipeCapability<?>, List<Content>> entry : contents.entrySet()) {
+            var cap = entry.getKey();
+            if (voidable != null && voidable.canVoidRecipeOutputs(cap)) continue;
+            var list = entry.getValue();
+            if (list.isEmpty()) continue;
+            List<Content> chancedContents = new ArrayList<>(list.size());
+            var contentList = new ArrayList<>(list.size());
+            var searchContentList = search ? new ArrayList<>(list.size()) : null;
+            for (Content cont : list) {
+                if (simulated) {
+                    contentList.add(cont.inner);
+                } else {
+                    if (search) searchContentList.add(cont.inner);
+                    if (cont.chance == 0) continue;
+                    if (cont.chance >= Content.MAX_CHANCE) {
+                        contentList.add(cont.inner);
+                    } else {
+                        chancedContents.add(cont);
+                    }
+                }
+            }
+            if (!chancedContents.isEmpty()) {
+                roll(cap, contentList, chancedContents, recipe.tier, chanceTier, chanceCaches.get(cap), recipe.parallels);
+            }
+
+            if (!contentList.isEmpty()) {
+                recipeContents.put(cap, contentList);
+            }
+            if (search && !searchContentList.isEmpty()) {
+                searchRecipeContents.put(cap, searchContentList);
+            }
+        }
+
+        if (searchRecipeContents.isEmpty()) return true;
+
+        if (currentDistinc != null) {
+            if (currentDistinc.handleRecipeContent(io, recipe, recipeContents, simulated, simulated)) {
+                recipe.outputColor = currentDistinc.getColor();
+                return true;
+            } else if (!simulated) {
+                return false;
+            }
+        }
+
+        List<RecipeHandlerList> list;
+        if (multiController != null) {
+            if (in) {
+                list = holder.getInputList();
+                int size = list.size() - 1;
+                for (int i = 0; i <= size; i++) {
+                    var handler = list.get(i);
+                    if (i == size) {
+                        if (handler.handleRecipeContent(io, recipe, recipeContents, simulated, true)) {
+                            recipe.outputColor = handler.getColor();
+                            if (simulated) {
+                                holder.setCurrentHandlerList(handler);
+                            }
+                            return true;
+                        }
+                    } else {
+                        if (handler.handleRecipeContent(io, recipe, searchRecipeContents, true, true)) {
+                            recipe.outputColor = handler.getColor();
+                            if (simulated) {
+                                holder.setCurrentHandlerList(handler);
+                                return true;
+                            } else {
+                                return handler.handleRecipeContent(io, recipe, recipeContents, false, false);
+                            }
+                        }
+                    }
+                }
+                return false;
+            } else {
+                list = holder.getOutputList();
+                if (recipe.outputColor != -1) {
+                    var rhl = multiController.getOutputColorMap().get(recipe.outputColor);
+                    if (rhl != null) {
+                        return rhl.handleRecipeContent(io, recipe, recipeContents, simulated, false);
+                    }
+                }
+            }
+        } else {
+            var handlers = holder.getCapabilitiesProxy().get(io);
+            if (handlers == null) return false;
+            list = handlers;
+        }
+
+        for (var handler : list) {
+            if (handler.handleRecipeContent(io, recipe, recipeContents, simulated, false)) {
+                if (in && simulated) holder.setCurrentHandlerList(handler);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static void roll(RecipeCapability<?> cap, List<Object> contents, List<@NotNull Content> chancedEntries, int recipeTier, int chanceTier, @Nullable Object2IntMap<?> cache, long times) {
+        List<AbstractLong2ObjectMap.BasicEntry<Object>> contentList = new ArrayList<>(chancedEntries.size());
+        for (Content entry : chancedEntries) {
+            long amount;
+            if (entry instanceof LongSupplier separateContent) {
+                times = separateContent.getAsLong();
+            }
+
+            int newChance = ChanceBoostFunction.OVERCLOCK.getBoostedChance(entry, recipeTier, chanceTier);
+            long totalChance = times * newChance;
+            amount = totalChance / Content.MAX_CHANCE;
+            newChance = (int) totalChance % Content.MAX_CHANCE;
+
+            int cached = getCachedChance(entry, cache);
+            int chance = newChance + cached;
+            while (chance >= Content.MAX_CHANCE) {
+                amount++;
+                chance -= Content.MAX_CHANCE;
+                newChance -= Content.MAX_CHANCE;
+            }
+            if (cache != null) {
+                // noinspection unchecked,rawtypes
+                ((Object2IntMap) cache).put(entry.inner, chance);
+            }
+            if (amount > 0) {
+                contentList.add(new AbstractLong2ObjectMap.BasicEntry<>(amount, entry.inner));
+            }
+        }
+        for (var content : contentList) {
+            if (content.getLongKey() > 1) {
+                contents.add(cap.copyContent(content.getValue(), ContentModifier.multiplier(content.getLongKey())));
+            } else {
+                contents.add(content.getValue());
+            }
+        }
+    }
+
+    private static int getCachedChance(Content entry, @Nullable Object2IntMap<?> cache) {
+        if (cache == null) return GTValues.RNG.nextInt(Content.MAX_CHANCE);
+        int c = cache.getInt(entry.inner);
+        if (c == 0) return GTValues.RNG.nextInt(Content.MAX_CHANCE);
+        return c;
     }
 }

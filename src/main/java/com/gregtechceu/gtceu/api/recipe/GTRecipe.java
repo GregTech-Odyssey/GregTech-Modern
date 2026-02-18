@@ -3,17 +3,13 @@ package com.gregtechceu.gtceu.api.recipe;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
-import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.chance.logic.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
@@ -28,37 +24,37 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class GTRecipe {
 
+    public final GTRecipeDefinition definition;
     public final GTRecipeType recipeType;
 
-    @Getter
-    @Setter
-    public ResourceLocation id;
     public final Map<RecipeCapability<?>, List<Content>> inputs;
     public final Map<RecipeCapability<?>, List<Content>> outputs;
     public final Map<RecipeCapability<?>, List<Content>> tickInputs;
     public final Map<RecipeCapability<?>, List<Content>> tickOutputs;
     @NotNull
     public CompoundTag data;
+    public int tier;
     public int duration;
     public long parallels = 1;
     public int batchParallels = 1;
     public int ocLevel = 0;
-    public final GTRecipeCategory recipeCategory;
 
-    public GTRecipe(GTRecipeType recipeType, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, CompoundTag data, int duration, GTRecipeCategory recipeCategory) {
-        this(recipeType, null, inputs, outputs, tickInputs, tickOutputs, data, duration, recipeCategory);
+    public int outputColor = -1;
+
+    public GTRecipe(GTRecipeType recipeType, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, CompoundTag data, int duration, int tier) {
+        this(null, recipeType, inputs, outputs, tickInputs, tickOutputs, data, duration, tier);
     }
 
-    public GTRecipe(GTRecipeType recipeType, @Nullable ResourceLocation id, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, CompoundTag data, int duration, GTRecipeCategory recipeCategory) {
+    public GTRecipe(@Nullable GTRecipeDefinition definition, GTRecipeType recipeType, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, CompoundTag data, int duration, int tier) {
+        this.definition = definition;
         this.recipeType = recipeType;
-        this.id = id;
         this.inputs = inputs;
         this.outputs = outputs;
         this.tickInputs = tickInputs;
         this.tickOutputs = tickOutputs;
         this.data = data;
         this.duration = duration;
-        this.recipeCategory = (recipeCategory != GTRecipeCategory.DEFAULT) ? recipeCategory : recipeType.getCategory();
+        this.tier = tier;
     }
 
     public GTRecipe copy() {
@@ -70,7 +66,7 @@ public class GTRecipe {
     }
 
     public GTRecipe copy(ContentModifier modifier, boolean modifyDuration) {
-        var copied = new GTRecipe(recipeType, id, modifier.copyContents(inputs), modifier.copyContents(outputs), modifier.copy(tickInputs), modifier.copy(tickOutputs), data, duration, recipeCategory);
+        var copied = new GTRecipe(recipeType, modifier.copyContents(inputs), modifier.copyContents(outputs), modifier.copy(tickInputs), modifier.copy(tickOutputs), data, duration, tier);
         if (modifyDuration) {
             copied.duration = modifier.apply(this.duration);
         }
@@ -133,21 +129,19 @@ public class GTRecipe {
         return eut;
     }
 
-    // Just check id as there *should* only ever be 1 instance of a recipe with this id.
-    // If this doesn't work, fix.
     @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof GTRecipe recipe)) return false;
-        return this.id.equals(recipe.id);
+        return this.definition == recipe.definition;
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return System.identityHashCode(definition);
     }
 
     @Override
     public String toString() {
-        return id.toString();
+        return String.valueOf(definition);
     }
 }

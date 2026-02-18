@@ -2,40 +2,33 @@ package com.gregtechceu.gtceu.api.data.chemical.material;
 
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.ItemMaterialInfo;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
-import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
 import com.gregtechceu.gtceu.common.unification.material.MaterialRegistryManager;
-import com.gregtechceu.gtceu.data.recipe.misc.RecyclingRecipes;
 import com.gregtechceu.gtceu.data.recipe.misc.StoneMachineRecipes;
 import com.gregtechceu.gtceu.data.recipe.misc.WoodMachineRecipes;
 import com.gregtechceu.gtceu.data.tags.TagsHandler;
-import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 import com.gregtechceu.gtceu.utils.memoization.MemoizedBlockSupplier;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.registries.RegistryObject;
 
-import com.fast.fastcollection.O2OOpenCustomCacheHashMap;
 import com.mojang.datafixers.util.Pair;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.function.Supplier;
 
 public class ItemMaterialData {
@@ -49,9 +42,6 @@ public class ItemMaterialData {
     public static final Reference2ReferenceOpenHashMap<Fluid, Material> FLUID_MATERIAL = new Reference2ReferenceOpenHashMap<>();
     /** Mapping of stone type blockState to "prefix, material" */
     public static final Reference2ReferenceOpenHashMap<Supplier<BlockState>, TagPrefix> ORES_INVERSE = new Reference2ReferenceOpenHashMap<>();
-
-    public static final O2OOpenCustomCacheHashMap<ItemStack, List<ItemStack>> UNRESOLVED_ITEM_MATERIAL_INFO = new O2OOpenCustomCacheHashMap<>(
-            ItemStackHashStrategy.ITEM_AND_TAG);
 
     public static void registerMaterialInfo(ItemLike item, ItemMaterialInfo materialInfo) {
         ITEM_MATERIAL_INFO.put(item.asItem(), materialInfo);
@@ -158,32 +148,5 @@ public class ItemMaterialData {
                 .forEach((materialEntry, supplier) -> registerMaterialEntry(supplier, materialEntry));
         WoodMachineRecipes.registerMaterialInfo();
         StoneMachineRecipes.registerMaterialInfo();
-    }
-
-    @ApiStatus.Internal
-    public static void resolveItemMaterialInfos() {
-        for (var entry : UNRESOLVED_ITEM_MATERIAL_INFO.entrySet()) {
-            List<MaterialStack> stacks = new ArrayList<>();
-            var stack = entry.getKey();
-            var count = stack.getCount();
-            for (var input : entry.getValue()) {
-                var matStack = getMaterialInfo(input.getItem());
-                if (matStack != null) {
-                    matStack.getMaterials()
-                            .forEach(ms -> stacks.add(new MaterialStack(ms.material(), ms.amount() / count)));
-                }
-            }
-            if (stacks.isEmpty()) continue;
-            var matInfo = ITEM_MATERIAL_INFO.get(stack.getItem());
-            if (matInfo == null) {
-                matInfo = new ItemMaterialInfo(stacks);
-                ITEM_MATERIAL_INFO.put(stack.getItem(), matInfo);
-            } else {
-                matInfo.addMaterialStacks(stacks);
-            }
-            RecyclingRecipes.registerRecyclingRecipes(entry.getKey().copyWithCount(1),
-                    matInfo.getMaterials(), false, null);
-        }
-        UNRESOLVED_ITEM_MATERIAL_INFO.clear();
     }
 }
