@@ -113,7 +113,9 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
             MultiblockWorldData.getOrCreate(serverLevel).addAsyncLogic(this);
-        } else if (!isFormed) {
+        } else if (isFormed) {
+            onStructureFormedClient();
+        } else {
             ILevel.getHighlightCache(getLevel()).add(getPos().asLong());
         }
     }
@@ -125,6 +127,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             MultiblockWorldData.getOrCreate(serverLevel).removeAsyncLogic(this);
         } else {
             ILevel.getHighlightCache(getLevel()).remove(getPos().asLong());
+            onStructureInvalidClient();
         }
     }
 
