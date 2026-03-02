@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.recipe.content;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeCapabilityHolder;
 import com.gregtechceu.gtceu.api.machine.feature.IElectricMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.IdleReason;
 
 public final class EUTContent extends TickContent {
 
@@ -19,12 +20,14 @@ public final class EUTContent extends TickContent {
                 if (electricMachine.useEnergy(contents, simulated)) {
                     return true;
                 } else {
+                    IdleReason.setIdleReason(holder, IdleReason.NO_EU);
                     return false;
                 }
             } else {
                 if (electricMachine.generateEnergy(contents, simulated)) {
                     return true;
                 } else {
+                    IdleReason.setIdleReason(holder, IdleReason.INSUFFICIENT_OUT);
                     return false;
                 }
             }

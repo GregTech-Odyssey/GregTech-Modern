@@ -11,7 +11,7 @@ public class ComponentSupplier implements Supplier<Component> {
 
     @Setter
     @Getter
-    private String key;
+    protected String key;
 
     public ComponentSupplier(String key) {
         this.key = key;

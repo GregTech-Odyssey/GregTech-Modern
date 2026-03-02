@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.machine.feature.*;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachine;
 import com.gregtechceu.gtceu.api.machine.trait.*;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.IdleReason;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
@@ -238,5 +239,14 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     @Override
     public boolean isInputLimit() {
         return this.importItems.storage.isInputLimited;
+    }
+
+    @Override
+    public boolean checkTier(int tier) {
+        if (tier > this.getTier()) {
+            setIdleReason(IdleReason.INSUFFICIENT_VOLTAGE_TIER);
+            return false;
+        }
+        return true;
     }
 }

@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -134,8 +133,7 @@ public class ParallelLogic {
 
         while (parallelLimit > 0) {
             var copied = recipe.copy(ContentModifier.multiplier(parallelLimit), false);
-            if (RecipeHelper.matchRecipe(holder, copied) &&
-                    RecipeHelper.matchTickRecipe(holder, copied)) {
+            if (holder.matchRecipeTick(copied) && holder.matchRecipe(copied)) {
                 return parallelLimit;
             }
             parallelLimit /= 2;

@@ -7,16 +7,12 @@ import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.item.ItemStack;
 
 import lombok.Getter;
-
-import java.util.Collections;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -29,16 +25,6 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
 
     public ResearchStationMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder, args);
-    }
-
-    @Override
-    public RecipeLogic createRecipeLogic(Object... args) {
-        return new ResearchStationRecipeLogic(this);
-    }
-
-    @Override
-    public ResearchStationRecipeLogic getRecipeLogic() {
-        return (ResearchStationRecipeLogic) super.getRecipeLogic();
     }
 
     @Override
@@ -91,57 +77,29 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
         return false;
     }
 
-    public static class ResearchStationRecipeLogic extends RecipeLogic {
+    @Override
+    public boolean matchRecipe(GTRecipe recipe) {
+        return matchRecipeInput(recipe);
+    }
 
-        public ResearchStationRecipeLogic(ResearchStationMachine metaTileEntity) {
-            super(metaTileEntity);
-        }
+    @Override
+    public boolean handleRecipeInput(GTRecipe recipe) {
+        objectHolder.setLocked(true);
+        return true;
+    }
 
-        @Override
-        public ResearchStationMachine getMachine() {
-            return (ResearchStationMachine) super.getMachine();
+    @Override
+    public boolean handleRecipeOutput(GTRecipe recipe) {
+        objectHolder.setHeldItem(ItemStack.EMPTY);
+        ItemStack outputItem = ItemStack.EMPTY;
+        var contents = recipe.getOutputContents(ItemRecipeCapability.CAP);
+        if (!contents.isEmpty()) {
+            outputItem = ItemRecipeCapability.CAP.of(contents.getFirst()).getInnerItemStack();
         }
-
-        // skip "can fit" checks, it can always fit
-        @Override
-        protected boolean matchRecipe(GTRecipe recipe) {
-            var match = matchRecipeNoOutput(recipe);
-            if (!match) return false;
-            return RecipeHelper.matchTickRecipe(machine, recipe);
+        if (!outputItem.isEmpty()) {
+            objectHolder.setDataItem(outputItem.copy());
         }
-
-        protected boolean matchRecipeNoOutput(GTRecipe recipe) {
-            if (!machine.hasCapabilityProxies()) return false;
-            return RecipeHelper.handleRecipe(machine, recipe, IO.IN, recipe.inputs, Collections.emptyMap(), true);
-        }
-
-        // Handle RecipeIO manually
-        @Override
-        protected boolean handleRecipeIO(GTRecipe recipe, IO io) {
-            if (io == IO.IN) {
-                // lock the object holder on recipe start
-                IObjectHolder holder = getMachine().getObjectHolder();
-                holder.setLocked(true);
-                return true;
-            }
-            // "replace" the items in the slots rather than outputting elsewhere
-            // unlock the object holder
-            IObjectHolder holder = getMachine().getObjectHolder();
-            if (lastRecipe == null) {
-                holder.setLocked(false);
-                return true;
-            }
-            holder.setHeldItem(ItemStack.EMPTY);
-            ItemStack outputItem = ItemStack.EMPTY;
-            var contents = lastRecipe.getOutputContents(ItemRecipeCapability.CAP);
-            if (!contents.isEmpty()) {
-                outputItem = ItemRecipeCapability.CAP.of(contents.getFirst()).getInnerItemStack();
-            }
-            if (!outputItem.isEmpty()) {
-                holder.setDataItem(outputItem.copy());
-            }
-            holder.setLocked(false);
-            return true;
-        }
+        objectHolder.setLocked(false);
+        return true;
     }
 }

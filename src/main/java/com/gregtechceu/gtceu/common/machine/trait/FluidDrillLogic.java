@@ -1,13 +1,11 @@
 package com.gregtechceu.gtceu.common.machine.trait;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.BedrockFluidVeinSavedData;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.FluidVeinWorldEntry;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeBuilder;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.FluidDrillMachine;
 
 import net.minecraft.core.SectionPos;
@@ -46,7 +44,7 @@ public class FluidDrillLogic extends RecipeLogic {
             }
             var match = getFluidDrillRecipe();
             if (match != null) {
-                if (RecipeHelper.matchContents(this.machine, match)) {
+                if (machine.matchRecipeTick(match) && machine.matchRecipe(match)) {
                     setupRecipe(match);
                 }
             }
@@ -58,7 +56,7 @@ public class FluidDrillLogic extends RecipeLogic {
         if (getMachine().getLevel() instanceof ServerLevel serverLevel && veinFluid != null) {
             var data = BedrockFluidVeinSavedData.getOrCreate(serverLevel);
             var recipe = GTRecipeBuilder.ofRaw().duration(MAX_PROGRESS).EUt(GTValues.VA[getMachine().getEnergyTier()]).outputFluids(new FluidStack(veinFluid, getFluidToProduce(data.getFluidVeinWorldEntry(getChunkX(), getChunkZ())))).buildRawRecipe();
-            if (RecipeHelper.matchContents(getMachine(), recipe)) {
+            if (machine.matchRecipeTick(recipe) && machine.matchRecipe(recipe)) {
                 return recipe;
             }
         }
@@ -94,13 +92,13 @@ public class FluidDrillLogic extends RecipeLogic {
     public void onRecipeFinish() {
         machine.afterWorking();
         if (lastRecipe != null) {
-            handleRecipeIO(lastRecipe, IO.OUT);
+            machine.handleRecipeOutput(lastRecipe);
         }
         depleteVein();
         // try it again
         var match = getFluidDrillRecipe();
         if (match != null) {
-            if (RecipeHelper.matchContents(this.machine, match)) {
+            if (machine.matchRecipe(match)) {
                 setupRecipe(match);
                 return;
             }

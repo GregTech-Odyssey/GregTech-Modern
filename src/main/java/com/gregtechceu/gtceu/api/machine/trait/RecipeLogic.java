@@ -8,7 +8,7 @@ import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
+import com.gregtechceu.gtceu.api.recipe.IdleReason;
 import com.gregtechceu.gtceu.api.sound.AutoReleasedSound;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
@@ -180,18 +180,10 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
         }
     }
 
-    protected boolean matchRecipe(GTRecipe recipe) {
-        return RecipeHelper.matchContents(machine, recipe);
-    }
-
-    protected boolean checkConditions(GTRecipeDefinition recipe) {
-        return RecipeHelper.checkConditions(recipe, this).isSuccess();
-    }
-
     public boolean checkMatchedRecipeAvailable(GTRecipeDefinition match) {
         var modified = machine.fullModifyRecipe(match.toRuntime());
         if (modified != null) {
-            if (matchRecipe(modified)) {
+            if (machine.matchRecipeTick(modified) && machine.matchRecipe(modified)) {
                 setupRecipe(modified);
             }
             if (lastRecipe != null && status == WORKING) {
@@ -220,12 +212,12 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
         idleReason = null;
         lastRecipe = null;
         lastOriginRecipe = null;
-        machine.getRecipeType().findRecipe(machine, match -> checkConditions(match) && checkMatchedRecipeAvailable(match));
+        machine.getRecipeType().findRecipe(machine, match -> machine.checkTier(match.tier) && machine.checkConditions(match) && checkMatchedRecipeAvailable(match));
     }
 
     public void setupRecipe(@NotNull GTRecipe recipe) {
         progress = 0;
-        if (machine.beforeWorking(recipe) && handleRecipeIO(recipe, IO.IN)) {
+        if (machine.beforeWorking(recipe) && machine.handleRecipeInput(recipe)) {
             if (lastRecipe != null && !recipe.equals(lastRecipe)) {
                 chanceCaches.clear();
             }
@@ -314,8 +306,8 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
 
     public void onRecipeFinish() {
         machine.afterWorking();
-        if (lastRecipe != null) {
-            handleRecipeIO(lastRecipe, IO.OUT);
+        if (lastRecipe != null && !machine.handleRecipeOutput(lastRecipe)) {
+            suspendAfterFinish = true;
         }
         if (suspendAfterFinish) {
             setStatus(SUSPEND);
@@ -323,10 +315,10 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
         } else {
             if (!recipeDirty && !machine.alwaysSearchRecipe()) {
                 lastRecipe = null;
-                if (lastOriginRecipe != null && checkConditions(lastOriginRecipe)) {
+                if (lastOriginRecipe != null && machine.checkConditions(lastOriginRecipe)) {
                     lastRecipe = machine.fullModifyRecipe(lastOriginRecipe.toRuntime());
                 }
-                if (lastRecipe != null && matchRecipe(lastRecipe)) {
+                if (lastRecipe != null && machine.matchRecipe(lastRecipe)) {
                     setupRecipe(lastRecipe);
                     return;
                 }
@@ -339,10 +331,6 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
         duration = 0;
         isActive = false;
         if (!machine.keepSubscribing()) unsubscribe();
-    }
-
-    protected boolean handleRecipeIO(GTRecipe recipe, IO io) {
-        return RecipeHelper.handleRecipeIO(machine, recipe, io, this.chanceCaches);
     }
 
     /**
@@ -379,23 +367,23 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
 
     @Override
     public IGuiTexture getFancyTooltipIcon() {
-        if (idleReason != null) {
-            return GuiTextures.INSUFFICIENT_INPUT;
+        if (showFancyTooltip()) {
+            return GuiTextures.INDICATOR_NO_STEAM.get(true);
         }
         return IGuiTexture.EMPTY;
     }
 
     @Override
     public List<Component> getFancyTooltip() {
-        if (idleReason != null) {
-            return Collections.singletonList(idleReason);
+        if (showFancyTooltip()) {
+            return Collections.singletonList(idleReason == null ? IdleReason.NO_RECIPE_FOUND.get() : idleReason);
         }
         return Collections.emptyList();
     }
 
     @Override
     public boolean showFancyTooltip() {
-        return idleReason != null;
+        return isIdle() || isWaiting();
     }
 
     protected Map<RecipeCapability<?>, Object2IntMap<?>> makeChanceCaches() {

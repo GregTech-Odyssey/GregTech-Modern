@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.common.machine.multiblock.generator;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
@@ -121,7 +120,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
         }
         long EUt = recipe.getOutputEUt();
         // has lubricant
-        if (EUt > 0 && !engineMachine.isIntakesObstructed() && RecipeHelper.matchRecipe(engineMachine, engineMachine.getLubricantRecipe())) {
+        if (EUt > 0 && !engineMachine.isIntakesObstructed() && engineMachine.matchRecipe(engineMachine.getLubricantRecipe())) {
             int maxParallel = (int) (engineMachine.getOverclockVoltage() / EUt); // get maximum parallel
             int actualParallel = ParallelLogic.getParallelAmount(engineMachine, recipe, maxParallel);
             double eutMultiplier = actualParallel * engineMachine.getProductionBoost();
@@ -136,7 +135,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
         // check lubricant
         if (runningTimer % 72 == 0) {
             // insufficient lubricant
-            if (!RecipeHelper.handleRecipeIO(this, getLubricantRecipe(), IO.IN, this.recipeLogic.getChanceCaches())) {
+            if (!handleRecipeInput(getLubricantRecipe())) {
                 recipeLogic.interruptRecipe();
                 return false;
             }
@@ -144,7 +143,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
         // check boost fluid
         if (isBoostAllowed()) {
             var boosterRecipe = getBoostRecipe();
-            this.isOxygenBoosted = RecipeHelper.matchRecipe(this, boosterRecipe) && RecipeHelper.handleRecipeIO(this, boosterRecipe, IO.IN, this.recipeLogic.getChanceCaches());
+            this.isOxygenBoosted = handleRecipeInput(boosterRecipe);
         }
         runningTimer++;
         if (runningTimer > 72000) runningTimer %= 72000; // reset once every hour of running
@@ -185,7 +184,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
         if (recipe.get() == null) {
             getRecipeType().findRecipe(this, r -> {
                 var re = r.toRuntime();
-                if (RecipeHelper.matchContents(this, re)) {
+                if (matchRecipe(re)) {
                     recipe.set(re);
                     return true;
                 }

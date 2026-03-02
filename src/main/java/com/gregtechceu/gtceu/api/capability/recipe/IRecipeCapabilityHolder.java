@@ -1,6 +1,8 @@
 package com.gregtechceu.gtceu.api.capability.recipe;
 
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
+import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -55,5 +57,33 @@ public interface IRecipeCapabilityHolder {
             var entryList = entry.getValue();
             inner.computeIfAbsent(entry.getKey(), c -> new ArrayList<>(entryList.size())).addAll(entryList);
         });
+    }
+
+    default boolean matchRecipe(GTRecipe recipe) {
+        return matchRecipeInput(recipe) && matchRecipeOutput(recipe);
+    }
+
+    default boolean matchRecipeInput(GTRecipe recipe) {
+        return RecipeHelper.handleRecipe(this, recipe, IO.IN, recipe.inputs, Collections.emptyMap(), true);
+    }
+
+    default boolean matchRecipeOutput(GTRecipe recipe) {
+        return RecipeHelper.handleRecipe(this, recipe, IO.OUT, recipe.outputs, Collections.emptyMap(), true);
+    }
+
+    default boolean handleRecipeInput(GTRecipe recipe) {
+        return RecipeHelper.handleRecipe(this, recipe, IO.IN, recipe.inputs, Collections.emptyMap(), false);
+    }
+
+    default boolean handleRecipeOutput(GTRecipe recipe) {
+        return RecipeHelper.handleRecipe(this, recipe, IO.OUT, recipe.outputs, Collections.emptyMap(), false);
+    }
+
+    default boolean matchRecipeTick(GTRecipe recipe) {
+        return recipe.ticks.handleRecipe(this, recipe, true);
+    }
+
+    default boolean handleRecipeTick(GTRecipe recipe) {
+        return recipe.ticks.handleRecipe(this, recipe, false);
     }
 }

@@ -2,13 +2,14 @@ package com.gregtechceu.gtceu.api.machine.feature;
 
 import com.gregtechceu.gtceu.api.capability.ICleanroomReceiver;
 import com.gregtechceu.gtceu.api.capability.IWorkable;
+import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeCapabilityHolder;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
+import com.gregtechceu.gtceu.api.recipe.*;
 import com.gregtechceu.gtceu.api.sound.SoundEntry;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+
+import net.minecraft.network.chat.Component;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -179,5 +180,55 @@ public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IWorkable,
     @Override
     default boolean isActive() {
         return getRecipeLogic().isActive();
+    }
+
+    default void setIdleReason(Component component) {
+        getRecipeLogic().setIdleReason(component);
+    }
+
+    default void setIdleReason(IdleReason reason) {
+        getRecipeLogic().setIdleReason(reason.get());
+    }
+
+    default boolean checkTier(int tier) {
+        return true;
+    }
+
+    default boolean checkConditions(GTRecipeDefinition recipe) {
+        return RecipeHelper.checkConditions(recipe, getRecipeLogic());
+    }
+
+    @Override
+    default boolean matchRecipe(GTRecipe recipe) {
+        return matchRecipeInput(recipe) && matchRecipeOutput(recipe);
+    }
+
+    @Override
+    default boolean matchRecipeInput(GTRecipe recipe) {
+        return RecipeHelper.handleRecipe(this, recipe, IO.IN, recipe.inputs, getRecipeLogic().getChanceCaches(), true);
+    }
+
+    @Override
+    default boolean matchRecipeOutput(GTRecipe recipe) {
+        if (RecipeHelper.handleRecipe(this, recipe, IO.OUT, recipe.outputs, getRecipeLogic().getChanceCaches(), true)) {
+            return true;
+        } else {
+            setIdleReason(IdleReason.INSUFFICIENT_OUT);
+            return false;
+        }
+    }
+
+    @Override
+    default boolean handleRecipeInput(GTRecipe recipe) {
+        if (RecipeHelper.handleRecipe(this, recipe, IO.IN, recipe.inputs, getRecipeLogic().getChanceCaches(), false)) return true;
+        setIdleReason(IdleReason.INVALID_INPUT);
+        return false;
+    }
+
+    @Override
+    default boolean handleRecipeOutput(GTRecipe recipe) {
+        if (RecipeHelper.handleRecipe(this, recipe, IO.OUT, recipe.outputs, getRecipeLogic().getChanceCaches(), false)) return true;
+        setIdleReason(IdleReason.INSUFFICIENT_OUT);
+        return false;
     }
 }

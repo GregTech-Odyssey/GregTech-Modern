@@ -16,6 +16,7 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.misc.ComputationProviderList;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
+import com.gregtechceu.gtceu.api.recipe.IdleReason;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -184,5 +185,14 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     @Override
     public IOpticalComputationProvider getComputationProvider() {
         return computationProviderList;
+    }
+
+    @Override
+    public boolean checkTier(int tier) {
+        if (tier > this.getTier()) {
+            setIdleReason(IdleReason.INSUFFICIENT_VOLTAGE_TIER);
+            return false;
+        }
+        return true;
     }
 }

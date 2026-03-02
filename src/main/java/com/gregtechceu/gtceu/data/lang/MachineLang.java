@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.data.lang;
 
+import com.gregtechceu.gtceu.api.recipe.IdleReason;
+
 import com.tterrag.registrate.providers.RegistrateLangProvider;
 
 import static com.gregtechceu.gtceu.data.lang.LangHandler.*;
@@ -7,6 +9,11 @@ import static com.gregtechceu.gtceu.data.lang.LangHandler.*;
 public class MachineLang {
 
     protected static void init(RegistrateLangProvider provider) {
+        IdleReason.values().forEach(reason -> {
+            if (reason.getEn() != null) {
+                provider.add(reason.getKey(), reason.getEn());
+            }
+        });
         // Custom machine names
         replace(provider, "block.gtceu.steam_large_turbine", "Large Steam Turbine");
         replace(provider, "block.gtceu.gas_large_turbine", "Large Gas Turbine");

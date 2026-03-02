@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.capability.recipe.IRecipeCapabilityHolder;
 import com.gregtechceu.gtceu.api.machine.feature.IComputationContainerMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
+import com.gregtechceu.gtceu.api.recipe.IdleReason;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
@@ -30,10 +31,10 @@ public final class CWUTContent extends TickContent {
 
     @Override
     public boolean handleRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe, long contents, boolean simulated) {
-        if (holder instanceof IComputationContainerMachine containerMachine) {
-            if (containerMachine.requestCWU(contents, simulated) >= contents) return true;
-
+        if (holder instanceof IComputationContainerMachine containerMachine && containerMachine.requestCWU(contents, simulated) >= contents) {
+            return true;
         }
+        IdleReason.setIdleReason(holder, IdleReason.NO_CWU);
         return false;
     }
 }

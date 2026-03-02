@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.machine.feature.IOverclockMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.CoilWorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.OverclockingLogic;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
@@ -29,7 +28,7 @@ public class GTRecipeModifiers {
     public static final Function<OverclockingLogic, RecipeModifier> ELECTRIC_OVERCLOCK = Util
             .memoize(logic -> (machine, recipe) -> {
                 if (!(machine instanceof IOverclockMachine overclockMachine)) return ModifierFunction.IDENTITY;
-                if (RecipeHelper.getRecipeEUtTier(recipe) > overclockMachine.getMaxOverclockTier()) {
+                if (recipe.tier > overclockMachine.getMaxOverclockTier()) {
                     return ModifierFunction.NULL;
                 }
                 return logic.getModifier(machine, recipe, overclockMachine.getOverclockVoltage());
@@ -55,7 +54,7 @@ public class GTRecipeModifiers {
         if (!(machine instanceof CoilWorkableElectricMultiblockMachine coilMachine)) {
             return RecipeModifier.nullWrongType(CoilWorkableElectricMultiblockMachine.class, machine);
         }
-        if (RecipeHelper.getRecipeEUtTier(recipe) > coilMachine.getTier()) return ModifierFunction.NULL;
+        if (recipe.tier > coilMachine.getTier()) return ModifierFunction.NULL;
 
         var oc = OverclockingLogic.NON_PERFECT_OVERCLOCK_SUBTICK.getModifier(machine, recipe,
                 coilMachine.getOverclockVoltage());
@@ -95,7 +94,7 @@ public class GTRecipeModifiers {
             return ModifierFunction.NULL;
         }
 
-        if (RecipeHelper.getRecipeEUtTier(recipe) > coilMachine.getTier()) {
+        if (recipe.tier > coilMachine.getTier()) {
             return ModifierFunction.NULL;
         }
 
@@ -126,7 +125,7 @@ public class GTRecipeModifiers {
         if (!(machine instanceof CoilWorkableElectricMultiblockMachine coilMachine)) {
             return RecipeModifier.nullWrongType(CoilWorkableElectricMultiblockMachine.class, machine);
         }
-        if (RecipeHelper.getRecipeEUtTier(recipe) > coilMachine.getTier()) return ModifierFunction.NULL;
+        if (recipe.tier > coilMachine.getTier()) return ModifierFunction.NULL;
 
         int tier = coilMachine.getCoilTier();
         double durationMultiplier = (tier == 0) ? (4.0 / 3.0) : (2.0 / (tier + 1)); // 75% speed with cupro coils

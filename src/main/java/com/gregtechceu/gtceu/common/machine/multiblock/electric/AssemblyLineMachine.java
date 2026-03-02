@@ -4,12 +4,11 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
-import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.IdleReason;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
@@ -41,11 +40,6 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
         if (!checkItemInputs(recipe)) return false;
         if (!config.orderedAssemblyLineFluids) return true;
         return checkFluidInputs(recipe);
-    }
-
-    @Override
-    public RecipeLogic createRecipeLogic(Object... args) {
-        return new AssemblyLineLogic(this);
     }
 
     @Override
@@ -97,82 +91,75 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
         }
     }
 
-    public static class AssemblyLineLogic extends RecipeLogic {
-
-        public AssemblyLineLogic(IRecipeLogicMachine machine) {
-            super(machine);
-        }
-
-        @NotNull
-        @Override
-        public AssemblyLineMachine getMachine() {
-            return (AssemblyLineMachine) super.getMachine();
-        }
-
-        @Override
-        protected boolean handleRecipeIO(GTRecipe recipe, IO io) {
-            if (io == IO.IN) {
-                if (ConfigHolder.INSTANCE.machines.orderedAssemblyLineItems) {
-                    if (!consumeOrderedItemInputs(recipe)) {
-                        return false;
-                    }
-                } else {
-                    var items = recipe.getInputContents(ItemRecipeCapability.CAP);
-                    if (!RecipeHelper.handleRecipe(this.machine, recipe, io, Map.of(ItemRecipeCapability.CAP, items), chanceCaches, false)) {
-                        return false;
-                    }
-                }
-                if (ConfigHolder.INSTANCE.machines.orderedAssemblyLineFluids) {
-                    return consumeOrderedFluidInputs(recipe);
-                } else {
-                    var fluids = recipe.getInputContents(FluidRecipeCapability.CAP);
-                    return RecipeHelper.handleRecipe(this.machine, recipe, io, Map.of(FluidRecipeCapability.CAP, fluids), chanceCaches, false);
-                }
-            } else {
-                return super.handleRecipeIO(recipe, io);
+    @Override
+    public boolean handleRecipeInput(GTRecipe recipe) {
+        if (ConfigHolder.INSTANCE.machines.orderedAssemblyLineItems) {
+            if (!consumeOrderedItemInputs(recipe)) {
+                setIdleReason(IdleReason.ORDERED_ITEM);
+                return false;
+            }
+        } else {
+            var items = recipe.getInputContents(ItemRecipeCapability.CAP);
+            if (!RecipeHelper.handleRecipe(this, recipe, IO.IN, Map.of(ItemRecipeCapability.CAP, items), getRecipeLogic().getChanceCaches(), false)) {
+                setIdleReason(IdleReason.INVALID_INPUT);
+                return false;
             }
         }
-
-        private boolean consumeOrderedItemInputs(GTRecipe recipe) {
-            var itemInputs = recipe.inputs.getOrDefault(ItemRecipeCapability.CAP, Collections.emptyList());
-            if (itemInputs.isEmpty()) return true;
-
-            var machineInputs = getMachine().itemStackTransfers;
-            if (machineInputs.size() < itemInputs.size()) return false;
-
-            for (int i = 0; i < itemInputs.size(); i++) {
-                var inputSlot = machineInputs.get(i);
-                var recipeInput = ItemRecipeCapability.CAP.of(itemInputs.get(i));
-
-                if (inputSlot.getStackInSlot(0).isEmpty() ||
-                        !recipeInput.test(inputSlot.getStackInSlot(0))) {
-                    return false;
-                }
-
-                inputSlot.extractItem(0, recipeInput.getAmount(), false);
+        if (ConfigHolder.INSTANCE.machines.orderedAssemblyLineFluids) {
+            if (!consumeOrderedFluidInputs(recipe)) {
+                setIdleReason(IdleReason.ORDERED_FLUID);
+                return false;
+            }
+            return true;
+        } else {
+            var fluids = recipe.getInputContents(FluidRecipeCapability.CAP);
+            if (!RecipeHelper.handleRecipe(this, recipe, IO.IN, Map.of(FluidRecipeCapability.CAP, fluids), getRecipeLogic().getChanceCaches(), false)) {
+                setIdleReason(IdleReason.INVALID_INPUT);
+                return false;
             }
             return true;
         }
+    }
 
-        private boolean consumeOrderedFluidInputs(GTRecipe recipe) {
-            var fluidInputs = recipe.inputs.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList());
-            if (fluidInputs.isEmpty()) return true;
+    private boolean consumeOrderedItemInputs(GTRecipe recipe) {
+        var itemInputs = recipe.inputs.getOrDefault(ItemRecipeCapability.CAP, Collections.emptyList());
+        if (itemInputs.isEmpty()) return true;
 
-            var machineInputs = getMachine().fluidStackTransfers;
-            if (machineInputs.size() < fluidInputs.size()) return false;
+        var machineInputs = itemStackTransfers;
+        if (machineInputs.size() < itemInputs.size()) return false;
 
-            for (int i = 0; i < fluidInputs.size(); i++) {
-                var inputTank = machineInputs.get(i);
-                var recipeInput = FluidRecipeCapability.CAP.of(fluidInputs.get(i));
+        for (int i = 0; i < itemInputs.size(); i++) {
+            var inputSlot = machineInputs.get(i);
+            var recipeInput = ItemRecipeCapability.CAP.of(itemInputs.get(i));
 
-                if (inputTank.getFluid().isEmpty() ||
-                        !recipeInput.test(inputTank.getFluid())) {
-                    return false;
-                }
-
-                inputTank.drain(recipeInput.getAmount(), IFluidHandler.FluidAction.EXECUTE);
+            if (inputSlot.getStackInSlot(0).isEmpty() ||
+                    !recipeInput.test(inputSlot.getStackInSlot(0))) {
+                return false;
             }
-            return true;
+
+            inputSlot.extractItem(0, recipeInput.getAmount(), false);
         }
+        return true;
+    }
+
+    private boolean consumeOrderedFluidInputs(GTRecipe recipe) {
+        var fluidInputs = recipe.inputs.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList());
+        if (fluidInputs.isEmpty()) return true;
+
+        var machineInputs = fluidStackTransfers;
+        if (machineInputs.size() < fluidInputs.size()) return false;
+
+        for (int i = 0; i < fluidInputs.size(); i++) {
+            var inputTank = machineInputs.get(i);
+            var recipeInput = FluidRecipeCapability.CAP.of(fluidInputs.get(i));
+
+            if (inputTank.getFluid().isEmpty() ||
+                    !recipeInput.test(inputTank.getFluid())) {
+                return false;
+            }
+
+            inputTank.drain(recipeInput.getAmount(), IFluidHandler.FluidAction.EXECUTE);
+        }
+        return true;
     }
 }

@@ -12,7 +12,6 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.chance.boost.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
-import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -32,33 +31,6 @@ import java.util.Map;
 import java.util.function.LongSupplier;
 
 public class RecipeHelper {
-
-    public static long getRealEUt(@NotNull GTRecipe recipe) {
-        long EUt = recipe.getInputEUt();
-        if (EUt > 0) return EUt;
-        return -recipe.getOutputEUt();
-    }
-
-    public static int getRecipeEUtTier(GTRecipe recipe) {
-        long EUt = recipe.getInputEUt();
-        if (EUt == 0) EUt = recipe.getOutputEUt();
-        if (recipe.parallels > 1) EUt /= recipe.parallels;
-        return GTUtil.getTierByVoltage(EUt);
-    }
-
-    public static int getRecipeEUtTier(GTRecipeDefinition recipe) {
-        long EUt = recipe.getInputEUt();
-        if (EUt == 0) EUt = recipe.getOutputEUt();
-        return GTUtil.getTierByVoltage(EUt);
-    }
-
-    public static int getPreOCRecipeEuTier(GTRecipe recipe) {
-        long EUt = recipe.getInputEUt();
-        if (EUt == 0) EUt = recipe.getOutputEUt();
-        if (recipe.parallels > 1) EUt /= recipe.parallels;
-        EUt >>= (recipe.ocLevel * 2);
-        return GTUtil.getTierByVoltage(EUt);
-    }
 
     public static <T> List<T> getInputContents(GTRecipe recipe, RecipeCapability<T> capability) {
         var inputs = recipe.inputs.get(capability);
@@ -98,61 +70,6 @@ public class RecipeHelper {
             result.add(capability.of(output));
         }
         return result;
-    }
-
-    public static boolean matchRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe) {
-        return holder.hasCapabilityProxies() && handleRecipe(holder, recipe, IO.IN, recipe.inputs, Collections.emptyMap(), true) && handleRecipe(holder, recipe, IO.OUT, recipe.outputs, Collections.emptyMap(), true);
-    }
-
-    public static boolean matchTickRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe) {
-        return recipe.handleTickRecipe(holder, true);
-    }
-
-    public static boolean handleRecipeIO(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io,
-                                         Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches) {
-        if (!holder.hasCapabilityProxies() || io == IO.BOTH) return false;
-        return handleRecipe(holder, recipe, io, io == IO.IN ? recipe.inputs : recipe.outputs, chanceCaches, false);
-    }
-
-    public static boolean matchContents(IRecipeCapabilityHolder holder, GTRecipe recipe) {
-        return matchRecipe(holder, recipe) && matchTickRecipe(holder, recipe);
-    }
-
-    /**
-     * Check whether all conditions of a recipe are valid
-     *
-     * @param recipe      the recipe to test
-     * @param recipeLogic the logic to test against the conditions
-     * @return the list of failed conditions, or success if all conditions are satisfied
-     */
-    public static ActionResult checkConditions(GTRecipeDefinition recipe, @NotNull RecipeLogic recipeLogic) {
-        if (recipe.conditions.isEmpty()) return ActionResult.SUCCESS;
-        Map<Class<?>, List<RecipeCondition>> or = new Reference2ObjectArrayMap<>();
-        for (RecipeCondition condition : recipe.conditions) {
-            if (condition.isOr()) {
-                or.computeIfAbsent(condition.getClass(), type -> new ArrayList<>()).add(condition);
-            } else if (!condition.check(recipe, recipeLogic)) {
-                return ActionResult.fail(Component.translatable("gtceu.recipe_logic.condition_fails")
-                        .append(": ")
-                        .append(condition.getTooltips()));
-            }
-        }
-
-        for (List<RecipeCondition> conditions : or.values()) {
-            boolean passed = conditions.isEmpty();
-            MutableComponent component = Component.translatable("gtceu.recipe_logic.condition_fails")
-                    .append(": ");
-            for (RecipeCondition condition : conditions) {
-                passed = condition.check(recipe, recipeLogic);
-                if (passed) break;
-                else component.append(condition.getTooltips());
-            }
-
-            if (!passed) {
-                return ActionResult.fail(component);
-            }
-        }
-        return ActionResult.SUCCESS;
     }
 
     /**
@@ -216,6 +133,36 @@ public class RecipeHelper {
         }
 
         return outputs;
+    }
+
+    public static boolean checkConditions(GTRecipeDefinition recipe, RecipeLogic logic) {
+        if (recipe.conditions.isEmpty()) return true;
+        Map<Class<?>, List<RecipeCondition>> or = new Reference2ObjectArrayMap<>();
+        for (RecipeCondition condition : recipe.conditions) {
+            if (condition.isOr()) {
+                or.computeIfAbsent(condition.getClass(), type -> new ArrayList<>()).add(condition);
+            } else if (!condition.check(recipe, logic)) {
+                logic.setIdleReason(Component.translatable("gtceu.recipe_logic.condition_fails")
+                        .append(": ")
+                        .append(condition.getTooltips()));
+                return false;
+            }
+        }
+        for (List<RecipeCondition> conditions : or.values()) {
+            boolean passed = conditions.isEmpty();
+            MutableComponent component = Component.translatable("gtceu.recipe_logic.condition_fails")
+                    .append(": ");
+            for (RecipeCondition condition : conditions) {
+                passed = condition.check(recipe, logic);
+                if (passed) break;
+                else component.append(condition.getTooltips());
+            }
+            if (!passed) {
+                logic.setIdleReason(component);
+                return false;
+            }
+        }
+        return true;
     }
 
     public static boolean handleRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io, Map<RecipeCapability<?>, List<Content>> contents, Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches, boolean simulated) {

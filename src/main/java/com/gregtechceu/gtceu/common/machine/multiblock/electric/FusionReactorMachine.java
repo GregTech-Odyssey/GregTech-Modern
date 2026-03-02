@@ -15,7 +15,6 @@ import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.OverclockingLogic;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.common.block.FusionCasingBlock;
@@ -159,7 +158,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
         if (!(machine instanceof FusionReactorMachine fusionReactorMachine)) {
             return RecipeModifier.nullWrongType(FusionReactorMachine.class, machine);
         }
-        if (RecipeHelper.getRecipeEUtTier(recipe) > fusionReactorMachine.getTier() || !recipe.definition.data.contains(DataKeys.EU_TO_START) || recipe.definition.data.getLong(DataKeys.EU_TO_START) > fusionReactorMachine.energyContainer.getEnergyCapacity()) {
+        if (recipe.tier > fusionReactorMachine.getTier() || !recipe.definition.data.contains(DataKeys.EU_TO_START) || recipe.definition.data.getLong(DataKeys.EU_TO_START) > fusionReactorMachine.energyContainer.getEnergyCapacity()) {
             return ModifierFunction.NULL;
         }
         long heatDiff = recipe.definition.data.getLong(DataKeys.EU_TO_START) - fusionReactorMachine.heat;
@@ -256,7 +255,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     public static void addEUToStartLabel(GTRecipeDefinition recipe, WidgetGroup group) {
         long euToStart = recipe.data.getLong("eu_to_start");
         if (euToStart <= 0) return;
-        int recipeTier = RecipeHelper.getRecipeEUtTier(recipe);
+        int recipeTier = recipe.tier;
         int fusionTier = findCeilingTier(euToStart);
         int tier = Math.max(MINIMUM_TIER, Math.max(recipeTier, fusionTier));
         group.addWidget(new LabelWidget(-8, group.getSizeHeight() - 10, LocalizationUtils.format("gtceu.recipe.eu_to_start", FormattingUtil.formatNumberReadable2F(euToStart, false), FUSION_NAMES.get(tier))));
