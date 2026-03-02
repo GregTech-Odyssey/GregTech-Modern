@@ -36,7 +36,6 @@ public final class ScannerBuilder extends ResearchBuilder<ScannerBuilder> {
                 .outputItems(dataStack)
                 .duration(duration)
                 .EUt(eut)
-                .researchScan(true)
                 .save();
 
         return new ResearchCondition(researchId, dataStack);

@@ -12,7 +12,6 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.chance.boost.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
-import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.network.chat.Component;
@@ -22,7 +21,6 @@ import it.unimi.dsi.fastutil.longs.AbstractLong2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -107,21 +105,13 @@ public class RecipeHelper {
     }
 
     public static boolean matchTickRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe) {
-        if (recipe.hasTick()) {
-            return holder.hasCapabilityProxies() && handleTickRecipe(holder, recipe, IO.IN, recipe.tickInputs, true) && handleTickRecipe(holder, recipe, IO.OUT, recipe.tickOutputs, true);
-        }
-        return true;
+        return recipe.handleTickRecipe(holder, true);
     }
 
     public static boolean handleRecipeIO(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io,
                                          Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches) {
         if (!holder.hasCapabilityProxies() || io == IO.BOTH) return false;
         return handleRecipe(holder, recipe, io, io == IO.IN ? recipe.inputs : recipe.outputs, chanceCaches, false);
-    }
-
-    public static boolean handleTickRecipeIO(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io) {
-        if (!holder.hasCapabilityProxies() || io == IO.BOTH) return false;
-        return handleTickRecipe(holder, recipe, io, io == IO.IN ? recipe.tickInputs : recipe.tickOutputs, false);
     }
 
     public static boolean matchContents(IRecipeCapabilityHolder holder, GTRecipe recipe) {
@@ -226,45 +216,6 @@ public class RecipeHelper {
         }
 
         return outputs;
-    }
-
-    public static boolean handleTickRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io, Map<RecipeCapability<?>, List<Content>> contents, boolean simulated) {
-        if (contents.isEmpty()) return true;
-        Reference2ReferenceOpenHashMap<RecipeCapability<?>, List<Object>> recipeContents = new Reference2ReferenceOpenHashMap<>();
-        for (Map.Entry<RecipeCapability<?>, List<Content>> entry : contents.entrySet()) {
-            var list = entry.getValue();
-            if (list.isEmpty()) continue;
-            var contentList = new ArrayList<>(list.size());
-            for (Content cont : list) {
-                contentList.add(cont.inner);
-            }
-            recipeContents.put(entry.getKey(), contentList);
-        }
-        if (recipeContents.isEmpty()) return true;
-        List<RecipeHandlerList> list;
-        var handlers = holder.getCapabilitiesProxy().get(io);
-        if (handlers == null) return false;
-        list = handlers;
-        for (var rhl : list) {
-            if (rhl.handlerMap.isEmpty()) continue;
-            for (var it = recipeContents.reference2ReferenceEntrySet().fastIterator(); it.hasNext();) {
-                var entry = it.next();
-                var handlerList = rhl.getCapability(entry.getKey());
-                for (var handler : handlerList) {
-                    var left = handler.handleRecipe(io, recipe, entry.getValue(), simulated);
-                    if (left == null) {
-                        it.remove();
-                        break;
-                    } else {
-                        entry.setValue(new ArrayList<>(left));
-                    }
-                }
-            }
-            if (recipeContents.isEmpty()) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public static boolean handleRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io, Map<RecipeCapability<?>, List<Content>> contents, Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches, boolean simulated) {

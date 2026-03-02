@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
+import com.gregtechceu.gtceu.api.codec.data.DataKeys;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
@@ -158,10 +159,10 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
         if (!(machine instanceof FusionReactorMachine fusionReactorMachine)) {
             return RecipeModifier.nullWrongType(FusionReactorMachine.class, machine);
         }
-        if (RecipeHelper.getRecipeEUtTier(recipe) > fusionReactorMachine.getTier() || !recipe.data.contains("eu_to_start") || recipe.data.getLong("eu_to_start") > fusionReactorMachine.energyContainer.getEnergyCapacity()) {
+        if (RecipeHelper.getRecipeEUtTier(recipe) > fusionReactorMachine.getTier() || !recipe.definition.data.contains(DataKeys.EU_TO_START) || recipe.definition.data.getLong(DataKeys.EU_TO_START) > fusionReactorMachine.energyContainer.getEnergyCapacity()) {
             return ModifierFunction.NULL;
         }
-        long heatDiff = recipe.data.getLong("eu_to_start") - fusionReactorMachine.heat;
+        long heatDiff = recipe.definition.data.getLong(DataKeys.EU_TO_START) - fusionReactorMachine.heat;
         // if the stored heat is >= required energy, recipe is okay to run
         if (heatDiff <= 0) {
             return FUSION_OC.getModifier(machine, recipe, fusionReactorMachine.getMaxVoltage(), false);
@@ -180,8 +181,8 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     public boolean onWorking() {
         GTRecipe recipe = recipeLogic.getLastRecipe();
         assert recipe != null;
-        if (recipe.data.contains("eu_to_start")) {
-            long heatDiff = recipe.data.getLong("eu_to_start") - this.heat;
+        if (recipe.definition.data.contains(DataKeys.EU_TO_START)) {
+            long heatDiff = recipe.definition.data.getLong(DataKeys.EU_TO_START) - this.heat;
             // if the remaining energy needed is more than stored, do not run
             if (heatDiff > 0) {
                 recipeLogic.setWaiting(Component.translatable("gtceu.recipe_logic.insufficient_fuel"));

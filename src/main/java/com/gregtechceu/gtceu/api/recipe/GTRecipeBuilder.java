@@ -1,8 +1,11 @@
-package com.gregtechceu.gtceu.data.recipe.builder;
+package com.gregtechceu.gtceu.api.recipe;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
+import com.gregtechceu.gtceu.api.codec.data.DataKey;
+import com.gregtechceu.gtceu.api.codec.data.DataKeys;
+import com.gregtechceu.gtceu.api.codec.data.DataMap;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.ItemMaterialData;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
@@ -12,14 +15,11 @@ import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
-import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.chance.logic.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentInner;
+import com.gregtechceu.gtceu.api.recipe.content.TickContentMap;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
@@ -31,8 +31,6 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -48,9 +46,9 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.fast.fastcollection.O2OOpenCacheHashMap;
 import dev.ftb.mods.ftbquests.quest.QuestObjectBase;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,23 +68,26 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class GTRecipeBuilder {
 
+    public static final Map<ResourceLocation, GTRecipeDefinition> RECIPE_MAP = new O2OOpenCacheHashMap<>();
+
     public static GTRecipeBuilder RAW;
 
     public Map<RecipeCapability<?>, List<Content>> input = new RecipeCapabilityMap<>();
-    public Map<RecipeCapability<?>, List<Content>> tickInput = new Reference2ObjectOpenHashMap<>();
     public Map<RecipeCapability<?>, List<Content>> output = new RecipeCapabilityMap<>();
-    public Map<RecipeCapability<?>, List<Content>> tickOutput = new Reference2ObjectOpenHashMap<>();
+
+    public TickContentMap ticks = new TickContentMap();
 
     public List<RecipeCondition> conditions = new ArrayList<>();
     @NotNull
-    public CompoundTag data = new CompoundTag();
+    public DataMap data = new DataMap();
     public ResourceLocation id;
     public GTRecipeType recipeType;
     public GTRecipeCategory recipeCategory;
     public int duration = 100;
 
     public int tier;
-    public long eut;
+
+    public int priority;
 
     public int chance = Content.MAX_CHANCE;
     public int tierChanceBoost = 0;
@@ -127,15 +128,13 @@ public class GTRecipeBuilder {
         GTRecipeBuilder copy = new GTRecipeBuilder(id);
         this.input.forEach((k, v) -> copy.input.put(k, new ArrayList<>(v)));
         this.output.forEach((k, v) -> copy.output.put(k, new ArrayList<>(v)));
-        this.tickInput.forEach((k, v) -> copy.tickInput.put(k, new ArrayList<>(v)));
-        this.tickOutput.forEach((k, v) -> copy.tickOutput.put(k, new ArrayList<>(v)));
+        copy.ticks = this.ticks.clone();
         copy.recipeType = this.recipeType;
         copy.recipeCategory = this.recipeCategory;
         copy.conditions.addAll(this.conditions);
-        copy.data = this.data.copy();
+        copy.data = this.data.clone();
         copy.duration = this.duration;
         copy.tier = this.tier;
-        copy.eut = this.eut;
         copy.chance = this.chance;
         copy.onSave = this.onSave;
         return copy;
@@ -164,34 +163,12 @@ public class GTRecipeBuilder {
         return this;
     }
 
-    public GTRecipeBuilder inputEU(long eu) {
-        tickInput.put(EURecipeCapability.CAP, List.of(makeContent(eu)));
-        return this;
-    }
-
     public GTRecipeBuilder EUt(long eu) {
         if (eu == 0) {
             GTCEu.LOGGER.error("EUt can't be explicitly set to 0, id: {}", id);
         }
-        if (eu > 0) {
-            tickInput.remove(EURecipeCapability.CAP);
-            inputEU(eu);
-        } else if (eu < 0) {
-            tickOutput.remove(EURecipeCapability.CAP);
-            outputEU(-eu);
-        }
-        eut = eu;
+        ticks.put(DataKeys.EUT, eu);
         tier = GTUtil.getTierByVoltage(Math.abs(eu));
-        return this;
-    }
-
-    public GTRecipeBuilder outputEU(long eu) {
-        tickOutput.put(EURecipeCapability.CAP, List.of(makeContent(eu)));
-        return this;
-    }
-
-    public GTRecipeBuilder inputCWU(long cwu) {
-        tickInput.put(CWURecipeCapability.CAP, List.of(makeContent(cwu)));
         return this;
     }
 
@@ -200,8 +177,7 @@ public class GTRecipeBuilder {
             GTCEu.LOGGER.error("CWUt can't be explicitly set to 0, id: {}", id);
         }
         if (cwu > 0) {
-            tickInput.remove(CWURecipeCapability.CAP);
-            inputCWU(cwu);
+            ticks.put(DataKeys.CWUT, cwu);
         } else if (cwu < 0) {
             throw new IllegalArgumentException("CWUt can't be negative");
         }
@@ -687,38 +663,13 @@ public class GTRecipeBuilder {
     // ********** DATA ***********//
 
     /// ///////////////////////////////////
-    public GTRecipeBuilder addData(String key, Tag data) {
+    public <T> GTRecipeBuilder addData(DataKey<T> key, T data) {
         this.data.put(key, data);
         return this;
     }
 
-    public GTRecipeBuilder addData(String key, int data) {
-        this.data.putInt(key, data);
-        return this;
-    }
-
-    public GTRecipeBuilder addData(String key, long data) {
-        this.data.putLong(key, data);
-        return this;
-    }
-
-    public GTRecipeBuilder addData(String key, String data) {
-        this.data.putString(key, data);
-        return this;
-    }
-
-    public GTRecipeBuilder addData(String key, float data) {
-        this.data.putFloat(key, data);
-        return this;
-    }
-
-    public GTRecipeBuilder addData(String key, boolean data) {
-        this.data.putBoolean(key, data);
-        return this;
-    }
-
     public GTRecipeBuilder blastFurnaceTemp(int blastTemp) {
-        return addData("ebf_temp", blastTemp);
+        return addData(DataKeys.EBF_TEMP, blastTemp);
     }
 
     public GTRecipeBuilder explosivesAmount(int explosivesAmount) {
@@ -730,27 +681,23 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder solderMultiplier(int multiplier) {
-        return addData("solder_multiplier", multiplier);
+        return addData(DataKeys.SOLDER_MULTIPLIER, multiplier);
     }
 
     public GTRecipeBuilder disableDistilleryRecipes(boolean flag) {
-        return addData("disable_distillery", flag);
+        return addData(DataKeys.DISABLE_DISTILLERY, flag);
     }
 
     public GTRecipeBuilder fusionStartEU(long eu) {
-        return addData("eu_to_start", eu);
-    }
-
-    public GTRecipeBuilder researchScan(boolean isScan) {
-        return addData("scan_for_research", isScan);
+        return addData(DataKeys.EU_TO_START, eu);
     }
 
     public GTRecipeBuilder durationIsTotalCWU(boolean durationIsTotalCWU) {
-        return addData("duration_is_total_cwu", durationIsTotalCWU);
+        return addData(DataKeys.DURATION_IS_TOTAL_CWU, durationIsTotalCWU);
     }
 
     public GTRecipeBuilder hideDuration(boolean hideDuration) {
-        return addData("hide_duration", hideDuration);
+        return addData(DataKeys.HIDE_DURATION, hideDuration);
     }
 
     //////////////////////////////////////
@@ -935,6 +882,7 @@ public class GTRecipeBuilder {
         }
         tempItemMaterialStacks = null;
         tempFluidStacks = null;
+        RECIPE_MAP.put(recipe.id, recipe);
         return recipe;
     }
 
@@ -996,7 +944,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipe buildRawRecipe() {
-        return new GTRecipe(recipeType, input, output, tickInput, tickOutput, data, duration, tier);
+        return new GTRecipe(GTRecipeDefinition.DUMMY, input, output, ticks, duration, tier);
     }
 
     public GTRecipeDefinition build() {
@@ -1004,7 +952,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeDefinition build(boolean registered) {
-        return new GTRecipeDefinition(registered, recipeType, recipeCategory, id.withPrefix(recipeType.registryName.getPath() + "/"), input, output, tickInput, tickOutput, conditions, data, duration, tier);
+        return new GTRecipeDefinition(registered, recipeType, recipeCategory, id.withPrefix(recipeType.registryName.getPath() + "/"), input, output, ticks, conditions, data, duration, tier, priority);
     }
 
     protected void warnTooManyIngredients(RecipeCapability<?> capability, boolean isInput, Map<RecipeCapability<?>, List<Content>> table, int addedEntries) {
@@ -1040,14 +988,11 @@ public class GTRecipeBuilder {
 
     /// ///////////////////////////////////
     public long EUt() {
-        return eut;
+        return ticks.getData(DataKeys.EUT);
     }
 
     public int getSolderMultiplier() {
-        if (data.contains("solderMultiplier")) {
-            return Math.max(1, data.getInt("solderMultiplier"));
-        }
-        return Math.max(1, data.getInt("solder_multiplier"));
+        return Math.max(1, data.getOrDefaultData(DataKeys.SOLDER_MULTIPLIER, 0));
     }
 
     /**

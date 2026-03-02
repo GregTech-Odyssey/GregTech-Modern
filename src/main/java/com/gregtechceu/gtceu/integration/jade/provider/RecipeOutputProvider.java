@@ -54,7 +54,7 @@ public class RecipeOutputProvider extends CapabilityBlockProvider<RecipeLogic> {
             if (recipe != null) {
                 int recipeTier = RecipeHelper.getPreOCRecipeEuTier(recipe);
                 int chanceTier = recipeTier + recipe.ocLevel;
-                var function = recipe.recipeType.getChanceFunction();
+                var function = recipe.definition.recipeType.getChanceFunction();
                 var itemContents = recipe.getOutputContents(ItemRecipeCapability.CAP);
                 var fluidContents = recipe.getOutputContents(FluidRecipeCapability.CAP);
 

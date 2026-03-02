@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 
@@ -96,12 +95,10 @@ public interface ModifierFunction {
         private int parallels = 1;
         private int batchParallels = 1;
         private int addOCs = 0;
-        private ContentModifier eutModifier = ContentModifier.IDENTITY;
         private ContentModifier durationModifier = ContentModifier.IDENTITY;
         private ContentModifier inputModifier = ContentModifier.IDENTITY;
         private ContentModifier outputModifier = ContentModifier.IDENTITY;
-        private ContentModifier tickInputModifier = ContentModifier.IDENTITY;
-        private ContentModifier tickOutputModifier = ContentModifier.IDENTITY;
+        private ContentModifier tickModifier = ContentModifier.IDENTITY;
         private final List<RecipeCondition> addedConditions = new ArrayList<>();
 
         public FunctionBuilder() {}
@@ -114,13 +111,11 @@ public interface ModifierFunction {
         public FunctionBuilder modifyAllContents(ContentModifier cm) {
             inputModifier = cm;
             outputModifier = cm;
-            tickInputModifier = cm;
-            tickOutputModifier = cm;
             return this;
         }
 
-        public FunctionBuilder eutMultiplier(double multiplier) {
-            eutModifier = ContentModifier.multiplier(multiplier);
+        public FunctionBuilder tickMultiplier(double multiplier) {
+            tickModifier = ContentModifier.multiplier(multiplier);
             return this;
         }
 
@@ -144,19 +139,14 @@ public interface ModifierFunction {
             if (parallels == 0) return NULL;
             return recipe -> {
 
-                var copied = new GTRecipe(recipe.recipeType, inputModifier.copyContents(recipe.inputs), outputModifier.copyContents(recipe.outputs), applyAllButEU(tickInputModifier, recipe.tickInputs), applyAllButEU(tickOutputModifier, recipe.tickOutputs), recipe.data, recipe.duration, recipe.tier);
+                var copied = new GTRecipe(recipe.definition, inputModifier.copyContents(recipe.inputs), outputModifier.copyContents(recipe.outputs), tickModifier.copyContents(recipe.ticks), recipe.duration, recipe.tier);
                 copied.parallels = recipe.parallels * parallels;
                 copied.ocLevel = recipe.ocLevel + addOCs;
                 copied.batchParallels = recipe.batchParallels * batchParallels;
-                if (recipe.data.getBoolean("duration_is_total_cwu")) {
+                if (recipe.definition.data.getBoolean("duration_is_total_cwu")) {
                     copied.duration = (int) Math.max(1, (recipe.duration * (1.0F - 0.025F * addOCs)));
                 } else {
                     copied.duration = Math.max(1, durationModifier.apply(recipe.duration));
-                }
-                if (eutModifier != ContentModifier.IDENTITY) {
-                    long preEUt = RecipeHelper.getRealEUt(recipe);
-                    long eut = Math.max(1, eutModifier.apply(Math.abs(preEUt)));
-                    EURecipeCapability.putEUContent(preEUt > 0 ? copied.tickInputs : copied.tickOutputs, eut);
                 }
                 return copied;
             };
@@ -210,14 +200,6 @@ public interface ModifierFunction {
         /**
          * @return {@code this}.
          */
-        public ModifierFunction.FunctionBuilder eutModifier(final ContentModifier eutModifier) {
-            this.eutModifier = eutModifier;
-            return this;
-        }
-
-        /**
-         * @return {@code this}.
-         */
         public ModifierFunction.FunctionBuilder durationModifier(final ContentModifier durationModifier) {
             this.durationModifier = durationModifier;
             return this;
@@ -236,22 +218,6 @@ public interface ModifierFunction {
          */
         public ModifierFunction.FunctionBuilder outputModifier(final ContentModifier outputModifier) {
             this.outputModifier = outputModifier;
-            return this;
-        }
-
-        /**
-         * @return {@code this}.
-         */
-        public ModifierFunction.FunctionBuilder tickInputModifier(final ContentModifier tickInputModifier) {
-            this.tickInputModifier = tickInputModifier;
-            return this;
-        }
-
-        /**
-         * @return {@code this}.
-         */
-        public ModifierFunction.FunctionBuilder tickOutputModifier(final ContentModifier tickOutputModifier) {
-            this.tickOutputModifier = tickOutputModifier;
             return this;
         }
     }

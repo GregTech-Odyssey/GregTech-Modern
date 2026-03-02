@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.common.data;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
+import com.gregtechceu.gtceu.api.codec.data.DataKeys;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IOverclockMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.CoilWorkableElectricMultiblockMachine;
@@ -61,7 +61,7 @@ public class GTRecipeModifiers {
                 coilMachine.getOverclockVoltage());
         if (coilMachine.getCoilTier() > 0) {
             var coilModifier = ModifierFunction.builder()
-                    .eutMultiplier(Math.max(0.2, 1.0 - coilMachine.getCoilTier() * 0.1))
+                    .tickMultiplier(Math.max(0.2, 1.0 - coilMachine.getCoilTier() * 0.1))
                     .build();
             oc = oc.andThen(coilModifier);
         }
@@ -90,8 +90,8 @@ public class GTRecipeModifiers {
 
         int blastFurnaceTemperature = coilMachine.getCoilType().getCoilTemperature() +
                 (100 * Math.max(0, coilMachine.getTier() - GTValues.MV));
-        int recipeTemp = recipe.data.getInt("ebf_temp");
-        if (!recipe.data.contains("ebf_temp") || recipeTemp > blastFurnaceTemperature) {
+        int recipeTemp = recipe.definition.data.getInt("ebf_temp");
+        if (!recipe.definition.data.contains(DataKeys.EBF_TEMP) || recipeTemp > blastFurnaceTemperature) {
             return ModifierFunction.NULL;
         }
 
@@ -100,7 +100,7 @@ public class GTRecipeModifiers {
         }
 
         var discount = ModifierFunction.builder()
-                .eutMultiplier(getCoilEUtDiscount(recipeTemp, blastFurnaceTemperature))
+                .tickMultiplier(getCoilEUtDiscount(recipeTemp, blastFurnaceTemperature))
                 .build();
 
         OverclockingLogic logic = (p, v) -> OverclockingLogic.heatingCoilOC(p, v, recipeTemp, blastFurnaceTemperature);
@@ -169,10 +169,9 @@ public class GTRecipeModifiers {
         int duration = (int) (128 * 2.0 * parallels / maxParallel);
         long eut = 4 * (long) (parallels / (8.0 * coilMachine.getCoilType().getEnergyDiscount()));
         ModifierFunction baseModifier = r -> {
-            var copy = r.copy();
-            EURecipeCapability.putEUContent(copy.tickInputs, Math.max(1, eut));
-            copy.duration = Math.max(1, duration);
-            return copy;
+            r.ticks.put(DataKeys.EUT, Math.max(1, eut));
+            r.duration = Math.max(1, duration);
+            return r;
         };
 
         GTRecipe copy = baseModifier.apply(recipe);

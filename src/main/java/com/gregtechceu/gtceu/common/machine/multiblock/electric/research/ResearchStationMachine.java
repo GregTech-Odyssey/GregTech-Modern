@@ -143,13 +143,5 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
             holder.setLocked(false);
             return true;
         }
-
-        @Override
-        protected boolean handleTickRecipeIO(GTRecipe recipe, IO io) {
-            if (io != IO.OUT) {
-                return super.handleTickRecipeIO(recipe, io);
-            }
-            return true;
-        }
     }
 }

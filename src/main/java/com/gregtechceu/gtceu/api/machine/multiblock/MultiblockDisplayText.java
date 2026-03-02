@@ -315,7 +315,7 @@ public class MultiblockDisplayText {
             return this;
         }
 
-        public Builder addBatchModeLine(boolean batchEnabled, int batchAmount) {
+        public Builder addBatchModeLine(boolean batchEnabled, long batchAmount) {
             if (batchEnabled && batchAmount > 0) {
                 textList.add(Component.translatable("gtceu.multiblock.batch_enabled", batchAmount));
             }
@@ -328,7 +328,7 @@ public class MultiblockDisplayText {
             if (recipe != null) {
                 int recipeTier = RecipeHelper.getPreOCRecipeEuTier(recipe);
                 int chanceTier = recipeTier + recipe.ocLevel;
-                var function = recipe.recipeType.getChanceFunction();
+                var function = recipe.definition.recipeType.getChanceFunction();
                 double maxDurationSec = (double) recipe.duration / 20.0;
                 var itemOutputs = recipe.getOutputContents(ItemRecipeCapability.CAP);
                 var fluidOutputs = recipe.getOutputContents(FluidRecipeCapability.CAP);

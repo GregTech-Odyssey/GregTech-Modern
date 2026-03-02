@@ -1,25 +1,25 @@
 package com.gregtechceu.gtceu.api.recipe;
 
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapabilityMap;
+import com.gregtechceu.gtceu.api.codec.data.DataKeys;
+import com.gregtechceu.gtceu.api.codec.data.DataMap;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.chance.logic.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.content.TickContentMap;
+import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.Container;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.level.Level;
 
 import com.fast.recipesearch.IntMapContainer;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.util.Collections;
@@ -30,7 +30,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class GTRecipeDefinition implements net.minecraft.world.item.crafting.Recipe<Container> {
+public final class GTRecipeDefinition {
+
+    public static final GTRecipeDefinition DUMMY = new GTRecipeDefinition(false, GTRecipeTypes.DUMMY_RECIPES, GTRecipeTypes.DUMMY_RECIPES.getCategory(), GTCEu.id("dummy"), Collections.emptyMap(), Collections.emptyMap(), TickContentMap.EMPTY, Collections.emptyList(), DataMap.EMPTY, 0, 0, 0);
 
     IntMapContainer container;
 
@@ -43,26 +45,42 @@ public class GTRecipeDefinition implements net.minecraft.world.item.crafting.Rec
 
     public final Map<RecipeCapability<?>, List<Content>> inputs;
     public final Map<RecipeCapability<?>, List<Content>> outputs;
-    public final Map<RecipeCapability<?>, List<Content>> tickInputs;
-    public final Map<RecipeCapability<?>, List<Content>> tickOutputs;
+    public final TickContentMap ticks;
     public final List<RecipeCondition> conditions;
-    public final CompoundTag data;
+    public final DataMap data;
     public final int duration;
     public final int tier;
+    public final int priority;
 
-    public GTRecipeDefinition(boolean registered, GTRecipeType recipeType, GTRecipeCategory recipeCategory, ResourceLocation id, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, List<RecipeCondition> conditions, CompoundTag data, int duration, int tier) {
+    public GTRecipeDefinition(boolean registered, GTRecipeType recipeType, GTRecipeCategory recipeCategory, ResourceLocation id, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, TickContentMap ticks, List<RecipeCondition> conditions, DataMap data, int duration, int tier, int priority) {
         this.registered = registered;
         this.recipeType = recipeType;
         this.recipeCategory = recipeCategory;
         this.id = id;
         this.inputs = inputs;
         this.outputs = outputs;
-        this.tickInputs = tickInputs;
-        this.tickOutputs = tickOutputs;
+        this.ticks = ticks;
         this.conditions = conditions;
         this.data = data;
         this.duration = duration;
         this.tier = tier;
+        this.priority = priority;
+    }
+
+    @Nullable
+    public static GTRecipeDefinition get(ResourceLocation id) {
+        return GTRecipeBuilder.RECIPE_MAP.get(id);
+    }
+
+    @Nullable
+    public static GTRecipeDefinition get(String id) {
+        return GTRecipeBuilder.RECIPE_MAP.get(ResourceLocation.tryParse(id));
+    }
+
+    @Nullable
+    public static GTRecipeDefinition get(@Nullable Tag tag) {
+        if (tag instanceof StringTag) return GTRecipeBuilder.RECIPE_MAP.get(ResourceLocation.tryParse(tag.getAsString()));
+        return null;
     }
 
     public List<Content> getInputContents(RecipeCapability<?> capability) {
@@ -73,72 +91,29 @@ public class GTRecipeDefinition implements net.minecraft.world.item.crafting.Rec
         return outputs.getOrDefault(capability, Collections.emptyList());
     }
 
-    public List<Content> getTickInputContents(RecipeCapability<?> capability) {
-        return tickInputs.getOrDefault(capability, Collections.emptyList());
-    }
-
-    public List<Content> getTickOutputContents(RecipeCapability<?> capability) {
-        return tickOutputs.getOrDefault(capability, Collections.emptyList());
-    }
-
     public ChanceLogic getChanceLogicForCapability(RecipeCapability<?> cap, IO io) {
         return ChanceLogic.OR;
     }
 
     @Range(from = 0, to = Long.MAX_VALUE)
     public long getInputEUt() {
-        var inputs = tickInputs.get(EURecipeCapability.CAP);
-        if (inputs == null) return 0;
-        long eut = 0;
-        for (var content : inputs) {
-            eut += EURecipeCapability.CAP.of(content);
-        }
-        return eut;
+        var eut = ticks.getData(DataKeys.EUT);
+        return eut > 0 ? eut : 0;
     }
 
     @Range(from = 0, to = Long.MAX_VALUE)
     public long getOutputEUt() {
-        var outputs = tickOutputs.get(EURecipeCapability.CAP);
-        if (outputs == null) return 0;
-        long eut = 0;
-        for (var content : outputs) {
-            eut += EURecipeCapability.CAP.of(content);
-        }
-        return eut;
+        var eut = ticks.getData(DataKeys.EUT);
+        return eut < 0 ? -eut : 0;
     }
 
-    @Override
-    public RecipeSerializer<?> getSerializer() {
-        return null;
-    }
-
-    @Override
-    public GTRecipeType getType() {
-        return recipeType;
-    }
-
-    @Override
-    public boolean matches(Container pContainer, Level pLevel) {
-        return false;
-    }
-
-    @Override
-    public ItemStack assemble(Container inventory, RegistryAccess registryManager) {
-        return ItemStack.EMPTY;
-    }
-
-    @Override
-    public boolean canCraftInDimensions(int pWidth, int pHeight) {
-        return false;
-    }
-
-    @Override
-    public ItemStack getResultItem(RegistryAccess registryManager) {
-        return ItemStack.EMPTY;
+    @Range(from = 0, to = Long.MAX_VALUE)
+    public long getCWUt() {
+        return ticks.getData(DataKeys.CWUT);
     }
 
     public GTRecipe toRuntime() {
-        return new GTRecipe(this, recipeType, new RecipeCapabilityMap<>(inputs), new RecipeCapabilityMap<>(outputs), new Reference2ReferenceOpenHashMap<>(tickInputs), new Reference2ReferenceOpenHashMap<>(tickOutputs), data, duration, tier);
+        return new GTRecipe(this, new RecipeCapabilityMap<>(inputs), new RecipeCapabilityMap<>(outputs), ticks.clone(), duration, tier);
     }
 
     @Override

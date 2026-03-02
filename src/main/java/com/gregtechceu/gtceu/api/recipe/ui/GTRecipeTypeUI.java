@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.recipe.ui;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
+import com.gregtechceu.gtceu.api.codec.data.DataMap;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.SteamTexture;
 import com.gregtechceu.gtceu.api.gui.WidgetUtils;
@@ -131,21 +132,21 @@ public class GTRecipeTypeUI {
         return size;
     }
 
-    public record RecipeHolder(DoubleSupplier progressSupplier, Table<IO, RecipeCapability<?>, Object> storages, CompoundTag data, List<RecipeCondition> conditions, boolean isSteam, boolean isHighPressure) {}
+    public record RecipeHolder(DoubleSupplier progressSupplier, Table<IO, RecipeCapability<?>, Object> storages, DataMap data, List<RecipeCondition> conditions, boolean isSteam, boolean isHighPressure) {}
 
     /**
      * Auto layout UI template for recipes.
      * 
      * @param progressSupplier progress. To create a JEI / REI UI, use the para {@link ProgressWidget#JEIProgress}.
      */
-    public WidgetGroup createUITemplate(DoubleSupplier progressSupplier, Table<IO, RecipeCapability<?>, Object> storages, CompoundTag data, List<RecipeCondition> conditions, boolean isSteam, boolean isHighPressure) {
+    public WidgetGroup createUITemplate(DoubleSupplier progressSupplier, Table<IO, RecipeCapability<?>, Object> storages, DataMap data, List<RecipeCondition> conditions, boolean isSteam, boolean isHighPressure) {
         var template = createEditableUITemplate(isSteam, isHighPressure);
         var group = template.createDefault();
         template.setupUI(group, new RecipeHolder(progressSupplier, storages, data, conditions, isSteam, isHighPressure));
         return group;
     }
 
-    public WidgetGroup createUITemplate(DoubleSupplier progressSupplier, Table<IO, RecipeCapability<?>, Object> storages, CompoundTag data, List<RecipeCondition> conditions) {
+    public WidgetGroup createUITemplate(DoubleSupplier progressSupplier, Table<IO, RecipeCapability<?>, Object> storages, DataMap data, List<RecipeCondition> conditions) {
         return createUITemplate(progressSupplier, storages, data, conditions, false, false);
     }
 

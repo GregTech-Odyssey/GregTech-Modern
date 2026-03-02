@@ -125,4 +125,51 @@ public interface IEnergyContainer extends IEnergyInfoProvider {
     }
 
     IEnergyContainer DEFAULT = ILaserContainer.DEFAULT;
+
+    interface IDummyContainer extends IEnergyContainer {
+
+        @Override
+        default long acceptEnergyFromNetwork(Object o, Direction side, long voltage, long amperage) {
+            return 0;
+        }
+
+        @Override
+        default boolean inputsEnergy(Direction side) {
+            return false;
+        }
+
+        @Override
+        default long changeEnergy(long differenceAmount) {
+            return differenceAmount;
+        }
+
+        @Override
+        default long getInputAmperage() {
+            return 0;
+        }
+
+        @Override
+        default long getInputVoltage() {
+            return 0;
+        }
+    }
+
+    class InfiniteContainer implements IDummyContainer {
+
+        protected final long eu;
+
+        public InfiniteContainer(long eu) {
+            this.eu = eu;
+        }
+
+        @Override
+        public long getEnergyStored() {
+            return eu;
+        }
+
+        @Override
+        public long getEnergyCapacity() {
+            return eu;
+        }
+    }
 }

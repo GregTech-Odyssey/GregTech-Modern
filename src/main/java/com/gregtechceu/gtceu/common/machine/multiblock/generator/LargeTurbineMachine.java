@@ -101,7 +101,7 @@ public class LargeTurbineMachine extends WorkableElectricMultiblockMachine {
         int maxParallel = (int) (turbineMaxVoltage / EUt);
         int actualParallel = ParallelLogic.getParallelAmountFast(turbineMachine, recipe, maxParallel);
         double eutMultiplier = turbineMachine.productionBoost() * actualParallel;
-        return ModifierFunction.builder().inputModifier(ContentModifier.multiplier(actualParallel)).outputModifier(ContentModifier.multiplier(actualParallel)).eutMultiplier(eutMultiplier).parallels(actualParallel).durationMultiplier(holderEfficiency).build();
+        return ModifierFunction.builder().inputModifier(ContentModifier.multiplier(actualParallel)).outputModifier(ContentModifier.multiplier(actualParallel)).tickMultiplier(eutMultiplier).parallels(actualParallel).durationMultiplier(holderEfficiency).build();
     }
 
     @Override

@@ -163,7 +163,7 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
         }
 
         private void updateWorkingRecipe(GTRecipe recipe) {
-            if (recipe.recipeType == GTRecipeTypes.DISTILLERY_RECIPES) {
+            if (recipe.definition.recipeType == GTRecipeTypes.DISTILLERY_RECIPES) {
                 this.workingRecipe = recipe;
                 return;
             }
@@ -203,7 +203,7 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
         private boolean applyFluidOutputs(GTRecipe recipe, FluidAction action) {
             var fluids = recipe.getOutputContents(FluidRecipeCapability.CAP).stream().map(FluidRecipeCapability.CAP::of).toList();
             // Distillery recipes should output to the first non-void handler
-            if (recipe.recipeType == GTRecipeTypes.DISTILLERY_RECIPES) {
+            if (recipe.definition.recipeType == GTRecipeTypes.DISTILLERY_RECIPES) {
                 var fluid = fluids.getFirst().getLatestStacks()[0];
                 var handler = getMachine().getFirstValid();
                 if (handler == null) return false;

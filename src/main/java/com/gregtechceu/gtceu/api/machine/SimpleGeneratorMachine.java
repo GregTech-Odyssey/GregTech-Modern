@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
+import com.gregtechceu.gtceu.api.codec.data.DataMap;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
@@ -20,7 +21,6 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 
 import net.minecraft.Util;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 
 import com.google.common.collect.Tables;
@@ -90,7 +90,7 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine {
         if (EUt <= 0) return ModifierFunction.NULL;
         int maxParallel = (int) (generator.getOverclockVoltage() / EUt);
         int parallels = ParallelLogic.getParallelAmountFast(generator, recipe, maxParallel);
-        return ModifierFunction.builder().inputModifier(ContentModifier.multiplier(parallels)).outputModifier(ContentModifier.multiplier(parallels)).eutMultiplier(parallels).parallels(parallels).build();
+        return ModifierFunction.builder().inputModifier(ContentModifier.multiplier(parallels)).outputModifier(ContentModifier.multiplier(parallels)).tickMultiplier(parallels).parallels(parallels).build();
     }
 
     @Override
@@ -121,7 +121,7 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine {
             storages.put(IO.OUT, ItemRecipeCapability.CAP, generatorMachine.exportItems.storage);
             storages.put(IO.IN, FluidRecipeCapability.CAP, generatorMachine.importFluids);
             storages.put(IO.OUT, FluidRecipeCapability.CAP, generatorMachine.exportFluids);
-            generatorMachine.getRecipeType().getRecipeUI().createEditableUITemplate(false, false).setupUI(template, new GTRecipeTypeUI.RecipeHolder(generatorMachine.recipeLogic::getProgressPercent, storages, new CompoundTag(), Collections.emptyList(), false, false));
+            generatorMachine.getRecipeType().getRecipeUI().createEditableUITemplate(false, false).setupUI(template, new GTRecipeTypeUI.RecipeHolder(generatorMachine.recipeLogic::getProgressPercent, storages, DataMap.EMPTY, Collections.emptyList(), false, false));
             createEnergyBar().setupUI(template, generatorMachine);
         }
     }));

@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
+import com.gregtechceu.gtceu.api.codec.data.DataMap;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
 import com.gregtechceu.gtceu.api.gui.editor.EditableUI;
@@ -40,7 +41,6 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.TickTask;
@@ -333,7 +333,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
             storages.put(IO.OUT, ItemRecipeCapability.CAP, tieredMachine.exportItems.storage);
             storages.put(IO.IN, FluidRecipeCapability.CAP, tieredMachine.importFluids);
             storages.put(IO.OUT, FluidRecipeCapability.CAP, tieredMachine.exportFluids);
-            tieredMachine.getRecipeType().getRecipeUI().createEditableUITemplate(false, false).setupUI(template, new GTRecipeTypeUI.RecipeHolder(tieredMachine.recipeLogic::getProgressPercent, storages, new CompoundTag(), Collections.emptyList(), false, false));
+            tieredMachine.getRecipeType().getRecipeUI().createEditableUITemplate(false, false).setupUI(template, new GTRecipeTypeUI.RecipeHolder(tieredMachine.recipeLogic::getProgressPercent, storages, DataMap.EMPTY, Collections.emptyList(), false, false));
             createBatterySlot().setupUI(template, tieredMachine);
         }
     }));

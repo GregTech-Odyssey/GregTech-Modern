@@ -3,8 +3,6 @@ package com.gregtechceu.gtceu.api.recipe.content;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapabilityMap;
 
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -54,18 +52,10 @@ public record ContentModifier(double multiplier) {
         return copyContents;
     }
 
-    public Map<RecipeCapability<?>, List<Content>> copy(Map<RecipeCapability<?>, List<Content>> contents) {
-        if (this == IDENTITY) return new Reference2ReferenceOpenHashMap<>(contents);
-        var copyContents = new Reference2ReferenceOpenHashMap<RecipeCapability<?>, List<Content>>();
-        contents.forEach((cap, contentList) -> {
-            if (contentList != null && !contentList.isEmpty()) {
-                List<Content> contentsCopy = new ArrayList<>();
-                for (Content content : contentList) {
-                    contentsCopy.add(content.copy(cap, this));
-                }
-                copyContents.put(cap, contentsCopy);
-            }
-        });
+    public TickContentMap copyContents(TickContentMap contents) {
+        var copyContents = contents.clone();
+        if (this == IDENTITY) return copyContents;
+        copyContents.applyModifier(multiplier);
         return copyContents;
     }
 

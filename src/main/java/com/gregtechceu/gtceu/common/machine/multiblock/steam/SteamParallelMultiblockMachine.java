@@ -7,12 +7,12 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IElectricMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
-import com.gregtechceu.gtceu.api.machine.steam.SteamEnergyRecipeHandler;
+import com.gregtechceu.gtceu.api.machine.steam.SteamEnergyContainer;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
@@ -43,13 +43,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine implements IDisplayUIMachine {
+public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine implements IDisplayUIMachine, IElectricMachine {
 
     @Getter
     @Setter
     private int maxParallels = ConfigHolder.INSTANCE.machines.steamMultiParallelAmount;
+    @Getter
     @Nullable
-    protected SteamEnergyRecipeHandler steamEnergy = null;
+    protected SteamEnergyContainer energyContainer = null;
     // if in millibuckets, this is 2.0, Meaning 2mb of steam -> 1 EU
     public static final double CONVERSION_RATE = 2.0;
 
@@ -64,7 +65,7 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
     public void onStructureFormed() {
         super.onStructureFormed();
         addSteamEnergy();
-        if (steamEnergy == null) {
+        if (energyContainer == null) {
             // No steam hatch found
             onStructureInvalid();
         }
@@ -78,8 +79,7 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
                 if (!hl.isValid(IO.IN)) continue;
                 for (var fluidHandler : hl.getCapability(FluidRecipeCapability.CAP)) {
                     if (!(fluidHandler instanceof NotifiableFluidTank nft)) continue;
-                    steamEnergy = new SteamEnergyRecipeHandler(nft, getConversionRate());
-                    addHandlerList(RecipeHandlerList.of(IO.IN, steamEnergy));
+                    energyContainer = new SteamEnergyContainer(getConversionRate(), nft);
                     return;
                 }
             }
@@ -115,16 +115,16 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
         long eut = recipe.getInputEUt();
         int parallelAmount = ParallelLogic.getParallelAmount(machine, recipe, steamMachine.maxParallels);
         double eutMultiplier = (eut * 0.8888 * parallelAmount <= 32) ? (0.8888 * parallelAmount) : (32.0 / eut);
-        return ModifierFunction.builder().inputModifier(ContentModifier.multiplier(parallelAmount)).outputModifier(ContentModifier.multiplier(parallelAmount)).durationMultiplier(1.5).eutMultiplier(eutMultiplier).parallels(parallelAmount).build();
+        return ModifierFunction.builder().inputModifier(ContentModifier.multiplier(parallelAmount)).outputModifier(ContentModifier.multiplier(parallelAmount)).durationMultiplier(1.5).tickMultiplier(eutMultiplier).parallels(parallelAmount).build();
     }
 
     @Override
     public void addDisplayText(List<Component> textList) {
         IDisplayUIMachine.super.addDisplayText(textList);
         if (isFormed()) {
-            if (steamEnergy != null && steamEnergy.getCapacity() > 0) {
-                long steamStored = steamEnergy.getStored();
-                textList.add(Component.translatable("gtceu.multiblock.steam.steam_stored", steamStored, steamEnergy.getCapacity()));
+            if (energyContainer != null && energyContainer.getCapacity() > 0) {
+                long steamStored = energyContainer.getStored();
+                textList.add(Component.translatable("gtceu.multiblock.steam.steam_stored", steamStored, energyContainer.getCapacity()));
             }
             if (!isWorkingEnabled()) {
                 textList.add(Component.translatable("gtceu.multiblock.work_paused"));

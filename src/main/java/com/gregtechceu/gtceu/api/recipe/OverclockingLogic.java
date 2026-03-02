@@ -345,7 +345,7 @@ public interface OverclockingLogic {
         public ModifierFunction toModifier() {
             return ModifierFunction.builder()
                     .modifyAllContents(ContentModifier.multiplier(parallels))
-                    .eutMultiplier(eutMultiplier)
+                    .tickMultiplier(eutMultiplier)
                     .durationMultiplier(durationMultiplier)
                     .addOCs(ocLevel)
                     .parallels(parallels)
