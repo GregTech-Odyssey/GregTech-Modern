@@ -1,6 +1,8 @@
 package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 
+import com.gregtechceu.gtceu.api.capability.recipe.IFilteredHandler;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
+import com.gregtechceu.gtceu.api.capability.recipe.IRecipeCapabilityHolder;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
@@ -154,4 +156,12 @@ public interface IWorkableMultiPart extends IMultiPart {
     RecipeHandlerList getRecipeHandlerList();
 
     void setRecipeHandlerList(RecipeHandlerList list);
+
+    default void addHandler(IRecipeCapabilityHolder holder) {
+        for (var trait : self().getTraits()) {
+            if (trait instanceof IFilteredHandler handler) {
+                holder.addHandler(handler);
+            }
+        }
+    }
 }

@@ -178,11 +178,6 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     }
 
     @Override
-    public boolean test(FluidIngredient ingredient) {
-        return !this.isLocked() || ingredient.test(this.lockedFluid.getFluid());
-    }
-
-    @Override
     public int getPriority() {
         return !isLocked() || lockedFluid.getFluid().isEmpty() ? super.getPriority() : HIGH - getTanks();
     }

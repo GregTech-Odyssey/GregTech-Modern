@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.block.ICoilType;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
+import com.gregtechceu.gtceu.api.codec.data.DataKeys;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
@@ -505,11 +506,11 @@ public class GTRecipeTypes {
     public final static GTRecipeType BLAST_RECIPES = register("electric_blast_furnace", MULTIBLOCK)
             .setMaxIOSize(3, 3, 1, 1).setEUIO(IO.IN)
             .addDataInfo(data -> {
-                int temp = data.getInt("ebf_temp");
+                int temp = data.getInt(DataKeys.EBF_TEMP);
                 return Component.translatable("gtceu.recipe.temperature", temp);
             })
             .addDataInfo(data -> {
-                int temp = data.getInt("ebf_temp");
+                int temp = data.getInt(DataKeys.EBF_TEMP);
                 ICoilType requiredCoil = ICoilType.getMinRequiredType(temp);
 
                 if (requiredCoil != null && !requiredCoil.getMaterial().isNull()) {
@@ -519,7 +520,7 @@ public class GTRecipeTypes {
                 return Component.empty();
             })
             .setUiBuilder((recipe, widgetGroup) -> {
-                int temp = recipe.data.getInt("ebf_temp");
+                int temp = recipe.data.getInt(DataKeys.EBF_TEMP);
                 List<List<ItemStack>> items = new ArrayList<>();
                 items.add(GTCEuAPI.HEATING_COILS.entrySet().stream()
                         .filter(coil -> coil.getKey().getCoilTemperature() >= temp)
@@ -534,7 +535,7 @@ public class GTRecipeTypes {
             .setSound(GTSoundEntries.CHEMICAL)
             .setProgressBar(GuiTextures.PROGRESS_BAR_ARROW_MULTIPLE, LEFT_TO_RIGHT)
             .onRecipeBuild((recipeBuilder) -> {
-                if (recipeBuilder.data.getBoolean("disable_distillery")) return;
+                if (recipeBuilder.data.getBoolean(DataKeys.DISABLE_DISTILLERY)) return;
                 if (recipeBuilder.output.containsKey(FluidRecipeCapability.CAP)) {
                     long EUt = recipeBuilder.EUt();
                     Content inputContent = recipeBuilder.input.get(FluidRecipeCapability.CAP).getFirst();

@@ -112,15 +112,13 @@ public class GTRecipeWidget extends WidgetGroup {
         int yOffset = 5 + size.height;
         this.yOffset = yOffset;
         yOffset += EUt > 0 ? 20 : 0;
-        if (recipe.data.getBoolean("duration_is_total_cwu")) {
+        if (recipe.data.getBoolean(DataKeys.DURATION_IS_TOTAL_CWU)) {
             yOffset -= 10;
         }
 
         /// add text based on i/o's
         MutableInt yOff = new MutableInt(yOffset);
-        for (var capability : recipe.ticks.reference2LongEntrySet()) {
-            capability.getKey().addXEIInfo(this, xOffset, recipe, capability.getLongValue(), yOff);
-        }
+        recipe.ticks.forEach((k, v) -> k.addXEIInfo(this, xOffset, recipe, v, yOff));
 
         for (RecipeCondition condition : recipe.conditions) {
             if (condition.getTooltips() == null) continue;
@@ -174,7 +172,7 @@ public class GTRecipeWidget extends WidgetGroup {
     @NotNull
     private static List<Component> getRecipeParaText(GTRecipeDefinition recipe, int duration, long inputEUt, long outputEUt) {
         List<Component> texts = new ArrayList<>();
-        if (!recipe.data.getBoolean("hide_duration")) {
+        if (!recipe.data.getBoolean(DataKeys.HIDE_DURATION)) {
             texts.add(Component.translatable("gtceu.recipe.duration", FormattingUtil.formatNumbers(duration / 20f)));
         }
         var EUt = inputEUt;
@@ -186,9 +184,9 @@ public class GTRecipeWidget extends WidgetGroup {
         if (EUt > 0) {
             long euTotal = EUt * duration;
             // sadly we still need a custom override here, since computation uses duration and EU/t very differently
-            if (recipe.data.getBoolean("duration_is_total_cwu") &&
-                    recipe.ticks.containsKey(DataKeys.CWUT)) {
-                long minimumCWUt = recipe.ticks.getData(DataKeys.CWUT);
+            if (recipe.data.getBoolean(DataKeys.DURATION_IS_TOTAL_CWU) &&
+                    recipe.ticks.get(DataKeys.CWUT) > 0) {
+                long minimumCWUt = recipe.ticks.get(DataKeys.CWUT);
                 texts.add(Component.translatable("gtceu.recipe.max_eu",
                         FormattingUtil.formatNumbers(euTotal / minimumCWUt)));
             } else {

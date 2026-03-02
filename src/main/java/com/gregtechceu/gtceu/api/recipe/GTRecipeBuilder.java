@@ -128,7 +128,7 @@ public class GTRecipeBuilder {
         GTRecipeBuilder copy = new GTRecipeBuilder(id);
         this.input.forEach((k, v) -> copy.input.put(k, new ArrayList<>(v)));
         this.output.forEach((k, v) -> copy.output.put(k, new ArrayList<>(v)));
-        copy.ticks = this.ticks.clone();
+        copy.ticks = this.ticks.copy();
         copy.recipeType = this.recipeType;
         copy.recipeCategory = this.recipeCategory;
         copy.conditions.addAll(this.conditions);
@@ -988,7 +988,7 @@ public class GTRecipeBuilder {
 
     /// ///////////////////////////////////
     public long EUt() {
-        return ticks.getData(DataKeys.EUT);
+        return ticks.get(DataKeys.EUT);
     }
 
     public int getSolderMultiplier() {

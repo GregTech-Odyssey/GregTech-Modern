@@ -3,58 +3,62 @@ package com.gregtechceu.gtceu.api.recipe.content;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeCapabilityHolder;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 
-import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.ObjLongConsumer;
 
-import static it.unimi.dsi.fastutil.HashCommon.arraySize;
-
-public class TickContentMap extends Reference2LongOpenHashMap<TickContent> {
+public class TickContentMap {
 
     public static final TickContentMap EMPTY = new TickContentMap() {
 
         @Override
-        public long getData(@NotNull TickContent dataKey) {
+        public boolean handleRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe, boolean simulated) {
+            return true;
+        }
+
+        @Override
+        public void forEach(ObjLongConsumer<TickContent> consumer) {}
+
+        @Override
+        public void applyModifier(double multiplier) {}
+
+        @Override
+        public long get(@NotNull TickContent dataKey) {
             return 0;
         }
 
         @Override
-        public long put(@NotNull TickContent key, long value) {
+        public void put(@NotNull TickContent key, long value) {
             throw new UnsupportedOperationException("Cannot modify empty map.");
-        }
-
-        @Override
-        public long removeLong(@NotNull Object key) {
-            throw new UnsupportedOperationException("Cannot modify empty map.");
-        }
-
-        @Override
-        public TickContentMap clone() {
-            return new TickContentMap();
         }
     };
 
+    public TickContent[] key;
+    public long[] value;
+
+    public int size;
+
     public TickContentMap() {
-        super(2, 0.75F);
+        key = new TickContent[1];
+        value = new long[1];
     }
 
     public TickContentMap(TickContentMap map) {
-        super(map.size, 0.75F);
-        map.fastForEach(this::put);
+        this.key = map.key.clone();
+        this.value = map.value.clone();
+        this.size = map.size;
     }
 
     public boolean handleRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe, boolean simulated) {
         if (size > 0) {
-            final Object[] key = this.key;
+            final TickContent[] key = this.key;
             final long[] value = this.value;
-            final int len = key.length;
+            final int size = this.size;
             int pos = 0;
-            Object curr;
             long currValue;
-            while (pos < len) {
-                if ((curr = key[pos]) != null && (currValue = value[pos]) > 0) {
-                    if (!((TickContent) curr).handleRecipe(holder, recipe, currValue, simulated)) return false;
+            while (pos < size) {
+                if ((currValue = value[pos]) > 0) {
+                    if (!key[pos].handleRecipe(holder, recipe, currValue, simulated)) return false;
                 }
                 pos++;
             }
@@ -62,68 +66,66 @@ public class TickContentMap extends Reference2LongOpenHashMap<TickContent> {
         return true;
     }
 
-    public void fastForEach(ObjLongConsumer<TickContent> consumer) {
-        final Object[] key = this.key;
+    public void forEach(ObjLongConsumer<TickContent> consumer) {
+        final TickContent[] key = this.key;
         final long[] value = this.value;
-        final int len = key.length;
+        final int size = this.size;
         int pos = 0;
-        Object curr;
-        while (pos < len) {
-            if ((curr = key[pos]) != null) consumer.accept((TickContent) curr, value[pos]);
+        while (pos < size) {
+            consumer.accept(key[pos], value[pos]);
             pos++;
         }
     }
 
     public void applyModifier(double multiplier) {
         final long[] value = this.value;
-        final int len = value.length;
+        final int size = this.size;
         int pos = 0;
         long curr;
-        while (pos < len) {
+        while (pos < size) {
             if ((curr = value[pos]) != 0) value[pos] = (long) (curr * multiplier);
             pos++;
         }
     }
 
-    public long getData(@NotNull TickContent dataKey) {
-        final Object[] key = this.key;
-        Object curr;
-        int pos;
-        if ((curr = key[pos = dataKey.mixCode & this.mask]) == null) {
-            return 0;
-        } else if (dataKey == curr) {
-            return this.value[pos];
-        } else {
-            while ((curr = key[pos = pos + 1 & this.mask]) != null) {
-                if (dataKey == curr) {
-                    return this.value[pos];
-                }
+    public long get(@NotNull TickContent content) {
+        final TickContent[] key = this.key;
+        final int size = this.size;
+        for (int i = 0; i < size; i++) {
+            if (key[i] == content) {
+                return value[i];
             }
-            return 0;
         }
-    }
-
-    @Override
-    public long put(@NotNull TickContent dataKey, long v) {
-        final Object[] key = this.key;
-        int pos;
-        Object curr;
-        if ((curr = key[pos = dataKey.mixCode & mask]) != null) {
-            do if (curr == dataKey) {
-                final long oldValue = value[pos];
-                value[pos] = v;
-                return oldValue;
-            }
-            while ((curr = key[pos = (pos + 1) & mask]) != null);
-        }
-        key[pos] = dataKey;
-        value[pos] = v;
-        if (size++ >= maxFill) rehash(arraySize(size + 1, f));
         return 0;
     }
 
-    @Override
-    public TickContentMap clone() {
-        return (TickContentMap) super.clone();
+    public void put(@NotNull TickContent content, long v) {
+        final TickContent[] key = this.key;
+        final int size = this.size;
+        for (int i = 0; i < size; i++) {
+            if (key[i] == content) {
+                this.value[i] = v;
+                return;
+            }
+        }
+        if (size >= key.length) {
+            resize(size + 1);
+        }
+        this.key[size] = content;
+        this.value[size] = v;
+        this.size++;
+    }
+
+    private void resize(int newSize) {
+        TickContent[] newKey = new TickContent[newSize];
+        long[] newValue = new long[newSize];
+        System.arraycopy(key, 0, newKey, 0, key.length);
+        System.arraycopy(value, 0, newValue, 0, value.length);
+        this.key = newKey;
+        this.value = newValue;
+    }
+
+    public TickContentMap copy() {
+        return new TickContentMap(this);
     }
 }

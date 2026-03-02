@@ -195,41 +195,4 @@ public class DataMap extends Reference2ObjectOpenHashMap<DataKey<?>, Object> {
     public String getString(@NotNull DataKey<String> dataKey) {
         return getOrDefaultData(dataKey, "");
     }
-
-    @Nullable
-    public <T> T get(String key) {
-        return getData(DataKey.get(key));
-    }
-
-    public boolean contains(String key) {
-        return getData(DataKey.get(key)) != null;
-    }
-
-    public boolean getBoolean(String key) {
-        return getOrDefaultData(DataKey.get(key), false);
-    }
-
-    public byte getByte(String key) {
-        return getOrDefaultData(DataKey.get(key), (byte) 0);
-    }
-
-    public int getInt(String key) {
-        return getOrDefaultData(DataKey.get(key), 0);
-    }
-
-    public long getLong(String key) {
-        return getOrDefaultData(DataKey.get(key), 0L);
-    }
-
-    public double getDouble(String key) {
-        return getOrDefaultData(DataKey.get(key), 0.0D);
-    }
-
-    public float getFloat(String key) {
-        return getOrDefaultData(DataKey.get(key), 0.0F);
-    }
-
-    public String getString(String key) {
-        return getOrDefaultData(DataKey.get(key), "");
-    }
 }

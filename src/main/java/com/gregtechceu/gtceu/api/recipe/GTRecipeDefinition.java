@@ -97,23 +97,23 @@ public final class GTRecipeDefinition {
 
     @Range(from = 0, to = Long.MAX_VALUE)
     public long getInputEUt() {
-        var eut = ticks.getData(DataKeys.EUT);
+        var eut = ticks.get(DataKeys.EUT);
         return eut > 0 ? eut : 0;
     }
 
     @Range(from = 0, to = Long.MAX_VALUE)
     public long getOutputEUt() {
-        var eut = ticks.getData(DataKeys.EUT);
+        var eut = ticks.get(DataKeys.EUT);
         return eut < 0 ? -eut : 0;
     }
 
     @Range(from = 0, to = Long.MAX_VALUE)
     public long getCWUt() {
-        return ticks.getData(DataKeys.CWUT);
+        return ticks.get(DataKeys.CWUT);
     }
 
     public GTRecipe toRuntime() {
-        return new GTRecipe(this, new RecipeCapabilityMap<>(inputs), new RecipeCapabilityMap<>(outputs), ticks.clone(), duration, tier);
+        return new GTRecipe(this, new RecipeCapabilityMap<>(inputs), new RecipeCapabilityMap<>(outputs), ticks.copy(), duration, tier);
     }
 
     @Override

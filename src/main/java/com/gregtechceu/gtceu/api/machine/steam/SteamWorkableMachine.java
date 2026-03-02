@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.machine.steam;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.capability.recipe.IFilteredHandler;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
@@ -66,7 +67,7 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
     @Getter
     protected final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
     @Getter
-    protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
+    protected final Map<IO, Map<RecipeCapability<?>, List<IFilteredHandler>>> capabilitiesFlat;
     protected final List<ISubscription> traitSubscriptions;
 
     public SteamWorkableMachine(MetaMachineBlockEntity holder, boolean isHighPressure, Object... args) {

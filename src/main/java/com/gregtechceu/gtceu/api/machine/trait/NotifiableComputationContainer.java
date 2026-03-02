@@ -4,20 +4,18 @@ import com.gregtechceu.gtceu.api.capability.IOpticalComputationHatch;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.CWURecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.IFilteredHandler;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
-public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait<Long> implements IOpticalComputationProvider {
+public class NotifiableComputationContainer extends NotifiableMachineTrait implements IOpticalComputationProvider, IFilteredHandler {
 
     protected boolean transmitter;
     protected long lastTimeStamp;
@@ -117,16 +115,6 @@ public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait
         return false;
     }
 
-    @Override
-    public List<Long> handleRecipeInner(IO io, GTRecipe recipe, List<Long> left, boolean simulate) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public RecipeCapability<Long> getCapability() {
-        return CWURecipeCapability.CAP;
-    }
-
     @Nullable
     protected IOpticalComputationProvider getOpticalNetProvider() {
         var direction = machine.getFrontFacing();
@@ -144,5 +132,10 @@ public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait
 
     public IO getHandlerIO() {
         return transmitter ? IO.NONE : IO.IN;
+    }
+
+    @Override
+    public RecipeCapability<?> getCapability() {
+        return CWURecipeCapability.CAP;
     }
 }

@@ -89,19 +89,19 @@ public final class GTRecipe {
 
     @Range(from = 0, to = Long.MAX_VALUE)
     public long getInputEUt() {
-        var eut = ticks.getData(DataKeys.EUT);
+        var eut = ticks.get(DataKeys.EUT);
         return eut > 0 ? eut : 0;
     }
 
     @Range(from = 0, to = Long.MAX_VALUE)
     public long getOutputEUt() {
-        var eut = ticks.getData(DataKeys.EUT);
+        var eut = ticks.get(DataKeys.EUT);
         return eut < 0 ? -eut : 0;
     }
 
     @Range(from = 0, to = Long.MAX_VALUE)
     public long getCWUt() {
-        return ticks.getData(DataKeys.CWUT);
+        return ticks.get(DataKeys.CWUT);
     }
 
     @Override
@@ -148,7 +148,7 @@ public final class GTRecipe {
         if (parallels != 1) {
             tag.putLong("parallels", parallels);
         }
-        ticks.fastForEach((k, v) -> {
+        ticks.forEach((k, v) -> {
             if (v != 0) tag.putLong(k.name, v);
         });
         return tag;
@@ -207,8 +207,8 @@ public final class GTRecipe {
         buf.writeInt(duration);
         buf.writeCollection(inputs.entrySet(), GTRecipe::entryWriter);
         buf.writeCollection(outputs.entrySet(), GTRecipe::entryWriter);
-        buf.writeVarInt(ticks.size());
-        ticks.fastForEach((k, v) -> {
+        buf.writeVarInt(ticks.size);
+        ticks.forEach((k, v) -> {
             buf.writeUtf(k.name);
             buf.writeLong(v);
         });

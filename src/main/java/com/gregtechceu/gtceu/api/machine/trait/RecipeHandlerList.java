@@ -18,7 +18,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.fast.recipesearch.IntLongMap;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,9 +38,9 @@ public class RecipeHandlerList {
 
     public static final RecipeHandlerList NO_DATA = new RecipeHandlerList(IO.NONE);
 
-    public final Reference2ObjectOpenHashMap<RecipeCapability<?>, List<IRecipeHandler<?>>> handlerMap = new Reference2ObjectOpenHashMap<>();
+    public final RecipeCapabilityMap<List<IRecipeHandler<?>>> handlerMap = new RecipeCapabilityMap<>();
     public final List<IRecipeHandler<?>> allHandlers = new ArrayList<>();
-    public final List<NotifiableRecipeHandlerTrait<?>> allHandlerTraits = new ArrayList<>();
+
     @Getter
     private final IO handlerIO;
     @Getter
@@ -96,7 +95,6 @@ public class RecipeHandlerList {
             if (allHandlers.contains(handler)) continue;
             handlerMap.computeIfAbsent(handler.getCapability(), c -> new ArrayList<>()).add(handler);
             allHandlers.add(handler);
-            if (handler instanceof NotifiableRecipeHandlerTrait<?> rht) allHandlerTraits.add(rht);
         }
         allHandlers.sort(IRecipeHandler.PRIORITY_COMPARATOR);
         for (var list : handlerMap.values()) {
@@ -114,8 +112,8 @@ public class RecipeHandlerList {
     public final void setDistinct(boolean distinct) {
         if (isDistinct != distinct) {
             isDistinct = distinct;
-            for (var rht : allHandlerTraits) {
-                rht.setDistinct(isDistinct);
+            for (var rht : allHandlers) {
+                if (rht instanceof IRecipeHandlerTrait<?> trait) trait.setDistinct(isDistinct);
             }
         }
     }
@@ -153,8 +151,10 @@ public class RecipeHandlerList {
     }
 
     public ISubscription subscribe(Runnable listener) {
-        List<ISubscription> subs = new ArrayList<>(allHandlerTraits.size());
-        allHandlerTraits.forEach(rht -> subs.add(rht.addChangedListener(listener)));
+        List<ISubscription> subs = new ArrayList<>();
+        allHandlers.forEach(rht -> {
+            if (rht instanceof IRecipeHandlerTrait<?> trait) subs.add(trait.addChangedListener(listener));
+        });
         return () -> subs.forEach(ISubscription::unsubscribe);
     }
 
@@ -217,7 +217,7 @@ public class RecipeHandlerList {
     }
 
     public void fastForEach(ObjLongConsumer<ItemStack> itemFunction, ObjLongConsumer<FluidStack> FluidFunction) {
-        for (var handler : allHandlerTraits) {
+        for (var handler : allHandlers) {
             handler.fastForEachItems(itemFunction);
             handler.fastForEachFluids(FluidFunction);
         }

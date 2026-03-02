@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.recipe.modifier;
 
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
+import com.gregtechceu.gtceu.api.codec.data.DataKeys;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
@@ -143,7 +144,7 @@ public interface ModifierFunction {
                 copied.parallels = recipe.parallels * parallels;
                 copied.ocLevel = recipe.ocLevel + addOCs;
                 copied.batchParallels = recipe.batchParallels * batchParallels;
-                if (recipe.definition.data.getBoolean("duration_is_total_cwu")) {
+                if (recipe.definition.data.getBoolean(DataKeys.DURATION_IS_TOTAL_CWU)) {
                     copied.duration = (int) Math.max(1, (recipe.duration * (1.0F - 0.025F * addOCs)));
                 } else {
                     copied.duration = Math.max(1, durationModifier.apply(recipe.duration));

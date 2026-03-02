@@ -1,28 +1,14 @@
 package com.gregtechceu.gtceu.common.data;
 
-import com.gregtechceu.gtceu.api.addon.AddonFinder;
-import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
-import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
-import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 
 public class GTRecipeCapabilities {
 
-    public final static RecipeCapability<ItemIngredient> ITEM = ItemRecipeCapability.CAP;
-    public final static RecipeCapability<FluidIngredient> FLUID = FluidRecipeCapability.CAP;
-    public final static RecipeCapability<Long> EU = EURecipeCapability.CAP;
-    public final static RecipeCapability<Long> CWU = CWURecipeCapability.CAP;
-
     public static void init() {
         GTRegistries.RECIPE_CAPABILITIES.unfreeze();
-
-        GTRegistries.RECIPE_CAPABILITIES.register(ITEM.name, ITEM);
-        GTRegistries.RECIPE_CAPABILITIES.register(FLUID.name, FLUID);
-        GTRegistries.RECIPE_CAPABILITIES.register(EU.name, EU);
-        GTRegistries.RECIPE_CAPABILITIES.register(CWU.name, CWU);
-
-        AddonFinder.getAddons().forEach(IGTAddon::registerRecipeCapabilities);
+        GTRegistries.RECIPE_CAPABILITIES.register(ItemRecipeCapability.CAP.name, ItemRecipeCapability.CAP);
+        GTRegistries.RECIPE_CAPABILITIES.register(FluidRecipeCapability.CAP.name, FluidRecipeCapability.CAP);
         GTRegistries.RECIPE_CAPABILITIES.freeze();
     }
 }

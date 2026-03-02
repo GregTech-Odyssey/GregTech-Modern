@@ -4,7 +4,7 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceArrayMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,22 +38,28 @@ public interface IRecipeCapabilityHolder {
     Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy();
 
     @NotNull
-    Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> getCapabilitiesFlat();
+    Map<IO, Map<RecipeCapability<?>, List<IFilteredHandler>>> getCapabilitiesFlat();
 
     @NotNull
-    default List<IRecipeHandler<?>> getCapabilitiesFlat(IO io, RecipeCapability<?> cap) {
+    default List<IFilteredHandler> getCapabilitiesFlat(IO io, RecipeCapability<?> cap) {
         return getCapabilitiesFlat()
                 .getOrDefault(io, Collections.emptyMap())
                 .getOrDefault(cap, Collections.emptyList());
+    }
+
+    default void addHandler(IFilteredHandler handler) {
+        if (handler.getCapability() instanceof ContentRecipeCapability<?>) return;
+        if (handler.isAvailable() && handler.getHandlerIO() != IO.NONE) {
+            getCapabilitiesFlat().computeIfAbsent(handler.getHandlerIO(), i -> new Reference2ReferenceArrayMap<>(2)).computeIfAbsent(handler.getCapability(), c -> new ArrayList<>()).add(handler);
+        }
     }
 
     default void addHandlerList(RecipeHandlerList handler) {
         if (handler == RecipeHandlerList.NO_DATA) return;
         IO io = handler.getHandlerIO();
         getCapabilitiesProxy().computeIfAbsent(io, i -> new ArrayList<>()).add(handler);
-        var entrySet = handler.handlerMap.reference2ObjectEntrySet();
-        var inner = getCapabilitiesFlat().computeIfAbsent(io, i -> new Reference2ObjectOpenHashMap<>(entrySet.size()));
-        entrySet.fastForEach(entry -> {
+        var inner = getCapabilitiesFlat().computeIfAbsent(io, i -> new RecipeCapabilityMap<>());
+        handler.handlerMap.forEach(entry -> {
             var entryList = entry.getValue();
             inner.computeIfAbsent(entry.getKey(), c -> new ArrayList<>(entryList.size())).addAll(entryList);
         });

@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.machine.multiblock.steam;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.IFilteredHandler;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
@@ -123,13 +124,15 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
                 // if maxDrain is 0 because throttle is too low, skip trying to make steam
                 // drain water
                 var drainWater = List.of(FluidIngredient.of(Fluids.WATER, maxDrain));
-                List<IRecipeHandler<?>> inputTanks = new ArrayList<>();
+                List<IFilteredHandler> inputTanks = new ArrayList<>();
                 inputTanks.addAll(getCapabilitiesFlat(IO.IN, FluidRecipeCapability.CAP));
                 inputTanks.addAll(getCapabilitiesFlat(IO.BOTH, FluidRecipeCapability.CAP));
-                for (IRecipeHandler<?> tank : inputTanks) {
-                    drainWater = (List<FluidIngredient>) tank.handleRecipe(IO.IN, null, drainWater, false);
-                    if (drainWater == null || drainWater.isEmpty()) {
-                        break;
+                for (var tank : inputTanks) {
+                    if (tank instanceof IRecipeHandler<?> recipeTank) {
+                        drainWater = (List<FluidIngredient>) recipeTank.handleRecipe(IO.IN, null, drainWater, false);
+                        if (drainWater == null || drainWater.isEmpty()) {
+                            break;
+                        }
                     }
                 }
                 var drained = (drainWater == null || drainWater.isEmpty()) ? maxDrain : maxDrain - drainWater.getFirst().getAmount();
@@ -137,12 +140,14 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
                 if (drained > 0) {
                     // fill steam
                     var fillSteam = List.of(FluidIngredient.of(GTMaterials.Steam.getFluid(steamGenerated)));
-                    List<IRecipeHandler<?>> outputTanks = new ArrayList<>();
+                    List<IFilteredHandler> outputTanks = new ArrayList<>();
                     outputTanks.addAll(getCapabilitiesFlat(IO.OUT, FluidRecipeCapability.CAP));
                     outputTanks.addAll(getCapabilitiesFlat(IO.BOTH, FluidRecipeCapability.CAP));
-                    for (IRecipeHandler<?> tank : outputTanks) {
-                        fillSteam = (List<FluidIngredient>) tank.handleRecipe(IO.OUT, null, fillSteam, false);
-                        if (fillSteam == null) break;
+                    for (var tank : outputTanks) {
+                        if (tank instanceof IRecipeHandler<?> recipeTank) {
+                            fillSteam = (List<FluidIngredient>) recipeTank.handleRecipe(IO.OUT, null, fillSteam, false);
+                            if (fillSteam == null) break;
+                        }
                     }
                 }
                 // check explosion

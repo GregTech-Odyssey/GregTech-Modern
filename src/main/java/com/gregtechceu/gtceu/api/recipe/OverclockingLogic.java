@@ -70,7 +70,7 @@ public interface OverclockingLogic {
      */
     default @NotNull ModifierFunction getModifier(MetaMachine machine, GTRecipe recipe, long maxVoltage,
                                                   boolean shouldParallel) {
-        long EUt = Math.abs(recipe.ticks.getData(DataKeys.EUT));
+        long EUt = Math.abs(recipe.ticks.get(DataKeys.EUT));
         if (EUt == 0) return ModifierFunction.IDENTITY;
 
         int recipeTier = GTUtil.getTierByVoltage(EUt);

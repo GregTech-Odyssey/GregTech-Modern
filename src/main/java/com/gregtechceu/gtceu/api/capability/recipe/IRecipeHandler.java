@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.ObjLongConsumer;
 
-public interface IRecipeHandler<K> extends IFilteredHandler<K> {
+public interface IRecipeHandler<K> extends IFilteredHandler {
 
     /**
      * matching or handling the given recipe.
@@ -56,10 +56,6 @@ public interface IRecipeHandler<K> extends IFilteredHandler<K> {
 
     default IntLongMap getIngredientMap(@NotNull GTRecipeType type) {
         return IntLongMap.EMPTY;
-    }
-
-    default boolean isAvailable() {
-        return true;
     }
 
     default boolean isEmpty() {

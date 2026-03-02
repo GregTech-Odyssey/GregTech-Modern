@@ -55,7 +55,7 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     @Getter
     protected final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
     @Getter
-    protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
+    protected final Map<IO, Map<RecipeCapability<?>, List<IFilteredHandler>>> capabilitiesFlat;
     @Getter
     @Persisted
     protected int overclockTier;

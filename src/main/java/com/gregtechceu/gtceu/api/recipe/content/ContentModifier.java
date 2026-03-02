@@ -53,7 +53,7 @@ public record ContentModifier(double multiplier) {
     }
 
     public TickContentMap copyContents(TickContentMap contents) {
-        var copyContents = contents.clone();
+        var copyContents = contents.copy();
         if (this == IDENTITY) return copyContents;
         copyContents.applyModifier(multiplier);
         return copyContents;

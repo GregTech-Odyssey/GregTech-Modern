@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.capability.IParallelHatch;
 import com.gregtechceu.gtceu.api.capability.recipe.CWURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.*;
 import com.gregtechceu.gtceu.api.gui.widget.CustomComponentPanelWidget;
@@ -75,12 +74,12 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
         List<IOpticalComputationProvider> providers = new ArrayList<>();
         var handlers = getCapabilitiesFlat(IO.IN, EURecipeCapability.CAP);
         if (handlers.isEmpty()) handlers = getCapabilitiesFlat(IO.OUT, EURecipeCapability.CAP);
-        for (IRecipeHandler<?> handler : handlers) {
+        for (var handler : handlers) {
             if (handler instanceof IEnergyContainer container) {
                 containers.add(container);
             }
         }
-        for (IRecipeHandler<?> handler : getCapabilitiesFlat(IO.IN, CWURecipeCapability.CAP)) {
+        for (var handler : getCapabilitiesFlat(IO.IN, CWURecipeCapability.CAP)) {
             if (handler instanceof IOpticalComputationProvider provider) {
                 providers.add(provider);
             }

@@ -46,11 +46,6 @@ public interface IGTAddon {
 
     default void registerDimensionMarkers() {}
 
-    /**
-     * Call init on your custom Recipe Capabilities here
-     */
-    default void registerRecipeCapabilities() {}
-
     default void registerRecipeTypes() {}
 
     default void registerRecipeCategories() {}

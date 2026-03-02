@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.block.ActiveBlock;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
+import com.gregtechceu.gtceu.api.capability.recipe.IFilteredHandler;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
@@ -58,7 +59,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Getter
     protected final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
     @Getter
-    protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
+    protected final Map<IO, Map<RecipeCapability<?>, List<IFilteredHandler>>> capabilitiesFlat;
 
     @Getter
     protected final Int2ReferenceOpenHashMap<RecipeHandlerList> outputColorMap;
@@ -197,6 +198,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
                 this.addHandlerList(handlerList);
                 traitSubscriptions.add(handlerList.subscribe(recipeLogic::updateTickSubscription));
             }
+            part.addHandler(this);
         }
         // attach self traits
         Map<IO, List<IRecipeHandler<?>>> ioTraits = new EnumMap<>(IO.class);

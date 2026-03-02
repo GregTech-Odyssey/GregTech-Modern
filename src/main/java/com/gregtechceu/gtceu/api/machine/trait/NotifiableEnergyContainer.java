@@ -7,12 +7,12 @@ import com.gregtechceu.gtceu.api.capability.IElectricItem;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.compat.FeCompat;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.IFilteredHandler;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -28,12 +28,10 @@ import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long> implements IEnergyContainer {
+public class NotifiableEnergyContainer extends NotifiableMachineTrait implements IEnergyContainer, IFilteredHandler {
 
     @Getter
     protected IO handlerIO;
@@ -275,27 +273,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait<Long
     }
 
     @Override
-    public List<Long> handleRecipeInner(IO io, GTRecipe recipe, List<Long> left, boolean simulate) {
-        IEnergyContainer capability = this;
-        long sum = left.stream().reduce(0L, Long::sum);
-        if (io == IO.IN) {
-            var canOutput = capability.getEnergyStored();
-            if (!simulate) {
-                capability.addEnergy(-Math.min(canOutput, sum));
-            }
-            sum = sum - canOutput;
-        } else if (io == IO.OUT) {
-            long canInput = capability.getEnergyCapacity() - capability.getEnergyStored();
-            if (!simulate) {
-                capability.addEnergy(Math.min(canInput, sum));
-            }
-            sum = sum - canInput;
-        }
-        return sum <= 0 ? null : Collections.singletonList(sum);
-    }
-
-    @Override
-    public RecipeCapability<Long> getCapability() {
+    public RecipeCapability<?> getCapability() {
         return EURecipeCapability.CAP;
     }
 }
