@@ -32,8 +32,8 @@ public final class GTRecipe {
 
     public final GTRecipeDefinition definition;
 
-    public final Map<RecipeCapability<?>, List<Content>> inputs;
-    public final Map<RecipeCapability<?>, List<Content>> outputs;
+    public final RecipeCapabilityMap<List<Content>> inputs;
+    public final RecipeCapabilityMap<List<Content>> outputs;
     public final TickContentMap ticks;
     public int tier;
     public int duration;
@@ -44,11 +44,11 @@ public final class GTRecipe {
 
     public long batchParallels = 1;
 
-    public GTRecipe(Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, TickContentMap ticks, int duration, int tier) {
+    public GTRecipe(RecipeCapabilityMap<List<Content>> inputs, RecipeCapabilityMap<List<Content>> outputs, TickContentMap ticks, int duration, int tier) {
         this(GTRecipeDefinition.DUMMY, inputs, outputs, ticks, duration, tier);
     }
 
-    public GTRecipe(GTRecipeDefinition definition, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, TickContentMap ticks, int duration, int tier) {
+    public GTRecipe(GTRecipeDefinition definition, RecipeCapabilityMap<List<Content>> inputs, RecipeCapabilityMap<List<Content>> outputs, TickContentMap ticks, int duration, int tier) {
         this.definition = definition;
         this.inputs = inputs;
         this.outputs = outputs;

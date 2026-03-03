@@ -4,7 +4,7 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceArrayMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,8 +49,8 @@ public interface IRecipeCapabilityHolder {
 
     default void addHandler(IFilteredHandler handler) {
         if (handler.getCapability() instanceof ContentRecipeCapability<?>) return;
-        if (handler.isAvailable() && handler.getHandlerIO() != IO.NONE) {
-            getCapabilitiesFlat().computeIfAbsent(handler.getHandlerIO(), i -> new Reference2ReferenceArrayMap<>(2)).computeIfAbsent(handler.getCapability(), c -> new ArrayList<>()).add(handler);
+        if (handler.isAvailable()) {
+            getCapabilitiesFlat().computeIfAbsent(handler.getHandlerIO(), i -> new Reference2ReferenceOpenHashMap<>(2)).computeIfAbsent(handler.getCapability(), c -> new ArrayList<>()).add(handler);
         }
     }
 
@@ -58,7 +58,7 @@ public interface IRecipeCapabilityHolder {
         if (handler == RecipeHandlerList.NO_DATA) return;
         IO io = handler.getHandlerIO();
         getCapabilitiesProxy().computeIfAbsent(io, i -> new ArrayList<>()).add(handler);
-        var inner = getCapabilitiesFlat().computeIfAbsent(io, i -> new RecipeCapabilityMap<>());
+        var inner = getCapabilitiesFlat().computeIfAbsent(io, i -> new Reference2ReferenceOpenHashMap<>(2));
         handler.handlerMap.forEach(entry -> {
             var entryList = entry.getValue();
             inner.computeIfAbsent(entry.getKey(), c -> new ArrayList<>(entryList.size())).addAll(entryList);

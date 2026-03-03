@@ -296,7 +296,7 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
     }
 
     public void addToCategoryMap(GTRecipeCategory category, GTRecipeDefinition recipe) {
-        categoryMap.computeIfAbsent(category, k -> new ReferenceOpenHashSet<>()).add(recipe);
+        if (GTCEu.isClientSide()) categoryMap.computeIfAbsent(category, k -> new ReferenceOpenHashSet<>()).add(recipe);
     }
 
     public Set<GTRecipeCategory> getCategories() {

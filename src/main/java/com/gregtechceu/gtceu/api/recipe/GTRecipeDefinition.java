@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapabilityMap;
 import com.gregtechceu.gtceu.api.codec.data.DataKeys;
 import com.gregtechceu.gtceu.api.codec.data.DataMap;
-import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.chance.logic.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.TickContentMap;
@@ -24,7 +23,6 @@ import org.jetbrains.annotations.Range;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -32,19 +30,18 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public final class GTRecipeDefinition {
 
-    public static final GTRecipeDefinition DUMMY = new GTRecipeDefinition(false, GTRecipeTypes.DUMMY_RECIPES, GTRecipeTypes.DUMMY_RECIPES.getCategory(), GTCEu.id("dummy"), Collections.emptyMap(), Collections.emptyMap(), TickContentMap.EMPTY, Collections.emptyList(), DataMap.EMPTY, 0, 0, 0);
+    public static final GTRecipeDefinition DUMMY = new GTRecipeDefinition(false, GTRecipeTypes.DUMMY_RECIPES, GTCEu.id("dummy"), RecipeCapabilityMap.empty(), RecipeCapabilityMap.empty(), TickContentMap.EMPTY, Collections.emptyList(), DataMap.EMPTY, 0, 0, 0);
 
     IntMapContainer container;
 
     public final boolean registered;
     public final GTRecipeType recipeType;
-    public final GTRecipeCategory recipeCategory;
 
     @Getter
     public final ResourceLocation id;
 
-    public final Map<RecipeCapability<?>, List<Content>> inputs;
-    public final Map<RecipeCapability<?>, List<Content>> outputs;
+    public final RecipeCapabilityMap<List<Content>> inputs;
+    public final RecipeCapabilityMap<List<Content>> outputs;
     public final TickContentMap ticks;
     public final List<RecipeCondition> conditions;
     public final DataMap data;
@@ -52,10 +49,9 @@ public final class GTRecipeDefinition {
     public final int tier;
     public final int priority;
 
-    public GTRecipeDefinition(boolean registered, GTRecipeType recipeType, GTRecipeCategory recipeCategory, ResourceLocation id, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, TickContentMap ticks, List<RecipeCondition> conditions, DataMap data, int duration, int tier, int priority) {
+    public GTRecipeDefinition(boolean registered, GTRecipeType recipeType, ResourceLocation id, RecipeCapabilityMap<List<Content>> inputs, RecipeCapabilityMap<List<Content>> outputs, TickContentMap ticks, List<RecipeCondition> conditions, DataMap data, int duration, int tier, int priority) {
         this.registered = registered;
         this.recipeType = recipeType;
-        this.recipeCategory = recipeCategory;
         this.id = id;
         this.inputs = inputs;
         this.outputs = outputs;
@@ -113,7 +109,7 @@ public final class GTRecipeDefinition {
     }
 
     public GTRecipe toRuntime() {
-        return new GTRecipe(this, new RecipeCapabilityMap<>(inputs), new RecipeCapabilityMap<>(outputs), ticks.copy(), duration, tier);
+        return new GTRecipe(this, new RecipeCapabilityMap<>(inputs), new RecipeCapabilityMap<>(outputs), new TickContentMap(ticks), duration, tier);
     }
 
     @Override

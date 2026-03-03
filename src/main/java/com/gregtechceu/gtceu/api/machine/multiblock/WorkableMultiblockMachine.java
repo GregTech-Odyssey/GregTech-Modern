@@ -14,7 +14,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
-import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
+import com.gregtechceu.gtceu.api.machine.trait.INotifiableTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
@@ -162,22 +162,28 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
+        clearPartCache();
         var parts = getParts();
-        List<IWorkableMultiPart> workableMultiPart = new ArrayList<>();
+        Runnable listener = recipeLogic::updateTickSubscription;
         List<IWorkableMultiPart> onWorkingList = new ArrayList<>();
         List<IWorkableMultiPart> beforeWorkingList = new ArrayList<>();
         List<IWorkableMultiPart> afterWorkingList = new ArrayList<>();
         List<IWorkableMultiPart> modifyRecipeList = new ArrayList<>();
         for (IMultiPart part : parts) {
             if (part instanceof IWorkableMultiPart workablePart) {
-                workableMultiPart.add(workablePart);
                 if (workablePart.hasOnWorkingMethod()) onWorkingList.add(workablePart);
                 if (workablePart.hasBeforeWorkingMethod()) beforeWorkingList.add(workablePart);
                 if (workablePart.hasAfterWorkingMethod()) afterWorkingList.add(workablePart);
                 if (workablePart.hasModifyRecipeMethod()) modifyRecipeList.add(workablePart);
+                for (var handlerList : workablePart.getRecipeHandlers()) {
+                    this.addHandlerList(handlerList);
+                }
             }
             if (part instanceof IParallelHatch pHatch) {
                 parallelHatch = pHatch;
+            }
+            for (var trait : part.self().getTraits()) {
+                addHandlerAndListener(trait, listener);
             }
         }
 
@@ -188,29 +194,17 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
         activeBlocks = getMultiblockState().getMatchContext().vaBlocks;
 
-        // attach parts' traits
-        capabilitiesProxy.clear();
-        capabilitiesFlat.clear();
-        traitSubscriptions.forEach(ISubscription::unsubscribe);
-        traitSubscriptions.clear();
-        for (var part : workableMultiPart) {
-            for (var handlerList : part.getRecipeHandlers()) {
-                this.addHandlerList(handlerList);
-                traitSubscriptions.add(handlerList.subscribe(recipeLogic::updateTickSubscription));
-            }
-            part.addHandler(this);
-        }
         // attach self traits
         Map<IO, List<IRecipeHandler<?>>> ioTraits = new EnumMap<>(IO.class);
         for (MachineTrait trait : getTraits()) {
-            if (trait instanceof IRecipeHandlerTrait<?> handlerTrait && handlerTrait.isAvailable() && handlerTrait.getHandlerIO() != IO.NONE) {
+            if (trait instanceof IRecipeHandler<?> handlerTrait && handlerTrait.isAvailable()) {
                 ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ArrayList<>()).add(handlerTrait);
             }
+            addHandlerAndListener(trait, listener);
         }
         for (var entry : ioTraits.entrySet()) {
             var handlerList = RecipeHandlerList.of(entry.getKey(), entry.getValue());
             this.addHandlerList(handlerList);
-            traitSubscriptions.add(handlerList.subscribe(recipeLogic::updateTickSubscription));
         }
     }
 
@@ -218,20 +212,32 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     public void onStructureInvalid() {
         updateActiveBlock(false);
         super.onStructureInvalid();
-        parallelHatch = null;
+        clearPartCache();
         onWorkingPart = new IWorkableMultiPart[0];
         beforeWorkingPart = new IWorkableMultiPart[0];
         afterWorkingPart = new IWorkableMultiPart[0];
         modifyRecipePart = new IWorkableMultiPart[0];
+        // reset recipe Logic
+        recipeLogic.resetRecipeLogic();
+    }
+
+    protected void clearPartCache() {
+        parallelHatch = null;
+        currentHandlerList = null;
+        inputList = Collections.emptyList();
+        outputList = Collections.emptyList();
         capabilitiesProxy.clear();
         capabilitiesFlat.clear();
         outputColorMap.clear();
         traitSubscriptions.forEach(ISubscription::unsubscribe);
         traitSubscriptions.clear();
-        inputList = Collections.emptyList();
-        outputList = Collections.emptyList();
-        // reset recipe Logic
-        recipeLogic.resetRecipeLogic();
+    }
+
+    protected void addHandlerAndListener(MachineTrait trait, Runnable listener) {
+        if (trait instanceof IFilteredHandler handler) {
+            addHandler(handler);
+        }
+        INotifiableTrait.addListener(trait, listener, traitSubscriptions::add);
     }
 
     //////////////////////////////////////

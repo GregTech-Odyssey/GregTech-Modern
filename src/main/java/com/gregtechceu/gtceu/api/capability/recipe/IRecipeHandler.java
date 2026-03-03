@@ -16,6 +16,8 @@ import java.util.function.ObjLongConsumer;
 
 public interface IRecipeHandler<K> extends IFilteredHandler {
 
+    void setDistinct(boolean distinct);
+
     /**
      * matching or handling the given recipe.
      *

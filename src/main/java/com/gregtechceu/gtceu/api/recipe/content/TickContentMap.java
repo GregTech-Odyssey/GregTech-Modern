@@ -124,8 +124,4 @@ public class TickContentMap {
         this.key = newKey;
         this.value = newValue;
     }
-
-    public TickContentMap copy() {
-        return new TickContentMap(this);
-    }
 }

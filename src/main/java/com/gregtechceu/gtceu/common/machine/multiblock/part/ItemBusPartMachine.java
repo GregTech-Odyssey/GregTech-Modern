@@ -89,6 +89,11 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
     }
 
     @Override
+    public boolean hasModifyRecipeMethod() {
+        return false;
+    }
+
+    @Override
     public void onMachineRemoved() {
         clearInventory(getInventory().storage);
     }

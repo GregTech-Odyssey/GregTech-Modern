@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.api.recipe.content;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeCapabilityHolder;
 import com.gregtechceu.gtceu.api.codec.ByteStreamCodec;
 import com.gregtechceu.gtceu.api.codec.data.DataKey;
-import com.gregtechceu.gtceu.api.codec.data.DataKeys;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 
@@ -26,7 +25,7 @@ public abstract class TickContent extends DataKey<Long> {
     }
 
     public static TickContent get(String name) {
-        return (TickContent) DataKeys.MAP.get(name);
+        return (TickContent) REGISTERED.get(name);
     }
 
     public void addXEIInfo(WidgetGroup group, int xOffset, GTRecipeDefinition recipe, long content, MutableInt yOffset) {}

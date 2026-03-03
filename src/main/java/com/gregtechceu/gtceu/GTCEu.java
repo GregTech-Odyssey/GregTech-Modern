@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.common.CommonProxy;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
@@ -89,7 +90,7 @@ public class GTCEu {
      * @see #isClientThread()
      */
     public static boolean isClientSide() {
-        return FMLEnvironment.dist.isClient();
+        return FMLEnvironment.dist == Dist.CLIENT;
     }
 
     /**

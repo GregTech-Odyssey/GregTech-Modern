@@ -49,7 +49,6 @@ import net.minecraftforge.fluids.FluidStack;
 import com.fast.fastcollection.O2OOpenCacheHashMap;
 import dev.ftb.mods.ftbquests.quest.QuestObjectBase;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -72,28 +71,26 @@ public class GTRecipeBuilder {
 
     public static GTRecipeBuilder RAW;
 
-    public Map<RecipeCapability<?>, List<Content>> input = new RecipeCapabilityMap<>();
-    public Map<RecipeCapability<?>, List<Content>> output = new RecipeCapabilityMap<>();
+    public final RecipeCapabilityMap<List<Content>> input;
+    public final RecipeCapabilityMap<List<Content>> output;
+    public final TickContentMap ticks;
+    public final List<RecipeCondition> conditions;
+    public final DataMap data;
 
-    public TickContentMap ticks = new TickContentMap();
-
-    public List<RecipeCondition> conditions = new ArrayList<>();
-    @NotNull
-    public DataMap data = new DataMap();
     public ResourceLocation id;
     public GTRecipeType recipeType;
     public GTRecipeCategory recipeCategory;
-    public int duration = 100;
 
+    public int duration = 100;
     public int tier;
 
     public int priority;
 
-    public int chance = Content.MAX_CHANCE;
-    public int tierChanceBoost = 0;
+    protected int chance = Content.MAX_CHANCE;
+    protected int tierChanceBoost = 0;
 
     @Nullable
-    public Consumer<GTRecipeBuilder> onSave;
+    protected Consumer<GTRecipeBuilder> onSave;
 
     protected boolean itemMaterialInfo = false;
     protected boolean fluidMaterialInfo = false;
@@ -110,6 +107,28 @@ public class GTRecipeBuilder {
 
     public GTRecipeBuilder(ResourceLocation id) {
         this.id = id;
+        input = new RecipeCapabilityMap<>();
+        output = new RecipeCapabilityMap<>();
+        ticks = new TickContentMap();
+        conditions = new ArrayList<>();
+        data = new DataMap();
+    }
+
+    public GTRecipeBuilder(ResourceLocation id, GTRecipeBuilder builder) {
+        this.id = id;
+        this.input = new RecipeCapabilityMap<>(builder.input.item == null ? null : new ArrayList<>(builder.input.item), builder.input.fluid == null ? null : new ArrayList<>(builder.input.fluid));
+        this.output = new RecipeCapabilityMap<>(builder.output.item == null ? null : new ArrayList<>(builder.output.item), builder.output.fluid == null ? null : new ArrayList<>(builder.output.fluid));
+        this.ticks = new TickContentMap(builder.ticks);
+        this.conditions = new ArrayList<>(builder.conditions);
+        this.data = builder.data.clone();
+        this.recipeType = builder.recipeType;
+        this.recipeCategory = builder.recipeCategory;
+        this.duration = builder.duration;
+        this.tier = builder.tier;
+        this.priority = builder.priority;
+        this.chance = builder.chance;
+        this.tierChanceBoost = builder.tierChanceBoost;
+        this.onSave = builder.onSave;
     }
 
     public static GTRecipeBuilder ofRaw() {
@@ -125,19 +144,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder copy(ResourceLocation id) {
-        GTRecipeBuilder copy = new GTRecipeBuilder(id);
-        this.input.forEach((k, v) -> copy.input.put(k, new ArrayList<>(v)));
-        this.output.forEach((k, v) -> copy.output.put(k, new ArrayList<>(v)));
-        copy.ticks = this.ticks.copy();
-        copy.recipeType = this.recipeType;
-        copy.recipeCategory = this.recipeCategory;
-        copy.conditions.addAll(this.conditions);
-        copy.data = this.data.clone();
-        copy.duration = this.duration;
-        copy.tier = this.tier;
-        copy.chance = this.chance;
-        copy.onSave = this.onSave;
-        return copy;
+        return new GTRecipeBuilder(id, this);
     }
 
     public GTRecipeBuilder copyFrom(GTRecipeBuilder builder) {
@@ -952,7 +959,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeDefinition build(boolean registered) {
-        return new GTRecipeDefinition(registered, recipeType, recipeCategory, id.withPrefix(recipeType.registryName.getPath() + "/"), input, output, ticks, conditions, data, duration, tier, priority);
+        return new GTRecipeDefinition(registered, recipeType, id.withPrefix(recipeType.registryName.getPath() + "/"), input, output, ticks, conditions, data, duration, tier, priority);
     }
 
     protected void warnTooManyIngredients(RecipeCapability<?> capability, boolean isInput, Map<RecipeCapability<?>, List<Content>> table, int addedEntries) {

@@ -131,15 +131,16 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
         super.onLoad();
         // attach self traits
         Map<IO, List<IRecipeHandler<?>>> ioTraits = new EnumMap<>(IO.class);
+        Runnable listener = recipeLogic::updateTickSubscription;
         for (MachineTrait trait : getTraits()) {
-            if (trait instanceof IRecipeHandlerTrait<?> handlerTrait && handlerTrait.isAvailable() && handlerTrait.getHandlerIO() != IO.NONE) {
+            if (trait instanceof IRecipeHandler<?> handlerTrait && handlerTrait.isAvailable()) {
                 ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ArrayList<>()).add(handlerTrait);
             }
+            INotifiableTrait.addListener(trait, listener, traitSubscriptions::add);
         }
         for (var entry : ioTraits.entrySet()) {
             var handlerList = RecipeHandlerList.of(entry.getKey(), entry.getValue());
             this.addHandlerList(handlerList);
-            traitSubscriptions.add(handlerList.subscribe(recipeLogic::updateTickSubscription));
         }
     }
 

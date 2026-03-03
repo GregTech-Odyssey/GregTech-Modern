@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IElectricMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.steam.SteamEnergyContainer;
@@ -71,9 +72,9 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
     }
 
     protected void addSteamEnergy() {
-        for (var part : getWorkableParts()) {
-            if (!PartAbility.STEAM.isApplicable(part.self().getDefinition().get())) continue;
-            var handlers = part.getRecipeHandlers();
+        for (var part : getParts()) {
+            if (!(part instanceof IWorkableMultiPart workableMultiPart) || !PartAbility.STEAM.isApplicable(part.self().getDefinition().get())) continue;
+            var handlers = workableMultiPart.getRecipeHandlers();
             for (var hl : handlers) {
                 if (!hl.isValid(IO.IN)) continue;
                 for (var fluidHandler : hl.getCapability(FluidRecipeCapability.CAP)) {

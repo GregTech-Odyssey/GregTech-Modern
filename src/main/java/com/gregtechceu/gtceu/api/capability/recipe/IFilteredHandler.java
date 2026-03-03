@@ -4,6 +4,10 @@ import java.util.Comparator;
 
 public interface IFilteredHandler {
 
+    static boolean isAvailable(Object o) {
+        return o instanceof IFilteredHandler handler && handler.isAvailable();
+    }
+
     Comparator<IFilteredHandler> PRIORITY_COMPARATOR = Comparator
             .comparingInt(IFilteredHandler::getPriority).reversed();
 
@@ -21,7 +25,7 @@ public interface IFilteredHandler {
     }
 
     default boolean isAvailable() {
-        return true;
+        return getHandlerIO() != IO.NONE;
     }
 
     default IO getHandlerIO() {

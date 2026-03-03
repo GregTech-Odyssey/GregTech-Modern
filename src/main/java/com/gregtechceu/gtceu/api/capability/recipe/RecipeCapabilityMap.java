@@ -1,13 +1,10 @@
 package com.gregtechceu.gtceu.api.capability.recipe;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 
-import com.mojang.datafixers.util.Pair;
-import com.mojang.datafixers.util.Unit;
 import com.mojang.serialization.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,17 +12,58 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
-public final class RecipeCapabilityMap<T> implements Map<RecipeCapability<?>, T>, Iterable<Map.Entry<RecipeCapability<?>, T>> {
+public class RecipeCapabilityMap<T> implements Map<RecipeCapability<?>, T>, Iterable<Map.Entry<RecipeCapability<?>, T>> {
 
-    public static final Codec<Map<RecipeCapability<?>, List<Content>>> CODEC = new DispatchedMapCodec<>(RecipeCapability::contentCodec);
+    private static final RecipeCapabilityMap<?> EMPTY = new RecipeCapabilityMap<>() {
+
+        @Override
+        public int size() {
+            return 0;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return true;
+        }
+
+        @Override
+        public boolean containsKey(Object key) {
+            return false;
+        }
+
+        @Override
+        public Object get(Object key) {
+            return null;
+        }
+
+        @Override
+        @NotNull
+        public Set<RecipeCapability<?>> keySet() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        @NotNull
+        public Collection<Object> values() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        @NotNull
+        public Set<Entry<RecipeCapability<?>, Object>> entrySet() {
+            return Collections.emptySet();
+        }
+    };
+
+    public static <T> RecipeCapabilityMap<T> empty() {
+        return (RecipeCapabilityMap<T>) EMPTY;
+    }
 
     public T item;
     public T fluid;
     private ItemEntry itemEntry;
     private FluidEntry fluidEntry;
-    private EntryIterator entryIterator;
     private Set<Entry<RecipeCapability<?>, T>> entries;
 
     public RecipeCapabilityMap() {}
@@ -33,6 +71,11 @@ public final class RecipeCapabilityMap<T> implements Map<RecipeCapability<?>, T>
     public RecipeCapabilityMap(T item, T fluid) {
         this.item = item;
         this.fluid = fluid;
+    }
+
+    public RecipeCapabilityMap(RecipeCapabilityMap<T> map) {
+        this.item = map.item;
+        this.fluid = map.fluid;
     }
 
     public RecipeCapabilityMap(Map<RecipeCapability<?>, T> map) {
@@ -250,8 +293,7 @@ public final class RecipeCapabilityMap<T> implements Map<RecipeCapability<?>, T>
             boolean hasItem = item != null;
             boolean hasFluid = fluid != null;
             if (!hasItem && !hasFluid) return Collections.emptyIterator();
-            if (entryIterator == null) entryIterator = new EntryIterator();
-            entryIterator.hasNext = true;
+            var entryIterator = new EntryIterator();
             entryIterator.complete = hasItem && hasFluid;
             return entryIterator;
         }
@@ -316,7 +358,7 @@ public final class RecipeCapabilityMap<T> implements Map<RecipeCapability<?>, T>
 
     private class EntryIterator implements Iterator<Entry<RecipeCapability<?>, T>> {
 
-        private boolean hasNext;
+        private boolean hasNext = true;
         private boolean complete;
 
         @Override
@@ -372,51 +414,5 @@ public final class RecipeCapabilityMap<T> implements Map<RecipeCapability<?>, T>
             if (!list.isEmpty()) tag.put(entry.getKey().name, list);
         }
         return tag.isEmpty() ? null : tag;
-    }
-
-    private record DispatchedMapCodec<V>(Function<RecipeCapability<?>, Codec<? extends V>> valueCodecFunction) implements Codec<Map<RecipeCapability<?>, V>> {
-
-        @Override
-        public <T> DataResult<T> encode(Map<RecipeCapability<?>, V> input, DynamicOps<T> ops, T prefix) {
-            RecordBuilder<T> mapBuilder = ops.mapBuilder();
-            input.forEach((key, value) -> mapBuilder.add(RecipeCapability.DIRECT_CODEC.encodeStart(ops, key), encodeValue(valueCodecFunction.apply(key), value, ops)));
-            return mapBuilder.build(prefix);
-        }
-
-        @SuppressWarnings("unchecked")
-        private <T, V2 extends V> DataResult<T> encodeValue(final Codec<V2> codec, final V input, final DynamicOps<T> ops) {
-            return codec.encodeStart(ops, (V2) input);
-        }
-
-        @Override
-        public <T> DataResult<Pair<Map<RecipeCapability<?>, V>, T>> decode(final DynamicOps<T> ops, final T input) {
-            return ops.getMap(input).flatMap(map -> {
-                Map<RecipeCapability<?>, V> entries = new RecipeCapabilityMap<>();
-                Stream.Builder<Pair<T, T>> failed = Stream.builder();
-                DataResult<Unit> finalResult = map.entries().reduce(DataResult.success(Unit.INSTANCE, Lifecycle.stable()), (result, entry) -> parseEntry(result, ops, entry, entries, failed), (r1, r2) -> r1.apply2stable((u1, u2) -> u1, r2));
-                Pair<Map<RecipeCapability<?>, V>, T> pair = Pair.of(new RecipeCapabilityMap<>(entries), input);
-                T errors = ops.createMap(failed.build());
-                return finalResult.map(ignored -> pair).setPartial(pair).mapError(error -> error + " missed input: " + errors);
-            });
-        }
-
-        private <T> DataResult<Unit> parseEntry(DataResult<Unit> result, DynamicOps<T> ops, Pair<T, T> input, Map<RecipeCapability<?>, V> entries, Stream.Builder<Pair<T, T>> failed) {
-            DataResult<RecipeCapability<?>> keyResult = RecipeCapability.DIRECT_CODEC.parse(ops, input.getFirst());
-            DataResult<V> valueResult = keyResult.map(valueCodecFunction).flatMap(valueCodec -> valueCodec.parse(ops, input.getSecond()).map(Function.identity()));
-            DataResult<Pair<RecipeCapability<?>, V>> entryResult = keyResult.apply2stable(Pair::of, valueResult);
-            Optional<Pair<RecipeCapability<?>, V>> entry = entryResult.resultOrPartial(GTCEu.LOGGER::error);
-            if (entry.isPresent()) {
-                RecipeCapability<?> key = entry.get().getFirst();
-                V value = entry.get().getSecond();
-                if (entries.putIfAbsent(key, value) != null) {
-                    failed.add(input);
-                    return result.apply2stable((u, p) -> u, DataResult.error(() -> "Duplicate entry for key: '" + key + "'"));
-                }
-            }
-            if (entryResult.error().isPresent()) {
-                failed.add(input);
-            }
-            return result.apply2stable((u, p) -> u, entryResult);
-        }
     }
 }

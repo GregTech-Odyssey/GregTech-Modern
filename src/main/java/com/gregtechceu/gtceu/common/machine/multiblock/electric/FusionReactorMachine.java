@@ -6,10 +6,12 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.codec.data.DataKeys;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
+import com.gregtechceu.gtceu.api.machine.trait.INotifiableTrait;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -107,10 +109,12 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
         super.onStructureFormed();
         // capture all energy containers
         List<IEnergyContainer> energyContainers = new ArrayList<>();
-        for (var part : getWorkableParts()) {
-            for (var handlerList : part.getRecipeHandlers()) {
-                handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).forEach(energyContainers::add);
-                traitSubscriptions.add(handlerList.subscribe(this::updatePreHeatSubscription, EURecipeCapability.CAP));
+        for (var handler : getCapabilitiesFlat(IO.IN, EURecipeCapability.CAP)) {
+            if (handler instanceof IEnergyContainer container) {
+                if (handler.getHandlerIO() == IO.IN) {
+                    energyContainers.add(container);
+                    INotifiableTrait.addListener(handler, this::updatePreHeatSubscription, traitSubscriptions::add);
+                }
             }
         }
         this.inputEnergyContainers = new EnergyContainerList(energyContainers);

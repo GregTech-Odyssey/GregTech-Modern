@@ -190,6 +190,7 @@ public class CommonProxy {
 
     @SubscribeEvent
     public void commonSetup(FMLCommonSetupEvent event) {
+        GTOres.init();
         GTCraftingComponents.init();
         GTRecipes.recipeAddition();
         event.enqueueWork(() -> {

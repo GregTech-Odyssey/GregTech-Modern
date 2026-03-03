@@ -1,11 +1,8 @@
 package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 
-import com.gregtechceu.gtceu.api.capability.recipe.IFilteredHandler;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.capability.recipe.IRecipeCapabilityHolder;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
-import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -96,7 +93,7 @@ public interface IWorkableMultiPart extends IMultiPart {
             List<IRecipeHandler<?>> handlers = new ArrayList<>();
             IO handlerIO = null;
             for (var trait : self().getTraits()) {
-                if (trait instanceof IRecipeHandlerTrait<?> rht && rht.isAvailable() && rht.getHandlerIO() != IO.NONE) {
+                if (trait instanceof IRecipeHandler<?> rht && rht.isAvailable()) {
                     if (handlerIO == null) handlerIO = rht.getHandlerIO();
                     handlers.add(rht);
                 }
@@ -130,9 +127,6 @@ public interface IWorkableMultiPart extends IMultiPart {
      */
     default void onPaused(IWorkableMultiController controller) {}
 
-    /**
-     * Called in {@link RecipeLogic#onRecipeFinish()} before outputs are produced
-     */
     default void afterWorking(IWorkableMultiController controller) {}
 
     /**
@@ -156,12 +150,4 @@ public interface IWorkableMultiPart extends IMultiPart {
     RecipeHandlerList getRecipeHandlerList();
 
     void setRecipeHandlerList(RecipeHandlerList list);
-
-    default void addHandler(IRecipeCapabilityHolder holder) {
-        for (var trait : self().getTraits()) {
-            if (trait instanceof IFilteredHandler handler) {
-                holder.addHandler(handler);
-            }
-        }
-    }
 }

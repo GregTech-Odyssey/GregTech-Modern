@@ -10,7 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class NotifiableMachineTrait extends MachineTrait {
+public class NotifiableMachineTrait extends MachineTrait implements INotifiableTrait {
 
     protected List<Runnable> listeners = new ArrayList<>();
 
@@ -32,6 +32,12 @@ public abstract class NotifiableMachineTrait extends MachineTrait {
         isDirty = true;
     }
 
+    @Override
+    public boolean isAvailable() {
+        return true;
+    }
+
+    @Override
     public ISubscription addChangedListener(Runnable listener) {
         listeners.add(listener);
         return () -> listeners.remove(listener);
@@ -42,6 +48,7 @@ public abstract class NotifiableMachineTrait extends MachineTrait {
         isDirty = true;
     }
 
+    @Override
     public void notifyListeners() {
         if (isDirty) {
             if (machine.getLevel() instanceof ServerLevel serverLevel) {

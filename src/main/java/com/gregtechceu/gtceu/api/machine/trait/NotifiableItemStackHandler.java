@@ -315,7 +315,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ite
 
     @Override
     public boolean isAvailable() {
-        return this.isAvailable;
+        return this.isAvailable && handlerIO != IO.NONE;
     }
 
     public NotifiableItemStackHandler setAvailable(boolean available) {

@@ -2,16 +2,17 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
+import com.gregtechceu.gtceu.api.machine.trait.INotifiableTrait;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerInfoList;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
@@ -84,20 +85,15 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
         List<IEnergyContainer> powerInput = new ArrayList<>();
         List<IEnergyContainer> powerOutput = new ArrayList<>();
         for (var part : getPrioritySortedParts()) {
-            for (var handlerList : part.getRecipeHandlers()) {
-                var containers = handlerList.getCapability(EURecipeCapability.CAP).stream()
-                        .filter(IEnergyContainer.class::isInstance)
-                        .map(IEnergyContainer.class::cast)
-                        .toList();
-
-                if (handlerList.getHandlerIO() == IO.IN) {
-                    powerInput.addAll(containers);
-                } else if (handlerList.getHandlerIO() == IO.OUT) {
-                    powerOutput.addAll(containers);
+            for (var trait : part.self().getTraits()) {
+                if (trait instanceof NotifiableEnergyContainer container) {
+                    if (container.getHandlerIO() == IO.IN) {
+                        powerInput.add(container);
+                    } else if (container.getHandlerIO() == IO.OUT) {
+                        powerOutput.add(container);
+                    }
+                    INotifiableTrait.addListener(trait, converterSubscription::updateSubscription, traitSubscriptions::add);
                 }
-
-                traitSubscriptions
-                        .add(handlerList.subscribe(converterSubscription::updateSubscription, EURecipeCapability.CAP));
             }
         }
 
@@ -114,8 +110,8 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
     }
 
     @NotNull
-    private List<IWorkableMultiPart> getPrioritySortedParts() {
-        return Arrays.stream(getParts()).filter(IWorkableMultiPart.class::isInstance).map(IWorkableMultiPart.class::cast).sorted(Comparator.comparingInt(part -> {
+    private List<IMultiPart> getPrioritySortedParts() {
+        return Arrays.stream(getParts()).sorted(Comparator.comparingInt(part -> {
             if (part instanceof MetaMachine partMachine) {
                 Block partBlock = partMachine.getBlockState().getBlock();
 

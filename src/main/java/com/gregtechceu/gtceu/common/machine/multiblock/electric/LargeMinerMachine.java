@@ -2,15 +2,12 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.IMiner;
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerList;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
@@ -53,8 +50,7 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
     public static final int CHUNK_LENGTH = 16;
     @Getter
     private final int tier;
-    @Nullable
-    protected EnergyContainerList energyContainer;
+
     @Nullable
     protected FluidHandlerList inputFluidInventory;
     private final int drillingFluidConsumePerTick;
@@ -118,15 +114,12 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
     }
 
     private void initializeAbilities() {
-        List<IEnergyContainer> energyContainers = new ArrayList<>();
         List<IFluidHandler> fluidTanks = new ArrayList<>();
         for (var part : getWorkableParts()) {
             for (var handlerList : part.getRecipeHandlers()) {
-                handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).forEach(energyContainers::add);
                 handlerList.getCapability(FluidRecipeCapability.CAP).stream().filter(IFluidHandler.class::isInstance).map(IFluidHandler.class::cast).forEach(fluidTanks::add);
             }
         }
-        this.energyContainer = new EnergyContainerList(energyContainers);
         this.inputFluidInventory = new FluidHandlerList(fluidTanks);
         getRecipeLogic().setVoltageTier(GTUtil.getTierByVoltage(this.energyContainer.getInputVoltage()));
         getRecipeLogic().setOverclockAmount(Math.max(1, GTUtil.getTierByVoltage(this.energyContainer.getInputVoltage()) - this.tier));
@@ -134,14 +127,13 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
     }
 
     public int getEnergyTier() {
-        if (energyContainer == null) return this.tier;
         return Math.min(this.tier + 1, Math.max(this.tier, GTUtil.getFloorTierByVoltage(energyContainer.getInputVoltage())));
     }
 
     @Override
     public boolean drainInput(boolean simulate) {
         // drain energy
-        if (energyContainer != null && energyContainer.getEnergyStored() > 0) {
+        if (energyContainer.getEnergyStored() > 0) {
             long energyToDrain = GTValues.VA[getEnergyTier()];
             long resultEnergy = energyContainer.getEnergyStored() - energyToDrain;
             if (resultEnergy >= 0L && resultEnergy <= energyContainer.getEnergyCapacity()) {

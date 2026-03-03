@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.IEnergyInfoProvider;
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
@@ -17,7 +16,9 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.IBatteryData;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
+import com.gregtechceu.gtceu.api.machine.trait.INotifiableTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.config.ConfigHolder;
@@ -82,18 +83,15 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
         super.onStructureFormed();
         List<IEnergyContainer> inputs = new ArrayList<>();
         List<IEnergyContainer> outputs = new ArrayList<>();
-        for (var part : getWorkableParts()) {
-            if (part instanceof IMaintenanceMachine maintenanceMachine) {
-                this.maintenance = maintenanceMachine;
-            } else {
-                for (var handlerList : part.getRecipeHandlers()) {
-                    var containers = handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).toList();
-                    if (handlerList.getHandlerIO() == IO.IN) {
-                        inputs.addAll(containers);
-                    } else if (handlerList.getHandlerIO() == IO.OUT) {
-                        outputs.addAll(containers);
+        for (var part : getParts()) {
+            for (var trait : part.self().getTraits()) {
+                if (trait instanceof NotifiableEnergyContainer container) {
+                    if (container.getHandlerIO() == IO.IN) {
+                        inputs.add(container);
+                    } else if (container.getHandlerIO() == IO.OUT) {
+                        outputs.add(container);
                     }
-                    traitSubscriptions.add(handlerList.subscribe(tickSubscription::updateSubscription, EURecipeCapability.CAP));
+                    INotifiableTrait.addListener(trait, tickSubscription::updateSubscription, traitSubscriptions::add);
                 }
             }
         }

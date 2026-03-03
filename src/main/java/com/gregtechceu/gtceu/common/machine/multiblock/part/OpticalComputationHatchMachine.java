@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationHatch;
-import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableMultiblockPartMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableComputationContainer;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -16,7 +16,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class OpticalComputationHatchMachine extends WorkableMultiblockPartMachine implements IOpticalComputationHatch {
+public class OpticalComputationHatchMachine extends MultiblockPartMachine implements IOpticalComputationHatch {
 
     @Getter
     private final boolean transmitter;

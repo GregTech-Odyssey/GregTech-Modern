@@ -427,7 +427,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
 
     @Override
     public boolean isAvailable() {
-        return this.isAvailable;
+        return this.isAvailable && handlerIO != IO.NONE;
     }
 
     public NotifiableFluidTank setAvailable(boolean available) {

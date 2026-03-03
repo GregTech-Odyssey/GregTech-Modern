@@ -5,15 +5,7 @@ import com.gregtechceu.gtceu.api.recipe.content.CWUTContent;
 import com.gregtechceu.gtceu.api.recipe.content.EUTContent;
 import com.gregtechceu.gtceu.api.recipe.content.TickContent;
 
-import com.fast.fastcollection.O2OOpenCacheHashMap;
-
 public class DataKeys {
-
-    public static final O2OOpenCacheHashMap<String, DataKey<?>> MAP = new O2OOpenCacheHashMap<>();
-
-    public static synchronized <T> void register(DataKey<T> key) {
-        MAP.put(key.name, key);
-    }
 
     public static final TickContent EUT = EUTContent.INSTANCE;
     public static final TickContent CWUT = CWUTContent.INSTANCE;

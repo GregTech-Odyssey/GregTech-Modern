@@ -12,8 +12,6 @@ import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelFunction;
 import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
 
-import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
@@ -113,7 +111,7 @@ public class RecipeHandlerList {
         if (isDistinct != distinct) {
             isDistinct = distinct;
             for (var rht : allHandlers) {
-                if (rht instanceof IRecipeHandlerTrait<?> trait) trait.setDistinct(isDistinct);
+                rht.setDistinct(isDistinct);
             }
         }
     }
@@ -148,25 +146,6 @@ public class RecipeHandlerList {
     public boolean isValid(IO extIO) {
         if (this == NO_DATA || handlerIO == IO.NONE) return false;
         return (extIO == IO.BOTH || handlerIO == IO.BOTH || extIO == handlerIO);
-    }
-
-    public ISubscription subscribe(Runnable listener) {
-        List<ISubscription> subs = new ArrayList<>();
-        allHandlers.forEach(rht -> {
-            if (rht instanceof IRecipeHandlerTrait<?> trait) subs.add(trait.addChangedListener(listener));
-        });
-        return () -> subs.forEach(ISubscription::unsubscribe);
-    }
-
-    public ISubscription subscribe(Runnable listener, RecipeCapability<?> cap) {
-        var capList = getCapability(cap);
-        List<ISubscription> subs = new ArrayList<>(capList.size());
-        for (var handler : capList) {
-            if (handler instanceof IRecipeHandlerTrait<?> trait) {
-                subs.add(trait.addChangedListener(listener));
-            }
-        }
-        return () -> subs.forEach(ISubscription::unsubscribe);
     }
 
     public boolean findRecipe(IRecipeCapabilityHolder holder, GTRecipeType recipeType, Predicate<GTRecipeDefinition> canHandle) {
@@ -226,7 +205,7 @@ public class RecipeHandlerList {
     public static List<RecipeHandlerList> filter(List<RecipeHandlerList> list) {
         List<RecipeHandlerList> output = new ArrayList<>();
         for (var handler : list) {
-            if (!handler.allHandlers.isEmpty() && handler.hasCapability(ItemRecipeCapability.CAP) || handler.hasCapability(FluidRecipeCapability.CAP)) {
+            if (!handler.allHandlers.isEmpty()) {
                 output.add(handler);
             }
         }

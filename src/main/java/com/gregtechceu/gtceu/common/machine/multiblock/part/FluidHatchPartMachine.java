@@ -99,6 +99,11 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     }
 
     @Override
+    public boolean hasModifyRecipeMethod() {
+        return false;
+    }
+
+    @Override
     public void onLoad() {
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
