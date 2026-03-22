@@ -300,6 +300,8 @@ public class MultiblockInWorldPreviewRenderer {
             THREAD = null;
             LEFT_TICK.set(duration);
         });
+        THREAD.setName("GTCEU-MultiblockPreview-CacheThread");
+        THREAD.start();
     }
 
     private static void renderBlocks(TrackedDummyWorld level, PoseStack poseStack, BlockRenderDispatcher dispatcher, RenderType layer, WorldSceneRenderer.VertexConsumerWrapper wrapperBuffer, Map<BlockPos, BlockInfo> renderedBlocks) {
