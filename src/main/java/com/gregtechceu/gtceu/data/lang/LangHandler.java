@@ -405,11 +405,11 @@ public class LangHandler {
                 "If enabled, items will not be inserted when cover is set to pull items from the inventory into pipe.\n§aEnabled");
         multilineLang(provider, "cover.conveyor.blocks_input.disabled",
                 "If enabled, items will not be inserted when cover is set to pull items from the inventory into pipe.\n§cDisabled");
-        provider.add("cover.universal.manual_import_export.mode.disabled",
+        multilineLang(provider, "cover.universal.manual_import_export.mode.disabled",
                 "Manual I/O: §bDisabled\n§7Items / Fluids will only move as specified by the cover and its filter.");
-        provider.add("cover.universal.manual_import_export.mode.filtered",
+        multilineLang(provider, "cover.universal.manual_import_export.mode.filtered",
                 "Manual I/O: §bFiltered\n§7Items / Fluids can be extracted and inserted independently of the cover mode, as long as its filter matches (if any)");
-        provider.add("cover.universal.manual_import_export.mode.unfiltered",
+        multilineLang(provider, "cover.universal.manual_import_export.mode.unfiltered",
                 "Manual I/O: §bUnfiltered\n§7Items / Fluids can be moved independently of the cover mode. The filter only applies to what is inserted or extracted by this cover itself.");
         multilineLang(provider, "cover.universal.manual_import_export.mode.description",
                 "§eDisabled§r - Items/fluids will only move as specified by the cover and its filter. \n§eAllow Filtered§r - Items/fluids can be extracted and inserted independently of the cover mode, as long as its filter matches (if any). \n§eAllow Unfiltered§r - Items/fluids can be moved independently of the cover mode. Filter applies to the items inserted or extracted by this cover");
