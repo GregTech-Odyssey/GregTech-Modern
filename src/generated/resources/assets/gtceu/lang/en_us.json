@@ -3138,7 +3138,7 @@
   "gtceu.multiblock.invalid_structure.tooltip": "This block is a controller of the multiblock structure. For building help, see structure template in JEI.",
   "gtceu.multiblock.large_boiler.description": "Large Boilers are multiblocks that generate steam from an energy source and water. Said energy source is either any Solid Fuel with a Burn Time, or a Diesel/Semi-Fluid Fuel. Can be throttled back in increments of 5%% to reduce Steam output and Fuel consumption.",
   "gtceu.multiblock.large_boiler.efficiency": "Efficiency: %s",
-  "gtceu.multiblock.large_boiler.explosion_tooltip": "Will explode if provided Fuel with no Water",
+  "gtceu.multiblock.large_boiler.explosion_tooltip": "Will explode if water is added after preheating finishes with no water present",
   "gtceu.multiblock.large_boiler.heat_time_tooltip": "§7Takes §f%d seconds §7to boiling up",
   "gtceu.multiblock.large_boiler.max_temperature": "Max Temperature: %dK, Steam Production: %dmB/t",
   "gtceu.multiblock.large_boiler.rate_tooltip": "§7Produces §f%d L §7of Steam with §f1 Coal",

@@ -3139,7 +3139,7 @@
     "gtceu.multiblock.invalid_structure.tooltip": "该方块是多方块结构的控制器，请查看该方块的JEI界面以获取搭建图示。",
     "gtceu.multiblock.large_boiler.description": "大型锅炉是一种使用水和能量源产生蒸汽的多方块结构。这里说的“能量源”通常是指固体燃料和高密度流体。不同等级的锅炉仅在蒸汽产量上有所差别。",
     "gtceu.multiblock.large_boiler.efficiency": "效率：%s",
-    "gtceu.multiblock.large_boiler.explosion_tooltip": "无水时提供燃料将爆炸",
+    "gtceu.multiblock.large_boiler.explosion_tooltip": "预热结束时若无水，加水将引发爆炸",
     "gtceu.multiblock.large_boiler.heat_time_tooltip": "§7需要§f%d秒§7预热",
     "gtceu.multiblock.large_boiler.max_temperature": "最高温度：%dK，蒸汽产量：%dmB/t",
     "gtceu.multiblock.large_boiler.rate_tooltip": "§7每块§1煤炭§7可以生产§f%dL§7的蒸汽",

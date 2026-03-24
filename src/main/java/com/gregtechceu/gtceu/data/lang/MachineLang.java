@@ -893,7 +893,7 @@ public class MachineLang {
                 "§7Produces §f%d L §7of Steam with §f1 Coal");
         provider.add("gtceu.multiblock.large_boiler.heat_time_tooltip", "§7Takes §f%d seconds §7to boiling up");
         provider.add("gtceu.multiblock.large_boiler.explosion_tooltip",
-                "Will explode if provided Fuel with no Water");
+                "Will explode if water is added after preheating finishes with no water present");
         provider.add("gtceu.multiblock.large_miner.done", "Done!");
         provider.add("gtceu.multiblock.large_miner.working", "Working...");
         provider.add("gtceu.multiblock.large_miner.invfull", "Inventory Full!");
