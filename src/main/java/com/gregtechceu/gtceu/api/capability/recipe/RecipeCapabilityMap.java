@@ -64,7 +64,8 @@ public final class RecipeCapabilityMap<T> implements Map<RecipeCapability<?>, T>
     @Override
     public boolean containsKey(Object key) {
         if (key == ItemRecipeCapability.CAP) return item != null;
-        return fluid != null;
+        if (key == FluidRecipeCapability.CAP) return fluid != null;
+        return false;
     }
 
     @Override
@@ -75,7 +76,8 @@ public final class RecipeCapabilityMap<T> implements Map<RecipeCapability<?>, T>
     @Override
     public T get(Object key) {
         if (key == ItemRecipeCapability.CAP) return item;
-        return fluid;
+        if (key == FluidRecipeCapability.CAP) return fluid;
+        return null;
     }
 
     @Override
@@ -83,7 +85,10 @@ public final class RecipeCapabilityMap<T> implements Map<RecipeCapability<?>, T>
         if (key == ItemRecipeCapability.CAP) {
             return item != null ? item : defaultValue;
         }
-        return fluid != null ? fluid : defaultValue;
+        if (key == FluidRecipeCapability.CAP) {
+            return fluid != null ? fluid : defaultValue;
+        }
+        return defaultValue;
     }
 
     @Override
@@ -95,13 +100,15 @@ public final class RecipeCapabilityMap<T> implements Map<RecipeCapability<?>, T>
     @Override
     @Nullable
     public T put(RecipeCapability<?> key, T value) {
+        T old = null;
         if (key == ItemRecipeCapability.CAP) {
-            T old = item;
+            old = item;
             item = value;
-            return old;
         }
-        T old = fluid;
-        fluid = value;
+        if (key == FluidRecipeCapability.CAP) {
+            old = fluid;
+            fluid = value;
+        }
         return old;
     }
 
@@ -111,8 +118,11 @@ public final class RecipeCapabilityMap<T> implements Map<RecipeCapability<?>, T>
             if (item == null) item = mappingFunction.apply(key);
             return item;
         }
-        if (fluid == null) fluid = mappingFunction.apply(key);
-        return fluid;
+        if (key == FluidRecipeCapability.CAP) {
+            if (fluid == null) fluid = mappingFunction.apply(key);
+            return fluid;
+        }
+        return null;
     }
 
     @Override
@@ -122,9 +132,12 @@ public final class RecipeCapabilityMap<T> implements Map<RecipeCapability<?>, T>
             item = null;
             return old;
         }
-        T old = fluid;
-        fluid = null;
-        return old;
+        if (key == FluidRecipeCapability.CAP) {
+            T old = fluid;
+            fluid = null;
+            return old;
+        }
+        return null;
     }
 
     @Override
