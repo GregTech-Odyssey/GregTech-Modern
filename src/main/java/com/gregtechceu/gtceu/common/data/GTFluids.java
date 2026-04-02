@@ -39,7 +39,7 @@ public class GTFluids {
         ForgeMod.enableMilkFluid();
 
         // register fluids for materials
-        REGISTRATE.creativeModeTab(() -> GTCreativeModeTabs.MATERIAL_FLUID);
+        REGISTRATE.defaultCreativeTab(GTCreativeModeTabs.MATERIAL_FLUID);
         for (MaterialRegistry registry : GTCEuAPI.materialManager.getRegistries()) {
             GTRegistrate registrate = registry.getRegistrate();
             for (var material : registry.getAllMaterials()) {

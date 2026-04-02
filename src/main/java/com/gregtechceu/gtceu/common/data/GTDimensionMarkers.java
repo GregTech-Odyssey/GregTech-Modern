@@ -24,7 +24,7 @@ public class GTDimensionMarkers {
 
     static {
         GTRegistries.DIMENSION_MARKERS.unfreeze();
-        REGISTRATE.creativeModeTab(() -> null);
+        REGISTRATE.removeDefaultCreativeTab();
     }
 
     public static final BlockEntry<Block> OVERWORLD_MARKER = createMarker("overworld");

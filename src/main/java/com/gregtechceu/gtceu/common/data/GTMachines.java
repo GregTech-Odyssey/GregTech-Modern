@@ -55,7 +55,7 @@ import static com.gregtechceu.gtceu.common.registry.GTRegistration.REGISTRATE;
 public class GTMachines {
 
     static {
-        REGISTRATE.creativeModeTab(() -> MACHINE);
+        REGISTRATE.defaultCreativeTab(MACHINE);
         GTRegistries.MACHINES.unfreeze();
     }
 

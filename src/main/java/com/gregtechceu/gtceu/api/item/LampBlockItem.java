@@ -5,22 +5,23 @@ import com.gregtechceu.gtceu.common.block.LampBlock;
 import com.lowdragmc.lowdraglib.client.renderer.IItemRendererProvider;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 
-import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.state.BlockState;
 
+import com.tterrag.registrate.ICustomfCategoryFill;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Consumer;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import static com.gregtechceu.gtceu.common.block.LampBlock.*;
 
 @ParametersAreNonnullByDefault
-public class LampBlockItem extends BlockItem implements IItemRendererProvider {
+public class LampBlockItem extends BlockItem implements IItemRendererProvider, ICustomfCategoryFill {
 
     public LampBlockItem(LampBlock block, Properties properties) {
         super(block, properties);
@@ -53,9 +54,10 @@ public class LampBlockItem extends BlockItem implements IItemRendererProvider {
         return returnValue;
     }
 
-    public void fillItemCategory(CreativeModeTab category, NonNullList<ItemStack> items) {
+    @Override
+    public void fillItemCategory(Consumer<ItemStack> consumer) {
         for (int i = 0; i < 8; ++i) {
-            items.add(this.getBlock().getStackFromIndex(i));
+            consumer.accept(this.getBlock().getStackFromIndex(i));
         }
     }
 

@@ -17,7 +17,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -35,7 +34,6 @@ import com.google.common.base.Preconditions;
 import com.tterrag.registrate.AbstractRegistrate;
 import com.tterrag.registrate.builders.AbstractBuilder;
 import com.tterrag.registrate.builders.BlockBuilder;
-import com.tterrag.registrate.builders.BuilderCallback;
 import com.tterrag.registrate.builders.ItemBuilder;
 import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.providers.RegistrateTagsProvider;
@@ -99,8 +97,8 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
     private NonNullSupplier<? extends BucketItem> bucket;
     private final List<TagKey<Fluid>> tags = new ArrayList<>();
 
-    public GTFluidBuilder(AbstractRegistrate<?> owner, P parent, Material material, String name, String langKey, BuilderCallback callback, ResourceLocation stillTexture, ResourceLocation flowingTexture, GTFluidBuilder.FluidTypeFactory typeFactory) {
-        super(owner, parent, "flowing_" + name, callback, ForgeRegistries.Keys.FLUIDS);
+    public GTFluidBuilder(AbstractRegistrate<?> owner, P parent, Material material, String name, String langKey, ResourceLocation stillTexture, ResourceLocation flowingTexture, GTFluidBuilder.FluidTypeFactory typeFactory) {
+        super(owner, parent, "flowing_" + name, ForgeRegistries.Keys.FLUIDS);
         this.sourceName = name;
         this.bucketName = name + "_bucket";
         this.material = material;
@@ -224,26 +222,15 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
 
     private FluidType.Properties makeTypeProperties() {
         FluidType.Properties properties = FluidType.Properties.create();
-        RegistryEntry<Block> block = getOwner().getOptional(sourceName, ForgeRegistries.Keys.BLOCKS);
         this.typeProperties.accept(properties);
-        // Force the translation key after the user callback runs
-        // This is done because we need to remove the lang data generator if using the block key,
-        // and if it was possible to undo this change, it might result in the user translation getting
-        // silently lost, as there's no good way to check whether the translation key was changed.
-        // TODO improve this?
-        if (block.isPresent()) {
-            properties.descriptionId(block.get().getDescriptionId());
-        } else {
-            // Fallback to material's name
-            properties.descriptionId(langKey);
-        }
+        properties.descriptionId(langKey);
         setData(ProviderType.LANG, NonNullBiConsumer.noop());
         return properties.sound(SoundActions.BUCKET_FILL, SoundEvents.BUCKET_FILL).sound(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY).temperature(temperature).density(density).viscosity(viscosity).lightLevel(luminance);
     }
 
     @Override
     protected GTFluidImpl.Flowing createEntry() {
-        return new GTFluidImpl.Flowing(this.state, () -> this.source.get(), () -> this.get().get(), (() -> this.block != null ? this.block.get() : null), (() -> this.bucket != null ? this.bucket.get() : null), this.burnTime, this.fluidType);
+        return new GTFluidImpl.Flowing(this.state, this.source, this.asSupplier(), (() -> this.block != null ? this.block.get() : null), (() -> this.bucket != null ? this.bucket.get() : null), this.burnTime, this.fluidType);
     }
 
     @Override
@@ -286,7 +273,7 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
             throw new IllegalStateException("Fluid must have a type: " + getName());
         }
         if (defaultSource == Boolean.TRUE) {
-            source(() -> new GTFluidImpl.Source(this.state, () -> this.source.get(), () -> this.get().get(), (() -> this.block != null ? this.block.get() : null), (() -> this.bucket != null ? this.bucket.get() : null), this.burnTime, this.fluidType));
+            source(() -> new GTFluidImpl.Source(this.state, this.source, this.asSupplier(), (() -> this.block != null ? this.block.get() : null), (() -> this.bucket != null ? this.bucket.get() : null), this.burnTime, this.fluidType));
         }
         if (defaultBlock == Boolean.TRUE) {
             block().register();
@@ -296,7 +283,7 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
         }
         NonNullSupplier<? extends GTFluid> source = this.source;
         if (source != null) {
-            getCallback().accept(sourceName, ForgeRegistries.Keys.FLUIDS, (GTFluidBuilder) this, source);
+            getOwner().register(sourceName, ForgeRegistries.Keys.FLUIDS, source);
         } else {
             throw new IllegalStateException("Fluid must have a source version: " + getName());
         }

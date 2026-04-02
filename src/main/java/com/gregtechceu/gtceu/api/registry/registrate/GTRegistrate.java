@@ -11,14 +11,11 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.registry.registrate.forge.GTFluidBuilder;
-import com.gregtechceu.gtceu.core.mixins.AbstractRegistrateAccessor;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -33,7 +30,6 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegisterEvent;
-import net.minecraftforge.registries.RegistryObject;
 
 import com.tterrag.registrate.Registrate;
 import com.tterrag.registrate.builders.Builder;
@@ -42,23 +38,17 @@ import com.tterrag.registrate.builders.NoConfigBuilder;
 import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.util.OneTimeEventReceiver;
 import com.tterrag.registrate.util.entry.ItemEntry;
-import com.tterrag.registrate.util.entry.RegistryEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
-import com.tterrag.registrate.util.nullness.NonNullSupplier;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -77,10 +67,9 @@ public class GTRegistrate extends Registrate {
 
     public static IGTFluidBuilder fluid(GTRegistrate parent, Material material, String name, String langKey,
                                         ResourceLocation stillTexture, ResourceLocation flowingTexture) {
-        return parent.entry(name,
-                callback -> new GTFluidBuilder<>(parent, parent, material, name, langKey, callback, stillTexture,
-                        flowingTexture, GTFluidBuilder::defaultFluidType).defaultLang().defaultSource()
-                        .setData(ProviderType.LANG, NonNullBiConsumer.noop()));
+        return new GTFluidBuilder<>(parent, parent, material, name, langKey, stillTexture,
+                flowingTexture, GTFluidBuilder::defaultFluidType).defaultLang().defaultSource()
+                .setData(ProviderType.LANG, NonNullBiConsumer.noop());
     }
 
     public static GTRegistrate create(String modId) {
@@ -107,7 +96,7 @@ public class GTRegistrate extends Registrate {
                 OneTimeEventReceiver.unregister(this, onRegister, RegisterEvent.class);
                 OneTimeEventReceiver.unregister(this, onRegisterLate, RegisterEvent.class);
             });
-            if (((AbstractRegistrateAccessor) this).getDoDatagen().get()) {
+            if (GTCEu.isDataGen()) {
                 OneTimeEventReceiver.addModListener(this, GatherDataEvent.class, this::onData);
             }
         }
@@ -183,42 +172,5 @@ public class GTRegistrate extends Registrate {
     public <T extends Item> @NotNull ItemBuilder<T, Registrate> item(String name,
                                                                      NonNullFunction<Item.Properties, T> factory) {
         return super.item(name, factory).lang(FormattingUtil.toEnglishName(PATTERN.matcher(name).replaceAll("_")));
-    }
-
-    private RegistryEntry<CreativeModeTab> currentTab;
-    private static final Map<RegistryEntry<?>, RegistryEntry<CreativeModeTab>> TAB_LOOKUP = new Reference2ReferenceOpenHashMap<>();
-
-    public void creativeModeTab(Supplier<RegistryEntry<CreativeModeTab>> currentTab) {
-        this.currentTab = currentTab.get();
-    }
-
-    public void creativeModeTab(RegistryEntry<CreativeModeTab> currentTab) {
-        this.currentTab = currentTab;
-    }
-
-    public boolean isInCreativeTab(RegistryEntry<?> entry, RegistryEntry<CreativeModeTab> tab) {
-        return TAB_LOOKUP.get(entry) == tab;
-    }
-
-    public void setCreativeTab(RegistryEntry<?> entry, @Nullable RegistryEntry<CreativeModeTab> tab) {
-        TAB_LOOKUP.put(entry, tab);
-    }
-
-    protected <R,
-            T extends R> RegistryEntry<T> accept(String name, ResourceKey<? extends Registry<R>> type,
-                                                 Builder<R, T, ?, ?> builder, NonNullSupplier<? extends T> creator,
-                                                 NonNullFunction<RegistryObject<T>, ? extends RegistryEntry<T>> entryFactory) {
-        RegistryEntry<T> entry = super.accept(name, type, builder, creator, entryFactory);
-
-        if (this.currentTab != null) {
-            TAB_LOOKUP.put(entry, this.currentTab);
-        }
-
-        return entry;
-    }
-
-    public <P> NoConfigBuilder<CreativeModeTab, CreativeModeTab, P> defaultCreativeTab(P parent, String name,
-                                                                                       Consumer<CreativeModeTab.Builder> config) {
-        return createCreativeModeTab(parent, name, config);
     }
 }

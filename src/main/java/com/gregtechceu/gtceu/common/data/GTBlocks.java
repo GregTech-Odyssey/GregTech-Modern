@@ -98,7 +98,7 @@ public class GTBlocks {
     // Pipes Blocks //
     //////////////////////////////////////
     static {
-        REGISTRATE.creativeModeTab(() -> GTCreativeModeTabs.MATERIAL_PIPE);
+        REGISTRATE.defaultCreativeTab(GTCreativeModeTabs.MATERIAL_PIPE);
     }
 
     // Laser Pipe Blocks
@@ -161,7 +161,7 @@ public class GTBlocks {
     // ****** Casing Blocks *****//
     //////////////////////////////////////
     static {
-        REGISTRATE.creativeModeTab(() -> GTCreativeModeTabs.DECORATION);
+        REGISTRATE.defaultCreativeTab(GTCreativeModeTabs.DECORATION);
     }
 
     // Multiblock Machine Casing Blocks
@@ -483,7 +483,7 @@ public class GTBlocks {
 
     private static BlockEntry<Block> createMachineCasingBlock(int tier) {
         String tierName = GTValues.VN[tier].toLowerCase(Locale.ROOT);
-        var entry = REGISTRATE
+        return REGISTRATE
                 .block("%s_machine_casing".formatted(tierName), Block::new)
                 .lang("%s Machine Casing".formatted(GTValues.VN[tier]))
                 .initialProperties(() -> Blocks.IRON_BLOCK)
@@ -494,15 +494,11 @@ public class GTBlocks {
                 .item(BlockItem::new)
                 .build()
                 .register();
-        if (!GTCEuAPI.isHighTier() && tier > GTValues.UHV) {
-            REGISTRATE.setCreativeTab(entry, null);
-        }
-        return entry;
     }
 
     private static BlockEntry<Block> createHermeticCasing(int tier) {
         String tierName = GTValues.VN[tier].toLowerCase(Locale.ROOT);
-        var entry = REGISTRATE
+        return REGISTRATE
                 .block("%s_hermetic_casing".formatted(tierName), Block::new)
                 .lang("Hermetic Casing %s".formatted(GTValues.LVT[tier]))
                 .initialProperties(() -> Blocks.IRON_BLOCK)
@@ -513,10 +509,6 @@ public class GTBlocks {
                 .item(BlockItem::new)
                 .build()
                 .register();
-        if (!GTCEuAPI.isHighTier() && tier > GTValues.UHV) {
-            REGISTRATE.setCreativeTab(entry, null);
-        }
-        return entry;
     }
 
     private static BlockEntry<Block> createSteamCasing(String name, String material) {
@@ -1345,14 +1337,14 @@ public class GTBlocks {
         generateStoneBlocks();
 
         // Procedural Blocks
-        REGISTRATE.creativeModeTab(() -> GTCreativeModeTabs.MATERIAL_BLOCK);
+        REGISTRATE.defaultCreativeTab(GTCreativeModeTabs.MATERIAL_BLOCK);
         GTMaterialBlocks.generateMaterialBlocks();   // Compressed Blocks
         GTMaterialBlocks.generateOreBlocks();        // Ore Blocks
         GTMaterialBlocks.generateOreIndicators();    // Ore Indicators
         GTMaterialBlocks.MATERIAL_BLOCKS = GTMaterialBlocks.MATERIAL_BLOCKS_BUILDER.build();
 
         // Procedural Pipes/Wires
-        REGISTRATE.creativeModeTab(() -> GTCreativeModeTabs.MATERIAL_PIPE);
+        REGISTRATE.defaultCreativeTab(GTCreativeModeTabs.MATERIAL_PIPE);
         GTMaterialBlocks.generateCableBlocks();        // Cable & Wire Blocks
         GTMaterialBlocks.generateFluidPipeBlocks();    // Fluid Pipe Blocks
         GTMaterialBlocks.generateItemPipeBlocks();     // Item Pipe Blocks

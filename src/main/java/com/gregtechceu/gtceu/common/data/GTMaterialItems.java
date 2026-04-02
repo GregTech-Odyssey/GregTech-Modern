@@ -59,7 +59,7 @@ public class GTMaterialItems {
 
     // Material Items
     public static void generateMaterialItems() {
-        REGISTRATE.creativeModeTab(() -> MATERIAL_ITEM);
+        REGISTRATE.defaultCreativeTab(MATERIAL_ITEM);
         for (var tagPrefix : TagPrefix.values()) {
             if (tagPrefix.doGenerateItem()) {
                 for (MaterialRegistry registry : GTCEuAPI.materialManager.getRegistries()) {
@@ -90,7 +90,7 @@ public class GTMaterialItems {
 
     // Material Tools
     public static void generateTools() {
-        REGISTRATE.creativeModeTab(() -> TOOL);
+        REGISTRATE.defaultCreativeTab(TOOL);
         for (GTToolType toolType : GTToolType.getTypes().values()) {
             for (MaterialRegistry registry : GTCEuAPI.materialManager.getRegistries()) {
                 GTRegistrate registrate = registry.getRegistrate();
