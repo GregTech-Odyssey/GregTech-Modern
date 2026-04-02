@@ -6,6 +6,8 @@ import java.util.function.Consumer;
 @FunctionalInterface
 public interface NonNullConsumer<@NonnullType T> extends Consumer<T> {
 
+    NonNullConsumer NOOP = t -> {};
+
     @Override
     void accept(T t);
 
@@ -18,6 +20,6 @@ public interface NonNullConsumer<@NonnullType T> extends Consumer<T> {
     }
 
     static <T> NonNullConsumer<T> noop() {
-        return t -> {};
+        return NOOP;
     }
 }
