@@ -54,9 +54,11 @@ public class ForgeClientEventListener {
 
     @SubscribeEvent
     public static void onClientDisconnect(ClientPlayerNetworkEvent.LoggingOut event) {
-        ClientCacheManager.saveCaches();
-        ClientCacheManager.clearCaches();
-        ClientCacheManager.allowReinit();
+        if (event.getPlayer() != null) {
+            ClientCacheManager.saveCaches();
+            ClientCacheManager.clearCaches();
+            ClientCacheManager.allowReinit();
+        }
     }
 
     @SubscribeEvent

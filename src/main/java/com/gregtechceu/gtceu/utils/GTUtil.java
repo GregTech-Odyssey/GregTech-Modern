@@ -132,11 +132,11 @@ public class GTUtil {
                 namespace = location.substring(0, i);
             }
         }
-        return new ResourceLocation(namespace, path);
+        return ResourceLocation.fromNamespaceAndPath(namespace, path);
     }
 
     public static ResourceLocation getResourceLocation(String namespace, String path) {
-        return new ResourceLocation(namespace, path);
+        return ResourceLocation.fromNamespaceAndPath(namespace, path);
     }
 
     @Nullable
