@@ -18,13 +18,11 @@ import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
 import com.tterrag.registrate.util.nullness.NonNullSupplier;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import java.util.Arrays;
 import java.util.Set;
 import java.util.function.Function;
-
-import javax.annotation.Nullable;
 
 /**
  * A builder for block entities, allows for customization of the valid blocks.
@@ -66,9 +64,7 @@ public class BlockEntityBuilder<T extends BlockEntity, P> extends AbstractBuilde
     }
 
     private final BlockEntityFactory<T> factory;
-    private final Set<NonNullSupplier<? extends Block>> validBlocks = new ObjectOpenHashSet<>();
-    @Nullable
-    private NonNullSupplier<NonNullFunction<BlockEntityRendererProvider.Context, BlockEntityRenderer<? super T>>> renderer;
+    private final Set<NonNullSupplier<? extends Block>> validBlocks = new ReferenceOpenHashSet<>();
 
     protected BlockEntityBuilder(AbstractRegistrate<?> owner, P parent, String name, BlockEntityFactory<T> factory) {
         super(owner, parent, name, ForgeRegistries.Keys.BLOCK_ENTITY_TYPES);
@@ -123,7 +119,7 @@ public class BlockEntityBuilder<T extends BlockEntity, P> extends AbstractBuilde
     protected BlockEntityType<T> createEntry() {
         BlockEntityFactory<T> factory = this.factory;
         final var supplier = asSupplier();
-        return BlockEntityType.Builder.<T>of((pos, state) -> factory.create((BlockEntityType<T>) supplier.get(), pos, state), validBlocks.stream().map(NonNullSupplier::get).toArray(Block[]::new))
+        return BlockEntityType.Builder.of((pos, state) -> factory.create((BlockEntityType<T>) supplier.get(), pos, state), validBlocks.stream().map(NonNullSupplier::get).toArray(Block[]::new))
                 .build(null);
     }
 
