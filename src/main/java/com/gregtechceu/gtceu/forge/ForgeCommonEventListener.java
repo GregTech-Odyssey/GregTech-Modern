@@ -26,7 +26,6 @@ import com.gregtechceu.gtceu.common.item.armor.QuarkTechSuite;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.SPacketSendWorldID;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
-import com.gregtechceu.gtceu.integration.map.ClientCacheManager;
 import com.gregtechceu.gtceu.integration.map.WaypointManager;
 import com.gregtechceu.gtceu.integration.map.cache.server.ServerCache;
 import com.gregtechceu.gtceu.utils.TaskHandler;
@@ -186,8 +185,6 @@ public class ForgeCommonEventListener {
             var multiblockWorldData = MultiblockWorldData.get(serverLevel);
             if (multiblockWorldData != null) multiblockWorldData.clear();
             ServerCache.instance.invalidateWorld(serverLevel);
-        } else if (event.getLevel().isClientSide()) {
-            ClientCacheManager.saveCaches();
         }
     }
 
