@@ -36,11 +36,14 @@ import net.minecraftforge.client.event.*;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import com.tterrag.registrate.ClientEvent;
+
 public class ClientProxy extends CommonProxy {
 
     public ClientProxy() {
         super();
         init();
+        ClientEvent.register();
     }
 
     public static Level level() {

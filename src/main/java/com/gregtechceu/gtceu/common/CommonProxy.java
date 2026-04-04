@@ -29,7 +29,6 @@ import com.gregtechceu.gtceu.common.registry.GTRegistration;
 import com.gregtechceu.gtceu.common.unification.material.MaterialRegistryManager;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.core.MixinHelpers;
-import com.gregtechceu.gtceu.core.mixins.AbstractRegistrateAccessor;
 import com.gregtechceu.gtceu.data.GregTechDatagen;
 import com.gregtechceu.gtceu.data.lang.MaterialLangGenerator;
 import com.gregtechceu.gtceu.data.loot.ChestGenHooks;
@@ -59,13 +58,8 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.javafmlmod.FMLModContainer;
 import net.minecraftforge.registries.RegisterEvent;
 
-import com.google.common.collect.Multimaps;
 import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.providers.RegistrateLangProvider;
-import com.tterrag.registrate.providers.RegistrateProvider;
-import com.tterrag.registrate.util.nullness.NonNullConsumer;
-
-import java.util.List;
 
 public class CommonProxy {
 
@@ -133,17 +127,13 @@ public class CommonProxy {
         // Register all material manager registries, for materials with mod ids.
         GTCEuAPI.materialManager.getRegistries().forEach(registry -> {
             // Force the material lang generator to be at index 0, so that addons' lang generators can override it.
-            AbstractRegistrateAccessor accessor = (AbstractRegistrateAccessor) registry.getRegistrate();
-            if (accessor.getDoDatagen().get()) {
-                // noinspection UnstableApiUsage
-                List<NonNullConsumer<? extends RegistrateProvider>> providers = Multimaps.asMap(accessor.getDatagens())
-                        .get(ProviderType.LANG);
+            if (GTCEu.isDataGen()) {
+                var providers = registry.getRegistrate().datagens.get(ProviderType.LANG);
                 if (providers.isEmpty()) {
                     providers.add(
                             (provider) -> MaterialLangGenerator.generate((RegistrateLangProvider) provider, registry));
                 } else {
-                    providers.addFirst(
-                            (provider) -> MaterialLangGenerator.generate((RegistrateLangProvider) provider, registry));
+                    providers.add((provider) -> MaterialLangGenerator.generate((RegistrateLangProvider) provider, registry));
                 }
             }
 

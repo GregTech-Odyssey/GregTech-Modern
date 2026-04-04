@@ -1,21 +1,19 @@
 package com.tterrag.registrate.builders;
 
+import com.gregtechceu.gtceu.GTCEu;
+
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import com.tterrag.registrate.AbstractRegistrate;
-import com.tterrag.registrate.util.OneTimeEventReceiver;
+import com.tterrag.registrate.ClientEvent;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
@@ -115,20 +113,10 @@ public class BlockEntityBuilder<T extends BlockEntity, P> extends AbstractBuilde
      * @return this {@link BlockEntityBuilder}
      */
     public BlockEntityBuilder<T, P> renderer(NonNullSupplier<NonNullFunction<BlockEntityRendererProvider.Context, BlockEntityRenderer<? super T>>> renderer) {
-        if (this.renderer == null) { // First call only
-            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::registerRenderer);
+        if (GTCEu.isClientSide()) {
+            ClientEvent.registerBlockEntityRenderer(asSupplier(), renderer);
         }
-        this.renderer = renderer;
         return this;
-    }
-
-    protected void registerRenderer() {
-        OneTimeEventReceiver.addModListener(getOwner(), FMLClientSetupEvent.class, $ -> {
-            var renderer = this.renderer;
-            if (renderer != null) {
-                BlockEntityRenderers.register(getEntry(), renderer.get()::apply);
-            }
-        });
     }
 
     @Override

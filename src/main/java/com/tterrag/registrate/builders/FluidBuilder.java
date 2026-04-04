@@ -1,7 +1,8 @@
 package com.tterrag.registrate.builders;
 
+import com.gregtechceu.gtceu.GTCEu;
+
 import net.minecraft.Util;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -15,22 +16,19 @@ import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.ForgeFlowingFluid;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import com.google.common.annotations.Beta;
 import com.google.common.base.Preconditions;
 import com.tterrag.registrate.AbstractRegistrate;
+import com.tterrag.registrate.ClientEvent;
 import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.providers.RegistrateLangProvider;
 import com.tterrag.registrate.providers.RegistrateTagsProvider;
-import com.tterrag.registrate.util.OneTimeEventReceiver;
 import com.tterrag.registrate.util.entry.FluidEntry;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiFunction;
@@ -255,8 +253,6 @@ public class FluidBuilder<T extends ForgeFlowingFluid, P> extends AbstractBuilde
 
     private NonNullConsumer<ForgeFlowingFluid.Properties> fluidProperties;
 
-    private @Nullable Supplier<RenderType> layer = null;
-
     private boolean registerType;
 
     @Nullable
@@ -343,30 +339,11 @@ public class FluidBuilder<T extends ForgeFlowingFluid, P> extends AbstractBuilde
         return lang(f -> f.getFluidType().getDescriptionId(), name);
     }
 
-    @SuppressWarnings("deprecation")
     public FluidBuilder<T, P> renderType(Supplier<RenderType> layer) {
-        DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
-            Preconditions.checkArgument(RenderType.chunkBufferLayers().contains(layer.get()), "Invalid render type: " + layer);
-        });
-
-        if (this.layer == null) {
-            onRegister(this::registerRenderType);
+        if (GTCEu.isClientSide()) {
+            ClientEvent.setFluidRenderLayer(asSupplier(), layer);
         }
-        this.layer = layer;
         return this;
-    }
-
-    @SuppressWarnings("deprecation")
-    protected void registerRenderType(T entry) {
-        DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
-            OneTimeEventReceiver.addModListener(getOwner(), FMLClientSetupEvent.class, $ -> {
-                if (this.layer != null) {
-                    RenderType layer = this.layer.get();
-                    ItemBlockRenderTypes.setRenderLayer(entry, layer);
-                    ItemBlockRenderTypes.setRenderLayer(getSource(), layer);
-                }
-            });
-        });
     }
 
     /**

@@ -1,5 +1,9 @@
 package com.tterrag.registrate;
 
+import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.utils.collection.MultiMap;
+import com.gregtechceu.gtceu.utils.collection.NestedMap;
+
 import net.minecraft.Util;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
@@ -25,7 +29,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.data.loading.DatagenModLoader;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -40,12 +43,6 @@ import net.minecraftforge.registries.RegisterEvent;
 import net.minecraftforge.registries.RegistryBuilder;
 import net.minecraftforge.registries.RegistryObject;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Table;
 import com.mojang.serialization.Codec;
 import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.builders.BlockEntityBuilder;
@@ -75,7 +72,7 @@ import com.tterrag.registrate.util.nullness.NonNullFunction;
 import com.tterrag.registrate.util.nullness.NonNullSupplier;
 import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
 import com.tterrag.registrate.util.nullness.NonnullType;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
@@ -88,7 +85,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -124,15 +120,15 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
     private static class Registration<R, T extends R> {
 
         private final ResourceKey<R> key;
-        private final ResourceKey<? extends Registry<R>> type;
         private final RegistryEntry<T> delegate;
+        @Nullable
         private NonNullSupplier<? extends T> creator;
 
+        @Nullable
         private List<NonNullConsumer<? super T>> callbacks;
 
         private Registration(ResourceLocation name, ResourceKey<? extends Registry<R>> type, List<NonNullConsumer<? super T>> callbacks, NonNullSupplier<? extends T> creator, NonNullFunction<ResourceKey<T>, ? extends RegistryEntry<T>> entryFactory) {
             this.key = ResourceKey.create(type, name);
-            this.type = type;
             this.callbacks = callbacks;
             this.creator = creator;
             this.delegate = entryFactory.apply((ResourceKey) key);
@@ -166,19 +162,17 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
         return !FMLEnvironment.production;
     }
 
-    private final Table<ResourceKey<? extends Registry<?>>, String, Registration<?, ?>> registrations = HashBasedTable.create();
+    private final NestedMap<ResourceKey<? extends Registry<?>>, String, Registration<?, ?>> registrations = NestedMap.createIdentity(LinkedHashMap::new);
     /** Entry-less callbacks that are invoked after the registry type has completely finished */
-    private final Multimap<ResourceKey<? extends Registry<?>>, Runnable> afterRegisterCallbacks = HashMultimap.create();
-    private final Set<ResourceKey<? extends Registry<?>>> completedRegistrations = new ObjectOpenHashSet<>();
+    private final MultiMap<ResourceKey<? extends Registry<?>>, Runnable> afterRegisterCallbacks = MultiMap.createIdentity(ArrayList::new);
+    private final Set<ResourceKey<? extends Registry<?>>> completedRegistrations = new ReferenceOpenHashSet<>();
 
-    private final Table<Pair<String, ResourceKey<? extends Registry<?>>>, ProviderType<?>, Consumer<? extends RegistrateProvider>> datagensByEntry = HashBasedTable.create();
-    private final ListMultimap<ProviderType<?>, @NonnullType NonNullConsumer<? extends RegistrateProvider>> datagens = ArrayListMultimap.create();
-    private final Multimap<ResourceKey<CreativeModeTab>, Consumer<CreativeModeTabModifier>> creativeModeTabModifiers = ArrayListMultimap.create();
+    public final NestedMap<ProviderType<?>, Pair<String, ResourceKey<? extends Registry<?>>>, Consumer<? extends RegistrateProvider>> datagensByEntry = NestedMap.createIdentity(HashMap::new);
+    public final MultiMap<ProviderType<?>, @NonnullType Consumer<? extends RegistrateProvider>> datagens = MultiMap.createIdentity(ReferenceOpenHashSet::new);
+    public final MultiMap<ResourceKey<CreativeModeTab>, Consumer<CreativeModeTabModifier>> creativeModeTabModifiers = MultiMap.createIdentity(ArrayList::new);
 
     @Nullable
     public ResourceKey<CreativeModeTab> defaultCreativeModeTab = CreativeModeTabs.SEARCH;
-
-    private final NonNullSupplier<Boolean> doDatagen = NonNullSupplier.lazy(DatagenModLoader::isRunningDataGen);
 
     /**
      * @return The mod ID that this {@link AbstractRegistrate} is creating objects for
@@ -245,7 +239,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
             OneTimeEventReceiver.unregister(this, onRegisterLate, RegisterEvent.class);
         });
 
-        if (doDatagen.get()) {
+        if (GTCEu.isDataGen()) {
             OneTimeEventReceiver.addModListener(this, GatherDataEvent.class, this::onData);
         }
 
@@ -267,13 +261,12 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
             log.debug(DebugMarkers.REGISTER, "Skipping invalid registry with no supertype: " + event.getRegistryKey().location());
             return;
         }
-        Map<String, Registration<?, ?>> registrationsForType = registrations.row(type);
-        if (registrationsForType.size() > 0) {
+        Map<String, Registration<?, ?>> registrationsForType = registrations.get(type);
+        if (!registrationsForType.isEmpty()) {
             log.debug(DebugMarkers.REGISTER, "({}) Registering {} known objects of type {}", getModid(), registrationsForType.size(), type.location());
             for (Entry<String, Registration<?, ?>> e : registrationsForType.entrySet()) {
                 try {
                     e.getValue().register(event);
-                    log.debug(DebugMarkers.REGISTER, "Registered {} to registry {}", e.getValue().getName(), event.getRegistryKey().location());
                 } catch (Exception ex) {
                     String err = "Unexpected error while registering entry " + e.getValue().getName() + " to registry " + event.getRegistryKey().location();
                     if (skipErrors) {
@@ -298,9 +291,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
      */
     protected void onRegisterLate(RegisterEvent event) {
         ResourceKey<? extends Registry<?>> type = event.getRegistryKey();
-        Collection<Runnable> callbacks = afterRegisterCallbacks.get(type);
-        callbacks.forEach(Runnable::run);
-        callbacks.clear();
+        afterRegisterCallbacks.remove(type).forEach(Runnable::run);
         completedRegistrations.add(type);
     }
 
@@ -313,10 +304,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
      */
     protected void onBuildCreativeModeTabContents(BuildCreativeModeTabContentsEvent event) {
         var modifier = new CreativeModeTabModifier(event);
-
-        creativeModeTabModifiers.forEach((key, value) -> {
-            if (event.getTabKey().equals(key)) value.accept(modifier);
-        });
+        creativeModeTabModifiers.get(event.getTabKey()).forEach(value -> value.accept(modifier));
     }
 
     @Nullable
@@ -460,13 +448,13 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
      */
     @SuppressWarnings({ "null", "unchecked" })
     public <R> Collection<RegistryEntry<R>> getAll(ResourceKey<? extends Registry<R>> type) {
-        return registrations.row(type).values().stream().map(r -> (RegistryEntry<R>) r.delegate).collect(Collectors.toList());
+        return registrations.get(type).values().stream().map(r -> (RegistryEntry<R>) r.delegate).toList();
     }
 
     /**
      * Add a callback to be invoked when a certain registry has fully completed registration, i.e. all objects of that
      * type have been registered.
-     * 
+     *
      * @param <R>
      *                     The registry type
      * @param registryType
@@ -476,7 +464,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
      * @return This {@link AbstractRegistrate} instance
      */
     public <R> S addRegisterCallback(ResourceKey<? extends Registry<R>> registryType, Runnable callback) {
-        afterRegisterCallbacks.put((ResourceKey<? extends Registry<?>>) registryType, callback);
+        afterRegisterCallbacks.put(registryType, callback);
         return self();
     }
 
@@ -553,9 +541,9 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
      * @return this {@link AbstractRegistrate}
      */
     public <P extends RegistrateProvider, R> S setDataGenerator(String entry, ResourceKey<? extends Registry<R>> registryType, ProviderType<? extends P> type, NonNullConsumer<? extends P> cons) {
-        if (!doDatagen.get()) return self();
+        if (!GTCEu.isDataGen()) return self();
         @SuppressWarnings("null")
-        Consumer<? extends RegistrateProvider> existing = datagensByEntry.put(Pair.of(entry, registryType), type, cons);
+        Consumer<? extends RegistrateProvider> existing = datagensByEntry.put(type, Pair.of(entry, registryType), cons);
         if (existing != null) {
             datagens.remove(type, existing);
         }
@@ -577,7 +565,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
      * @return this {@link AbstractRegistrate}
      */
     public <T extends RegistrateProvider> S addDataGenerator(ProviderType<? extends T> type, NonNullConsumer<? extends T> cons) {
-        if (doDatagen.get()) {
+        if (GTCEu.isDataGen()) {
             datagens.put(type, cons);
         }
         return self();
@@ -636,15 +624,15 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
      * @return A {@link MutableComponent} representing the translated text
      */
     public MutableComponent addRawLang(String key, String value) {
-        if (doDatagen.get()) {
+        if (GTCEu.isDataGen()) {
             extraLang.get().add(Pair.of(key, value));
         }
         return Component.translatable(key);
     }
 
     @SuppressWarnings("null")
-    private Optional<Pair<String, ResourceKey<? extends Registry<?>>>> getEntryForGenerator(ProviderType<?> type, NonNullConsumer<? extends RegistrateProvider> generator) {
-        for (Map.Entry<Pair<String, ResourceKey<? extends Registry<?>>>, Consumer<? extends RegistrateProvider>> e : datagensByEntry.column(type).entrySet()) {
+    private Optional<Pair<String, ResourceKey<? extends Registry<?>>>> getEntryForGenerator(ProviderType<?> type, Consumer<? extends RegistrateProvider> generator) {
+        for (Map.Entry<Pair<String, ResourceKey<? extends Registry<?>>>, Consumer<? extends RegistrateProvider>> e : datagensByEntry.get(type).entrySet()) {
             if (e.getValue() == generator) {
                 return Optional.of(e.getKey());
             }
@@ -664,7 +652,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
      */
     @SuppressWarnings("unchecked")
     public <T extends RegistrateProvider> void genData(ProviderType<? extends T> type, T gen) {
-        if (!doDatagen.get()) return;
+        if (!GTCEu.isDataGen()) return;
         datagens.get(type).forEach(cons -> {
             Optional<Pair<String, ResourceKey<? extends Registry<?>>>> entry = null;
             if (log.isEnabled(Level.DEBUG, DebugMarkers.DATA)) {
@@ -938,7 +926,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
     }
 
     public <R, T extends R, P> NoConfigBuilder<R, T, P> generic(P parent, String name, ResourceKey<Registry<R>> registryType, NonNullSupplier<T> factory) {
-        return new NoConfigBuilder<R, T, P>(this, parent, name, registryType, factory);
+        return new NoConfigBuilder<>(this, parent, name, registryType, factory);
     }
 
     // Items
@@ -1186,7 +1174,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
     }
 
     public <T extends AbstractContainerMenu, SC extends Screen & MenuAccess<T>, P> MenuBuilder<T, SC, P> menu(P parent, String name, MenuFactory<T> factory, NonNullSupplier<ScreenFactory<T, SC>> screenFactory) {
-        return new MenuBuilder<T, SC, P>(this, parent, name, factory, screenFactory);
+        return new MenuBuilder<>(this, parent, name, factory, screenFactory);
     }
 
     public <T extends AbstractContainerMenu, SC extends Screen & MenuAccess<T>> MenuBuilder<T, SC, S> menu(ForgeMenuFactory<T> factory, NonNullSupplier<ScreenFactory<T, SC>> screenFactory) {
@@ -1202,7 +1190,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
     }
 
     public <T extends AbstractContainerMenu, SC extends Screen & MenuAccess<T>, P> MenuBuilder<T, SC, P> menu(P parent, String name, ForgeMenuFactory<T> factory, NonNullSupplier<ScreenFactory<T, SC>> screenFactory) {
-        return new MenuBuilder<T, SC, P>(this, parent, name, factory, screenFactory);
+        return new MenuBuilder<>(this, parent, name, factory, screenFactory);
     }
 
     // Enchantment

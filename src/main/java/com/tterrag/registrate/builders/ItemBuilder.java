@@ -1,23 +1,22 @@
 package com.tterrag.registrate.builders;
 
+import com.gregtechceu.gtceu.GTCEu;
+
 import net.minecraft.client.color.item.ItemColor;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterColorHandlersEvent;
-import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import com.tterrag.registrate.AbstractRegistrate;
+import com.tterrag.registrate.ClientEvent;
 import com.tterrag.registrate.providers.DataGenContext;
 import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.providers.RegistrateItemModelProvider;
 import com.tterrag.registrate.providers.RegistrateLangProvider;
 import com.tterrag.registrate.providers.RegistrateRecipeProvider;
 import com.tterrag.registrate.util.CreativeModeTabModifier;
-import com.tterrag.registrate.util.OneTimeEventReceiver;
 import com.tterrag.registrate.util.entry.ItemEntry;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
@@ -75,9 +74,6 @@ public class ItemBuilder<T extends Item, P> extends AbstractBuilder<Item, T, P, 
 
     private NonNullSupplier<Item.Properties> initialProperties = Item.Properties::new;
     private NonNullFunction<Item.Properties, Item.Properties> propertiesCallback = NonNullUnaryOperator.identity();
-
-    @Nullable
-    private NonNullSupplier<Supplier<ItemColor>> colorHandler;
 
     private @Nullable Reference2ReferenceOpenHashMap<ResourceKey<CreativeModeTab>, Consumer<CreativeModeTabModifier>> creativeModeTabs;
 
@@ -183,20 +179,10 @@ public class ItemBuilder<T extends Item, P> extends AbstractBuilder<Item, T, P, 
      * @return this {@link ItemBuilder}
      */
     public ItemBuilder<T, P> color(NonNullSupplier<Supplier<ItemColor>> colorHandler) {
-        if (this.colorHandler == null) {
-            DistExecutor.runWhenOn(Dist.CLIENT, () -> this::registerItemColor);
+        if (GTCEu.isClientSide()) {
+            ClientEvent.registerItemColorHandlers(asSupplier(), colorHandler.get());
         }
-        this.colorHandler = colorHandler;
         return this;
-    }
-
-    protected void registerItemColor() {
-        OneTimeEventReceiver.addModListener(getOwner(), RegisterColorHandlersEvent.Item.class, e -> {
-            NonNullSupplier<Supplier<ItemColor>> colorHandler = this.colorHandler;
-            if (colorHandler != null) {
-                e.register(colorHandler.get().get(), getEntry());
-            }
-        });
     }
 
     /**

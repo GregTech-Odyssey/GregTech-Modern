@@ -19,7 +19,6 @@
     "xaeroworldmap.WorldMapSessionMixin"
   ],
   "mixins": [
-    "AbstractRegistrateAccessor",
     "BlockBehaviourAccessor",
     "BlockMixin",
     "BlockPropertiesAccessor",
