@@ -27,7 +27,7 @@ public class Symptom {
             ((medicalConditionTracker, condition, configuredSymptom, baseSymptom, modifier) -> {
                 if (modifier > 0) {
                     Player player = medicalConditionTracker.getPlayer();
-                    player.hurt(condition.getDamageSource(medicalConditionTracker), Float.MAX_VALUE);
+                    player.hurt(condition.getDamageSource(medicalConditionTracker), Math.max(20f, player.getHealth() * 20));
                 }
             }));
     public static final Symptom RANDOM_DAMAGE = new Symptom(defaultKey("random_damage"), 10, 1,
