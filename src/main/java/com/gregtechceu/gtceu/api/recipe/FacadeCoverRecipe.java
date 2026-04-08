@@ -10,9 +10,11 @@ import com.gregtechceu.gtceu.common.item.FacadeItemBehaviour;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingRecipe;
@@ -28,6 +30,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class FacadeCoverRecipe implements CraftingRecipe {
+
+    private static final Ingredient FACADE_INGREDIENT = Ingredient.of(BuiltInRegistries.ITEM.stream()
+            .map(Item::getDefaultInstance)
+            .filter(FacadeItemBehaviour::isValidFacade));
 
     public static final FacadeCoverRecipe INSTANCE = new FacadeCoverRecipe();
     public static final RecipeSerializer<FacadeCoverRecipe> SERIALIZER = new RecipeSerializer<>() {
@@ -89,12 +95,12 @@ public class FacadeCoverRecipe implements CraftingRecipe {
                 Ingredient.of(ChemicalHelper.getTag(TagPrefix.plate, GTMaterials.Iron)),
                 Ingredient.of(ChemicalHelper.getTag(TagPrefix.plate, GTMaterials.Iron)),
                 Ingredient.of(ChemicalHelper.getTag(TagPrefix.plate, GTMaterials.Iron)),
-                Ingredient.of(Blocks.STONE));
+                FACADE_INGREDIENT);
     }
 
     @Override
     public boolean canCraftInDimensions(int width, int height) {
-        return false;
+        return width * height >= 4;
     }
 
     @Override
