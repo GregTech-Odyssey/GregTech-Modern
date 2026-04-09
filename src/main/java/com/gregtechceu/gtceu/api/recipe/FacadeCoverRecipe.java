@@ -100,7 +100,7 @@ public class FacadeCoverRecipe implements CraftingRecipe {
 
     @Override
     public boolean canCraftInDimensions(int width, int height) {
-        return width * height >= 4;
+        return false;
     }
 
     @Override
