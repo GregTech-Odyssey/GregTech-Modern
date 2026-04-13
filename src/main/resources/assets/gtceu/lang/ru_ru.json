@@ -1828,7 +1828,7 @@
     "gtceu.machine.fluid_tank.max_multiblock": "Максимальный размер: %dx%dx%d",
     "gtceu.machine.fusion_reactor.capacity": "§7Максимальный запас энергии: §e%sM EU",
     "gtceu.machine.fusion_reactor.luv.tooltip": "Плавильный завод атомных сплавов",
-    "gtceu.machine.fusion_reactor.overclocking": "Ускорение требует в двое больше энергии и вдвое меньше времени.",
+    "gtceu.machine.fusion_reactor.overclocking": "При разгоне потребляемая мощность увеличивается в 4 раза, а время работы сокращается вдвое.",
     "gtceu.machine.fusion_reactor.uv.tooltip": "БЕЛЫЙ КАРЛИК НА ВАШЕЙ БАЗЕ",
     "gtceu.machine.fusion_reactor.zpm.tooltip": "СОЛНЦЕ СНИЗОШЛО НА ЗЕМЛЮ",
     "gtceu.machine.gas_turbine.tooltip": "§7Требуются легковоспламеняющиеся газы",
