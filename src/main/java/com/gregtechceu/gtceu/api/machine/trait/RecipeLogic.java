@@ -171,7 +171,8 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
         } else if (status != IDLE && lastRecipe != null) {
             if (progress < duration) {
                 handleRecipeWorking();
-            } else {
+            }
+            if (progress >= duration) {
                 machine.onRecipeFinish();
                 onRecipeFinish();
             }
