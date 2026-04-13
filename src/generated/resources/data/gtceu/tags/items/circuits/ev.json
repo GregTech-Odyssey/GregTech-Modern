@@ -1,7 +1,7 @@
 {
   "values": [
+    "gtceu:quantum_processor",
     "gtceu:micro_processor_computer",
-    "gtceu:nano_processor_assembly",
-    "gtceu:quantum_processor"
+    "gtceu:nano_processor_assembly"
   ]
 }

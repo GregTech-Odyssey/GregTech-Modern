@@ -21,8 +21,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentCategory;
 import net.minecraft.world.level.block.Block;
@@ -60,24 +58,23 @@ import com.tterrag.registrate.builders.MenuBuilder.ScreenFactory;
 import com.tterrag.registrate.builders.NoConfigBuilder;
 import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.providers.RegistrateDataProvider;
-import com.tterrag.registrate.providers.RegistrateLangProvider;
 import com.tterrag.registrate.providers.RegistrateProvider;
 import com.tterrag.registrate.util.CreativeModeTabModifier;
 import com.tterrag.registrate.util.DebugMarkers;
 import com.tterrag.registrate.util.OneTimeEventReceiver;
-import com.tterrag.registrate.util.entry.ItemEntry;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import com.tterrag.registrate.util.nullness.NonNullConsumer;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
 import com.tterrag.registrate.util.nullness.NonNullSupplier;
 import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
 import com.tterrag.registrate.util.nullness.NonnullType;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.message.Message;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -168,7 +165,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
     private final Set<ResourceKey<? extends Registry<?>>> completedRegistrations = new ReferenceOpenHashSet<>();
 
     public final NestedMap<ProviderType<?>, Pair<String, ResourceKey<? extends Registry<?>>>, Consumer<? extends RegistrateProvider>> datagensByEntry = NestedMap.createIdentity(HashMap::new);
-    public final MultiMap<ProviderType<?>, @NonnullType Consumer<? extends RegistrateProvider>> datagens = MultiMap.createIdentity(ReferenceOpenHashSet::new);
+    public final MultiMap<ProviderType<?>, @NonnullType Consumer<? extends RegistrateProvider>> datagens = MultiMap.create(new Reference2ReferenceLinkedOpenHashMap<>(), ReferenceLinkedOpenHashSet::new);
     public final MultiMap<ResourceKey<CreativeModeTab>, Consumer<CreativeModeTabModifier>> creativeModeTabModifiers = MultiMap.createIdentity(ArrayList::new);
 
     @Nullable
@@ -215,17 +212,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
         return FMLJavaModLoadingContext.get().getModEventBus();
     }
 
-    /**
-     * Called during {@link Registrate#create(String) creation} to initialize event listeners. Custom implementations
-     * may add their own event listeners by overriding this.
-     * <p>
-     * <i>Always</i> call {@code super} in your override unless you know what you are doing!
-     * 
-     * @param bus
-     *            The event bus
-     * @return This {@link AbstractRegistrate} object
-     */
-    protected S registerEventListeners(IEventBus bus) {
+    protected void registerEventListeners(IEventBus bus) {
         Consumer<RegisterEvent> onRegister = this::onRegister;
         Consumer<RegisterEvent> onRegisterLate = this::onRegisterLate;
         bus.addListener(onRegister);
@@ -242,8 +229,6 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
         if (GTCEu.isDataGen()) {
             OneTimeEventReceiver.addModListener(this, GatherDataEvent.class, this::onData);
         }
-
-        return self();
     }
 
     /**
@@ -654,7 +639,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
     public <T extends RegistrateProvider> void genData(ProviderType<? extends T> type, T gen) {
         if (!GTCEu.isDataGen()) return;
         datagens.get(type).forEach(cons -> {
-            Optional<Pair<String, ResourceKey<? extends Registry<?>>>> entry = null;
+            Optional<Pair<String, ResourceKey<? extends Registry<?>>>> entry;
             if (log.isEnabled(Level.DEBUG, DebugMarkers.DATA)) {
                 entry = getEntryForGenerator(type, cons);
                 if (entry.isPresent()) {
@@ -663,24 +648,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
                     log.debug(DebugMarkers.DATA, "Generating unassociated data of type {} ({})", RegistrateDataProvider.getTypeName(type), type);
                 }
             }
-            try {
-                ((Consumer<T>) cons).accept(gen);
-            } catch (Exception e) {
-                if (entry == null) {
-                    entry = getEntryForGenerator(type, cons);
-                }
-                Message err;
-                if (entry.isPresent()) {
-                    err = log.getMessageFactory().newMessage("Unexpected error while running data generator of type {} for entry {} [{}]", RegistrateDataProvider.getTypeName(type), entry.get().getLeft(), entry.get().getRight().location());
-                } else {
-                    err = log.getMessageFactory().newMessage("Unexpected error while running unassociated data generator of type {} ({})", RegistrateDataProvider.getTypeName(type), type);
-                }
-                if (skipErrors) {
-                    log.error(err);
-                } else {
-                    throw new RuntimeException(err.getFormattedMessage(), e);
-                }
-            }
+            ((Consumer<T>) cons).accept(gen);
         });
     }
 
@@ -1242,12 +1210,9 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
     }
 
     public <P> NoConfigBuilder<CreativeModeTab, CreativeModeTab, P> defaultCreativeTab(P parent, String name, Consumer<CreativeModeTab.Builder> config) {
-        var tab = ResourceKey.create(Registries.CREATIVE_MODE_TAB, new ResourceLocation(this.modid, name));
-        this.defaultCreativeModeTab = tab;
+        this.defaultCreativeModeTab = ResourceKey.create(Registries.CREATIVE_MODE_TAB, new ResourceLocation(this.modid, name));
         return this.generic(parent, name, Registries.CREATIVE_MODE_TAB, () -> {
-            var builder = CreativeModeTab.builder()
-                    .icon(() -> getAll(Registries.ITEM).stream().findFirst().map(ItemEntry::cast).map(ItemEntry::asStack).orElse(new ItemStack(Items.AIR)))
-                    .title(this.addLang("itemGroup", tab.location(), RegistrateLangProvider.toEnglishName(name)));
+            var builder = CreativeModeTab.builder();
             config.accept(builder);
             return builder.build();
         });

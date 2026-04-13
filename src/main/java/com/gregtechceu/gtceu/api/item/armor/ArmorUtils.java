@@ -28,6 +28,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntIntPair;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import org.jetbrains.annotations.NotNull;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -119,7 +120,7 @@ public class ArmorUtils {
         }
     }
 
-    public static void playJetpackSound(@Nonnull Player player) {
+    public static void playJetpackSound(@NotNull Player player) {
         if (player.level().isClientSide()) {
             float cons = (float) player.getDeltaMovement().y + player.moveDist;
             cons = Mth.clamp(cons, 0.6F, 1.0F);

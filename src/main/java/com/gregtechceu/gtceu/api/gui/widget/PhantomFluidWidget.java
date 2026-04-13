@@ -125,7 +125,7 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
             }
 
             @Override
-            public void accept(@Nonnull Object ingredient) {
+            public void accept(@NotNull Object ingredient) {
                 if (GTCEu.Mods.isEMILoaded() && ingredient instanceof EmiStack emiStack) {
                     var key = emiStack.getKey();
                     if (key instanceof Fluid f) {

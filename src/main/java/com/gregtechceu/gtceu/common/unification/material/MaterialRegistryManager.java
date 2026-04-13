@@ -23,7 +23,9 @@ import java.util.Set;
 
 public final class MaterialRegistryManager implements IMaterialRegistryManager {
 
-    private static MaterialRegistryManager INSTANCE;
+    private static final MaterialRegistryManager INSTANCE = new MaterialRegistryManager();
+
+    public static final MaterialRegistryImpl GREGTECH_REGISTRY = createInternalRegistry();
 
     private final Object2ObjectMap<String, MaterialRegistryImpl> registries = new O2OOpenCacheHashMap<>();
     private final Int2ObjectMap<MaterialRegistryImpl> networkIds = new Int2ObjectOpenHashMap<>();
@@ -32,16 +34,11 @@ public final class MaterialRegistryManager implements IMaterialRegistryManager {
 
     private final Set<Material> nonRegisteredMaterials = new ReferenceOpenHashSet<>();
 
-    private final MaterialRegistryImpl gregtechRegistry = createInternalRegistry();
-
     private Phase registrationPhase = Phase.PRE;
 
     private MaterialRegistryManager() {}
 
     public static MaterialRegistryManager getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new MaterialRegistryManager();
-        }
         return INSTANCE;
     }
 
@@ -72,14 +69,14 @@ public final class MaterialRegistryManager implements IMaterialRegistryManager {
     @Override
     public MaterialRegistry getRegistry(@NotNull String modid) {
         MaterialRegistry registry = registries.get(modid);
-        return registry != null ? registry : gregtechRegistry;
+        return registry != null ? registry : GREGTECH_REGISTRY;
     }
 
     @NotNull
     @Override
     public MaterialRegistry getRegistry(int networkId) {
         MaterialRegistry registry = networkIds.get(networkId);
-        return registry != null ? registry : gregtechRegistry;
+        return registry != null ? registry : GREGTECH_REGISTRY;
     }
 
     @NotNull
@@ -150,14 +147,14 @@ public final class MaterialRegistryManager implements IMaterialRegistryManager {
     }
 
     @NotNull
-    private MaterialRegistryImpl createInternalRegistry() {
+    private static MaterialRegistryImpl createInternalRegistry() {
         MaterialRegistryImpl registry = new MaterialRegistryImpl(GTCEu.MOD_ID);
-        this.registries.put(GTCEu.MOD_ID, registry);
+        INSTANCE.registries.put(GTCEu.MOD_ID, registry);
         return registry;
     }
 
     @NotNull
     public Material getDefaultFallback() {
-        return gregtechRegistry.getFallbackMaterial();
+        return GREGTECH_REGISTRY.getFallbackMaterial();
     }
 }

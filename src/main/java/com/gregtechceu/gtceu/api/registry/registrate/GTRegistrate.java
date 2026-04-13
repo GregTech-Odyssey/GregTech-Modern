@@ -81,7 +81,7 @@ public class GTRegistrate extends Registrate {
     }
 
     @Override
-    public Registrate registerEventListeners(IEventBus bus) {
+    public void registerEventListeners(IEventBus bus) {
         if (!registered.getAndSet(true)) {
             // recreate the super method so we can register the event listener with LOW priority.
             Consumer<RegisterEvent> onRegister = this::onRegister;
@@ -100,7 +100,6 @@ public class GTRegistrate extends Registrate {
                 OneTimeEventReceiver.addModListener(this, GatherDataEvent.class, this::onData);
             }
         }
-        return this;
     }
 
     protected <

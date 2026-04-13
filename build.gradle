@@ -12,7 +12,7 @@ group = maven_group
 version = "${mod_version}"
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(21)
+    toolchain.languageVersion = JavaLanguageVersion.of(25)
 }
 
 sourceSets {

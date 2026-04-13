@@ -1,13 +1,7 @@
 {
   "values": [
-    "gtceu:lv_sensor",
-    "gtceu:mv_sensor",
-    "gtceu:hv_sensor",
-    "gtceu:ev_sensor",
     "gtceu:iv_sensor",
     "gtceu:luv_sensor",
-    "gtceu:zpm_sensor",
-    "gtceu:uv_sensor",
     {
       "id": "gtceu:uhv_sensor",
       "required": false
@@ -27,6 +21,12 @@
     {
       "id": "gtceu:opv_sensor",
       "required": false
-    }
+    },
+    "gtceu:uv_sensor",
+    "gtceu:lv_sensor",
+    "gtceu:hv_sensor",
+    "gtceu:zpm_sensor",
+    "gtceu:ev_sensor",
+    "gtceu:mv_sensor"
   ]
 }

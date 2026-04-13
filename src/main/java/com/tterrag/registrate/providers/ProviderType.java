@@ -14,6 +14,7 @@ import com.tterrag.registrate.util.nullness.FieldsAreNonnullByDefault;
 import com.tterrag.registrate.util.nullness.NonNullBiFunction;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
 import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -61,7 +62,7 @@ public interface ProviderType<T extends RegistrateProvider> {
         ProviderType<T> ret = new ProviderType<T>() {
 
             @Override
-            public T create(@Nonnull AbstractRegistrate<?> parent, GatherDataEvent event, Map<ProviderType<?>, RegistrateProvider> existing) {
+            public T create(@NotNull AbstractRegistrate<?> parent, GatherDataEvent event, Map<ProviderType<?>, RegistrateProvider> existing) {
                 return type.apply(this).create(parent, event, existing);
             }
         };
@@ -73,7 +74,7 @@ public interface ProviderType<T extends RegistrateProvider> {
         ProviderType<T> ret = new ProviderType<T>() {
 
             @Override
-            public T create(@Nonnull AbstractRegistrate<?> parent, GatherDataEvent event, Map<ProviderType<?>, RegistrateProvider> existing) {
+            public T create(@NotNull AbstractRegistrate<?> parent, GatherDataEvent event, Map<ProviderType<?>, RegistrateProvider> existing) {
                 return type.apply(this).apply(parent, event);
             }
         };

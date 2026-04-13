@@ -1,13 +1,7 @@
 {
   "values": [
-    "gtceu:lv_robot_arm",
-    "gtceu:mv_robot_arm",
-    "gtceu:hv_robot_arm",
-    "gtceu:ev_robot_arm",
-    "gtceu:iv_robot_arm",
-    "gtceu:luv_robot_arm",
-    "gtceu:zpm_robot_arm",
     "gtceu:uv_robot_arm",
+    "gtceu:ev_robot_arm",
     {
       "id": "gtceu:uhv_robot_arm",
       "required": false
@@ -27,6 +21,12 @@
     {
       "id": "gtceu:opv_robot_arm",
       "required": false
-    }
+    },
+    "gtceu:lv_robot_arm",
+    "gtceu:zpm_robot_arm",
+    "gtceu:iv_robot_arm",
+    "gtceu:hv_robot_arm",
+    "gtceu:mv_robot_arm",
+    "gtceu:luv_robot_arm"
   ]
 }

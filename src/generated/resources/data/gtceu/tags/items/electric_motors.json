@@ -1,13 +1,7 @@
 {
   "values": [
-    "gtceu:lv_electric_motor",
-    "gtceu:mv_electric_motor",
-    "gtceu:hv_electric_motor",
-    "gtceu:ev_electric_motor",
-    "gtceu:iv_electric_motor",
-    "gtceu:luv_electric_motor",
     "gtceu:zpm_electric_motor",
-    "gtceu:uv_electric_motor",
+    "gtceu:hv_electric_motor",
     {
       "id": "gtceu:uhv_electric_motor",
       "required": false
@@ -27,6 +21,12 @@
     {
       "id": "gtceu:opv_electric_motor",
       "required": false
-    }
+    },
+    "gtceu:lv_electric_motor",
+    "gtceu:iv_electric_motor",
+    "gtceu:mv_electric_motor",
+    "gtceu:luv_electric_motor",
+    "gtceu:ev_electric_motor",
+    "gtceu:uv_electric_motor"
   ]
 }

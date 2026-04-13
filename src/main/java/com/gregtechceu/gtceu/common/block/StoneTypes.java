@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
 
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
@@ -39,11 +40,11 @@ public enum StoneTypes implements StringRepresentable {
     public final Material material;
     public final boolean generateBlocks;
 
-    StoneTypes(@Nonnull String name, @Nonnull MapColor mapColor, boolean natural, Supplier<Supplier<BlockState>> state, Material material) {
+    StoneTypes(@NotNull String name, @NotNull MapColor mapColor, boolean natural, Supplier<Supplier<BlockState>> state, Material material) {
         this(name, mapColor, natural, state, material, true);
     }
 
-    StoneTypes(@Nonnull String name, @Nonnull MapColor mapColor, boolean natural, Supplier<Supplier<BlockState>> state, Material material, boolean generateBlocks) {
+    StoneTypes(@NotNull String name, @NotNull MapColor mapColor, boolean natural, Supplier<Supplier<BlockState>> state, Material material, boolean generateBlocks) {
         this.name = name;
         this.mapColor = mapColor;
         this.natural = natural;
