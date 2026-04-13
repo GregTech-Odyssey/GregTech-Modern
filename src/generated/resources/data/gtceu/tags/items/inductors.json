@@ -1,6 +1,6 @@
 {
   "values": [
-    "gtceu:smd_inductor",
-    "gtceu:inductor"
+    "gtceu:inductor",
+    "gtceu:smd_inductor"
   ]
 }

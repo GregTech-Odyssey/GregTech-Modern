@@ -1,8 +1,8 @@
 {
   "values": [
-    "gtceu:quantum_processor_assembly",
-    "gtceu:crystal_processor",
+    "gtceu:micro_processor_mainframe",
     "gtceu:nano_processor_computer",
-    "gtceu:micro_processor_mainframe"
+    "gtceu:quantum_processor_assembly",
+    "gtceu:crystal_processor"
   ]
 }

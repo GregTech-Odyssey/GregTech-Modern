@@ -1,6 +1,6 @@
 {
   "values": [
-    "gtceu:smd_resistor",
-    "gtceu:resistor"
+    "gtceu:resistor",
+    "gtceu:smd_resistor"
   ]
 }

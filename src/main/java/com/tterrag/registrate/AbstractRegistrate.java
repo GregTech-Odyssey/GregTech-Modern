@@ -32,7 +32,6 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.ForgeFlowingFluid;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.DataPackRegistryEvent;
@@ -217,14 +216,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
         Consumer<RegisterEvent> onRegisterLate = this::onRegisterLate;
         bus.addListener(onRegister);
         bus.addListener(EventPriority.LOWEST, onRegisterLate);
-        bus.addListener(this::onBuildCreativeModeTabContents); // Fired multiple times when ever tabs need contents
-                                                               // rebuilt (changing op tab perms for example)
-
-        // Register events fire multiple times, so clean them up on common setup
-        OneTimeEventReceiver.addModListener(this, FMLCommonSetupEvent.class, $ -> {
-            OneTimeEventReceiver.unregister(this, onRegister, RegisterEvent.class);
-            OneTimeEventReceiver.unregister(this, onRegisterLate, RegisterEvent.class);
-        });
+        bus.addListener(this::onBuildCreativeModeTabContents);
 
         if (GTCEu.isDataGen()) {
             OneTimeEventReceiver.addModListener(this, GatherDataEvent.class, this::onData);

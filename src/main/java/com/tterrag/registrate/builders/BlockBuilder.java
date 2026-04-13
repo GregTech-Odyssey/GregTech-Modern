@@ -27,6 +27,7 @@ import com.tterrag.registrate.providers.RegistrateItemModelProvider;
 import com.tterrag.registrate.providers.RegistrateLangProvider;
 import com.tterrag.registrate.providers.RegistrateRecipeProvider;
 import com.tterrag.registrate.providers.loot.RegistrateBlockLootTables;
+import com.tterrag.registrate.providers.loot.RegistrateLootTableProvider;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
@@ -34,6 +35,7 @@ import com.tterrag.registrate.util.nullness.NonNullBiFunction;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
 import com.tterrag.registrate.util.nullness.NonNullSupplier;
 import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import java.util.Optional;
 import java.util.Set;
@@ -51,6 +53,8 @@ import javax.annotation.Nonnull;
  *            Parent object type
  */
 public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, P, BlockBuilder<T, P>> {
+
+    public static final ReferenceOpenHashSet<Block> DEFAULT_LOOTS = new ReferenceOpenHashSet<>();
 
     /**
      * Create a new {@link BlockBuilder} and configure data. Used in lieu of adding side-effects to constructor, so that
@@ -87,6 +91,8 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
 
     private NonNullSupplier<BlockBehaviour.Properties> initialProperties;
     private NonNullFunction<BlockBehaviour.Properties, BlockBehaviour.Properties> propertiesCallback = NonNullUnaryOperator.identity();
+
+    protected boolean defaultLoot;
 
     protected BlockBuilder(AbstractRegistrate<?> owner, P parent, String name, NonNullFunction<BlockBehaviour.Properties, T> factory, NonNullSupplier<BlockBehaviour.Properties> initialProperties) {
         super(owner, parent, name, ForgeRegistries.Keys.BLOCKS);
@@ -224,7 +230,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
      * @return the {@link BlockEntityBuilder}
      */
     public <BE extends BlockEntity> BlockEntityBuilder<BE, BlockBuilder<T, P>> blockEntity(BlockEntityFactory<BE> factory) {
-        return getOwner().<BE, BlockBuilder<T, P>>blockEntity(this, getName(), factory).validBlock(asSupplier());
+        return getOwner().blockEntity(this, getName(), factory).validBlock(asSupplier());
     }
 
     /**
@@ -296,6 +302,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
      * @return this {@link BlockBuilder}
      */
     public BlockBuilder<T, P> defaultLoot() {
+        defaultLoot = true;
         return this;
     }
 
@@ -312,7 +319,12 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
      * @return this {@link BlockBuilder}
      */
     public BlockBuilder<T, P> loot(NonNullBiConsumer<RegistrateBlockLootTables, T> cons) {
-        return this;
+        if (cons == NonNullBiConsumer.NOOP) {
+            return defaultLoot();
+        } else {
+            defaultLoot = false;
+            return setData(ProviderType.LOOT, (ctx, prov) -> prov.addLootAction(RegistrateLootTableProvider.LootType.BLOCK, tb -> cons.accept(tb, ctx.getEntry())));
+        }
     }
 
     /**
@@ -344,7 +356,9 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
         @Nonnull
         BlockBehaviour.Properties properties = this.initialProperties.get();
         properties = propertiesCallback.apply(properties);
-        return factory.apply(properties);
+        var block = factory.apply(properties);
+        if (defaultLoot) DEFAULT_LOOTS.add(block);
+        return block;
     }
 
     @Override
@@ -355,5 +369,9 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
     @Override
     public BlockEntry<T> register() {
         return (BlockEntry<T>) super.register();
+    }
+
+    public static boolean hasLoots(Block block) {
+        return !DEFAULT_LOOTS.contains(block);
     }
 }

@@ -14,6 +14,7 @@ import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
 
 import com.tterrag.registrate.AbstractRegistrate;
+import com.tterrag.registrate.builders.BlockBuilder;
 import lombok.RequiredArgsConstructor;
 
 import java.util.function.Consumer;
@@ -35,7 +36,7 @@ public class RegistrateBlockLootTables extends VanillaBlockLoot implements Regis
 
     @Override
     protected Iterable<Block> getKnownBlocks() {
-        return parent.getAll(Registries.BLOCK).stream().map(Supplier::get).collect(Collectors.toList());
+        return parent.getAll(Registries.BLOCK).stream().map(Supplier::get).filter(BlockBuilder::hasLoots).collect(Collectors.toList());
     }
 
     // @formatter:off

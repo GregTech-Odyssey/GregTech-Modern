@@ -27,7 +27,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegisterEvent;
 
@@ -91,11 +90,6 @@ public class GTRegistrate extends Registrate {
 
             // Fired multiple times when ever tabs need contents rebuilt (changing op tab perms for example)
             bus.addListener(this::onBuildCreativeModeTabContents);
-            // Register events fire multiple times, so clean them up on common setup
-            OneTimeEventReceiver.addModListener(this, FMLCommonSetupEvent.class, $ -> {
-                OneTimeEventReceiver.unregister(this, onRegister, RegisterEvent.class);
-                OneTimeEventReceiver.unregister(this, onRegisterLate, RegisterEvent.class);
-            });
             if (GTCEu.isDataGen()) {
                 OneTimeEventReceiver.addModListener(this, GatherDataEvent.class, this::onData);
             }
