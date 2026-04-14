@@ -46,6 +46,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -119,7 +120,7 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
         return IInteractionItem.super.use(item, level, player, usedHand);
     }
 
-    protected boolean drainEnergy(@Nonnull ItemStack stack, int amount, boolean simulate) {
+    protected boolean drainEnergy(@NotNull ItemStack stack, int amount, boolean simulate) {
         IElectricItem electricItem = GTCapabilityHelper.getElectricItem(stack);
         if (electricItem == null) return false;
         return electricItem.discharge(amount, Integer.MAX_VALUE, true, false, simulate) >= amount;

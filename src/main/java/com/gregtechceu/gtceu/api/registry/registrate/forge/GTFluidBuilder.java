@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.api.registry.registrate.forge;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.fluids.FluidState;
 import com.gregtechceu.gtceu.api.fluids.GTFluid;
@@ -9,7 +10,6 @@ import com.gregtechceu.gtceu.api.registry.registrate.IGTFluidBuilder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -17,29 +17,24 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.minecraftforge.common.SoundActions;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import com.google.common.base.Preconditions;
 import com.tterrag.registrate.AbstractRegistrate;
+import com.tterrag.registrate.ClientEvent;
 import com.tterrag.registrate.builders.AbstractBuilder;
 import com.tterrag.registrate.builders.BlockBuilder;
-import com.tterrag.registrate.builders.BuilderCallback;
 import com.tterrag.registrate.builders.ItemBuilder;
 import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.providers.RegistrateTagsProvider;
-import com.tterrag.registrate.util.OneTimeEventReceiver;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
 import com.tterrag.registrate.util.nullness.NonNullBiFunction;
@@ -88,8 +83,7 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
     @Nullable
     private Boolean defaultBucket;
     private NonNullConsumer<FluidType.Properties> typeProperties = $ -> {};
-    @Nullable
-    private Supplier<RenderType> layer = null;
+
     private boolean registerType;
     @Nullable
     private NonNullSupplier<? extends GTFluid> source;
@@ -99,8 +93,8 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
     private NonNullSupplier<? extends BucketItem> bucket;
     private final List<TagKey<Fluid>> tags = new ArrayList<>();
 
-    public GTFluidBuilder(AbstractRegistrate<?> owner, P parent, Material material, String name, String langKey, BuilderCallback callback, ResourceLocation stillTexture, ResourceLocation flowingTexture, GTFluidBuilder.FluidTypeFactory typeFactory) {
-        super(owner, parent, "flowing_" + name, callback, ForgeRegistries.Keys.FLUIDS);
+    public GTFluidBuilder(AbstractRegistrate<?> owner, P parent, Material material, String name, String langKey, ResourceLocation stillTexture, ResourceLocation flowingTexture, GTFluidBuilder.FluidTypeFactory typeFactory) {
+        super(owner, parent, "flowing_" + name, ForgeRegistries.Keys.FLUIDS);
         this.sourceName = name;
         this.bucketName = name + "_bucket";
         this.material = material;
@@ -120,25 +114,11 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
         return lang(f -> f.getFluidType().getDescriptionId(), name);
     }
 
-    @SuppressWarnings("deprecation")
     public GTFluidBuilder<P> renderType(Supplier<RenderType> layer) {
-        DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> Preconditions.checkArgument(RenderType.chunkBufferLayers().contains(layer.get()), "Invalid render type: " + layer));
-        if (this.layer == null) {
-            onRegister(this::registerRenderType);
+        if (GTCEu.isClientSide()) {
+            ClientEvent.setFluidRenderLayer(asSupplier(), layer);
         }
-        this.layer = layer;
         return this;
-    }
-
-    @SuppressWarnings("deprecation")
-    protected void registerRenderType(GTFluidImpl.Flowing entry) {
-        DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> OneTimeEventReceiver.addModListener(getOwner(), FMLClientSetupEvent.class, $ -> {
-            if (this.layer != null) {
-                RenderType layer = this.layer.get();
-                ItemBlockRenderTypes.setRenderLayer(entry, layer);
-                ItemBlockRenderTypes.setRenderLayer(getSource(), layer);
-            }
-        }));
     }
 
     public GTFluidBuilder<P> defaultSource() {
@@ -224,26 +204,15 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
 
     private FluidType.Properties makeTypeProperties() {
         FluidType.Properties properties = FluidType.Properties.create();
-        RegistryEntry<Block> block = getOwner().getOptional(sourceName, ForgeRegistries.Keys.BLOCKS);
         this.typeProperties.accept(properties);
-        // Force the translation key after the user callback runs
-        // This is done because we need to remove the lang data generator if using the block key,
-        // and if it was possible to undo this change, it might result in the user translation getting
-        // silently lost, as there's no good way to check whether the translation key was changed.
-        // TODO improve this?
-        if (block.isPresent()) {
-            properties.descriptionId(block.get().getDescriptionId());
-        } else {
-            // Fallback to material's name
-            properties.descriptionId(langKey);
-        }
+        properties.descriptionId(langKey);
         setData(ProviderType.LANG, NonNullBiConsumer.noop());
         return properties.sound(SoundActions.BUCKET_FILL, SoundEvents.BUCKET_FILL).sound(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY).temperature(temperature).density(density).viscosity(viscosity).lightLevel(luminance);
     }
 
     @Override
     protected GTFluidImpl.Flowing createEntry() {
-        return new GTFluidImpl.Flowing(this.state, () -> this.source.get(), () -> this.get().get(), (() -> this.block != null ? this.block.get() : null), (() -> this.bucket != null ? this.bucket.get() : null), this.burnTime, this.fluidType);
+        return new GTFluidImpl.Flowing(this.state, this.source, this.asSupplier(), (() -> this.block != null ? this.block.get() : null), (() -> this.bucket != null ? this.bucket.get() : null), this.burnTime, this.fluidType);
     }
 
     @Override
@@ -286,7 +255,7 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
             throw new IllegalStateException("Fluid must have a type: " + getName());
         }
         if (defaultSource == Boolean.TRUE) {
-            source(() -> new GTFluidImpl.Source(this.state, () -> this.source.get(), () -> this.get().get(), (() -> this.block != null ? this.block.get() : null), (() -> this.bucket != null ? this.bucket.get() : null), this.burnTime, this.fluidType));
+            source(() -> new GTFluidImpl.Source(this.state, this.source, this.asSupplier(), (() -> this.block != null ? this.block.get() : null), (() -> this.bucket != null ? this.bucket.get() : null), this.burnTime, this.fluidType));
         }
         if (defaultBlock == Boolean.TRUE) {
             block().register();
@@ -296,7 +265,7 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
         }
         NonNullSupplier<? extends GTFluid> source = this.source;
         if (source != null) {
-            getCallback().accept(sourceName, ForgeRegistries.Keys.FLUIDS, (GTFluidBuilder) this, source);
+            getOwner().register(sourceName, ForgeRegistries.Keys.FLUIDS, source);
         } else {
             throw new IllegalStateException("Fluid must have a source version: " + getName());
         }

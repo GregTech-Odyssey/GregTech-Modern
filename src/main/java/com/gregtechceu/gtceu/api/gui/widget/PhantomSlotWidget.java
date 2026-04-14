@@ -25,6 +25,7 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.emi.emi.api.stack.EmiStack;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.Collections;
@@ -146,7 +147,7 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
             }
 
             @Override
-            public void accept(@Nonnull Object ingredient) {
+            public void accept(@NotNull Object ingredient) {
                 if (GTCEu.Mods.isEMILoaded() && ingredient instanceof EmiStack emiStack) {
                     Item item = emiStack.getKeyOfType(Item.class);
                     if (item != null) {

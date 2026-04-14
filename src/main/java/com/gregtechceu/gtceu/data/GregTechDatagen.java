@@ -1,7 +1,9 @@
 package com.gregtechceu.gtceu.data;
 
 import com.gregtechceu.gtceu.common.registry.GTRegistration;
+import com.gregtechceu.gtceu.common.unification.material.MaterialRegistryManager;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
+import com.gregtechceu.gtceu.data.lang.MaterialLangGenerator;
 import com.gregtechceu.gtceu.data.tags.BlockTagLoader;
 import com.gregtechceu.gtceu.data.tags.EntityTypeTagLoader;
 import com.gregtechceu.gtceu.data.tags.FluidTagLoader;
@@ -16,6 +18,7 @@ public class GregTechDatagen {
         GTRegistration.REGISTRATE.addDataGenerator(ProviderType.ITEM_TAGS, ItemTagLoader::init);
         GTRegistration.REGISTRATE.addDataGenerator(ProviderType.FLUID_TAGS, FluidTagLoader::init);
         GTRegistration.REGISTRATE.addDataGenerator(ProviderType.ENTITY_TAGS, EntityTypeTagLoader::init);
+        GTRegistration.REGISTRATE.addDataGenerator(ProviderType.LANG, p -> MaterialLangGenerator.generate(p, MaterialRegistryManager.GREGTECH_REGISTRY));
         GTRegistration.REGISTRATE.addDataGenerator(ProviderType.LANG, LangHandler::init);
     }
 }

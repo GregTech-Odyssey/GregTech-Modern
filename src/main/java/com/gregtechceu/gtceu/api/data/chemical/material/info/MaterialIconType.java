@@ -8,12 +8,18 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 
 import com.google.common.base.CaseFormat;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceFunction;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+import it.unimi.dsi.fastutil.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 public final class MaterialIconType {
+
+    private static List<MaterialIconType> VALUES = new ArrayList<>();
 
     public static final MaterialIconType dustTiny = new MaterialIconType("dustTiny");
     public static final MaterialIconType dustSmall = new MaterialIconType("dustSmall");
@@ -99,33 +105,37 @@ public final class MaterialIconType {
     public static final MaterialIconType crop = new MaterialIconType("crop");
     public static final MaterialIconType essence = new MaterialIconType("essence");
 
-    public static Reference2ReferenceOpenHashMap<MaterialIconType, Reference2ReferenceOpenHashMap<MaterialIconSet, ResourceLocation>> ITEM_MODEL_CACHE = new Reference2ReferenceOpenHashMap<>();
+    public Map<MaterialIconSet, ResourceLocation> item_model_cache = new ConcurrentHashMap<>();
 
-    public static final Reference2ReferenceOpenHashMap<MaterialIconType, Reference2ReferenceOpenHashMap<MaterialIconSet, ResourceLocation>> ITEM_TEXTURE_CACHE = new Reference2ReferenceOpenHashMap<>();
-    private static final Reference2ReferenceOpenHashMap<MaterialIconType, Reference2ReferenceOpenHashMap<MaterialIconSet, ResourceLocation>> ITEM_TEXTURE_CACHE_SECONDARY = new Reference2ReferenceOpenHashMap<>();
+    public final Map<MaterialIconSet, ResourceLocation> item_texture_cache = new ConcurrentHashMap<>();
+    private final Map<MaterialIconSet, ResourceLocation> item_texture_cache_secondary = new ConcurrentHashMap<>();
 
-    private static Reference2ReferenceOpenHashMap<MaterialIconType, Reference2ReferenceOpenHashMap<MaterialIconSet, ResourceLocation>> BLOCK_MODEL_CACHE = new Reference2ReferenceOpenHashMap<>();
+    private Map<MaterialIconSet, ResourceLocation> block_model_cache = new ConcurrentHashMap<>();
 
-    private static final Reference2ReferenceOpenHashMap<MaterialIconType, Reference2ReferenceOpenHashMap<MaterialIconSet, ResourceLocation>> BLOCK_TEXTURE_CACHE = new Reference2ReferenceOpenHashMap<>();
-    private static final Reference2ReferenceOpenHashMap<MaterialIconType, Reference2ReferenceOpenHashMap<MaterialIconSet, ResourceLocation>> BLOCK_TEXTURE_CACHE_SECONDARY = new Reference2ReferenceOpenHashMap<>();
+    private final Map<MaterialIconSet, ResourceLocation> block_texture_cache = new ConcurrentHashMap<>();
+    private final Map<MaterialIconSet, ResourceLocation> block_texture_cache_secondary = new ConcurrentHashMap<>();
 
     private final String name;
 
     public MaterialIconType(String name) {
         this.name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, name);
+        synchronized (VALUES) {
+            VALUES.add(this);
+        }
     }
 
     public static void init() {}
 
     public static void clear() {
-        ITEM_MODEL_CACHE = null;
-        BLOCK_MODEL_CACHE = null;
+        VALUES.forEach(t -> {
+            t.block_model_cache = null;
+            t.item_model_cache = null;
+        });
+        VALUES = null;
     }
 
-    private static final Reference2ReferenceFunction<MaterialIconType, Reference2ReferenceOpenHashMap<MaterialIconSet, ResourceLocation>> FUNCTION = k -> new Reference2ReferenceOpenHashMap<>();
-
-    private ResourceLocation getCache(Reference2ReferenceOpenHashMap<MaterialIconType, Reference2ReferenceOpenHashMap<MaterialIconSet, ResourceLocation>> map, MaterialIconSet materialIconSet, Reference2ReferenceFunction<MaterialIconSet, ResourceLocation> function) {
-        return map.computeIfAbsent(this, FUNCTION).computeIfAbsent(materialIconSet, function);
+    private ResourceLocation getCache(Map<MaterialIconSet, ResourceLocation> map, MaterialIconSet materialIconSet, Function<MaterialIconSet, ResourceLocation> function) {
+        return map.computeIfAbsent(materialIconSet, function);
     }
 
     @Nullable
@@ -137,7 +147,7 @@ public final class MaterialIconType {
     public ResourceLocation getBlockTexturePath(@NotNull MaterialIconSet materialIconSet, String suffix,
                                                 boolean doReadCache) {
         boolean isBlank = suffix == null || suffix.isBlank();
-        return getCache(isBlank ? BLOCK_TEXTURE_CACHE : BLOCK_TEXTURE_CACHE_SECONDARY, materialIconSet, k -> {
+        return getCache(isBlank ? block_texture_cache : block_texture_cache_secondary, materialIconSet, k -> {
             var fs = isBlank ? "" : "_" + suffix;
 
             MaterialIconSet iconSet = materialIconSet;
@@ -166,7 +176,7 @@ public final class MaterialIconType {
 
     @NotNull
     public ResourceLocation getBlockModelPath(@NotNull MaterialIconSet materialIconSet) {
-        return getCache(BLOCK_MODEL_CACHE, materialIconSet, k -> {
+        return getCache(block_model_cache, materialIconSet, k -> {
             MaterialIconSet iconSet = materialIconSet;
             // noinspection ConstantConditions
             if (!iconSet.isRootIconset && GTCEu.isClientSide() && Minecraft.getInstance() != null &&
@@ -186,7 +196,7 @@ public final class MaterialIconType {
 
     @NotNull
     public ResourceLocation getItemModelPath(@NotNull MaterialIconSet materialIconSet) {
-        return getCache(ITEM_MODEL_CACHE, materialIconSet, k -> {
+        return getCache(item_model_cache, materialIconSet, k -> {
             MaterialIconSet iconSet = materialIconSet;
             // noinspection ConstantConditions
             if (!iconSet.isRootIconset && GTCEu.isClientSide() && Minecraft.getInstance() != null &&
@@ -213,7 +223,7 @@ public final class MaterialIconType {
     public ResourceLocation getItemTexturePath(@NotNull MaterialIconSet materialIconSet, String suffix,
                                                boolean doReadCache) {
         boolean isBlank = suffix == null || suffix.isBlank();
-        return getCache(isBlank ? ITEM_TEXTURE_CACHE : ITEM_TEXTURE_CACHE_SECONDARY, materialIconSet, k -> {
+        return getCache(isBlank ? item_texture_cache : item_texture_cache_secondary, materialIconSet, k -> {
             var fs = isBlank ? "" : "_" + suffix;
 
             MaterialIconSet iconSet = materialIconSet;

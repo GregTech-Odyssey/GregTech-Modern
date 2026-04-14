@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.integration.xei.widgets;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
+import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.WidgetUtils;
 import com.gregtechceu.gtceu.api.gui.widget.PredicatedButtonWidget;

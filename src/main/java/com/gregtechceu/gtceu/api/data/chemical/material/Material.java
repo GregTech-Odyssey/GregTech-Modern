@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.api.data.chemical.material;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.Element;
@@ -7,6 +8,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlag;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconSet;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.*;
+import com.gregtechceu.gtceu.api.data.chemical.material.registry.MaterialRegistry;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.api.data.medicalcondition.MedicalCondition;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
@@ -144,10 +146,6 @@ public class Material implements Comparable<Material> {
         properties = new MaterialProperties();
         flags = new MaterialFlags();
         MaterialRegistryManager.getInstance().addNonRegistered(this);
-    }
-
-    protected void registerMaterial() {
-        GTCEuAPI.materialManager.getRegistry(getModid()).register(this);
     }
 
     public String getName() {
@@ -534,33 +532,33 @@ public class Material implements Comparable<Material> {
 
     public static class Builder extends BuilderBase<Material> {
 
-        private final MaterialInfo materialInfo;
-        private final MaterialProperties properties;
-        private final MaterialFlags flags;
-        private Set<TagPrefix> ignoredTagPrefixes = null;
-        private String formula = null;
+        protected final MaterialRegistry registry;
+        protected final MaterialInfo materialInfo;
+        protected final MaterialProperties properties;
+        protected final MaterialFlags flags;
+        protected Set<TagPrefix> ignoredTagPrefixes = null;
+        protected String formula = null;
         /*
          * The temporary list of components for this Material.
          */
-        private List<MaterialStack> composition = new ArrayList<>();
+        protected List<MaterialStack> composition = new ArrayList<>();
         /*
          * Temporary value to use to determine how to calculate default RGB
          */
-        private boolean averageRGB = false;
+        protected boolean averageRGB = false;
 
         /**
          * Constructs a {@link Material}. This Builder replaces the old constructors, and
          * no longer uses a class hierarchy, instead using a {@link MaterialProperties} system.
          *
-         * @param resourceLocation The Name of this Material. Will be formatted as
-         *                         "material.<name>" for the Translation Key.
+         * @param mane The Name of this Material. Will be formatted as
+         *             "material.<name>" for the Translation Key.
          * @since GTCEu 2.0.0
          */
-        public Builder(ResourceLocation resourceLocation) {
-            super(resourceLocation);
-            String name = resourceLocation.getPath();
-            if (name.charAt(name.length() - 1) == '_') throw new IllegalArgumentException("Material name cannot end with a '_'!");
-            materialInfo = new MaterialInfo(resourceLocation);
+        public Builder(MaterialRegistry registry, String mane) {
+            super(registry.id(mane));
+            this.registry = registry;
+            materialInfo = new MaterialInfo(id);
             properties = new MaterialProperties();
             flags = new MaterialFlags();
         }
@@ -964,7 +962,7 @@ public class Material implements Comparable<Material> {
             return this;
         }
 
-        public Builder componentStacks(ImmutableList<MaterialStack> components) {
+        public Builder componentStacks(List<MaterialStack> components) {
             composition = components;
             return this;
         }
@@ -1224,7 +1222,7 @@ public class Material implements Comparable<Material> {
                 mat.setFormula(formula);
             }
             materialInfo.verifyInfo(properties, averageRGB);
-            mat.registerMaterial();
+            registry.register(mat);
             if (ignoredTagPrefixes != null) {
                 ignoredTagPrefixes.forEach(p -> p.setIgnored(mat));
             }

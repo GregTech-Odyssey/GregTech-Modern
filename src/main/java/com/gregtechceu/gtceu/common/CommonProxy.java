@@ -29,9 +29,7 @@ import com.gregtechceu.gtceu.common.registry.GTRegistration;
 import com.gregtechceu.gtceu.common.unification.material.MaterialRegistryManager;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.core.MixinHelpers;
-import com.gregtechceu.gtceu.core.mixins.AbstractRegistrateAccessor;
 import com.gregtechceu.gtceu.data.GregTechDatagen;
-import com.gregtechceu.gtceu.data.lang.MaterialLangGenerator;
 import com.gregtechceu.gtceu.data.loot.ChestGenHooks;
 import com.gregtechceu.gtceu.data.loot.DungeonLootLoader;
 import com.gregtechceu.gtceu.data.pack.GTDynamicDataPack;
@@ -53,19 +51,9 @@ import net.minecraftforge.common.crafting.CraftingHelper;
 import net.minecraftforge.event.AddPackFindersEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.javafmlmod.FMLModContainer;
 import net.minecraftforge.registries.RegisterEvent;
-
-import com.google.common.collect.Multimaps;
-import com.tterrag.registrate.providers.ProviderType;
-import com.tterrag.registrate.providers.RegistrateLangProvider;
-import com.tterrag.registrate.providers.RegistrateProvider;
-import com.tterrag.registrate.util.nullness.NonNullConsumer;
-
-import java.util.List;
 
 public class CommonProxy {
 
@@ -73,6 +61,7 @@ public class CommonProxy {
         // used for forge events (ClientProxy + CommonProxy)
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         eventBus.register(this);
+        GTRegistration.REGISTRATE.registerEventListeners(eventBus);
         // must be set here because of KubeJS compat
         // trying to read this before the pre-init stage
         GTCEuAPI.materialManager = MaterialRegistryManager.getInstance();
@@ -126,34 +115,7 @@ public class CommonProxy {
         ChanceLogic.init();
         WaypointManager.init();
 
-        // fabric exclusive, squeeze this in here to register before stuff is used
-        GTRegistration.REGISTRATE.registerRegistrate();
-
         GregTechDatagen.init();
-        // Register all material manager registries, for materials with mod ids.
-        GTCEuAPI.materialManager.getRegistries().forEach(registry -> {
-            // Force the material lang generator to be at index 0, so that addons' lang generators can override it.
-            AbstractRegistrateAccessor accessor = (AbstractRegistrateAccessor) registry.getRegistrate();
-            if (accessor.getDoDatagen().get()) {
-                // noinspection UnstableApiUsage
-                List<NonNullConsumer<? extends RegistrateProvider>> providers = Multimaps.asMap(accessor.getDatagens())
-                        .get(ProviderType.LANG);
-                if (providers.isEmpty()) {
-                    providers.add(
-                            (provider) -> MaterialLangGenerator.generate((RegistrateLangProvider) provider, registry));
-                } else {
-                    providers.addFirst(
-                            (provider) -> MaterialLangGenerator.generate((RegistrateLangProvider) provider, registry));
-                }
-            }
-
-            registry.getRegistrate()
-                    .registerEventListeners(ModList.get().getModContainerById(registry.getModid())
-                            .filter(FMLModContainer.class::isInstance)
-                            .map(FMLModContainer.class::cast)
-                            .map(FMLModContainer::getEventBus)
-                            .orElse(FMLJavaModLoadingContext.get().getModEventBus()));
-        });
 
         WorldGenLayers.registerAll();
         VeinGenerators.registerAddonGenerators();

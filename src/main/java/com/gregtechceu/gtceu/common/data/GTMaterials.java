@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlag;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.common.data.materials.*;
+import com.gregtechceu.gtceu.common.unification.material.MaterialRegistryManager;
 import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
 
 import net.minecraft.world.item.Items;
@@ -49,6 +50,10 @@ public class GTMaterials {
 
     public static Material[] CHEMICAL_DYES;
     public static Material[] VOLTAGE_COMMON_MATERIALS;
+
+    public static Material.Builder builder(String name) {
+        return new Material.Builder(MaterialRegistryManager.GREGTECH_REGISTRY, name);
+    }
 
     public static void init() {
         MarkerMaterials.register();
