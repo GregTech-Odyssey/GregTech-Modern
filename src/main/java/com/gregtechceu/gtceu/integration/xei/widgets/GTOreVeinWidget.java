@@ -93,7 +93,7 @@ public class GTOreVeinWidget extends WidgetGroup {
             minHeight = uniform.minInclusive.resolveY(null);
             maxHeight = uniform.maxInclusive.resolveY(null);
         }
-        return String.format("%d - %d", minHeight, maxHeight);
+        return String.format("%d ~ %d", minHeight, maxHeight);
     }
 
     private void setupBaseGui(GTOreDefinition oreDefinition) {
