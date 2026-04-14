@@ -27,7 +27,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegisterEvent;
 
 import com.tterrag.registrate.Registrate;
@@ -73,10 +72,6 @@ public class GTRegistrate extends Registrate {
 
     public static GTRegistrate create(String modId) {
         return new GTRegistrate(modId);
-    }
-
-    public void registerRegistrate() {
-        registerEventListeners(FMLJavaModLoadingContext.get().getModEventBus());
     }
 
     @Override

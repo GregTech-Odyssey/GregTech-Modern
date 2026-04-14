@@ -20,7 +20,6 @@ import com.tterrag.registrate.util.nullness.NonNullConsumer;
 import com.tterrag.registrate.util.nullness.NonNullSupplier;
 import com.tterrag.registrate.util.nullness.NonnullType;
 import it.unimi.dsi.fastutil.objects.Reference2BooleanLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -141,7 +140,7 @@ public abstract class AbstractBuilder<R, T extends R, P, S extends AbstractBuild
     @SafeVarargs
     public final <TP extends TagsProvider<R> & RegistrateTagsProvider<R>> S tag(ProviderType<? extends TP> type, boolean isOptional, TagKey<R>... tags) {
         if (tagsByType != null) {
-            var map = tagsByType.computeIfAbsent(type, _ -> new Reference2BooleanLinkedOpenHashMap<>());
+            var map = tagsByType.computeIfAbsent(type, K -> new Reference2BooleanLinkedOpenHashMap<>());
             for (var tag : tags) {
                 map.put(tag, isOptional);
             }

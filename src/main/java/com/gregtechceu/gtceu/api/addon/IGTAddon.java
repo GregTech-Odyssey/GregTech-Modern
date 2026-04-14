@@ -6,7 +6,6 @@ public interface IGTAddon {
 
     /**
      * @return this addon's GTRegistrate instance.
-     *         remember to call{@link GTRegistrate#registerRegistrate} in your mod class!
      */
     GTRegistrate getRegistrate();
 

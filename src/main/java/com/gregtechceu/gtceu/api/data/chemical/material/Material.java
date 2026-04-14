@@ -556,10 +556,9 @@ public class Material implements Comparable<Material> {
          * @since GTCEu 2.0.0
          */
         public Builder(MaterialRegistry registry, String mane) {
-            var resourceLocation = registry.id(mane);
-            super(resourceLocation);
+            super(registry.id(mane));
             this.registry = registry;
-            materialInfo = new MaterialInfo(resourceLocation);
+            materialInfo = new MaterialInfo(id);
             properties = new MaterialProperties();
             flags = new MaterialFlags();
         }

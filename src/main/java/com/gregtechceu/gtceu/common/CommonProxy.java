@@ -61,7 +61,7 @@ public class CommonProxy {
         // used for forge events (ClientProxy + CommonProxy)
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         eventBus.register(this);
-        GTRegistration.REGISTRATE.registerRegistrate();
+        GTRegistration.REGISTRATE.registerEventListeners(eventBus);
         // must be set here because of KubeJS compat
         // trying to read this before the pre-init stage
         GTCEuAPI.materialManager = MaterialRegistryManager.getInstance();
