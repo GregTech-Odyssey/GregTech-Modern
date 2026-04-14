@@ -1,54 +1,79 @@
 package com.gregtechceu.gtceu.api.data.chemical.material.registry;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.registry.GTRegistry;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
-import com.gregtechceu.gtceu.common.registry.GTRegistration;
+import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.common.unification.material.MaterialRegistryManager;
 import com.gregtechceu.gtceu.utils.GTUtil;
+
+import net.minecraft.resources.ResourceLocation;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.Collections;
 
 @Getter
-public abstract class MaterialRegistry extends GTRegistry.String<Material> {
+public class MaterialRegistry extends GTRegistry.String<Material> {
+
+    private static int networkIdCounter;
 
     private final GTRegistrate registrate;
 
-    public MaterialRegistry(java.lang.String modId) {
-        super(GTUtil.getResourceLocation(modId, "material"));
-        this.registrate = GTCEu.MOD_ID.equals(modId) ? GTRegistration.REGISTRATE : AddonFinder.getAddons().getFirst().getRegistrate();
+    private final int networkId = networkIdCounter++;
+    private final ResourceLocation template;
+
+    private boolean isRegistryClosed = false;
+    @NotNull
+    private Material fallbackMaterial = GTMaterials.NULL;
+
+    public MaterialRegistry(GTRegistrate registrate) {
+        super(GTUtil.getResourceLocation(registrate.getModid(), "material"));
+        this.registrate = registrate;
+        this.template = new ResourceLocation(registrate.getModid(), "");
     }
 
-    public abstract void register(Material material);
+    public void register(Material material) {
+        this.register(material.getName(), material);
+    }
+
+    @Override
+    public <T extends Material> T register(@NotNull java.lang.String key, @NotNull T value) {
+        if (isRegistryClosed) {
+            GTCEu.LOGGER.error(
+                    "Materials cannot be registered in the PostMaterialEvent (or after)! Must be added in the MaterialEvent. Skipping material {}...",
+                    key);
+            return null;
+        }
+        super.register(key, value);
+        return value;
+    }
 
     @NotNull
-    public abstract Collection<Material> getAllMaterials();
+    public Collection<Material> getAllMaterials() {
+        return Collections.unmodifiableCollection(this.registry.values());
+    }
 
-    /**
-     * Set the fallback material for this registry.
-     * This is only for manual fallback usage.
-     *
-     * @param material the fallback material
-     */
-    public abstract void setFallbackMaterial(@NotNull Material material);
-
-    /**
-     * This is only for manual fallback usage.
-     *
-     * @return the fallback material, used for when another material does not exist
-     */
-    @NotNull
-    public abstract Material getFallbackMaterial();
-
-    /**
-     * @return the network ID for this registry
-     */
-    public abstract int getNetworkId();
+    public void setFallbackMaterial(@NotNull Material material) {
+        this.fallbackMaterial = material;
+    }
 
     @NotNull
-    public abstract java.lang.String getModid();
+    public Material getFallbackMaterial() {
+        if (this.fallbackMaterial.isNull()) {
+            this.fallbackMaterial = MaterialRegistryManager.getInstance().getDefaultFallback();
+        }
+        return this.fallbackMaterial;
+    }
+
+    public void closeRegistry() {
+        this.isRegistryClosed = true;
+    }
+
+    public ResourceLocation id(java.lang.String name) {
+        return template.withPath(name);
+    }
 }

@@ -16,8 +16,5 @@ public final class MarkerMaterial extends Material {
     }
 
     @Override
-    protected void registerMaterial() {}
-
-    @Override
     public void verifyMaterial() {}
 }

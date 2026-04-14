@@ -82,10 +82,9 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
         if (frozen) {
             throw new IllegalStateException("[register] registry %s has been frozen".formatted(registryName));
         }
-        if (containKey(key)) {
+        if (registry.put(key, value) != null) {
             throw new IllegalStateException("[register] registry %s contains key %s already".formatted(registryName, key));
         }
-        registry.put(key, value);
         return value;
     }
 
@@ -94,10 +93,9 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
         if (frozen) {
             throw new IllegalStateException("[replace] registry %s has been frozen".formatted(registryName));
         }
-        if (!containKey(key)) {
+        if (registry.put(key, value) == null) {
             GTCEu.LOGGER.warn("[replace] couldn't find key %s in registry %s".formatted(registryName, key));
         }
-        registry.put(key, value);
         return value;
     }
 

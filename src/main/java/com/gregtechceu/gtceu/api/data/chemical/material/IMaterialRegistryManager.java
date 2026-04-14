@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.data.chemical.material;
 
 import com.gregtechceu.gtceu.api.data.chemical.material.registry.MaterialRegistry;
+import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 
 import net.minecraft.resources.ResourceLocation;
 
@@ -16,11 +17,11 @@ public interface IMaterialRegistryManager {
     /**
      * Create a registry for a modid. Accessible when in phase {@link Phase#PRE}.
      *
-     * @param modid the mod id for the registry
+     * @param registrate the mod id for the registry
      * @return the registry for the mod
      */
     @NotNull
-    MaterialRegistry createRegistry(@NotNull String modid);
+    MaterialRegistry createRegistry(@NotNull GTRegistrate registrate);
 
     /**
      * Get a mod's registry. Accessible during all phases.

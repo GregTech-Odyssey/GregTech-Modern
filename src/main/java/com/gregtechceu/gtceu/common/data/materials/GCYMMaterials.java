@@ -1,9 +1,8 @@
 package com.gregtechceu.gtceu.common.data.materials;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.BlastProperty.GasTier;
+import com.gregtechceu.gtceu.common.data.GTMaterials;
 
 import static com.gregtechceu.gtceu.api.GTValues.EV;
 import static com.gregtechceu.gtceu.api.GTValues.VA;
@@ -14,7 +13,7 @@ import static com.gregtechceu.gtceu.common.data.GTMaterials.*;
 public class GCYMMaterials {
 
     public static void register() {
-        TantalumCarbide = new Material.Builder(GTCEu.id("tantalum_carbide"))
+        TantalumCarbide = GTMaterials.builder("tantalum_carbide")
                 .ingot(4).fluid()
                 .color(0x999900).iconSet(METALLIC)
                 .appendFlags(STD_METAL, GENERATE_PLATE)
@@ -23,7 +22,7 @@ public class GCYMMaterials {
                         .blastStats(VA[EV], 1200))
                 .buildAndRegister();
 
-        HSLASteel = new Material.Builder(GTCEu.id("hsla_steel"))
+        HSLASteel = GTMaterials.builder("hsla_steel")
                 .ingot(3).fluid()
                 .color(0x686868).iconSet(METALLIC)
                 .appendFlags(STD_METAL, GENERATE_PLATE, GENERATE_ROD, GENERATE_FRAME, GENERATE_SPRING)
@@ -32,7 +31,7 @@ public class GCYMMaterials {
                         .blastStats(VA[GTValues.HV], 1000))
                 .buildAndRegister();
 
-        MolybdenumDisilicide = new Material.Builder(GTCEu.id("molybdenum_disilicide"))
+        MolybdenumDisilicide = GTMaterials.builder("molybdenum_disilicide")
                 .ingot(2).fluid()
                 .color(0x564A84).iconSet(METALLIC)
                 .appendFlags(STD_METAL, GENERATE_SPRING, GENERATE_RING, GENERATE_PLATE, GENERATE_LONG_ROD)
@@ -41,7 +40,7 @@ public class GCYMMaterials {
                         .blastStats(VA[EV], 800))
                 .buildAndRegister();
 
-        Zeron100 = new Material.Builder(GTCEu.id("zeron_100"))
+        Zeron100 = GTMaterials.builder("zeron_100")
                 .ingot(5).fluid()
                 .color(0x294972).iconSet(METALLIC)
                 .appendFlags(STD_METAL, GENERATE_PLATE)
@@ -50,7 +49,7 @@ public class GCYMMaterials {
                         .blastStats(VA[EV], 1000))
                 .buildAndRegister();
 
-        WatertightSteel = new Material.Builder(GTCEu.id("watertight_steel"))
+        WatertightSteel = GTMaterials.builder("watertight_steel")
                 .ingot(4).fluid()
                 .color(0x2B4B56).iconSet(METALLIC)
                 .appendFlags(STD_METAL, GENERATE_PLATE, GENERATE_ROD, GENERATE_FRAME)
@@ -59,7 +58,7 @@ public class GCYMMaterials {
                         .blastStats(VA[EV], 800))
                 .buildAndRegister();
 
-        IncoloyMA956 = new Material.Builder(GTCEu.id("incoloy_ma_956"))
+        IncoloyMA956 = GTMaterials.builder("incoloy_ma_956")
                 .ingot(5).fluid()
                 .color(0x2D9B66).iconSet(METALLIC)
                 .appendFlags(STD_METAL, GENERATE_PLATE, GENERATE_ROD, GENERATE_FRAME)
@@ -68,7 +67,7 @@ public class GCYMMaterials {
                         .blastStats(VA[EV], 800))
                 .buildAndRegister();
 
-        MaragingSteel300 = new Material.Builder(GTCEu.id("maraging_steel_300"))
+        MaragingSteel300 = GTMaterials.builder("maraging_steel_300")
                 .ingot(4).fluid()
                 .color(0x505B6E).iconSet(METALLIC)
                 .appendFlags(STD_METAL, GENERATE_ROD, GENERATE_FRAME)
@@ -77,7 +76,7 @@ public class GCYMMaterials {
                         .blastStats(VA[EV], 1000))
                 .buildAndRegister();
 
-        HastelloyX = new Material.Builder(GTCEu.id("hastelloy_x"))
+        HastelloyX = GTMaterials.builder("hastelloy_x")
                 .ingot(5).fluid()
                 .color(0x5784B8).iconSet(METALLIC)
                 .appendFlags(STD_METAL, GENERATE_PLATE, GENERATE_FRAME)
@@ -86,7 +85,7 @@ public class GCYMMaterials {
                         .blastStats(VA[EV], 900))
                 .buildAndRegister();
 
-        Stellite100 = new Material.Builder(GTCEu.id("stellite_100"))
+        Stellite100 = GTMaterials.builder("stellite_100")
                 .ingot(4).fluid()
                 .color(0xCFCFEE).iconSet(METALLIC)
                 .appendFlags(STD_METAL, GENERATE_PLATE)
@@ -95,7 +94,7 @@ public class GCYMMaterials {
                         .blastStats(VA[EV], 1000))
                 .buildAndRegister();
 
-        TitaniumCarbide = new Material.Builder(GTCEu.id("titanium_carbide"))
+        TitaniumCarbide = GTMaterials.builder("titanium_carbide")
                 .ingot(3).fluid()
                 .color(0x90092F).iconSet(METALLIC)
                 .appendFlags(STD_METAL, GENERATE_PLATE)
@@ -104,7 +103,7 @@ public class GCYMMaterials {
                         .blastStats(VA[EV], 1000))
                 .buildAndRegister();
 
-        TitaniumTungstenCarbide = new Material.Builder(GTCEu.id("titanium_tungsten_carbide"))
+        TitaniumTungstenCarbide = GTMaterials.builder("titanium_tungsten_carbide")
                 .ingot(6).fluid()
                 .color(0x680B0B).iconSet(METALLIC)
                 .appendFlags(STD_METAL, GENERATE_PLATE)
@@ -113,7 +112,7 @@ public class GCYMMaterials {
                         .blastStats(VA[EV], 1000))
                 .buildAndRegister();
 
-        HastelloyC276 = new Material.Builder(GTCEu.id("hastelloy_c_276"))
+        HastelloyC276 = GTMaterials.builder("hastelloy_c_276")
                 .ingot(6).fluid()
                 .color(0xAB2F2F).iconSet(METALLIC)
                 .appendFlags(STD_METAL, GENERATE_PLATE, GENERATE_FRAME)

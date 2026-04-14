@@ -4,7 +4,9 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.data.chemical.material.IMaterialRegistryManager;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.registry.MaterialRegistry;
+import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.common.registry.GTRegistration;
 
 import net.minecraft.resources.ResourceLocation;
 
@@ -25,10 +27,10 @@ public final class MaterialRegistryManager implements IMaterialRegistryManager {
 
     private static final MaterialRegistryManager INSTANCE = new MaterialRegistryManager();
 
-    public static final MaterialRegistryImpl GREGTECH_REGISTRY = createInternalRegistry();
+    public static final MaterialRegistry GREGTECH_REGISTRY = createInternalRegistry();
 
-    private final Object2ObjectMap<String, MaterialRegistryImpl> registries = new O2OOpenCacheHashMap<>();
-    private final Int2ObjectMap<MaterialRegistryImpl> networkIds = new Int2ObjectOpenHashMap<>();
+    private final Object2ObjectMap<String, MaterialRegistry> registries = new O2OOpenCacheHashMap<>();
+    private final Int2ObjectMap<MaterialRegistry> networkIds = new Int2ObjectOpenHashMap<>();
 
     private Collection<Material> registeredMaterials;
 
@@ -52,14 +54,14 @@ public final class MaterialRegistryManager implements IMaterialRegistryManager {
 
     @NotNull
     @Override
-    public MaterialRegistry createRegistry(@NotNull String modid) {
+    public MaterialRegistry createRegistry(@NotNull GTRegistrate registrate) {
         if (registrationPhase != Phase.PRE) {
             throw new IllegalStateException("Cannot create registries in phase " + registrationPhase);
         }
-
+        var modid = registrate.getModid();
         Preconditions.checkArgument(!registries.containsKey(modid),
                 "Material registry already exists for modid %s", modid);
-        MaterialRegistryImpl registry = new MaterialRegistryImpl(modid);
+        MaterialRegistry registry = new MaterialRegistry(registrate);
         registries.put(modid, registry);
         networkIds.put(registry.getNetworkId(), registry);
         return registry;
@@ -127,12 +129,12 @@ public final class MaterialRegistryManager implements IMaterialRegistryManager {
     }
 
     public void unfreezeRegistries() {
-        registries.values().forEach(MaterialRegistryImpl::unfreeze);
+        registries.values().forEach(MaterialRegistry::unfreeze);
         registrationPhase = Phase.OPEN;
     }
 
     public void closeRegistries() {
-        registries.values().forEach(MaterialRegistryImpl::closeRegistry);
+        registries.values().forEach(MaterialRegistry::closeRegistry);
         ImmutableList.Builder<Material> collection = ImmutableList.builder();
         for (MaterialRegistry registry : registries.values()) {
             collection.addAll(registry.getAllMaterials());
@@ -142,13 +144,13 @@ public final class MaterialRegistryManager implements IMaterialRegistryManager {
     }
 
     public void freezeRegistries() {
-        registries.values().forEach(MaterialRegistryImpl::freeze);
+        registries.values().forEach(MaterialRegistry::freeze);
         registrationPhase = Phase.FROZEN;
     }
 
     @NotNull
-    private static MaterialRegistryImpl createInternalRegistry() {
-        MaterialRegistryImpl registry = new MaterialRegistryImpl(GTCEu.MOD_ID);
+    private static MaterialRegistry createInternalRegistry() {
+        MaterialRegistry registry = new MaterialRegistry(GTRegistration.REGISTRATE);
         INSTANCE.registries.put(GTCEu.MOD_ID, registry);
         return registry;
     }
