@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.data.lang;
 
-import com.tterrag.registrate.providers.RegistrateLangProvider;
+import com.gto.registrate.providers.RegistrateLangProvider;
 
 public class ToolLang {
 

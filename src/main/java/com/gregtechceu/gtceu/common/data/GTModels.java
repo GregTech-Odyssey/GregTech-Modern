@@ -32,10 +32,10 @@ import net.minecraftforge.client.model.generators.ModelProvider;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import com.google.gson.JsonObject;
-import com.tterrag.registrate.providers.DataGenContext;
-import com.tterrag.registrate.providers.RegistrateBlockstateProvider;
-import com.tterrag.registrate.providers.RegistrateItemModelProvider;
-import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
+import com.gto.registrate.providers.DataGenContext;
+import com.gto.registrate.providers.RegistrateBlockstateProvider;
+import com.gto.registrate.providers.RegistrateItemModelProvider;
+import com.gto.registrate.util.nullness.NonNullBiConsumer;
 
 import java.io.BufferedReader;
 import java.io.IOException;

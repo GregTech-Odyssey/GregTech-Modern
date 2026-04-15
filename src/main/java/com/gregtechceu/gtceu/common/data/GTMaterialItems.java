@@ -19,10 +19,10 @@ import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.google.common.collect.ArrayTable;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
-import com.tterrag.registrate.providers.ProviderType;
-import com.tterrag.registrate.util.entry.ItemEntry;
-import com.tterrag.registrate.util.entry.ItemProviderEntry;
-import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
+import com.gto.registrate.providers.ProviderType;
+import com.gto.registrate.util.entry.ItemEntry;
+import com.gto.registrate.util.entry.ItemProviderEntry;
+import com.gto.registrate.util.nullness.NonNullBiConsumer;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 
 import java.util.Map;

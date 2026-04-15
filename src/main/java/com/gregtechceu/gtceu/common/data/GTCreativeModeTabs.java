@@ -10,7 +10,7 @@ import com.gregtechceu.gtceu.common.pipelike.cable.Insulation;
 
 import net.minecraft.world.item.*;
 
-import com.tterrag.registrate.util.entry.RegistryEntry;
+import com.gto.registrate.util.entry.RegistryEntry;
 
 import static com.gregtechceu.gtceu.common.registry.GTRegistration.REGISTRATE;
 

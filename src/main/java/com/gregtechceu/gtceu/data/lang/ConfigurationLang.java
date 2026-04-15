@@ -4,7 +4,7 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import com.fast.fastcollection.OpenCacheHashSet;
-import com.tterrag.registrate.providers.RegistrateLangProvider;
+import com.gto.registrate.providers.RegistrateLangProvider;
 import dev.toma.configuration.Configuration;
 import dev.toma.configuration.config.format.ConfigFormats;
 import dev.toma.configuration.config.value.ConfigValue;

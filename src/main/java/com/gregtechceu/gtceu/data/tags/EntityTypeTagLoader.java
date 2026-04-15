@@ -4,7 +4,7 @@ import com.gregtechceu.gtceu.data.recipe.CustomTags;
 
 import net.minecraft.world.entity.EntityType;
 
-import com.tterrag.registrate.providers.RegistrateTagsProvider;
+import com.gto.registrate.providers.RegistrateTagsProvider;
 
 public class EntityTypeTagLoader {
 

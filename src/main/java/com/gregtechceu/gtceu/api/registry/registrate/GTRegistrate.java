@@ -29,15 +29,14 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.RegisterEvent;
 
-import com.tterrag.registrate.Registrate;
-import com.tterrag.registrate.builders.Builder;
-import com.tterrag.registrate.builders.ItemBuilder;
-import com.tterrag.registrate.builders.NoConfigBuilder;
-import com.tterrag.registrate.providers.ProviderType;
-import com.tterrag.registrate.util.OneTimeEventReceiver;
-import com.tterrag.registrate.util.entry.ItemEntry;
-import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
-import com.tterrag.registrate.util.nullness.NonNullFunction;
+import com.gto.registrate.Registrate;
+import com.gto.registrate.builders.ItemBuilder;
+import com.gto.registrate.builders.NoConfigBuilder;
+import com.gto.registrate.providers.ProviderType;
+import com.gto.registrate.util.OneTimeEventReceiver;
+import com.gto.registrate.util.entry.ItemEntry;
+import com.gto.registrate.util.nullness.NonNullBiConsumer;
+import com.gto.registrate.util.nullness.NonNullFunction;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
 

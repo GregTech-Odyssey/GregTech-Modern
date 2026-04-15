@@ -4,7 +4,7 @@ import com.gregtechceu.gtceu.api.fluids.FluidState;
 
 import net.minecraft.world.level.material.Fluid;
 
-import com.tterrag.registrate.util.entry.RegistryEntry;
+import com.gto.registrate.util.entry.RegistryEntry;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;

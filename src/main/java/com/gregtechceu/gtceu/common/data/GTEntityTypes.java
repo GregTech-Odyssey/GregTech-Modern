@@ -5,7 +5,7 @@ import com.gregtechceu.gtceu.common.entity.*;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.entity.MobCategory;
 
-import com.tterrag.registrate.util.entry.EntityEntry;
+import com.gto.registrate.util.entry.EntityEntry;
 
 import static com.gregtechceu.gtceu.common.registry.GTRegistration.REGISTRATE;
 

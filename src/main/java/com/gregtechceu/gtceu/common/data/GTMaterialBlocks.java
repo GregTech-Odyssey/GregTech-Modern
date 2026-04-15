@@ -28,9 +28,9 @@ import net.minecraft.world.level.block.Blocks;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
-import com.tterrag.registrate.providers.ProviderType;
-import com.tterrag.registrate.util.entry.BlockEntry;
-import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
+import com.gto.registrate.providers.ProviderType;
+import com.gto.registrate.util.entry.BlockEntry;
+import com.gto.registrate.util.nullness.NonNullBiConsumer;
 
 import java.util.Map;
 

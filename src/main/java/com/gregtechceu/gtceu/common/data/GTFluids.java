@@ -14,7 +14,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.common.ForgeMod;
 
-import com.tterrag.registrate.util.entry.FluidEntry;
+import com.gto.registrate.util.entry.FluidEntry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;

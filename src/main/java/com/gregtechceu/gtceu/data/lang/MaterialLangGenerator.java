@@ -3,7 +3,7 @@ package com.gregtechceu.gtceu.data.lang;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.registry.MaterialRegistry;
 
-import com.tterrag.registrate.providers.RegistrateLangProvider;
+import com.gto.registrate.providers.RegistrateLangProvider;
 
 import static com.gregtechceu.gtceu.utils.FormattingUtil.toEnglishName;
 

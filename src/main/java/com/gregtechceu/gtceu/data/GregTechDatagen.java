@@ -9,7 +9,7 @@ import com.gregtechceu.gtceu.data.tags.EntityTypeTagLoader;
 import com.gregtechceu.gtceu.data.tags.FluidTagLoader;
 import com.gregtechceu.gtceu.data.tags.ItemTagLoader;
 
-import com.tterrag.registrate.providers.ProviderType;
+import com.gto.registrate.providers.ProviderType;
 
 public class GregTechDatagen {
 

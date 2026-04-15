@@ -8,7 +8,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraftforge.common.data.LanguageProvider;
 
-import com.tterrag.registrate.providers.RegistrateLangProvider;
+import com.gto.registrate.providers.RegistrateLangProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;

@@ -36,7 +36,7 @@ import net.minecraftforge.client.event.*;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import com.tterrag.registrate.ClientEvent;
+import com.gto.registrate.ClientEvent;
 
 public class ClientProxy extends CommonProxy {
 
