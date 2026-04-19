@@ -79,7 +79,7 @@ public class RegistrateLootTableProvider extends LootTableProvider implements Re
         currentLootCreators.forEach(c -> c.validate(map, validationresults));
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public <T extends RegistrateLootTables> void addLootAction(LootType<T> type, NonNullConsumer<T> action) {
         this.specialLootActions.put(type, (Consumer) action);
     }

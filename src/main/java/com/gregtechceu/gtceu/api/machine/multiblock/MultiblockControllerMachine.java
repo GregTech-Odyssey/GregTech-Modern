@@ -87,11 +87,11 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @DescSynced
     protected boolean isFlipped;
 
-    protected boolean simpleLock;
+    protected volatile boolean simpleLock;
 
-    protected boolean checking;
+    protected volatile boolean checking;
 
-    protected int waitingTime;
+    protected volatile int waitingTime;
 
     protected boolean toldNotFormed = false;
 
@@ -235,7 +235,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                     }
                     if (getLevel() instanceof ServerLevel serverLevel) {
                         var c = state.blockEntityCache.longStream().mapToObj(BlockPos::of).toList();
-                        serverLevel.getServer().execute(() -> c.forEach(serverLevel::removeBlockEntity));
+                        serverLevel.getServer().execute(() -> c.forEach(pos -> serverLevel.getChunkAt(pos).removeBlockEntityTicker(pos)));
                     }
                 }
                 state.clearCache();

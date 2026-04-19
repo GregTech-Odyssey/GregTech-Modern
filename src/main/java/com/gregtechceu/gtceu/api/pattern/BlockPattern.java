@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.pattern;
 import com.gregtechceu.gtceu.api.block.ActiveBlock;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.blockentity.TickBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
@@ -14,7 +15,6 @@ import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.PatternMatchContext;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 
-import com.lowdragmc.lowdraglib.syncdata.blockentity.IManagedBlockEntity;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
 import net.minecraft.core.BlockPos;
@@ -165,7 +165,7 @@ public class BlockPattern {
                                                 matchContext.parts.add(part);
                                             }
                                         }
-                                    } else if (!(blockentity instanceof IManagedBlockEntity) && !WHITELIST.contains(blockentity.getClass())) {
+                                    } else if (!(blockentity instanceof TickBlockEntity) && !WHITELIST.contains(blockentity.getClass())) {
                                         worldState.blockEntityCache.add(posLong);
                                     }
                                 }

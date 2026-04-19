@@ -28,6 +28,7 @@ import java.util.function.BooleanSupplier;
 public abstract class TickBlockEntity extends BlockEntity implements IAsyncAutoSyncBlockEntity, IAutoPersistBlockEntity, ITickSubscription {
 
     public final int offset = GTValues.RNG.nextInt(20);
+    public volatile boolean remove = false;
     public final BooleanSupplier isRemove = () -> remove;
     public int tickDelay = 0;
 
@@ -41,6 +42,11 @@ public abstract class TickBlockEntity extends BlockEntity implements IAsyncAutoS
 
     public TickBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
+    }
+
+    @Override
+    public boolean isRemoved() {
+        return this.remove;
     }
 
     public void observe() {
@@ -118,12 +124,14 @@ public abstract class TickBlockEntity extends BlockEntity implements IAsyncAutoS
 
     @Override
     public void setRemoved() {
+        this.remove = true;
         super.setRemoved();
         chunk = null;
     }
 
     @Override
     public void clearRemoved() {
+        this.remove = false;
         chunk = null;
         super.clearRemoved();
         if (level instanceof ServerLevel serverLevel) {
