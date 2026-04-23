@@ -343,17 +343,23 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     public int fillInternal(FluidStack resource, FluidAction action) {
         if (resource.isEmpty()) return 0;
         var copied = resource.copy();
+        boolean canVoidResource = false;
         CustomFluidTank existingStorage = null;
         if (!allowSameFluids) {
             for (var storage : storages) {
                 if (!storage.getFluid().isEmpty() && storage.getFluid().isFluidEqual(resource)) {
                     existingStorage = storage;
+                    canVoidResource = true;
                     break;
                 }
             }
         }
         if (existingStorage == null) {
             for (var storage : storages) {
+                boolean canFillStorage = storage.isFluidValid(resource) && (storage.getFluid().isEmpty() || storage.getFluid().isFluidEqual(resource));
+                if (canFillStorage) {
+                    canVoidResource = true;
+                }
                 var filled = storage.fill(copied.copy(), action);
                 if (filled > 0) {
                     copied.shrink(filled);
@@ -366,7 +372,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
         } else {
             copied.shrink(existingStorage.fill(copied.copy(), action));
         }
-        return resource.getAmount() - (isVoiding ? 0 : copied.getAmount());
+        return resource.getAmount() - (isVoiding && canVoidResource ? 0 : copied.getAmount());
     }
 
     @NotNull
