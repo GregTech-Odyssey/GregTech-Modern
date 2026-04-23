@@ -118,8 +118,17 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
     //////////////////////////////////////
     @Override
     public void setMaintenanceProblems(byte problems) {
+        boolean hadProblems = hasMaintenanceProblems();
         this.maintenanceProblems = problems;
         updateMaintenanceSubscription();
+        if (hadProblems && !hasMaintenanceProblems()) {
+            for (var controller : getControllers()) {
+                if (controller instanceof IRecipeLogicMachine recipeLogicMachine) {
+                    recipeLogicMachine.getRecipeLogic().markLastRecipeDirty();
+                    recipeLogicMachine.getRecipeLogic().updateTickSubscription();
+                }
+            }
+        }
         requestSync();
     }
 
