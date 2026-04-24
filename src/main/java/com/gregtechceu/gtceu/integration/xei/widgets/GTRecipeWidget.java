@@ -162,12 +162,10 @@ public class GTRecipeWidget extends WidgetGroup {
         }
         if (EUt > 0) {
             textsY += 10;
-            Component text = Component.translatable(isInput ? "gtceu.recipe.eu" : "gtceu.recipe.eu_inverted",
-                    FormattingUtil.formatNumber2Places(minAmperage), VN[minVoltageTier])
-                    .withStyle(ChatFormatting.UNDERLINE);
+            Component text = Component.translatable(isInput ? "gtceu.recipe.eu" : "gtceu.recipe.eu_inverted", FormattingUtil.formatNumbers(EUt));
             recipeVoltageText = new LabelWidget(3 - xOffset, textsY, text).setTextColor(-1).setDropShadow(true);
             recipeVoltageText.setHoverTooltips(
-                    Component.translatable("gtceu.recipe.eu.total", FormattingUtil.formatNumbers(EUt)));
+                    Component.translatable("gtceu.recipe.eu.tier", FormattingUtil.formatNumber2Places(minAmperage), VN[minVoltageTier]));
             if (recipeVoltageText != null) {
                 addWidget(recipeVoltageText);
             }
@@ -283,11 +281,9 @@ public class GTRecipeWidget extends WidgetGroup {
         voltageTextWidget.setText(tierText);
         voltageTextWidget.setSelfPositionX(getVoltageXOffset() - xOffset);
         if (recipeVoltageText != null) {
-            recipeVoltageText.setComponent(Component.translatable("gtceu.recipe.eu",
-                    FormattingUtil.formatNumber2Places(minAmperage), VN[minVoltageTier])
-                    .withStyle(ChatFormatting.UNDERLINE));
+            recipeVoltageText.setComponent(Component.translatable("gtceu.recipe.eu", FormattingUtil.formatNumbers(inputEUt)));
             recipeVoltageText.setHoverTooltips(
-                    Component.translatable("gtceu.recipe.eu.total", FormattingUtil.formatNumbers(inputEUt)));
+                    Component.translatable("gtceu.recipe.eu.tier", FormattingUtil.formatNumber2Places(minAmperage), VN[minVoltageTier]));
         }
         detectAndSendChanges();
         updateScreen();
