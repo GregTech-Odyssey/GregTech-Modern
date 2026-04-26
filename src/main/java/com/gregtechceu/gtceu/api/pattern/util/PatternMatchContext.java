@@ -56,6 +56,7 @@ public class PatternMatchContext {
         }
         vaBlocks.addAll(state.vaBlocks);
         parts.addAll(state.parts);
+        mergeData(state);
     }
 
     public void reset() {
