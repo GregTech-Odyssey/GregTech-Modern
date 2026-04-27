@@ -4492,7 +4492,7 @@
     "behavior.portable_scanner.machine_disabled": "Отключен.",
     "behavior.portable_scanner.machine_power_loss": "Выключен из-за потери питания.",
     "behavior.portable_scanner.mode.caption": "Отобр. режим: %s",
-    "behavior.portable_scanner.mode.show_all_info": "Показать все (исключая внутреннюю информацию)",
+    "behavior.portable_scanner.mode.show_all_info": "Показать всю информацию",
     "behavior.portable_scanner.mode.show_electrical_info": "Показать инфо. о электричестве",
     "behavior.portable_scanner.mode.show_environmental_info": "Показать инфо. о окружении",
     "behavior.portable_scanner.mode.show_machine_info": "Показать инфо. о машине",
