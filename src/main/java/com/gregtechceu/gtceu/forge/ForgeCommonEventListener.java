@@ -204,6 +204,7 @@ public class ForgeCommonEventListener {
 
     @SubscribeEvent
     public static void serverStopping(ServerStoppingEvent event) {
+        MultiblockWorldData.TASK_HANDLER.unsubscribe();
         var levels = event.getServer().getAllLevels();
         for (var level : levels) {
             if (!level.isClientSide()) {
@@ -212,7 +213,6 @@ public class ForgeCommonEventListener {
                 TaskHandler.onWorldUnLoad(level);
             }
         }
-        MultiblockWorldData.TASK_HANDLER.unsubscribe();
     }
 
     @SubscribeEvent

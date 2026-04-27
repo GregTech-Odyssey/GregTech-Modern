@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo;
+import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.config.ConfigHolder;
@@ -231,7 +232,7 @@ public class PatternPreviewWidget extends WidgetGroup {
         Stream<BlockPos> stream = pattern.blockMap.keySet().stream()
                 .filter(pos -> layer == -1 || layer + pattern.minY == pos.getY());
         if (pattern.controllerBase.isFormed()) {
-            LongSet set = pattern.controllerBase.getMultiblockState().getMatchContext().getOrDefault("renderMask",
+            LongSet set = pattern.controllerBase.getMultiblockState().getMatchContext().getOrDefault(Predicates.DataKey.RENDER_MASK,
                     LongSets.EMPTY_SET);
             Set<BlockPos> modelDisabled = set.longStream().mapToObj(BlockPos::of).collect(Collectors.toSet());
             if (!modelDisabled.isEmpty()) {
@@ -416,7 +417,7 @@ public class PatternPreviewWidget extends WidgetGroup {
             controllerBase.onStructureFormed();
         }
         if (controllerBase.isFormed()) {
-            LongSet set = controllerBase.getMultiblockState().getMatchContext().getOrDefault("renderMask",
+            LongSet set = controllerBase.getMultiblockState().getMatchContext().getOrDefault(Predicates.DataKey.RENDER_MASK,
                     LongSets.EMPTY_SET);
             Set<BlockPos> modelDisabled = set.longStream().mapToObj(BlockPos::of).collect(Collectors.toSet());
             if (!modelDisabled.isEmpty()) {

@@ -317,7 +317,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         isFormed = true;
         modules.clear();
         var list = new ArrayList<IMultiPart>();
-        for (IMultiPart part : getMultiblockState().getMatchContext().parts) {
+        for (IMultiPart part : getMultiblockState().getMatchContext().getParts()) {
             if (shouldAddPartToController(part)) {
                 if (part instanceof IMultiModule<?> module) {
                     modules.add(module);

@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.block.IFilterType;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.ICleanroomReceiver;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
@@ -18,6 +17,7 @@ import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
+import com.gregtechceu.gtceu.api.misc.data.DataComponentKey;
 import com.gregtechceu.gtceu.api.pattern.*;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMachines;
@@ -48,6 +48,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceSet;
+import it.unimi.dsi.fastutil.objects.ReferenceSets;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -62,6 +64,8 @@ import static com.gregtechceu.gtceu.api.pattern.util.RelativeDirection.*;
 @MethodsReturnNonnullByDefault
 public class CleanroomMachine extends WorkableElectricMultiblockMachine implements ICleanroomProvider, IDataInfoProvider {
 
+    public static final DataComponentKey<ReferenceSet<ICleanroomReceiver>> CLEANROOM_RECEIVER = DataComponentKey.createCollection("cleanroomReceiver", null);
+
     private static final TraceabilityPredicate INNER_PREDICATE = new TraceabilityPredicate(blockWorldState -> {
         if (blockWorldState.getTileEntity() instanceof MetaMachineBlockEntity machineBlockEntity) {
             var machine = machineBlockEntity.getMetaMachine();
@@ -70,7 +74,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
                 return false;
             }
             if (machine instanceof ICleanroomReceiver cleanroomReceiver) {
-                blockWorldState.getMatchContext().getOrCreate("cleanroomReceiver", ReferenceOpenHashSet::new).add(cleanroomReceiver);
+                blockWorldState.getMatchContext().getOrCreate(CLEANROOM_RECEIVER, ReferenceOpenHashSet::new).add(cleanroomReceiver);
             }
         }
         return true;
@@ -141,7 +145,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
     public void onStructureFormed() {
         super.onStructureFormed();
         initializeAbilities();
-        IFilterType filterType = getMultiblockState().getMatchContext().get("FilterType");
+        var filterType = getMultiblockState().getMatchContext().get(Predicates.DataKey.FILTER_TYPE);
         if (filterType != null) {
             this.cleanroomType = filterType.getCleanroomType();
         } else {
@@ -152,7 +156,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
             this.cleanroomReceivers.forEach(receiver -> receiver.setCleanroom(null));
             this.cleanroomReceivers = null;
         }
-        this.cleanroomReceivers = getMultiblockState().getMatchContext().getOrDefault("cleanroomReceiver", Collections.emptyList());
+        this.cleanroomReceivers = getMultiblockState().getMatchContext().getOrDefault(CLEANROOM_RECEIVER, ReferenceSets.emptySet());
         this.cleanroomReceivers.forEach(receiver -> receiver.setCleanroom(this));
         // max progress is based roughly on the dimensions of the structure: ((w * d) ^ .8 * h)
         // taller cleanrooms take longer than wider ones

@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.pattern.predicates;
 
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
+import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.error.SinglePredicateError;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
@@ -100,7 +101,7 @@ public class SimplePredicate {
 
     private boolean checkInnerConditions(MultiblockState blockWorldState) {
         if (disableRenderFormed) {
-            blockWorldState.getMatchContext().getOrCreate("renderMask", LongOpenHashSet::new)
+            blockWorldState.getMatchContext().getOrCreate(Predicates.DataKey.RENDER_MASK, LongOpenHashSet::new)
                     .add(blockWorldState.getPos().asLong());
         }
         return true;

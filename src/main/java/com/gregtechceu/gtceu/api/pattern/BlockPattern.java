@@ -146,7 +146,7 @@ public class BlockPattern {
                                 matchContext.getPredicates().put(posLong, predicate);
                             }
                             if (worldState.getBlockState().getBlock() instanceof ActiveBlock) {
-                                if (!savePredicate) matchContext.vaBlocks.add(posLong);
+                                if (!savePredicate) matchContext.getOrCreate(Predicates.DataKey.ACTIVE_BLOCKS, LongOpenHashSet::new).add(posLong);
                             } else {
                                 var blockentity = worldState.getTileEntity();
                                 if (blockentity != null) {
@@ -162,7 +162,7 @@ public class BlockPattern {
                                                 success = false;
                                                 worldState.setError(MultiblockState.SHARE_ERROR);
                                             } else {
-                                                matchContext.parts.add(part);
+                                                matchContext.getParts().add(part);
                                             }
                                         }
                                     } else if (!(blockentity instanceof TickBlockEntity) && !WHITELIST.contains(blockentity.getClass())) {

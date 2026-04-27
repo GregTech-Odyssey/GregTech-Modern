@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSets;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
@@ -160,7 +161,7 @@ public class MultiblockState {
             } else {
                 if (controller.isFormed()) {
                     if (state.getBlock() instanceof ActiveBlock) {
-                        if (getMatchContext().vaBlocks.contains(pos.asLong())) {
+                        if (matchContext.getOrDefault(Predicates.DataKey.ACTIVE_BLOCKS, LongSets.EMPTY_SET).contains(pos.asLong())) {
                             return;
                         }
                     }

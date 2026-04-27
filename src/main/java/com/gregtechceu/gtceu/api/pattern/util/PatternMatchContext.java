@@ -1,15 +1,12 @@
 package com.gregtechceu.gtceu.api.pattern.util;
 
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
+import com.gregtechceu.gtceu.api.misc.data.DataComponentKey;
+import com.gregtechceu.gtceu.api.misc.data.DataComponentMap;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 
-import com.fast.fastcollection.O2OOpenCacheHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
-import it.unimi.dsi.fastutil.objects.ObjectSet;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import it.unimi.dsi.fastutil.objects.*;
 
 import java.util.function.Supplier;
 
@@ -19,14 +16,12 @@ import java.util.function.Supplier;
  */
 public class PatternMatchContext {
 
-    public final LongOpenHashSet vaBlocks = new LongOpenHashSet();
-    public final ReferenceOpenHashSet<IMultiPart> parts = new ReferenceOpenHashSet<>();
+    private static final DataComponentKey<Long2ObjectOpenHashMap<TraceabilityPredicate>> PREDICATES = DataComponentKey.createLong2ObjectMap("predicates", null);
+    private static final DataComponentKey<ReferenceOpenHashSet<IMultiPart>> PARTS = DataComponentKey.createCollection("parts", null);
 
     private final PatternMatchContext parents;
 
-    private Long2ObjectOpenHashMap<TraceabilityPredicate> predicates;
-
-    private O2OOpenCacheHashMap<Object, Object> data;
+    private final DataComponentMap data = new DataComponentMap();
 
     public PatternMatchContext() {
         this.parents = null;
@@ -34,75 +29,51 @@ public class PatternMatchContext {
 
     public PatternMatchContext(PatternMatchContext parents) {
         this.parents = parents;
-        mergeData(parents);
-    }
-
-    private void mergeData(PatternMatchContext context) {
-        if (context.data != null) {
-            if (data == null) data = new O2OOpenCacheHashMap<>();
-            data.putAll(context.data);
-        }
+        this.data.merge(parents.data);
     }
 
     public Long2ObjectOpenHashMap<TraceabilityPredicate> getPredicates() {
-        if (predicates == null) predicates = new Long2ObjectOpenHashMap<>();
-        return predicates;
+        return data.getOrCreateData(PREDICATES, Long2ObjectOpenHashMap::new);
+    }
+
+    public ReferenceSet<IMultiPart> getParts() {
+        return data.getOrCreateData(PARTS, ReferenceOpenHashSet::new);
     }
 
     public void merge(PatternMatchContext state) {
-        if (state.predicates != null) {
-            if (predicates == null) predicates = new Long2ObjectOpenHashMap<>();
-            predicates.putAll(state.predicates);
-        }
-        vaBlocks.addAll(state.vaBlocks);
-        parts.addAll(state.parts);
-        mergeData(state);
+        data.merge(state.data);
     }
 
     public void reset() {
-        vaBlocks.clear();
-        parts.clear();
-        if (predicates != null) this.predicates.clear();
-        if (data != null) this.data.clear();
-        if (parents != null) mergeData(parents);
+        this.data.clear();
+        if (parents != null) this.data.merge(parents.data);
     }
 
-    public void set(Object key, Object value) {
-        if (data == null) data = new O2OOpenCacheHashMap<>();
+    public <T> void set(DataComponentKey<T> key, T value) {
         this.data.put(key, value);
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> T getOrDefault(Object key, T defaultValue) {
-        if (data == null) return defaultValue;
-        return (T) data.getOrDefault(key, defaultValue);
+    public <T> T getOrDefault(DataComponentKey<T> key, T defaultValue) {
+        return data.getOrDefaultData(key, defaultValue);
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> T get(Object key) {
-        if (data == null) return null;
-        return (T) data.get(key);
+    public <T> T get(DataComponentKey<T> key) {
+        return data.getData(key);
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> T getOrCreate(Object key, Supplier<T> creator) {
-        if (data == null) data = new O2OOpenCacheHashMap<>();
-        return (T) data.computeIfAbsent(key, k -> creator.get());
+    public <T> T getOrCreate(DataComponentKey<T> key, Supplier<T> creator) {
+        return data.getOrCreateData(key, creator);
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> T getOrPut(Object key, T initialValue) {
-        if (data == null) data = new O2OOpenCacheHashMap<>();
-        return (T) data.computeIfAbsent(key, k -> initialValue);
+    public <T> T getOrPut(DataComponentKey<T> key, T initialValue) {
+        return data.getOrPut(key, initialValue);
     }
 
-    public boolean containsKey(Object key) {
-        if (data == null) return false;
-        return data.containsKey(key);
+    public <T> boolean containsKey(DataComponentKey<T> key) {
+        return data.contains(key);
     }
 
-    public ObjectSet<Object2ObjectMap.Entry<Object, Object>> entrySet() {
-        if (data == null) return Object2ObjectMaps.emptyMap().object2ObjectEntrySet();
-        return data.object2ObjectEntrySet();
+    public ObjectSet<Reference2ObjectMap.Entry<DataComponentKey<?>, Object>> entrySet() {
+        return data.reference2ObjectEntrySet();
     }
 }

@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
+import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.SCPacketUpdateActiveBlock;
 
@@ -192,8 +193,8 @@ public interface IMultiController extends IMachineFeature {
 
     default void updateActiveBlock(boolean active) {
         if (self().getLevel() instanceof ServerLevel serverLevel) {
-            var vaBlocks = getMultiblockState().matchContext.vaBlocks;
-            if (vaBlocks.isEmpty()) return;
+            var vaBlocks = getMultiblockState().matchContext.get(Predicates.DataKey.ACTIVE_BLOCKS);
+            if (vaBlocks == null || vaBlocks.isEmpty()) return;
             serverLevel.getServer().tell(new TickTask(0, () -> GTNetwork.NETWORK.sendToAll(new SCPacketUpdateActiveBlock(vaBlocks, active))));
         }
     }

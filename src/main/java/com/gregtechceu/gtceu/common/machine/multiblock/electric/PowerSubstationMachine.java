@@ -20,6 +20,7 @@ import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
+import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
@@ -100,11 +101,13 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
         this.inputHatches = new EnergyContainerList(inputs);
         this.outputHatches = new EnergyContainerList(outputs);
         List<IBatteryData> batteries = new ArrayList<>();
-        for (var battery : getMultiblockState().getMatchContext().entrySet()) {
-            if (battery.getKey() instanceof String string && string.startsWith(PMC_BATTERY_HEADER) && battery.getValue() instanceof BatteryMatchWrapper wrapper)
-                for (int i = 0; i < wrapper.amount; i++) {
-                    batteries.add(wrapper.partType);
+        var batterys = getMultiblockState().getMatchContext().get(Predicates.DataKey.BATTERY_DATA);
+        if (batterys != null) {
+            batterys.forEach((k, v) -> {
+                for (int i = 0; i < v; i++) {
+                    batteries.add(k);
                 }
+            });
         }
         if (batteries.isEmpty()) {
             // only empty batteries found in the structure

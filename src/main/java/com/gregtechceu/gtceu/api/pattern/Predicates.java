@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.pattern;
 
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.block.ICoilType;
+import com.gregtechceu.gtceu.api.block.IFilterType;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
@@ -12,6 +13,7 @@ import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblock.IBatteryData;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
+import com.gregtechceu.gtceu.api.misc.data.DataComponentKey;
 import com.gregtechceu.gtceu.api.pattern.error.PatternStringError;
 import com.gregtechceu.gtceu.api.pattern.predicates.*;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
@@ -21,7 +23,6 @@ import com.gregtechceu.gtceu.common.block.CoilBlock;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
-import com.gregtechceu.gtceu.common.machine.multiblock.electric.PowerSubstationMachine;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
@@ -35,14 +36,14 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 
 import com.gto.registrate.util.entry.RegistryEntry;
+import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-
-import static com.gregtechceu.gtceu.common.machine.multiblock.electric.PowerSubstationMachine.PMC_BATTERY_HEADER;
 
 public class Predicates {
 
@@ -190,7 +191,7 @@ public class Predicates {
             for (Map.Entry<ICoilType, Supplier<CoilBlock>> entry : GTCEuAPI.HEATING_COILS.entrySet()) {
                 if (blockState.is(entry.getValue().get())) {
                     var stats = entry.getKey();
-                    Object currentCoil = blockWorldState.getMatchContext().getOrPut("CoilType", stats);
+                    var currentCoil = blockWorldState.getMatchContext().getOrPut(DataKey.COIL_TYPE, stats);
                     if (!currentCoil.equals(stats)) {
                         blockWorldState.setError(new PatternStringError("gtceu.multiblock.pattern.error.coils"));
                         return false;
@@ -213,7 +214,7 @@ public class Predicates {
             for (var entry : GTCEuAPI.CLEANROOM_FILTERS.entrySet()) {
                 if (blockState.is(entry.getValue().get())) {
                     var stats = entry.getKey();
-                    Object currentCoil = blockWorldState.getMatchContext().getOrPut("FilterType", stats);
+                    var currentCoil = blockWorldState.getMatchContext().getOrPut(DataKey.FILTER_TYPE, stats);
                     if (!currentCoil.equals(stats)) {
                         blockWorldState.setError(new PatternStringError("gtceu.multiblock.pattern.error.filters"));
                         return false;
@@ -237,10 +238,8 @@ public class Predicates {
                     // Allow unfilled batteries in the structure, but do not add them to match context.
                     // This lets you use empty batteries as "filler slots" for convenience if desired.
                     if (battery.getTier() != -1 && battery.getCapacity() > 0) {
-                        String key = PMC_BATTERY_HEADER + battery.getBatteryName();
-                        PowerSubstationMachine.BatteryMatchWrapper wrapper = blockWorldState.getMatchContext().get(key);
-                        if (wrapper == null) wrapper = new PowerSubstationMachine.BatteryMatchWrapper(battery);
-                        blockWorldState.getMatchContext().set(key, wrapper.increment());
+                        var map = blockWorldState.getMatchContext().getOrCreate(DataKey.BATTERY_DATA, Reference2IntOpenHashMap::new);
+                        map.addTo(battery, 1);
                     }
                     return true;
                 }
@@ -284,5 +283,14 @@ public class Predicates {
                         .map(m -> GTMaterialBlocks.MATERIAL_BLOCKS.get(TagPrefix.frameGt, m))
                         .filter(Objects::nonNull).filter(RegistryEntry::isPresent).map(RegistryEntry::get)
                         .toArray(Block[]::new)));
+    }
+
+    public static class DataKey {
+
+        public static final DataComponentKey<LongSet> ACTIVE_BLOCKS = DataComponentKey.createLongSet("ActiveBlocks", null);
+        public static final DataComponentKey<LongSet> RENDER_MASK = DataComponentKey.createLongSet("RenderMask", null);
+        public static final DataComponentKey<ICoilType> COIL_TYPE = DataComponentKey.create("CoilType", null);
+        public static final DataComponentKey<IFilterType> FILTER_TYPE = DataComponentKey.create("FilterType", null);
+        public static final DataComponentKey<Reference2IntOpenHashMap<IBatteryData>> BATTERY_DATA = DataComponentKey.createReference2IntMap("BatteryData", null);
     }
 }

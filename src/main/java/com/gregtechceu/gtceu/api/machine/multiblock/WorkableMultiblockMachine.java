@@ -17,6 +17,7 @@ import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 
@@ -31,6 +32,7 @@ import net.minecraft.world.level.block.Block;
 
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSets;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -185,7 +187,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         afterWorkingPart = afterWorkingList.toArray(new IWorkableMultiPart[0]);
         modifyRecipePart = modifyRecipeList.toArray(new IWorkableMultiPart[0]);
 
-        activeBlocks = getMultiblockState().getMatchContext().vaBlocks;
+        activeBlocks = getMultiblockState().getMatchContext().getOrDefault(Predicates.DataKey.ACTIVE_BLOCKS, LongSets.EMPTY_SET);
 
         // attach parts' traits
         capabilitiesProxy.clear();

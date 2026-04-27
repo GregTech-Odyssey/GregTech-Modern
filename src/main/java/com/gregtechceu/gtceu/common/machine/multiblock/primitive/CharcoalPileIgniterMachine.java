@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.misc.data.DataComponentKey;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
@@ -54,6 +55,8 @@ import static com.gregtechceu.gtceu.api.pattern.util.RelativeDirection.*;
 
 public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implements IInteractedMachine {
 
+    private static final DataComponentKey<Long2BooleanMap> LOG_POS = DataComponentKey.createLong2BooleanMap("logPos", null);
+
     private static final int MIN_RADIUS = 1;
     private static final int MIN_DEPTH = 2;
 
@@ -91,8 +94,8 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
     public void onStructureFormed() {
         super.onStructureFormed();
         hasAir = false;
-        if (getMultiblockState().getMatchContext().containsKey("logPos")) {
-            Long2BooleanMap logPositions = getMultiblockState().getMatchContext().get("logPos");
+        if (getMultiblockState().getMatchContext().containsKey(LOG_POS)) {
+            Long2BooleanMap logPositions = getMultiblockState().getMatchContext().get(LOG_POS);
             for (var entry : logPositions.long2BooleanEntrySet()) {
                 if (entry.getBooleanValue()) {
                     logPos.add(BlockPos.of(entry.getLongKey()));
@@ -218,7 +221,7 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
             long pos = multiblockState.getPos().asLong();
             boolean log = state.is(BlockTags.LOGS_THAT_BURN);
             if (log || state.isAir()) {
-                multiblockState.getMatchContext().getOrCreate("logPos", Long2BooleanOpenHashMap::new).put(pos, log);
+                multiblockState.getMatchContext().getOrCreate(LOG_POS, Long2BooleanOpenHashMap::new).put(pos, log);
                 return true;
             }
             return false;

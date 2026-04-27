@@ -12,8 +12,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BooleanSupplier;
 
 public class TaskHandler {
@@ -96,6 +94,7 @@ public class TaskHandler {
         for (int i = 0, size = tasks.size(); i < size; i++) {
             var o = array[i];
             if (o == null) continue;
+            if (isUnsubscribe()) break;
             var task = (TaskRunnableEntry) o;
             if (task.delay > 0) {
                 task.delay--;
@@ -117,6 +116,10 @@ public class TaskHandler {
                 }
             }
         }
+    }
+
+    boolean isUnsubscribe() {
+        return false;
     }
 
     public void unsubscribe() {
@@ -159,9 +162,9 @@ public class TaskHandler {
 
         private static final ThreadLocal<Boolean> IN_SERVICE = ThreadLocal.withInitial(() -> false);
 
-        private ScheduledFuture<?> scheduledFuture;
-        private final Lock lock = new ReentrantLock();
-        private int tickCount;
+        private volatile ScheduledFuture<?> scheduledFuture;
+        private volatile int tickCount;
+        private volatile boolean isUnsubscribe;
         private final ScheduledExecutorService service;
         private final long period;
 
@@ -171,38 +174,42 @@ public class TaskHandler {
         }
 
         private void createExecutorService() {
-            if (scheduledFuture == null) scheduledFuture = service.scheduleAtFixedRate(this::tick, 0, period, TimeUnit.MILLISECONDS);
+            if (scheduledFuture == null) {
+                scheduledFuture = service.scheduleAtFixedRate(this::tick, 0, period, TimeUnit.MILLISECONDS);
+                isUnsubscribe = false;
+            }
+        }
+
+        boolean isUnsubscribe() {
+            return isUnsubscribe;
         }
 
         @Override
         public void unsubscribe() {
-            lock.lock();
-            try {
-                if (scheduledFuture != null) {
-                    scheduledFuture.cancel(false);
-                    scheduledFuture = null;
-                }
-                super.unsubscribe();
-            } finally {
-                lock.unlock();
+            isUnsubscribe = true;
+            if (scheduledFuture != null) {
+                scheduledFuture.cancel(true);
+                scheduledFuture = null;
             }
+            super.unsubscribe();
         }
 
         @Override
         public void enqueueTask(Runnable task, int delay) {
+            if (isUnsubscribe) return;
             super.enqueueTask(task, delay);
             createExecutorService();
         }
 
         @Override
         public TickableSubscription enqueueTick(BooleanSupplier isRemove, Runnable runnable, int cycle, int delay) {
+            if (isUnsubscribe) return new TaskRunnableEntry(GTUtil.NOOP, TaskRunnableEntry.FALSE, false, 0);
             var entry = super.enqueueTick(isRemove, runnable, cycle, delay);
             createExecutorService();
             return entry;
         }
 
         private void tick() {
-            lock.lock();
             try {
                 IN_SERVICE.set(true);
                 runTask(tickCount);
@@ -210,7 +217,6 @@ public class TaskHandler {
                 GTCEu.LOGGER.error("Error while AsyncTask: {}", e.getMessage());
                 e.printStackTrace();
             } finally {
-                lock.unlock();
                 tickCount++;
                 IN_SERVICE.set(false);
             }
