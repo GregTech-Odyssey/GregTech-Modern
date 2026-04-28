@@ -2,10 +2,10 @@ package com.gregtechceu.gtceu.api.codec;
 
 import com.gregtechceu.gtceu.GTCEu;
 
+import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.datafixers.util.Unit;
 import com.mojang.serialization.*;
-import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 
 import java.util.Map;
 import java.util.Optional;
@@ -35,7 +35,7 @@ public record DispatchedMapCodec<K, V>(
     @Override
     public <T> DataResult<Pair<Map<K, V>, T>> decode(final DynamicOps<T> ops, final T input) {
         return ops.getMap(input).flatMap(map -> {
-            final Map<K, V> entries = new Object2ObjectArrayMap<>();
+            final Map<K, V> entries = new O2OOpenCacheHashMap<>();
             final Stream.Builder<Pair<T, T>> failed = Stream.builder();
 
             final DataResult<Unit> finalResult = map.entries().reduce(
@@ -43,7 +43,7 @@ public record DispatchedMapCodec<K, V>(
                     (result, entry) -> parseEntry(result, ops, entry, entries, failed),
                     (r1, r2) -> r1.apply2stable((u1, u2) -> u1, r2));
 
-            final Pair<Map<K, V>, T> pair = Pair.of(new Object2ObjectArrayMap<>(entries), input);
+            final Pair<Map<K, V>, T> pair = Pair.of(new O2OOpenCacheHashMap<>(entries), input);
             final T errors = ops.createMap(failed.build());
 
             return finalResult.map(ignored -> pair).setPartial(pair)

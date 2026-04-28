@@ -514,11 +514,11 @@ public class GTRecipeTypes {
     public final static GTRecipeType BLAST_RECIPES = register("electric_blast_furnace", MULTIBLOCK)
             .setMaxIOSize(3, 3, 1, 1).setEUIO(IO.IN)
             .addDataInfo(data -> {
-                int temp = data.getInt("ebf_temp");
+                int temp = data.getInt(GTRecipeDataKeys.EBF_TEMP);
                 return LocalizationUtils.format("gtceu.recipe.temperature", temp);
             })
             .addDataInfo(data -> {
-                int temp = data.getInt("ebf_temp");
+                int temp = data.getInt(GTRecipeDataKeys.EBF_TEMP);
                 ICoilType requiredCoil = ICoilType.getMinRequiredType(temp);
 
                 if (requiredCoil != null && !requiredCoil.getMaterial().isNull()) {
@@ -528,7 +528,7 @@ public class GTRecipeTypes {
                 return "";
             })
             .setUiBuilder((recipe, widgetGroup) -> {
-                int temp = recipe.data.getInt("ebf_temp");
+                int temp = recipe.data.getInt(GTRecipeDataKeys.EBF_TEMP);
                 List<List<ItemStack>> items = new ArrayList<>();
                 items.add(GTCEuAPI.HEATING_COILS.entrySet().stream()
                         .filter(coil -> coil.getKey().getCoilTemperature() >= temp)
@@ -543,7 +543,7 @@ public class GTRecipeTypes {
             .setSound(GTSoundEntries.CHEMICAL)
             .setProgressBar(GuiTextures.PROGRESS_BAR_ARROW_MULTIPLE, LEFT_TO_RIGHT)
             .onRecipeBuild((recipeBuilder) -> {
-                if (recipeBuilder.data.getBoolean("disable_distillery")) return;
+                if (recipeBuilder.data.getBoolean(GTRecipeDataKeys.DISABLE_DISTILLERY)) return;
                 if (recipeBuilder.output.containsKey(FluidRecipeCapability.CAP)) {
                     long EUt = EURecipeCapability.CAP
                             .of(recipeBuilder.tickInput.get(EURecipeCapability.CAP).getFirst());

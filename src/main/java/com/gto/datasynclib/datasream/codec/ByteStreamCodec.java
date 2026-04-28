@@ -1,5 +1,6 @@
-package com.gregtechceu.gtceu.api.misc.data;
+package com.gto.datasynclib.datasream.codec;
 
+import com.gto.datasynclib.datasream.stream.ByteDataStream;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 
 import java.io.IOException;

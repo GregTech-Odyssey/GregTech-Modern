@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.capability.recipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 import com.gregtechceu.gtceu.api.recipe.content.SerializerLong;
+import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
@@ -31,7 +32,7 @@ public class CWURecipeCapability extends RecipeCapability<Long> {
             group.addWidget(new LabelWidget(3 - xOffset, yOffset.addAndGet(10),
                     LocalizationUtils.format("gtceu.recipe.computation_per_tick", FormattingUtil.formatNumbers(content))));
         }
-        if (recipe.data.getBoolean("duration_is_total_cwu")) {
+        if (recipe.data.getBoolean(GTRecipeDataKeys.DURATION_IS_TOTAL_CWU)) {
             group.addWidget(new LabelWidget(3 - xOffset, yOffset.addAndGet(10),
                     LocalizationUtils.format("gtceu.recipe.total_computation", FormattingUtil.formatNumbers(recipe.duration))));
         }

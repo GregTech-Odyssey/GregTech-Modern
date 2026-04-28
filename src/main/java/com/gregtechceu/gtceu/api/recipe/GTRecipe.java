@@ -8,8 +8,8 @@ import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.nbt.CompoundTag;
 
+import com.gto.datasynclib.datasream.DataComponentMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
@@ -32,7 +32,7 @@ public class GTRecipe {
     public final Map<RecipeCapability<?>, List<Content>> tickInputs;
     public final Map<RecipeCapability<?>, List<Content>> tickOutputs;
     @NotNull
-    public CompoundTag data;
+    public DataComponentMap data;
     public int tier;
     public int duration;
     public long parallels = 1;
@@ -41,11 +41,11 @@ public class GTRecipe {
 
     public int outputColor = -1;
 
-    public GTRecipe(GTRecipeType recipeType, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, CompoundTag data, int duration, int tier) {
+    public GTRecipe(GTRecipeType recipeType, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, DataComponentMap data, int duration, int tier) {
         this(null, recipeType, inputs, outputs, tickInputs, tickOutputs, data, duration, tier);
     }
 
-    public GTRecipe(@Nullable GTRecipeDefinition definition, GTRecipeType recipeType, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, CompoundTag data, int duration, int tier) {
+    public GTRecipe(@Nullable GTRecipeDefinition definition, GTRecipeType recipeType, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, DataComponentMap data, int duration, int tier) {
         this.definition = definition;
         this.recipeType = recipeType;
         this.inputs = inputs;

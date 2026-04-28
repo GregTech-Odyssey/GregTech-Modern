@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.api.misc.data;
+package com.gto.datasynclib.datasream.stream;
 
 import io.netty.buffer.ByteBuf;
 

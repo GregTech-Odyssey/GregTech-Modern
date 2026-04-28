@@ -20,10 +20,10 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 
 import net.minecraft.Util;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 
 import com.google.common.collect.Tables;
+import com.gto.datasynclib.datasream.DataComponentMap;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
@@ -121,7 +121,7 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine {
             storages.put(IO.OUT, ItemRecipeCapability.CAP, generatorMachine.exportItems.storage);
             storages.put(IO.IN, FluidRecipeCapability.CAP, generatorMachine.importFluids);
             storages.put(IO.OUT, FluidRecipeCapability.CAP, generatorMachine.exportFluids);
-            generatorMachine.getRecipeType().getRecipeUI().createEditableUITemplate(false, false).setupUI(template, new GTRecipeTypeUI.RecipeHolder(generatorMachine.recipeLogic::getProgressPercent, storages, new CompoundTag(), Collections.emptyList(), false, false));
+            generatorMachine.getRecipeType().getRecipeUI().createEditableUITemplate(false, false).setupUI(template, new GTRecipeTypeUI.RecipeHolder(generatorMachine.recipeLogic::getProgressPercent, storages, new DataComponentMap(), Collections.emptyList(), false, false));
             createEnergyBar().setupUI(template, generatorMachine);
         }
     }));

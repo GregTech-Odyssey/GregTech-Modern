@@ -25,14 +25,13 @@ import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.research.ScannerBuilder;
 import com.gregtechceu.gtceu.api.recipe.research.StationBuilder;
+import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.common.recipe.condition.*;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -48,6 +47,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.gto.datasynclib.datasream.DataComponentKey;
+import com.gto.datasynclib.datasream.DataComponentMap;
 import dev.ftb.mods.ftbquests.quest.QuestObjectBase;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
@@ -79,7 +80,7 @@ public class GTRecipeBuilder {
 
     public List<RecipeCondition> conditions = new ArrayList<>();
     @NotNull
-    public CompoundTag data = new CompoundTag();
+    public DataComponentMap data = new DataComponentMap();
     public ResourceLocation id;
     public GTRecipeType recipeType;
     public GTRecipeCategory recipeCategory;
@@ -132,7 +133,7 @@ public class GTRecipeBuilder {
         copy.recipeType = this.recipeType;
         copy.recipeCategory = this.recipeCategory;
         copy.conditions.addAll(this.conditions);
-        copy.data = this.data.copy();
+        copy.data = this.data.clone();
         copy.duration = this.duration;
         copy.tier = this.tier;
         copy.eut = this.eut;
@@ -687,38 +688,13 @@ public class GTRecipeBuilder {
     // ********** DATA ***********//
 
     /// ///////////////////////////////////
-    public GTRecipeBuilder addData(String key, Tag data) {
+    public <T> GTRecipeBuilder addData(DataComponentKey<T> key, T data) {
         this.data.put(key, data);
         return this;
     }
 
-    public GTRecipeBuilder addData(String key, int data) {
-        this.data.putInt(key, data);
-        return this;
-    }
-
-    public GTRecipeBuilder addData(String key, long data) {
-        this.data.putLong(key, data);
-        return this;
-    }
-
-    public GTRecipeBuilder addData(String key, String data) {
-        this.data.putString(key, data);
-        return this;
-    }
-
-    public GTRecipeBuilder addData(String key, float data) {
-        this.data.putFloat(key, data);
-        return this;
-    }
-
-    public GTRecipeBuilder addData(String key, boolean data) {
-        this.data.putBoolean(key, data);
-        return this;
-    }
-
     public GTRecipeBuilder blastFurnaceTemp(int blastTemp) {
-        return addData("ebf_temp", blastTemp);
+        return addData(GTRecipeDataKeys.EBF_TEMP, blastTemp);
     }
 
     public GTRecipeBuilder explosivesAmount(int explosivesAmount) {
@@ -730,27 +706,27 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder solderMultiplier(int multiplier) {
-        return addData("solder_multiplier", multiplier);
+        return addData(GTRecipeDataKeys.SOLDER_MULTIPLIER, multiplier);
     }
 
     public GTRecipeBuilder disableDistilleryRecipes(boolean flag) {
-        return addData("disable_distillery", flag);
+        return addData(GTRecipeDataKeys.DISABLE_DISTILLERY, flag);
     }
 
     public GTRecipeBuilder fusionStartEU(long eu) {
-        return addData("eu_to_start", eu);
+        return addData(GTRecipeDataKeys.EU_TO_START, eu);
     }
 
     public GTRecipeBuilder researchScan(boolean isScan) {
-        return addData("scan_for_research", isScan);
+        return addData(GTRecipeDataKeys.SCAN_FOR_RESEARCH, isScan);
     }
 
     public GTRecipeBuilder durationIsTotalCWU(boolean durationIsTotalCWU) {
-        return addData("duration_is_total_cwu", durationIsTotalCWU);
+        return addData(GTRecipeDataKeys.DURATION_IS_TOTAL_CWU, durationIsTotalCWU);
     }
 
     public GTRecipeBuilder hideDuration(boolean hideDuration) {
-        return addData("hide_duration", hideDuration);
+        return addData(GTRecipeDataKeys.HIDE_DURATION, hideDuration);
     }
 
     //////////////////////////////////////
@@ -1044,10 +1020,7 @@ public class GTRecipeBuilder {
     }
 
     public int getSolderMultiplier() {
-        if (data.contains("solderMultiplier")) {
-            return Math.max(1, data.getInt("solderMultiplier"));
-        }
-        return Math.max(1, data.getInt("solder_multiplier"));
+        return Math.max(1, data.getInt(GTRecipeDataKeys.SOLDER_MULTIPLIER));
     }
 
     /**

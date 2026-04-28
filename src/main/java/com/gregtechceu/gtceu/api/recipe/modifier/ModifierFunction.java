@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
+import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
 
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.Contract;
@@ -148,7 +149,7 @@ public interface ModifierFunction {
                 copied.parallels = recipe.parallels * parallels;
                 copied.ocLevel = recipe.ocLevel + addOCs;
                 copied.batchParallels = recipe.batchParallels * batchParallels;
-                if (recipe.data.getBoolean("duration_is_total_cwu")) {
+                if (recipe.data.getBoolean(GTRecipeDataKeys.DURATION_IS_TOTAL_CWU)) {
                     copied.duration = (int) Math.max(1, (recipe.duration * (1.0F - 0.025F * addOCs)));
                 } else {
                     copied.duration = Math.max(1, durationModifier.apply(recipe.duration));

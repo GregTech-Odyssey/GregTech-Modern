@@ -25,6 +25,7 @@ import com.gregtechceu.gtceu.common.item.armor.IJetpack;
 import com.gregtechceu.gtceu.common.item.armor.QuarkTechSuite;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.SPacketSendWorldID;
+import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.integration.map.WaypointManager;
 import com.gregtechceu.gtceu.integration.map.cache.server.ServerCache;
@@ -45,7 +46,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.PotionItem;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
@@ -171,6 +171,7 @@ public class ForgeCommonEventListener {
 
     @SubscribeEvent
     public static void worldLoad(LevelEvent.Load event) {
+        if (event.getLevel() instanceof ILevel level) level.gtceu$clear();
         if (event.getLevel().isClientSide()) {
             WaypointManager.updateDimension(event.getLevel());
         } else if (event.getLevel() instanceof ServerLevel serverLevel) {
@@ -180,11 +181,14 @@ public class ForgeCommonEventListener {
 
     @SubscribeEvent
     public static void worldUnload(LevelEvent.Unload event) {
-        if (event.getLevel() instanceof Level level) TaskHandler.onWorldUnLoad(level);
         if (event.getLevel() instanceof ServerLevel serverLevel) {
             var multiblockWorldData = MultiblockWorldData.get(serverLevel);
             if (multiblockWorldData != null) multiblockWorldData.clear();
             ServerCache.instance.invalidateWorld(serverLevel);
+        }
+        if (event.getLevel() instanceof ILevel level) {
+            TaskHandler.onWorldUnLoad(level);
+            level.gtceu$clear();
         }
     }
 
@@ -204,13 +208,15 @@ public class ForgeCommonEventListener {
 
     @SubscribeEvent
     public static void serverStopping(ServerStoppingEvent event) {
-        MultiblockWorldData.TASK_HANDLER.unsubscribe();
         var levels = event.getServer().getAllLevels();
         for (var level : levels) {
             if (!level.isClientSide()) {
                 var multiblockWorldData = MultiblockWorldData.get(level);
                 if (multiblockWorldData != null) multiblockWorldData.clear();
-                TaskHandler.onWorldUnLoad(level);
+                if (level instanceof ILevel iLevel) {
+                    TaskHandler.onWorldUnLoad(iLevel);
+                    iLevel.gtceu$clear();
+                }
             }
         }
     }

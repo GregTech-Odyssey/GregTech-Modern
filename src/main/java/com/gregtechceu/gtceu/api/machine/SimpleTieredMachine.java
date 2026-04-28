@@ -40,7 +40,6 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.TickTask;
@@ -50,6 +49,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.google.common.collect.Tables;
+import com.gto.datasynclib.datasream.DataComponentMap;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
@@ -333,7 +333,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
             storages.put(IO.OUT, ItemRecipeCapability.CAP, tieredMachine.exportItems.storage);
             storages.put(IO.IN, FluidRecipeCapability.CAP, tieredMachine.importFluids);
             storages.put(IO.OUT, FluidRecipeCapability.CAP, tieredMachine.exportFluids);
-            tieredMachine.getRecipeType().getRecipeUI().createEditableUITemplate(false, false).setupUI(template, new GTRecipeTypeUI.RecipeHolder(tieredMachine.recipeLogic::getProgressPercent, storages, new CompoundTag(), Collections.emptyList(), false, false));
+            tieredMachine.getRecipeType().getRecipeUI().createEditableUITemplate(false, false).setupUI(template, new GTRecipeTypeUI.RecipeHolder(tieredMachine.recipeLogic::getProgressPercent, storages, new DataComponentMap(), Collections.emptyList(), false, false));
             createBatterySlot().setupUI(template, tieredMachine);
         }
     }));

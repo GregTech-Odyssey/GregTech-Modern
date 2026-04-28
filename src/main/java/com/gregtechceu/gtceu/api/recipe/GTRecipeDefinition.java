@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.api.recipe.content.Content;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -18,6 +17,7 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 
 import com.fast.recipesearch.IntMapContainer;
+import com.gto.datasynclib.datasream.DataComponentMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.Getter;
 import org.jetbrains.annotations.Range;
@@ -46,11 +46,11 @@ public class GTRecipeDefinition implements net.minecraft.world.item.crafting.Rec
     public final Map<RecipeCapability<?>, List<Content>> tickInputs;
     public final Map<RecipeCapability<?>, List<Content>> tickOutputs;
     public final List<RecipeCondition> conditions;
-    public final CompoundTag data;
+    public final DataComponentMap data;
     public final int duration;
     public final int tier;
 
-    public GTRecipeDefinition(boolean registered, GTRecipeType recipeType, GTRecipeCategory recipeCategory, ResourceLocation id, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, List<RecipeCondition> conditions, CompoundTag data, int duration, int tier) {
+    public GTRecipeDefinition(boolean registered, GTRecipeType recipeType, GTRecipeCategory recipeCategory, ResourceLocation id, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, List<RecipeCondition> conditions, DataComponentMap data, int duration, int tier) {
         this.registered = registered;
         this.recipeType = recipeType;
         this.recipeCategory = recipeCategory;

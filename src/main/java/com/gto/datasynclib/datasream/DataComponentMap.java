@@ -1,44 +1,13 @@
-package com.gregtechceu.gtceu.api.misc.data;
+package com.gto.datasynclib.datasream;
 
-import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 
-import java.io.IOException;
-import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import static it.unimi.dsi.fastutil.HashCommon.arraySize;
 
 public final class DataComponentMap extends Reference2ObjectOpenHashMap<DataComponentKey<?>, Object> {
-
-    public static final Reference2ObjectMap<DataComponentKey<?>, Object> EMPTY_MAP = Reference2ObjectMaps.emptyMap();
-
-    public void encode(ByteDataStream stream) throws IOException {
-        stream.writeVarInt(size);
-        fastForEach((key, value) -> {
-            if (value == null) return;
-            try {
-                stream.writeUTF(key.name);
-                key.codec.encode(value, stream);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-
-    public static DataComponentMap decode(Map<String, DataComponentKey<?>> register, ByteDataStream stream) throws IOException {
-        var size = stream.readVarInt();
-        var map = new DataComponentMap(size);
-        for (int i = 0; i < size; i++) {
-            var key = register.get(stream.readUTF());
-            var value = key.codec.decode(stream);
-            if (value == null) continue;
-            map.put(key, value);
-        }
-        return map;
-    }
 
     public DataComponentMap() {
         super(2, 0.75F);

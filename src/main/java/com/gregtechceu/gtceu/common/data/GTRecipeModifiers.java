@@ -90,8 +90,8 @@ public class GTRecipeModifiers {
 
         int blastFurnaceTemperature = coilMachine.getCoilType().getCoilTemperature() +
                 (100 * Math.max(0, coilMachine.getTier() - GTValues.MV));
-        int recipeTemp = recipe.data.getInt("ebf_temp");
-        if (!recipe.data.contains("ebf_temp") || recipeTemp > blastFurnaceTemperature) {
+        int recipeTemp = recipe.data.getInt(GTRecipeDataKeys.EBF_TEMP);
+        if (!recipe.data.contains(GTRecipeDataKeys.EBF_TEMP) || recipeTemp > blastFurnaceTemperature) {
             return ModifierFunction.NULL;
         }
 

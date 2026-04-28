@@ -47,21 +47,29 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
     public abstract LevelChunk getChunk(int chunkX, int chunkZ);
 
     @Unique
-    private Map<Class<?>, Object> gtceu$capabilitie;
+    private volatile Map<Class<?>, Object> gtceu$capabilitie;
 
     @Unique
-    private TaskHandler gtceu$taskHandler;
+    private volatile TaskHandler gtceu$taskHandler;
 
     @Unique
-    private TaskHandler gtceu$taskAsyncHandler;
+    private volatile TaskHandler gtceu$taskAsyncHandler;
 
     @Unique
     private MultiblockWorldData gtceu$multiblockWorldData;
 
     @Override
     public Map<Class<?>, Object> gtceu$getCapabilities() {
-        if (gtceu$capabilitie == null) gtceu$capabilitie = new Reference2ObjectOpenHashMap<>();
-        return gtceu$capabilitie;
+        var cap = gtceu$capabilitie;
+        if (cap == null) {
+            synchronized (this) {
+                if (gtceu$capabilitie == null) {
+                    gtceu$capabilitie = new Reference2ObjectOpenHashMap<>();
+                }
+                cap = gtceu$capabilitie;
+            }
+        }
+        return cap;
     }
 
     @Override
@@ -76,14 +84,38 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
 
     @Override
     public @NotNull TaskHandler gtceu$getTaskHandler() {
-        if (gtceu$taskHandler == null) gtceu$taskHandler = TaskHandler.create();
-        return gtceu$taskHandler;
+        var handler = gtceu$taskHandler;
+        if (handler == null) {
+            synchronized (this) {
+                if (gtceu$taskHandler == null) {
+                    gtceu$taskHandler = TaskHandler.create();
+                }
+                handler = gtceu$taskHandler;
+            }
+        }
+        return handler;
     }
 
     @Override
     public @NotNull TaskHandler gtceu$getAsyncTaskHandler() {
-        if (gtceu$taskAsyncHandler == null) gtceu$taskAsyncHandler = TaskHandler.createAsync(GTUtil.ASYNC_EXECUTOR, 50);
-        return gtceu$taskAsyncHandler;
+        var handler = gtceu$taskAsyncHandler;
+        if (handler == null) {
+            synchronized (this) {
+                if (gtceu$taskAsyncHandler == null) {
+                    gtceu$taskAsyncHandler = TaskHandler.createAsync(GTUtil.ASYNC_EXECUTOR, 50);
+                }
+                handler = gtceu$taskAsyncHandler;
+            }
+        }
+        return handler;
+    }
+
+    @Override
+    public void gtceu$clear() {
+        gtceu$taskAsyncHandler = null;
+        gtceu$taskHandler = null;
+        gtceu$multiblockWorldData = null;
+        gtceu$capabilitie = null;
     }
 
     @Unique

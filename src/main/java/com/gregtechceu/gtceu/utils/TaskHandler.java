@@ -45,9 +45,9 @@ public class TaskHandler {
         ((ILevel) level).gtceu$getTaskHandler().runTask(tickCount);
     }
 
-    public static void onWorldUnLoad(Level level) {
-        ((ILevel) level).gtceu$getTaskHandler().unsubscribe();
-        ((ILevel) level).gtceu$getAsyncTaskHandler().unsubscribe();
+    public static void onWorldUnLoad(ILevel level) {
+        level.gtceu$getTaskHandler().unsubscribe();
+        level.gtceu$getAsyncTaskHandler().unsubscribe();
     }
 
     public static void enqueueTask(Level level, Runnable task, int delay) {
@@ -175,8 +175,9 @@ public class TaskHandler {
 
         private void createExecutorService() {
             if (scheduledFuture == null) {
-                scheduledFuture = service.scheduleAtFixedRate(this::tick, 0, period, TimeUnit.MILLISECONDS);
-                isUnsubscribe = false;
+                synchronized (this) {
+                    if (scheduledFuture == null) scheduledFuture = service.scheduleAtFixedRate(this::tick, 0, period, TimeUnit.MILLISECONDS);
+                }
             }
         }
 

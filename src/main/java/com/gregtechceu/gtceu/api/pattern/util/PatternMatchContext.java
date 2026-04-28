@@ -1,10 +1,10 @@
 package com.gregtechceu.gtceu.api.pattern.util;
 
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
-import com.gregtechceu.gtceu.api.misc.data.DataComponentKey;
-import com.gregtechceu.gtceu.api.misc.data.DataComponentMap;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 
+import com.gto.datasynclib.datasream.DataComponentKey;
+import com.gto.datasynclib.datasream.DataComponentMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
 

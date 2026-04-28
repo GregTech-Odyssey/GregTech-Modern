@@ -23,6 +23,8 @@ public interface ILevel {
     @NotNull
     TaskHandler gtceu$getAsyncTaskHandler();
 
+    void gtceu$clear();
+
     MultiblockWorldData gtceu$getMultiblockWorldSavedData();
 
     void gtceu$setMultiblockWorldSavedData(MultiblockWorldData data);

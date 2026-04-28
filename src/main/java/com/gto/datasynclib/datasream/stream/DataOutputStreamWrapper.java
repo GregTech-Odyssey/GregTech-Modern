@@ -1,22 +1,12 @@
-package com.gregtechceu.gtceu.api.misc.data;
+package com.gto.datasynclib.datasream.stream;
 
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 
 public final class DataOutputStreamWrapper extends DataOutputStream implements ByteDataStream {
 
     public DataOutputStreamWrapper(OutputStream out) {
         super(out);
-    }
-
-    @Override
-    public void write(byte[] b) {
-        try {
-            super.write(b, 0, b.length);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override

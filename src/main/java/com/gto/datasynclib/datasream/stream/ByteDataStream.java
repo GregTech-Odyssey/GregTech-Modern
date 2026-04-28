@@ -1,4 +1,6 @@
-package com.gregtechceu.gtceu.api.misc.data;
+package com.gto.datasynclib.datasream.stream;
+
+import com.gto.datasynclib.datasream.data.Data;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -189,5 +191,14 @@ public interface ByteDataStream {
 
     default BigInteger readBigInteger() throws IOException {
         return new BigInteger(readByteArray());
+    }
+
+    default void writeData(Data data) throws IOException {
+        writeByte(data.getId());
+        data.write(this);
+    }
+
+    default Data readData() throws IOException {
+        return Data.read(readByte(), this);
     }
 }

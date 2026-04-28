@@ -27,11 +27,11 @@ import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.fluids.FluidType;
 
 import com.google.common.collect.Tables;
+import com.gto.datasynclib.datasream.DataComponentMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import lombok.Setter;
 
@@ -156,7 +156,7 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
         var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeCapability<?>, Object>::new);
         storages.put(IO.IN, ItemRecipeCapability.CAP, importItems.storage);
         storages.put(IO.OUT, ItemRecipeCapability.CAP, exportItems.storage);
-        var group = getRecipeType().getRecipeUI().createUITemplate(recipeLogic::getProgressPercent, storages, new CompoundTag(), Collections.emptyList(), true, isHighPressure);
+        var group = getRecipeType().getRecipeUI().createUITemplate(recipeLogic::getProgressPercent, storages, new DataComponentMap(), Collections.emptyList(), true, isHighPressure);
         Position pos = new Position((Math.max(group.getSize().width + 4 + 8, 176) - 4 - group.getSize().width) / 2 + 4, 32);
         group.setSelfPosition(pos);
         return new ModularUI(176, 166, this, entityPlayer).background(GuiTextures.BACKGROUND_STEAM.get(isHighPressure)).widget(group).widget(new LabelWidget(5, 5, getBlockState().getBlock().getDescriptionId())).widget(new PredicatedImageWidget(pos.x + group.getSize().width / 2 - 9, pos.y + group.getSize().height / 2 - 9, 18, 18, GuiTextures.INDICATOR_NO_STEAM.get(isHighPressure)).setPredicate(recipeLogic::isWaiting)).widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT_STEAM.get(isHighPressure), 7, 84, true));

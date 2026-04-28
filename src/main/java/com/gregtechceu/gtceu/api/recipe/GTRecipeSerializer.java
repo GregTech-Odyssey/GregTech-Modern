@@ -5,15 +5,16 @@ import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapabilityMap;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
+import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Tuple;
 
 import com.google.gson.JsonObject;
+import com.gto.datasynclib.datasream.DataComponentMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -67,9 +68,9 @@ public class GTRecipeSerializer {
         Map<RecipeCapability<?>, List<Content>> tickOutputs = tuplesToMap(
                 buf.readCollection(c -> new ArrayList<>(), GTRecipeSerializer::entryReader));
 
-        CompoundTag data = buf.readNbt();
+        var data = GTRecipeDataKeys.REGISTRY.read(buf);
         if (data == null) {
-            data = new CompoundTag();
+            data = new DataComponentMap();
         }
 
         GTRecipeType type = (GTRecipeType) BuiltInRegistries.RECIPE_TYPE.get(recipeType);
@@ -83,7 +84,7 @@ public class GTRecipeSerializer {
         buf.writeCollection(recipe.tickInputs.entrySet(), GTRecipeSerializer::entryWriter);
         buf.writeCollection(recipe.outputs.entrySet(), GTRecipeSerializer::entryWriter);
         buf.writeCollection(recipe.tickOutputs.entrySet(), GTRecipeSerializer::entryWriter);
-        buf.writeNbt(recipe.data);
+        GTRecipeDataKeys.REGISTRY.write(recipe.data, buf);
         buf.writeVarInt(recipe.tier);
     }
 
@@ -94,7 +95,7 @@ public class GTRecipeSerializer {
                 RecipeCapabilityMap.CODEC.optionalFieldOf("outputs", Collections.emptyMap()).forGetter(val -> val.outputs),
                 RecipeCapability.CODEC.optionalFieldOf("tickInputs", Collections.emptyMap()).forGetter(val -> val.tickInputs),
                 RecipeCapability.CODEC.optionalFieldOf("tickOutputs", Collections.emptyMap()).forGetter(val -> val.tickOutputs),
-                CompoundTag.CODEC.optionalFieldOf("data", new CompoundTag()).forGetter(val -> val.data),
+                GTRecipeDataKeys.REGISTRY.optionalFieldOf("data", new DataComponentMap()).forGetter(val -> val.data),
                 ExtraCodecs.NON_NEGATIVE_INT.fieldOf("duration").forGetter(val -> val.duration),
                 ExtraCodecs.NON_NEGATIVE_INT.fieldOf("tier").forGetter(val -> val.tier))
                 .apply(instance, GTRecipe::new));

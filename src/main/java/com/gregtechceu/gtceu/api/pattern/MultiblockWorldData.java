@@ -19,6 +19,7 @@ import java.util.Comparator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class MultiblockWorldData {
 
@@ -38,13 +39,15 @@ public class MultiblockWorldData {
         return ((ILevel) serverLevel).gtceu$getMultiblockWorldSavedData();
     }
 
-    public static final TaskHandler TASK_HANDLER = TaskHandler.createAsync(Executors.newSingleThreadScheduledExecutor(r -> {
+    private static final ScheduledExecutorService SERVICE = Executors.newSingleThreadScheduledExecutor(r -> {
         var thread = new Thread(r);
         thread.setName("Multiblock World Data");
         thread.setPriority(1);
         thread.setDaemon(true);
         return thread;
-    }), 2000);
+    });
+
+    private final TaskHandler taskHandler = TaskHandler.createAsync(SERVICE, 2000);
 
     private TickableSubscription subscription;
 
@@ -85,7 +88,7 @@ public class MultiblockWorldData {
      */
     public void addAsyncLogic(IMultiController controller) {
         controllers.add(controller);
-        subscription = TASK_HANDLER.enqueueTick(subscription, this::searchingTask, 0, 0);
+        subscription = taskHandler.enqueueTick(subscription, this::searchingTask, 0, 0);
     }
 
     /**
@@ -113,5 +116,6 @@ public class MultiblockWorldData {
         subscription = ITickSubscription.unsubscribe(subscription);
         controllers.clear();
         chunkPosMapping.clear();
+        taskHandler.unsubscribe();
     }
 }

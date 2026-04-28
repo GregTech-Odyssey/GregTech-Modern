@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.chance.boost.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.chance.logic.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.FusionReactorMachine;
 import com.gregtechceu.gtceu.common.recipe.condition.DimensionCondition;
@@ -29,13 +30,13 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraftforge.fml.loading.FMLLoader;
 
 import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
+import com.gto.datasynclib.datasream.DataComponentMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -94,7 +95,7 @@ public class GTRecipeWidget extends WidgetGroup {
         collectStorage(storages, contents, recipe);
 
         WidgetGroup group = recipe.recipeType.getRecipeUI().createUITemplate(ProgressWidget.JEIProgress, storages,
-                recipe.data.copy(), recipe.conditions);
+                recipe.data.clone(), recipe.conditions);
         addSlots(contents, group, recipe);
 
         var size = group.getSize();
@@ -113,7 +114,7 @@ public class GTRecipeWidget extends WidgetGroup {
         int yOffset = 5 + size.height;
         this.yOffset = yOffset;
         yOffset += EUt > 0 ? 20 : 0;
-        if (recipe.data.getBoolean("duration_is_total_cwu")) {
+        if (recipe.data.getBoolean(GTRecipeDataKeys.DURATION_IS_TOTAL_CWU)) {
             yOffset -= 10;
         }
 
@@ -135,7 +136,7 @@ public class GTRecipeWidget extends WidgetGroup {
                         .setBackgroundTexture(IGuiTexture.EMPTY));
             } else addWidget(new LabelWidget(3 - xOffset, yOffset += LINE_HEIGHT, condition.getTooltips().getString()));
         }
-        for (Function<CompoundTag, String> dataInfo : recipe.recipeType.getDataInfos()) {
+        for (Function<DataComponentMap, String> dataInfo : recipe.recipeType.getDataInfos()) {
             addWidget(new LabelWidget(3 - xOffset, yOffset += LINE_HEIGHT, dataInfo.apply(recipe.data)));
         }
         recipe.recipeType.getRecipeUI().appendJEIUI(recipe, this);
@@ -178,7 +179,7 @@ public class GTRecipeWidget extends WidgetGroup {
     @NotNull
     private static List<Component> getRecipeParaText(GTRecipeDefinition recipe, int duration, long inputEUt, long outputEUt) {
         List<Component> texts = new ArrayList<>();
-        if (!recipe.data.getBoolean("hide_duration")) {
+        if (!recipe.data.getBoolean(GTRecipeDataKeys.HIDE_DURATION)) {
             texts.add(Component.translatable("gtceu.recipe.duration", FormattingUtil.formatNumbers(duration / 20f)));
         }
         var EUt = inputEUt;
@@ -190,7 +191,7 @@ public class GTRecipeWidget extends WidgetGroup {
         if (EUt > 0) {
             long euTotal = EUt * duration;
             // sadly we still need a custom override here, since computation uses duration and EU/t very differently
-            if (recipe.data.getBoolean("duration_is_total_cwu") &&
+            if (recipe.data.getBoolean(GTRecipeDataKeys.DURATION_IS_TOTAL_CWU) &&
                     recipe.tickInputs.containsKey(CWURecipeCapability.CAP)) {
                 long minimumCWUt = Math.max(recipe.tickInputs.get(CWURecipeCapability.CAP).stream()
                         .mapToLong(CWURecipeCapability.CAP::of).sum(), 1);

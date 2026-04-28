@@ -22,7 +22,6 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -35,6 +34,7 @@ import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.fast.fastcollection.OpenCacheHashSet;
 import com.fast.recipesearch.IntLongMap;
 import com.fast.recipesearch.RecipeSearcher;
+import com.gto.datasynclib.datasream.DataComponentMap;
 import it.unimi.dsi.fastutil.objects.Object2IntAVLTreeMap;
 import it.unimi.dsi.fastutil.objects.Object2IntSortedMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
@@ -63,7 +63,7 @@ public class GTRecipeType implements RecipeType<GTRecipeDefinition> {
     @Nullable
     protected SoundEntry sound;
     @Getter
-    protected List<Function<CompoundTag, String>> dataInfos = new ArrayList<>();
+    protected List<Function<DataComponentMap, String>> dataInfos = new ArrayList<>();
     @Getter
     protected boolean isScanner;
     // Does this recipe type have a research item slot? If this is true you MUST create a custom UI.
@@ -163,7 +163,7 @@ public class GTRecipeType implements RecipeType<GTRecipeDefinition> {
         return this;
     }
 
-    public GTRecipeType addDataInfo(Function<CompoundTag, String> dataInfo) {
+    public GTRecipeType addDataInfo(Function<DataComponentMap, String> dataInfo) {
         this.dataInfos.add(dataInfo);
         return this;
     }
