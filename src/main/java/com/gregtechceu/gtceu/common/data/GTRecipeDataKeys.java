@@ -1,5 +1,8 @@
 package com.gregtechceu.gtceu.common.data;
 
+import com.gregtechceu.gtceu.api.addon.AddonFinder;
+import com.gregtechceu.gtceu.api.addon.IGTAddon;
+
 import com.gto.datasynclib.datasream.DataComponentKey;
 import com.gto.datasynclib.datasream.DataComponentRegistry;
 import com.gto.datasynclib.datasream.codec.DataCodec;
@@ -17,6 +20,9 @@ public final class GTRecipeDataKeys {
     public static final DataComponentKey<Boolean> HIDE_DURATION = REGISTRY.register("hide_duration", DataCodec.BOOLEAN_CODEC);
 
     static {
+        AddonFinder.getAddons().forEach(IGTAddon::registerRecipeDataKey);
         REGISTRY.freeze();
     }
+
+    public static void init() {}
 }

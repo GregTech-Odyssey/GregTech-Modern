@@ -54,6 +54,8 @@ public interface IGTAddon {
 
     default void registerRecipeCategories() {}
 
+    default void registerRecipeDataKey() {}
+
     /**
      * Call init on your custom IWorldGenLayer class(es) here
      */
