@@ -12,6 +12,7 @@
     "LevelRendererMixin",
     "ModelManagerMixin",
     "MultiPlayerGameModeMixin",
+    "ldlib.ClickDataMixin",
     "xaerominimap.HighlighterRegistryMixin",
     "xaerominimap.MinimapFBORendererMixin",
     "xaeroworldmap.GuiMapMixin",
