@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.utils.TaskHandler;
 import net.minecraft.server.level.ServerLevel;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongCollection;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,6 +57,7 @@ public class MultiblockWorldData {
      */
     private final Long2ObjectOpenHashMap<Set<MultiblockState>> chunkPosMapping = new Long2ObjectOpenHashMap<>();
     private final Set<IMultiController> controllers = ConcurrentHashMap.newKeySet();
+    private final ConcurrentHashMap<Long, Long> reservedParts = new ConcurrentHashMap<>();
 
     public MultiblockState[] getControllersInChunk(long chunkPos) {
         synchronized (chunkPosMapping) {
@@ -102,6 +104,27 @@ public class MultiblockWorldData {
         }
     }
 
+    public boolean reservePart(long partPos, long controllerPos) {
+        var owner = reservedParts.putIfAbsent(partPos, controllerPos);
+        return owner == null || owner == controllerPos;
+    }
+
+    public boolean isReservedBy(long partPos, long controllerPos) {
+        var owner = reservedParts.get(partPos);
+        return owner != null && owner == controllerPos;
+    }
+
+    public boolean isReservedByOther(long partPos, long controllerPos) {
+        var owner = reservedParts.get(partPos);
+        return owner != null && owner != controllerPos;
+    }
+
+    public void releaseReservedParts(LongCollection partPositions, long controllerPos) {
+        for (var iterator = partPositions.iterator(); iterator.hasNext();) {
+            reservedParts.remove(iterator.nextLong(), controllerPos);
+        }
+    }
+
     private void searchingTask() {
         if (GTCEu.canGetServerLevel()) {
             var arr = controllers.toArray(new IMultiController[0]);
@@ -116,6 +139,7 @@ public class MultiblockWorldData {
         subscription = ITickSubscription.unsubscribe(subscription);
         controllers.clear();
         chunkPosMapping.clear();
+        reservedParts.clear();
         taskHandler.unsubscribe();
     }
 }

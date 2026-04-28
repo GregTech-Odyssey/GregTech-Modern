@@ -157,11 +157,24 @@ public class BlockPattern {
                                                 return false;
                                             }
                                             // add detected parts
-                                            if (part.isFormed() && !part.canShared() && !part.hasController(worldState.controllerPos)) {
-                                                // check part can be shared
-                                                success = false;
-                                                worldState.setError(MultiblockState.SHARE_ERROR);
-                                            } else {
+                                            if (!part.hasController(worldState.controllerPos) && !part.canShared()) {
+                                                var controllerPos = worldState.controllerPos.asLong();
+                                                if (part.isFormed()) {
+                                                    success = false;
+                                                    worldState.setError(MultiblockState.SHARE_ERROR);
+                                                } else if (worldState.world instanceof ServerLevel serverLevel) {
+                                                    var worldData = MultiblockWorldData.getOrCreate(serverLevel);
+                                                    var alreadyReserved = worldData.isReservedBy(posLong, controllerPos);
+                                                    if (worldData.isReservedByOther(posLong, controllerPos) ||
+                                                            !worldData.reservePart(posLong, controllerPos)) {
+                                                        success = false;
+                                                        worldState.setError(MultiblockState.SHARE_ERROR);
+                                                    } else if (!alreadyReserved) {
+                                                        worldState.reservedParts.add(posLong);
+                                                    }
+                                                }
+                                            }
+                                            if (success) {
                                                 matchContext.getParts().add(part);
                                             }
                                         }

@@ -54,6 +54,7 @@ public class MultiblockState {
     @Getter
     public final PatternMatchContext matchContext;
     public final LongOpenHashSet cache = new LongOpenHashSet();
+    public final LongOpenHashSet reservedParts = new LongOpenHashSet();
 
     public final List<PatternError> errorRecord = new ArrayList<>();
 
@@ -89,6 +90,7 @@ public class MultiblockState {
         this.matchContext.merge(state.matchContext);
         this.cache.addAll(state.cache);
         this.blockEntityCache.addAll(state.blockEntityCache);
+        this.reservedParts.addAll(state.reservedParts);
     }
 
     public void clear() {
@@ -97,6 +99,7 @@ public class MultiblockState {
         this.layerCount.clear();
         this.cache.clear();
         this.blockEntityCache.clear();
+        this.reservedParts.clear();
     }
 
     public void clearCache() {

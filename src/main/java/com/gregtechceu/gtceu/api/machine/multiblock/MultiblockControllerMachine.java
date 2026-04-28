@@ -205,6 +205,34 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         return formedAmount;
     }
 
+    private void releaseReservedParts(MultiblockState state, MultiblockWorldData worldData) {
+        if (!state.reservedParts.isEmpty()) {
+            worldData.releaseReservedParts(state.reservedParts, getPos().asLong());
+            state.reservedParts.clear();
+        }
+    }
+
+    private void releaseReservedParts() {
+        if (getLevel() instanceof ServerLevel serverLevel) {
+            var worldData = MultiblockWorldData.getOrCreate(serverLevel);
+            releaseReservedParts(getMultiblockState(), worldData);
+            for (var subState : getSubMultiblockState()) {
+                if (subState != null) {
+                    releaseReservedParts(subState, worldData);
+                }
+            }
+        }
+    }
+
+    private void releaseFailedSubPatternReservations(MultiblockWorldData worldData) {
+        var subStates = getSubMultiblockState();
+        for (int i = 0; i < subStates.length; i++) {
+            if (!formeds[i] && subStates[i] != null) {
+                releaseReservedParts(subStates[i], worldData);
+            }
+        }
+    }
+
     @Override
     public boolean checkPattern() {
         if (waitingTime < 1) {
@@ -232,6 +260,9 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                             }
                             subMultiblockState[i] = subState;
                         }
+                        if (getLevel() instanceof ServerLevel serverLevel) {
+                            releaseFailedSubPatternReservations(MultiblockWorldData.getOrCreate(serverLevel));
+                        }
                     }
                     if (getLevel() instanceof ServerLevel serverLevel) {
                         var c = state.blockEntityCache.longStream().mapToObj(BlockPos::of).toList();
@@ -248,7 +279,9 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             if (result) {
                 waitingTime = 0;
                 return true;
-            } else if (hasCheckButton()) {
+            }
+            releaseReservedParts();
+            if (hasCheckButton()) {
                 waitingTime = 10;
             } else {
                 waitingTime = 1;
@@ -272,6 +305,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             if (checkPatternWithTryLock()) {
                 serverLevel.getServer().execute(() -> {
                     if (requiresServerCheck() && !checkPatternWithLock()) {
+                        releaseReservedParts();
                         simpleLock = false;
                         return;
                     }
@@ -333,6 +367,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             Arrays.sort(parts, sorter);
         }
         updatePartPositions();
+        releaseReservedParts();
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -354,6 +389,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         modules.clear();
         this.parts = new IMultiPart[0];
         updatePartPositions();
+        releaseReservedParts();
         if (getLevel() instanceof ServerLevel serverLevel) {
             serverLevel.getServer().tell(new TickTask(1, this::onStructureInvalidAfter));
         }
