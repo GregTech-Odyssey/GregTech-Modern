@@ -34,12 +34,15 @@ public class FacadeCoverRecipe extends CustomRecipe {
     @Override
     public boolean matches(CraftingContainer container, Level level) {
         int plateSize = 0;
-        boolean foundBlockItem = false;
+        int facadeSize = 0;
         for (int i = 0; i < container.getContainerSize(); i++) {
             var item = container.getItem(i);
             if (item.isEmpty()) continue;
             if (FacadeItemBehaviour.isValidFacade(item)) {
-                foundBlockItem = true;
+                facadeSize++;
+                if (facadeSize > 1) {
+                    return false;
+                }
                 continue;
             }
             if (item.is(ChemicalHelper.getTag(TagPrefix.plate, GTMaterials.Iron))) {
@@ -48,21 +51,28 @@ public class FacadeCoverRecipe extends CustomRecipe {
             }
             return false;
         }
-        return foundBlockItem && plateSize == 3;
+        return facadeSize == 1 && plateSize == 3;
     }
 
     @Override
     public ItemStack assemble(CraftingContainer container, RegistryAccess registryManager) {
-        ItemStack itemStack = GTItems.COVER_FACADE.asStack();
+        ItemStack facadeStack = ItemStack.EMPTY;
         for (int i = 0; i < container.getContainerSize(); i++) {
             var item = container.getItem(i);
             if (item.isEmpty()) continue;
             if (FacadeItemBehaviour.isValidFacade(item)) {
-                FacadeItemBehaviour.setFacadeStack(itemStack, item);
-                itemStack.setCount(6);
-                break;
+                if (!facadeStack.isEmpty()) {
+                    return ItemStack.EMPTY;
+                }
+                facadeStack = item;
             }
         }
+        if (facadeStack.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack itemStack = GTItems.COVER_FACADE.asStack();
+        FacadeItemBehaviour.setFacadeStack(itemStack, facadeStack);
+        itemStack.setCount(6);
         return itemStack;
     }
 
@@ -74,7 +84,7 @@ public class FacadeCoverRecipe extends CustomRecipe {
     @Override
     public ItemStack getResultItem(RegistryAccess registryManager) {
         var result = GTItems.COVER_FACADE.asStack();
-        FacadeItemBehaviour.setFacadeStack(GTItems.COVER_FACADE.asStack(), new ItemStack(Blocks.STONE));
+        FacadeItemBehaviour.setFacadeStack(result, new ItemStack(Blocks.STONE));
         return result;
     }
 
