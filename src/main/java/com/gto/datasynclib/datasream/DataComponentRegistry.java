@@ -1,7 +1,7 @@
 package com.gto.datasynclib.datasream;
 
 import com.fast.fastcollection.O2OOpenCacheHashMap;
-import com.gto.datasynclib.datasream.codec.DataCodec;
+import com.gto.datasynclib.CombinationCodec;
 import com.gto.datasynclib.datasream.data.DataOps;
 import com.gto.datasynclib.datasream.data.MapData;
 import com.gto.datasynclib.datasream.stream.ByteBufWrapper;
@@ -27,7 +27,7 @@ public final class DataComponentRegistry implements Codec<DataComponentMap> {
     private final Int2ObjectOpenHashMap<DataComponentKey<?>> idKeys = new Int2ObjectOpenHashMap<>();
     private boolean frozen;
 
-    public <T> DataComponentKey<T> register(String key, DataCodec<T> codec) {
+    public <T> DataComponentKey<T> register(String key, CombinationCodec<T> codec) {
         return register(new DataComponentKey<>(key, codec));
     }
 
@@ -71,7 +71,7 @@ public final class DataComponentRegistry implements Codec<DataComponentMap> {
             map.fastForEach((k, v) -> {
                 try {
                     stream.writeVarInt(getId(k));
-                    stream.writeData(k.codec.encode(v));
+                    k.codec.streamWriter.encode(v, stream);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -88,9 +88,8 @@ public final class DataComponentRegistry implements Codec<DataComponentMap> {
             var map = new DataComponentMap(size);
             for (int i = 0; i < size; i++) {
                 var key = get(stream.readVarInt());
-                var data = stream.readData();
                 if (key == null) continue;
-                var value = key.codec.decode(data);
+                var value = key.codec.streamReader.decode(stream);
                 if (value != null) map.put(key, value);
             }
             return map;
@@ -104,7 +103,7 @@ public final class DataComponentRegistry implements Codec<DataComponentMap> {
         map.fastForEach((k, v) -> {
             try {
                 stream.writeUTF(k.name);
-                stream.writeData(k.codec.encode(v));
+                stream.writeData(k.codec.dataWriter.encode(v));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -118,14 +117,14 @@ public final class DataComponentRegistry implements Codec<DataComponentMap> {
             var key = get(stream.readUTF());
             var data = stream.readData();
             if (key == null) continue;
-            var value = key.codec.decode(data);
+            var value = key.codec.dataReader.decode(data);
             if (value != null) map.put(key, value);
         }
         return map;
     }
 
     public void write(DataComponentMap map, MapData data) {
-        map.fastForEach((k, v) -> data.put(k.name, k.codec.encode(v)));
+        map.fastForEach((k, v) -> data.put(k.name, k.codec.dataWriter.encode(v)));
     }
 
     public DataComponentMap read(MapData data) {
@@ -133,7 +132,7 @@ public final class DataComponentRegistry implements Codec<DataComponentMap> {
         data.value().forEach((k, v) -> {
             var key = get(k);
             if (key == null) return;
-            var value = key.codec.decode(data);
+            var value = key.codec.dataReader.decode(data);
             if (value != null) map.put(key, value);
         });
         return map;
@@ -145,7 +144,7 @@ public final class DataComponentRegistry implements Codec<DataComponentMap> {
         ops.getMapValues(input).result().orElse(Stream.empty()).forEach(p -> {
             var key = get(ops.convertTo(DataOps.INSTANCE, p.getFirst()).getString());
             if (key == null) return;
-            var value = key.codec.decode(ops.convertTo(DataOps.INSTANCE, p.getSecond()));
+            var value = key.codec.dataReader.decode(ops.convertTo(DataOps.INSTANCE, p.getSecond()));
             if (value != null) map.put(key, value);
         });
         return DataResult.success(Pair.of(map, ops.empty()));
@@ -154,7 +153,7 @@ public final class DataComponentRegistry implements Codec<DataComponentMap> {
     @Override
     public <T> DataResult<T> encode(DataComponentMap input, DynamicOps<T> ops, T prefix) {
         var data = new MapData(new Reference2ReferenceOpenHashMap<>());
-        input.fastForEach((k, v) -> data.put(k.name, k.codec.encode(v)));
+        input.fastForEach((k, v) -> data.put(k.name, k.codec.dataWriter.encode(v)));
         return DataResult.success(DataOps.INSTANCE.convertMap(ops, data));
     }
 }

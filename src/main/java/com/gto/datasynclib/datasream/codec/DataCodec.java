@@ -1,6 +1,7 @@
 package com.gto.datasynclib.datasream.codec;
 
 import com.gto.datasynclib.datasream.data.*;
+import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 
 import java.math.BigInteger;
@@ -8,6 +9,36 @@ import java.util.Map;
 import java.util.UUID;
 
 public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
+
+    static <T> DataCodec<T> of(Codec<T> codec) {
+        return new DataCodec<>() {
+
+            @Override
+            public T decode(Data data) {
+                return codec.decode(DataOps.INSTANCE, data).result().orElseThrow().getFirst();
+            }
+
+            @Override
+            public Data encode(T obj) {
+                return codec.encodeStart(DataOps.INSTANCE, obj).result().orElseThrow();
+            }
+        };
+    }
+
+    static <T> DataCodec<T> of(DataEncoder<T> encoder, DataDecoder<T> decoder) {
+        return new DataCodec<T>() {
+
+            @Override
+            public T decode(Data data) {
+                return decoder.decode(data);
+            }
+
+            @Override
+            public Data encode(T obj) {
+                return encoder.encode(obj);
+            }
+        };
+    }
 
     static <T> void registerCodec(Class<T> type, DataCodec<T> codec) {
         synchronized (Codecs.CODECS) {

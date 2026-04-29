@@ -1,6 +1,6 @@
 package com.gto.datasynclib.datasream;
 
-import com.gto.datasynclib.datasream.codec.DataCodec;
+import com.gto.datasynclib.CombinationCodec;
 import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
@@ -16,51 +16,51 @@ import java.util.Map;
 
 public class DataComponentKey<T> {
 
-    public static <T> DataComponentKey<T> create(String name, DataCodec<T> codec) {
+    public static <T> DataComponentKey<T> create(String name, CombinationCodec<T> codec) {
         return new DataComponentKey<>(name, codec);
     }
 
-    public static <K, V, M extends Map<K, V>> DataComponentKey<M> createMap(String name, DataCodec<M> codec) {
+    public static <K, V, M extends Map<K, V>> DataComponentKey<M> createMap(String name, CombinationCodec<M> codec) {
         return (DataComponentKey) new MapKey(name, codec);
     }
 
-    public static <T, C extends Collection<T>> DataComponentKey<C> createCollection(String name, DataCodec<C> codec) {
+    public static <T, C extends Collection<T>> DataComponentKey<C> createCollection(String name, CombinationCodec<C> codec) {
         return (DataComponentKey) new CollectionKey(name, codec);
     }
 
-    public static <T extends IntSet> DataComponentKey<T> createIntSet(String name, DataCodec<T> codec) {
+    public static <T extends IntSet> DataComponentKey<T> createIntSet(String name, CombinationCodec<T> codec) {
         return (DataComponentKey) new IntSetKey(name, codec);
     }
 
-    public static <T extends LongSet> DataComponentKey<T> createLongSet(String name, DataCodec<T> codec) {
+    public static <T extends LongSet> DataComponentKey<T> createLongSet(String name, CombinationCodec<T> codec) {
         return (DataComponentKey) new LongSetKey(name, codec);
     }
 
-    public static <K, M extends Reference2IntMap<K>> DataComponentKey<M> createReference2IntMap(String name, DataCodec<M> codec) {
+    public static <K, M extends Reference2IntMap<K>> DataComponentKey<M> createReference2IntMap(String name, CombinationCodec<M> codec) {
         return (DataComponentKey) new Reference2IntMapKey(name, codec);
     }
 
-    public static <K, M extends Reference2LongMap<K>> DataComponentKey<M> createReference2LongMap(String name, DataCodec<M> codec) {
+    public static <K, M extends Reference2LongMap<K>> DataComponentKey<M> createReference2LongMap(String name, CombinationCodec<M> codec) {
         return (DataComponentKey) new Reference2LongMapKey(name, codec);
     }
 
-    public static <V, M extends Int2ObjectMap<V>> DataComponentKey<M> createInt2ObjectMap(String name, DataCodec<M> codec) {
+    public static <V, M extends Int2ObjectMap<V>> DataComponentKey<M> createInt2ObjectMap(String name, CombinationCodec<M> codec) {
         return (DataComponentKey) new Int2ObjectMapKey(name, codec);
     }
 
-    public static <V, M extends Long2ObjectMap<V>> DataComponentKey<M> createLong2ObjectMap(String name, DataCodec<M> codec) {
+    public static <V, M extends Long2ObjectMap<V>> DataComponentKey<M> createLong2ObjectMap(String name, CombinationCodec<M> codec) {
         return (DataComponentKey) new Long2ObjectMapKey(name, codec);
     }
 
-    public static <M extends Long2BooleanMap> DataComponentKey<M> createLong2BooleanMap(String name, DataCodec<M> codec) {
+    public static <M extends Long2BooleanMap> DataComponentKey<M> createLong2BooleanMap(String name, CombinationCodec<M> codec) {
         return (DataComponentKey) new Long2BooleanMapKey(name, codec);
     }
 
     public final String name;
-    public final DataCodec<T> codec;
+    public final CombinationCodec<T> codec;
     public final int mixCode = HashCommon.mix(System.identityHashCode(this));
 
-    protected DataComponentKey(String name, DataCodec<T> codec) {
+    protected DataComponentKey(String name, CombinationCodec<T> codec) {
         this.name = name;
         this.codec = codec;
     }
@@ -80,7 +80,7 @@ public class DataComponentKey<T> {
 
     private static final class MapKey extends DataComponentKey<Map> {
 
-        private MapKey(String name, DataCodec codec) {
+        private MapKey(String name, CombinationCodec codec) {
             super(name, codec);
         }
 
@@ -93,7 +93,7 @@ public class DataComponentKey<T> {
 
     private static final class CollectionKey extends DataComponentKey<Collection> {
 
-        private CollectionKey(String name, DataCodec codec) {
+        private CollectionKey(String name, CombinationCodec codec) {
             super(name, codec);
         }
 
@@ -106,7 +106,7 @@ public class DataComponentKey<T> {
 
     private static final class IntSetKey extends DataComponentKey<IntSet> {
 
-        private IntSetKey(String name, DataCodec codec) {
+        private IntSetKey(String name, CombinationCodec codec) {
             super(name, codec);
         }
 
@@ -119,7 +119,7 @@ public class DataComponentKey<T> {
 
     private static final class LongSetKey extends DataComponentKey<LongSet> {
 
-        private LongSetKey(String name, DataCodec codec) {
+        private LongSetKey(String name, CombinationCodec codec) {
             super(name, codec);
         }
 
@@ -132,7 +132,7 @@ public class DataComponentKey<T> {
 
     private static final class Reference2IntMapKey extends DataComponentKey<Reference2IntMap> {
 
-        private Reference2IntMapKey(String name, DataCodec codec) {
+        private Reference2IntMapKey(String name, CombinationCodec codec) {
             super(name, codec);
         }
 
@@ -145,7 +145,7 @@ public class DataComponentKey<T> {
 
     private static final class Reference2LongMapKey extends DataComponentKey<Reference2LongMap> {
 
-        private Reference2LongMapKey(String name, DataCodec codec) {
+        private Reference2LongMapKey(String name, CombinationCodec codec) {
             super(name, codec);
         }
 
@@ -158,7 +158,7 @@ public class DataComponentKey<T> {
 
     private static final class Int2ObjectMapKey extends DataComponentKey<Int2ObjectMap> {
 
-        private Int2ObjectMapKey(String name, DataCodec codec) {
+        private Int2ObjectMapKey(String name, CombinationCodec codec) {
             super(name, codec);
         }
 
@@ -171,7 +171,7 @@ public class DataComponentKey<T> {
 
     private static final class Long2ObjectMapKey extends DataComponentKey<Long2ObjectMap> {
 
-        private Long2ObjectMapKey(String name, DataCodec codec) {
+        private Long2ObjectMapKey(String name, CombinationCodec codec) {
             super(name, codec);
         }
 
@@ -184,7 +184,7 @@ public class DataComponentKey<T> {
 
     private static final class Long2BooleanMapKey extends DataComponentKey<Long2BooleanMap> {
 
-        private Long2BooleanMapKey(String name, DataCodec codec) {
+        private Long2BooleanMapKey(String name, CombinationCodec codec) {
             super(name, codec);
         }
 

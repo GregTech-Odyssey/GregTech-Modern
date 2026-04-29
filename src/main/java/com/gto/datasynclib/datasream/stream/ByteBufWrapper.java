@@ -1,21 +1,11 @@
 package com.gto.datasynclib.datasream.stream;
 
 import io.netty.buffer.ByteBuf;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
-public final class ByteBufWrapper implements ByteDataStream {
-
-    private final ByteBuf buf;
-
-    public ByteBufWrapper(ByteBuf buf) {
-        this.buf = buf;
-    }
-
-    @Override
-    public void write(byte[] b) {
-        buf.writeBytes(b);
-    }
+public record ByteBufWrapper(ByteBuf buf) implements ByteDataStream {
 
     @Override
     public void writeBoolean(boolean b) {
@@ -110,5 +100,55 @@ public final class ByteBufWrapper implements ByteDataStream {
     @Override
     public String readUTF() throws IOException {
         return new String(readByteArray());
+    }
+
+    @Override
+    public void write(int b) throws IOException {
+        buf.writeByte(b);
+    }
+
+    @Override
+    public void write(byte[] b) {
+        buf.writeBytes(b);
+    }
+
+    @Override
+    public void write(byte @NotNull [] b, int off, int len) throws IOException {
+        buf.writeBytes(b, off, len);
+    }
+
+    @Override
+    public void readFully(byte @NotNull [] b, int off, int len) {
+        buf.readBytes(b, off, len);
+    }
+
+    @Override
+    public int readUnsignedByte() {
+        return buf.readUnsignedByte();
+    }
+
+    @Override
+    public int readUnsignedShort() {
+        return buf.readUnsignedShort();
+    }
+
+    @Override
+    public void writeBytes(@NotNull String s) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void writeChars(@NotNull String s) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String readLine() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int skipBytes(int n) {
+        throw new UnsupportedOperationException();
     }
 }

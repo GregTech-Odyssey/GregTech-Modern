@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+@FunctionalInterface
 public interface ByteStreamDecoder<T> {
 
     T decode(ByteDataStream stream) throws IOException;

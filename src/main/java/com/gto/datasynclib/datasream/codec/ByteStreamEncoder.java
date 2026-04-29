@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+@FunctionalInterface
 public interface ByteStreamEncoder<T> {
 
     void encode(T obj, ByteDataStream stream) throws IOException;

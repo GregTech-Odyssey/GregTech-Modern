@@ -1,7 +1,13 @@
 package com.gto.datasynclib.datasream.data;
 
 import com.fast.fastcollection.O2OOpenCacheHashMap;
+import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datasream.codec.DataCodec;
 import com.gto.datasynclib.datasream.stream.ByteDataStream;
+import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -11,6 +17,53 @@ import java.util.*;
 public record MapData(Map<String, Data> value) implements Data {
 
     public static final MapData EMPTY = new MapData(Collections.emptyMap());
+
+    public static final Codec<MapData> CODEC = new Codec<>() {
+
+        @Override
+        public <T> DataResult<Pair<MapData, T>> decode(DynamicOps<T> ops, T input) {
+            return DataResult.success(Pair.of((MapData) ops.convertTo(DataOps.INSTANCE, input), ops.empty()));
+        }
+
+        @Override
+        public <T> DataResult<T> encode(MapData input, DynamicOps<T> ops, T prefix) {
+            return DataResult.success(DataOps.INSTANCE.convertTo(ops, input));
+        }
+    };
+
+    public static final ByteStreamCodec<MapData> BYTE_STREAM_CODEC = new ByteStreamCodec<>() {
+
+        @Override
+        public void encode(MapData obj, ByteDataStream stream) throws IOException {
+            obj.write(stream);
+        }
+
+        @Override
+        public MapData decode(ByteDataStream stream) throws IOException {
+            return (MapData) Data.read(Data.MAP, stream);
+        }
+
+        static {
+            ByteStreamCodec.registerCodec(MapData.class, BYTE_STREAM_CODEC);
+        }
+    };
+
+    public static final DataCodec<MapData> DATA_CODEC = new DataCodec<>() {
+
+        @Override
+        public Data encode(MapData obj) {
+            return obj;
+        }
+
+        @Override
+        public MapData decode(Data data) {
+            return (MapData) data;
+        }
+
+        static {
+            DataCodec.registerCodec(MapData.class, DATA_CODEC);
+        }
+    };
 
     public MapData() {
         this(new HashMap<>());

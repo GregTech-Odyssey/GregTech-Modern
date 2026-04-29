@@ -10,6 +10,21 @@ import java.util.UUID;
 
 public interface ByteStreamCodec<T> extends ByteStreamDecoder<T>, ByteStreamEncoder<T> {
 
+    static <T> ByteStreamCodec<T> of(ByteStreamEncoder<T> encoder, ByteStreamDecoder<T> decoder) {
+        return new ByteStreamCodec<>() {
+
+            @Override
+            public void encode(T obj, ByteDataStream stream) throws IOException {
+                encoder.encode(obj, stream);
+            }
+
+            @Override
+            public T decode(ByteDataStream stream) throws IOException {
+                return decoder.decode(stream);
+            }
+        };
+    }
+
     static <T> void registerCodec(Class<T> type, ByteStreamCodec<T> codec) {
         synchronized (Codecs.CODECS) {
             Codecs.CODECS.put(type, codec);

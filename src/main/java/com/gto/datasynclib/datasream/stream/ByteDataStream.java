@@ -1,52 +1,63 @@
 package com.gto.datasynclib.datasream.stream;
 
+import com.gto.datasynclib.datasream.codec.ByteStreamDecoder;
+import com.gto.datasynclib.datasream.codec.ByteStreamEncoder;
 import com.gto.datasynclib.datasream.data.Data;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.IntFunction;
 
-public interface ByteDataStream {
+public interface ByteDataStream extends DataOutput, DataInput {
 
-    void write(byte[] b) throws IOException;
+    default <T> void writeCollection(Collection<T> collection, ByteStreamEncoder<T> elementWriter) throws IOException {
+        this.writeVarInt(collection.size());
+        collection.forEach(t -> {
+            try {
+                elementWriter.encode(t, this);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
 
-    void writeBoolean(boolean b) throws IOException;
+    default <T, C extends Collection<T>> C readCollection(IntFunction<C> collectionFactory, ByteStreamDecoder<T> elementReader) throws IOException {
+        var i = this.readVarInt();
+        var c = collectionFactory.apply(i);
+        for (int j = 0; j < i; ++j) {
+            c.add(elementReader.decode(this));
+        }
+        return c;
+    }
 
-    void writeByte(int b) throws IOException;
+    default <K, V> void writeMap(Map<K, V> map, ByteStreamEncoder<K> keyWriter, ByteStreamEncoder<V> valueWriter) throws IOException {
+        this.writeVarInt(map.size());
+        map.forEach((k, v) -> {
+            try {
+                keyWriter.encode(k, this);
+                valueWriter.encode(v, this);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
 
-    void writeShort(int s) throws IOException;
+    default <K, V, M extends Map<K, V>> M readMap(IntFunction<M> mapFactory, ByteStreamDecoder<K> keyReader, ByteStreamDecoder<V> valueReader) throws IOException {
+        var i = this.readVarInt();
+        var m = mapFactory.apply(i);
+        for (int j = 0; j < i; ++j) {
+            var k = keyReader.decode(this);
+            var v = valueReader.decode(this);
+            m.put(k, v);
+        }
 
-    void writeChar(int c) throws IOException;
-
-    void writeInt(int i) throws IOException;
-
-    void writeLong(long l) throws IOException;
-
-    void writeFloat(float f) throws IOException;
-
-    void writeDouble(double d) throws IOException;
-
-    void writeUTF(String s) throws IOException;
-
-    void readFully(byte[] b) throws IOException;
-
-    boolean readBoolean() throws IOException;
-
-    byte readByte() throws IOException;
-
-    short readShort() throws IOException;
-
-    char readChar() throws IOException;
-
-    int readInt() throws IOException;
-
-    long readLong() throws IOException;
-
-    float readFloat() throws IOException;
-
-    double readDouble() throws IOException;
-
-    String readUTF() throws IOException;
+        return m;
+    }
 
     default void writeVarInt(int input) throws IOException {
         while ((input & -128) != 0) {

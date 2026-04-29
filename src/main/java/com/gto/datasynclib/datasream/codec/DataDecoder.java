@@ -9,6 +9,7 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import java.util.*;
 import java.util.function.Function;
 
+@FunctionalInterface
 public interface DataDecoder<T> {
 
     T decode(Data data);

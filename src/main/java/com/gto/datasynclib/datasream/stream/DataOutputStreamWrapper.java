@@ -1,5 +1,7 @@
 package com.gto.datasynclib.datasream.stream;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.DataOutputStream;
 import java.io.OutputStream;
 
@@ -15,6 +17,16 @@ public final class DataOutputStreamWrapper extends DataOutputStream implements B
     }
 
     @Override
+    public void readFully(byte @NotNull [] b, int off, int len) {
+        throw new UnsupportedOperationException("Cannot read from output stream");
+    }
+
+    @Override
+    public int skipBytes(int n) {
+        throw new UnsupportedOperationException("Cannot read from output stream");
+    }
+
+    @Override
     public boolean readBoolean() {
         throw new UnsupportedOperationException("Cannot read from output stream");
     }
@@ -25,7 +37,17 @@ public final class DataOutputStreamWrapper extends DataOutputStream implements B
     }
 
     @Override
+    public int readUnsignedByte() {
+        throw new UnsupportedOperationException("Cannot read from output stream");
+    }
+
+    @Override
     public short readShort() {
+        throw new UnsupportedOperationException("Cannot read from output stream");
+    }
+
+    @Override
+    public int readUnsignedShort() {
         throw new UnsupportedOperationException("Cannot read from output stream");
     }
 
@@ -51,6 +73,11 @@ public final class DataOutputStreamWrapper extends DataOutputStream implements B
 
     @Override
     public double readDouble() {
+        throw new UnsupportedOperationException("Cannot read from output stream");
+    }
+
+    @Override
+    public String readLine() {
         throw new UnsupportedOperationException("Cannot read from output stream");
     }
 
