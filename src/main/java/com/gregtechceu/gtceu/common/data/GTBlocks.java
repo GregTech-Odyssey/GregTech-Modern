@@ -530,6 +530,7 @@ public class GTBlocks {
                 .addLayer(() -> RenderType::cutoutMipped)
                 .blockstate(GTModels.createCoilModel("%s_coil_block".formatted(coilType.getName()), coilType))
                 .tag(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WRENCH)
+                .canMultiShared(false)
                 .item(BlockItem::new)
                 .build()
                 .register();

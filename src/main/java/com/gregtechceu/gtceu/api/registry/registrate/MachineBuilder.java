@@ -48,6 +48,8 @@ import com.gto.registrate.util.entry.BlockEntry;
 import com.gto.registrate.util.nullness.NonNullBiConsumer;
 import com.gto.registrate.util.nullness.NonNullUnaryOperator;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
@@ -106,6 +108,11 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     private boolean regressWhenWaiting = true;
     private boolean allowCoverOnFront = false;
     private boolean disabledCombined = false;
+
+    @Setter
+    @Accessors(chain = true, fluent = true)
+    protected boolean canMultiShared = true;
+
     private Supplier<BlockState> appearance;
     // getter for KJS
     @Nullable
@@ -256,6 +263,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
             blockBuilder.lang(langValue);
             definition.setLangValue(langValue);
         }
+        blockBuilder.canMultiShared(canMultiShared);
         if (this.blockBuilder != null) {
             this.blockBuilder.accept(blockBuilder);
         }

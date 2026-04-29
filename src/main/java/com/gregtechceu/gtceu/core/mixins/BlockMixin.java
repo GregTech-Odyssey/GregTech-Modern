@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.core.mixins;
 
 import com.gregtechceu.gtceu.common.item.tool.ToolEventHandlers;
+import com.gregtechceu.gtceu.core.Iblock;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -15,6 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.List;
@@ -22,7 +24,10 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 @Mixin(Block.class)
-public abstract class BlockMixin {
+public abstract class BlockMixin implements Iblock {
+
+    @Unique
+    private boolean gtceu$noShared;
 
     /**
      * Because most mods override Block#getDrops instead of using LootItemFunction to save custom data,
@@ -41,5 +46,15 @@ public abstract class BlockMixin {
                     original, 1);
         }
         return original;
+    }
+
+    @Override
+    public boolean gtceu$canMultiShared() {
+        return !gtceu$noShared;
+    }
+
+    @Override
+    public void gtceu$setMultiShared(boolean canShared) {
+        gtceu$noShared = !canShared;
     }
 }

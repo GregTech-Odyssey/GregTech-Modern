@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.utils.TaskHandler;
 import net.minecraft.server.level.ServerLevel;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,6 +56,7 @@ public class MultiblockWorldData {
      * Chunk pos mapping.
      */
     private final Long2ObjectOpenHashMap<Set<MultiblockState>> chunkPosMapping = new Long2ObjectOpenHashMap<>();
+    private final LongOpenHashSet shareds = new LongOpenHashSet();
     private final Set<IMultiController> controllers = ConcurrentHashMap.newKeySet();
 
     public MultiblockState[] getControllersInChunk(long chunkPos) {
@@ -65,6 +67,18 @@ public class MultiblockWorldData {
             }
             return null;
         }
+    }
+
+    public void addShared(long pos) {
+        shareds.add(pos);
+    }
+
+    public void removeShared(long pos) {
+        shareds.remove(pos);
+    }
+
+    public boolean hasShared(long pos) {
+        return shareds.contains(pos);
     }
 
     public void addMapping(MultiblockState state) {
@@ -115,6 +129,7 @@ public class MultiblockWorldData {
     public void clear() {
         subscription = ITickSubscription.unsubscribe(subscription);
         controllers.clear();
+        shareds.clear();
         chunkPosMapping.clear();
         taskHandler.unsubscribe();
     }

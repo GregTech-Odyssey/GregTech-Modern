@@ -127,6 +127,9 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     public void onUnload() {
         super.onUnload();
         if (getLevel() instanceof ServerLevel serverLevel) {
+            onStructureInvalid();
+            getMultiblockState().clear();
+            MultiblockWorldData.getOrCreate(serverLevel).removeMapping(getMultiblockState());
             MultiblockWorldData.getOrCreate(serverLevel).removeAsyncLogic(this);
         } else {
             ILevel.getHighlightCache(getLevel()).remove(getPos().asLong());
@@ -419,7 +422,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
 
     @Override
     public void requestCheck() {
-        if (!simpleLock && isFormed && getLevel() instanceof ServerLevel serverLevel) {
+        if (!simpleLock && isFormed && !holder.isRemoved() && getLevel() instanceof ServerLevel serverLevel) {
             patternLock.lock();
             try {
                 if (isFormed) {

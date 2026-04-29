@@ -48,12 +48,15 @@ public class MultiblockState {
 
     @Getter
     public final Level world;
+    @Nullable
+    public final MultiblockWorldData data;
     public final BlockPos controllerPos;
     public final IMultiController controller;
     // persist
     @Getter
     public final PatternMatchContext matchContext;
     public final LongOpenHashSet cache = new LongOpenHashSet();
+    public final LongOpenHashSet shareds = new LongOpenHashSet();
 
     public final List<PatternError> errorRecord = new ArrayList<>();
 
@@ -68,6 +71,7 @@ public class MultiblockState {
         this.matchContext = new PatternMatchContext();
         this.blockStateCache = new Long2ObjectOpenHashMap<>();
         this.blockEntityCache = new LongOpenHashSet();
+        this.data = world instanceof ServerLevel serverLevel ? MultiblockWorldData.getOrCreate(serverLevel) : null;
     }
 
     @SuppressWarnings("all")
@@ -79,6 +83,7 @@ public class MultiblockState {
         this.matchContext = new PatternMatchContext(state.matchContext);
         this.blockStateCache = state.blockStateCache;
         this.blockEntityCache = state.blockEntityCache;
+        this.data = state.data;
     }
 
     public static MultiblockState copy(MultiblockState state) {
@@ -97,6 +102,8 @@ public class MultiblockState {
         this.layerCount.clear();
         this.cache.clear();
         this.blockEntityCache.clear();
+        if (data != null) this.shareds.forEach(data::removeShared);
+        this.shareds.clear();
     }
 
     public void clearCache() {
@@ -107,6 +114,11 @@ public class MultiblockState {
         this.blockState = null;
         this.tileEntity = null;
         this.tileEntityInitialized = false;
+    }
+
+    public void success() {
+        setError(null);
+        if (data != null) this.shareds.forEach(data::addShared);
     }
 
     public void update(BlockPos posIn, TraceabilityPredicate predicate) {
@@ -149,25 +161,13 @@ public class MultiblockState {
     }
 
     public void onBlockStateChanged(BlockPos pos, BlockState state) {
-        if (world instanceof ServerLevel serverLevel) {
-            if (pos.equals(controllerPos)) {
-                if (controller != null) {
-                    if (!state.is(controller.self().getBlockState().getBlock())) {
-                        controller.onStructureInvalid();
-                        var mwsd = MultiblockWorldData.getOrCreate(serverLevel);
-                        mwsd.removeMapping(this);
-                    }
-                }
-            } else {
-                if (controller.isFormed()) {
-                    if (state.getBlock() instanceof ActiveBlock) {
-                        if (matchContext.getOrDefault(Predicates.DataKey.ACTIVE_BLOCKS, LongSets.EMPTY_SET).contains(pos.asLong())) {
-                            return;
-                        }
-                    }
-                    controller.requestCheck();
+        if (controller.isFormed() && !pos.equals(controllerPos)) {
+            if (state.getBlock() instanceof ActiveBlock) {
+                if (matchContext.getOrDefault(Predicates.DataKey.ACTIVE_BLOCKS, LongSets.EMPTY_SET).contains(pos.asLong())) {
+                    return;
                 }
             }
+            controller.requestCheck();
         }
     }
 }

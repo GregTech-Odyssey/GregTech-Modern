@@ -27,6 +27,7 @@ import com.gregtechceu.gtceu.common.cover.ItemFilterCover;
 import com.gregtechceu.gtceu.common.item.tool.behavior.ToolModeSwitchBehavior;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 import com.gregtechceu.gtceu.common.machine.owner.PlayerOwner;
+import com.gregtechceu.gtceu.core.Iblock;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 import com.gregtechceu.gtceu.utils.cache.DirectionCache;
@@ -157,6 +158,9 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
         this.definition = holder.definition;
         this.holder = holder;
         this.coverContainer = new MachineCoverContainer(this);
+        if (this instanceof IMultiPart part && !part.canShared() && holder.getBlockState().getBlock() instanceof Iblock block) {
+            block.gtceu$setMultiShared(false);
+        }
     }
 
     //////////////////////////////////////

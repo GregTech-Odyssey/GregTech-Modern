@@ -1,6 +1,7 @@
 package com.gto.registrate.builders;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.core.Iblock;
 
 import net.minecraft.client.color.block.BlockColor;
 import net.minecraft.client.renderer.RenderType;
@@ -36,6 +37,8 @@ import com.gto.registrate.util.nullness.NonNullFunction;
 import com.gto.registrate.util.nullness.NonNullSupplier;
 import com.gto.registrate.util.nullness.NonNullUnaryOperator;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -92,6 +95,10 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
     private NonNullFunction<BlockBehaviour.Properties, BlockBehaviour.Properties> propertiesCallback = NonNullUnaryOperator.identity();
 
     protected boolean defaultLoot;
+
+    @Setter
+    @Accessors(chain = true, fluent = true)
+    protected boolean canMultiShared = true;
 
     protected BlockBuilder(AbstractRegistrate<?> owner, P parent, String name, NonNullFunction<BlockBehaviour.Properties, T> factory, NonNullSupplier<BlockBehaviour.Properties> initialProperties) {
         super(owner, parent, name, ForgeRegistries.Keys.BLOCKS);
@@ -357,6 +364,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
         properties = propertiesCallback.apply(properties);
         var block = factory.apply(properties);
         if (defaultLoot) DEFAULT_LOOTS.add(block);
+        ((Iblock) block).gtceu$setMultiShared(canMultiShared);
         return block;
     }
 

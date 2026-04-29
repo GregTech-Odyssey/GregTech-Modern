@@ -12,8 +12,8 @@ import com.gregtechceu.gtceu.api.pattern.error.PatternError;
 import com.gregtechceu.gtceu.api.pattern.error.PatternStringError;
 import com.gregtechceu.gtceu.api.pattern.error.SinglePredicateError;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
-import com.gregtechceu.gtceu.api.pattern.util.PatternMatchContext;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
+import com.gregtechceu.gtceu.core.Iblock;
 
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
@@ -115,7 +115,8 @@ public class BlockPattern {
         boolean findFirstAisle = false;
         int minZ = -centerOffset[4];
         worldState.clear();
-        PatternMatchContext matchContext = worldState.getMatchContext();
+        var data = worldState.data;
+        var matchContext = worldState.getMatchContext();
         var ordinal = frontFacing.ordinal();
         var globalCount = worldState.getGlobalCount();
         var layerCount = worldState.getLayerCount();
@@ -145,28 +146,33 @@ public class BlockPattern {
                             if (savePredicate) {
                                 matchContext.getPredicates().put(posLong, predicate);
                             }
-                            if (worldState.getBlockState().getBlock() instanceof ActiveBlock) {
-                                if (!savePredicate) matchContext.getOrCreate(Predicates.DataKey.ACTIVE_BLOCKS, LongOpenHashSet::new).add(posLong);
-                            } else {
-                                var blockentity = worldState.getTileEntity();
-                                if (blockentity != null) {
-                                    if (blockentity instanceof MetaMachineBlockEntity machineBlockEntity) {
-                                        if (machineBlockEntity.metaMachine instanceof IMultiPart part && part != worldState.controller) {
-                                            if (!worldState.world.isLoaded(pos)) {
-                                                worldState.setError(MultiblockState.UNLOAD_ERROR);
-                                                return false;
-                                            }
-                                            // add detected parts
-                                            if (part.isFormed() && !part.canShared() && !part.hasController(worldState.controllerPos)) {
-                                                // check part can be shared
-                                                success = false;
-                                                worldState.setError(MultiblockState.SHARE_ERROR);
-                                            } else {
+                            var block = worldState.getBlockState().getBlock();
+                            if (data != null && !((Iblock) block).gtceu$canMultiShared()) {
+                                if (data.hasShared(posLong)) {
+                                    success = false;
+                                    worldState.setError(MultiblockState.SHARE_ERROR);
+                                } else {
+                                    worldState.shareds.add(posLong);
+                                }
+                            }
+                            if (success) {
+                                if (block instanceof ActiveBlock) {
+                                    if (!savePredicate)
+                                        matchContext.getOrCreate(Predicates.DataKey.ACTIVE_BLOCKS, LongOpenHashSet::new).add(posLong);
+                                } else {
+                                    var blockentity = worldState.getTileEntity();
+                                    if (blockentity != null) {
+                                        if (blockentity instanceof MetaMachineBlockEntity machineBlockEntity) {
+                                            if (machineBlockEntity.metaMachine instanceof IMultiPart part && part != worldState.controller) {
+                                                if (!worldState.world.isLoaded(pos)) {
+                                                    worldState.setError(MultiblockState.UNLOAD_ERROR);
+                                                    return false;
+                                                }
                                                 matchContext.getParts().add(part);
                                             }
+                                        } else if (!(blockentity instanceof TickBlockEntity) && !WHITELIST.contains(blockentity.getClass())) {
+                                            worldState.blockEntityCache.add(posLong);
                                         }
-                                    } else if (!(blockentity instanceof TickBlockEntity) && !WHITELIST.contains(blockentity.getClass())) {
-                                        worldState.blockEntityCache.add(posLong);
                                     }
                                 }
                             }
@@ -220,8 +226,8 @@ public class BlockPattern {
                 return false;
             }
         }
-        worldState.setError(null);
         worldState.setNeededFlip(isFlipped);
+        worldState.success();
         return true;
     }
 
