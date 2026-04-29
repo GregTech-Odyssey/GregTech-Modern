@@ -16,27 +16,27 @@ public final class SerializableAccess extends AbstractFieldAccess<ISerializable>
     }
 
     @Override
-    protected boolean hasChanges(@NotNull LogicalSide side, boolean auto) {
-        return getInstance().hasChanges();
+    public boolean hasChanges(@NotNull LogicalSide side, Object source, boolean auto) {
+        return getInstance(source).hasChanges();
     }
 
     @Override
-    protected void writeBuf(LogicalSide side, @NotNull ByteDataStream data, boolean force) throws IOException {
-        getInstance().writeBuf(side, data);
+    public void writeToBuffer(LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data, boolean force) throws IOException {
+        getInstance(source).writeBuf(side, data);
     }
 
     @Override
-    protected void readBuf(LogicalSide side, @NotNull ByteDataStream data) throws IOException {
-        getInstance().readBuf(side, data);
+    public void readFromBuffer(LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data) throws IOException {
+        getInstance(source).readBuf(side, data);
     }
 
     @Override
-    protected Data writeData() {
-        return getInstance().writeData();
+    public Data writeToData(@NotNull Object source) {
+        return getInstance(source).writeData();
     }
 
     @Override
-    protected void readData(@NotNull Data tag) {
-        getInstance().readData(tag);
+    public void readFromData(@NotNull Object source, @NotNull Data data) {
+        getInstance(source).readData(data);
     }
 }

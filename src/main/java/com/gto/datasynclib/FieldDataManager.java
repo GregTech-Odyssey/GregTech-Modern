@@ -36,6 +36,18 @@ public final class FieldDataManager {
         }
     }
 
+    public boolean hasSyncToClientField() {
+        return syncToClientFields.length > 0;
+    }
+
+    public boolean hasSyncToServerField() {
+        return syncToServerFields.length > 0;
+    }
+
+    public boolean hasSaveField() {
+        return saveFields.length > 0;
+    }
+
     /**
      * Marks specified fields as dirty for synchronization
      *
@@ -62,10 +74,14 @@ public final class FieldDataManager {
         final var fields = side.isServer() ? syncToClientFields : syncToServerFields;
         boolean hasChanges = false;
         for (DataField<?> field : fields) {
-            var d = field.getDefinition();
-            if ((!auto || d.autoUpdate(side)) && field.hasChanges(side, d.source.apply(holder), auto)) {
-                field.markAsDirty();
+            if (field.isDirty()) {
                 hasChanges = true;
+            } else {
+                var d = field.getDefinition();
+                if ((!auto || d.autoUpdate(side)) && field.hasChanges(side, d.source.apply(holder), auto)) {
+                    field.markAsDirty();
+                    hasChanges = true;
+                }
             }
         }
         return hasChanges;
@@ -80,7 +96,7 @@ public final class FieldDataManager {
      */
     public byte @NotNull [] writeToNetworkBuffer(LogicalSide side, boolean force) {
         var buf = Unpooled.buffer();
-        var wrapper = new ByteBufWrapper(Unpooled.buffer());
+        var wrapper = new ByteBufWrapper(buf);
         try {
             final var fields = side.isServer() ? syncToClientFields : syncToServerFields;
             holder.writeCustomSyncData(wrapper, force);
@@ -113,7 +129,7 @@ public final class FieldDataManager {
     public void readFromNetworkBuffer(LogicalSide side, byte @NotNull [] data) {
         if (data.length > 0) {
             var buf = Unpooled.wrappedBuffer(data);
-            var wrapper = new ByteBufWrapper(Unpooled.buffer());
+            var wrapper = new ByteBufWrapper(buf);
             try {
                 final var fields = side.isClient() ? syncToClientFields : syncToServerFields;
                 holder.readCustomSyncData(wrapper);

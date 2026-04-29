@@ -1,9 +1,6 @@
 package com.gto.datasynclib;
 
-import com.gto.datasynclib.annotations.NotifyUpdate;
-import com.gto.datasynclib.annotations.SaveToDisk;
-import com.gto.datasynclib.annotations.SyncToClient;
-import com.gto.datasynclib.annotations.SyncToServer;
+import com.gto.datasynclib.annotations.*;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 
@@ -22,9 +19,11 @@ final class FieldAnnotations {
     private final boolean notifyServerUpdate;
     private final boolean autoServerUpdate;
     private final boolean autoClientUpdate;
+    private final boolean access;
 
     FieldAnnotations(Field field) {
         var notifyUpdate = field.getAnnotation(NotifyUpdate.class) != null;
+        this.access = field.getAnnotation(Access.class) != null;
         this.saveToNBT = field.getAnnotation(SaveToDisk.class);
         this.syncToClient = field.getAnnotation(SyncToClient.class);
         this.syncToServer = field.getAnnotation(SyncToServer.class);
@@ -39,15 +38,15 @@ final class FieldAnnotations {
         return saveToNBT == null && syncToClient == null && syncToServer == null;
     }
 
-    public boolean isSave() {
+    boolean isSave() {
         return saveToNBT != null;
     }
 
-    public boolean isSyncToClient() {
+    boolean isSyncToClient() {
         return syncToClient != null;
     }
 
-    public boolean isSyncToServer() {
+    boolean isSyncToServer() {
         return syncToServer != null;
     }
 }

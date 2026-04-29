@@ -7,8 +7,6 @@ public interface IFieldDataHolder {
 
     FieldDataManager getFieldDataManager();
 
-    void onChanged();
-
     default void scheduleUpdate(LogicalSide side) {}
 
     default void writeCustomSyncData(ByteDataStream buf, boolean force) {}

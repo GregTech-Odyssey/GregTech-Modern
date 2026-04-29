@@ -70,6 +70,9 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import com.gto.datasynclib.FieldDataManager;
+import com.gto.datasynclib.IFieldDataHolder;
+import com.gto.datasynclib.LazyFieldDataManager;
 import com.mojang.datafixers.util.Pair;
 import lombok.Getter;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
@@ -92,7 +95,7 @@ import static com.gregtechceu.gtceu.api.item.tool.ToolHelper.getBehaviorsTag;
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyTooltip, IPaintable, IRedstoneSignalMachine {
+public class MetaMachine implements IFieldDataHolder, IEnhancedManaged, ITickSubscription, IFancyTooltip, IPaintable, IRedstoneSignalMachine {
 
     private static final Map<Class<?>, ManagedFieldHolder> MANAGED_FIELD_MAP = new ConcurrentHashMap<>();
 
@@ -114,6 +117,8 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
         }
         return holder;
     }
+
+    private final LazyFieldDataManager fieldDataManager = new LazyFieldDataManager(this);
 
     @Getter
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
@@ -169,6 +174,11 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     @Override
     public final ManagedFieldHolder getFieldHolder() {
         return managedFieldHolder;
+    }
+
+    @Override
+    public FieldDataManager getFieldDataManager() {
+        return fieldDataManager.get();
     }
 
     @Override

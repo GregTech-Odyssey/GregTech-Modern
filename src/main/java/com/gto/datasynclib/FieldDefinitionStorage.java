@@ -7,7 +7,6 @@ import com.gto.datasynclib.util.cache.HashMapCache;
 import com.gto.datasynclib.util.cache.IdentityHashMapCache;
 import com.gto.datasynclib.util.cache.MapCache;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -51,9 +50,6 @@ public final class FieldDefinitionStorage {
     });
 
     private static final Reference2ReferenceOpenHashMap<Class<?>, DataField.Factory<?>> PRIMITIVE_FIELDS = new Reference2ReferenceOpenHashMap<>();
-
-    private static final ReferenceOpenHashSet<Class<?>> NON_FINAL_FIELD_ACCESS_CACHE = new ReferenceOpenHashSet<>();
-    private static final ReferenceOpenHashSet<Class<?>> NON_FINAL_FIELD_GENERIC_CACHE = new ReferenceOpenHashSet<>();
 
     private static final ConcurrentHashMap<Class<?>, FieldDefinitionStorage> CACHE = new ConcurrentHashMap<>();
 
@@ -188,45 +184,40 @@ public final class FieldDefinitionStorage {
             } catch (Throwable e) {
                 genericType = new Class<?>[0];
             }
-            if (Modifier.isFinal(field.getModifiers())) {
-                return createFinalFieldDefinition(field, source, annotations, genericType);
+            boolean isFinal = Modifier.isFinal(field.getModifiers());
+            if (annotations.access() || isFinal) {
+                return createFinalFieldDefinition(field, source, annotations, genericType, isFinal);
             } else {
-                return createNonFinalFieldDefinition(field, source, annotations, genericType);
+                return createNonFinalFieldDefinition(field, source, annotations, genericType, isFinal);
             }
         } catch (Throwable e) {
             throw new RuntimeException("Failed to create field definition for: " + field.getName(), e);
         }
     }
 
-    private static DataFieldDefinition<?> createFinalFieldDefinition(Field field, Function<Object, Object> source, FieldAnnotations annotations, Class<?>[] genericType) {
+    private static DataFieldDefinition<?> createFinalFieldDefinition(Field field, Function<Object, Object> source, FieldAnnotations annotations, Class<?>[] genericType, boolean isFinal) {
         var factory = ACCESS_CACHE.getCache(field.getType());
-        return new DataFieldDefinition<>(field, factory, source, annotations, genericType);
+        return new DataFieldDefinition<>(field, factory, source, annotations, genericType, isFinal);
     }
 
-    private static DataFieldDefinition<?> createGenericFieldDefinition(Field field, Function<Object, Object> source, FieldAnnotations annotations, Class<?>[] genericType) {
+    private static DataFieldDefinition<?> createGenericFieldDefinition(Field field, Function<Object, Object> source, FieldAnnotations annotations, Class<?>[] genericType, boolean isFinal) {
         var factory = GENERIC_FIELDS_CACHE.getCache(field.getType()).getCache(HashUtil.arrayIdentityWrapper(genericType));
-        return new DataFieldDefinition<>(field, factory, source, annotations, genericType);
+        return new DataFieldDefinition<>(field, factory, source, annotations, genericType, isFinal);
     }
 
-    private static DataFieldDefinition<?> createNonFinalFieldDefinition(Field field, Function<Object, Object> source, FieldAnnotations annotations, Class<?>[] genericType) {
+    private static DataFieldDefinition<?> createNonFinalFieldDefinition(Field field, Function<Object, Object> source, FieldAnnotations annotations, Class<?>[] genericType, boolean isFinal) {
         var type = field.getType();
-        if (NON_FINAL_FIELD_ACCESS_CACHE.contains(type)) return createFinalFieldDefinition(field, source, annotations, genericType);
-        if (genericType.length > 0 && NON_FINAL_FIELD_GENERIC_CACHE.contains(type)) return createGenericFieldDefinition(field, source, annotations, genericType);
         try {
             var factory = FIELDS_CACHE.getCache(type);
-            return new DataFieldDefinition<>(field, factory, source, annotations, genericType);
+            return new DataFieldDefinition<>(field, factory, source, annotations, genericType, isFinal);
         } catch (Throwable e) {
             try {
-                var definition = createFinalFieldDefinition(field, source, annotations, genericType);
-                NON_FINAL_FIELD_ACCESS_CACHE.add(type);
-                return definition;
-            } catch (Throwable e2) {
                 if (genericType.length > 0) {
-                    var definition = createGenericFieldDefinition(field, source, annotations, genericType);
-                    NON_FINAL_FIELD_GENERIC_CACHE.add(type);
-                    return definition;
+                    return createGenericFieldDefinition(field, source, annotations, genericType, isFinal);
                 }
-                throw new RuntimeException(e2);
+                throw new RuntimeException(e);
+            } catch (Throwable e2) {
+                return createFinalFieldDefinition(field, source, annotations, genericType, isFinal);
             }
         }
     }

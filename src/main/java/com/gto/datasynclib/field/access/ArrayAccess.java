@@ -23,8 +23,8 @@ public final class ArrayAccess<T> extends AbstractFieldAccess<T[]> {
     }
 
     @Override
-    protected boolean hasChanges(@NotNull LogicalSide side, boolean auto) {
-        var hashCode = Arrays.hashCode(getInstance());
+    public boolean hasChanges(@NotNull LogicalSide side, Object source, boolean auto) {
+        var hashCode = Arrays.hashCode(getInstance(source));
         if (hashCode != this.hashCode) {
             this.hashCode = hashCode;
             return true;
@@ -33,8 +33,8 @@ public final class ArrayAccess<T> extends AbstractFieldAccess<T[]> {
     }
 
     @Override
-    protected void writeBuf(@NotNull LogicalSide side, @NotNull ByteDataStream data, boolean force) throws IOException {
-        var array = getInstance();
+    public void writeToBuffer(LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data, boolean force) throws IOException {
+        var array = getInstance(source);
         for (var element : array) {
             if (element == null) {
                 data.writeBoolean(false);
@@ -46,8 +46,8 @@ public final class ArrayAccess<T> extends AbstractFieldAccess<T[]> {
     }
 
     @Override
-    protected void readBuf(@NotNull LogicalSide side, @NotNull ByteDataStream data) throws IOException {
-        var array = getInstance();
+    public void readFromBuffer(LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data) throws IOException {
+        var array = getInstance(source);
         var length = array.length;
         for (int i = 0; i < length; i++) {
             if (data.readBoolean()) array[i] = elementCodec.streamReader.decode(data);
@@ -55,9 +55,9 @@ public final class ArrayAccess<T> extends AbstractFieldAccess<T[]> {
     }
 
     @Override
-    protected Data writeData() {
+    public Data writeToData(@NotNull Object source) {
         var list = new ListData();
-        var array = getInstance();
+        var array = getInstance(source);
         for (T element : array) {
             if (element != null) {
                 list.add(elementCodec.dataWriter.encode(element));
@@ -69,9 +69,9 @@ public final class ArrayAccess<T> extends AbstractFieldAccess<T[]> {
     }
 
     @Override
-    protected void readData(@NotNull Data data) {
+    public void readFromData(@NotNull Object source, @NotNull Data data) {
         var list = data.getList();
-        var array = getInstance();
+        var array = getInstance(source);
         var length = Math.min(list.size(), array.length);
         for (int i = 0; i < length; i++) {
             var d = list.get(i);

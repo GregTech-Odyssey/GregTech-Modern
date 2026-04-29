@@ -11,6 +11,7 @@ public final class DataFieldDefinition<T> {
     static final Comparator<DataFieldDefinition<?>> COMPARATOR = Comparator.comparing(d -> d.key);
 
     public final Field field;
+    public final boolean isFinal;
     public final CombinationCodec<T> codec;
     public final Class<?>[] genericType;
     public final CombinationCodec<?>[] genericCodec;
@@ -29,7 +30,7 @@ public final class DataFieldDefinition<T> {
     private final boolean autoClientUpdate;
 
     @SuppressWarnings("unchecked")
-    DataFieldDefinition(Field field, DataField.Factory<T> factory, Function<Object, Object> source, FieldAnnotations fieldAnnotations, Class<?>[] genericType) {
+    DataFieldDefinition(Field field, DataField.Factory<T> factory, Function<Object, Object> source, FieldAnnotations fieldAnnotations, Class<?>[] genericType, boolean isFinal) {
         this.field = field;
         this.factory = factory;
         this.source = source;
@@ -44,6 +45,7 @@ public final class DataFieldDefinition<T> {
         this.codec = (CombinationCodec<T>) CombinationCodec.get(field.getType());
         this.genericType = genericType;
         this.genericCodec = new CombinationCodec[genericType.length];
+        this.isFinal = isFinal;
         for (int i = 0; i < genericType.length; i++) {
             this.genericCodec[i] = CombinationCodec.get(genericType[i]);
         }

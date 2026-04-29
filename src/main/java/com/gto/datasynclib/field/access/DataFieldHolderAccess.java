@@ -17,27 +17,27 @@ public final class DataFieldHolderAccess extends AbstractFieldAccess<IFieldDataH
     }
 
     @Override
-    protected boolean hasChanges(@NotNull LogicalSide side, boolean auto) {
-        return getInstance().getFieldDataManager().updateSyncDirtyFlags(side, auto);
+    public boolean hasChanges(@NotNull LogicalSide side, Object source, boolean auto) {
+        return getInstance(source).getFieldDataManager().updateSyncDirtyFlags(side, auto);
     }
 
     @Override
-    protected void writeBuf(LogicalSide side, @NotNull ByteDataStream data, boolean force) throws IOException {
-        data.writeByteArray(getInstance().getFieldDataManager().writeToNetworkBuffer(side, force));
+    public void writeToBuffer(LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data, boolean force) throws IOException {
+        data.writeByteArray(getInstance(source).getFieldDataManager().writeToNetworkBuffer(side, force));
     }
 
     @Override
-    protected void readBuf(LogicalSide side, @NotNull ByteDataStream data) throws IOException {
-        getInstance().getFieldDataManager().readFromNetworkBuffer(side, data.readByteArray());
+    public void readFromBuffer(LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data) throws IOException {
+        getInstance(source).getFieldDataManager().readFromNetworkBuffer(side, data.readByteArray());
     }
 
     @Override
-    protected Data writeData() {
-        return getInstance().getFieldDataManager().writeToData();
+    public Data writeToData(@NotNull Object source) {
+        return getInstance(source).getFieldDataManager().writeToData();
     }
 
     @Override
-    protected void readData(@NotNull Data data) {
-        getInstance().getFieldDataManager().readFromData((MapData) data);
+    public void readFromData(@NotNull Object source, @NotNull Data data) {
+        getInstance(source).getFieldDataManager().readFromData((MapData) data);
     }
 }

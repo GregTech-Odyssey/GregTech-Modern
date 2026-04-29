@@ -55,6 +55,8 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegisterEvent;
 
+import com.gto.datasynclib.DataSyncLib;
+
 public class CommonProxy {
 
     public CommonProxy() {
@@ -62,6 +64,7 @@ public class CommonProxy {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         eventBus.register(this);
         GTRegistration.REGISTRATE.registerEventListeners(eventBus);
+        DataSyncLib.init();
         // must be set here because of KubeJS compat
         // trying to read this before the pre-init stage
         GTCEuAPI.materialManager = MaterialRegistryManager.getInstance();

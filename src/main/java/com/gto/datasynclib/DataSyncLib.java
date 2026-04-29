@@ -5,8 +5,6 @@ import com.gto.datasynclib.field.object.CustomObjCodecField;
 import com.gto.datasynclib.field.object.ObjCodecField;
 import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.longs.LongCollection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,11 +14,7 @@ import static com.gto.datasynclib.FieldDefinitionStorage.*;
 
 public final class DataSyncLib {
 
-    public static final String MOD_ID = "datasynclib";
-
-    public static final Logger LOGGER = LoggerFactory.getLogger("Data Sync Lib");
-
-    public DataSyncLib() {
+    public static void init() {
         CombinationCodec.init();
         registerCustomFactory(Class::isPrimitive, FieldDefinitionStorage::getPrimitiveFactory, 10000);
         registerCustomFactory(CombinationCodec::contains, k -> ObjCodecField::new, 100);

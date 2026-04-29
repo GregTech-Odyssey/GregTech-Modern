@@ -19,8 +19,8 @@ public final class LongCollectionAccess<E> extends AbstractFieldAccess<LongColle
     }
 
     @Override
-    protected boolean hasChanges(@NotNull LogicalSide side, boolean auto) {
-        var hashCode = getInstance().hashCode();
+    public boolean hasChanges(@NotNull LogicalSide side, Object source, boolean auto) {
+        var hashCode = getInstance(source).hashCode();
         if (hashCode != this.hashCode) {
             this.hashCode = hashCode;
             return true;
@@ -29,8 +29,8 @@ public final class LongCollectionAccess<E> extends AbstractFieldAccess<LongColle
     }
 
     @Override
-    protected void writeBuf(@NotNull LogicalSide side, @NotNull ByteDataStream data, boolean force) throws IOException {
-        var collection = getInstance();
+    public void writeToBuffer(LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data, boolean force) throws IOException {
+        var collection = getInstance(source);
         data.writeVarInt(collection.size());
         for (var element : collection) {
             data.writeLong(element);
@@ -38,9 +38,9 @@ public final class LongCollectionAccess<E> extends AbstractFieldAccess<LongColle
     }
 
     @Override
-    protected void readBuf(@NotNull LogicalSide side, @NotNull ByteDataStream data) throws IOException {
+    public void readFromBuffer(LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data) throws IOException {
         var length = data.readVarInt();
-        var collection = getInstance();
+        var collection = getInstance(source);
         collection.clear();
         for (int i = 0; i < length; i++) {
             collection.add(data.readLong());
@@ -48,13 +48,13 @@ public final class LongCollectionAccess<E> extends AbstractFieldAccess<LongColle
     }
 
     @Override
-    protected Data writeData() {
-        return new LongArrayData(getInstance().toLongArray());
+    public Data writeToData(@NotNull Object source) {
+        return new LongArrayData(getInstance(source).toLongArray());
     }
 
     @Override
-    protected void readData(@NotNull Data data) {
-        var collection = getInstance();
+    public void readFromData(@NotNull Object source, @NotNull Data data) {
+        var collection = getInstance(source);
         collection.clear();
         var array = data.getLongArray();
         for (var element : array) {

@@ -28,8 +28,8 @@ public final class MapAccess<K, V> extends AbstractFieldAccess<Map> {
     }
 
     @Override
-    protected boolean hasChanges(@NotNull LogicalSide side, boolean auto) {
-        var hashCode = getInstance().hashCode();
+    public boolean hasChanges(@NotNull LogicalSide side, Object source, boolean auto) {
+        var hashCode = getInstance(source).hashCode();
         if (hashCode != this.hashCode) {
             this.hashCode = hashCode;
             return true;
@@ -38,8 +38,8 @@ public final class MapAccess<K, V> extends AbstractFieldAccess<Map> {
     }
 
     @Override
-    protected void writeBuf(@NotNull LogicalSide side, @NotNull ByteDataStream data, boolean force) throws IOException {
-        var map = getInstance();
+    public void writeToBuffer(LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data, boolean force) throws IOException {
+        var map = getInstance(source);
         data.writeVarInt(map.size());
         map.forEach((k, v) -> {
             try {
@@ -52,9 +52,9 @@ public final class MapAccess<K, V> extends AbstractFieldAccess<Map> {
     }
 
     @Override
-    protected void readBuf(@NotNull LogicalSide side, @NotNull ByteDataStream data) throws IOException {
+    public void readFromBuffer(LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data) throws IOException {
         var length = data.readVarInt();
-        var map = getInstance();
+        var map = getInstance(source);
         map.clear();
         for (int i = 0; i < length; i++) {
             K key = keyCodec.streamReader.decode(data);
@@ -64,9 +64,9 @@ public final class MapAccess<K, V> extends AbstractFieldAccess<Map> {
     }
 
     @Override
-    protected Data writeData() {
+    public Data writeToData(@NotNull Object source) {
         var list = new ListData();
-        getInstance().forEach((k, v) -> {
+        getInstance(source).forEach((k, v) -> {
             list.add(keyCodec.dataWriter.encode((K) k));
             list.add(valueCodec.dataWriter.encode((V) v));
         });
@@ -74,10 +74,10 @@ public final class MapAccess<K, V> extends AbstractFieldAccess<Map> {
     }
 
     @Override
-    protected void readData(@NotNull Data data) {
+    public void readFromData(@NotNull Object source, @NotNull Data data) {
         var list = data.getList();
         var size = list.size();
-        var map = getInstance();
+        var map = getInstance(source);
         map.clear();
         for (int i = 0; i < size; i++) {
             map.put(keyCodec.dataReader.decode(list.get(i++)), valueCodec.dataReader.decode(list.get(i)));

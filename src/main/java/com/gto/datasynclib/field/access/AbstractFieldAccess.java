@@ -2,13 +2,8 @@ package com.gto.datasynclib.field.access;
 
 import com.gto.datasynclib.DataField;
 import com.gto.datasynclib.DataFieldDefinition;
-import com.gto.datasynclib.LogicalSide;
-import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
 
 public abstract class AbstractFieldAccess<T> implements DataField<T> {
 
@@ -38,56 +33,20 @@ public abstract class AbstractFieldAccess<T> implements DataField<T> {
         return syncChange;
     }
 
-    @Override
-    public final boolean hasChanges(@NotNull LogicalSide side, Object source, boolean auto) {
-        if (instance == null) updateInstance(source);
-        return hasChanges(side, auto);
+    @NotNull
+    protected T getInstance(Object source) {
+        if (definition.isFinal) {
+            if (instance != null) return instance;
+            return instance = get(source);
+        }
+        return get(source);
     }
 
-    protected abstract boolean hasChanges(@NotNull LogicalSide side, boolean auto);
-
-    @Override
-    public final void writeToBuffer(LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data, boolean force) throws IOException {
-        if (instance == null) updateInstance(source);
-        writeBuf(side, data, force);
-    }
-
-    protected abstract void writeBuf(@NotNull LogicalSide side, @NotNull ByteDataStream data, boolean force) throws IOException;
-
-    @Override
-    public final void readFromBuffer(LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data) throws IOException {
-        if (instance == null) updateInstance(source);
-        readBuf(side, data);
-    }
-
-    protected abstract void readBuf(@NotNull LogicalSide side, @NotNull ByteDataStream data) throws IOException;
-
-    @Override
-    public final Data writeToData(@NotNull Object source) {
-        if (instance == null) updateInstance(source);
-        return writeData();
-    }
-
-    protected abstract Data writeData();
-
-    @Override
-    public final void readFromData(@NotNull Object source, @NotNull Data data) {
-        if (instance == null) updateInstance(source);
-        readData(data);
-    }
-
-    protected abstract void readData(@NotNull Data data);
-
-    private void updateInstance(Object source) {
+    private T get(Object source) {
         try {
-            instance = (T) definition.field.get(source);
+            return (T) definition.field.get(source);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @NotNull
-    protected T getInstance() {
-        return instance;
     }
 }

@@ -26,8 +26,8 @@ public final class CollectionAccess<E> extends AbstractFieldAccess<Collection> {
     }
 
     @Override
-    protected boolean hasChanges(@NotNull LogicalSide side, boolean auto) {
-        var hashCode = getInstance().hashCode();
+    public boolean hasChanges(@NotNull LogicalSide side, Object source, boolean auto) {
+        var hashCode = getInstance(source).hashCode();
         if (hashCode != this.hashCode) {
             this.hashCode = hashCode;
             return true;
@@ -36,8 +36,8 @@ public final class CollectionAccess<E> extends AbstractFieldAccess<Collection> {
     }
 
     @Override
-    protected void writeBuf(@NotNull LogicalSide side, @NotNull ByteDataStream data, boolean force) throws IOException {
-        var collection = getInstance();
+    public void writeToBuffer(LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data, boolean force) throws IOException {
+        var collection = getInstance(source);
         data.writeVarInt(collection.size());
         for (var element : collection) {
             elementCodec.streamWriter.encode((E) element, data);
@@ -45,9 +45,9 @@ public final class CollectionAccess<E> extends AbstractFieldAccess<Collection> {
     }
 
     @Override
-    protected void readBuf(@NotNull LogicalSide side, @NotNull ByteDataStream data) throws IOException {
+    public void readFromBuffer(LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data) throws IOException {
         var length = data.readVarInt();
-        var collection = getInstance();
+        var collection = getInstance(source);
         collection.clear();
         for (int i = 0; i < length; i++) {
             collection.add(elementCodec.streamReader.decode(data));
@@ -55,9 +55,9 @@ public final class CollectionAccess<E> extends AbstractFieldAccess<Collection> {
     }
 
     @Override
-    protected Data writeData() {
+    public Data writeToData(@NotNull Object source) {
         var list = new ListData();
-        for (var element : getInstance()) {
+        for (var element : getInstance(source)) {
             if (element == null) {
                 list.addNull();
             } else {
@@ -68,9 +68,9 @@ public final class CollectionAccess<E> extends AbstractFieldAccess<Collection> {
     }
 
     @Override
-    protected void readData(@NotNull Data data) {
+    public void readFromData(@NotNull Object source, @NotNull Data data) {
         var list = data.getList();
-        var collection = getInstance();
+        var collection = getInstance(source);
         collection.clear();
         for (var value : list) {
             if (value == NullData.INSTANCE) {
