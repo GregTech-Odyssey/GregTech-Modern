@@ -1,18 +1,17 @@
 package com.gto.datasynclib;
 
-import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.network.FriendlyByteBuf;
 
-import java.io.IOException;
+import com.gto.datasynclib.datasream.data.Data;
+import org.jetbrains.annotations.NotNull;
 
 public interface ISerializable {
 
     boolean hasChanges();
 
-    void writeBuf(LogicalSide side, @NotNull ByteDataStream data) throws IOException;
+    void writeBuf(LogicalSide side, @NotNull FriendlyByteBuf data);
 
-    void readBuf(LogicalSide side, @NotNull ByteDataStream data) throws IOException;
+    void readBuf(LogicalSide side, @NotNull FriendlyByteBuf data);
 
     Data writeData();
 

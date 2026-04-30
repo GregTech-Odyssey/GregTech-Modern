@@ -1,15 +1,10 @@
 package com.gto.datasynclib.datasream.data;
 
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
+import io.netty.buffer.ByteBuf;
 
 public enum NullData implements ImmutableData {
 
     INSTANCE;
-
-    @Override
-    public int sizeInBytes() {
-        return 1;
-    }
 
     @Override
     public boolean isNull() {
@@ -17,7 +12,7 @@ public enum NullData implements ImmutableData {
     }
 
     @Override
-    public void write(ByteDataStream stream) {}
+    public void write(ByteBuf stream) {}
 
     @Override
     public byte getId() {

@@ -1,10 +1,27 @@
 package com.gto.datasynclib;
 
+import it.unimi.dsi.fastutil.Hash;
+
 import java.lang.reflect.Field;
 import java.util.Comparator;
+import java.util.Map;
 import java.util.function.Function;
 
 public final class DataFieldDefinition<T> {
+
+    public static final Hash.Strategy OBJECT_STRATEGY = new Hash.Strategy<>() {
+
+        @Override
+        public int hashCode(Object o) {
+            return o == null ? 0 : o.hashCode();
+        }
+
+        @SuppressWarnings("EqualsReplaceableByObjectsCall")
+        @Override
+        public boolean equals(Object a, Object b) {
+            return (a == b) || (a != null && a.equals(b));
+        }
+    };
 
     static Function<Object, Object> SOURCE = Function.identity();
 
@@ -12,6 +29,7 @@ public final class DataFieldDefinition<T> {
 
     public final Field field;
     public final boolean isFinal;
+    public final Hash.Strategy<T> strategy;
     public final CombinationCodec<T> codec;
     public final Class<?>[] genericType;
     public final CombinationCodec<?>[] genericCodec;
@@ -30,7 +48,7 @@ public final class DataFieldDefinition<T> {
     private final boolean autoClientUpdate;
 
     @SuppressWarnings("unchecked")
-    DataFieldDefinition(Field field, DataField.Factory<T> factory, Function<Object, Object> source, FieldAnnotations fieldAnnotations, Class<?>[] genericType, boolean isFinal) {
+    DataFieldDefinition(Field field, DataField.Factory<T> factory, Function<Object, Object> source, FieldAnnotations fieldAnnotations, Class<?>[] genericType, boolean isFinal, Map<Class<?>, Hash.Strategy<?>> strategys) {
         this.field = field;
         this.factory = factory;
         this.source = source;
@@ -46,6 +64,7 @@ public final class DataFieldDefinition<T> {
         this.genericType = genericType;
         this.genericCodec = new CombinationCodec[genericType.length];
         this.isFinal = isFinal;
+        this.strategy = fieldAnnotations.strategy() != null ? fieldAnnotations.strategy() : (Hash.Strategy<T>) strategys.getOrDefault(field.getType(), OBJECT_STRATEGY);
         for (int i = 0; i < genericType.length; i++) {
             this.genericCodec[i] = CombinationCodec.get(genericType[i]);
         }

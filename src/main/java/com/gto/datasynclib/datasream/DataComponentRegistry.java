@@ -1,21 +1,19 @@
 package com.gto.datasynclib.datasream;
 
+import net.minecraft.network.FriendlyByteBuf;
+
 import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.gto.datasynclib.CombinationCodec;
 import com.gto.datasynclib.datasream.data.DataOps;
 import com.gto.datasynclib.datasream.data.MapData;
-import com.gto.datasynclib.datasream.stream.ByteBufWrapper;
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
-import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.stream.Stream;
@@ -64,60 +62,21 @@ public final class DataComponentRegistry implements Codec<DataComponentMap> {
         }
     }
 
-    public void write(DataComponentMap map, ByteBuf buf) {
-        var stream = new ByteBufWrapper(buf);
-        try {
-            stream.writeVarInt(map.size());
-            map.fastForEach((k, v) -> {
-                try {
-                    stream.writeVarInt(getId(k));
-                    k.codec.streamWriter.encode(v, stream);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public DataComponentMap read(ByteBuf buf) {
-        var stream = new ByteBufWrapper(buf);
-        try {
-            var size = stream.readVarInt();
-            var map = new DataComponentMap(size);
-            for (int i = 0; i < size; i++) {
-                var key = get(stream.readVarInt());
-                if (key == null) continue;
-                var value = key.codec.streamReader.decode(stream);
-                if (value != null) map.put(key, value);
-            }
-            return map;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void write(DataComponentMap map, ByteDataStream stream) throws IOException {
-        stream.writeVarInt(map.size());
+    public void write(FriendlyByteBuf buf, DataComponentMap map) {
+        buf.writeVarInt(map.size());
         map.fastForEach((k, v) -> {
-            try {
-                stream.writeUTF(k.name);
-                stream.writeData(k.codec.dataWriter.encode(v));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            buf.writeVarInt(getId(k));
+            k.codec.streamWriter.encode(buf, v);
         });
     }
 
-    public DataComponentMap read(ByteDataStream stream) throws IOException {
-        var size = stream.readVarInt();
+    public DataComponentMap read(FriendlyByteBuf buf) {
+        var size = buf.readVarInt();
         var map = new DataComponentMap(size);
         for (int i = 0; i < size; i++) {
-            var key = get(stream.readUTF());
-            var data = stream.readData();
+            var key = get(buf.readVarInt());
             if (key == null) continue;
-            var value = key.codec.dataReader.decode(data);
+            var value = key.codec.streamReader.decode(buf);
             if (value != null) map.put(key, value);
         }
         return map;

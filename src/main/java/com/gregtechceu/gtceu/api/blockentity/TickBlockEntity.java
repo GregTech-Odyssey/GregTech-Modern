@@ -3,6 +3,8 @@ package com.gregtechceu.gtceu.api.blockentity;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
+import com.gregtechceu.gtceu.common.network.GTNetwork;
+import com.gregtechceu.gtceu.common.network.packets.SCPacketSBlockEntitySync;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.networking.LDLNetworking;
@@ -12,6 +14,8 @@ import com.lowdragmc.lowdraglib.syncdata.blockentity.IAutoPersistBlockEntity;
 import com.lowdragmc.lowdraglib.syncdata.managed.IRef;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.ByteArrayTag;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -20,12 +24,16 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 
+import com.gto.datasynclib.IFieldDataHolder;
+import com.gto.datasynclib.LogicalSide;
+import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.datasream.data.MapData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BooleanSupplier;
 
-public abstract class TickBlockEntity extends BlockEntity implements IAsyncAutoSyncBlockEntity, IAutoPersistBlockEntity, ITickSubscription {
+public abstract class TickBlockEntity extends BlockEntity implements IFieldDataHolder, IAsyncAutoSyncBlockEntity, IAutoPersistBlockEntity, ITickSubscription {
 
     public final int offset = GTValues.RNG.nextInt(20);
     public volatile boolean remove = false;
@@ -159,10 +167,40 @@ public abstract class TickBlockEntity extends BlockEntity implements IAsyncAutoS
     }
 
     @Override
+    public CompoundTag getUpdateTag() {
+        var tag = super.getUpdateTag();
+        if (getFieldDataManager().hasSyncToClientField()) {
+            tag.putByteArray("fdms", getFieldDataManager().writeToNetworkBuffer(LogicalSide.SERVER, true));
+        }
+        return tag;
+    }
+
+    @Override
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        if (tag.get("fdm") instanceof ByteArrayTag byteArrayTag) {
+            getFieldDataManager().readFromData((MapData) Data.read(byteArrayTag.getAsByteArray()));
+        }
+        if (tag.get("fdms") instanceof ByteArrayTag byteArrayTag) {
+            getFieldDataManager().readFromNetworkBuffer(LogicalSide.CLIENT, byteArrayTag.getAsByteArray());
+        }
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        tag.putByteArray("fdm", getFieldDataManager().writeToData().writeToBytes());
+    }
+
+    @Override
     public void asyncTick(long periodID) {
         if (needSync() || periodID % 40 == 0) {
             var server = GTCEu.getMinecraftServer();
             if (server != null) {
+                if (getFieldDataManager().updateSyncDirtyFlags(LogicalSide.SERVER, true)) {
+                    var p = SCPacketSBlockEntitySync.of(this, false);
+                    server.execute(() -> GTNetwork.NETWORK.sendToTrackingChunk(p, getChunk()));
+                }
                 for (IRef field : getNonLazyFields()) {
                     field.update();
                 }
@@ -174,6 +212,11 @@ public abstract class TickBlockEntity extends BlockEntity implements IAsyncAutoS
                 }
             }
         }
+    }
+
+    @Override
+    public void scheduleUpdate(LogicalSide side) {
+        scheduleRenderUpdate();
     }
 
     @Override

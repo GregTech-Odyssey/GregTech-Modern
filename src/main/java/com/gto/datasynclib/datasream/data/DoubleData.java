@@ -2,10 +2,8 @@ package com.gto.datasynclib.datasream.data;
 
 import net.minecraft.util.Mth;
 
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
+import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.HashCommon;
-
-import java.io.IOException;
 
 public record DoubleData(double value) implements NumericData {
 
@@ -24,12 +22,7 @@ public record DoubleData(double value) implements NumericData {
     }
 
     @Override
-    public int sizeInBytes() {
-        return DOUBLE_SIZE;
-    }
-
-    @Override
-    public void write(ByteDataStream stream) throws IOException {
+    public void write(ByteBuf stream) {
         stream.writeDouble(this.value);
     }
 

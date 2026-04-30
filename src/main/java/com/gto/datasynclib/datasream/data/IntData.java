@@ -1,8 +1,6 @@
 package com.gto.datasynclib.datasream.data;
 
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
-
-import java.io.IOException;
+import io.netty.buffer.ByteBuf;
 
 public record IntData(int value) implements NumericData {
 
@@ -19,12 +17,7 @@ public record IntData(int value) implements NumericData {
     }
 
     @Override
-    public int sizeInBytes() {
-        return INT_SIZE;
-    }
-
-    @Override
-    public void write(ByteDataStream stream) throws IOException {
+    public void write(ByteBuf stream) {
         stream.writeInt(this.value);
     }
 

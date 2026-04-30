@@ -1,9 +1,7 @@
 package com.gto.datasynclib.datasream.data;
 
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
+import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.HashCommon;
-
-import java.io.IOException;
 
 public record LongData(long value) implements NumericData {
 
@@ -20,12 +18,7 @@ public record LongData(long value) implements NumericData {
     }
 
     @Override
-    public int sizeInBytes() {
-        return LONG_SIZE;
-    }
-
-    @Override
-    public void write(ByteDataStream stream) throws IOException {
+    public void write(ByteBuf stream) {
         stream.writeLong(this.value);
     }
 

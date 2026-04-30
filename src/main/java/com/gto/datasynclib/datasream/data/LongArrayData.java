@@ -1,10 +1,9 @@
 package com.gto.datasynclib.datasream.data;
 
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
+import io.netty.buffer.ByteBuf;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.util.Arrays;
 
 public final class LongArrayData implements CollectionData {
@@ -67,13 +66,8 @@ public final class LongArrayData implements CollectionData {
     }
 
     @Override
-    public int sizeInBytes() {
-        return 2 + (8 * this.value.length);
-    }
-
-    @Override
-    public void write(ByteDataStream stream) throws IOException {
-        stream.writeLongArray(this.value);
+    public void write(ByteBuf stream) {
+        Data.writeLongArray(stream, value);
     }
 
     @Override

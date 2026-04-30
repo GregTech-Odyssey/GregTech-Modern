@@ -6,14 +6,12 @@ import com.gto.datasynclib.util.ReflectUtil;
 import com.gto.datasynclib.util.cache.HashMapCache;
 import com.gto.datasynclib.util.cache.IdentityHashMapCache;
 import com.gto.datasynclib.util.cache.MapCache;
+import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.PriorityQueue;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.*;
 
@@ -49,6 +47,8 @@ public final class FieldDefinitionStorage {
         throw new IllegalArgumentException("No factory for " + type);
     });
 
+    private static final Reference2ReferenceOpenHashMap<Class<?>, Hash.Strategy<?>> STRATEGYS = new Reference2ReferenceOpenHashMap<>();
+
     private static final Reference2ReferenceOpenHashMap<Class<?>, DataField.Factory<?>> PRIMITIVE_FIELDS = new Reference2ReferenceOpenHashMap<>();
 
     private static final ConcurrentHashMap<Class<?>, FieldDefinitionStorage> CACHE = new ConcurrentHashMap<>();
@@ -78,6 +78,12 @@ public final class FieldDefinitionStorage {
     public static <T> void registerCustomFactory(Predicate<Class<?>> type, Function<Class<?>, DataField.Factory<T>> factory, int priority) {
         synchronized (FIELDS) {
             FIELDS.add(new DataField.CustomFactory<>(type, factory, priority));
+        }
+    }
+
+    public static <T> void registerStrategy(Class<T> type, Hash.Strategy<T> strategy) {
+        synchronized (STRATEGYS) {
+            STRATEGYS.put(type, strategy);
         }
     }
 
@@ -168,7 +174,7 @@ public final class FieldDefinitionStorage {
     private static void scanFields(Class<?> clazz, ArrayList<DataFieldDefinition<?>> definitions, Function<Object, Object> source) {
         for (var field : clazz.getDeclaredFields()) {
             if (Modifier.isStatic(field.getModifiers())) continue;
-            var annotations = new FieldAnnotations(field);
+            var annotations = new FieldAnnotations(clazz, field);
             if (annotations.isEmpty()) continue;
             var definition = createFieldDefinition(field, source, annotations);
             if (definition != null) definitions.add(definition);
@@ -185,10 +191,15 @@ public final class FieldDefinitionStorage {
                 genericType = new Class<?>[0];
             }
             boolean isFinal = Modifier.isFinal(field.getModifiers());
-            if (annotations.access() || isFinal) {
-                return createFinalFieldDefinition(field, source, annotations, genericType, isFinal);
+            if (annotations.generic()) {
+                if (genericType.length == 0) throw new IllegalStateException("Field " + field.getName() + " is annotated with @Generic, but it has no generic type");
+                return createGenericFieldDefinition(field, source, annotations, genericType, isFinal);
             } else {
-                return createNonFinalFieldDefinition(field, source, annotations, genericType, isFinal);
+                if (annotations.access() || isFinal) {
+                    return createFinalFieldDefinition(field, source, annotations, genericType, isFinal);
+                } else {
+                    return createNonFinalFieldDefinition(field, source, annotations, genericType, isFinal);
+                }
             }
         } catch (Throwable e) {
             throw new RuntimeException("Failed to create field definition for: " + field.getName(), e);
@@ -197,19 +208,19 @@ public final class FieldDefinitionStorage {
 
     private static DataFieldDefinition<?> createFinalFieldDefinition(Field field, Function<Object, Object> source, FieldAnnotations annotations, Class<?>[] genericType, boolean isFinal) {
         var factory = ACCESS_CACHE.getCache(field.getType());
-        return new DataFieldDefinition<>(field, factory, source, annotations, genericType, isFinal);
+        return new DataFieldDefinition<>(field, factory, source, annotations, genericType, isFinal, STRATEGYS);
     }
 
     private static DataFieldDefinition<?> createGenericFieldDefinition(Field field, Function<Object, Object> source, FieldAnnotations annotations, Class<?>[] genericType, boolean isFinal) {
         var factory = GENERIC_FIELDS_CACHE.getCache(field.getType()).getCache(HashUtil.arrayIdentityWrapper(genericType));
-        return new DataFieldDefinition<>(field, factory, source, annotations, genericType, isFinal);
+        return new DataFieldDefinition<>(field, factory, source, annotations, genericType, isFinal, STRATEGYS);
     }
 
     private static DataFieldDefinition<?> createNonFinalFieldDefinition(Field field, Function<Object, Object> source, FieldAnnotations annotations, Class<?>[] genericType, boolean isFinal) {
         var type = field.getType();
         try {
             var factory = FIELDS_CACHE.getCache(type);
-            return new DataFieldDefinition<>(field, factory, source, annotations, genericType, isFinal);
+            return new DataFieldDefinition<>(field, factory, source, annotations, genericType, isFinal, STRATEGYS);
         } catch (Throwable e) {
             try {
                 if (genericType.length > 0) {

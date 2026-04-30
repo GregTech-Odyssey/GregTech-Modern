@@ -1,15 +1,15 @@
 package com.gto.datasynclib.listener;
 
+import net.minecraft.network.FriendlyByteBuf;
+
 import com.gto.datasynclib.CombinationCodec;
 import com.gto.datasynclib.ISerializable;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.NullData;
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
 import com.gto.datasynclib.util.holder.ObjHolder;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.util.Objects;
 
 public class ObjSerializableHolder<T> extends ObjHolder<T> implements ISerializable {
@@ -38,7 +38,7 @@ public class ObjSerializableHolder<T> extends ObjHolder<T> implements ISerializa
     }
 
     @Override
-    public void writeBuf(LogicalSide side, @NotNull ByteDataStream data) throws IOException {
+    public void writeBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
         if (value == null) {
             data.writeBoolean(false);
         } else {
@@ -49,7 +49,7 @@ public class ObjSerializableHolder<T> extends ObjHolder<T> implements ISerializa
     }
 
     @Override
-    public void readBuf(LogicalSide side, @NotNull ByteDataStream data) throws IOException {
+    public void readBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
         if (data.readBoolean()) {
             value = codec.streamReader.decode(data);
         } else {

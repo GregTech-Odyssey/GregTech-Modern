@@ -1,15 +1,14 @@
 package com.gto.datasynclib.listener;
 
+import net.minecraft.network.FriendlyByteBuf;
+
 import com.gto.datasynclib.ISerializable;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.FloatData;
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
 import com.gto.datasynclib.util.holder.FloatHolder;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
 
 @Setter
 public final class FloatNotifiableHolder extends FloatHolder implements ISerializable, ISyncNotifiable<FloatSyncListener> {
@@ -31,14 +30,14 @@ public final class FloatNotifiableHolder extends FloatHolder implements ISeriali
     }
 
     @Override
-    public void writeBuf(LogicalSide side, @NotNull ByteDataStream data) throws IOException {
+    public void writeBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
         data.writeFloat(value);
         senderListener.onSync(side, lastValue, value);
         lastValue = value;
     }
 
     @Override
-    public void readBuf(LogicalSide side, @NotNull ByteDataStream data) throws IOException {
+    public void readBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
         var oldValue = value;
         value = data.readFloat();
         receiverListener.onSync(side, oldValue, value);

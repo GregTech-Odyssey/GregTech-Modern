@@ -1,11 +1,11 @@
 package com.gto.datasynclib.field.object;
 
+import net.minecraft.network.FriendlyByteBuf;
+
 import com.gto.datasynclib.CombinationCodec;
 import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
-
-import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
 
 public class CustomObjCodecField<T> extends ObjField<T> {
 
@@ -17,22 +17,22 @@ public class CustomObjCodecField<T> extends ObjField<T> {
     }
 
     @Override
-    protected final void write(ByteDataStream data, T value) throws IOException {
+    protected final void write(@NotNull FriendlyByteBuf data, @NotNull T value) {
         codec.streamWriter.encode(value, data);
     }
 
     @Override
-    protected final T read(ByteDataStream data) throws IOException {
+    protected final @NotNull T read(@NotNull FriendlyByteBuf data) {
         return codec.streamReader.decode(data);
     }
 
     @Override
-    protected final Data write(T value) {
+    protected final @NotNull Data write(@NotNull T value) {
         return codec.dataWriter.encode(value);
     }
 
     @Override
-    protected final T read(Data tag) {
+    protected final @NotNull T read(@NotNull Data tag) {
         return codec.dataReader.decode(tag);
     }
 }

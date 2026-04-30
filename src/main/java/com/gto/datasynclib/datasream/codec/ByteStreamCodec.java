@@ -1,9 +1,9 @@
 package com.gto.datasynclib.datasream.codec;
 
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
+import net.minecraft.network.FriendlyByteBuf;
+
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Map;
 import java.util.UUID;
@@ -14,13 +14,13 @@ public interface ByteStreamCodec<T> extends ByteStreamDecoder<T>, ByteStreamEnco
         return new ByteStreamCodec<>() {
 
             @Override
-            public void encode(T obj, ByteDataStream stream) throws IOException {
-                encoder.encode(obj, stream);
+            public void encode(FriendlyByteBuf buf, T obj) {
+                encoder.encode(buf, obj);
             }
 
             @Override
-            public T decode(ByteDataStream stream) throws IOException {
-                return decoder.decode(stream);
+            public T decode(FriendlyByteBuf buf) {
+                return decoder.decode(buf);
             }
         };
     }
@@ -38,13 +38,13 @@ public interface ByteStreamCodec<T> extends ByteStreamDecoder<T>, ByteStreamEnco
     ByteStreamCodec<Boolean> BOOLEAN_CODEC = new ByteStreamCodec<>() {
 
         @Override
-        public void encode(Boolean obj, ByteDataStream stream) throws IOException {
-            stream.writeBoolean(obj);
+        public void encode(FriendlyByteBuf buf, Boolean obj) {
+            buf.writeBoolean(obj);
         }
 
         @Override
-        public Boolean decode(ByteDataStream stream) throws IOException {
-            return stream.readBoolean();
+        public Boolean decode(FriendlyByteBuf buf) {
+            return buf.readBoolean();
         }
 
         static {
@@ -56,13 +56,13 @@ public interface ByteStreamCodec<T> extends ByteStreamDecoder<T>, ByteStreamEnco
     ByteStreamCodec<Byte> BYTE_CODEC = new ByteStreamCodec<>() {
 
         @Override
-        public void encode(Byte obj, ByteDataStream stream) throws IOException {
-            stream.writeByte(obj);
+        public void encode(FriendlyByteBuf buf, Byte obj) {
+            buf.writeByte(obj);
         }
 
         @Override
-        public Byte decode(ByteDataStream stream) throws IOException {
-            return stream.readByte();
+        public Byte decode(FriendlyByteBuf buf) {
+            return buf.readByte();
         }
 
         static {
@@ -74,13 +74,13 @@ public interface ByteStreamCodec<T> extends ByteStreamDecoder<T>, ByteStreamEnco
     ByteStreamCodec<Short> SHORT_CODEC = new ByteStreamCodec<>() {
 
         @Override
-        public void encode(Short obj, ByteDataStream stream) throws IOException {
-            stream.writeShort(obj);
+        public void encode(FriendlyByteBuf buf, Short obj) {
+            buf.writeShort(obj);
         }
 
         @Override
-        public Short decode(ByteDataStream stream) throws IOException {
-            return stream.readShort();
+        public Short decode(FriendlyByteBuf buf) {
+            return buf.readShort();
         }
 
         static {
@@ -92,13 +92,13 @@ public interface ByteStreamCodec<T> extends ByteStreamDecoder<T>, ByteStreamEnco
     ByteStreamCodec<Character> CHAR_CODEC = new ByteStreamCodec<>() {
 
         @Override
-        public void encode(Character obj, ByteDataStream stream) throws IOException {
-            stream.writeChar(obj);
+        public void encode(FriendlyByteBuf buf, Character obj) {
+            buf.writeChar(obj);
         }
 
         @Override
-        public Character decode(ByteDataStream stream) throws IOException {
-            return stream.readChar();
+        public Character decode(FriendlyByteBuf buf) {
+            return buf.readChar();
         }
 
         static {
@@ -110,13 +110,13 @@ public interface ByteStreamCodec<T> extends ByteStreamDecoder<T>, ByteStreamEnco
     ByteStreamCodec<Integer> INT_CODEC = new ByteStreamCodec<>() {
 
         @Override
-        public void encode(Integer obj, ByteDataStream stream) throws IOException {
-            stream.writeInt(obj);
+        public void encode(FriendlyByteBuf buf, Integer obj) {
+            buf.writeInt(obj);
         }
 
         @Override
-        public Integer decode(ByteDataStream stream) throws IOException {
-            return stream.readInt();
+        public Integer decode(FriendlyByteBuf buf) {
+            return buf.readInt();
         }
 
         static {
@@ -128,13 +128,13 @@ public interface ByteStreamCodec<T> extends ByteStreamDecoder<T>, ByteStreamEnco
     ByteStreamCodec<Long> LONG_CODEC = new ByteStreamCodec<>() {
 
         @Override
-        public void encode(Long obj, ByteDataStream stream) throws IOException {
-            stream.writeLong(obj);
+        public void encode(FriendlyByteBuf buf, Long obj) {
+            buf.writeLong(obj);
         }
 
         @Override
-        public Long decode(ByteDataStream stream) throws IOException {
-            return stream.readLong();
+        public Long decode(FriendlyByteBuf buf) {
+            return buf.readLong();
         }
 
         static {
@@ -146,13 +146,13 @@ public interface ByteStreamCodec<T> extends ByteStreamDecoder<T>, ByteStreamEnco
     ByteStreamCodec<Float> FLOAT_CODEC = new ByteStreamCodec<>() {
 
         @Override
-        public void encode(Float obj, ByteDataStream stream) throws IOException {
-            stream.writeFloat(obj);
+        public void encode(FriendlyByteBuf buf, Float obj) {
+            buf.writeFloat(obj);
         }
 
         @Override
-        public Float decode(ByteDataStream stream) throws IOException {
-            return stream.readFloat();
+        public Float decode(FriendlyByteBuf buf) {
+            return buf.readFloat();
         }
 
         static {
@@ -164,13 +164,13 @@ public interface ByteStreamCodec<T> extends ByteStreamDecoder<T>, ByteStreamEnco
     ByteStreamCodec<Double> DOUBLE_CODEC = new ByteStreamCodec<>() {
 
         @Override
-        public void encode(Double obj, ByteDataStream stream) throws IOException {
-            stream.writeDouble(obj);
+        public void encode(FriendlyByteBuf buf, Double obj) {
+            buf.writeDouble(obj);
         }
 
         @Override
-        public Double decode(ByteDataStream stream) throws IOException {
-            return stream.readDouble();
+        public Double decode(FriendlyByteBuf buf) {
+            return buf.readDouble();
         }
 
         static {
@@ -182,13 +182,13 @@ public interface ByteStreamCodec<T> extends ByteStreamDecoder<T>, ByteStreamEnco
     ByteStreamCodec<String> STRING_CODEC = new ByteStreamCodec<>() {
 
         @Override
-        public void encode(String obj, ByteDataStream stream) throws IOException {
-            stream.writeUTF(obj);
+        public void encode(FriendlyByteBuf buf, String obj) {
+            buf.writeUtf(obj);
         }
 
         @Override
-        public String decode(ByteDataStream stream) throws IOException {
-            return stream.readUTF();
+        public String decode(FriendlyByteBuf buf) {
+            return buf.readUtf();
         }
 
         static {
@@ -199,13 +199,13 @@ public interface ByteStreamCodec<T> extends ByteStreamDecoder<T>, ByteStreamEnco
     ByteStreamCodec<BigInteger> BIG_INTEGER_CODEC = new ByteStreamCodec<>() {
 
         @Override
-        public void encode(BigInteger obj, ByteDataStream stream) throws IOException {
-            stream.writeBigInteger(obj);
+        public void encode(FriendlyByteBuf buf, BigInteger obj) {
+            buf.writeByteArray(obj.toByteArray());
         }
 
         @Override
-        public BigInteger decode(ByteDataStream stream) throws IOException {
-            return stream.readBigInteger();
+        public BigInteger decode(FriendlyByteBuf buf) {
+            return new BigInteger(buf.readByteArray());
         }
 
         static {
@@ -216,13 +216,13 @@ public interface ByteStreamCodec<T> extends ByteStreamDecoder<T>, ByteStreamEnco
     ByteStreamCodec<byte[]> BYTES_CODEC = new ByteStreamCodec<>() {
 
         @Override
-        public void encode(byte[] obj, ByteDataStream stream) throws IOException {
-            stream.writeByteArray(obj);
+        public void encode(FriendlyByteBuf buf, byte[] obj) {
+            buf.writeByteArray(obj);
         }
 
         @Override
-        public byte[] decode(ByteDataStream stream) throws IOException {
-            return stream.readByteArray();
+        public byte[] decode(FriendlyByteBuf buf) {
+            return buf.readByteArray();
         }
 
         static {
@@ -233,13 +233,21 @@ public interface ByteStreamCodec<T> extends ByteStreamDecoder<T>, ByteStreamEnco
     ByteStreamCodec<int[]> INTS_CODEC = new ByteStreamCodec<>() {
 
         @Override
-        public void encode(int[] obj, ByteDataStream stream) throws IOException {
-            stream.writeIntArray(obj);
+        public void encode(FriendlyByteBuf buf, int[] obj) {
+            buf.writeVarInt(obj.length);
+            for (var i : obj) {
+                buf.writeInt(i);
+            }
         }
 
         @Override
-        public int[] decode(ByteDataStream stream) throws IOException {
-            return stream.readIntArray();
+        public int[] decode(FriendlyByteBuf buf) {
+            var length = buf.readVarInt();
+            var ints = new int[length];
+            for (int i = 0; i < length; i++) {
+                ints[i] = buf.readInt();
+            }
+            return ints;
         }
 
         static {
@@ -250,13 +258,13 @@ public interface ByteStreamCodec<T> extends ByteStreamDecoder<T>, ByteStreamEnco
     ByteStreamCodec<long[]> LONGS_CODEC = new ByteStreamCodec<>() {
 
         @Override
-        public void encode(long[] obj, ByteDataStream stream) throws IOException {
-            stream.writeLongArray(obj);
+        public void encode(FriendlyByteBuf buf, long[] obj) {
+            buf.writeLongArray(obj);
         }
 
         @Override
-        public long[] decode(ByteDataStream stream) throws IOException {
-            return stream.readLongArray();
+        public long[] decode(FriendlyByteBuf buf) {
+            return buf.readLongArray();
         }
 
         static {
@@ -267,13 +275,13 @@ public interface ByteStreamCodec<T> extends ByteStreamDecoder<T>, ByteStreamEnco
     ByteStreamCodec<UUID> UUID_CODEC = new ByteStreamCodec<>() {
 
         @Override
-        public void encode(UUID obj, ByteDataStream stream) throws IOException {
-            stream.writeUUID(obj);
+        public void encode(FriendlyByteBuf buf, UUID obj) {
+            buf.writeUUID(obj);
         }
 
         @Override
-        public UUID decode(ByteDataStream stream) throws IOException {
-            return stream.readUUID();
+        public UUID decode(FriendlyByteBuf buf) {
+            return buf.readUUID();
         }
 
         static {

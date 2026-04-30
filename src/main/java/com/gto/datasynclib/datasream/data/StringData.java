@@ -1,9 +1,7 @@
 package com.gto.datasynclib.datasream.data;
 
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
+import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
 
 public record StringData(@NotNull String value) implements ImmutableData {
 
@@ -25,13 +23,8 @@ public record StringData(@NotNull String value) implements ImmutableData {
     }
 
     @Override
-    public int sizeInBytes() {
-        return 5 + 4 * value.length();
-    }
-
-    @Override
-    public void write(ByteDataStream stream) throws IOException {
-        stream.writeUTF(value);
+    public void write(ByteBuf stream) {
+        Data.writeString(stream, value);
     }
 
     @Override

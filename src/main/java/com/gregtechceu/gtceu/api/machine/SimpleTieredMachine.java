@@ -34,7 +34,6 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.Util;
@@ -49,6 +48,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.google.common.collect.Tables;
+import com.gto.datasynclib.annotations.SyncToClient;
 import com.gto.datasynclib.datasream.DataComponentMap;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
@@ -72,22 +72,18 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoOutputBoth {
 
     @Persisted
-    @DescSynced
-    @RequireRerender
+    @SyncToClient(notifyUpdate = true)
     protected Direction outputFacingItems;
     @Persisted
-    @DescSynced
-    @RequireRerender
+    @SyncToClient(notifyUpdate = true)
     protected Direction outputFacingFluids;
     @Getter
     @Persisted
-    @DescSynced
-    @RequireRerender
+    @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputItems;
     @Getter
     @Persisted
-    @DescSynced
-    @RequireRerender
+    @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputFluids;
     @Getter
     @Persisted

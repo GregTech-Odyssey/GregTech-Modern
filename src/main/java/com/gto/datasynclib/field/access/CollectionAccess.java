@@ -1,15 +1,15 @@
 package com.gto.datasynclib.field.access;
 
+import net.minecraft.network.FriendlyByteBuf;
+
 import com.gto.datasynclib.CombinationCodec;
 import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ListData;
 import com.gto.datasynclib.datasream.data.NullData;
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.util.Collection;
 
 public final class CollectionAccess<E> extends AbstractFieldAccess<Collection> {
@@ -26,7 +26,7 @@ public final class CollectionAccess<E> extends AbstractFieldAccess<Collection> {
     }
 
     @Override
-    public boolean hasChanges(@NotNull LogicalSide side, Object source, boolean auto) {
+    public boolean hasChanges(@NotNull LogicalSide side, @NotNull Object source, boolean auto) {
         var hashCode = getInstance(source).hashCode();
         if (hashCode != this.hashCode) {
             this.hashCode = hashCode;
@@ -36,7 +36,7 @@ public final class CollectionAccess<E> extends AbstractFieldAccess<Collection> {
     }
 
     @Override
-    public void writeToBuffer(LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data, boolean force) throws IOException {
+    public void writeToBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data, boolean force) {
         var collection = getInstance(source);
         data.writeVarInt(collection.size());
         for (var element : collection) {
@@ -45,7 +45,7 @@ public final class CollectionAccess<E> extends AbstractFieldAccess<Collection> {
     }
 
     @Override
-    public void readFromBuffer(LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data) throws IOException {
+    public void readFromBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data) {
         var length = data.readVarInt();
         var collection = getInstance(source);
         collection.clear();
@@ -55,7 +55,7 @@ public final class CollectionAccess<E> extends AbstractFieldAccess<Collection> {
     }
 
     @Override
-    public Data writeToData(@NotNull Object source) {
+    public @NotNull Data writeToData(@NotNull Object source) {
         var list = new ListData();
         for (var element : getInstance(source)) {
             if (element == null) {

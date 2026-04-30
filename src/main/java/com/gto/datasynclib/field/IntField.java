@@ -1,9 +1,11 @@
 package com.gto.datasynclib.field;
 
+import net.minecraft.network.FriendlyByteBuf;
+
 import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.IntData;
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
+import org.jetbrains.annotations.NotNull;
 
 public final class IntField extends AbstractField<Integer> {
 
@@ -23,7 +25,7 @@ public final class IntField extends AbstractField<Integer> {
     }
 
     @Override
-    public void writeBuf(Object source, ByteDataStream data) {
+    public void writeBuf(@NotNull Object source, @NotNull FriendlyByteBuf data) {
         try {
             var value = definition.field.getInt(source);
             lastValue = value;
@@ -34,7 +36,7 @@ public final class IntField extends AbstractField<Integer> {
     }
 
     @Override
-    public void readBuf(Object source, ByteDataStream data) {
+    public void readBuf(@NotNull Object source, @NotNull FriendlyByteBuf data) {
         try {
             var value = data.readInt();
             definition.field.setInt(source, value);
@@ -44,7 +46,7 @@ public final class IntField extends AbstractField<Integer> {
     }
 
     @Override
-    public Data writeToData(Object source) {
+    public @NotNull Data writeToData(@NotNull Object source) {
         try {
             var value = definition.field.getInt(source);
             return IntData.valueOf(value);
@@ -54,7 +56,7 @@ public final class IntField extends AbstractField<Integer> {
     }
 
     @Override
-    public void readFromData(Object source, Data data) {
+    public void readFromData(@NotNull Object source, @NotNull Data data) {
         try {
             var value = data.getInt();
             definition.field.setInt(source, value);

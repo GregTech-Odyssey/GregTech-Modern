@@ -35,7 +35,7 @@ public final class CombinationCodec<T> {
     private static final MapCache<Class<?>, CombinationCodec<?>> ENUM_CACHE = new ConcurrentHashMapCache<>(t -> {
         if (t.isEnum()) {
             var constants = t.getEnumConstants();
-            return new CombinationCodec<>((obj, buf) -> buf.writeVarInt(obj.ordinal()),
+            return new CombinationCodec<>((buf, obj) -> buf.writeVarInt(obj.ordinal()),
                     buf -> (Enum<?>) constants[buf.readVarInt()],
                     obj -> IntData.valueOf(obj.ordinal()),
                     data -> (Enum<?>) constants[data.getInt()]);
@@ -48,14 +48,14 @@ public final class CombinationCodec<T> {
             Class type = t.getComponentType();
             CombinationCodec<Object> codec = get(type);
             return new CombinationCodec<>(
-                    (obj, buf) -> {
+                    (buf, obj) -> {
                         buf.writeVarInt(obj.length);
                         for (var element : obj) {
                             if (element == null) {
                                 buf.writeBoolean(false);
                             } else {
                                 buf.writeBoolean(true);
-                                codec.streamWriter.encode(element, buf);
+                                codec.streamWriter.encode(buf, element);
                             }
                         }
                     },

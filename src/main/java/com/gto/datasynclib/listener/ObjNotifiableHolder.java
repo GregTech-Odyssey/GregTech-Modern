@@ -1,12 +1,12 @@
 package com.gto.datasynclib.listener;
 
+import net.minecraft.network.FriendlyByteBuf;
+
 import com.gto.datasynclib.CombinationCodec;
 import com.gto.datasynclib.LogicalSide;
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.util.UUID;
 
 @Setter
@@ -32,7 +32,7 @@ public final class ObjNotifiableHolder<T> extends ObjSerializableHolder<T> imple
     }
 
     @Override
-    public void writeBuf(LogicalSide side, @NotNull ByteDataStream data) throws IOException {
+    public void writeBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
         if (value == null) {
             data.writeBoolean(false);
         } else {
@@ -44,7 +44,7 @@ public final class ObjNotifiableHolder<T> extends ObjSerializableHolder<T> imple
     }
 
     @Override
-    public void readBuf(LogicalSide side, @NotNull ByteDataStream data) throws IOException {
+    public void readBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
         var oldValue = value;
         if (data.readBoolean()) {
             value = codec.streamReader.decode(data);

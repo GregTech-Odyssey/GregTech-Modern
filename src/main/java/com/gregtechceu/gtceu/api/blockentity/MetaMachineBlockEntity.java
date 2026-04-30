@@ -12,8 +12,6 @@ import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.misc.EnergyInfoProviderList;
 import com.gregtechceu.gtceu.api.misc.LaserContainerList;
 import com.gregtechceu.gtceu.client.renderer.GTRendererProvider;
-import com.gregtechceu.gtceu.common.network.GTNetwork;
-import com.gregtechceu.gtceu.common.network.packets.SCPacketSBlockEntitySync;
 
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -22,9 +20,7 @@ import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -38,10 +34,6 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 
 import com.gto.datasynclib.FieldDataManager;
-import com.gto.datasynclib.IFieldDataHolder;
-import com.gto.datasynclib.LogicalSide;
-import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.data.MapData;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +46,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class MetaMachineBlockEntity extends TickBlockEntity implements IFieldDataHolder, IToolGridHighlight, IRPCBlockEntity, IPaintable, IWailaDisplayProvider {
+public class MetaMachineBlockEntity extends TickBlockEntity implements IToolGridHighlight, IRPCBlockEntity, IPaintable, IWailaDisplayProvider {
 
     @Getter
     public final MetaMachine metaMachine;
@@ -222,16 +214,12 @@ public class MetaMachineBlockEntity extends TickBlockEntity implements IFieldDat
     public void saveCustomPersistedData(CompoundTag tag, boolean forDrop) {
         super.saveCustomPersistedData(tag, forDrop);
         metaMachine.saveCustomPersistedData(tag, forDrop);
-        tag.putByteArray("fdm", getFieldDataManager().writeToData().writeToBytes());
     }
 
     @Override
     public void loadCustomPersistedData(CompoundTag tag) {
         super.loadCustomPersistedData(tag);
         metaMachine.loadCustomPersistedData(tag);
-        if (tag.get("fdm") instanceof ByteArrayTag byteArrayTag) {
-            getFieldDataManager().readFromData((MapData) Data.read(byteArrayTag.getAsByteArray()));
-        }
     }
 
     @Override
@@ -264,35 +252,7 @@ public class MetaMachineBlockEntity extends TickBlockEntity implements IFieldDat
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        var tag = super.getUpdateTag();
-        if (getFieldDataManager().hasSyncToClientField()) {
-            tag.putByteArray("fdms", getFieldDataManager().writeToNetworkBuffer(LogicalSide.SERVER, true));
-        }
-        return tag;
-    }
-
-    @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        if (tag.get("fdms") instanceof ByteArrayTag byteArrayTag) {
-            getFieldDataManager().readFromNetworkBuffer(LogicalSide.CLIENT, byteArrayTag.getAsByteArray());
-        }
-    }
-
-    @Override
     public FieldDataManager getFieldDataManager() {
         return metaMachine.getFieldDataManager();
-    }
-
-    @Override
-    public void asyncTick(long periodID) {
-        if (periodID % 40 == 7 && getLevel() instanceof ServerLevel serverLevel) {
-            if (getFieldDataManager().updateSyncDirtyFlags(LogicalSide.SERVER, true)) {
-                var p = SCPacketSBlockEntitySync.of(this, false);
-                serverLevel.getServer().execute(() -> GTNetwork.NETWORK.sendToTrackingChunk(p, getChunk()));
-            }
-        }
-        super.asyncTick(periodID);
     }
 }

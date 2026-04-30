@@ -1,14 +1,13 @@
 package com.gto.datasynclib.field.access;
 
+import net.minecraft.network.FriendlyByteBuf;
+
 import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.LongArrayData;
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
 import it.unimi.dsi.fastutil.longs.LongCollection;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
 
 public final class LongCollectionAccess<E> extends AbstractFieldAccess<LongCollection> {
 
@@ -19,7 +18,7 @@ public final class LongCollectionAccess<E> extends AbstractFieldAccess<LongColle
     }
 
     @Override
-    public boolean hasChanges(@NotNull LogicalSide side, Object source, boolean auto) {
+    public boolean hasChanges(@NotNull LogicalSide side, @NotNull Object source, boolean auto) {
         var hashCode = getInstance(source).hashCode();
         if (hashCode != this.hashCode) {
             this.hashCode = hashCode;
@@ -29,7 +28,7 @@ public final class LongCollectionAccess<E> extends AbstractFieldAccess<LongColle
     }
 
     @Override
-    public void writeToBuffer(LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data, boolean force) throws IOException {
+    public void writeToBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data, boolean force) {
         var collection = getInstance(source);
         data.writeVarInt(collection.size());
         for (var element : collection) {
@@ -38,7 +37,7 @@ public final class LongCollectionAccess<E> extends AbstractFieldAccess<LongColle
     }
 
     @Override
-    public void readFromBuffer(LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data) throws IOException {
+    public void readFromBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data) {
         var length = data.readVarInt();
         var collection = getInstance(source);
         collection.clear();
@@ -48,7 +47,7 @@ public final class LongCollectionAccess<E> extends AbstractFieldAccess<LongColle
     }
 
     @Override
-    public Data writeToData(@NotNull Object source) {
+    public @NotNull Data writeToData(@NotNull Object source) {
         return new LongArrayData(getInstance(source).toLongArray());
     }
 

@@ -84,7 +84,7 @@ public class GTRecipeSerializer {
         buf.writeCollection(recipe.tickInputs.entrySet(), GTRecipeSerializer::entryWriter);
         buf.writeCollection(recipe.outputs.entrySet(), GTRecipeSerializer::entryWriter);
         buf.writeCollection(recipe.tickOutputs.entrySet(), GTRecipeSerializer::entryWriter);
-        GTRecipeDataKeys.REGISTRY.write(recipe.data, buf);
+        GTRecipeDataKeys.REGISTRY.write(buf, recipe.data);
         buf.writeVarInt(recipe.tier);
     }
 

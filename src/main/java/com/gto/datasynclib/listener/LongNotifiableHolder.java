@@ -1,15 +1,14 @@
 package com.gto.datasynclib.listener;
 
+import net.minecraft.network.FriendlyByteBuf;
+
 import com.gto.datasynclib.ISerializable;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.LongData;
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
 import com.gto.datasynclib.util.holder.LongHolder;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
 
 @Setter
 public final class LongNotifiableHolder extends LongHolder implements ISerializable, ISyncNotifiable<LongSyncListener> {
@@ -31,14 +30,14 @@ public final class LongNotifiableHolder extends LongHolder implements ISerializa
     }
 
     @Override
-    public void writeBuf(LogicalSide side, @NotNull ByteDataStream data) throws IOException {
+    public void writeBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
         data.writeLong(value);
         senderListener.onSync(side, lastValue, value);
         lastValue = value;
     }
 
     @Override
-    public void readBuf(LogicalSide side, @NotNull ByteDataStream data) throws IOException {
+    public void readBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
         var oldValue = value;
         value = data.readLong();
         receiverListener.onSync(side, oldValue, value);

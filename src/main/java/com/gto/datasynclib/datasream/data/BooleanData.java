@@ -1,9 +1,7 @@
 package com.gto.datasynclib.datasream.data;
 
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
+import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
 
 public record BooleanData(boolean value) implements ImmutableData {
 
@@ -18,13 +16,8 @@ public record BooleanData(boolean value) implements ImmutableData {
     }
 
     @Override
-    public void write(ByteDataStream stream) throws IOException {
+    public void write(ByteBuf stream) {
         stream.writeBoolean(value);
-    }
-
-    @Override
-    public int sizeInBytes() {
-        return BYTE_SIZE;
     }
 
     @Override

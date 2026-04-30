@@ -1,21 +1,20 @@
 package com.gto.datasynclib.datasream.data;
 
+import net.minecraft.network.FriendlyByteBuf;
+
 import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datasream.codec.DataCodec;
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
-import com.gto.datasynclib.datasream.stream.DataInputStreamWrapper;
-import com.gto.datasynclib.datasream.stream.DataOutputStreamWrapper;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -39,13 +38,13 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
     ByteStreamCodec<Data> BYTE_STREAM_CODEC = new ByteStreamCodec<>() {
 
         @Override
-        public void encode(Data obj, ByteDataStream stream) throws IOException {
-            stream.writeData(obj);
+        public void encode(FriendlyByteBuf stream, Data obj) {
+            Data.writeData(stream, obj);
         }
 
         @Override
-        public Data decode(ByteDataStream stream) throws IOException {
-            return stream.readData();
+        public Data decode(FriendlyByteBuf stream) {
+            return Data.readData(stream);
         }
 
         static {
@@ -87,14 +86,11 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
     byte LIST = 14;
     byte MAP = 15;
 
-    int BYTE_SIZE = 2;
-    int SHORT_SIZE = 3;
-    int INT_SIZE = 5;
-    int LONG_SIZE = 9;
-    int FLOAT_SIZE = 5;
-    int DOUBLE_SIZE = 9;
+    static <T extends Data> T read(Type<T> type, ByteBuf stream) {
+        return (T) read(type.id, stream);
+    }
 
-    static Data read(byte id, ByteDataStream stream) throws IOException {
+    static Data read(byte id, ByteBuf stream) {
         return switch (id) {
             case NULL -> NullData.INSTANCE;
             case BOOLEAN -> BooleanData.valueOf(stream.readBoolean());
@@ -105,10 +101,10 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
             case LONG -> LongData.valueOf(stream.readLong());
             case FLOAT -> FloatData.valueOf(stream.readFloat());
             case DOUBLE -> DoubleData.valueOf(stream.readDouble());
-            case STRING -> StringData.valueOf(stream.readUTF());
-            case BYTE_ARRAY -> new ByteArrayData(stream.readByteArray());
-            case INT_ARRAY -> new IntArrayData(stream.readIntArray());
-            case LONG_ARRAY -> new LongArrayData(stream.readLongArray());
+            case STRING -> StringData.valueOf(readString(stream));
+            case BYTE_ARRAY -> new ByteArrayData(readByteArray(stream));
+            case INT_ARRAY -> new IntArrayData(readIntArray(stream));
+            case LONG_ARRAY -> new LongArrayData(readLongArray(stream));
             case ARRAY -> new ArrayData(stream);
             case LIST -> ListData.read(stream);
             case MAP -> MapData.read(stream);
@@ -117,25 +113,110 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
     }
 
     static Data read(byte[] bytes) {
-        try (var stream = new DataInputStreamWrapper(new ByteArrayInputStream(bytes))) {
-            return stream.readData();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        var buf = Unpooled.wrappedBuffer(bytes);
+        try {
+            return read(buf.readByte(), buf);
+        } finally {
+            buf.release();
         }
     }
 
     default byte[] writeToBytes() {
-        try (var bos = new ByteArrayOutputStream(sizeInBytes()); var stream = new DataOutputStreamWrapper(bos)) {
-            stream.writeData(this);
-            return bos.toByteArray();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        var buf = Unpooled.buffer();
+        try {
+            writeData(buf, this);
+            buf.readerIndex(0);
+            byte[] data = new byte[buf.readableBytes()];
+            buf.readBytes(data);
+            return data;
+        } finally {
+            buf.release();
         }
     }
 
-    void write(ByteDataStream stream) throws IOException;
+    static Data readData(ByteBuf buf) {
+        return read(buf.readByte(), buf);
+    }
 
-    int sizeInBytes();
+    static void writeData(ByteBuf buf, Data data) {
+        buf.writeByte(data.getId());
+        data.write(buf);
+    }
+
+    static void writeVarInt(ByteBuf buf, int input) {
+        while ((input & -128) != 0) {
+            buf.writeByte(input & 127 | 128);
+            input >>>= 7;
+        }
+        buf.writeByte(input);
+    }
+
+    static int readVarInt(ByteBuf buf) {
+        int i = 0;
+        int j = 0;
+        byte b0;
+        do {
+            b0 = buf.readByte();
+            i |= (b0 & 127) << j++ * 7;
+            if (j > 5) {
+                throw new RuntimeException("VarInt too big");
+            }
+        } while ((b0 & 128) == 128);
+        return i;
+    }
+
+    static void writeString(ByteBuf buf, String s) {
+        writeByteArray(buf, s.getBytes(StandardCharsets.UTF_8));
+    }
+
+    static String readString(ByteBuf buf) {
+        return new String(readByteArray(buf), StandardCharsets.UTF_8);
+    }
+
+    static void writeByteArray(ByteBuf buf, byte[] array) {
+        writeVarInt(buf, array.length);
+        buf.writeBytes(array);
+    }
+
+    static byte[] readByteArray(ByteBuf buf) {
+        byte[] array = new byte[readVarInt(buf)];
+        buf.readBytes(array);
+        return array;
+    }
+
+    static void writeIntArray(ByteBuf buf, int[] array) {
+        writeVarInt(buf, array.length);
+        for (int i : array) {
+            buf.writeInt(i);
+        }
+    }
+
+    static int[] readIntArray(ByteBuf buf) {
+        int i = readVarInt(buf);
+        int[] aint = new int[i];
+        for (int j = 0; j < i; ++j) {
+            aint[j] = buf.readInt();
+        }
+        return aint;
+    }
+
+    static void writeLongArray(ByteBuf buf, long[] array) {
+        writeVarInt(buf, array.length);
+        for (long i : array) {
+            buf.writeLong(i);
+        }
+    }
+
+    static long[] readLongArray(ByteBuf buf) {
+        int i = readVarInt(buf);
+        var array = new long[i];
+        for (int j = 0; j < i; ++j) {
+            array[j] = buf.readLong();
+        }
+        return array;
+    }
+
+    void write(ByteBuf stream);
 
     byte getId();
 
@@ -192,11 +273,6 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
     @NotNull
     default String getString() {
         return "";
-    }
-
-    @NotNull
-    default Data[] getArray() {
-        return ArrayData.EMPTY_ARRAY;
     }
 
     @NotNull
@@ -263,5 +339,33 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
         var array = getByteArray();
         if (array == ArrayUtils.EMPTY_BYTE_ARRAY) return BigInteger.ZERO;
         return new BigInteger(array);
+    }
+
+    final class Type<T> {
+
+        public static final Type<NullData> NULL = new Type<>(Data.NULL, NullData.class);
+        public static final Type<BooleanData> BOOLEAN = new Type<>(Data.BOOLEAN, BooleanData.class);
+        public static final Type<ByteData> BYTE = new Type<>(Data.BYTE, ByteData.class);
+        public static final Type<ShortData> SHORT = new Type<>(Data.SHORT, ShortData.class);
+        public static final Type<CharData> CHAR = new Type<>(Data.CHAR, CharData.class);
+        public static final Type<IntData> INT = new Type<>(Data.INT, IntData.class);
+        public static final Type<LongData> LONG = new Type<>(Data.LONG, LongData.class);
+        public static final Type<FloatData> FLOAT = new Type<>(Data.FLOAT, FloatData.class);
+        public static final Type<DoubleData> DOUBLE = new Type<>(Data.DOUBLE, DoubleData.class);
+        public static final Type<ByteArrayData> BYTE_ARRAY = new Type<>(Data.BYTE_ARRAY, ByteArrayData.class);
+        public static final Type<IntArrayData> INT_ARRAY = new Type<>(Data.INT_ARRAY, IntArrayData.class);
+        public static final Type<LongArrayData> LONG_ARRAY = new Type<>(Data.LONG_ARRAY, LongArrayData.class);
+        public static final Type<StringData> STRING = new Type<>(Data.STRING, StringData.class);
+        public static final Type<ArrayData> ARRAY = new Type<>(Data.ARRAY, ArrayData.class);
+        public static final Type<ListData> LIST = new Type<>(Data.LIST, ListData.class);
+        public static final Type<MapData> MAP = new Type<>(Data.MAP, MapData.class);
+
+        public final byte id;
+        public final Class<T> clazz;
+
+        private Type(int id, Class<T> clazz) {
+            this.id = (byte) id;
+            this.clazz = clazz;
+        }
     }
 }

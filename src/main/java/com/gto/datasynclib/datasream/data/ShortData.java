@@ -1,8 +1,6 @@
 package com.gto.datasynclib.datasream.data;
 
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
-
-import java.io.IOException;
+import io.netty.buffer.ByteBuf;
 
 public record ShortData(short value) implements NumericData {
 
@@ -21,12 +19,7 @@ public record ShortData(short value) implements NumericData {
     }
 
     @Override
-    public int sizeInBytes() {
-        return SHORT_SIZE;
-    }
-
-    @Override
-    public void write(ByteDataStream stream) throws IOException {
+    public void write(ByteBuf stream) {
         stream.writeShort(this.value);
     }
 

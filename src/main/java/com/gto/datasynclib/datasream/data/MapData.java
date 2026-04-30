@@ -1,16 +1,17 @@
 package com.gto.datasynclib.datasream.data;
 
+import net.minecraft.network.FriendlyByteBuf;
+
 import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datasream.codec.DataCodec;
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
+import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
 
@@ -34,13 +35,13 @@ public record MapData(Map<String, Data> value) implements Data {
     public static final ByteStreamCodec<MapData> BYTE_STREAM_CODEC = new ByteStreamCodec<>() {
 
         @Override
-        public void encode(MapData obj, ByteDataStream stream) throws IOException {
+        public void encode(FriendlyByteBuf stream, MapData obj) {
             obj.write(stream);
         }
 
         @Override
-        public MapData decode(ByteDataStream stream) throws IOException {
-            return (MapData) Data.read(Data.MAP, stream);
+        public MapData decode(FriendlyByteBuf stream) {
+            return Data.read(Type.MAP, stream);
         }
 
         static {
@@ -73,11 +74,11 @@ public record MapData(Map<String, Data> value) implements Data {
         this(new O2OOpenCacheHashMap<>(initialCapacity));
     }
 
-    public static MapData read(ByteDataStream stream) throws IOException {
-        var size = stream.readVarInt();
+    public static MapData read(ByteBuf stream) {
+        var size = Data.readVarInt(stream);
         var map = new O2OOpenCacheHashMap<String, Data>(size);
         for (int i = 0; i < size; i++) {
-            map.put(stream.readUTF(), stream.readData());
+            map.put(Data.readString(stream), Data.readData(stream));
         }
         return new MapData(map);
     }
@@ -234,24 +235,11 @@ public record MapData(Map<String, Data> value) implements Data {
     }
 
     @Override
-    public int sizeInBytes() {
-        var size = 2;
-        for (var entry : this.value.entrySet()) {
-            size += 4 * entry.getKey().length() + entry.getValue().sizeInBytes();
-        }
-        return size;
-    }
-
-    @Override
-    public void write(ByteDataStream stream) throws IOException {
-        stream.writeVarInt(this.value.size());
+    public void write(ByteBuf stream) {
+        Data.writeVarInt(stream, value.size());
         this.value.forEach((k, v) -> {
-            try {
-                stream.writeUTF(k);
-                stream.writeData(v);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            Data.writeString(stream, k);
+            Data.writeData(stream, v);
         });
     }
 

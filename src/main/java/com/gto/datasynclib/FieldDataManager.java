@@ -1,12 +1,11 @@
 package com.gto.datasynclib;
 
+import net.minecraft.network.FriendlyByteBuf;
+
 import com.gto.datasynclib.datasream.data.MapData;
-import com.gto.datasynclib.datasream.stream.ByteBufWrapper;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
 
 public final class FieldDataManager {
 
@@ -96,7 +95,7 @@ public final class FieldDataManager {
      */
     public byte @NotNull [] writeToNetworkBuffer(LogicalSide side, boolean force) {
         var buf = Unpooled.buffer();
-        var wrapper = new ByteBufWrapper(buf);
+        var wrapper = new FriendlyByteBuf(buf);
         try {
             final var fields = side.isServer() ? syncToClientFields : syncToServerFields;
             holder.writeCustomSyncData(wrapper, force);
@@ -113,8 +112,6 @@ public final class FieldDataManager {
             byte[] data = new byte[buf.readableBytes()];
             buf.readBytes(data);
             return data;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         } finally {
             buf.release();
         }
@@ -129,7 +126,7 @@ public final class FieldDataManager {
     public void readFromNetworkBuffer(LogicalSide side, byte @NotNull [] data) {
         if (data.length > 0) {
             var buf = Unpooled.wrappedBuffer(data);
-            var wrapper = new ByteBufWrapper(buf);
+            var wrapper = new FriendlyByteBuf(buf);
             try {
                 final var fields = side.isClient() ? syncToClientFields : syncToServerFields;
                 holder.readCustomSyncData(wrapper);
@@ -143,8 +140,6 @@ public final class FieldDataManager {
                     }
                 }
                 if (update) holder.scheduleUpdate(side);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
             } finally {
                 buf.release();
             }

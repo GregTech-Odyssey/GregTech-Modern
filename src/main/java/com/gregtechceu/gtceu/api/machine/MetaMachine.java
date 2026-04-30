@@ -38,7 +38,6 @@ import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
 import com.lowdragmc.lowdraglib.syncdata.IManaged;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
@@ -73,6 +72,8 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import com.gto.datasynclib.FieldDataManager;
 import com.gto.datasynclib.IFieldDataHolder;
 import com.gto.datasynclib.LazyFieldDataManager;
+import com.gto.datasynclib.LogicalSide;
+import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.datafixers.util.Pair;
 import lombok.Getter;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
@@ -126,7 +127,7 @@ public class MetaMachine implements IFieldDataHolder, IEnhancedManaged, ITickSub
     @Getter
     protected final MachineDefinition definition;
     @Persisted
-    @DescSynced
+    @SyncToClient
     @Nullable
     private UUID ownerUUID;
     @Getter
@@ -137,8 +138,7 @@ public class MetaMachine implements IFieldDataHolder, IEnhancedManaged, ITickSub
     protected final MachineCoverContainer coverContainer;
     @Getter
     @Persisted
-    @DescSynced
-    @RequireRerender
+    @SyncToClient(notifyUpdate = true)
     private int paintingColor = -1;
     @Getter
     protected final List<MachineTrait> traits = new ArrayList<>();
@@ -833,5 +833,10 @@ public class MetaMachine implements IFieldDataHolder, IEnhancedManaged, ITickSub
     @Override
     public MetaMachine self() {
         return this;
+    }
+
+    @Override
+    public void scheduleUpdate(LogicalSide side) {
+        holder.scheduleRenderUpdate();
     }
 }

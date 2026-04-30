@@ -1,9 +1,8 @@
 package com.gto.datasynclib.datasream.data;
 
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
+import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -19,11 +18,11 @@ public record ListData(List<Data> value) implements CollectionData, Iterable<Dat
         this(new ArrayList<>(initialCapacity));
     }
 
-    public static ListData read(ByteDataStream stream) throws IOException {
-        var size = stream.readVarInt();
+    public static ListData read(ByteBuf stream) {
+        var size = Data.readVarInt(stream);
         var list = new ArrayList<Data>(size);
         for (int i = 0; i < size; i++) {
-            list.add(stream.readData());
+            list.add(Data.readData(stream));
         }
         return new ListData(list);
     }
@@ -90,24 +89,9 @@ public record ListData(List<Data> value) implements CollectionData, Iterable<Dat
     }
 
     @Override
-    public int sizeInBytes() {
-        var size = 2;
-        for (var data : value) {
-            size += data.sizeInBytes();
-        }
-        return size;
-    }
-
-    @Override
-    public void write(ByteDataStream stream) throws IOException {
-        stream.writeVarInt(value.size());
-        value.forEach(d -> {
-            try {
-                stream.writeData(d);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+    public void write(ByteBuf stream) {
+        Data.writeVarInt(stream, value.size());
+        value.forEach(d -> Data.writeData(stream, d));
     }
 
     @Override

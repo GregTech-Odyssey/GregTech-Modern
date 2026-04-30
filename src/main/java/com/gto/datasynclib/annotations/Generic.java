@@ -5,11 +5,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * deprecated
- * 
- * @see com.gto.datasynclib.annotations.SyncToClient#notifyUpdate
- */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface NotifyUpdate {}
+public @interface Generic {}

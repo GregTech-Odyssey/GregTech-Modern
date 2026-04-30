@@ -1,10 +1,10 @@
 package com.gto.datasynclib;
 
+import net.minecraft.network.FriendlyByteBuf;
+
 import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -22,9 +22,9 @@ public interface DataField<T> {
 
     boolean hasChanges(@NotNull LogicalSide side, @NotNull Object source, boolean auto);
 
-    void writeToBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data, boolean force) throws IOException;
+    void writeToBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data, boolean force);
 
-    void readFromBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data) throws IOException;
+    void readFromBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data);
 
     @NotNull
     Data writeToData(@NotNull Object source);

@@ -1,9 +1,10 @@
 package com.gto.datasynclib.field;
 
+import net.minecraft.network.FriendlyByteBuf;
+
 import com.gto.datasynclib.DataField;
 import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
-import com.gto.datasynclib.datasream.stream.ByteDataStream;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,23 +35,23 @@ public abstract class AbstractField<T> implements DataField<T> {
     }
 
     @Override
-    public final boolean hasChanges(@NotNull LogicalSide side, Object source, boolean auto) {
+    public final boolean hasChanges(@NotNull LogicalSide side, @NotNull Object source, boolean auto) {
         return hasChanges(source);
     }
 
     protected abstract boolean hasChanges(Object source);
 
     @Override
-    public final void writeToBuffer(LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data, boolean force) {
+    public final void writeToBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data, boolean force) {
         writeBuf(source, data);
     }
 
     @Override
-    public final void readFromBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull ByteDataStream data) {
+    public final void readFromBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data) {
         readBuf(source, data);
     }
 
-    protected abstract void writeBuf(@NotNull Object source, @NotNull ByteDataStream data);
+    protected abstract void writeBuf(@NotNull Object source, @NotNull FriendlyByteBuf data);
 
-    protected abstract void readBuf(@NotNull Object source, @NotNull ByteDataStream data);
+    protected abstract void readBuf(@NotNull Object source, @NotNull FriendlyByteBuf data);
 }
