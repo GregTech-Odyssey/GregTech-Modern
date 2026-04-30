@@ -39,4 +39,6 @@ public @interface SyncToServer {
      *         &#064;default true
      */
     boolean autoUpdate() default true;
+
+    String listener() default "";
 }

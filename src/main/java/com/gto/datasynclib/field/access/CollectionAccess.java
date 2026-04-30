@@ -36,28 +36,26 @@ public final class CollectionAccess<E> extends AbstractFieldAccess<Collection> {
     }
 
     @Override
-    public void writeToBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data, boolean force) {
-        var collection = getInstance(source);
-        data.writeVarInt(collection.size());
-        for (var element : collection) {
+    public void writeBuffer(@NotNull LogicalSide side, @NotNull Collection instance, @NotNull FriendlyByteBuf data, boolean force) {
+        data.writeVarInt(instance.size());
+        for (var element : instance) {
             elementCodec.streamWriter.encode((E) element, data);
         }
     }
 
     @Override
-    public void readFromBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data) {
+    public void readBuffer(@NotNull LogicalSide side, @NotNull Collection instance, @NotNull FriendlyByteBuf data) {
         var length = data.readVarInt();
-        var collection = getInstance(source);
-        collection.clear();
+        instance.clear();
         for (int i = 0; i < length; i++) {
-            collection.add(elementCodec.streamReader.decode(data));
+            instance.add(elementCodec.streamReader.decode(data));
         }
     }
 
     @Override
-    public @NotNull Data writeToData(@NotNull Object source) {
+    public @NotNull Data writeData(@NotNull Collection instance) {
         var list = new ListData();
-        for (var element : getInstance(source)) {
+        for (var element : instance) {
             if (element == null) {
                 list.addNull();
             } else {
@@ -68,15 +66,14 @@ public final class CollectionAccess<E> extends AbstractFieldAccess<Collection> {
     }
 
     @Override
-    public void readFromData(@NotNull Object source, @NotNull Data data) {
+    public void readData(@NotNull Collection instance, @NotNull Data data) {
         var list = data.getList();
-        var collection = getInstance(source);
-        collection.clear();
+        instance.clear();
         for (var value : list) {
             if (value == NullData.INSTANCE) {
-                collection.add(null);
+                instance.add(null);
             } else {
-                collection.add(elementCodec.dataReader.decode(value));
+                instance.add(elementCodec.dataReader.decode(value));
             }
         }
     }

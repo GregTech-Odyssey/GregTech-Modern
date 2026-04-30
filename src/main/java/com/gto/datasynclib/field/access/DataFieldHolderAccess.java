@@ -21,22 +21,22 @@ public final class DataFieldHolderAccess extends AbstractFieldAccess<IFieldDataH
     }
 
     @Override
-    public void writeToBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data, boolean force) {
-        data.writeByteArray(getInstance(source).getFieldDataManager().writeToNetworkBuffer(side, force));
+    public void writeBuffer(@NotNull LogicalSide side, @NotNull IFieldDataHolder instance, @NotNull FriendlyByteBuf data, boolean force) {
+        data.writeByteArray(instance.getFieldDataManager().writeToNetworkBuffer(side, force));
     }
 
     @Override
-    public void readFromBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data) {
-        getInstance(source).getFieldDataManager().readFromNetworkBuffer(side, data.readByteArray());
+    public void readBuffer(@NotNull LogicalSide side, @NotNull IFieldDataHolder instance, @NotNull FriendlyByteBuf data) {
+        instance.getFieldDataManager().readFromNetworkBuffer(side, data.readByteArray());
     }
 
     @Override
-    public @NotNull Data writeToData(@NotNull Object source) {
-        return getInstance(source).getFieldDataManager().writeToData();
+    public @NotNull Data writeData(@NotNull IFieldDataHolder instance) {
+        return instance.getFieldDataManager().writeToData();
     }
 
     @Override
-    public void readFromData(@NotNull Object source, @NotNull Data data) {
-        getInstance(source).getFieldDataManager().readFromData((MapData) data);
+    public void readData(@NotNull IFieldDataHolder instance, @NotNull Data data) {
+        instance.getFieldDataManager().readFromData((MapData) data);
     }
 }

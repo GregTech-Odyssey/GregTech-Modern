@@ -3,6 +3,7 @@ package com.gto.datasynclib.field.object;
 import net.minecraft.network.FriendlyByteBuf;
 
 import com.gto.datasynclib.DataFieldDefinition;
+import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.NullData;
 import com.gto.datasynclib.field.AbstractField;
@@ -35,10 +36,10 @@ public abstract class ObjField<T> extends AbstractField<T> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public final void writeBuf(@NotNull Object source, @NotNull FriendlyByteBuf data) {
+    public final void writeToBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data, boolean force) {
         try {
             T value = (T) definition.field.get(source);
-            updateLastValue(value);
+            lastValue = value;
             if (value == null) {
                 data.writeBoolean(false);
             } else {
@@ -51,7 +52,7 @@ public abstract class ObjField<T> extends AbstractField<T> {
     }
 
     @Override
-    public final void readBuf(@NotNull Object source, @NotNull FriendlyByteBuf data) {
+    public void readFromBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data) {
         try {
             T value;
             if (data.readBoolean()) {
@@ -60,6 +61,11 @@ public abstract class ObjField<T> extends AbstractField<T> {
                 value = null;
             }
             definition.field.set(source, value);
+            var listener = definition.getListener(side);
+            if (listener != null) {
+                listener.invoke(source, value, lastValue);
+                lastValue = value;
+            }
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
@@ -93,10 +99,6 @@ public abstract class ObjField<T> extends AbstractField<T> {
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
-    }
-
-    protected void updateLastValue(T value) {
-        lastValue = value;
     }
 
     protected abstract void write(@NotNull FriendlyByteBuf data, @NotNull T value);

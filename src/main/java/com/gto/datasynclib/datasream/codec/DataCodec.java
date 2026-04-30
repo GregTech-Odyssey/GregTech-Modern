@@ -228,6 +228,32 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         }
     };
 
+    DataCodec<boolean[]> BOOLEANS_CODEC = new DataCodec<>() {
+
+        @Override
+        public Data encode(boolean[] obj) {
+            var arr = new ArrayData(obj.length);
+            for (var b : obj) {
+                arr.add(BooleanData.valueOf(b));
+            }
+            return arr;
+        }
+
+        @Override
+        public boolean[] decode(Data data) {
+            var arr = (ArrayData) data;
+            var bools = new boolean[arr.size()];
+            for (int i = 0; i < bools.length; i++) {
+                bools[i] = arr.get(i).getBoolean();
+            }
+            return bools;
+        }
+
+        static {
+            registerCodec(boolean[].class, BOOLEANS_CODEC);
+        }
+    };
+
     DataCodec<byte[]> BYTES_CODEC = new DataCodec<>() {
 
         @Override

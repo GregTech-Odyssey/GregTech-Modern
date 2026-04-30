@@ -38,31 +38,29 @@ public final class MapAccess<K, V> extends AbstractFieldAccess<Map> {
     }
 
     @Override
-    public void writeToBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data, boolean force) {
-        var map = getInstance(source);
-        data.writeVarInt(map.size());
-        map.forEach((k, v) -> {
+    public void writeBuffer(@NotNull LogicalSide side, @NotNull Map instance, @NotNull FriendlyByteBuf data, boolean force) {
+        data.writeVarInt(instance.size());
+        instance.forEach((k, v) -> {
             keyCodec.streamWriter.encode((K) k, data);
             valueCodec.streamWriter.encode((V) v, data);
         });
     }
 
     @Override
-    public void readFromBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data) {
+    public void readBuffer(@NotNull LogicalSide side, @NotNull Map instance, @NotNull FriendlyByteBuf data) {
         var length = data.readVarInt();
-        var map = getInstance(source);
-        map.clear();
+        instance.clear();
         for (int i = 0; i < length; i++) {
             K key = keyCodec.streamReader.decode(data);
             V value = valueCodec.streamReader.decode(data);
-            map.put(key, value);
+            instance.put(key, value);
         }
     }
 
     @Override
-    public @NotNull Data writeToData(@NotNull Object source) {
+    public @NotNull Data writeData(@NotNull Map instance) {
         var list = new ListData();
-        getInstance(source).forEach((k, v) -> {
+        instance.forEach((k, v) -> {
             list.add(keyCodec.dataWriter.encode((K) k));
             list.add(valueCodec.dataWriter.encode((V) v));
         });
@@ -70,13 +68,12 @@ public final class MapAccess<K, V> extends AbstractFieldAccess<Map> {
     }
 
     @Override
-    public void readFromData(@NotNull Object source, @NotNull Data data) {
+    public void readData(@NotNull Map instance, @NotNull Data data) {
         var list = data.getList();
         var size = list.size();
-        var map = getInstance(source);
-        map.clear();
+        instance.clear();
         for (int i = 0; i < size; i++) {
-            map.put(keyCodec.dataReader.decode(list.get(i++)), valueCodec.dataReader.decode(list.get(i)));
+            instance.put(keyCodec.dataReader.decode(list.get(i++)), valueCodec.dataReader.decode(list.get(i)));
         }
     }
 }

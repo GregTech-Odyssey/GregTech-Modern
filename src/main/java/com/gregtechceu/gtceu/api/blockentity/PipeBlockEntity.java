@@ -24,7 +24,6 @@ import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
 import com.lowdragmc.lowdraglib.syncdata.IManagedStorage;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
@@ -90,8 +89,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     @SyncToClient(notifyUpdate = true)
     private int paintingColor = -1;
 
-    @DescSynced
-    @RequireRerender
+    @SyncToClient(notifyUpdate = true)
     @Persisted
     @NotNull
     private Material frameMaterial = GTMaterials.NULL;

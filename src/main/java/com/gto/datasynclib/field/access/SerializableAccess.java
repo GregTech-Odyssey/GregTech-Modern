@@ -20,22 +20,22 @@ public final class SerializableAccess extends AbstractFieldAccess<ISerializable>
     }
 
     @Override
-    public void writeToBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data, boolean force) {
-        getInstance(source).writeBuf(side, data);
+    public void writeBuffer(@NotNull LogicalSide side, @NotNull ISerializable instance, @NotNull FriendlyByteBuf data, boolean force) {
+        instance.writeBuf(side, data);
     }
 
     @Override
-    public void readFromBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data) {
-        getInstance(source).readBuf(side, data);
+    public void readBuffer(@NotNull LogicalSide side, @NotNull ISerializable instance, @NotNull FriendlyByteBuf data) {
+        instance.readBuf(side, data);
     }
 
     @Override
-    public @NotNull Data writeToData(@NotNull Object source) {
-        return getInstance(source).writeData();
+    public @NotNull Data writeData(@NotNull ISerializable instance) {
+        return instance.writeData();
     }
 
     @Override
-    public void readFromData(@NotNull Object source, @NotNull Data data) {
-        getInstance(source).readData(data);
+    public void readData(@NotNull ISerializable instance, @NotNull Data data) {
+        instance.readData(data);
     }
 }

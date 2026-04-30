@@ -3,6 +3,7 @@ package com.gto.datasynclib.field;
 import net.minecraft.network.FriendlyByteBuf;
 
 import com.gto.datasynclib.DataFieldDefinition;
+import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.CharData;
 import com.gto.datasynclib.datasream.data.Data;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +26,7 @@ public final class CharField extends AbstractField<Character> {
     }
 
     @Override
-    public void writeBuf(@NotNull Object source, @NotNull FriendlyByteBuf data) {
+    public void writeToBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data, boolean force) {
         try {
             var value = definition.field.getChar(source);
             lastValue = value;
@@ -36,10 +37,15 @@ public final class CharField extends AbstractField<Character> {
     }
 
     @Override
-    public void readBuf(@NotNull Object source, @NotNull FriendlyByteBuf data) {
+    public void readFromBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data) {
         try {
             var value = data.readChar();
             definition.field.setChar(source, value);
+            var listener = definition.getListener(side);
+            if (listener != null) {
+                listener.invoke(source, value, lastValue);
+                lastValue = value;
+            }
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }

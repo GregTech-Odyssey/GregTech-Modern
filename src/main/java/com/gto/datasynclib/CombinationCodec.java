@@ -44,7 +44,7 @@ public final class CombinationCodec<T> {
     });
 
     private static final MapCache<Class<?>, CombinationCodec<?>> ARRAY_CACHE = new ConcurrentHashMapCache<>(t -> {
-        if (t.isArray()) {
+        if (t.isArray() && !t.componentType().isPrimitive()) {
             Class type = t.getComponentType();
             CombinationCodec<Object> codec = get(type);
             return new CombinationCodec<>(
@@ -99,7 +99,14 @@ public final class CombinationCodec<T> {
     public final DataEncoder<T> dataWriter;
     public final DataDecoder<T> dataReader;
 
-    private CombinationCodec(ByteStreamEncoder<T> streamWriter, ByteStreamDecoder<T> streamReader, DataEncoder<T> dataWriter, DataDecoder<T> dataReader) {
+    public CombinationCodec(ByteStreamCodec<T> streamCodec, DataCodec<T> dataCodec) {
+        this.streamWriter = streamCodec;
+        this.streamReader = streamCodec;
+        this.dataWriter = dataCodec;
+        this.dataReader = dataCodec;
+    }
+
+    public CombinationCodec(ByteStreamEncoder<T> streamWriter, ByteStreamDecoder<T> streamReader, DataEncoder<T> dataWriter, DataDecoder<T> dataReader) {
         this.streamWriter = streamWriter;
         this.streamReader = streamReader;
         this.dataWriter = dataWriter;
@@ -140,7 +147,7 @@ public final class CombinationCodec<T> {
         CombinationCodec<?> codec;
         if (type.isEnum()) {
             codec = ENUM_CACHE.getCache(type);
-        } else if (type.isArray()) {
+        } else if (type.isArray() && !type.componentType().isPrimitive()) {
             codec = ARRAY_CACHE.getCacheRecursion(type);
         } else {
             codec = CODECS.get(type);
@@ -198,6 +205,7 @@ public final class CombinationCodec<T> {
 
     public final static CombinationCodec<MapData> MAP_DATA_CODEC = register(MapData.class, MapData.BYTE_STREAM_CODEC, MapData.DATA_CODEC);
 
+    public final static CombinationCodec<boolean[]> BOOLEANS_CODEC = register(boolean[].class, ByteStreamCodec.BOOLEANS_CODEC, DataCodec.BOOLEANS_CODEC);
     public final static CombinationCodec<byte[]> BYTES_CODEC = register(byte[].class, ByteStreamCodec.BYTES_CODEC, DataCodec.BYTES_CODEC);
     public final static CombinationCodec<int[]> INTS_CODEC = register(int[].class, ByteStreamCodec.INTS_CODEC, DataCodec.INTS_CODEC);
     public final static CombinationCodec<long[]> LONGS_CODEC = register(long[].class, ByteStreamCodec.LONGS_CODEC, DataCodec.LONGS_CODEC);

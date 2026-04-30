@@ -1,11 +1,14 @@
 package com.gto.datasynclib;
 
 import com.gto.datasynclib.annotations.*;
+import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datasream.codec.DataCodec;
 import it.unimi.dsi.fastutil.Hash;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 @Getter
 @Accessors(fluent = true)
@@ -16,7 +19,11 @@ final class FieldAnnotations {
     private final SyncToServer syncToServer;
 
     private final String key;
+    private final Method clientUpdateListener;
+    private final Method serverUpdateListener;
     private final Hash.Strategy strategy;
+    private final ByteStreamCodec streamCodec;
+    private final DataCodec dataCodec;
     private final boolean notifyClientUpdate;
     private final boolean notifyServerUpdate;
     private final boolean autoServerUpdate;
@@ -35,6 +42,31 @@ final class FieldAnnotations {
         this.notifyServerUpdate = syncToServer != null && syncToServer.notifyUpdate();
         this.autoServerUpdate = syncToClient != null && syncToClient.autoUpdate();
         this.autoClientUpdate = syncToServer != null && syncToServer.autoUpdate();
+
+        if (syncToClient != null && !syncToClient.listener().isEmpty()) {
+            try {
+                var method = clazz.getDeclaredMethod(syncToClient.listener(), field.getType(), field.getType());
+                method.setAccessible(true);
+                this.clientUpdateListener = method;
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            this.clientUpdateListener = null;
+        }
+
+        if (syncToServer != null && !syncToServer.listener().isEmpty()) {
+            try {
+                var method = clazz.getDeclaredMethod(syncToServer.listener(), field.getType(), field.getType());
+                method.setAccessible(true);
+                this.serverUpdateListener = method;
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            this.serverUpdateListener = null;
+        }
+
         var strategy = field.getAnnotation(Strategy.class);
         if (strategy == null) {
             this.strategy = null;
@@ -43,6 +75,27 @@ final class FieldAnnotations {
                 var f = clazz.getDeclaredField(strategy.value());
                 f.setAccessible(true);
                 this.strategy = (Hash.Strategy) f.get(null);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        var codec = field.getAnnotation(Codec.class);
+        if (codec == null) {
+            this.dataCodec = null;
+            this.streamCodec = null;
+        } else {
+            try {
+                var f = clazz.getDeclaredField(codec.save());
+                f.setAccessible(true);
+                this.dataCodec = (DataCodec) f.get(null);
+                if (!codec.sync().isEmpty()) {
+                    f = clazz.getDeclaredField(codec.sync());
+                    f.setAccessible(true);
+                    this.streamCodec = (ByteStreamCodec) f.get(null);
+                } else {
+                    this.streamCodec = ByteStreamCodec.of(dataCodec);
+                }
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 throw new RuntimeException(e);
             }

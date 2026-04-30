@@ -154,11 +154,11 @@ public final class FieldDataManager {
     @NotNull
     public MapData writeToData() {
         MapData data = new MapData();
+        holder.writeCustomSaveData(data);
         for (var field : saveFields) {
             var d = field.getDefinition();
             data.put(d.key, field.writeToData(d.source.apply(holder)));
         }
-        holder.writeCustomSaveData(data);
         return data;
     }
 
@@ -168,11 +168,11 @@ public final class FieldDataManager {
      * @param data the MapData to read from
      */
     public void readFromData(@NotNull MapData data) {
+        holder.readCustomSaveData(data);
         for (var field : saveFields) {
             var d = field.getDefinition();
             var tag = data.get(d.key);
             if (tag != null) field.readFromData(d.source.apply(holder), tag);
         }
-        holder.readCustomSaveData(data);
     }
 }

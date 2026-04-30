@@ -1,11 +1,11 @@
 package com.gto.datasynclib;
 
-import com.gto.datasynclib.field.*;
+import com.gto.datasynclib.annotations.AdditionalHolder;
+import com.gto.datasynclib.field.object.ObjCodecField;
 import com.gto.datasynclib.util.HashUtil;
 import com.gto.datasynclib.util.ReflectUtil;
 import com.gto.datasynclib.util.cache.HashMapCache;
 import com.gto.datasynclib.util.cache.IdentityHashMapCache;
-import com.gto.datasynclib.util.cache.MapCache;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 
@@ -18,17 +18,22 @@ import java.util.function.*;
 public final class FieldDefinitionStorage {
 
     private static final PriorityQueue<DataField.CustomGenericFactory<?>> GENERIC_FIELDS = new PriorityQueue<>(Comparator.comparingInt(f -> -f.priority()));
-    private static final MapCache<Class<?>, MapCache<Supplier<Class<?>[]>, DataField.Factory<?>>> GENERIC_FIELDS_CACHE = new IdentityHashMapCache<>(type -> new HashMapCache<>(genericType -> {
-        for (var f : GENERIC_FIELDS) {
-            if (f.predicate().test(type, genericType.get())) {
-                return f.factory().apply(type, genericType.get());
+
+    private static Function<Supplier<Class<?>[]>, DataField.Factory<?>> genericFunction(Class<?> type) {
+        return genericType -> {
+            for (var f : GENERIC_FIELDS) {
+                if (f.predicate().test(type, genericType.get())) {
+                    return f.factory().apply(type, genericType.get());
+                }
             }
-        }
-        throw new IllegalArgumentException("No factory for " + type);
-    }));
+            throw new IllegalArgumentException("No factory for " + type);
+        };
+    }
+
+    private static final IdentityHashMapCache<Class<?>, HashMapCache<Supplier<Class<?>[]>, DataField.Factory<?>>> GENERIC_FIELDS_CACHE = new IdentityHashMapCache<>(type -> new HashMapCache<>(genericFunction(type)));
 
     private static final PriorityQueue<DataField.CustomFactory<?>> FIELDS = new PriorityQueue<>(Comparator.comparingInt(f -> -f.priority()));
-    private static final MapCache<Class<?>, DataField.Factory<?>> FIELDS_CACHE = new IdentityHashMapCache<>(type -> {
+    private static final IdentityHashMapCache<Class<?>, DataField.Factory<?>> FIELDS_CACHE = new IdentityHashMapCache<>(type -> {
         for (var f : FIELDS) {
             if (f.predicate().test(type)) {
                 return f.factory().apply(type);
@@ -38,7 +43,7 @@ public final class FieldDefinitionStorage {
     });
 
     private static final PriorityQueue<DataField.CustomFactory<?>> ACCESS = new PriorityQueue<>(Comparator.comparingInt(f -> -f.priority()));
-    private static final MapCache<Class<?>, DataField.Factory<?>> ACCESS_CACHE = new IdentityHashMapCache<>(type -> {
+    private static final IdentityHashMapCache<Class<?>, DataField.Factory<?>> ACCESS_CACHE = new IdentityHashMapCache<>(type -> {
         for (var f : ACCESS) {
             if (f.predicate().test(type)) {
                 return f.factory().apply(type);
@@ -55,6 +60,12 @@ public final class FieldDefinitionStorage {
 
     private static final FieldDefinitionStorage EMPTY = new FieldDefinitionStorage();
 
+    public static <T> void registerAccessFactory(Class<T> type, DataField.Factory<T> factory) {
+        synchronized (ACCESS_CACHE) {
+            ACCESS_CACHE.put(type, factory);
+        }
+    }
+
     public static <T> void registerAccessInterfaceFactory(Class<T> interfaceType, Function<Class<?>, DataField.Factory<T>> factory, int priority) {
         registerAccessCustomFactory(interfaceType::isAssignableFrom, factory, priority);
     }
@@ -65,9 +76,21 @@ public final class FieldDefinitionStorage {
         }
     }
 
+    public static <T> void registerGenericFactory(Class<?> type, DataField.Factory<T> factory, Class<?>... genericType) {
+        synchronized (GENERIC_FIELDS_CACHE) {
+            GENERIC_FIELDS_CACHE.computeIfAbsent(type, k -> new HashMapCache<>(genericFunction(type))).put(HashUtil.arrayIdentityWrapper(genericType), factory);
+        }
+    }
+
     public static <T> void registerCustomGenericFactory(BiPredicate<Class<?>, Class<?>[]> type, BiFunction<Class<?>, Class<?>[], DataField.Factory<T>> factory, int priority) {
         synchronized (GENERIC_FIELDS) {
             GENERIC_FIELDS.add(new DataField.CustomGenericFactory<>(type, factory, priority));
+        }
+    }
+
+    public static <T> void registerFactory(Class<T> type, DataField.Factory<T> factory) {
+        synchronized (FIELDS_CACHE) {
+            FIELDS_CACHE.put(type, factory);
         }
     }
 
@@ -85,25 +108,6 @@ public final class FieldDefinitionStorage {
         synchronized (STRATEGYS) {
             STRATEGYS.put(type, strategy);
         }
-    }
-
-    private static <T> void registerPrimitiveFactory(Class<T> type, DataField.Factory<T> factory) {
-        PRIMITIVE_FIELDS.put(type, factory);
-    }
-
-    public static DataField.Factory<?> getPrimitiveFactory(Class<?> type) {
-        return PRIMITIVE_FIELDS.get(type);
-    }
-
-    static {
-        registerPrimitiveFactory(boolean.class, BooleanField::new);
-        registerPrimitiveFactory(byte.class, ByteField::new);
-        registerPrimitiveFactory(char.class, CharField::new);
-        registerPrimitiveFactory(double.class, DoubleField::new);
-        registerPrimitiveFactory(float.class, FloatField::new);
-        registerPrimitiveFactory(int.class, IntField::new);
-        registerPrimitiveFactory(long.class, LongField::new);
-        registerPrimitiveFactory(short.class, ShortField::new);
     }
 
     final HashMap<String, DataFieldDefinition<?>> allDefinition;
@@ -171,9 +175,24 @@ public final class FieldDefinitionStorage {
         return storage;
     }
 
+    private static Function<Object, Object> createNestedSourceFunction(Field field, Function<Object, Object> parentSource) {
+        return o -> {
+            try {
+                return field.get(parentSource.apply(o));
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException("Failed to access nested field: " + field.getName(), e);
+            }
+        };
+    }
+
     private static void scanFields(Class<?> clazz, ArrayList<DataFieldDefinition<?>> definitions, Function<Object, Object> source) {
         for (var field : clazz.getDeclaredFields()) {
             if (Modifier.isStatic(field.getModifiers())) continue;
+            if (field.isAnnotationPresent(AdditionalHolder.class)) {
+                field.setAccessible(true);
+                scanFields(field.getType(), definitions, createNestedSourceFunction(field, source));
+                continue;
+            }
             var annotations = new FieldAnnotations(clazz, field);
             if (annotations.isEmpty()) continue;
             var definition = createFieldDefinition(field, source, annotations);
@@ -191,36 +210,37 @@ public final class FieldDefinitionStorage {
                 genericType = new Class<?>[0];
             }
             boolean isFinal = Modifier.isFinal(field.getModifiers());
-            if (annotations.generic()) {
+            if (annotations.access() || isFinal) {
+                return createAccessFieldDefinition(field, source, annotations, genericType, isFinal);
+            } else if (annotations.dataCodec() != null) {
+                return new DataFieldDefinition<>(field, ObjCodecField::new, source, annotations, genericType, false, false, STRATEGYS);
+            } else if (annotations.generic()) {
                 if (genericType.length == 0) throw new IllegalStateException("Field " + field.getName() + " is annotated with @Generic, but it has no generic type");
-                return createGenericFieldDefinition(field, source, annotations, genericType, isFinal);
+                return createGenericFieldDefinition(field, source, annotations, genericType, false);
             } else {
-                if (annotations.access() || isFinal) {
-                    return createFinalFieldDefinition(field, source, annotations, genericType, isFinal);
-                } else {
-                    return createNonFinalFieldDefinition(field, source, annotations, genericType, isFinal);
-                }
+                return createFieldDefinition(field, source, annotations, genericType, false);
             }
+
         } catch (Throwable e) {
             throw new RuntimeException("Failed to create field definition for: " + field.getName(), e);
         }
     }
 
-    private static DataFieldDefinition<?> createFinalFieldDefinition(Field field, Function<Object, Object> source, FieldAnnotations annotations, Class<?>[] genericType, boolean isFinal) {
+    private static DataFieldDefinition<?> createAccessFieldDefinition(Field field, Function<Object, Object> source, FieldAnnotations annotations, Class<?>[] genericType, boolean isFinal) {
         var factory = ACCESS_CACHE.getCache(field.getType());
-        return new DataFieldDefinition<>(field, factory, source, annotations, genericType, isFinal, STRATEGYS);
+        return new DataFieldDefinition<>(field, factory, source, annotations, genericType, isFinal, true, STRATEGYS);
     }
 
     private static DataFieldDefinition<?> createGenericFieldDefinition(Field field, Function<Object, Object> source, FieldAnnotations annotations, Class<?>[] genericType, boolean isFinal) {
         var factory = GENERIC_FIELDS_CACHE.getCache(field.getType()).getCache(HashUtil.arrayIdentityWrapper(genericType));
-        return new DataFieldDefinition<>(field, factory, source, annotations, genericType, isFinal, STRATEGYS);
+        return new DataFieldDefinition<>(field, factory, source, annotations, genericType, isFinal, false, STRATEGYS);
     }
 
-    private static DataFieldDefinition<?> createNonFinalFieldDefinition(Field field, Function<Object, Object> source, FieldAnnotations annotations, Class<?>[] genericType, boolean isFinal) {
+    private static DataFieldDefinition<?> createFieldDefinition(Field field, Function<Object, Object> source, FieldAnnotations annotations, Class<?>[] genericType, boolean isFinal) {
         var type = field.getType();
         try {
             var factory = FIELDS_CACHE.getCache(type);
-            return new DataFieldDefinition<>(field, factory, source, annotations, genericType, isFinal, STRATEGYS);
+            return new DataFieldDefinition<>(field, factory, source, annotations, genericType, isFinal, false, STRATEGYS);
         } catch (Throwable e) {
             try {
                 if (genericType.length > 0) {
@@ -228,7 +248,7 @@ public final class FieldDefinitionStorage {
                 }
                 throw new RuntimeException(e);
             } catch (Throwable e2) {
-                return createFinalFieldDefinition(field, source, annotations, genericType, isFinal);
+                return createAccessFieldDefinition(field, source, annotations, genericType, isFinal);
             }
         }
     }

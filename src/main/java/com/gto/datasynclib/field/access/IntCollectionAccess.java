@@ -28,36 +28,33 @@ public final class IntCollectionAccess<E> extends AbstractFieldAccess<IntCollect
     }
 
     @Override
-    public void writeToBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data, boolean force) {
-        var collection = getInstance(source);
-        data.writeVarInt(collection.size());
-        for (var element : collection) {
+    public void writeBuffer(@NotNull LogicalSide side, @NotNull IntCollection instance, @NotNull FriendlyByteBuf data, boolean force) {
+        data.writeVarInt(instance.size());
+        for (var element : instance) {
             data.writeInt(element);
         }
     }
 
     @Override
-    public void readFromBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data) {
+    public void readBuffer(@NotNull LogicalSide side, @NotNull IntCollection instance, @NotNull FriendlyByteBuf data) {
         var length = data.readVarInt();
-        var collection = getInstance(source);
-        collection.clear();
+        instance.clear();
         for (int i = 0; i < length; i++) {
-            collection.add(data.readInt());
+            instance.add(data.readInt());
         }
     }
 
     @Override
-    public @NotNull Data writeToData(@NotNull Object source) {
-        return new IntArrayData(getInstance(source).toIntArray());
+    public @NotNull Data writeData(@NotNull IntCollection instance) {
+        return new IntArrayData(instance.toIntArray());
     }
 
     @Override
-    public void readFromData(@NotNull Object source, @NotNull Data data) {
-        var collection = getInstance(source);
-        collection.clear();
+    public void readData(@NotNull IntCollection instance, @NotNull Data data) {
+        instance.clear();
         var array = data.getIntArray();
         for (var element : array) {
-            collection.add(element);
+            instance.add(element);
         }
     }
 }

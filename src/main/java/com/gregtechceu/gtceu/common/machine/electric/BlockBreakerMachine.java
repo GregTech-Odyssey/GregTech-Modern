@@ -24,9 +24,7 @@ import com.gregtechceu.gtceu.data.lang.LangHandler;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -46,6 +44,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,14 +60,12 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
 
     @Getter
     @Persisted
-    @DescSynced
-    @RequireRerender
+    @SyncToClient(notifyUpdate = true)
     @Nullable
     protected Direction outputFacingItems;
     @Getter
     @Persisted
-    @DescSynced
-    @RequireRerender
+    @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputItems;
     @Persisted
     protected final NotifiableItemStackHandler cache;
@@ -86,14 +83,14 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
     @Nullable
     protected ISubscription energySubs;
     private final int inventorySize;
-    @DescSynced
+    @SyncToClient
     private int blockBreakProgress = 0;
     private float currentHardness;
     private final long energyPerTick;
     public final float efficiencyMultiplier;
     @Getter
     @Persisted
-    @DescSynced
+    @SyncToClient
     private boolean isWorkingEnabled = true;
 
     public BlockBreakerMachine(MetaMachineBlockEntity holder, int tier, Object... ignoredArgs) {

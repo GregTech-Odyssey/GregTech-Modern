@@ -20,9 +20,7 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -30,6 +28,7 @@ import net.minecraft.core.Direction;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -58,8 +57,7 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
     private final int inventorySize;
     @Persisted
     protected final CustomItemStackHandler chargerInventory;
-    @DescSynced
-    @RequireRerender
+    @SyncToClient(notifyUpdate = true)
     private State state;
 
     public ChargerMachine(MetaMachineBlockEntity holder, int tier, int inventorySize, Object... args) {

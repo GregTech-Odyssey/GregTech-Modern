@@ -2,6 +2,9 @@ package com.gto.datasynclib.datasream.codec;
 
 import net.minecraft.network.FriendlyByteBuf;
 
+import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.datasream.data.DataOps;
+import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 
 import java.math.BigInteger;
@@ -21,6 +24,36 @@ public interface ByteStreamCodec<T> extends ByteStreamDecoder<T>, ByteStreamEnco
             @Override
             public T decode(FriendlyByteBuf buf) {
                 return decoder.decode(buf);
+            }
+        };
+    }
+
+    static <T> ByteStreamCodec<T> of(DataCodec<T> codec) {
+        return new ByteStreamCodec<>() {
+
+            @Override
+            public void encode(FriendlyByteBuf buf, T obj) {
+                Data.writeData(buf, codec.encode(obj));
+            }
+
+            @Override
+            public T decode(FriendlyByteBuf buf) {
+                return codec.decode(Data.readData(buf));
+            }
+        };
+    }
+
+    static <T> ByteStreamCodec<T> of(Codec<T> codec) {
+        return new ByteStreamCodec<>() {
+
+            @Override
+            public void encode(FriendlyByteBuf buf, T obj) {
+                Data.writeData(buf, codec.encodeStart(DataOps.INSTANCE, obj).result().orElseThrow());
+            }
+
+            @Override
+            public T decode(FriendlyByteBuf buf) {
+                return codec.decode(DataOps.INSTANCE, Data.readData(buf)).result().orElseThrow().getFirst();
             }
         };
     }
@@ -210,6 +243,31 @@ public interface ByteStreamCodec<T> extends ByteStreamDecoder<T>, ByteStreamEnco
 
         static {
             registerCodec(BigInteger.class, BIG_INTEGER_CODEC);
+        }
+    };
+
+    ByteStreamCodec<boolean[]> BOOLEANS_CODEC = new ByteStreamCodec<>() {
+
+        @Override
+        public void encode(FriendlyByteBuf buf, boolean[] obj) {
+            buf.writeVarInt(obj.length);
+            for (var b : obj) {
+                buf.writeBoolean(b);
+            }
+        }
+
+        @Override
+        public boolean[] decode(FriendlyByteBuf buf) {
+            var length = buf.readVarInt();
+            var booleans = new boolean[length];
+            for (int i = 0; i < length; i++) {
+                booleans[i] = buf.readBoolean();
+            }
+            return booleans;
+        }
+
+        static {
+            registerCodec(boolean[].class, BOOLEANS_CODEC);
         }
     };
 

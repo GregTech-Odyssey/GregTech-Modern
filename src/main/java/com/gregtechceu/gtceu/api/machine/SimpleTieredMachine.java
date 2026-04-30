@@ -32,7 +32,6 @@ import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.utils.Position;
 
@@ -109,7 +108,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     protected ISubscription energySubs;
 
     @Persisted
-    @DescSynced
+    @SyncToClient
     protected VoidingMode voidingMode = VoidingMode.VOID_NONE;
 
     public SimpleTieredMachine(MetaMachineBlockEntity holder, int tier, Int2IntFunction tankScalingFunction, Object... args) {

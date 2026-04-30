@@ -33,9 +33,8 @@ public final class ArrayAccess<T> extends AbstractFieldAccess<T[]> {
     }
 
     @Override
-    public void writeToBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data, boolean force) {
-        var array = getInstance(source);
-        for (var element : array) {
+    public void writeBuffer(@NotNull LogicalSide side, T @NotNull [] instance, @NotNull FriendlyByteBuf data, boolean force) {
+        for (var element : instance) {
             if (element == null) {
                 data.writeBoolean(false);
             } else {
@@ -46,19 +45,17 @@ public final class ArrayAccess<T> extends AbstractFieldAccess<T[]> {
     }
 
     @Override
-    public void readFromBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data) {
-        var array = getInstance(source);
-        var length = array.length;
+    public void readBuffer(@NotNull LogicalSide side, T @NotNull [] instance, @NotNull FriendlyByteBuf data) {
+        var length = instance.length;
         for (int i = 0; i < length; i++) {
-            if (data.readBoolean()) array[i] = elementCodec.streamReader.decode(data);
+            if (data.readBoolean()) instance[i] = elementCodec.streamReader.decode(data);
         }
     }
 
     @Override
-    public @NotNull Data writeToData(@NotNull Object source) {
+    public @NotNull Data writeData(T @NotNull [] instance) {
         var list = new ListData();
-        var array = getInstance(source);
-        for (T element : array) {
+        for (T element : instance) {
             if (element != null) {
                 list.add(elementCodec.dataWriter.encode(element));
             } else {
@@ -69,16 +66,15 @@ public final class ArrayAccess<T> extends AbstractFieldAccess<T[]> {
     }
 
     @Override
-    public void readFromData(@NotNull Object source, @NotNull Data data) {
+    public void readData(T @NotNull [] instance, @NotNull Data data) {
         var list = data.getList();
-        var array = getInstance(source);
-        var length = Math.min(list.size(), array.length);
+        var length = Math.min(list.size(), instance.length);
         for (int i = 0; i < length; i++) {
             var d = list.get(i);
             if (d == NullData.INSTANCE) {
-                array[i] = null;
+                instance[i] = null;
             } else {
-                array[i] = elementCodec.dataReader.decode(list.get(i));
+                instance[i] = elementCodec.dataReader.decode(list.get(i));
             }
         }
     }
