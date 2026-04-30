@@ -24,6 +24,7 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
@@ -31,7 +32,6 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 
-import com.gto.datasynclib.annotations.SyncToClient;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2IntAVLTreeMap;
@@ -71,8 +71,8 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     @Persisted
     protected final NotifiableEnergyContainer energyContainer;
     @Getter
-    @SyncToClient
-    private int color = -1;
+    @DescSynced
+    private Integer color = -1;
     @Nullable
     protected TickableSubscription preHeatSubs;
 
@@ -199,7 +199,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
             if (!recipe.getOutputContents(FluidRecipeCapability.CAP).isEmpty()) {
                 var fluid = FluidRecipeCapability.CAP.of(recipe.getOutputContents(FluidRecipeCapability.CAP).getFirst()).getFluid();
                 int newColor = -16777216 | GTUtil.getFluidColor(fluid);
-                if (color != newColor) {
+                if (!Objects.equals(color, newColor)) {
                     color = newColor;
                 }
             }

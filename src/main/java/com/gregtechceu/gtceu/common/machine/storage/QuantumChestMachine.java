@@ -21,7 +21,6 @@ import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTMath;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
-import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 
 import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
@@ -30,6 +29,7 @@ import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
+import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -50,10 +50,7 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 import com.fast.fastcollection.O2LOpenCacheHashMap;
-import com.gto.datasynclib.annotations.Strategy;
-import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
-import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -68,9 +65,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class QuantumChestMachine extends TieredMachine implements IAutoOutputItem, IInteractedMachine, IControllable, IDropSaveMachine, IFancyUIMachine {
 
-    @SuppressWarnings("unused")
-    private static final Hash.Strategy<ItemStack> ITEM_STRATEGY = ItemStackHashStrategy.ITEM;
-
     /**
      * Sourced from FunctionalStorage's
      * <a
@@ -80,11 +74,13 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     public static final Object2LongOpenHashMap<UUID> INTERACTION_LOGGER = new O2LOpenCacheHashMap<>();
     @Getter
     @Persisted
-    @SyncToClient(notifyUpdate = true)
+    @DescSynced
+    @RequireRerender
     protected Direction outputFacingItems;
     @Getter
     @Persisted
-    @SyncToClient(notifyUpdate = true)
+    @DescSynced
+    @RequireRerender
     protected boolean autoOutputItems;
     @Getter
     @Persisted
@@ -96,11 +92,10 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     @DescSynced
     private final CustomItemStackHandler lockedItem;
     @Getter
-    @SyncToClient
-    @Strategy("ITEM_STRATEGY")
+    @DescSynced
     protected ItemStack stored = ItemStack.EMPTY;
     @Getter
-    @SyncToClient
+    @DescSynced
     protected long storedAmount = 0;
     @Nullable
     protected TickableSubscription autoOutputSubs;

@@ -24,6 +24,7 @@ import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
 import com.lowdragmc.lowdraglib.syncdata.IManagedStorage;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
+import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
@@ -43,9 +44,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
-import com.gto.datasynclib.FieldDataManager;
-import com.gto.datasynclib.LazyFieldDataManager;
-import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.datafixers.util.Pair;
 import lombok.Getter;
 import lombok.Setter;
@@ -60,8 +58,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDataType>, NodeDataType> extends TickBlockEntity implements IPaintable, IEnhancedManaged, IToolGridHighlight {
 
-    private final LazyFieldDataManager fieldDataManager = new LazyFieldDataManager(this);
-
     @Getter
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
     private final ManagedFieldHolder managedFieldHolder = MetaMachine.getManagedFieldHolder(getClass());
@@ -72,24 +68,25 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     protected final PipeCoverContainer coverContainer;
     @Getter
     @Setter
+    @DescSynced
     @Persisted
-    @SyncToClient(notifyUpdate = true)
+    @RequireRerender
     protected int connections = Node.ALL_CLOSED;
-
+    @DescSynced
     @Persisted
-    @SyncToClient(notifyUpdate = true)
+    @RequireRerender
     private int blockedConnections = Node.ALL_CLOSED;
     @Persisted
-    @SyncToClient(notifyUpdate = true)
     public Direction blockedSide;
     private NodeDataType cachedNodeData;
     @Getter
     @Setter
     @Persisted
-    @SyncToClient(notifyUpdate = true)
+    @DescSynced
+    @RequireRerender
     private int paintingColor = -1;
-
-    @SyncToClient(notifyUpdate = true)
+    @RequireRerender
+    @DescSynced
     @Persisted
     @NotNull
     private Material frameMaterial = GTMaterials.NULL;
@@ -468,10 +465,5 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
         Level level = this.level;
         if (level == null) return;
         getBlockState().updateNeighbourShapes(level, worldPosition, Block.UPDATE_ALL);
-    }
-
-    @Override
-    public FieldDataManager getFieldDataManager() {
-        return fieldDataManager.get();
     }
 }

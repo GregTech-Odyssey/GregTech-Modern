@@ -33,7 +33,6 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 
-import com.gto.datasynclib.FieldDataManager;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -249,10 +248,5 @@ public class MetaMachineBlockEntity extends TickBlockEntity implements IToolGrid
         if (metaMachine instanceof IWailaDisplayProvider provider) {
             provider.appendWailaData(data, blockAccessor);
         }
-    }
-
-    @Override
-    public FieldDataManager getFieldDataManager() {
-        return metaMachine.getFieldDataManager();
     }
 }

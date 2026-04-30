@@ -232,7 +232,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
 
         @Override
         public Data encode(boolean[] obj) {
-            var arr = new ArrayData(obj.length);
+            var arr = new ListData(obj.length);
             for (var b : obj) {
                 arr.add(BooleanData.valueOf(b));
             }
@@ -241,7 +241,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
 
         @Override
         public boolean[] decode(Data data) {
-            var arr = (ArrayData) data;
+            var arr = (ListData) data;
             var bools = new boolean[arr.size()];
             for (int i = 0; i < bools.length; i++) {
                 bools[i] = arr.get(i).getBoolean();

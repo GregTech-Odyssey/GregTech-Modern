@@ -5,15 +5,16 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
+import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
+import com.lowdragmc.lowdraglib.syncdata.annotation.UpdateListener;
+
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 
-import com.gto.datasynclib.annotations.SyncToClient;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
-import it.unimi.dsi.fastutil.longs.LongSets;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 
@@ -26,8 +27,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
 
-    @SyncToClient(listener = "onControllersUpdated", notifyUpdate = true)
-    protected final LongSet controllerPositions = new LongOpenHashSet(1);
+    @DescSynced
+    @RequireRerender
+    @UpdateListener(methodName = "onControllersUpdated")
+    protected final Set<Long> controllerPositions = new LongOpenHashSet(1);
     protected final Set<IMultiController> controllers = Collections.synchronizedSet(new ReferenceOpenHashSet<>());
 
     public MultiblockPartMachine(MetaMachineBlockEntity holder) {
@@ -55,7 +58,7 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
 
     // Not sure if necessary, but added to match the Controller class
     @SuppressWarnings("unused")
-    public synchronized void onControllersUpdated(LongSet newPositions, LongSet old) {
+    public synchronized void onControllersUpdated(Set<Long> newPositions, Set<BlockPos> old) {
         controllers.clear();
         for (var pos : newPositions) {
             if (MetaMachine.getMachine(getLevel(), BlockPos.of(pos)) instanceof IMultiController controller) {
@@ -68,7 +71,7 @@ public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
     public Set<IMultiController> getControllers() {
         // Necessary to rebuild the set of controllers on client-side
         if (controllers.size() != controllerPositions.size()) {
-            onControllersUpdated(controllerPositions, LongSets.emptySet());
+            onControllersUpdated(controllerPositions, Collections.emptySet());
         }
         return controllers;
     }

@@ -7,7 +7,9 @@ import com.gregtechceu.gtceu.api.capability.IWailaDisplayProvider;
 import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
+import com.lowdragmc.lowdraglib.syncdata.annotation.UpdateListener;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
@@ -18,7 +20,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
-import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import lombok.Setter;
 import snownee.jade.api.BlockAccessor;
@@ -33,7 +34,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class TransformerMachine extends TieredEnergyMachine implements IControllable, IWailaDisplayProvider {
 
     @Persisted
-    @SyncToClient(listener = "onTransformUpdated")
+    @DescSynced
+    @UpdateListener(methodName = "onTransformUpdated")
     private boolean isTransformUp;
     @Setter
     @Persisted

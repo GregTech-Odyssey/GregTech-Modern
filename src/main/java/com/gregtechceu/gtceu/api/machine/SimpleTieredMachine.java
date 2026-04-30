@@ -32,7 +32,9 @@ import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
+import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.Util;
@@ -47,7 +49,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.google.common.collect.Tables;
-import com.gto.datasynclib.annotations.SyncToClient;
 import com.gto.datasynclib.datasream.DataComponentMap;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
@@ -71,18 +72,22 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoOutputBoth {
 
     @Persisted
-    @SyncToClient(notifyUpdate = true)
+    @DescSynced
+    @RequireRerender
     protected Direction outputFacingItems;
     @Persisted
-    @SyncToClient(notifyUpdate = true)
+    @DescSynced
+    @RequireRerender
     protected Direction outputFacingFluids;
     @Getter
     @Persisted
-    @SyncToClient(notifyUpdate = true)
+    @DescSynced
+    @RequireRerender
     protected boolean autoOutputItems;
     @Getter
     @Persisted
-    @SyncToClient(notifyUpdate = true)
+    @DescSynced
+    @RequireRerender
     protected boolean autoOutputFluids;
     @Getter
     @Persisted
@@ -108,7 +113,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     protected ISubscription energySubs;
 
     @Persisted
-    @SyncToClient
+    @DescSynced
     protected VoidingMode voidingMode = VoidingMode.VOID_NONE;
 
     public SimpleTieredMachine(MetaMachineBlockEntity holder, int tier, Int2IntFunction tankScalingFunction, Object... args) {

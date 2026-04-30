@@ -30,12 +30,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Block;
 
-import com.gto.datasynclib.annotations.Access;
-import com.gto.datasynclib.annotations.SaveToDisk;
-import com.gto.datasynclib.annotations.SyncToClient;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.longs.LongSets;
 import lombok.Getter;
 import lombok.Setter;
@@ -72,8 +68,8 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     protected final List<ISubscription> traitSubscriptions;
     @Getter
     @Setter
-    @SaveToDisk
-    @SyncToClient
+    @Persisted
+    @DescSynced
     protected boolean isMuffled;
 
     protected RecipeHandlerList currentHandlerList;
@@ -99,12 +95,9 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Nullable
     protected TickableSubscription activeBlocksSubs;
-
-    @SyncToClient(autoUpdate = false)
-    @Access
-    protected LongSet activeBlocks = new LongOpenHashSet();
-
-    @SyncToClient
+    @DescSynced
+    protected Set<Long> activeBlocks = new LongOpenHashSet();
+    @DescSynced
     protected boolean activated;
     protected ActiveBlock.State activeState = ActiveBlock.State.UNKNOWN;
 
@@ -165,7 +158,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     protected void onStructureFormedAfter() {
         super.onStructureFormedAfter();
         arrangeHandlerList();
-        getFieldDataManager().markFieldsForSync("activeBlocks");
     }
 
     @Override
@@ -224,7 +216,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Override
     public void onStructureInvalid() {
-        getFieldDataManager().markFieldsForSync("activeBlocks");
         updateActiveBlock(false);
         super.onStructureInvalid();
         parallelHatch = null;

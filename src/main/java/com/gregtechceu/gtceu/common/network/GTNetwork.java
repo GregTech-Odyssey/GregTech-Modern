@@ -1,7 +1,10 @@
 package com.gregtechceu.gtceu.common.network;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.common.network.packets.*;
+import com.gregtechceu.gtceu.common.network.packets.CPacketKeysPressed;
+import com.gregtechceu.gtceu.common.network.packets.SCPacketStructureFormed;
+import com.gregtechceu.gtceu.common.network.packets.SCPacketUpdateActiveBlock;
+import com.gregtechceu.gtceu.common.network.packets.SPacketSendWorldID;
 import com.gregtechceu.gtceu.common.network.packets.prospecting.SPacketProspectBedrockFluid;
 import com.gregtechceu.gtceu.common.network.packets.prospecting.SPacketProspectBedrockOre;
 import com.gregtechceu.gtceu.common.network.packets.prospecting.SPacketProspectOre;
@@ -15,7 +18,6 @@ public class GTNetwork {
 
     public static void init() {
         NETWORK.registerC2S(CPacketKeysPressed.class);
-        NETWORK.registerC2S(CSPacketSBlockEntitySync.class);
 
         NETWORK.registerS2C(SPacketProspectOre.class);
         NETWORK.registerS2C(SPacketProspectBedrockFluid.class);
@@ -23,6 +25,5 @@ public class GTNetwork {
         NETWORK.registerS2C(SPacketSendWorldID.class);
         NETWORK.registerS2C(SCPacketUpdateActiveBlock.class);
         NETWORK.registerS2C(SCPacketStructureFormed.class);
-        NETWORK.registerS2C(SCPacketSBlockEntitySync.class);
     }
 }

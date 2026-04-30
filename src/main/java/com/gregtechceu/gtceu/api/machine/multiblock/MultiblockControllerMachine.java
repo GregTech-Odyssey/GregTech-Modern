@@ -17,6 +17,11 @@ import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.SCPacketStructureFormed;
 import com.gregtechceu.gtceu.core.ILevel;
 
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
+import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
+import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
+import com.lowdragmc.lowdraglib.syncdata.annotation.UpdateListener;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -36,7 +41,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import com.fast.recipesearch.IteratorUtil;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
@@ -59,25 +63,28 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @Getter
     protected final int subPatternAmount = getSubPattern() == null ? 0 : getSubPattern().length;
     protected MultiblockState[] subMultiblockState = new MultiblockState[subPatternAmount];
-    @SyncToClient
+    @DescSynced
     protected final boolean[] formeds = new boolean[subPatternAmount];
     protected int formedAmount;
     protected IMultiPart[] parts = new IMultiPart[0];
     protected final List<IMultiModule<?>> modules = new ArrayList<>();
 
     @Getter
-    @SyncToClient(listener = "onPartsUpdated")
+    @DescSynced
+    @UpdateListener(methodName = "onPartsUpdated")
     protected BlockPos[] partPositions = new BlockPos[0];
     @Getter
-    @SyncToClient(listener = "onFormedUpdated", notifyUpdate = true)
+    @DescSynced
+    @UpdateListener(methodName = "onFormedUpdated")
+    @RequireRerender
     protected boolean isFormed;
 
     @Getter
-    @SyncToClient
+    @DescSynced
     protected final boolean[] isFormedsFlipped = new boolean[subPatternAmount];
-
     @Getter
-    @SyncToClient
+    @Persisted
+    @DescSynced
     protected boolean isFlipped;
 
     protected volatile boolean simpleLock;

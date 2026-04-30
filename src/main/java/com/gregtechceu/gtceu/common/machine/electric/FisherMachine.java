@@ -26,7 +26,9 @@ import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
+import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -56,7 +58,6 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -72,12 +73,14 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
 
     @Getter
     @Persisted
-    @SyncToClient(notifyUpdate = true)
+    @DescSynced
+    @RequireRerender
     @Nullable
     protected Direction outputFacingItems;
     @Getter
     @Persisted
-    @SyncToClient(notifyUpdate = true)
+    @DescSynced
+    @RequireRerender
     protected boolean autoOutputItems;
     @Persisted
     protected final NotifiableItemStackHandler cache;
@@ -111,7 +114,7 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
     @Getter
     @Setter
     @Persisted
-    @SyncToClient
+    @DescSynced
     private boolean isWorkingEnabled = true;
     @Getter
     @Persisted
@@ -122,7 +125,7 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
     @Getter
     @Setter
     @Persisted
-    @SyncToClient
+    @DescSynced
     protected boolean junkEnabled = true;
 
     public FisherMachine(MetaMachineBlockEntity holder, int tier, Object... ignoredArgs) {

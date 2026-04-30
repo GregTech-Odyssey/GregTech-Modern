@@ -15,8 +15,10 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DropSaved;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
+import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -34,7 +36,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 
-import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -49,7 +50,8 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
 
     @Getter
     @Persisted
-    @SyncToClient(notifyUpdate = true)
+    @DescSynced
+    @RequireRerender
     protected boolean autoOutputFluids;
     @Getter
     private final int maxStoredFluids;
@@ -62,7 +64,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     // rename "Fluid" for Item capability
     @Getter
     @Persisted(key = "Fluid")
-    @SyncToClient
+    @DescSynced
     @DropSaved
     protected FluidStack stored = FluidStack.EMPTY;
     @Getter

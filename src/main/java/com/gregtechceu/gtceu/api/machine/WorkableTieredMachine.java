@@ -14,7 +14,6 @@ import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
-import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import lombok.Getter;
@@ -64,7 +63,7 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     @Getter
     @Setter
     @Persisted
-    @SyncToClient
+    @DescSynced
     protected boolean isMuffled;
     protected RecipeHandlerList currentHandlerList;
 

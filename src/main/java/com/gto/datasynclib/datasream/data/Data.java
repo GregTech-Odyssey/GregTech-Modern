@@ -82,9 +82,8 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
     byte INT_ARRAY = 10;
     byte LONG_ARRAY = 11;
     byte STRING = 12;
-    byte ARRAY = 13;
-    byte LIST = 14;
-    byte MAP = 15;
+    byte LIST = 13;
+    byte MAP = 14;
 
     static <T extends Data> T read(Type<T> type, ByteBuf stream) {
         return (T) read(type.id, stream);
@@ -105,7 +104,6 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
             case BYTE_ARRAY -> new ByteArrayData(readByteArray(stream));
             case INT_ARRAY -> new IntArrayData(readIntArray(stream));
             case LONG_ARRAY -> new LongArrayData(readLongArray(stream));
-            case ARRAY -> new ArrayData(stream);
             case LIST -> ListData.read(stream);
             case MAP -> MapData.read(stream);
             default -> throw new IllegalStateException("Unexpected value: " + id);
@@ -356,7 +354,6 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
         public static final Type<IntArrayData> INT_ARRAY = new Type<>(Data.INT_ARRAY, IntArrayData.class);
         public static final Type<LongArrayData> LONG_ARRAY = new Type<>(Data.LONG_ARRAY, LongArrayData.class);
         public static final Type<StringData> STRING = new Type<>(Data.STRING, StringData.class);
-        public static final Type<ArrayData> ARRAY = new Type<>(Data.ARRAY, ArrayData.class);
         public static final Type<ListData> LIST = new Type<>(Data.LIST, ListData.class);
         public static final Type<MapData> MAP = new Type<>(Data.MAP, MapData.class);
 

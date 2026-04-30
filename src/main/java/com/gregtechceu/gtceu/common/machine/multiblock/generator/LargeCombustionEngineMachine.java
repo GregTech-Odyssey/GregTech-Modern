@@ -23,13 +23,14 @@ import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTMath;
 
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraftforge.fluids.FluidStack;
 
-import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +49,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
     @Getter
     private final int tier;
     // runtime
-    @SyncToClient
+    @DescSynced
     private boolean isOxygenBoosted = false;
     private int runningTimer = 0;
 

@@ -22,7 +22,9 @@ import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.*;
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
+import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -41,7 +43,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
-import com.gto.datasynclib.annotations.SyncToClient;
 import dev.gigaherz.toolbelt.BeltFinder;
 import dev.gigaherz.toolbelt.belt.ToolBeltInventory;
 import lombok.Getter;
@@ -71,7 +72,8 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
     @Getter
     @Setter
     @Persisted
-    @SyncToClient(notifyUpdate = true)
+    @DescSynced
+    @RequireRerender
     private boolean isTaped;
     @Getter
     @Setter
@@ -79,7 +81,7 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
     protected int timeActive;
     @Getter
     @Persisted
-    @SyncToClient
+    @DescSynced
     protected byte maintenanceProblems = startProblems();
     @Getter
     @Persisted

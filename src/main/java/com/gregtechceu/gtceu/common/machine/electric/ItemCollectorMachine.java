@@ -28,7 +28,9 @@ import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
+import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -52,7 +54,6 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 
-import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,11 +72,13 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     private static final int BASE_EU_CONSUMPTION = 6;
     @Getter
     @Persisted
-    @SyncToClient(notifyUpdate = true)
+    @DescSynced
+    @RequireRerender
     protected Direction outputFacingItems;
     @Getter
     @Persisted
-    @SyncToClient(notifyUpdate = true)
+    @DescSynced
+    @RequireRerender
     protected boolean autoOutputItems;
     @Persisted
     protected final NotifiableItemStackHandler output;
@@ -99,17 +102,18 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     private AABB aabb;
     @Getter
     @Persisted
-    @SyncToClient
+    @DescSynced
     private int range;
     private boolean rangeDirty = false;
     private final int maxRange;
     @Getter
     @Persisted
-    @SyncToClient
+    @DescSynced
     private boolean isWorkingEnabled = true;
     @Getter
+    @DescSynced
     @Persisted
-    @SyncToClient(notifyUpdate = true)
+    @RequireRerender
     private boolean active = false;
 
     public ItemCollectorMachine(MetaMachineBlockEntity holder, int tier, Object... ignoredArgs) {
