@@ -28,7 +28,6 @@ import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.ProgressWidget;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.ChatFormatting;
@@ -56,6 +55,7 @@ import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 import snownee.jade.api.BlockAccessor;
@@ -76,7 +76,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     public final NotifiableFluidTank waterTank;
     @Getter
     @Persisted
-    @DescSynced
+    @SyncToClient
     private int currentTemperature;
     @Getter
     @Persisted

@@ -5,10 +5,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datasream.codec.DataCodec;
-import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.DynamicOps;
 import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,19 +15,6 @@ public record MapData(Map<String, Data> value) implements Data {
 
     public static final MapData EMPTY = new MapData(Collections.emptyMap());
 
-    public static final Codec<MapData> CODEC = new Codec<>() {
-
-        @Override
-        public <T> DataResult<Pair<MapData, T>> decode(DynamicOps<T> ops, T input) {
-            return DataResult.success(Pair.of((MapData) ops.convertTo(DataOps.INSTANCE, input), ops.empty()));
-        }
-
-        @Override
-        public <T> DataResult<T> encode(MapData input, DynamicOps<T> ops, T prefix) {
-            return DataResult.success(DataOps.INSTANCE.convertTo(ops, input));
-        }
-    };
-
     public static final ByteStreamCodec<MapData> BYTE_STREAM_CODEC = new ByteStreamCodec<>() {
 
         @Override
@@ -41,7 +24,7 @@ public record MapData(Map<String, Data> value) implements Data {
 
         @Override
         public MapData decode(FriendlyByteBuf stream) {
-            return Data.read(Type.MAP, stream);
+            return Data.readData(Type.MAP, stream);
         }
 
         static {

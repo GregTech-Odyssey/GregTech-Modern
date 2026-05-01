@@ -20,9 +20,7 @@ import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -33,6 +31,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,25 +45,21 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
 
     @Getter
     @Persisted
-    @DescSynced
-    @RequireRerender
+    @SyncToClient(notifyUpdate = true)
     @Nullable
     protected Direction outputFacingItems;
     @Getter
     @Persisted
-    @DescSynced
-    @RequireRerender
+    @SyncToClient(notifyUpdate = true)
     @Nullable
     protected Direction outputFacingFluids;
     @Getter
     @Persisted
-    @DescSynced
-    @RequireRerender
+    @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputItems;
     @Getter
     @Persisted
-    @DescSynced
-    @RequireRerender
+    @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputFluids;
     @Getter
     @Persisted

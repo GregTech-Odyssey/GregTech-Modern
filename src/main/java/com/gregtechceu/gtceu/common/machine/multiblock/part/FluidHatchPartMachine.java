@@ -23,7 +23,6 @@ import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -41,6 +40,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
 
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,7 +65,7 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     protected final NotifiableItemStackHandler circuitInventory;
     @Getter
     @Persisted
-    @DescSynced
+    @SyncToClient
     private boolean isDistinct = false;
 
     // The `Object... args` parameter is necessary in case a superclass needs to pass any args along to createTank().

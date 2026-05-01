@@ -2,7 +2,7 @@ package com.gto.datasynclib.listener;
 
 import net.minecraft.network.FriendlyByteBuf;
 
-import com.gto.datasynclib.ISerializable;
+import com.gto.datasynclib.IDataSerializable;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.IntData;
@@ -11,7 +11,7 @@ import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 @Setter
-public final class IntNotifiableHolder extends IntHolder implements ISerializable, ISyncNotifiable<IntSyncListener> {
+public final class IntNotifiableHolder extends IntHolder implements IDataSerializable, ISyncNotifiable<IntSyncListener> {
 
     public static IntNotifiableHolder create() {
         return new IntNotifiableHolder();

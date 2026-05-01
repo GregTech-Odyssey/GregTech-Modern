@@ -38,7 +38,6 @@ import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
 import com.lowdragmc.lowdraglib.syncdata.IManaged;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
@@ -70,6 +69,11 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import com.gto.datasynclib.FieldDataManager;
+import com.gto.datasynclib.IFieldDataHolder;
+import com.gto.datasynclib.LazyFieldDataManager;
+import com.gto.datasynclib.LogicalSide;
+import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.datafixers.util.Pair;
 import lombok.Getter;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
@@ -92,7 +96,7 @@ import static com.gregtechceu.gtceu.api.item.tool.ToolHelper.getBehaviorsTag;
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyTooltip, IPaintable, IRedstoneSignalMachine {
+public class MetaMachine implements IFieldDataHolder, IEnhancedManaged, ITickSubscription, IFancyTooltip, IPaintable, IRedstoneSignalMachine {
 
     private static final Map<Class<?>, ManagedFieldHolder> MANAGED_FIELD_MAP = new ConcurrentHashMap<>();
 
@@ -115,13 +119,15 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
         return holder;
     }
 
+    private final LazyFieldDataManager fieldDataManager = new LazyFieldDataManager(this);
+
     @Getter
     private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
     private final ManagedFieldHolder managedFieldHolder = getManagedFieldHolder(getClass());
     @Getter
     protected final MachineDefinition definition;
     @Persisted
-    @DescSynced
+    @SyncToClient
     @Nullable
     private UUID ownerUUID;
     @Getter
@@ -132,8 +138,7 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     protected final MachineCoverContainer coverContainer;
     @Getter
     @Persisted
-    @DescSynced
-    @RequireRerender
+    @SyncToClient(notifyUpdate = true)
     private int paintingColor = -1;
     @Getter
     protected final List<MachineTrait> traits = new ArrayList<>();
@@ -169,6 +174,11 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     @Override
     public final ManagedFieldHolder getFieldHolder() {
         return managedFieldHolder;
+    }
+
+    @Override
+    public FieldDataManager getFieldDataManager() {
+        return fieldDataManager.get();
     }
 
     @Override
@@ -823,5 +833,10 @@ public class MetaMachine implements IEnhancedManaged, ITickSubscription, IFancyT
     @Override
     public MetaMachine self() {
         return this;
+    }
+
+    @Override
+    public void scheduleUpdate(LogicalSide side) {
+        holder.scheduleRenderUpdate();
     }
 }

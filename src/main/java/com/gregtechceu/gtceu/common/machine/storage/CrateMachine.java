@@ -16,9 +16,7 @@ import com.gregtechceu.gtceu.common.data.GTItems;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -32,6 +30,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,9 +45,8 @@ public class CrateMachine extends MetaMachine implements IUIMachine, IMachineLif
     @Getter
     private final int inventorySize;
     @Getter
-    @RequireRerender
     @Persisted
-    @DescSynced
+    @SyncToClient(notifyUpdate = true)
     private boolean isTaped;
     @Persisted
     public final NotifiableItemStackHandler inventory;

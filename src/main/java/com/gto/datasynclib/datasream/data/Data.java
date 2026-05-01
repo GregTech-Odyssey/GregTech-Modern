@@ -14,6 +14,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
@@ -26,12 +27,12 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
 
         @Override
         public <T> DataResult<Pair<Data, T>> decode(DynamicOps<T> ops, T input) {
-            return DataResult.success(Pair.of(ops.convertTo(DataOps.INSTANCE, input), ops.empty()));
+            return DataResult.success(Pair.of(Data.readData(Unpooled.copiedBuffer(ops.getByteBuffer(input).result().orElseThrow())), ops.empty()));
         }
 
         @Override
         public <T> DataResult<T> encode(Data input, DynamicOps<T> ops, T prefix) {
-            return DataResult.success(DataOps.INSTANCE.convertTo(ops, input));
+            return DataResult.success(ops.createByteList(ByteBuffer.wrap(input.writeToBytes())));
         }
     };
 
@@ -85,11 +86,11 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
     byte LIST = 13;
     byte MAP = 14;
 
-    static <T extends Data> T read(Type<T> type, ByteBuf stream) {
-        return (T) read(type.id, stream);
+    static <T extends Data> T readData(Type<T> type, ByteBuf stream) {
+        return (T) readData(type.id, stream);
     }
 
-    static Data read(byte id, ByteBuf stream) {
+    static Data readData(byte id, ByteBuf stream) {
         return switch (id) {
             case NULL -> NullData.INSTANCE;
             case BOOLEAN -> BooleanData.valueOf(stream.readBoolean());
@@ -110,10 +111,10 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
         };
     }
 
-    static Data read(byte[] bytes) {
+    static Data readData(byte[] bytes) {
         var buf = Unpooled.wrappedBuffer(bytes);
         try {
-            return read(buf.readByte(), buf);
+            return readData(buf.readByte(), buf);
         } finally {
             buf.release();
         }
@@ -133,7 +134,7 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
     }
 
     static Data readData(ByteBuf buf) {
-        return read(buf.readByte(), buf);
+        return readData(buf.readByte(), buf);
     }
 
     static void writeData(ByteBuf buf, Data data) {
@@ -319,12 +320,119 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
         return StringData.valueOf(value);
     }
 
+    static ByteArrayData valueOf(byte[] value) {
+        return ByteArrayData.valueOf(value);
+    }
+
+    static IntArrayData valueOf(int[] value) {
+        return IntArrayData.valueOf(value);
+    }
+
+    static LongArrayData valueOf(long[] value) {
+        return LongArrayData.valueOf(value);
+    }
+
+    static ByteArrayData valueOf(boolean[] value) {
+        var length = value.length;
+        var arr = new byte[length];
+        for (int i = 0; i < length; i++) {
+            arr[i] = (byte) (value[i] ? 1 : 0);
+        }
+        return ByteArrayData.valueOf(arr);
+    }
+
+    static IntArrayData valueOf(short[] value) {
+        int length = value.length;
+        int[] arr = new int[length];
+        for (int i = 0; i < length; i++) {
+            arr[i] = value[i];
+        }
+        return IntArrayData.valueOf(arr);
+    }
+
+    static IntArrayData valueOf(char[] value) {
+        int length = value.length;
+        int[] arr = new int[length];
+        for (int i = 0; i < length; i++) {
+            arr[i] = value[i];
+        }
+        return IntArrayData.valueOf(arr);
+    }
+
+    static IntArrayData valueOf(float[] value) {
+        var length = value.length;
+        int[] arr = new int[length];
+        for (int i = 0; i < length; i++) {
+            arr[i] = Float.floatToIntBits(value[i]);
+        }
+        return IntArrayData.valueOf(arr);
+    }
+
+    static LongArrayData valueOf(double[] value) {
+        var length = value.length;
+        long[] arr = new long[length];
+        for (int i = 0; i < length; i++) {
+            arr[i] = Double.doubleToLongBits(value[i]);
+        }
+        return LongArrayData.valueOf(arr);
+    }
+
     static LongArrayData valueOf(UUID uuid) {
         return new LongArrayData(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
     }
 
     static ByteArrayData valueOf(BigInteger bigInteger) {
         return new ByteArrayData(bigInteger.toByteArray());
+    }
+
+    default boolean[] getBooleanArray() {
+        var array = getByteArray();
+        var length = array.length;
+        var result = new boolean[length];
+        for (int i = 0; i < length; i++) {
+            result[i] = array[i] == 1;
+        }
+        return result;
+    }
+
+    default short[] getShortArray() {
+        var array = getIntArray();
+        var length = array.length;
+        var result = new short[length];
+        for (int i = 0; i < length; i++) {
+            result[i] = (short) array[i];
+        }
+        return result;
+    }
+
+    default char[] getCharArray() {
+        var array = getIntArray();
+        var length = array.length;
+        var result = new char[length];
+        for (int i = 0; i < length; i++) {
+            result[i] = (char) array[i];
+        }
+        return result;
+    }
+
+    default float[] getFloatArray() {
+        var array = getIntArray();
+        var length = array.length;
+        var result = new float[length];
+        for (int i = 0; i < length; i++) {
+            result[i] = Float.intBitsToFloat(array[i]);
+        }
+        return result;
+    }
+
+    default double[] getDoubleArray() {
+        var array = getLongArray();
+        var length = array.length;
+        var result = new double[length];
+        for (int i = 0; i < length; i++) {
+            result[i] = Double.longBitsToDouble(array[i]);
+        }
+        return result;
     }
 
     default UUID getUUID() {

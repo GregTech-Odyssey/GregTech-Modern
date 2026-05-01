@@ -2,7 +2,7 @@ package com.gto.datasynclib.listener;
 
 import net.minecraft.network.FriendlyByteBuf;
 
-import com.gto.datasynclib.ISerializable;
+import com.gto.datasynclib.IDataSerializable;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ShortData;
@@ -11,7 +11,7 @@ import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 @Setter
-public final class ShortNotifiableHolder extends ShortHolder implements ISerializable, ISyncNotifiable<ShortSyncListener> {
+public final class ShortNotifiableHolder extends ShortHolder implements IDataSerializable, ISyncNotifiable<ShortSyncListener> {
 
     public static ShortNotifiableHolder create() {
         return new ShortNotifiableHolder();

@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
@@ -78,6 +79,23 @@ public class StreamCodecs {
 
         static {
             ByteStreamCodec.registerCodec(FluidStack.class, FLUID_STACK_CODEC);
+        }
+    };
+
+    public static final ByteStreamCodec<Component> COMPONENT_CODEC = new ByteStreamCodec<>() {
+
+        @Override
+        public void encode(FriendlyByteBuf buf, Component obj) {
+            buf.writeComponent(obj);
+        }
+
+        @Override
+        public Component decode(FriendlyByteBuf buf) {
+            return buf.readComponent();
+        }
+
+        static {
+            ByteStreamCodec.registerCodec(Component.class, COMPONENT_CODEC);
         }
     };
 

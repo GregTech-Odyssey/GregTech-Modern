@@ -6,15 +6,15 @@ import com.gregtechceu.gtceu.api.machine.feature.IMachineModifyDrops;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
+
+import com.gto.datasynclib.annotations.SyncToClient;
 
 import java.util.List;
 
@@ -26,8 +26,7 @@ public abstract class HPCAComponentPartMachine extends MultiblockPartMachine
                                                implements IHPCAComponentHatch, IMachineModifyDrops {
 
     @Persisted
-    @DescSynced
-    @RequireRerender
+    @SyncToClient(notifyUpdate = true)
     private boolean damaged;
 
     public HPCAComponentPartMachine(MetaMachineBlockEntity holder) {

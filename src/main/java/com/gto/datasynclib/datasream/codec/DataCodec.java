@@ -232,21 +232,12 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
 
         @Override
         public Data encode(boolean[] obj) {
-            var arr = new ListData(obj.length);
-            for (var b : obj) {
-                arr.add(BooleanData.valueOf(b));
-            }
-            return arr;
+            return Data.valueOf(obj);
         }
 
         @Override
         public boolean[] decode(Data data) {
-            var arr = (ListData) data;
-            var bools = new boolean[arr.size()];
-            for (int i = 0; i < bools.length; i++) {
-                bools[i] = arr.get(i).getBoolean();
-            }
-            return bools;
+            return data.getBooleanArray();
         }
 
         static {
@@ -268,6 +259,40 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
 
         static {
             registerCodec(byte[].class, BYTES_CODEC);
+        }
+    };
+
+    DataCodec<short[]> SHORTS_CODEC = new DataCodec<>() {
+
+        @Override
+        public Data encode(short[] obj) {
+            return Data.valueOf(obj);
+        }
+
+        @Override
+        public short[] decode(Data data) {
+            return data.getShortArray();
+        }
+
+        static {
+            registerCodec(short[].class, SHORTS_CODEC);
+        }
+    };
+
+    DataCodec<char[]> CHARS_CODEC = new DataCodec<>() {
+
+        @Override
+        public Data encode(char[] obj) {
+            return Data.valueOf(obj);
+        }
+
+        @Override
+        public char[] decode(Data data) {
+            return data.getCharArray();
+        }
+
+        static {
+            registerCodec(char[].class, CHARS_CODEC);
         }
     };
 
@@ -302,6 +327,40 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
 
         static {
             registerCodec(long[].class, LONGS_CODEC);
+        }
+    };
+
+    DataCodec<float[]> FLOATS_CODEC = new DataCodec<>() {
+
+        @Override
+        public Data encode(float[] obj) {
+            return Data.valueOf(obj);
+        }
+
+        @Override
+        public float[] decode(Data data) {
+            return data.getFloatArray();
+        }
+
+        static {
+            registerCodec(float[].class, FLOATS_CODEC);
+        }
+    };
+
+    DataCodec<double[]> DOUBLES_CODEC = new DataCodec<>() {
+
+        @Override
+        public Data encode(double[] obj) {
+            return Data.valueOf(obj);
+        }
+
+        @Override
+        public double[] decode(Data data) {
+            return data.getDoubleArray();
+        }
+
+        static {
+            registerCodec(double[].class, DOUBLES_CODEC);
         }
     };
 

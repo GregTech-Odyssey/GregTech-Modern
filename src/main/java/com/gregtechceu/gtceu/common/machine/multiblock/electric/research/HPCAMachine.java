@@ -32,11 +32,7 @@ import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.IManaged;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -52,8 +48,9 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import com.gto.datasynclib.annotations.AdditionalHolder;
+import com.gto.datasynclib.annotations.SyncToClient;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -71,8 +68,8 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     private static final double IDLE_TEMPERATURE = 200;
     private static final double DAMAGE_TEMPERATURE = 1000;
     private IFluidHandler coolantHandler;
-    @Persisted
-    @DescSynced
+
+    @AdditionalHolder
     private final HPCAGridHandler hpcaHandler;
     @Persisted
     private double temperature = IDLE_TEMPERATURE; // start at idle temperature
@@ -84,7 +81,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         super(holder, args);
         this.energyContainer = EnergyContainerList.EMPTY;
         this.progressSupplier = new TimedProgressSupplier(200, 47, false);
-        this.hpcaHandler = new HPCAGridHandler(this);
+        this.hpcaHandler = new HPCAGridHandler();
     }
 
     @Override
@@ -237,14 +234,8 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         }).addWorkingStatusLine();
     }
 
-    public static class HPCAGridHandler implements IManaged {
+    public static class HPCAGridHandler {
 
-        public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(HPCAGridHandler.class);
-        @Getter
-        private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
-        // for testing
-        @Nullable
-        private final HPCAMachine controller;
         // structure info
         private final List<IHPCAComponentHatch> components = new ArrayList<>();
         private final Set<IHPCACoolantProvider> coolantProviders = new ReferenceOpenHashSet<>();
@@ -260,14 +251,12 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         private long maximumEUt;
         // cached gui info
         // holding these values past the computation clear because GUI is too "late" to read the state in time
-        @DescSynced
+        @SyncToClient
         private long cachedEUt;
-        @DescSynced
+        @SyncToClient
         private long cachedCWUt;
 
-        public HPCAGridHandler(@Nullable HPCAMachine controller) {
-            this.controller = controller;
-        }
+        public HPCAGridHandler() {}
 
         public void onStructureForm(Collection<IHPCAComponentHatch> components) {
             reset();
@@ -528,16 +517,6 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
 
         public void clearClientComponents() {
             components.clear();
-        }
-
-        @Override
-        public ManagedFieldHolder getFieldHolder() {
-            return MANAGED_FIELD_HOLDER;
-        }
-
-        @Override
-        public void onChanged() {
-            controller.onChanged();
         }
     }
 }

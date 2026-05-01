@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
@@ -96,6 +97,23 @@ public class DataCodecs {
 
         static {
             DataCodec.registerCodec(FluidStack.class, FLUID_STACK_CODEC);
+        }
+    };
+
+    public static final DataCodec<Component> COMPONENT_CODEC = new DataCodec<>() {
+
+        @Override
+        public Component decode(Data data) {
+            return Component.Serializer.fromJson(data.getString());
+        }
+
+        @Override
+        public Data encode(Component obj) {
+            return StringData.valueOf(Component.Serializer.toJson(obj));
+        }
+
+        static {
+            DataCodec.registerCodec(Component.class, COMPONENT_CODEC);
         }
     };
 

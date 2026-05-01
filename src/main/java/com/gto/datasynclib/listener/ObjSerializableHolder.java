@@ -3,7 +3,7 @@ package com.gto.datasynclib.listener;
 import net.minecraft.network.FriendlyByteBuf;
 
 import com.gto.datasynclib.CombinationCodec;
-import com.gto.datasynclib.ISerializable;
+import com.gto.datasynclib.IDataSerializable;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.NullData;
@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public class ObjSerializableHolder<T> extends ObjHolder<T> implements ISerializable {
+public class ObjSerializableHolder<T> extends ObjHolder<T> implements IDataSerializable {
 
     public static <T> ObjSerializableHolder<T> create(CombinationCodec<T> codec) {
         return new ObjSerializableHolder<>(codec);

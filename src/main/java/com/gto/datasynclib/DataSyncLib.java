@@ -41,7 +41,7 @@ public final class DataSyncLib {
         registerAccessFactory(long[].class, LongArrayAccess::new);
 
         registerAccessInterfaceFactory(IFieldDataHolder.class, k -> DataFieldHolderAccess::new, 1000);
-        registerAccessInterfaceFactory(ISerializable.class, k -> SerializableAccess::new, 1000);
+        registerAccessInterfaceFactory(IDataSerializable.class, k -> SerializableAccess::new, 1000);
 
         registerAccessInterfaceFactory(IntCollection.class, k -> IntCollectionAccess::new, 1000);
         registerAccessInterfaceFactory(LongCollection.class, k -> LongCollectionAccess::new, 1000);

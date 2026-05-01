@@ -284,7 +284,7 @@ public final class DataOps implements DynamicOps<Data> {
 
     @Override
     public String toString() {
-        return "NBT";
+        return "Data";
     }
 
     @Override
