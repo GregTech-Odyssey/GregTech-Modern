@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
-public final class LongArrayAccess<T> extends AbstractFieldAccess<long[]> {
+public final class LongArrayAccess<T> extends AbstractMarkFieldAccess<long[]> {
 
     private int hashCode;
 

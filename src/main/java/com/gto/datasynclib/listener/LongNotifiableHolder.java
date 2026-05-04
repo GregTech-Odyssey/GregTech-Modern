@@ -8,21 +8,49 @@ import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.LongData;
 import com.gto.datasynclib.util.holder.LongHolder;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
-@Setter
-public final class LongNotifiableHolder extends LongHolder implements IDataSerializable, ISyncNotifiable<LongSyncListener> {
+public final class LongNotifiableHolder extends LongHolder implements IDataSerializable, ISyncNotifiable<LongNotifiableHolder, LongSyncListener> {
 
     public static LongNotifiableHolder create() {
         return new LongNotifiableHolder();
     }
 
+    public static LongNotifiableHolder create(long value) {
+        return new LongNotifiableHolder(value);
+    }
+
+    @Setter
+    @Accessors(chain = true)
     private LongSyncListener receiverListener = LongSyncListener.EMPTY;
+    @Setter
+    @Accessors(chain = true)
     private LongSyncListener senderListener = LongSyncListener.EMPTY;
 
     private long lastValue;
+    private boolean syncChange = true;
 
     private LongNotifiableHolder() {}
+
+    private LongNotifiableHolder(long value) {
+        super(value);
+    }
+
+    @Override
+    public void markAsDirty() {
+        syncChange = true;
+    }
+
+    @Override
+    public void clearDirty() {
+        syncChange = false;
+    }
+
+    @Override
+    public boolean isDirty() {
+        return syncChange;
+    }
 
     @Override
     public boolean hasChanges() {

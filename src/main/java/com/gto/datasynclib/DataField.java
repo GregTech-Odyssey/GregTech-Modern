@@ -14,11 +14,11 @@ public interface DataField<T> {
 
     DataFieldDefinition<T> getDefinition();
 
-    void markAsDirty();
+    void markAsDirty(@NotNull Object source);
 
-    boolean isDirty();
+    boolean isDirty(@NotNull Object source);
 
-    void clearDirty();
+    void clearDirty(@NotNull Object source);
 
     boolean hasChanges(@NotNull LogicalSide side, @NotNull Object source, boolean auto);
 

@@ -5,23 +5,19 @@ import net.minecraft.network.FriendlyByteBuf;
 import com.gto.datasynclib.CombinationCodec;
 import com.gto.datasynclib.LogicalSide;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
-
 @Setter
-public final class ObjNotifiableHolder<T> extends ObjSerializableHolder<T> implements ISyncNotifiable<ObjSyncListener<T>> {
-
-    public static ObjNotifiableHolder<String> createString() {
-        return new ObjNotifiableHolder<>(CombinationCodec.STRING_CODEC);
-    }
-
-    public static ObjNotifiableHolder<UUID> createUUID() {
-        return new ObjNotifiableHolder<>(CombinationCodec.UUID_CODEC);
-    }
+@Accessors(chain = true)
+public final class ObjNotifiableHolder<T> extends ObjSerializableHolder<T> implements ISyncNotifiable<ObjNotifiableHolder, ObjSyncListener<T>> {
 
     public static <T> ObjNotifiableHolder<T> create(CombinationCodec<T> codec) {
         return new ObjNotifiableHolder<>(codec);
+    }
+
+    public static <T> ObjNotifiableHolder<T> create(CombinationCodec<T> codec, T value) {
+        return new ObjNotifiableHolder<>(codec, value);
     }
 
     private ObjSyncListener<T> receiverListener = ObjSyncListener.EMPTY;
@@ -29,6 +25,10 @@ public final class ObjNotifiableHolder<T> extends ObjSerializableHolder<T> imple
 
     private ObjNotifiableHolder(CombinationCodec<T> codec) {
         super(codec);
+    }
+
+    private ObjNotifiableHolder(CombinationCodec<T> codec, T value) {
+        super(codec, value);
     }
 
     @Override

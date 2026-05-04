@@ -10,4 +10,12 @@ public class CharHolder {
     public CharHolder(char value) {
         this.value = value;
     }
+
+    public final char get() {
+        return value;
+    }
+
+    public final void set(char value) {
+        this.value = value;
+    }
 }

@@ -165,7 +165,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     protected void onStructureFormedAfter() {
         super.onStructureFormedAfter();
         arrangeHandlerList();
-        getFieldDataManager().markFieldsForSync("activeBlocks");
+        markFieldsForSync("activeBlocks");
     }
 
     @Override
@@ -224,7 +224,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Override
     public void onStructureInvalid() {
-        getFieldDataManager().markFieldsForSync("activeBlocks");
+        markFieldsForSync("activeBlocks");
         updateActiveBlock(false);
         super.onStructureInvalid();
         parallelHatch = null;

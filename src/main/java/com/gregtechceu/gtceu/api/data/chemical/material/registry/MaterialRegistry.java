@@ -14,7 +14,6 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
-import java.util.Collections;
 
 @Getter
 public class MaterialRegistry extends GTRegistry.String<Material> {
@@ -54,7 +53,7 @@ public class MaterialRegistry extends GTRegistry.String<Material> {
 
     @NotNull
     public Collection<Material> getAllMaterials() {
-        return Collections.unmodifiableCollection(this.registry.values());
+        return super.values();
     }
 
     public void setFallbackMaterial(@NotNull Material material) {
@@ -71,6 +70,7 @@ public class MaterialRegistry extends GTRegistry.String<Material> {
 
     public void closeRegistry() {
         this.isRegistryClosed = true;
+        super.freeze();
     }
 
     public ResourceLocation id(java.lang.String name) {

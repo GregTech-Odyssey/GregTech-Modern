@@ -1,163 +1,42 @@
 package com.gregtechceu.gtceu.api.registry;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.utils.GTUtil;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModLoadingContext;
 
 import com.fast.fastcollection.O2OOpenCacheHashMap;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import com.gto.datasynclib.util.Registry;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
-public abstract class GTRegistry<K, V> implements Iterable<V> {
+public abstract class GTRegistry<K extends Comparable<K>, V> extends Registry<K, V> {
 
     public static final Map<ResourceLocation, GTRegistry<?, ?>> REGISTERED = new O2OOpenCacheHashMap<>();
-    protected final BiMap<K, V> registry;
+
     @Getter
     protected final ResourceLocation registryName;
-    @Getter
-    protected boolean frozen = true;
+    private final boolean checkContext;
+
+    public GTRegistry(ResourceLocation registryName, boolean checkContext) {
+        super(registryName.toString());
+        this.registryName = registryName;
+        this.checkContext = checkContext;
+    }
 
     public GTRegistry(ResourceLocation registryName) {
-        registry = initRegistry();
+        super(registryName.toString());
         this.registryName = registryName;
-        REGISTERED.put(registryName, this);
+        this.checkContext = true;
     }
 
-    protected BiMap<K, V> initRegistry() {
-        return HashBiMap.create();
-    }
-
-    public boolean containKey(K key) {
-        return registry.containsKey(key);
-    }
-
-    public boolean containValue(V value) {
-        return registry.containsValue(value);
-    }
-
-    public void freeze() {
-        if (frozen) {
-            throw new IllegalStateException("Registry is already frozen!");
-        }
-        if (!checkActiveModContainerIsGregtech()) {
-            return;
-        }
-        this.frozen = true;
-    }
-
-    public void unfreeze() {
-        if (!frozen) {
-            throw new IllegalStateException("Registry is already unfrozen!");
-        }
-        if (!checkActiveModContainerIsGregtech()) {
-            return;
-        }
-        this.frozen = false;
-    }
-
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean checkActiveModContainerIsGregtech() {
+    @Override
+    public boolean checkContext() {
         ModContainer container = ModLoadingContext.get().getActiveContainer();
         return container != null && (container.getModId().equals(this.registryName.getNamespace()) || container.getModId().equals(GTCEu.MOD_ID) || container.getModId().equals("minecraft"));
-    }
-
-    public <T extends V> T register(K key, T value) {
-        if (frozen) {
-            throw new IllegalStateException("[register] registry %s has been frozen".formatted(registryName));
-        }
-        if (registry.put(key, value) != null) {
-            throw new IllegalStateException("[register] registry %s contains key %s already".formatted(registryName, key));
-        }
-        return value;
-    }
-
-    @Nullable
-    public <T extends V> T replace(K key, T value) {
-        if (frozen) {
-            throw new IllegalStateException("[replace] registry %s has been frozen".formatted(registryName));
-        }
-        if (registry.put(key, value) == null) {
-            GTCEu.LOGGER.warn("[replace] couldn't find key %s in registry %s".formatted(registryName, key));
-        }
-        return value;
-    }
-
-    public <T extends V> T registerOrOverride(K key, T value) {
-        if (frozen) {
-            throw new IllegalStateException("[register] registry %s has been frozen".formatted(registryName));
-        }
-        registry.put(key, value);
-        return value;
-    }
-
-    @NotNull
-    @Override
-    public Iterator<V> iterator() {
-        return registry.values().iterator();
-    }
-
-    public Set<V> values() {
-        return registry.values();
-    }
-
-    public Set<K> keys() {
-        return registry.keySet();
-    }
-
-    public Set<Map.Entry<K, V>> entries() {
-        return registry.entrySet();
-    }
-
-    public Map<K, V> registry() {
-        return registry;
-    }
-
-    @Nullable
-    public V get(K key) {
-        return registry.get(key);
-    }
-
-    public V getOrDefault(K key, V defaultValue) {
-        return registry.getOrDefault(key, defaultValue);
-    }
-
-    public K getKey(V value) {
-        return registry.inverse().get(value);
-    }
-
-    public K getOrDefaultKey(V key, K defaultKey) {
-        return registry.inverse().getOrDefault(key, defaultKey);
-    }
-
-    public abstract void writeBuf(V value, FriendlyByteBuf buf);
-
-    @Nullable
-    public abstract V readBuf(FriendlyByteBuf buf);
-
-    public abstract Tag saveToNBT(V value);
-
-    @Nullable
-    public abstract V loadFromNBT(Tag tag);
-
-    public boolean remove(K name) {
-        return registry.remove(name) != null;
     }
 
     public abstract Codec<V> codec();
@@ -169,38 +48,13 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
             super(registryName);
         }
 
-        @Override
-        public void writeBuf(V value, FriendlyByteBuf buf) {
-            buf.writeBoolean(containValue(value));
-            if (containValue(value)) {
-                buf.writeUtf(getKey(value));
-            }
-        }
-
-        @Override
-        public V readBuf(FriendlyByteBuf buf) {
-            if (buf.readBoolean()) {
-                return get(buf.readUtf());
-            }
-            return null;
-        }
-
-        @Override
-        public Tag saveToNBT(V value) {
-            if (containValue(value)) {
-                return StringTag.valueOf(getKey(value));
-            }
-            return new CompoundTag();
-        }
-
-        @Override
-        public V loadFromNBT(Tag tag) {
-            return get(tag.getAsString());
+        public String(ResourceLocation registryName, boolean checkContext) {
+            super(registryName, checkContext);
         }
 
         @Override
         public Codec<V> codec() {
-            return Codec.STRING.flatXmap(str -> Optional.ofNullable(this.get(str)).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "Unknown registry key in " + this.registryName + ": " + str)), obj -> Optional.ofNullable(this.getKey(obj)).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "Unknown registry element in " + this.registryName + ": " + obj)));
+            return super.codec(Codec.STRING);
         }
     }
 
@@ -210,53 +64,13 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
             super(registryName);
         }
 
-        @Override
-        public <T extends V> T registerOrOverride(ResourceLocation key, T value) {
-            this.registry.put(key, value);
-            return value;
-        }
-
-        @Override
-        public <T extends V> T register(ResourceLocation key, T value) {
-            if (frozen) {
-                throw new IllegalStateException("[register] registry %s has been frozen".formatted(registryName));
-            }
-            registry.put(key, value);
-            return value;
-        }
-
-        @Override
-        public void writeBuf(V value, FriendlyByteBuf buf) {
-            buf.writeBoolean(containValue(value));
-            if (containValue(value)) {
-                buf.writeResourceLocation(getKey(value));
-            }
-        }
-
-        @Override
-        public V readBuf(FriendlyByteBuf buf) {
-            if (buf.readBoolean()) {
-                return get(buf.readResourceLocation());
-            }
-            return null;
-        }
-
-        @Override
-        public Tag saveToNBT(V value) {
-            if (containValue(value)) {
-                return StringTag.valueOf(getKey(value).toString());
-            }
-            return new CompoundTag();
-        }
-
-        @Override
-        public V loadFromNBT(Tag tag) {
-            return get(GTUtil.getResourceLocation(tag.getAsString()));
+        public RL(ResourceLocation registryName, boolean checkContext) {
+            super(registryName, checkContext);
         }
 
         @Override
         public Codec<V> codec() {
-            return ResourceLocation.CODEC.flatXmap(rl -> Optional.ofNullable(this.get(rl)).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "Unknown registry key in " + this.registryName + ": " + rl)), obj -> Optional.ofNullable(this.getKey(obj)).map(DataResult::success).orElseGet(() -> DataResult.error(() -> "Unknown registry element in " + this.registryName + ": " + obj)));
+            return super.codec(ResourceLocation.CODEC);
         }
     }
 }

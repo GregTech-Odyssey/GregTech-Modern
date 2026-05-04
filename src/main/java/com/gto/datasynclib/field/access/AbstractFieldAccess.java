@@ -18,27 +18,10 @@ public abstract class AbstractFieldAccess<T> implements DataField<T> {
     @Getter
     protected final DataFieldDefinition<T> definition;
 
-    protected boolean syncChange = true;
-
     private T instance;
 
     protected AbstractFieldAccess(DataFieldDefinition<T> definition) {
         this.definition = definition;
-    }
-
-    @Override
-    public final void markAsDirty() {
-        syncChange = true;
-    }
-
-    @Override
-    public void clearDirty() {
-        syncChange = false;
-    }
-
-    @Override
-    public boolean isDirty() {
-        return syncChange;
     }
 
     protected T getInstance(Object source) {

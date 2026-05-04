@@ -10,4 +10,12 @@ public class ByteHolder {
     public ByteHolder(byte value) {
         this.value = value;
     }
+
+    public final byte get() {
+        return value;
+    }
+
+    public final void set(byte value) {
+        this.value = value;
+    }
 }

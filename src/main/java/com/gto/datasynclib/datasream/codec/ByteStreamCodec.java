@@ -13,7 +13,7 @@ import java.util.UUID;
 
 public interface ByteStreamCodec<T> extends ByteStreamDecoder<T>, ByteStreamEncoder<T> {
 
-    static <T> ByteStreamCodec<T> of(ByteStreamEncoder<T> encoder, ByteStreamDecoder<T> decoder) {
+    static <T> ByteStreamCodec<T> of(ByteStreamEncoder<? super T> encoder, ByteStreamDecoder<? extends T> decoder) {
         return new ByteStreamCodec<>() {
 
             @Override

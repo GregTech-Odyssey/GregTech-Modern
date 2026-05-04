@@ -16,8 +16,19 @@ public final class DataFieldHolderAccess extends AbstractFieldAccess<IFieldDataH
     }
 
     @Override
+    public void markAsDirty(@NotNull Object source) {}
+
+    @Override
+    public void clearDirty(@NotNull Object source) {}
+
+    @Override
+    public boolean isDirty(@NotNull Object source) {
+        return false;
+    }
+
+    @Override
     public boolean hasChanges(@NotNull LogicalSide side, @NotNull Object source, boolean auto) {
-        return getInstance(source).getFieldDataManager().updateSyncDirtyFlags(side, auto);
+        return getInstance(source).getFieldDataManager().updateFieldDirtyFlags(side, auto);
     }
 
     @Override

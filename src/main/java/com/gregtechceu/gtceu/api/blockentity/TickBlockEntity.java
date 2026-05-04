@@ -24,7 +24,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 
-import com.gto.datasynclib.IFieldDataHolder;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.MapData;
@@ -33,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BooleanSupplier;
 
-public abstract class TickBlockEntity extends BlockEntity implements IFieldDataHolder, IAsyncAutoSyncBlockEntity, IAutoPersistBlockEntity, ITickSubscription {
+public abstract class TickBlockEntity extends BlockEntity implements ISync, IAsyncAutoSyncBlockEntity, IAutoPersistBlockEntity, ITickSubscription {
 
     public final int offset = GTValues.RNG.nextInt(20);
     public volatile boolean remove = false;
@@ -197,7 +196,7 @@ public abstract class TickBlockEntity extends BlockEntity implements IFieldDataH
         if (needSync() || periodID % 40 == 0) {
             var server = GTCEu.getMinecraftServer();
             if (server != null) {
-                if (getFieldDataManager().updateSyncDirtyFlags(LogicalSide.SERVER, true)) {
+                if (getFieldDataManager().updateFieldDirtyFlags(LogicalSide.SERVER, true)) {
                     var p = SCPacketSBlockEntitySync.of(this, false);
                     server.execute(() -> GTNetwork.NETWORK.sendToTrackingChunk(p, getChunk()));
                 }

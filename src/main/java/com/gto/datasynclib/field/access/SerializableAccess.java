@@ -15,6 +15,21 @@ public final class SerializableAccess extends AbstractFieldAccess<IDataSerializa
     }
 
     @Override
+    public void markAsDirty(@NotNull Object source) {
+        getInstance(source).markAsDirty();
+    }
+
+    @Override
+    public void clearDirty(@NotNull Object source) {
+        getInstance(source).clearDirty();
+    }
+
+    @Override
+    public boolean isDirty(@NotNull Object source) {
+        return getInstance(source).isDirty();
+    }
+
+    @Override
     public boolean hasChanges(@NotNull LogicalSide side, @NotNull Object source, boolean auto) {
         return getInstance(source).hasChanges();
     }

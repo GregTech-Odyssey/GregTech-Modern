@@ -10,4 +10,12 @@ public class DoubleHolder {
     public DoubleHolder(double value) {
         this.value = value;
     }
+
+    public final double get() {
+        return value;
+    }
+
+    public final void set(double value) {
+        this.value = value;
+    }
 }

@@ -10,4 +10,12 @@ public class BooleanHolder {
     public BooleanHolder(boolean value) {
         this.value = value;
     }
+
+    public final boolean get() {
+        return value;
+    }
+
+    public final void set(boolean value) {
+        this.value = value;
+    }
 }

@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
-public final class ByteArrayAccess<T> extends AbstractFieldAccess<byte[]> {
+public final class ByteArrayAccess<T> extends AbstractMarkFieldAccess<byte[]> {
 
     private int hashCode;
 

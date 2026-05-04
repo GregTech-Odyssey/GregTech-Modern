@@ -9,6 +9,12 @@ public interface IDataSerializable {
 
     boolean hasChanges();
 
+    void markAsDirty();
+
+    void clearDirty();
+
+    boolean isDirty();
+
     void writeBuf(LogicalSide side, @NotNull FriendlyByteBuf data);
 
     void readBuf(LogicalSide side, @NotNull FriendlyByteBuf data);

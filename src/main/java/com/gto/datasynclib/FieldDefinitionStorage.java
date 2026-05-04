@@ -1,5 +1,7 @@
 package com.gto.datasynclib;
 
+import com.gregtechceu.gtceu.utils.collection.MultiMap;
+
 import com.gto.datasynclib.annotations.AdditionalHolder;
 import com.gto.datasynclib.field.object.ObjCodecField;
 import com.gto.datasynclib.util.HashUtil;
@@ -110,32 +112,39 @@ public final class FieldDefinitionStorage {
         }
     }
 
-    final HashMap<String, DataFieldDefinition<?>> allDefinition;
+    final MultiMap<Class<?>, DataFieldDefinition<?>> typeDefinition = MultiMap.createIdentity(ArrayList::new);
+    final LinkedHashMap<String, DataFieldDefinition<?>> allDefinition;
     final DataFieldDefinition<?>[] saveDefinitions;
     final DataFieldDefinition<?>[] syncToClientDefinitions;
     final DataFieldDefinition<?>[] syncToServerDefinitions;
 
     private FieldDefinitionStorage(ArrayList<DataFieldDefinition<?>> fields) {
-        allDefinition = new HashMap<>(fields.size());
-        var saveList = new ArrayList<DataFieldDefinition<?>>(fields.size());
-        var syncToClientList = new ArrayList<DataFieldDefinition<?>>(fields.size());
-        var syncToServerList = new ArrayList<DataFieldDefinition<?>>(fields.size());
+        fields.sort(DataFieldDefinition.COMPARATOR);
+        allDefinition = new LinkedHashMap<>(fields.size());
+        var saveList = new ArrayList<DataFieldDefinition<?>>();
+        var syncToClientList = new ArrayList<DataFieldDefinition<?>>();
+        var syncToServerList = new ArrayList<DataFieldDefinition<?>>();
         fields.forEach(d -> {
             if (allDefinition.put(d.key, d) != null) throw new RuntimeException("Duplicate sync field key: " + d.key);
+            typeDefinition.put(d.field.getType(), d);
             if (d.isSave) saveList.add(d);
             if (d.isSyncToClient) syncToClientList.add(d);
             if (d.isSyncToServer) syncToServerList.add(d);
         });
-        saveList.sort(DataFieldDefinition.COMPARATOR);
-        syncToClientList.sort(DataFieldDefinition.COMPARATOR);
-        syncToServerList.sort(DataFieldDefinition.COMPARATOR);
         saveDefinitions = saveList.toArray(new DataFieldDefinition[0]);
         syncToClientDefinitions = syncToClientList.toArray(new DataFieldDefinition[0]);
         syncToServerDefinitions = syncToServerList.toArray(new DataFieldDefinition[0]);
     }
 
+    public DataFieldDefinition<?> getFieldDefinition(Field field) {
+        for (var definition : typeDefinition.get(field.getType())) {
+            if (definition.field == field) return definition;
+        }
+        return null;
+    }
+
     private FieldDefinitionStorage() {
-        allDefinition = new HashMap<>(1);
+        allDefinition = new LinkedHashMap<>(1);
         saveDefinitions = new DataFieldDefinition[0];
         syncToClientDefinitions = new DataFieldDefinition[0];
         syncToServerDefinitions = new DataFieldDefinition[0];

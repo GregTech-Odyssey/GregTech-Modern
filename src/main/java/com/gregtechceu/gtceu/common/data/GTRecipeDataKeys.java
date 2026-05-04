@@ -9,7 +9,11 @@ import com.gto.datasynclib.datasream.DataComponentRegistry;
 
 public final class GTRecipeDataKeys {
 
-    public static final DataComponentRegistry REGISTRY = new DataComponentRegistry();
+    public static final DataComponentRegistry REGISTRY = new DataComponentRegistry("recipe");
+
+    static {
+        REGISTRY.unfreeze();
+    }
 
     public static final DataComponentKey<Integer> EBF_TEMP = REGISTRY.register("ebf_temp", CombinationCodec.INT_CODEC);
     public static final DataComponentKey<Integer> SOLDER_MULTIPLIER = REGISTRY.register("solder_multiplier", CombinationCodec.INT_CODEC);
@@ -19,10 +23,8 @@ public final class GTRecipeDataKeys {
     public static final DataComponentKey<Boolean> DURATION_IS_TOTAL_CWU = REGISTRY.register("duration_is_total_cwu", CombinationCodec.BOOLEAN_CODEC);
     public static final DataComponentKey<Boolean> HIDE_DURATION = REGISTRY.register("hide_duration", CombinationCodec.BOOLEAN_CODEC);
 
-    static {
+    public static void init() {
         AddonFinder.getAddons().forEach(IGTAddon::registerRecipeDataKey);
         REGISTRY.freeze();
     }
-
-    public static void init() {}
 }

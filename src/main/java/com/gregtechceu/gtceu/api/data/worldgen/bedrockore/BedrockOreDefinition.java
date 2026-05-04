@@ -40,7 +40,6 @@ public class BedrockOreDefinition {
 
     public BedrockOreDefinition(ResourceLocation name, int size, int weight, IntProvider yield, int depletionAmount, int depletionChance, int depletedYield, List<WeightedMaterial> materials, List<BiomeWeightModifier> originalModifiers, Set<ResourceKey<Level>> dimensionFilter) {
         this(weight, size, yield, depletionAmount, depletionChance, depletedYield, materials, originalModifiers, dimensionFilter);
-        GTRegistries.BEDROCK_ORE_DEFINITIONS.register(name, this);
     }
 
     public BedrockOreDefinition(int weight, int size, IntProvider yield, int depletionAmount, int depletionChance, int depletedYield, List<WeightedMaterial> materials, List<BiomeWeightModifier> originalModifiers, Set<ResourceKey<Level>> dimensionFilter) {
@@ -162,7 +161,7 @@ public class BedrockOreDefinition {
 
         public BedrockOreDefinition register() {
             var definition = new BedrockOreDefinition(weight, size, yield, depletionAmount, depletionChance, depletedYield, materials, biomes, dimensions);
-            GTRegistries.BEDROCK_ORE_DEFINITIONS.registerOrOverride(name, definition);
+            GTRegistries.BEDROCK_ORE_DEFINITIONS.register(name, definition);
             return definition;
         }
 

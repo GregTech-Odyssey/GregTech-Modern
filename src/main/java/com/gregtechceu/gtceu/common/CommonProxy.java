@@ -145,7 +145,6 @@ public class CommonProxy {
         AddonFinder.getAddons().forEach(IGTAddon::registerMaterials);
         managerInternal.closeRegistries();
         AlloyBlastPropertyAddition.addAlloyBlastProperties();
-        managerInternal.freezeRegistries();
     }
 
     @SubscribeEvent
@@ -177,6 +176,12 @@ public class CommonProxy {
                     GTDynamicResourcePack::new));
         } else if (event.getPackType() == PackType.SERVER_DATA) {
             long startTime = System.currentTimeMillis();
+            GTRegistries.ORE_VEINS.unfreeze();
+            GTOres.init();
+            GTRegistries.ORE_VEINS.freeze();
+            GTRegistries.BEDROCK_FLUID_DEFINITIONS.unfreeze();
+            GTBedrockFluids.init();
+            GTRegistries.BEDROCK_FLUID_DEFINITIONS.freeze();
             GTRecipes.recipeRemoval();
             // Initialize dungeon loot additions
             DungeonLootLoader.init();

@@ -9,8 +9,8 @@ import org.jetbrains.annotations.NotNull;
 
 public final class FieldDataManager {
 
-    private final IFieldDataHolder holder;
-    private final FieldDefinitionStorage storage;
+    public final IFieldDataHolder holder;
+    public final FieldDefinitionStorage storage;
     private final Reference2ReferenceOpenHashMap<DataFieldDefinition<?>, DataField<?>> allField;
     private final DataField<?>[] syncToClientFields;
     private final DataField<?>[] syncToServerFields;
@@ -35,6 +35,19 @@ public final class FieldDataManager {
         }
     }
 
+    public DataFieldDefinition<?> getFieldDefinition(Object fieldObject) {
+        return getFieldDefinition(fieldObject.getClass(), fieldObject);
+    }
+
+    public DataFieldDefinition<?> getFieldDefinition(Class<?> type, Object fieldObject) {
+        for (var definition : storage.typeDefinition.get(type)) {
+            try {
+                if (definition.field.get(definition.source.apply(holder)) == fieldObject) return definition;
+            } catch (Throwable ignored) {}
+        }
+        return null;
+    }
+
     public boolean hasSyncToClientField() {
         return syncToClientFields.length > 0;
     }
@@ -50,6 +63,16 @@ public final class FieldDataManager {
     /**
      * Marks specified fields as dirty for synchronization
      *
+     * @param field the field definition to mark for sync
+     */
+    public void markFieldForSync(@NotNull DataFieldDefinition<?> field) {
+        var f = allField.get(field);
+        if (f != null) f.markAsDirty(field.source.apply(holder));
+    }
+
+    /**
+     * Marks specified fields as dirty for synchronization
+     *
      * @param fields the field names to mark for sync
      */
     public void markFieldsForSync(@NotNull String... fields) {
@@ -57,9 +80,13 @@ public final class FieldDataManager {
             var d = storage.allDefinition.get(field);
             if (d != null) {
                 var f = allField.get(d);
-                if (f != null) f.markAsDirty();
+                if (f != null) f.markAsDirty(d.source.apply(holder));
             }
         }
+    }
+
+    public void clearAllFieldMark() {
+        allField.values().forEach(f -> f.clearDirty(f.getDefinition().source.apply(holder)));
     }
 
     /**
@@ -69,16 +96,17 @@ public final class FieldDataManager {
      * @param auto whether to use auto-update mode
      * @return true if any changes were detected
      */
-    public boolean updateSyncDirtyFlags(LogicalSide side, boolean auto) {
+    public boolean updateFieldDirtyFlags(LogicalSide side, boolean auto) {
         final var fields = side.isServer() ? syncToClientFields : syncToServerFields;
         boolean hasChanges = false;
         for (DataField<?> field : fields) {
-            if (field.isDirty()) {
+            var d = field.getDefinition();
+            var source = d.source.apply(holder);
+            if (field.isDirty(source)) {
                 hasChanges = true;
             } else {
-                var d = field.getDefinition();
                 if ((!auto || d.autoUpdate(side)) && field.hasChanges(side, d.source.apply(holder), auto)) {
-                    field.markAsDirty();
+                    field.markAsDirty(source);
                     hasChanges = true;
                 }
             }
@@ -102,10 +130,11 @@ public final class FieldDataManager {
             for (int i = 0; i < fields.length; i++) {
                 var field = fields[i];
                 var d = field.getDefinition();
-                if (force || field.isDirty()) {
+                var source = d.source.apply(holder);
+                if (force || field.isDirty(source)) {
                     wrapper.writeVarInt(i);
-                    field.writeToBuffer(side, d.source.apply(holder), wrapper, force);
-                    field.clearDirty();
+                    field.writeToBuffer(side, source, wrapper, force);
+                    field.clearDirty(source);
                 }
             }
             buf.readerIndex(0);

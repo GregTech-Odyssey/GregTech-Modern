@@ -2,12 +2,12 @@ package com.gto.datasynclib.datasream.codec;
 
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ListData;
-import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 
 @FunctionalInterface
 public interface DataDecoder<T> {
@@ -31,7 +31,7 @@ public interface DataDecoder<T> {
         };
     }
 
-    static <K, V, M extends Map<K, V>> DataDecoder<M> map(Int2ObjectFunction<M> function, DataDecoder<K> keySerializer, DataDecoder<V> valueSerializer) {
+    static <K, V, M extends Map<K, V>> DataDecoder<M> map(IntFunction<M> function, DataDecoder<K> keySerializer, DataDecoder<V> valueSerializer) {
         return dis -> {
             if (dis instanceof ListData(List<Data> list) && list.size() > 1) {
                 var map = function.apply(list.size() / 2);
@@ -57,7 +57,7 @@ public interface DataDecoder<T> {
         };
     }
 
-    static <E, L extends List<E>> DataDecoder<L> list(Int2ObjectFunction<L> function, DataDecoder<E> serializer) {
+    static <E, L extends List<E>> DataDecoder<L> list(IntFunction<L> function, DataDecoder<E> serializer) {
         return dis -> {
             if (dis instanceof ListData(List<Data> list) && !list.isEmpty()) {
                 var array = function.apply(list.size());
@@ -79,7 +79,7 @@ public interface DataDecoder<T> {
         };
     }
 
-    static <E, S extends Set<E>> DataDecoder<S> set(Int2ObjectFunction<S> function, DataDecoder<E> serializer) {
+    static <E, S extends Set<E>> DataDecoder<S> set(IntFunction<S> function, DataDecoder<E> serializer) {
         return dis -> {
             if (dis instanceof ListData(List<Data> list) && !list.isEmpty()) {
                 var array = function.apply(list.size());

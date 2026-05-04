@@ -10,4 +10,12 @@ public class ObjHolder<T> {
     public ObjHolder(T value) {
         this.value = value;
     }
+
+    public final T get() {
+        return value;
+    }
+
+    public final void set(T value) {
+        this.value = value;
+    }
 }

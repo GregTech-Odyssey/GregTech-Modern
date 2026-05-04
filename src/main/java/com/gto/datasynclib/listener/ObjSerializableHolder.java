@@ -18,13 +18,38 @@ public class ObjSerializableHolder<T> extends ObjHolder<T> implements IDataSeria
         return new ObjSerializableHolder<>(codec);
     }
 
+    public static <T> ObjSerializableHolder<T> create(CombinationCodec<T> codec, T value) {
+        return new ObjSerializableHolder<>(codec, value);
+    }
+
     protected T lastValue;
     protected int lastHash;
+    private boolean syncChange = true;
 
     protected final CombinationCodec<T> codec;
 
     protected ObjSerializableHolder(CombinationCodec<T> codec) {
         this.codec = codec;
+    }
+
+    protected ObjSerializableHolder(CombinationCodec<T> codec, T value) {
+        super(value);
+        this.codec = codec;
+    }
+
+    @Override
+    public void markAsDirty() {
+        syncChange = true;
+    }
+
+    @Override
+    public void clearDirty() {
+        syncChange = false;
+    }
+
+    @Override
+    public boolean isDirty() {
+        return syncChange;
     }
 
     @Override

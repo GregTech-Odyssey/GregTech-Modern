@@ -29,7 +29,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class GTRegistryArgument<K, V> implements ArgumentType<V> {
+public class GTRegistryArgument<K extends Comparable<K>, V> implements ArgumentType<V> {
 
     private static final SimpleCommandExceptionType ERROR_INVALID = new SimpleCommandExceptionType(
             Component.translatable("argument.id.invalid"));
@@ -45,7 +45,7 @@ public class GTRegistryArgument<K, V> implements ArgumentType<V> {
         this.keyClass = keyClass;
     }
 
-    public static <K, V> GTRegistryArgument<K, V> registry(GTRegistry<K, V> registry, Class<K> keyClass) {
+    public static <K extends Comparable<K>, V> GTRegistryArgument<K, V> registry(GTRegistry<K, V> registry, Class<K> keyClass) {
         return new GTRegistryArgument<>(registry, keyClass);
     }
 
@@ -124,7 +124,7 @@ public class GTRegistryArgument<K, V> implements ArgumentType<V> {
     }
 
     @MethodsReturnNonnullByDefault
-    public static class Info<K, V>
+    public static class Info<K extends Comparable<K>, V>
                             implements
                             ArgumentTypeInfo<GTRegistryArgument<K, V>, GTRegistryArgument.Info<K, V>.Template> {
 

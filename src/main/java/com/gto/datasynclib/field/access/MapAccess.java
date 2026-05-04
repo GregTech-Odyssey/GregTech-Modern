@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
-public final class MapAccess<K, V> extends AbstractFieldAccess<Map> {
+public final class MapAccess<K, V> extends AbstractMarkFieldAccess<Map> {
 
     private final CombinationCodec<K> keyCodec;
     private final CombinationCodec<V> valueCodec;

@@ -8,21 +8,49 @@ import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.FloatData;
 import com.gto.datasynclib.util.holder.FloatHolder;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
-@Setter
-public final class FloatNotifiableHolder extends FloatHolder implements IDataSerializable, ISyncNotifiable<FloatSyncListener> {
+public final class FloatNotifiableHolder extends FloatHolder implements IDataSerializable, ISyncNotifiable<FloatNotifiableHolder, FloatSyncListener> {
 
     public static FloatNotifiableHolder create() {
         return new FloatNotifiableHolder();
     }
 
+    public static FloatNotifiableHolder create(float value) {
+        return new FloatNotifiableHolder(value);
+    }
+
+    @Setter
+    @Accessors(chain = true)
     private FloatSyncListener receiverListener = FloatSyncListener.EMPTY;
+    @Setter
+    @Accessors(chain = true)
     private FloatSyncListener senderListener = FloatSyncListener.EMPTY;
 
     private float lastValue;
+    private boolean syncChange = true;
 
     private FloatNotifiableHolder() {}
+
+    private FloatNotifiableHolder(float value) {
+        super(value);
+    }
+
+    @Override
+    public void markAsDirty() {
+        syncChange = true;
+    }
+
+    @Override
+    public void clearDirty() {
+        syncChange = false;
+    }
+
+    @Override
+    public boolean isDirty() {
+        return syncChange;
+    }
 
     @Override
     public boolean hasChanges() {

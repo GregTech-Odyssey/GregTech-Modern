@@ -10,4 +10,12 @@ public class ShortHolder {
     public ShortHolder(short value) {
         this.value = value;
     }
+
+    public final short get() {
+        return value;
+    }
+
+    public final void set(short value) {
+        this.value = value;
+    }
 }

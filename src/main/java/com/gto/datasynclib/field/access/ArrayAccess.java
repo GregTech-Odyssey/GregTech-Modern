@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
-public final class ArrayAccess<T> extends AbstractFieldAccess<T[]> {
+public final class ArrayAccess<T> extends AbstractMarkFieldAccess<T[]> {
 
     private final CombinationCodec<T> elementCodec;
     private int hashCode;

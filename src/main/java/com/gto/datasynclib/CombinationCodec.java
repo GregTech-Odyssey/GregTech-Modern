@@ -95,23 +95,32 @@ public final class CombinationCodec<T> {
         throw new RuntimeException("No codec registered for type " + t);
     });
 
-    public final ByteStreamEncoder<T> streamWriter;
-    public final ByteStreamDecoder<T> streamReader;
-    public final DataEncoder<T> dataWriter;
-    public final DataDecoder<T> dataReader;
+    public final ByteStreamEncoder<? super T> streamWriter;
+    public final ByteStreamDecoder<? extends T> streamReader;
+    public final DataEncoder<? super T> dataWriter;
+    public final DataDecoder<? extends T> dataReader;
 
-    public CombinationCodec(ByteStreamCodec<T> streamCodec, DataCodec<T> dataCodec) {
-        this.streamWriter = streamCodec;
-        this.streamReader = streamCodec;
-        this.dataWriter = dataCodec;
-        this.dataReader = dataCodec;
-    }
-
-    public CombinationCodec(ByteStreamEncoder<T> streamWriter, ByteStreamDecoder<T> streamReader, DataEncoder<T> dataWriter, DataDecoder<T> dataReader) {
+    private CombinationCodec(ByteStreamEncoder<? super T> streamWriter, ByteStreamDecoder<? extends T> streamReader, DataEncoder<? super T> dataWriter, DataDecoder<? extends T> dataReader) {
         this.streamWriter = streamWriter;
         this.streamReader = streamReader;
         this.dataWriter = dataWriter;
         this.dataReader = dataReader;
+    }
+
+    public static <T> CombinationCodec<T> of(ByteStreamEncoder<? super T> streamWriter, ByteStreamDecoder<? extends T> streamReader, DataEncoder<? super T> dataWriter, DataDecoder<? extends T> dataReader) {
+        return new CombinationCodec<>(streamWriter, streamReader, dataWriter, dataReader);
+    }
+
+    public static <T> CombinationCodec<T> of(ByteStreamCodec<T> streamCodec, DataCodec<T> dataCodec) {
+        return new CombinationCodec<>(streamCodec, streamCodec, dataCodec, dataCodec);
+    }
+
+    public static <T> CombinationCodec<T> of(ByteStreamCodec<T> streamCodec) {
+        return of(streamCodec, DataCodec.of(streamCodec));
+    }
+
+    public static <T> CombinationCodec<T> of(DataCodec<T> dataCodec) {
+        return of(ByteStreamCodec.of(dataCodec), dataCodec);
     }
 
     /**

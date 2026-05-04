@@ -1,7 +1,10 @@
 package com.gto.datasynclib.datasream.codec;
 
+import net.minecraft.network.FriendlyByteBuf;
+
 import com.gto.datasynclib.datasream.data.*;
 import com.mojang.serialization.Codec;
+import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 
 import java.math.BigInteger;
@@ -9,6 +12,37 @@ import java.util.Map;
 import java.util.UUID;
 
 public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
+
+    static <T> DataCodec<T> of(ByteStreamCodec<T> codec) {
+        return new DataCodec<>() {
+
+            @Override
+            public T decode(Data data) {
+                var buf = Unpooled.wrappedBuffer(data.getByteArray());
+                var wrapper = new FriendlyByteBuf(buf);
+                try {
+                    return codec.decode(wrapper);
+                } finally {
+                    buf.release();
+                }
+            }
+
+            @Override
+            public Data encode(T obj) {
+                var buf = Unpooled.buffer();
+                var wrapper = new FriendlyByteBuf(buf);
+                try {
+                    codec.encode(wrapper, obj);
+                    buf.readerIndex(0);
+                    byte[] data = new byte[buf.readableBytes()];
+                    buf.readBytes(data);
+                    return new ByteArrayData(data);
+                } finally {
+                    buf.release();
+                }
+            }
+        };
+    }
 
     static <T> DataCodec<T> of(Codec<T> codec) {
         return new DataCodec<>() {
@@ -25,8 +59,8 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         };
     }
 
-    static <T> DataCodec<T> of(DataEncoder<T> encoder, DataDecoder<T> decoder) {
-        return new DataCodec<T>() {
+    static <T> DataCodec<T> of(DataEncoder<? super T> encoder, DataDecoder<? extends T> decoder) {
+        return new DataCodec<>() {
 
             @Override
             public T decode(Data data) {

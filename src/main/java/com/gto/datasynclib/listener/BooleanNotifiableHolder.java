@@ -8,21 +8,49 @@ import com.gto.datasynclib.datasream.data.BooleanData;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.util.holder.BooleanHolder;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
-@Setter
-public final class BooleanNotifiableHolder extends BooleanHolder implements IDataSerializable, ISyncNotifiable<BooleanSyncListener> {
+public final class BooleanNotifiableHolder extends BooleanHolder implements IDataSerializable, ISyncNotifiable<BooleanNotifiableHolder, BooleanSyncListener> {
 
     public static BooleanNotifiableHolder create() {
         return new BooleanNotifiableHolder();
     }
 
+    public static BooleanNotifiableHolder create(boolean value) {
+        return new BooleanNotifiableHolder(value);
+    }
+
+    @Setter
+    @Accessors(chain = true)
     private BooleanSyncListener receiverListener = BooleanSyncListener.EMPTY;
+    @Setter
+    @Accessors(chain = true)
     private BooleanSyncListener senderListener = BooleanSyncListener.EMPTY;
 
     private boolean lastValue;
+    private boolean syncChange = true;
 
     private BooleanNotifiableHolder() {}
+
+    private BooleanNotifiableHolder(boolean value) {
+        super(value);
+    }
+
+    @Override
+    public void markAsDirty() {
+        syncChange = true;
+    }
+
+    @Override
+    public void clearDirty() {
+        syncChange = false;
+    }
+
+    @Override
+    public boolean isDirty() {
+        return syncChange;
+    }
 
     @Override
     public boolean hasChanges() {

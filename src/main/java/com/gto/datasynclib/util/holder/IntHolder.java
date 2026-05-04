@@ -10,4 +10,12 @@ public class IntHolder {
     public IntHolder(int value) {
         this.value = value;
     }
+
+    public final int get() {
+        return value;
+    }
+
+    public final void set(int value) {
+        this.value = value;
+    }
 }

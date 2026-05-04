@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.machine;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.IPaintable;
+import com.gregtechceu.gtceu.api.blockentity.ISync;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
@@ -70,7 +71,6 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import com.gto.datasynclib.FieldDataManager;
-import com.gto.datasynclib.IFieldDataHolder;
 import com.gto.datasynclib.LazyFieldDataManager;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.annotations.SyncToClient;
@@ -96,7 +96,7 @@ import static com.gregtechceu.gtceu.api.item.tool.ToolHelper.getBehaviorsTag;
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class MetaMachine implements IFieldDataHolder, IEnhancedManaged, ITickSubscription, IFancyTooltip, IPaintable, IRedstoneSignalMachine {
+public class MetaMachine implements ISync, IEnhancedManaged, ITickSubscription, IFancyTooltip, IPaintable, IRedstoneSignalMachine {
 
     private static final Map<Class<?>, ManagedFieldHolder> MANAGED_FIELD_MAP = new ConcurrentHashMap<>();
 

@@ -8,21 +8,49 @@ import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ShortData;
 import com.gto.datasynclib.util.holder.ShortHolder;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
-@Setter
-public final class ShortNotifiableHolder extends ShortHolder implements IDataSerializable, ISyncNotifiable<ShortSyncListener> {
+public final class ShortNotifiableHolder extends ShortHolder implements IDataSerializable, ISyncNotifiable<ShortNotifiableHolder, ShortSyncListener> {
 
     public static ShortNotifiableHolder create() {
         return new ShortNotifiableHolder();
     }
 
+    public static ShortNotifiableHolder create(short value) {
+        return new ShortNotifiableHolder(value);
+    }
+
+    @Setter
+    @Accessors(chain = true)
     private ShortSyncListener receiverListener = ShortSyncListener.EMPTY;
+    @Setter
+    @Accessors(chain = true)
     private ShortSyncListener senderListener = ShortSyncListener.EMPTY;
 
     private short lastValue;
+    private boolean syncChange = true;
 
     private ShortNotifiableHolder() {}
+
+    private ShortNotifiableHolder(short value) {
+        super(value);
+    }
+
+    @Override
+    public void markAsDirty() {
+        syncChange = true;
+    }
+
+    @Override
+    public void clearDirty() {
+        syncChange = false;
+    }
+
+    @Override
+    public boolean isDirty() {
+        return syncChange;
+    }
 
     @Override
     public boolean hasChanges() {

@@ -37,7 +37,7 @@ public class GTRecipeSerializer {
     }
 
     public static Tuple<RecipeCapability<?>, List<Content>> entryReader(FriendlyByteBuf buf) {
-        RecipeCapability<?> capability = GTRegistries.RECIPE_CAPABILITIES.get(buf.readUtf());
+        RecipeCapability<?> capability = RecipeCapability.STREAM_CODEC.decode(buf);
         List<Content> contents = buf.readList(capability.serializer::fromNetworkContent);
         return new Tuple<>(capability, contents);
     }
@@ -45,7 +45,7 @@ public class GTRecipeSerializer {
     public static void entryWriter(FriendlyByteBuf buf, Map.Entry<RecipeCapability<?>, ? extends List<Content>> entry) {
         RecipeCapability<?> capability = entry.getKey();
         List<Content> contents = entry.getValue();
-        buf.writeUtf(GTRegistries.RECIPE_CAPABILITIES.getKey(capability));
+        RecipeCapability.STREAM_CODEC.encode(capability, buf);
         buf.writeCollection(contents, capability.serializer::toNetworkContent);
     }
 
@@ -68,7 +68,7 @@ public class GTRecipeSerializer {
         Map<RecipeCapability<?>, List<Content>> tickOutputs = tuplesToMap(
                 buf.readCollection(c -> new ArrayList<>(), GTRecipeSerializer::entryReader));
 
-        var data = GTRecipeDataKeys.REGISTRY.read(buf);
+        var data = GTRecipeDataKeys.REGISTRY.decode(buf);
         if (data == null) {
             data = new DataComponentMap();
         }
@@ -84,7 +84,7 @@ public class GTRecipeSerializer {
         buf.writeCollection(recipe.tickInputs.entrySet(), GTRecipeSerializer::entryWriter);
         buf.writeCollection(recipe.outputs.entrySet(), GTRecipeSerializer::entryWriter);
         buf.writeCollection(recipe.tickOutputs.entrySet(), GTRecipeSerializer::entryWriter);
-        GTRecipeDataKeys.REGISTRY.write(buf, recipe.data);
+        GTRecipeDataKeys.REGISTRY.encode(buf, recipe.data);
         buf.writeVarInt(recipe.tier);
     }
 

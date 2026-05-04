@@ -13,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
 import com.fast.fastcollection.O2IOpenCacheHashMap;
+import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
 import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -27,6 +28,7 @@ import java.util.Map;
  */
 public abstract class RecipeCapability<T> {
 
+    public static final ByteStreamCodec<RecipeCapability<?>> STREAM_CODEC = GTRegistries.RECIPE_CAPABILITIES.streamCodec(ByteStreamCodec.STRING_CODEC);
     public static final Codec<RecipeCapability<?>> DIRECT_CODEC = GTRegistries.RECIPE_CAPABILITIES.codec();
     public static final Codec<Map<RecipeCapability<?>, List<Content>>> CODEC = new DispatchedMapCodec<>(
             RecipeCapability.DIRECT_CODEC,

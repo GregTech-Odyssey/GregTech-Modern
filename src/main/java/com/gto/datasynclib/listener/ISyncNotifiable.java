@@ -2,9 +2,9 @@ package com.gto.datasynclib.listener;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface ISyncNotifiable<L> {
+public interface ISyncNotifiable<T, L> {
 
-    void setReceiverListener(@NotNull L receiverListener);
+    T setReceiverListener(@NotNull L receiverListener);
 
-    void setSenderListener(@NotNull L senderListener);
+    T setSenderListener(@NotNull L senderListener);
 }

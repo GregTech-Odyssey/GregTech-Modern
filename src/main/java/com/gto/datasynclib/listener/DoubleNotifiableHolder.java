@@ -8,21 +8,49 @@ import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.DoubleData;
 import com.gto.datasynclib.util.holder.DoubleHolder;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
-@Setter
-public final class DoubleNotifiableHolder extends DoubleHolder implements IDataSerializable, ISyncNotifiable<DoubleSyncListener> {
+public final class DoubleNotifiableHolder extends DoubleHolder implements IDataSerializable, ISyncNotifiable<DoubleNotifiableHolder, DoubleSyncListener> {
 
     public static DoubleNotifiableHolder create() {
         return new DoubleNotifiableHolder();
     }
 
+    public static DoubleNotifiableHolder create(double value) {
+        return new DoubleNotifiableHolder(value);
+    }
+
+    @Setter
+    @Accessors(chain = true)
     private DoubleSyncListener receiverListener = DoubleSyncListener.EMPTY;
+    @Setter
+    @Accessors(chain = true)
     private DoubleSyncListener senderListener = DoubleSyncListener.EMPTY;
 
     private double lastValue;
+    private boolean syncChange = true;
 
     private DoubleNotifiableHolder() {}
+
+    private DoubleNotifiableHolder(double value) {
+        super(value);
+    }
+
+    @Override
+    public void markAsDirty() {
+        syncChange = true;
+    }
+
+    @Override
+    public void clearDirty() {
+        syncChange = false;
+    }
+
+    @Override
+    public boolean isDirty() {
+        return syncChange;
+    }
 
     @Override
     public boolean hasChanges() {

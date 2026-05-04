@@ -55,7 +55,6 @@ public class BedrockFluidDefinition {
 
     public BedrockFluidDefinition(ResourceLocation name, int weight, int minimumYield, int maximumYield, int depletionAmount, int depletionChance, int depletedYield, Supplier<Fluid> storedFluid, List<BiomeWeightModifier> originalModifiers, Set<ResourceKey<Level>> dimensionFilter) {
         this(weight, minimumYield, maximumYield, depletionAmount, depletionChance, depletedYield, storedFluid, originalModifiers, dimensionFilter);
-        GTRegistries.BEDROCK_FLUID_DEFINITIONS.register(name, this);
     }
 
     public BedrockFluidDefinition(int weight, int minimumYield, int maximumYield, int depletionAmount, int depletionChance, int depletedYield, Supplier<Fluid> storedFluid, List<BiomeWeightModifier> originalModifiers, Set<ResourceKey<Level>> dimensionFilter) {
@@ -164,7 +163,7 @@ public class BedrockFluidDefinition {
 
         public BedrockFluidDefinition register() {
             var definition = new BedrockFluidDefinition(weight, minimumYield, maximumYield, depletionAmount, depletionChance, depletedYield, fluid, biomes, dimensions);
-            GTRegistries.BEDROCK_FLUID_DEFINITIONS.registerOrOverride(name, definition);
+            GTRegistries.BEDROCK_FLUID_DEFINITIONS.register(name, definition);
             return definition;
         }
 

@@ -4,9 +4,7 @@ import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ListData;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 
 @FunctionalInterface
@@ -25,22 +23,6 @@ public interface DataEncoder<T> {
                 data.add(keySerializer.encode(k));
                 data.add(valueSerializer.encode(v));
             });
-            return data;
-        };
-    }
-
-    static <E> DataEncoder<Set<E>> set(DataEncoder<E> serializer) {
-        return list -> {
-            var data = new ListData();
-            list.forEach(o -> data.add(serializer.encode(o)));
-            return data;
-        };
-    }
-
-    static <E> DataEncoder<List<E>> list(DataEncoder<E> serializer) {
-        return list -> {
-            var data = new ListData();
-            list.forEach(o -> data.add(serializer.encode(o)));
             return data;
         };
     }

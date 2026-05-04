@@ -31,12 +31,14 @@ public class IntegrationLang {
         provider.add("gtceu.jei.ore_vein_diagram.dimensions", "Dimensions:");
         GTRegistries.ORE_VEINS.unfreeze();
         GTOres.init();
+        GTRegistries.ORE_VEINS.freeze();
         for (GTOreDefinition oreDefinition : GTRegistries.ORE_VEINS) {
             String name = GTRegistries.ORE_VEINS.getKey(oreDefinition).getPath();
             provider.add("gtceu.jei.ore_vein." + name, RegistrateLangProvider.toEnglishName(name));
         }
         GTRegistries.BEDROCK_FLUID_DEFINITIONS.unfreeze();
         GTBedrockFluids.init();
+        GTRegistries.BEDROCK_FLUID_DEFINITIONS.freeze();
         for (BedrockFluidDefinition fluid : GTRegistries.BEDROCK_FLUID_DEFINITIONS) {
             String name = GTRegistries.BEDROCK_FLUID_DEFINITIONS.getKey(fluid).getPath();
             provider.add("gtceu.jei.bedrock_fluid." + name, RegistrateLangProvider.toEnglishName(name));

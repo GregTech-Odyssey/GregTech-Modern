@@ -8,21 +8,49 @@ import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.IntData;
 import com.gto.datasynclib.util.holder.IntHolder;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
-@Setter
-public final class IntNotifiableHolder extends IntHolder implements IDataSerializable, ISyncNotifiable<IntSyncListener> {
+public final class IntNotifiableHolder extends IntHolder implements IDataSerializable, ISyncNotifiable<IntNotifiableHolder, IntSyncListener> {
 
     public static IntNotifiableHolder create() {
         return new IntNotifiableHolder();
     }
 
+    public static IntNotifiableHolder create(int value) {
+        return new IntNotifiableHolder(value);
+    }
+
+    @Setter
+    @Accessors(chain = true)
     private IntSyncListener receiverListener = IntSyncListener.EMPTY;
+    @Setter
+    @Accessors(chain = true)
     private IntSyncListener senderListener = IntSyncListener.EMPTY;
 
     private int lastValue;
+    private boolean syncChange = true;
 
     private IntNotifiableHolder() {}
+
+    private IntNotifiableHolder(int value) {
+        super(value);
+    }
+
+    @Override
+    public void markAsDirty() {
+        syncChange = true;
+    }
+
+    @Override
+    public void clearDirty() {
+        syncChange = false;
+    }
+
+    @Override
+    public boolean isDirty() {
+        return syncChange;
+    }
 
     @Override
     public boolean hasChanges() {

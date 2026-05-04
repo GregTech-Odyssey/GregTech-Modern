@@ -6,6 +6,10 @@ import com.gto.datasynclib.datasream.data.MapData;
 
 public interface IFieldDataHolder {
 
+    default void markFieldsForSync(String... name) {
+        getFieldDataManager().markFieldsForSync(name);
+    }
+
     FieldDataManager getFieldDataManager();
 
     /**

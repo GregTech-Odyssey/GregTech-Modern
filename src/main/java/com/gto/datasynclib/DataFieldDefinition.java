@@ -65,7 +65,7 @@ public final class DataFieldDefinition<T> {
         this.autoClientUpdate = fieldAnnotations.autoClientUpdate();
         this.clientUpdateListener = fieldAnnotations.clientUpdateListener();
         this.serverUpdateListener = fieldAnnotations.serverUpdateListener();
-        this.codec = fieldAnnotations.dataCodec() != null ? new CombinationCodec<>(fieldAnnotations.streamCodec(), fieldAnnotations.dataCodec()) : access ? null : (CombinationCodec<T>) CombinationCodec.get(field.getType());
+        this.codec = fieldAnnotations.dataCodec() != null ? CombinationCodec.of(fieldAnnotations.streamCodec(), fieldAnnotations.dataCodec()) : access ? null : (CombinationCodec<T>) CombinationCodec.get(field.getType());
         this.genericType = genericType;
         this.genericCodec = new CombinationCodec[genericType.length];
         this.isFinal = isFinal;

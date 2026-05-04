@@ -144,7 +144,6 @@ public final class MaterialRegistryManager implements IMaterialRegistryManager {
     }
 
     public void freezeRegistries() {
-        registries.values().forEach(MaterialRegistry::freeze);
         registrationPhase = Phase.FROZEN;
     }
 

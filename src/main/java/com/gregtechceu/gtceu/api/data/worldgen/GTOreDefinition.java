@@ -90,7 +90,7 @@ public class GTOreDefinition {
     }
 
     public void register(ResourceLocation id) {
-        GTRegistries.ORE_VEINS.registerOrOverride(id, this);
+        GTRegistries.ORE_VEINS.register(id, this);
     }
 
     public GTOreDefinition clusterSize(IntProvider clusterSize) {
