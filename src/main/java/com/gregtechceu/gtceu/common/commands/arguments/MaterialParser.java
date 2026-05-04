@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.common.commands.arguments;
 
-import com.gregtechceu.gtceu.api.data.chemical.material.IMaterialRegistryManager;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
+import com.gregtechceu.gtceu.common.unification.material.MaterialRegistryManager;
 
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
@@ -29,7 +29,7 @@ public class MaterialParser {
     private static final char SYNTAX_START_NBT = '{';
     private static final char SYNTAX_TAG = '#';
     private static final Function<SuggestionsBuilder, CompletableFuture<Suggestions>> SUGGEST_NOTHING = SuggestionsBuilder::buildFuture;
-    private final IMaterialRegistryManager materials;
+    private final MaterialRegistryManager materials;
     private final StringReader reader;
     private Material result;
     /**
@@ -37,12 +37,12 @@ public class MaterialParser {
      */
     private Function<SuggestionsBuilder, CompletableFuture<Suggestions>> suggestions = SUGGEST_NOTHING;
 
-    private MaterialParser(IMaterialRegistryManager materials, StringReader reader) {
+    private MaterialParser(MaterialRegistryManager materials, StringReader reader) {
         this.materials = materials;
         this.reader = reader;
     }
 
-    public static Material parseForMaterial(IMaterialRegistryManager registry,
+    public static Material parseForMaterial(MaterialRegistryManager registry,
                                             StringReader reader) throws CommandSyntaxException {
         int i = reader.getCursor();
 
@@ -56,7 +56,7 @@ public class MaterialParser {
         }
     }
 
-    public static CompletableFuture<Suggestions> fillSuggestions(IMaterialRegistryManager lookup,
+    public static CompletableFuture<Suggestions> fillSuggestions(MaterialRegistryManager lookup,
                                                                  SuggestionsBuilder builder) {
         StringReader stringReader = new StringReader(builder.getInput());
         stringReader.setCursor(builder.getStart());

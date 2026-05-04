@@ -42,7 +42,7 @@ public final class GTRegistries {
     public static final GTRegistry.RL<CoverDefinition> COVERS = new GTRegistry.RL<>(GTCEu.id("cover"));
 
     public static final GTRegistry.RL<MachineDefinition> MACHINES = new GTRegistry.RL<>(GTCEu.id("machine"));
-    public static final GTRegistry.String<RecipeCapability<?>> RECIPE_CAPABILITIES = new GTRegistry.String<>(
+    public static final GTRegistry.Str<RecipeCapability<?>> RECIPE_CAPABILITIES = new GTRegistry.Str<>(
             GTCEu.id("recipe_capability"));
 
     public static final GTRegistry.RL<SoundEntry> SOUNDS = new GTRegistry.RL<>(GTCEu.id("sound"));

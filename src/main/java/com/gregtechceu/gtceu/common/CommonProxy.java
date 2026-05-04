@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
+import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconSet;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconType;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
@@ -15,6 +16,7 @@ import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerators;
 import com.gregtechceu.gtceu.api.gui.factory.CoverUIFactory;
 import com.gregtechceu.gtceu.api.gui.factory.GTUIEditorFactory;
 import com.gregtechceu.gtceu.api.gui.factory.MachineUIFactory;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.chance.logic.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidContainerIngredient;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
@@ -55,6 +57,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegisterEvent;
 
+import com.gto.datasynclib.CombinationCodec;
 import com.gto.datasynclib.DataSyncLib;
 
 public class CommonProxy {
@@ -65,9 +68,7 @@ public class CommonProxy {
         eventBus.register(this);
         GTRegistration.REGISTRATE.registerEventListeners(eventBus);
         DataSyncLib.init();
-        // must be set here because of KubeJS compat
-        // trying to read this before the pre-init stage
-        GTCEuAPI.materialManager = MaterialRegistryManager.getInstance();
+        initDataSync();
         ConfigHolder.init();
         GTCEuAPI.initializeHighTier();
         if (GTCEu.isDev()) {
@@ -137,7 +138,7 @@ public class CommonProxy {
     }
 
     private static void initMaterials() {
-        MaterialRegistryManager managerInternal = (MaterialRegistryManager) GTCEuAPI.materialManager;
+        MaterialRegistryManager managerInternal = GTCEuAPI.materialManager;
         GTCEu.LOGGER.info("Registering material registries");
         managerInternal.unfreezeRegistries();
         GTMaterials.init();
@@ -193,5 +194,10 @@ public class CommonProxy {
                     Pack.Position.BOTTOM,
                     GTDynamicDataPack::new));
         }
+    }
+
+    private static void initDataSync() {
+        CombinationCodec.register(Material.class, Material.STREAM_CODEC, Material.DATA_CODEC);
+        CombinationCodec.register(GTRecipeType.class, GTRegistries.RECIPE_TYPES.streamCodec(), GTRegistries.RECIPE_TYPES.dataCodec());
     }
 }

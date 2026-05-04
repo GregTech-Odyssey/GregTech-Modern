@@ -1,7 +1,5 @@
 package com.gto.datasynclib;
 
-import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-
 import com.gto.datasynclib.field.*;
 import com.gto.datasynclib.field.access.*;
 import com.gto.datasynclib.field.object.CustomObjCodecField;
@@ -53,7 +51,5 @@ public final class DataSyncLib {
             if (codec == null) throw new IllegalArgumentException("No codec for " + c);
             return d -> new ArrayAccess<>(d, codec);
         }, 2000);
-
-        CombinationCodec.register(Material.class, Material.STREAM_CODEC, Material.DATA_CODEC);
     }
 }

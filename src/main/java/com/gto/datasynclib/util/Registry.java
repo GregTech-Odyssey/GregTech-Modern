@@ -4,6 +4,7 @@ import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datasream.codec.DataCodec;
 import com.gto.datasynclib.util.holder.IntObjectHolder;
 import com.mojang.serialization.Codec;
+import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
 import lombok.Getter;
@@ -19,7 +20,7 @@ public class Registry<K extends Comparable<K>, V> implements Iterable<V> {
     @Getter
     protected final String name;
     protected final HashMap<K, V> keyValues = new HashMap<>();
-    protected final Reference2ReferenceOpenHashMap<V, IntObjectHolder<K>> valueKeys = new Reference2ReferenceOpenHashMap<>();
+    protected final IdMap<V, K> valueKeys = new IdMap<>();
     protected final ReferenceArrayList<V> idValues = new ReferenceArrayList<>();
     @Getter
     protected volatile boolean frozen = true;
@@ -59,6 +60,7 @@ public class Registry<K extends Comparable<K>, V> implements Iterable<V> {
         list.sort(Map.Entry.comparingByKey());
         var size = list.size();
         idValues.size(size);
+        valueKeys.size(size);
         for (int i = 0; i < size; i++) {
             var e = list.get(i);
             var v = e.getValue();
@@ -110,7 +112,7 @@ public class Registry<K extends Comparable<K>, V> implements Iterable<V> {
         return valueKeys.get(value).number;
     }
 
-    public final K getKey(V value) {
+    public K getKey(V value) {
         return valueKeys.get(value).obj;
     }
 
@@ -146,14 +148,33 @@ public class Registry<K extends Comparable<K>, V> implements Iterable<V> {
     }
 
     public DataCodec<V> dataCodec(DataCodec<K> keyCodec) {
-        return DataCodec.of(obj -> keyCodec.encode(valueKeys.get(obj).obj), data -> keyValues.get(keyCodec.decode(data)));
+        return DataCodec.of(obj -> keyCodec.encode(getKey(obj)), data -> keyValues.get(keyCodec.decode(data)));
     }
 
     public ByteStreamCodec<V> streamCodec(ByteStreamCodec<K> keyCodec) {
-        return ByteStreamCodec.of((buf, obj) -> keyCodec.encode(buf, keyCodec.decode(buf)), buf -> keyValues.get(keyCodec.decode(buf)));
+        return ByteStreamCodec.of((buf, obj) -> keyCodec.encode(buf, getKey(obj)), buf -> keyValues.get(keyCodec.decode(buf)));
     }
 
     public Codec<V> codec(Codec<K> keyCodec) {
-        return keyCodec.xmap(keyValues::get, v -> valueKeys.get(v).obj);
+        return keyCodec.xmap(keyValues::get, this::getKey);
+    }
+
+    public enum Phase {
+        /** Registration and Modification is not started */
+        PRE,
+        /** Registration and Modification is available */
+        OPEN,
+        /** Registration is unavailable and only Modification is available */
+        CLOSED,
+        /** Registration and Modification is unavailable */
+        FROZEN
+    }
+
+    protected static final class IdMap<K, V> extends Reference2ReferenceOpenHashMap<K, IntObjectHolder<V>> {
+
+        protected void size(final int size) {
+            final int needed = (int) Math.min(1 << 30, Math.max(2, HashCommon.nextPowerOfTwo((long) Math.ceil(size / f))));
+            if (needed > n) rehash(needed);
+        }
     }
 }

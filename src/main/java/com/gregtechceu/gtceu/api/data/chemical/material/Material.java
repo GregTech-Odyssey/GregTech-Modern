@@ -38,8 +38,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datasream.codec.DataCodec;
-import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.util.DataCodecs;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
@@ -56,24 +54,9 @@ import static com.gregtechceu.gtceu.api.data.chemical.material.properties.Proper
 
 public class Material implements Comparable<Material> {
 
-    public static final DataCodec<Material> DATA_CODEC = new DataCodec<>() {
+    public static final DataCodec<Material> DATA_CODEC = GTCEuAPI.materialManager.dataCodec();
 
-        @Override
-        public Data encode(Material obj) {
-            return DataCodecs.RESOURCE_LOCATION_CODEC.encode(obj.getResourceLocation());
-        }
-
-        @Override
-        public Material decode(Data data) {
-            return GTCEuAPI.materialManager.getMaterial(DataCodecs.RESOURCE_LOCATION_CODEC.decode(data).toString());
-        }
-
-        static {
-            DataCodec.registerCodec(Material.class, DATA_CODEC);
-        }
-    };
-
-    public static final ByteStreamCodec<Material> STREAM_CODEC = ByteStreamCodec.of(DATA_CODEC);
+    public static final ByteStreamCodec<Material> STREAM_CODEC = GTCEuAPI.materialManager.streamCodec();
 
     public final Reference2ReferenceOpenHashMap<TagPrefix, List<Supplier<? extends Item>>> MATERIAL_ENTRY_ITEM_MAP = new Reference2ReferenceOpenHashMap<>();
     public final Reference2ReferenceOpenHashMap<TagPrefix, List<Item>> MATERIAL_ENTRY_ITEM_LIKE_MAP = new Reference2ReferenceOpenHashMap<>();

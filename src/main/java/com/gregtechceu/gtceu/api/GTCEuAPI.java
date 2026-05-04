@@ -5,10 +5,10 @@ import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.api.block.ICoilType;
 import com.gregtechceu.gtceu.api.block.IFilterType;
-import com.gregtechceu.gtceu.api.data.chemical.material.IMaterialRegistryManager;
 import com.gregtechceu.gtceu.api.machine.multiblock.IBatteryData;
 import com.gregtechceu.gtceu.common.block.BatteryBlock;
 import com.gregtechceu.gtceu.common.block.CoilBlock;
+import com.gregtechceu.gtceu.common.unification.material.MaterialRegistryManager;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import net.minecraft.world.level.block.Block;
@@ -24,7 +24,7 @@ public class GTCEuAPI {
     /**
      * Will be available at the Construction stage
      */
-    public static IMaterialRegistryManager materialManager;
+    public final static MaterialRegistryManager materialManager = MaterialRegistryManager.getInstance();
     /**
      * Will be available at the Pre-Initialization stage
      */
