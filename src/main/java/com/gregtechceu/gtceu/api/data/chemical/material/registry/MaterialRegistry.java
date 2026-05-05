@@ -25,7 +25,7 @@ public class MaterialRegistry extends GTRegistry.Str<Material> {
     private Material fallbackMaterial = GTMaterials.NULL;
 
     public MaterialRegistry(GTRegistrate registrate) {
-        super(GTUtil.getResourceLocation(registrate.getModid(), "material"));
+        super(GTUtil.getResourceLocation(registrate.getModid(), "material"), false);
         this.registrate = registrate;
         this.template = new ResourceLocation(registrate.getModid(), "");
     }

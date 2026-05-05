@@ -1,7 +1,5 @@
 package com.gregtechceu.gtceu.api.registry;
 
-import com.gregtechceu.gtceu.GTCEu;
-
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -39,8 +37,9 @@ public abstract class GTRegistry<K extends Comparable<K>, V> extends Registry<K,
 
     @Override
     public boolean checkContext() {
+        if (!checkContext) return true;
         ModContainer container = ModLoadingContext.get().getActiveContainer();
-        return container != null && (container.getModId().equals(this.registryName.getNamespace()) || container.getModId().equals(GTCEu.MOD_ID) || container.getModId().equals("minecraft") || container.getModId().equals("gtocore"));
+        return container != null && (container.getModId().equals(this.registryName.getNamespace()));
     }
 
     public abstract DataCodec<V> dataCodec();

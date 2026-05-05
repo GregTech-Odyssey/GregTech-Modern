@@ -36,14 +36,14 @@ public class Registry<K extends Comparable<K>, V> implements Iterable<V> {
 
     public void unfreeze() {
         if (!frozen) throw new IllegalStateException("Registry %s is already unfrozen!".formatted(name));
-        if (!checkContext()) return;
+        if (!checkContext()) throw new IllegalStateException("Registry %s cannot be set to unfrozen state in current context!".formatted(name));
         clear();
         this.frozen = false;
     }
 
     public void freeze() {
         if (frozen) throw new IllegalStateException("Registry %s is already frozen!".formatted(name));
-        if (!checkContext()) return;
+        if (!checkContext()) throw new IllegalStateException("Registry %s cannot be set to frozen state in current context!".formatted(name));
         frozen = true;
         build();
     }
