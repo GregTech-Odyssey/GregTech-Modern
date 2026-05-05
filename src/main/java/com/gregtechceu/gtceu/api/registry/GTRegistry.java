@@ -40,7 +40,7 @@ public abstract class GTRegistry<K extends Comparable<K>, V> extends Registry<K,
     @Override
     public boolean checkContext() {
         ModContainer container = ModLoadingContext.get().getActiveContainer();
-        return container != null && (container.getModId().equals(this.registryName.getNamespace()) || container.getModId().equals(GTCEu.MOD_ID) || container.getModId().equals("minecraft") || container.getModId().equals("gtocore"));
+        return checkContext && container != null && (container.getModId().equals(this.registryName.getNamespace()));
     }
 
     public abstract DataCodec<V> dataCodec();
