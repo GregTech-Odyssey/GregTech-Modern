@@ -211,8 +211,8 @@ public class TagPrefix {
             .itemConstructor(GTTurbineItemCoated::new);
     // Storage Block consisting out of 9 Ingots/Gems/Dusts.
     public static final TagPrefix block = new TagPrefix("block").defaultTagPath("storage_blocks/%s").unformattedTagPath("storage_blocks").langValue("Block of %s").materialAmount(GTValues.M * 9).materialIconType(MaterialIconType.block).miningToolTag(BlockTags.MINEABLE_WITH_PICKAXE).generateBlock(true).generationCondition(material -> material.hasProperty(PropertyKey.INGOT) || material.hasProperty(PropertyKey.GEM) || material.hasFlag(MaterialFlags.FORCE_GENERATE_BLOCK)).unificationEnabled(true).enableRecycling();
-    public static final TagPrefix log = new TagPrefix("log").unformattedTagPath("logs", true);
-    public static final TagPrefix planks = new TagPrefix("planks").unformattedTagPath("planks", true);
+    public static final TagPrefix log = new TagPrefix("log").blockProperties(BlockProperties.SOLID).unformattedTagPath("logs", true);
+    public static final TagPrefix planks = new TagPrefix("planks").blockProperties(BlockProperties.SOLID).unformattedTagPath("planks", true);
     public static final TagPrefix slab = new TagPrefix("slab").unformattedTagPath("slabs", true);
     public static final TagPrefix stairs = new TagPrefix("stairs").unformattedTagPath("stairs", true);
     public static final TagPrefix fence = new TagPrefix("fence").unformattedTagPath("fences");
@@ -222,7 +222,7 @@ public class TagPrefix {
     // Also has a base tag path of only the material, for things like obsidian etc.
     public static final TagPrefix rock =  // generate a block but not really, for TagPrefix#setIgnoredBlock
             new TagPrefix("rock").defaultTagPath("%s").langValue("%s").miningToolTag(BlockTags.MINEABLE_WITH_PICKAXE).unificationEnabled(false).generateBlock(true).generationCondition(GTUtil.NEGATIVE);
-    public static final TagPrefix frameGt = new TagPrefix("frame").defaultTagPath("frames/%s").unformattedTagPath("frames").langValue("%s Frame").materialAmount(GTValues.M * 2).materialIconType(MaterialIconType.frameGt).miningToolTag(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WRENCH).unificationEnabled(true).enableRecycling().generateBlock(true).blockProperties(() -> RenderType::translucent, BlockBehaviour.Properties::noOcclusion).generationCondition(material -> material.hasProperty(PropertyKey.DUST) && material.hasFlag(MaterialFlags.GENERATE_FRAME));
+    public static final TagPrefix frameGt = new TagPrefix("frame").defaultTagPath("frames/%s").unformattedTagPath("frames").langValue("%s Frame").materialAmount(GTValues.M * 2).materialIconType(MaterialIconType.frameGt).miningToolTag(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WRENCH).unificationEnabled(true).enableRecycling().generateBlock(true).blockProperties(() -> RenderType::cutoutMipped, BlockBehaviour.Properties::noOcclusion).generationCondition(material -> material.hasProperty(PropertyKey.DUST) && material.hasFlag(MaterialFlags.GENERATE_FRAME));
     // Pipes
     public static final TagPrefix pipeTinyFluid = new TagPrefix("pipeTinyFluid").itemTable(() -> GTMaterialBlocks.FLUID_PIPE_BLOCKS).langValue("Tiny %s Fluid Pipe").miningToolTag(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WRENCH).materialAmount(GTValues.M / 2).unificationEnabled(true).enableRecycling();
     public static final TagPrefix pipeSmallFluid = new TagPrefix("pipeSmallFluid").itemTable(() -> GTMaterialBlocks.FLUID_PIPE_BLOCKS).langValue("Small %s Fluid Pipe").miningToolTag(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WRENCH).materialAmount(GTValues.M).unificationEnabled(true).enableRecycling();
@@ -266,7 +266,11 @@ public class TagPrefix {
 
     public record OreType(Supplier<BlockState> stoneType, Supplier<Material> material, Supplier<BlockBehaviour.Properties> template, ResourceLocation baseModelLocation, boolean isDoubleDrops, boolean isSand, boolean shouldDropAsItem) {}
 
-    public record BlockProperties(Supplier<Supplier<RenderType>> renderType, UnaryOperator<BlockBehaviour.Properties> properties) {}
+    public record BlockProperties(Supplier<Supplier<RenderType>> renderType, UnaryOperator<BlockBehaviour.Properties> properties) {
+
+        public static final BlockProperties CUTOUT_MIPPED = new BlockProperties(() -> RenderType::cutoutMipped, UnaryOperator.identity());
+        public static final BlockProperties SOLID = new BlockProperties(() -> RenderType::solid, UnaryOperator.identity());
+    }
 
     public final String name;
     private String idPattern;
@@ -281,7 +285,7 @@ public class TagPrefix {
     private boolean generateBlock;
     private BlockConstructor blockConstructor = MaterialBlock::new;
     private BlockItemConstructor blockItemConstructor = MaterialBlockItem::new;
-    private BlockProperties blockProperties = new BlockProperties(() -> RenderType::translucent, UnaryOperator.identity());
+    private BlockProperties blockProperties = BlockProperties.CUTOUT_MIPPED;
     @Nullable
     private Predicate<Material> generationCondition;
     @Nullable

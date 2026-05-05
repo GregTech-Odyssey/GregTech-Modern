@@ -57,7 +57,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class MaterialBlock extends AppearanceBlock {
+public class MaterialBlock extends Block {
 
     public final TagPrefix tagPrefix;
     public final Material material;
@@ -120,8 +120,7 @@ public class MaterialBlock extends AppearanceBlock {
     @SuppressWarnings("deprecation")
     @Override
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
-        if (TagPrefix.ORES.containsKey(this.tagPrefix) && TagPrefix.ORES.get(tagPrefix).isSand() &&
-                ConfigHolder.INSTANCE.worldgen.sandOresFall) {
+        if (ConfigHolder.INSTANCE.worldgen.sandOresFall && TagPrefix.ORES.containsKey(this.tagPrefix) && TagPrefix.ORES.get(tagPrefix).isSand()) {
             level.scheduleTick(pos, this, this.getDelayAfterPlace());
         }
     }
@@ -130,8 +129,7 @@ public class MaterialBlock extends AppearanceBlock {
     @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level,
                                   BlockPos currentPos, BlockPos neighborPos) {
-        if (TagPrefix.ORES.containsKey(this.tagPrefix) && TagPrefix.ORES.get(tagPrefix).isSand() &&
-                ConfigHolder.INSTANCE.worldgen.sandOresFall) {
+        if (ConfigHolder.INSTANCE.worldgen.sandOresFall && TagPrefix.ORES.containsKey(this.tagPrefix) && TagPrefix.ORES.get(tagPrefix).isSand()) {
             level.scheduleTick(currentPos, this, this.getDelayAfterPlace());
         }
         return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos);
@@ -148,10 +146,7 @@ public class MaterialBlock extends AppearanceBlock {
 
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-        if (!TagPrefix.ORES.containsKey(this.tagPrefix) || !TagPrefix.ORES.get(tagPrefix).isSand() ||
-                !ConfigHolder.INSTANCE.worldgen.sandOresFall)
-            return;
-        if (random.nextInt(16) == 0 && FallingBlock.isFree(level.getBlockState(pos.below()))) {
+        if (ConfigHolder.INSTANCE.worldgen.sandOresFall && TagPrefix.ORES.containsKey(this.tagPrefix) && TagPrefix.ORES.get(tagPrefix).isSand() && random.nextInt(16) == 0 && FallingBlock.isFree(level.getBlockState(pos.below()))) {
             double d = (double) pos.getX() + random.nextDouble();
             double e = (double) pos.getY() - 0.05;
             double f = (double) pos.getZ() + random.nextDouble();
