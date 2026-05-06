@@ -390,6 +390,7 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
                     ItemStack itemStack = inv.getStackInSlot(slot);
                     if (ToolHelper.is(itemStack, toolToMatch)) {
                         toolFixer.fixProblemWithTool(problemIndex, itemStack, entityPlayer);
+                        inv.setStackInSlot(slot, itemStack);
                         if (toolsToMatch.stream().allMatch(Objects::isNull)) {
                             return;
                         }
