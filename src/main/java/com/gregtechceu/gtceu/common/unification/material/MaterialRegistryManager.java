@@ -104,15 +104,13 @@ public final class MaterialRegistryManager extends GTRegistry.RL<Material> {
     }
 
     public void unfreezeRegistries() {
-        registries.values().forEach(MaterialRegistry::unfreeze);
         registrationPhase = Phase.OPEN;
     }
 
     public void closeRegistries() {
-        registries.values().forEach(MaterialRegistry::freeze);
         registrationPhase = Phase.CLOSED;
         super.unfreeze();
-        registries.values().forEach(r -> r.values().forEach(m -> super.register(m.getResourceLocation(), m)));
+        registries.values().forEach(r -> r.getMaterials().forEach(m -> super.register(m.getResourceLocation(), m)));
         super.freeze();
     }
 

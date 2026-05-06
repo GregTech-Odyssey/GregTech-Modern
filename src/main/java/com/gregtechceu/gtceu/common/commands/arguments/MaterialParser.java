@@ -72,7 +72,7 @@ public class MaterialParser {
     private void readMaterial() throws CommandSyntaxException {
         int i = this.reader.getCursor();
         ResourceLocation resourceLocation = ResourceLocation.read(this.reader);
-        Material material = this.materials.getRegistry(resourceLocation.getNamespace()).get(resourceLocation.getPath());
+        Material material = this.materials.get(resourceLocation);
         this.result = Optional.ofNullable(material).orElseThrow(() -> {
             this.reader.setCursor(i);
             return ERROR_UNKNOWN_ITEM.createWithContext(this.reader, resourceLocation);

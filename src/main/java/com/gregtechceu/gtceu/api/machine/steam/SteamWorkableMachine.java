@@ -151,6 +151,8 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
 
     public void setCleanroom(@Nullable final ICleanroomProvider cleanroom) {
         this.cleanroom = cleanroom;
+        getRecipeLogic().markLastRecipeDirty();
+        getRecipeLogic().updateTickSubscription();
     }
 
     public void setActiveRecipeType(final int activeRecipeType) {

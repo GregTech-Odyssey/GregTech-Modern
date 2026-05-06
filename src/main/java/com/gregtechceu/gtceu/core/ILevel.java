@@ -5,17 +5,19 @@ import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.world.level.Level;
 
+import com.gto.datasynclib.datasream.DataComponentKey;
+import com.gto.datasynclib.datasream.DataComponentMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.longs.LongSets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
-
 public interface ILevel {
 
-    Map<Class<?>, Object> gtceu$getCapabilities();
+    DataComponentKey<LongSet> HIGHLIGHTCACHEKEY = DataComponentKey.createNoCodec("highlightcache");
+
+    DataComponentMap gtceu$getCapabilities();
 
     @NotNull
     TaskHandler gtceu$getTaskHandler();
@@ -29,20 +31,20 @@ public interface ILevel {
 
     void gtceu$setMultiblockWorldSavedData(MultiblockWorldData data);
 
-    static <T> T getCapability(@NotNull Level level, Class<?> clazz) {
-        return (T) ((ILevel) level).gtceu$getCapabilities().get(clazz);
+    static <T> T getCapability(@NotNull Level level, DataComponentKey<T> key) {
+        return ((ILevel) level).gtceu$getCapabilities().getData(key);
     }
 
-    static void setCapability(@NotNull Level level, Class<?> clazz, Object capability) {
-        ((ILevel) level).gtceu$getCapabilities().put(clazz, capability);
+    static <T> void setCapability(@NotNull Level level, DataComponentKey<T> key, T capability) {
+        ((ILevel) level).gtceu$getCapabilities().put(key, capability);
     }
 
     static LongSet getHighlightCache(@Nullable Level level) {
         if (level == null) return LongSets.emptySet();
-        LongSet cache = getCapability(level, LongSet.class);
+        LongSet cache = getCapability(level, HIGHLIGHTCACHEKEY);
         if (cache == null) {
             cache = new LongOpenHashSet();
-            setCapability(level, LongSet.class, cache);
+            setCapability(level, HIGHLIGHTCACHEKEY, cache);
         }
         return cache;
     }

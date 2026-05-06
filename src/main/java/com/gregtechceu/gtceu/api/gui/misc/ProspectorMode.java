@@ -26,7 +26,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
@@ -341,8 +340,7 @@ public abstract class ProspectorMode<T> {
 
         @Override
         public OreInfo deserialize(FriendlyByteBuf buf) {
-            ResourceLocation materialId = buf.readResourceLocation();
-            return new OreInfo(GTCEuAPI.materialManager.getRegistry(materialId.getNamespace()).get(materialId.getPath()), buf.readVarInt(), buf.readVarInt(), buf.readVarInt());
+            return new OreInfo(GTCEuAPI.materialManager.get(buf.readResourceLocation()), buf.readVarInt(), buf.readVarInt(), buf.readVarInt());
         }
 
         @Override

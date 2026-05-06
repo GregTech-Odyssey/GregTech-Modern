@@ -22,6 +22,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
 
 import com.google.common.collect.HashBiMap;
+import com.gto.datasynclib.datasream.DataComponentKey;
 import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -36,6 +37,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class WorldGeneratorUtils {
+
+    private static final DataComponentKey<WorldOreVeinCache> KEY = DataComponentKey.createNoCodec("cache");
 
     public static final RuleTest END_ORE_REPLACEABLES = new TagMatchTest(CustomTags.ENDSTONE_ORE_REPLACEABLES);
 
@@ -78,10 +81,10 @@ public class WorldGeneratorUtils {
     }
 
     public static List<WeightedVein> getCachedBiomeVeins(ServerLevel level, Holder<Biome> biome) {
-        WorldOreVeinCache cache = ILevel.getCapability(level, WorldOreVeinCache.class);
+        WorldOreVeinCache cache = ILevel.getCapability(level, KEY);
         if (cache == null) {
             cache = new WorldOreVeinCache(level);
-            ILevel.setCapability(level, WorldOreVeinCache.class, cache);
+            ILevel.setCapability(level, KEY, cache);
         }
         return cache.getEntry(biome);
     }

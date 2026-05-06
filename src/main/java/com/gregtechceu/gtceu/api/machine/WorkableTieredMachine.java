@@ -215,6 +215,8 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
 
     public void setCleanroom(@Nullable final ICleanroomProvider cleanroom) {
         this.cleanroom = cleanroom;
+        getRecipeLogic().markLastRecipeDirty();
+        getRecipeLogic().updateTickSubscription();
     }
 
     @Override

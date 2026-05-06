@@ -61,6 +61,8 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Persisted
     protected int activeRecipeType;
 
+    protected boolean recipeLogicAvailable;
+
     @Getter
     protected final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
     @Getter
@@ -166,6 +168,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         super.onStructureFormedAfter();
         arrangeHandlerList();
         markFieldsForSync("activeBlocks");
+        recipeLogicAvailable = true;
     }
 
     @Override
@@ -224,6 +227,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Override
     public void onStructureInvalid() {
+        recipeLogicAvailable = false;
         markFieldsForSync("activeBlocks");
         updateActiveBlock(false);
         super.onStructureInvalid();
@@ -264,7 +268,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Override
     public boolean isRecipeLogicAvailable() {
-        return isFormed;
+        return recipeLogicAvailable;
     }
 
     @Override
@@ -339,6 +343,8 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     public void setCleanroom(@Nullable final ICleanroomProvider cleanroom) {
         this.cleanroom = cleanroom;
+        getRecipeLogic().markLastRecipeDirty();
+        getRecipeLogic().updateTickSubscription();
     }
 
     @Override

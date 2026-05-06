@@ -16,7 +16,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import com.gto.datasynclib.datasream.DataComponentMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
@@ -24,8 +24,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.Map;
 
 @Mixin(Level.class)
 public abstract class LevelMixin implements LevelAccessor, ILevel {
@@ -47,7 +45,7 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
     public abstract LevelChunk getChunk(int chunkX, int chunkZ);
 
     @Unique
-    private volatile Map<Class<?>, Object> gtceu$capabilitie;
+    private volatile DataComponentMap gtceu$capabilitie;
 
     @Unique
     private volatile TaskHandler gtceu$taskHandler;
@@ -59,12 +57,12 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
     private MultiblockWorldData gtceu$multiblockWorldData;
 
     @Override
-    public Map<Class<?>, Object> gtceu$getCapabilities() {
+    public DataComponentMap gtceu$getCapabilities() {
         var cap = gtceu$capabilitie;
         if (cap == null) {
             synchronized (this) {
                 if (gtceu$capabilitie == null) {
-                    gtceu$capabilitie = new Reference2ObjectOpenHashMap<>();
+                    gtceu$capabilitie = new DataComponentMap();
                 }
                 cap = gtceu$capabilitie;
             }

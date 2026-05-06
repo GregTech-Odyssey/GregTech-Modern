@@ -16,6 +16,10 @@ import java.util.Map;
 
 public class DataComponentKey<T> {
 
+    public static <T> DataComponentKey<T> createNoCodec(String name) {
+        return new DataComponentKey<>(name, null);
+    }
+
     public static <T> DataComponentKey<T> create(String name, CombinationCodec<T> codec) {
         return new DataComponentKey<>(name, codec);
     }
