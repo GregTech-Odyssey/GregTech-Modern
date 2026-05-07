@@ -180,10 +180,16 @@ public class FancyMachineUIWidget extends WidgetGroup {
         // setup
         this.pageContainer.addWidget(page);
         page.setSelfPosition(new Position((pageContainer.getSize().width - page.getSize().width) / 2, (pageContainer.getSize().height - page.getSize().height) / 2));
+        configuratorPanel.setAvailableHeight(getGui().getHeight() - 4 - getSideTabsBottom());
         fancyUI.attachConfigurators(configuratorPanel);
-        configuratorPanel.setSelfPosition(new Position(-24 - 2, getGui().getHeight() - configuratorPanel.getSize().height - 4));
+        configuratorPanel.setSelfPosition(new Position(-configuratorPanel.getSize().width - 2, getGui().getHeight() - configuratorPanel.getSize().height - 4));
         fancyUI.attachTooltips(tooltipsPanel);
         titleBar.setSize(new Size(this.getSize().width, titleBar.getSize().height));
+    }
+
+    // 算左上角标签栏的底部坐标
+    protected int getSideTabsBottom() {
+        return sideTabsWidget.getSelfPosition().y + 8 + (sideTabsWidget.getSubTabs().size() + 1) * 24;
     }
 
     private void setupInventoryPosition(boolean showInventory, Size parentSize) {
