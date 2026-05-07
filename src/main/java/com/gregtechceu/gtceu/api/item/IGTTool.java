@@ -525,8 +525,9 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
 
     default InteractionResult definition$onItemUse(UseOnContext context) {
         for (IToolBehavior behavior : getToolStats().getBehaviors()) {
-            if (behavior.onItemUse(context) == InteractionResult.SUCCESS) {
-                return InteractionResult.SUCCESS;
+            InteractionResult result = behavior.onItemUse(context);
+            if (result != InteractionResult.PASS) {
+                return result;
             }
         }
 

@@ -464,7 +464,7 @@ public class ToolHelper {
         }
 
         BlockHitResult hitResult = getPlayerDefaultRaytrace(player);
-        UseOnContext context = new UseOnContext(player, player.getUsedItemHand(), hitResult);
+        UseOnContext context = new UseOnContext(player, InteractionHand.MAIN_HAND, hitResult);
         return getHarvestableBlocks(aoeDefinition, context);
     }
 
