@@ -1,36 +1,26 @@
 package com.gregtechceu.gtceu.api.recipe;
 
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapabilityMap;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
-import com.gregtechceu.gtceu.api.recipe.chance.logic.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.expand.ContentExpand;
+import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
+import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.Container;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.level.Level;
 
 import com.fast.recipesearch.IntMapContainer;
 import com.gto.datasynclib.datasream.DataComponentMap;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-import lombok.Getter;
 import org.jetbrains.annotations.Range;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class GTRecipeDefinition implements net.minecraft.world.item.crafting.Recipe<Container> {
+public final class GTRecipeDefinition {
 
     IntMapContainer container;
 
@@ -38,107 +28,54 @@ public class GTRecipeDefinition implements net.minecraft.world.item.crafting.Rec
     public final GTRecipeType recipeType;
     public final GTRecipeCategory recipeCategory;
 
-    @Getter
     public final ResourceLocation id;
 
-    public final Map<RecipeCapability<?>, List<Content>> inputs;
-    public final Map<RecipeCapability<?>, List<Content>> outputs;
-    public final Map<RecipeCapability<?>, List<Content>> tickInputs;
-    public final Map<RecipeCapability<?>, List<Content>> tickOutputs;
-    public final List<RecipeCondition> conditions;
+    public final List<Content<ItemIngredient>> itemInputs;
+    public final List<Content<ItemIngredient>> itemOutputs;
+    public final List<Content<FluidIngredient>> fluidInputs;
+    public final List<Content<FluidIngredient>> fluidOutputs;
+    public final RecipeCondition[] conditions;
+    public final ContentExpand[] contentExpands;
+    public final ContentExpand[] tickContentExpands;
     public final DataComponentMap data;
-    public final int duration;
+    public final long eut;
     public final int tier;
+    public final int duration;
 
-    public GTRecipeDefinition(boolean registered, GTRecipeType recipeType, GTRecipeCategory recipeCategory, ResourceLocation id, Map<RecipeCapability<?>, List<Content>> inputs, Map<RecipeCapability<?>, List<Content>> outputs, Map<RecipeCapability<?>, List<Content>> tickInputs, Map<RecipeCapability<?>, List<Content>> tickOutputs, List<RecipeCondition> conditions, DataComponentMap data, int duration, int tier) {
+    public GTRecipeDefinition(boolean registered, GTRecipeType recipeType, GTRecipeCategory recipeCategory, ResourceLocation id, List<Content<ItemIngredient>> itemInputs, List<Content<ItemIngredient>> itemOutputs, List<Content<FluidIngredient>> fluidInputs, List<Content<FluidIngredient>> fluidOutputs, List<RecipeCondition> conditions, List<ContentExpand> contentExpands, List<ContentExpand> tickContentExpands, DataComponentMap data, long eut, int tier, int duration) {
         this.registered = registered;
         this.recipeType = recipeType;
         this.recipeCategory = recipeCategory;
         this.id = id;
-        this.inputs = inputs;
-        this.outputs = outputs;
-        this.tickInputs = tickInputs;
-        this.tickOutputs = tickOutputs;
-        this.conditions = conditions;
+        this.itemInputs = itemInputs;
+        this.itemOutputs = itemOutputs;
+        this.fluidInputs = fluidInputs;
+        this.fluidOutputs = fluidOutputs;
+        this.conditions = conditions.toArray(new RecipeCondition[0]);
+        this.contentExpands = contentExpands.toArray(new ContentExpand[0]);
+        this.tickContentExpands = tickContentExpands.toArray(new ContentExpand[0]);
         this.data = data;
-        this.duration = duration;
+        this.eut = eut;
         this.tier = tier;
-    }
-
-    public List<Content> getInputContents(RecipeCapability<?> capability) {
-        return inputs.getOrDefault(capability, Collections.emptyList());
-    }
-
-    public List<Content> getOutputContents(RecipeCapability<?> capability) {
-        return outputs.getOrDefault(capability, Collections.emptyList());
-    }
-
-    public List<Content> getTickInputContents(RecipeCapability<?> capability) {
-        return tickInputs.getOrDefault(capability, Collections.emptyList());
-    }
-
-    public List<Content> getTickOutputContents(RecipeCapability<?> capability) {
-        return tickOutputs.getOrDefault(capability, Collections.emptyList());
-    }
-
-    public ChanceLogic getChanceLogicForCapability(RecipeCapability<?> cap, IO io) {
-        return ChanceLogic.OR;
+        this.duration = duration;
     }
 
     @Range(from = 0, to = Long.MAX_VALUE)
     public long getInputEUt() {
-        var inputs = tickInputs.get(EURecipeCapability.CAP);
-        if (inputs == null) return 0;
-        long eut = 0;
-        for (var content : inputs) {
-            eut += EURecipeCapability.CAP.of(content);
-        }
-        return eut;
+        var eu = eut;
+        if (eu > 0) return eu;
+        return 0;
     }
 
     @Range(from = 0, to = Long.MAX_VALUE)
     public long getOutputEUt() {
-        var outputs = tickOutputs.get(EURecipeCapability.CAP);
-        if (outputs == null) return 0;
-        long eut = 0;
-        for (var content : outputs) {
-            eut += EURecipeCapability.CAP.of(content);
-        }
-        return eut;
-    }
-
-    @Override
-    public RecipeSerializer<?> getSerializer() {
-        return null;
-    }
-
-    @Override
-    public GTRecipeType getType() {
-        return recipeType;
-    }
-
-    @Override
-    public boolean matches(Container pContainer, Level pLevel) {
-        return false;
-    }
-
-    @Override
-    public ItemStack assemble(Container inventory, RegistryAccess registryManager) {
-        return ItemStack.EMPTY;
-    }
-
-    @Override
-    public boolean canCraftInDimensions(int pWidth, int pHeight) {
-        return false;
-    }
-
-    @Override
-    public ItemStack getResultItem(RegistryAccess registryManager) {
-        return ItemStack.EMPTY;
+        var eu = eut;
+        if (eu < 0) return -eu;
+        return 0;
     }
 
     public GTRecipe toRuntime() {
-        return new GTRecipe(this, recipeType, new RecipeCapabilityMap<>(inputs), new RecipeCapabilityMap<>(outputs), new Reference2ReferenceOpenHashMap<>(tickInputs), new Reference2ReferenceOpenHashMap<>(tickOutputs), data, duration, tier);
+        return new GTRecipe(this, new ArrayList<>(itemInputs), new ArrayList<>(itemOutputs), new ArrayList<>(fluidInputs), new ArrayList<>(fluidOutputs), data.clone(), eut, duration, tier);
     }
 
     @Override

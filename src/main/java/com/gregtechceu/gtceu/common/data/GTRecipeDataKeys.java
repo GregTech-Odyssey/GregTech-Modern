@@ -15,6 +15,7 @@ public final class GTRecipeDataKeys {
         REGISTRY.unfreeze();
     }
 
+    public static final DataComponentKey<Long> CWUT = REGISTRY.register("cwut", CombinationCodec.LONG_CODEC);
     public static final DataComponentKey<Integer> EBF_TEMP = REGISTRY.register("ebf_temp", CombinationCodec.INT_CODEC);
     public static final DataComponentKey<Integer> SOLDER_MULTIPLIER = REGISTRY.register("solder_multiplier", CombinationCodec.INT_CODEC);
     public static final DataComponentKey<Boolean> DISABLE_DISTILLERY = REGISTRY.register("disable_distillery", CombinationCodec.BOOLEAN_CODEC);

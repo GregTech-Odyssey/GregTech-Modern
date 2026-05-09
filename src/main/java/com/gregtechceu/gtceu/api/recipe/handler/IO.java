@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.api.capability.recipe;
+package com.gregtechceu.gtceu.api.recipe.handler;
 
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 

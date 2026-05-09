@@ -11,8 +11,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
 import appeng.api.stacks.AEItemKey;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,19 +52,7 @@ public final class IntCircuitIngredient extends ItemIngredient {
     }
 
     @Override
-    public @NotNull JsonElement toJson() {
-        JsonObject json = new JsonObject();
-        json.addProperty("configuration", configuration);
-        return json;
-    }
-
-    @Override
     public ItemIngredient copy(long amount) {
-        return this;
-    }
-
-    @Override
-    public ItemIngredient copy() {
         return this;
     }
 

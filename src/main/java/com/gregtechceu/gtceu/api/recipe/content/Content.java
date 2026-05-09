@@ -1,8 +1,6 @@
 package com.gregtechceu.gtceu.api.recipe.content;
 
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
-import com.gregtechceu.gtceu.api.recipe.chance.boost.ChanceBoostFunction;
-import com.gregtechceu.gtceu.api.recipe.chance.logic.ChanceLogic;
+import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GradientUtil;
@@ -16,41 +14,71 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
+import net.minecraft.nbt.LongTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class Content {
+public final class Content<T extends ContentInner> {
 
     public static final int MAX_CHANCE = 10_000;
 
-    public Object inner;
-    public int chance;
-    public int tierChanceBoost;
+    public final T inner;
+    public final int chance;
+    public final int tierChanceBoost;
+    public long amount;
 
-    public Content(Object inner, int chance, int tierChanceBoost) {
+    public Content(T inner) {
         this.inner = inner;
+        this.amount = inner.amount;
+        this.chance = MAX_CHANCE;
+        this.tierChanceBoost = 0;
+    }
+
+    public Content(T inner, long amount) {
+        this.inner = inner;
+        this.amount = amount;
+        this.chance = MAX_CHANCE;
+        this.tierChanceBoost = 0;
+    }
+
+    public Content(T inner, int chance, int tierChanceBoost) {
+        this.inner = inner;
+        this.amount = inner.amount;
         this.chance = chance;
         this.tierChanceBoost = tierChanceBoost;
     }
 
-    public static <T> Codec<Content> codec(RecipeCapability<T> capability) {
-        return RecordCodecBuilder.create(instance -> instance.group(capability.serializer.codec().fieldOf("content").forGetter(capability::of), ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("chance", ChanceLogic.getMaxChancedValue()).forGetter(val -> val.chance), Codec.INT.optionalFieldOf("tierChanceBoost", 0).forGetter(val -> val.tierChanceBoost)).apply(instance, Content::new));
+    public Content(T inner, long amount, int chance, int tierChanceBoost) {
+        this.inner = inner;
+        this.amount = amount;
+        this.chance = chance;
+        this.tierChanceBoost = tierChanceBoost;
+    }
+
+    public Content(Content<T> content) {
+        this.inner = content.inner;
+        this.amount = content.amount;
+        this.chance = content.chance;
+        this.tierChanceBoost = content.tierChanceBoost;
+    }
+
+    public Content(Content<T> content, long amount) {
+        this.inner = content.inner;
+        this.amount = amount;
+        this.chance = content.chance;
+        this.tierChanceBoost = content.tierChanceBoost;
     }
 
     @Nullable
-    public static Content fromNbt(RecipeCapability<?> capability, @Nullable Tag tag) {
+    public static <T extends ContentInner> Content<T> fromNbt(IContentSerializer<T> serializer, @Nullable Tag tag) {
         if (tag instanceof CompoundTag compoundTag && compoundTag.tags.get("content") instanceof CompoundTag content) {
-            var ingredient = capability.serializer.fromNbt(content);
-            if (ingredient instanceof ContentInner inner && !inner.isEmpty()) return new Content(ingredient, getChance(compoundTag), getTierChanceBoost(compoundTag));
+            var ingredient = serializer.fromNbt(content);
+            if (ingredient instanceof ContentInner inner && !inner.isEmpty()) return new Content<>(ingredient, compoundTag.tags.get("amount") instanceof LongTag longTag ? longTag.getAsLong() : ingredient.amount, getChance(compoundTag), getTierChanceBoost(compoundTag));
         }
         return null;
     }
@@ -61,45 +89,38 @@ public class Content {
             var t = new CompoundTag();
             addChance(t, this);
             t.put("content", contentInner.toNbt());
+            t.putLong("amount", amount);
             return t;
         }
         return null;
     }
 
-    public <T> T getInner() {
-        return (T) inner;
+    public Content<T> copy() {
+        return new Content<>(this);
     }
 
-    public Content copy(RecipeCapability<?> capability) {
-        return new Content(capability.copyContent(inner), chance, tierChanceBoost);
-    }
-
-    public Content copy(RecipeCapability<?> capability, @NotNull ContentModifier modifier) {
-        if (modifier == ContentModifier.IDENTITY || chance < MAX_CHANCE) {
-            return copy(capability);
+    public Content<T> copy(long multiplier) {
+        if (multiplier == 1) {
+            return new Content<>(this);
         } else {
-            return new Content(capability.copyContent(inner, modifier), chance, tierChanceBoost);
+            return new Content<>(this, amount * multiplier);
         }
+    }
+
+    public void shrink(long amount) {
+        this.amount -= amount;
     }
 
     public boolean isChanced() {
         return chance > 0 && chance < MAX_CHANCE;
     }
 
-    /**
-     * Attempts to fix and round the given chance boost due to potential differences
-     * between the max chance and {@link ChanceLogic#getMaxChancedValue()}.
-     * <br />
-     * The worst case would be {@code 5,001 / 10,000} , meaning the boost would
-     * have to be halved to have the intended effect.
-     *
-     * @param chanceBoost the chance boost to be fixed
-     * @return the fixed chance boost
-     */
-    private int fixBoost(int chanceBoost) {
-        float error = (float) ChanceLogic.getMaxChancedValue() / MAX_CHANCE;
-        int fixed = Math.round(Math.abs(chanceBoost) / error);
-        return chanceBoost < 0 ? -fixed : fixed;
+    public long getChanceAmount(ChanceBoostFunction function, int recipeTier, int chanceTier) {
+        if (this.chance == MAX_CHANCE) return this.amount;
+        var chance = function.getBoostedChance(this, recipeTier, chanceTier);
+        if (chance == MAX_CHANCE) return this.amount;
+        if (chance == 0) return 0;
+        return (long) ((double) GTValues.RNG.nextInt(chance) / MAX_CHANCE) * this.amount;
     }
 
     public IGuiTexture createOverlay(boolean perTick, int recipeTier, int chanceTier, @Nullable ChanceBoostFunction function) {
@@ -135,7 +156,7 @@ public class Content {
 
     @OnlyIn(Dist.CLIENT)
     public void drawChance(GuiGraphics graphics, float x, float y, int width, int height, int recipeTier, int chanceTier, @Nullable ChanceBoostFunction function) {
-        if (chance == ChanceLogic.getMaxChancedValue()) return;
+        if (chance == MAX_CHANCE) return;
         graphics.pose().pushPose();
         graphics.pose().translate(0, 0, 400);
         graphics.pose().scale(0.5F, 0.5F, 1);
@@ -167,7 +188,7 @@ public class Content {
         String s = LocalizationUtils.format("gtceu.gui.content.tips.per_tick_short");
         int color = 16776960;
         Font fontRenderer = Minecraft.getInstance().font;
-        graphics.drawString(fontRenderer, s, (int) ((x + (width / 3.0F)) * 2 - fontRenderer.width(s) + 23), (int) ((y + (height / 3.0F) + 6) * 2 - height + (chance == ChanceLogic.getMaxChancedValue() ? 0 : 10)), color);
+        graphics.drawString(fontRenderer, s, (int) ((x + (width / 3.0F)) * 2 - fontRenderer.width(s) + 23), (int) ((y + (height / 3.0F) + 6) * 2 - height + (chance == MAX_CHANCE ? 0 : 10)), color);
         graphics.pose().popPose();
     }
 

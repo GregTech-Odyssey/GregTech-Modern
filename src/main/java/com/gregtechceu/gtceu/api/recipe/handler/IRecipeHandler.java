@@ -1,7 +1,10 @@
-package com.gregtechceu.gtceu.api.capability.recipe;
+package com.gregtechceu.gtceu.api.recipe.handler;
 
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
+import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
 
 import net.minecraft.world.item.ItemStack;
@@ -10,31 +13,10 @@ import net.minecraftforge.fluids.FluidStack;
 import com.fast.recipesearch.IntLongMap;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.ObjLongConsumer;
 
-public interface IRecipeHandler<K> extends IFilteredHandler<K> {
-
-    /**
-     * matching or handling the given recipe.
-     *
-     * @param io       the IO type of this recipe. always be one of the {@link IO#IN} or {@link IO#OUT}
-     * @param recipe   recipe.
-     * @param left     left contents for to be handled.
-     * @param simulate simulate.
-     * @return left contents for continue handling by other proxies.
-     *         <br>
-     *         null - nothing left. handling successful/finish. you should always return null as a handling-done mark.
-     */
-    List<K> handleRecipeInner(IO io, GTRecipe recipe, List<K> left, boolean simulate);
-
-    /**
-     * container size, if it has one. otherwise -1.
-     */
-    default int getSize() {
-        return -1;
-    }
+public interface IRecipeHandler extends IFilteredHandler {
 
     /**
      * @return interruption
@@ -91,18 +73,27 @@ public interface IRecipeHandler<K> extends IFilteredHandler<K> {
         return true;
     }
 
-    RecipeCapability<K> getCapability();
-
-    @SuppressWarnings("unchecked")
-    default K copyContent(Object content) {
-        return getCapability().copyInner((K) content);
+    default boolean canHandleItem() {
+        return false;
     }
 
-    default List<K> handleRecipe(IO io, GTRecipe recipe, List<?> left, boolean simulate) {
-        List<K> contents = new ArrayList<>(left.size());
-        for (Object leftObj : left) {
-            contents.add(copyContent(leftObj));
-        }
-        return handleRecipeInner(io, recipe, contents, simulate);
+    default boolean canHandleFluid() {
+        return false;
+    }
+
+    default boolean isInfiniteOutputItem() {
+        return false;
+    }
+
+    default boolean isInfiniteOutputFluid() {
+        return false;
+    }
+
+    default List<Content<ItemIngredient>> handleRecipeItem(IO io, GTRecipe recipe, List<Content<ItemIngredient>> items, boolean simulate) {
+        return items;
+    }
+
+    default List<Content<FluidIngredient>> handleRecipeFluid(IO io, GTRecipe recipe, List<Content<FluidIngredient>> fluids, boolean simulate) {
+        return fluids;
     }
 }

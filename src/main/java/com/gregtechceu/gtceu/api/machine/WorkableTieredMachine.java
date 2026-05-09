@@ -2,12 +2,16 @@ package com.gregtechceu.gtceu.api.machine;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.*;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
+import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.machine.feature.*;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachine;
 import com.gregtechceu.gtceu.api.machine.trait.*;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
@@ -54,7 +58,7 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     @Persisted
     public final NotifiableFluidTank exportFluids;
     @Getter
-    protected final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
+    protected final Map<IO, List<RecipeHandlerUnit>> capabilitiesProxy;
     @Getter
     protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
     @Getter
@@ -66,7 +70,7 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     @Persisted
     @SyncToClient
     protected boolean isMuffled;
-    protected RecipeHandlerList currentHandlerList;
+    protected RecipeHandlerUnit currentHandlerList;
 
     public WorkableTieredMachine(MetaMachineBlockEntity holder, int tier, Int2IntFunction tankScalingFunction, Object... args) {
         super(holder, tier, args);
@@ -138,7 +142,7 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
             }
         }
         for (var entry : ioTraits.entrySet()) {
-            var handlerList = RecipeHandlerList.of(entry.getKey(), entry.getValue());
+            var handlerList = RecipeHandlerUnit.of(entry.getKey(), entry.getValue());
             this.addHandlerList(handlerList);
             traitSubscriptions.add(handlerList.subscribe(recipeLogic::updateTickSubscription));
         }
@@ -220,12 +224,12 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     }
 
     @Override
-    public @Nullable RecipeHandlerList getCurrentHandlerList() {
+    public @Nullable RecipeHandlerUnit getCurrentHandlerList() {
         return currentHandlerList;
     }
 
     @Override
-    public void setCurrentHandlerList(RecipeHandlerList list) {
+    public void setCurrentHandlerList(RecipeHandlerUnit list) {
         this.currentHandlerList = list;
     }
 

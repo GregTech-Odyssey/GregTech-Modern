@@ -1,12 +1,12 @@
 package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.utils.asm.EmptyMethodChecker;
 
 import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
@@ -84,11 +84,11 @@ public interface IWorkableMultiPart extends IMultiPart {
         return IWorkableMultiPart.hasModifyRecipeMethod(this);
     }
 
-    default List<RecipeHandlerList> getRecipeHandlers() {
+    default List<RecipeHandlerUnit> getRecipeHandlers() {
         return Collections.singletonList(getHandlerList());
     }
 
-    default RecipeHandlerList getHandlerList() {
+    default RecipeHandlerUnit getHandlerList() {
         var list = getRecipeHandlerList();
         if (list == null) {
             List<IRecipeHandler<?>> handlers = new ArrayList<>();
@@ -101,10 +101,10 @@ public interface IWorkableMultiPart extends IMultiPart {
             }
 
             if (handlers.isEmpty()) {
-                list = RecipeHandlerList.NO_DATA;
+                list = RecipeHandlerUnit.NO_DATA;
                 setRecipeHandlerList(list);
             } else {
-                list = RecipeHandlerList.of(handlerIO, this, handlers);
+                list = RecipeHandlerUnit.of(handlerIO, this, handlers);
                 setRecipeHandlerList(list);
             }
         }
@@ -151,7 +151,7 @@ public interface IWorkableMultiPart extends IMultiPart {
         return recipe;
     }
 
-    RecipeHandlerList getRecipeHandlerList();
+    RecipeHandlerUnit getRecipeHandlerList();
 
-    void setRecipeHandlerList(RecipeHandlerList list);
+    void setRecipeHandlerList(RecipeHandlerUnit list);
 }

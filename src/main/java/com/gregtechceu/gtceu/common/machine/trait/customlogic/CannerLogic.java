@@ -1,12 +1,12 @@
 package com.gregtechceu.gtceu.common.machine.trait.customlogic;
 
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.IRecipeCapabilityHolder;
-import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 
 import net.minecraft.world.item.ItemStack;
@@ -27,10 +27,10 @@ public enum CannerLogic implements GTRecipeType.ICustomRecipeLogic {
     INSTANCE;
 
     @Override
-    public @Nullable GTRecipeDefinition createCustomRecipe(IRecipeCapabilityHolder holder) {
+    public @Nullable GTRecipeDefinition createCustomRecipe(IRecipeHandlerHolder holder) {
         var handlerLists = holder.getInputList();
         if (handlerLists.isEmpty()) return null;
-        List<RecipeHandlerList> distinct = new ArrayList<>();
+        List<RecipeHandlerUnit> distinct = new ArrayList<>();
         List<IRecipeHandler<?>> notDistinctItems = new ArrayList<>();
         List<IRecipeHandler<?>> notDistinctFluids = new ArrayList<>();
 
@@ -161,7 +161,7 @@ public enum CannerLogic implements GTRecipeType.ICustomRecipeLogic {
         return null;
     }
 
-    private static boolean collect(RecipeHandlerList rhl, List<ItemStack> itemStacks, List<FluidStack> fluidStacks) {
+    private static boolean collect(RecipeHandlerUnit rhl, List<ItemStack> itemStacks, List<FluidStack> fluidStacks) {
         rhl.fastForEach((stack, amount) -> itemStacks.add(stack), (stack, amount) -> fluidStacks.add(stack));
         return !(itemStacks.isEmpty() || fluidStacks.isEmpty());
     }

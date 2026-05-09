@@ -6,16 +6,12 @@ import com.gto.datasynclib.CombinationCodec;
 import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datasream.codec.DataCodec;
 import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.data.DataOps;
 import com.gto.datasynclib.datasream.data.MapData;
 import com.gto.datasynclib.util.Registry;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-
-import java.util.stream.Stream;
 
 public final class DataComponentRegistry extends Registry<String, DataComponentKey<?>> implements ByteStreamCodec<DataComponentMap>, DataCodec<DataComponentMap>, Codec<DataComponentMap> {
 
@@ -28,34 +24,25 @@ public final class DataComponentRegistry extends Registry<String, DataComponentK
     }
 
     public <T> DataComponentKey<T> register(DataComponentKey<T> key) {
-        return (DataComponentKey<T>) super.register(key.name, key);
+        return super.register(key.name, key);
     }
 
-    public <T> DataComponentKey<T> getDataComponentKey(String name) {
-        return (DataComponentKey<T>) super.get(name);
+    public <T extends DataComponentKey<?>> T getDataComponentKey(String name) {
+        return (T) super.get(name);
     }
 
-    public <T> DataComponentKey<T> getDataComponentKey(int id) {
-        return (DataComponentKey<T>) super.get(id);
+    public <T extends DataComponentKey<?>> T getDataComponentKey(int id) {
+        return (T) super.get(id);
     }
 
     @Override
     public <T> DataResult<Pair<DataComponentMap, T>> decode(DynamicOps<T> ops, T input) {
-        var map = new DataComponentMap();
-        ops.getMapValues(input).result().orElse(Stream.empty()).forEach(p -> {
-            var key = get(ops.convertTo(DataOps.INSTANCE, p.getFirst()).getString());
-            if (key == null) return;
-            var value = key.codec.dataReader.decode(ops.convertTo(DataOps.INSTANCE, p.getSecond()));
-            if (value != null) map.put(key, value);
-        });
-        return DataResult.success(Pair.of(map, ops.empty()));
+        return Data.CODEC.map(this::decode).decode(ops, input);
     }
 
     @Override
     public <T> DataResult<T> encode(DataComponentMap input, DynamicOps<T> ops, T prefix) {
-        var data = new MapData(new Reference2ReferenceOpenHashMap<>());
-        input.fastForEach((k, v) -> data.put(k.name, k.codec.dataWriter.encode(v)));
-        return DataResult.success(DataOps.INSTANCE.convertMap(ops, data));
+        return Data.CODEC.comap(i -> encode(input)).encode(input, ops, prefix);
     }
 
     @Override

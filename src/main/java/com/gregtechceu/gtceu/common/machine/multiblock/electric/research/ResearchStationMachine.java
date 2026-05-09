@@ -2,14 +2,14 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric.research;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IObjectHolder;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.item.ItemStack;
@@ -62,7 +62,7 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
         for (IMultiPart part : getParts()) {
             if (part instanceof IObjectHolder iObjectHolder) {
                 this.objectHolder = iObjectHolder;
-                addHandlerList(RecipeHandlerList.of(IO.IN, iObjectHolder.getAsHandler()));
+                addHandlerList(RecipeHandlerUnit.of(IO.IN, iObjectHolder.getAsHandler()));
                 break;
             }
         }

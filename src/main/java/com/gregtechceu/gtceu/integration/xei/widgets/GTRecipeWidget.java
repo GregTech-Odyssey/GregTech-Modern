@@ -3,20 +3,17 @@ package com.gregtechceu.gtceu.integration.xei.widgets;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.WidgetUtils;
 import com.gregtechceu.gtceu.api.gui.widget.PredicatedButtonWidget;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
-import com.gregtechceu.gtceu.api.recipe.OverclockingLogic;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
-import com.gregtechceu.gtceu.api.recipe.chance.boost.ChanceBoostFunction;
-import com.gregtechceu.gtceu.api.recipe.chance.logic.ChanceLogic;
+import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
+import com.gregtechceu.gtceu.api.recipe.content.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
-import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
-import com.gregtechceu.gtceu.common.machine.multiblock.electric.FusionReactorMachine;
 import com.gregtechceu.gtceu.common.recipe.condition.DimensionCondition;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
@@ -38,6 +35,7 @@ import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
 import com.gto.datasynclib.datasream.DataComponentMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
@@ -95,7 +93,7 @@ public class GTRecipeWidget extends WidgetGroup {
         collectStorage(storages, contents, recipe);
 
         WidgetGroup group = recipe.recipeType.getRecipeUI().createUITemplate(ProgressWidget.JEIProgress, storages,
-                recipe.data.clone(), recipe.conditions);
+                recipe.data.clone(), List.of(recipe.conditions));
         addSlots(contents, group, recipe);
 
         var size = group.getSize();
@@ -120,11 +118,11 @@ public class GTRecipeWidget extends WidgetGroup {
 
         /// add text based on i/o's
         MutableInt yOff = new MutableInt(yOffset);
-        for (var capability : recipe.tickInputs.entrySet()) {
-            capability.getKey().addXEIInfo(this, xOffset, recipe, capability.getValue().getFirst().getInner(), true, true, yOff);
+        for (var e : recipe.contentExpands) {
+            e.addXEIInfo(recipe, this, xOffset, yOff, false);
         }
-        for (var capability : recipe.tickOutputs.entrySet()) {
-            capability.getKey().addXEIInfo(this, xOffset, recipe, capability.getValue().getFirst().getInner(), true, false, yOff);
+        for (var e : recipe.tickContentExpands) {
+            e.addXEIInfo(recipe, this, xOffset, yOff, true);
         }
 
         for (RecipeCondition condition : recipe.conditions) {
@@ -192,9 +190,8 @@ public class GTRecipeWidget extends WidgetGroup {
             long euTotal = EUt * duration;
             // sadly we still need a custom override here, since computation uses duration and EU/t very differently
             if (recipe.data.getBoolean(GTRecipeDataKeys.DURATION_IS_TOTAL_CWU) &&
-                    recipe.tickInputs.containsKey(CWURecipeCapability.CAP)) {
-                long minimumCWUt = Math.max(recipe.tickInputs.get(CWURecipeCapability.CAP).stream()
-                        .mapToLong(CWURecipeCapability.CAP::of).sum(), 1);
+                    recipe.data.containsKey(GTRecipeDataKeys.CWUT)) {
+                long minimumCWUt = Math.max(recipe.data.getLong(GTRecipeDataKeys.CWUT), 1);
                 texts.add(Component.translatable("gtceu.recipe.max_eu",
                         FormattingUtil.formatNumbers(euTotal / minimumCWUt)));
             } else {
@@ -233,7 +230,6 @@ public class GTRecipeWidget extends WidgetGroup {
     }
 
     public void setRecipeOC(int button, boolean isShiftClick) {
-        OverclockingLogic oc = OverclockingLogic.NON_PERFECT_OVERCLOCK;
         if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             setTier(tier + 1);
         } else if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
@@ -241,27 +237,18 @@ public class GTRecipeWidget extends WidgetGroup {
         } else if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
             setTierToMin();
         }
-        if (isShiftClick) {
-            oc = OverclockingLogic.PERFECT_OVERCLOCK;
-        }
-        if (recipe.recipeType == GTRecipeTypes.FUSION_RECIPES) {
-            oc = FusionReactorMachine.FUSION_OC;
-        }
-        setRecipeTextWidget(oc);
+        setRecipeTextWidget(isShiftClick);
         setRecipeWidget();
     }
 
-    private void setRecipeTextWidget(OverclockingLogic logic) {
+    private void setRecipeTextWidget(boolean isShiftClick) {
         long inputEUt = recipe.getInputEUt();
         int duration = recipe.duration;
         String tierText = GTValues.VNF[tier];
         if (tier > minTier && inputEUt != 0) {
             int ocs = tier - minTier;
-            if (minTier == ULV) ocs--;
-            var params = new OverclockingLogic.OCParams(inputEUt, recipe.duration, ocs, 1);
-            var result = logic.runOverclockingLogic(params, V[tier]);
-            duration = (int) (duration * result.durationMultiplier());
-            inputEUt = (long) (inputEUt * result.eutMultiplier());
+            duration = Math.max(1, (int) (duration / Math.pow(isShiftClick ? 4 : 2, ocs)));
+            inputEUt = (long) (inputEUt * Math.pow(4, ocs));
             tierText = tierText.formatted(ChatFormatting.ITALIC);
         }
         List<Component> texts = getRecipeParaText(recipe, duration, inputEUt, 0);
@@ -276,7 +263,7 @@ public class GTRecipeWidget extends WidgetGroup {
 
     public static void setConsumedChance(Content content, ChanceLogic logic, List<Component> tooltips, int recipeTier,
                                          int chanceTier, ChanceBoostFunction function) {
-        if (content.chance < ChanceLogic.getMaxChancedValue()) {
+        if (content.chance < Content.MAX_CHANCE) {
             int boostedChance = function.getBoostedChance(content, recipeTier, chanceTier);
             if (boostedChance == 0) {
                 tooltips.add(Component.translatable("gtceu.gui.content.chance_nc"));
@@ -320,13 +307,18 @@ public class GTRecipeWidget extends WidgetGroup {
 
     public void collectStorage(Table<IO, RecipeCapability<?>, Object> extraTable,
                                Table<IO, RecipeCapability<?>, List<Content>> extraContents, GTRecipeDefinition recipe) {
-        var inputCapabilities = new RecipeCapabilityMap<List<Object>>();
-        for (var entry : recipe.inputs.entrySet()) {
-            if (entry.getKey() instanceof ContentRecipeCapability<?> cap) {
-                List<Content> contents = entry.getValue();
-                extraContents.put(IO.IN, cap, contents);
-                inputCapabilities.put(cap, cap.createXEIContainerContents(contents, recipe, IO.IN));
-            }
+        var inputCapabilities = new Reference2ReferenceOpenHashMap<RecipeCapability<?>, List<Object>>();
+        if (!recipe.itemInputs.isEmpty()) {
+            List contents = recipe.itemInputs;
+            var cap = ItemRecipeCapability.CAP;
+            extraContents.put(IO.IN, cap, contents);
+            inputCapabilities.put(cap, cap.createXEIContainerContents(contents, recipe, IO.IN));
+        }
+        if (!recipe.fluidInputs.isEmpty()) {
+            List contents = recipe.fluidInputs;
+            var cap = FluidRecipeCapability.CAP;
+            extraContents.put(IO.IN, cap, contents);
+            inputCapabilities.put(cap, cap.createXEIContainerContents(contents, recipe, IO.IN));
         }
         for (var entry : inputCapabilities.entrySet()) {
             if (entry.getKey() instanceof ContentRecipeCapability<?> cap) {
@@ -339,14 +331,18 @@ public class GTRecipeWidget extends WidgetGroup {
             }
         }
 
-        var outputCapabilities = new RecipeCapabilityMap<List<Object>>();
-        for (var entry : recipe.outputs.entrySet()) {
-            if (entry.getKey() instanceof ContentRecipeCapability<?> cap) {
-                List<Content> contents = entry.getValue();
-
-                extraContents.put(IO.OUT, cap, contents);
-                outputCapabilities.put(cap, cap.createXEIContainerContents(contents, recipe, IO.OUT));
-            }
+        var outputCapabilities = new Reference2ReferenceOpenHashMap<RecipeCapability<?>, List<Object>>();
+        if (!recipe.itemOutputs.isEmpty()) {
+            List contents = recipe.itemOutputs;
+            var cap = ItemRecipeCapability.CAP;
+            extraContents.put(IO.OUT, cap, contents);
+            outputCapabilities.put(cap, cap.createXEIContainerContents(contents, recipe, IO.OUT));
+        }
+        if (!recipe.fluidOutputs.isEmpty()) {
+            List contents = recipe.fluidOutputs;
+            var cap = FluidRecipeCapability.CAP;
+            extraContents.put(IO.OUT, cap, contents);
+            outputCapabilities.put(cap, cap.createXEIContainerContents(contents, recipe, IO.OUT));
         }
         for (var entry : outputCapabilities.entrySet()) {
             if (entry.getKey() instanceof ContentRecipeCapability<?> cap) {
@@ -366,7 +362,7 @@ public class GTRecipeWidget extends WidgetGroup {
             IO io = capabilityEntry.getKey();
             for (var contentsEntry : capabilityEntry.getValue().entrySet()) {
                 if (contentsEntry.getKey() instanceof ContentRecipeCapability<?> cap) {
-                    int nonTickCount = (io == IO.IN ? recipe.getInputContents(cap) : recipe.getOutputContents(cap)).size();
+                    int nonTickCount = (io == IO.IN ? cap == ItemRecipeCapability.CAP ? recipe.itemInputs : recipe.fluidInputs : cap == ItemRecipeCapability.CAP ? recipe.itemOutputs : recipe.fluidOutputs).size();
                     List<Content> contents = contentsEntry.getValue();
                     // bind fluid out overlay
                     var widgetClass = cap.getWidgetClass();

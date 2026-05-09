@@ -3,16 +3,21 @@ package com.gregtechceu.gtceu.api.recipe;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
+import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.SteamTexture;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
-import com.gregtechceu.gtceu.api.recipe.chance.boost.ChanceBoostFunction;
-import com.gregtechceu.gtceu.api.recipe.content.ContentInner;
+import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
+import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 import com.gregtechceu.gtceu.api.sound.SoundEntry;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
-import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -24,10 +29,13 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.fast.fastcollection.O2OOpenCacheHashMap;
@@ -45,7 +53,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.*;
 
-public class GTRecipeType implements RecipeType<GTRecipeDefinition> {
+public class GTRecipeType implements RecipeType<Recipe<?>> {
 
     public final ResourceLocation registryName;
     public final String group;
@@ -183,15 +191,15 @@ public class GTRecipeType implements RecipeType<GTRecipeDefinition> {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public boolean findRecipe(IRecipeCapabilityHolder holder, Predicate<GTRecipeDefinition> canHandle) {
+    public RecipeHandlerUnit findRecipe(IRecipeHandlerHolder holder, Predicate<GTRecipeDefinition> canHandle) {
         for (var list : holder.getInputList()) {
-            if (list.findRecipe(holder, this, canHandle)) return true;
+            if (list.findRecipe(holder, this, canHandle)) return list;
+            for (var logic : customRecipeLogicRunners) {
+                var r = logic.createCustomRecipe(holder);
+                if (r != null && canHandle.test(r)) return true;
+            }
         }
-        for (var logic : customRecipeLogicRunners) {
-            var r = logic.createCustomRecipe(holder);
-            if (r != null && canHandle.test(r)) return true;
-        }
-        return false;
+        return null;
     }
 
     public boolean search(IntLongMap map, Predicate<GTRecipeDefinition> canHandle) {
@@ -308,8 +316,16 @@ public class GTRecipeType implements RecipeType<GTRecipeDefinition> {
         return categoryMap.getOrDefault(category, Collections.emptySet());
     }
 
-    public <T extends ContentInner> void convert(ContentRecipeCapability<T> capability, Object object, IntLongMap map) {
-        capability.convert((T) object, map);
+    public void convertItem(ItemIngredient ingredient, IntLongMap map) {
+        if (ingredient instanceof IntCircuitIngredient circuitIngredient) {
+            map.add(circuitIngredient.configuration, 1);
+        } else if (ingredient.inner.isVanilla() && ingredient.inner.values.length == 1) {
+            if (ingredient.inner.values[0] instanceof Ingredient.ItemValue itemValue) {
+                map.add(itemValue.item.getItem().hashCode(), ingredient.amount);
+            } else if (ingredient.inner.values[0] instanceof Ingredient.TagValue tagValue) {
+                map.add(tagValue.tag.hashCode(), ingredient.amount);
+            }
+        }
     }
 
     public void convertItem(ItemStack stack, long amount, IntLongMap map) {
@@ -321,6 +337,14 @@ public class GTRecipeType implements RecipeType<GTRecipeDefinition> {
             if (nbt.tags.get(IntCircuitIngredient.Configuration) instanceof IntTag intTag) {
                 map.add(intTag.getAsInt(), amount);
             }
+        }
+    }
+
+    public void convertFluid(FluidIngredient ingredient, IntLongMap map) {
+        if (ingredient.value instanceof Fluid fluid) {
+            map.add(fluid.hashCode(), ingredient.amount);
+        } else if (ingredient.value instanceof TagKey<?> tagKey) {
+            map.add(tagKey.hashCode(), ingredient.amount);
         }
     }
 
@@ -337,7 +361,7 @@ public class GTRecipeType implements RecipeType<GTRecipeDefinition> {
          *         recipe is not found to run. Return null if no recipe should be run by your logic.
          */
         @Nullable
-        GTRecipeDefinition createCustomRecipe(IRecipeCapabilityHolder holder);
+        GTRecipeDefinition createCustomRecipe(IRecipeHandlerHolder holder, RecipeHandlerUnit handlerList);
 
         /**
          * Build all representative recipes in this method, then add them to the appropriate recipe category.

@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.api.recipe;
+package com.gregtechceu.gtceu.api.recipe.handler;
 
 import net.minecraft.network.chat.Component;
 

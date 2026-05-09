@@ -21,9 +21,6 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
 import appeng.api.stacks.AEItemKey;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
 import com.mojang.serialization.JsonOps;
 import it.unimi.dsi.fastutil.Hash;
 import lombok.Getter;
@@ -43,22 +40,14 @@ public class ItemIngredient extends ContentInner implements Predicate<ItemStack>
     private final Ingredient.Value value;
 
     protected ItemIngredient(Ingredient inner, long amount) {
+        super(amount);
         this.inner = inner;
-        this.amount = amount;
         isEmpty = inner.isEmpty();
         value = isEmpty ? null : inner.getClass() == Ingredient.class ? inner.values[0] : null;
     }
 
     private ItemIngredient(ItemIngredient ingredient, long amount) {
-        this.amount = amount;
-        this.inner = ingredient.inner;
-        this.isEmpty = ingredient.isEmpty;
-        this.value = ingredient.value;
-        this.hashCode = ingredient.hashCode;
-    }
-
-    private ItemIngredient(ItemIngredient ingredient) {
-        this.amount = ingredient.amount;
+        super(amount);
         this.inner = ingredient.inner;
         this.isEmpty = ingredient.isEmpty;
         this.value = ingredient.value;
@@ -136,49 +125,8 @@ public class ItemIngredient extends ContentInner implements Predicate<ItemStack>
         return EMPTY;
     }
 
-    public JsonElement toJson() {
-        JsonObject json = new JsonObject();
-        switch (value) {
-            case Ingredient.ItemValue itemValue -> json.addProperty("item", GTUtil.ITEM_ID.apply(itemValue.item.getItem()).toString());
-            case Ingredient.TagValue tagValue -> json.addProperty("tag", tagValue.tag.location().toString());
-            case null, default -> json.add("ingredient", inner.toJson());
-        }
-        json.addProperty("count", amount);
-        return json;
-    }
-
-    public static ItemIngredient fromJson(JsonElement json) {
-        if (json == null || json.isJsonNull()) throw new JsonSyntaxException("Fluid ingredient cannot be null");
-        var jsonObject = json.getAsJsonObject();
-        var configuration = jsonObject.get("configuration");
-        if (configuration != null) {
-            return IntCircuitIngredient.CIRCUIT_INPUTS[configuration.getAsInt()];
-        }
-        long amount = jsonObject.get("count").getAsLong();
-        var item = jsonObject.get("item");
-        if (item != null) {
-            return of(BuiltInRegistries.ITEM.get(GTUtil.getResourceLocation(item.getAsString())), amount);
-        }
-        var tag = jsonObject.get("tag");
-        if (tag != null) {
-            return of(TagKey.create(Registries.ITEM, GTUtil.getResourceLocation(tag.getAsString())), amount);
-        }
-        var in = jsonObject.get("ingredient");
-        if (in != null) {
-            Ingredient inner = Ingredient.fromJson(in);
-            if (!inner.isEmpty()) {
-                return of(inner, amount);
-            }
-        }
-        return EMPTY;
-    }
-
     public ItemIngredient copy(long amount) {
         return new ItemIngredient(this, amount);
-    }
-
-    public ItemIngredient copy() {
-        return new ItemIngredient(this);
     }
 
     public boolean testItem(Item item) {

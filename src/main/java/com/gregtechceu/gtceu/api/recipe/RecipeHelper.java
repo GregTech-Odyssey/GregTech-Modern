@@ -1,18 +1,18 @@
 package com.gregtechceu.gtceu.api.recipe;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.capability.recipe.IRecipeCapabilityHolder;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapabilityMap;
 import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.recipe.chance.boost.ChanceBoostFunction;
+import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
-import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
+import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.network.chat.Component;
@@ -102,29 +102,29 @@ public class RecipeHelper {
         return result;
     }
 
-    public static boolean matchRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe) {
+    public static boolean matchRecipe(IRecipeHandlerHolder holder, GTRecipe recipe) {
         return holder.hasCapabilityProxies() && handleRecipe(holder, recipe, IO.IN, recipe.inputs, Collections.emptyMap(), true) && handleRecipe(holder, recipe, IO.OUT, recipe.outputs, Collections.emptyMap(), true);
     }
 
-    public static boolean matchTickRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe) {
+    public static boolean matchTickRecipe(IRecipeHandlerHolder holder, GTRecipe recipe) {
         if (recipe.hasTick()) {
             return holder.hasCapabilityProxies() && handleTickRecipe(holder, recipe, IO.IN, recipe.tickInputs, true) && handleTickRecipe(holder, recipe, IO.OUT, recipe.tickOutputs, true);
         }
         return true;
     }
 
-    public static boolean handleRecipeIO(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io,
+    public static boolean handleRecipeIO(IRecipeHandlerHolder holder, GTRecipe recipe, IO io,
                                          Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches) {
         if (!holder.hasCapabilityProxies() || io == IO.BOTH) return false;
         return handleRecipe(holder, recipe, io, io == IO.IN ? recipe.inputs : recipe.outputs, chanceCaches, false);
     }
 
-    public static boolean handleTickRecipeIO(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io) {
+    public static boolean handleTickRecipeIO(IRecipeHandlerHolder holder, GTRecipe recipe, IO io) {
         if (!holder.hasCapabilityProxies() || io == IO.BOTH) return false;
         return handleTickRecipe(holder, recipe, io, io == IO.IN ? recipe.tickInputs : recipe.tickOutputs, false);
     }
 
-    public static boolean matchContents(IRecipeCapabilityHolder holder, GTRecipe recipe) {
+    public static boolean matchContents(IRecipeHandlerHolder holder, GTRecipe recipe) {
         return matchRecipe(holder, recipe) && matchTickRecipe(holder, recipe);
     }
 
@@ -228,7 +228,7 @@ public class RecipeHelper {
         return outputs;
     }
 
-    public static boolean handleTickRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io, Map<RecipeCapability<?>, List<Content>> contents, boolean simulated) {
+    public static boolean handleTickRecipe(IRecipeHandlerHolder holder, GTRecipe recipe, IO io, Map<RecipeCapability<?>, List<Content>> contents, boolean simulated) {
         if (contents.isEmpty()) return true;
         Reference2ReferenceOpenHashMap<RecipeCapability<?>, List<Object>> recipeContents = new Reference2ReferenceOpenHashMap<>();
         for (Map.Entry<RecipeCapability<?>, List<Content>> entry : contents.entrySet()) {
@@ -241,7 +241,7 @@ public class RecipeHelper {
             recipeContents.put(entry.getKey(), contentList);
         }
         if (recipeContents.isEmpty()) return true;
-        List<RecipeHandlerList> list;
+        List<RecipeHandlerUnit> list;
         var handlers = holder.getCapabilitiesProxy().get(io);
         if (handlers == null) return false;
         list = handlers;
@@ -267,10 +267,10 @@ public class RecipeHelper {
         return false;
     }
 
-    public static boolean handleRecipe(IRecipeCapabilityHolder holder, GTRecipe recipe, IO io, Map<RecipeCapability<?>, List<Content>> contents, Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches, boolean simulated) {
+    public static boolean handleRecipe(IRecipeHandlerHolder holder, GTRecipe recipe, IO io, Map<RecipeCapability<?>, List<Content>> contents, Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches, boolean simulated) {
         if (contents.isEmpty()) return true;
         boolean in = io == IO.IN;
-        RecipeHandlerList currentDistinc = in ? holder.getCurrentHandlerList() : null;
+        RecipeHandlerUnit currentDistinc = in ? holder.getCurrentHandlerList() : null;
         IWorkableMultiController multiController = null;
         IVoidable voidable = null;
         if (holder instanceof IWorkableMultiController controller) {
@@ -329,7 +329,7 @@ public class RecipeHelper {
             }
         }
 
-        List<RecipeHandlerList> list;
+        List<RecipeHandlerUnit> list;
         if (multiController != null) {
             if (in) {
                 list = holder.getInputList();

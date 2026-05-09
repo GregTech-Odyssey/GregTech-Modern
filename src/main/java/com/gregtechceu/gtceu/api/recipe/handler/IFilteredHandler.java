@@ -1,12 +1,11 @@
-package com.gregtechceu.gtceu.api.capability.recipe;
+package com.gregtechceu.gtceu.api.recipe.handler;
 
 import java.util.Comparator;
-import java.util.function.Predicate;
 
-public interface IFilteredHandler<K> extends Predicate<K> {
+public interface IFilteredHandler {
 
-    Comparator<IFilteredHandler<?>> PRIORITY_COMPARATOR = Comparator
-            .<IFilteredHandler<?>>comparingInt(IFilteredHandler::getPriority).reversed();
+    Comparator<IFilteredHandler> PRIORITY_COMPARATOR = Comparator
+            .comparingInt(IFilteredHandler::getPriority).reversed();
 
     int HIGHEST = Integer.MAX_VALUE;
     int HIGH = Integer.MAX_VALUE / 2;
@@ -21,8 +20,7 @@ public interface IFilteredHandler<K> extends Predicate<K> {
      * @return {@code true} if the input argument matches the predicate,
      *         otherwise {@code false}
      */
-    @Override
-    default boolean test(K ingredient) {
+    default boolean test(Object ingredient) {
         return true;
     }
 

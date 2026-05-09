@@ -1,9 +1,9 @@
 package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
@@ -48,10 +48,10 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
         if (outputs == null) {
             setOutputList(Collections.emptyList());
         } else {
-            Int2ObjectOpenHashMap<List<RecipeHandlerList>> colour = new Int2ObjectOpenHashMap<>();
-            List<RecipeHandlerList> untreated = new ArrayList<>();
-            List<RecipeHandlerList> distinct = new ArrayList<>();
-            for (var handler : RecipeHandlerList.filter(outputs)) {
+            Int2ObjectOpenHashMap<List<RecipeHandlerUnit>> colour = new Int2ObjectOpenHashMap<>();
+            List<RecipeHandlerUnit> untreated = new ArrayList<>();
+            List<RecipeHandlerUnit> distinct = new ArrayList<>();
+            for (var handler : RecipeHandlerUnit.filter(outputs)) {
                 if (handler.part != null) {
                     var color = handler.part.self().getPaintingColor();
                     if (color != -1) {
@@ -62,7 +62,7 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
                 untreated.add(handler);
             }
             colour.int2ObjectEntrySet().fastForEach(e -> {
-                var rhl = RecipeHandlerList.WRAPPER.apply(IO.OUT);
+                var rhl = RecipeHandlerUnit.WRAPPER.apply(IO.OUT);
                 for (var list : e.getValue()) {
                     rhl.addHandlers(list.allHandlers);
                 }
@@ -71,7 +71,7 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
                 distinct.add(rhl);
                 getOutputColorMap().put(color, rhl);
             });
-            var indistinct = RecipeHandlerList.WRAPPER.apply(IO.OUT);
+            var indistinct = RecipeHandlerUnit.WRAPPER.apply(IO.OUT);
             for (var list : untreated) {
                 indistinct.addHandlers(list.allHandlers);
             }
@@ -83,10 +83,10 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
         if (inputs == null) {
             setInputList(Collections.emptyList());
         } else {
-            Int2ObjectOpenHashMap<Map<IMultiPart, List<RecipeHandlerList>>> colour = new Int2ObjectOpenHashMap<>();
-            List<RecipeHandlerList> untreated = new ArrayList<>();
-            List<RecipeHandlerList> distinct = new ArrayList<>();
-            for (var handler : RecipeHandlerList.filter(inputs)) {
+            Int2ObjectOpenHashMap<Map<IMultiPart, List<RecipeHandlerUnit>>> colour = new Int2ObjectOpenHashMap<>();
+            List<RecipeHandlerUnit> untreated = new ArrayList<>();
+            List<RecipeHandlerUnit> distinct = new ArrayList<>();
+            for (var handler : RecipeHandlerUnit.filter(inputs)) {
                 if (handler.part != null) {
                     var color = handler.part.self().getPaintingColor();
                     if (color != -1) {
@@ -99,12 +99,12 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
             colour.int2ObjectEntrySet().fastForEach(e -> {
                 var map = e.getValue();
                 var color = e.getIntKey();
-                List<List<RecipeHandlerList>> same = new ArrayList<>(map.values());
+                List<List<RecipeHandlerUnit>> same = new ArrayList<>(map.values());
                 same.sort(Comparator.comparingInt(l -> -l.size()));
                 var first = same.getFirst();
                 for (int i = first.size() - 1; i >= 0; i--) {
                     var list = first.get(i);
-                    var wrapper = RecipeHandlerList.WRAPPER.apply(list);
+                    var wrapper = RecipeHandlerUnit.WRAPPER.apply(list);
                     wrapper.addList(list);
                     var size = same.size();
                     for (int j = 1; j < size; j++) {
@@ -116,7 +116,7 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
                     distinct.add(wrapper);
                 }
             });
-            var indistinct = RecipeHandlerList.WRAPPER.apply(IO.IN);
+            var indistinct = RecipeHandlerUnit.WRAPPER.apply(IO.IN);
             for (var handler : untreated) {
                 if (handler.isDistinct()) {
                     distinct.add(handler);
@@ -130,11 +130,11 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
         }
     }
 
-    Int2ReferenceOpenHashMap<RecipeHandlerList> getOutputColorMap();
+    Int2ReferenceOpenHashMap<RecipeHandlerUnit> getOutputColorMap();
 
-    void setInputList(List<RecipeHandlerList> handlers);
+    void setInputList(List<RecipeHandlerUnit> handlers);
 
-    void setOutputList(List<RecipeHandlerList> handlers);
+    void setOutputList(List<RecipeHandlerUnit> handlers);
 
     IWorkableMultiPart[] getOnWorkingPart();
 

@@ -4,13 +4,15 @@ import com.gregtechceu.gtceu.api.capability.INbtConvertible;
 
 public abstract class ContentInner implements INbtConvertible {
 
-    public long amount;
+    public final long amount;
 
     protected int hashCode;
 
-    public abstract boolean isEmpty();
+    protected ContentInner(long amount) {
+        this.amount = amount;
+    }
 
-    public abstract ContentInner copy();
+    public abstract boolean isEmpty();
 
     public abstract ContentInner copy(long amount);
 }

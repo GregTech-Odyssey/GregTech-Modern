@@ -7,6 +7,7 @@ import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.TagKey;
@@ -21,7 +22,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
-import com.mojang.serialization.JsonOps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +31,7 @@ import java.util.function.Predicate;
 
 public final class FluidIngredient extends ContentInner implements Predicate<FluidStack> {
 
-    public static Codec<FluidIngredient> CODEC = Codec.PASSTHROUGH.xmap(dynamic -> FluidIngredient.fromJson(dynamic.convert(JsonOps.INSTANCE).getValue()), ingredient -> new Dynamic<>(JsonOps.INSTANCE, ingredient.toJson()));
+    public static Codec<FluidIngredient> CODEC = Codec.PASSTHROUGH.xmap(dynamic -> FluidIngredient.fromNbt((CompoundTag) dynamic.convert(NbtOps.INSTANCE).getValue()), ingredient -> new Dynamic<>(NbtOps.INSTANCE, ingredient.toNbt()));
     public static FluidIngredient EMPTY = new FluidIngredient(null, 0, null);
 
     public static final FluidStack[] EMPTY_STACKS = new FluidStack[0];
@@ -40,28 +40,17 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
     public final CompoundTag nbt;
 
     private FluidStack[] stacks;
-    private boolean changed = true;
 
     private FluidIngredient(Object value, long amount, @Nullable CompoundTag nbt) {
+        super(amount);
         this.value = value;
-        this.amount = amount;
         this.nbt = nbt;
     }
 
     private FluidIngredient(FluidIngredient ingredient, long amount) {
-        this.amount = amount;
+        super(amount);
         this.value = ingredient.value;
         this.nbt = ingredient.nbt;
-        this.stacks = ingredient.stacks;
-        this.hashCode = ingredient.hashCode;
-    }
-
-    private FluidIngredient(FluidIngredient ingredient) {
-        this.amount = ingredient.amount;
-        this.value = ingredient.value;
-        this.nbt = ingredient.nbt;
-        this.stacks = ingredient.stacks;
-        this.changed = ingredient.changed;
         this.hashCode = ingredient.hashCode;
     }
 
@@ -170,14 +159,6 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
         return new FluidIngredient(this, amount);
     }
 
-    public FluidIngredient copy() {
-        return new FluidIngredient(this);
-    }
-
-    public FluidIngredient depthCopy() {
-        return new FluidIngredient(value, amount, nbt);
-    }
-
     public boolean testFluid(@NotNull Fluid fluid) {
         if (value == null) return fluid == Fluids.EMPTY;
         return ((Value) value).gtceu$testFluid(fluid);
@@ -230,11 +211,6 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
         return stacks[0];
     }
 
-    public FluidStack[] getLatestStacks() {
-        if (changed) this.stacks = null;
-        return getStacks();
-    }
-
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public FluidStack[] getStacks() {
         if (this.stacks == null) {
@@ -257,19 +233,8 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
                 }
                 default -> throw new IllegalStateException("Unknown fluid ingredient type");
             }
-            this.changed = false;
         }
         return this.stacks;
-    }
-
-    public void changeAmount(long amount) {
-        this.amount = amount;
-        this.changed = true;
-    }
-
-    public void shrink(long amount) {
-        this.amount -= amount;
-        this.changed = true;
     }
 
     public static FluidIngredient of() {

@@ -3,8 +3,9 @@ package com.gregtechceu.gtceu.api.capability.recipe;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.content.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.api.recipe.content.SerializerFluidIngredient;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 import com.gregtechceu.gtceu.client.TooltipsHandler;
@@ -38,7 +39,7 @@ public class FluidRecipeCapability extends ContentRecipeCapability<FluidIngredie
     public final static FluidRecipeCapability CAP = new FluidRecipeCapability();
 
     protected FluidRecipeCapability() {
-        super("fluid", 0xFF3C70EE, true, 1, SerializerFluidIngredient.INSTANCE);
+        super("fluid", 0xFF3C70EE, true, 1);
     }
 
     @Override
@@ -51,10 +52,8 @@ public class FluidRecipeCapability extends ContentRecipeCapability<FluidIngredie
     }
 
     @Override
-    public @NotNull List<Object> createXEIContainerContents(List<Content> contents, GTRecipeDefinition recipe, IO io) {
+    public @NotNull List<Object> createXEIContainerContents(List<Content<FluidIngredient>> contents, GTRecipeDefinition recipe, IO io) {
         List<Object> entryLists = contents.stream()
-
-                .map(this::of)
                 .map(FluidRecipeCapability::mapFluid)
                 .collect(Collectors.toList());
 
@@ -91,7 +90,7 @@ public class FluidRecipeCapability extends ContentRecipeCapability<FluidIngredie
                                 GTRecipeTypeUI.@UnknownNullability("null when storage == null") RecipeHolder recipeHolder,
                                 @NotNull GTRecipeType recipeType,
                                 @UnknownNullability("null when content == null") GTRecipeDefinition recipe,
-                                @Nullable Content content,
+                                @Nullable Content<FluidIngredient> content,
                                 @Nullable Object storage, int recipeTier, int chanceTier) {
         if (widget instanceof TankWidget tank) {
             if (storage instanceof IFluidHandler fluidHandler) {
@@ -106,11 +105,11 @@ public class FluidRecipeCapability extends ContentRecipeCapability<FluidIngredie
                         .getBoostedChance(content, recipeTier, chanceTier) / Content.MAX_CHANCE;
                 tank.setXEIChance(chance);
                 tank.setOnAddedTooltips((w, tooltips) -> {
-                    FluidIngredient ingredient = FluidRecipeCapability.CAP.of(content);
+                    FluidIngredient ingredient = content.inner;
                     if (!isXEI && !ingredient.getFluidStack().isEmpty()) {
                         TooltipsHandler.appendFluidTooltips(ingredient.getFluidStack(), tooltips::add, TooltipFlag.NORMAL);
                     }
-                    GTRecipeWidget.setConsumedChance(content, recipe.getChanceLogicForCapability(this, io), tooltips, recipeTier, chanceTier, recipeType.getChanceFunction());
+                    GTRecipeWidget.setConsumedChance(content, ChanceLogic.OR, tooltips, recipeTier, chanceTier, recipeType.getChanceFunction());
                 });
                 if (io == IO.IN && (content.chance == 0)) {
                     tank.setIngredientIO(IngredientIO.CATALYST);
@@ -120,12 +119,12 @@ public class FluidRecipeCapability extends ContentRecipeCapability<FluidIngredie
     }
 
     // Maps fluids to a FluidEntryList for XEI: either a FluidTagList or a FluidStackList
-    public static FluidEntryList mapFluid(FluidIngredient ingredient) {
-        int amount = ingredient.getAmount();
-        CompoundTag nbt = ingredient.nbt;
-        if (ingredient.value instanceof Fluid fluid) {
+    public static FluidEntryList mapFluid(Content<FluidIngredient> ingredient) {
+        int amount = ingredient.inner.getAmount();
+        CompoundTag nbt = ingredient.inner.nbt;
+        if (ingredient.inner.value instanceof Fluid fluid) {
             return FluidStackList.of(new FluidStack(fluid, amount, nbt));
-        } else if (ingredient.value instanceof TagKey tag) {
+        } else if (ingredient.inner.value instanceof TagKey tag) {
             return FluidTagList.of(tag, amount, nbt);
         }
         return new FluidStackList();

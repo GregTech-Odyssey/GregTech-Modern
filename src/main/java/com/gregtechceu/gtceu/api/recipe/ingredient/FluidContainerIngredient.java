@@ -57,7 +57,7 @@ public class FluidContainerIngredient extends Ingredient {
     }
 
     @Override
-    public JsonElement toJson() {
+    public @NotNull JsonElement toJson() {
         JsonObject json = new JsonObject();
         json.addProperty("type", TYPE.toString());
         json.add("fluid", fluid.toJson());

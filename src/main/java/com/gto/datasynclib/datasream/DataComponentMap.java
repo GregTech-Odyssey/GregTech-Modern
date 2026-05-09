@@ -1,13 +1,11 @@
 package com.gto.datasynclib.datasream;
 
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import static it.unimi.dsi.fastutil.HashCommon.arraySize;
 
-public final class DataComponentMap extends Reference2ObjectOpenHashMap<DataComponentKey<?>, Object> {
+public final class DataComponentMap extends AbstractDataComponentMap<DataComponentKey<?>, Object> {
 
     public DataComponentMap() {
         super(2, 0.75F);
@@ -111,25 +109,6 @@ public final class DataComponentMap extends Reference2ObjectOpenHashMap<DataComp
     }
 
     @Override
-    public Object put(DataComponentKey<?> dataKey, Object v) {
-        final Object[] key = this.key;
-        int pos;
-        Object curr;
-        if ((curr = key[pos = dataKey.mixCode & mask]) != null) {
-            do if (curr == dataKey) {
-                final Object oldValue = value[pos];
-                value[pos] = v;
-                return oldValue;
-            }
-            while ((curr = key[pos = (pos + 1) & mask]) != null);
-        }
-        key[pos] = dataKey;
-        value[pos] = v;
-        if (size++ >= maxFill) rehash(arraySize(size + 1, f));
-        return null;
-    }
-
-    @Override
     public DataComponentMap clone() {
         return (DataComponentMap) super.clone();
     }
@@ -142,7 +121,7 @@ public final class DataComponentMap extends Reference2ObjectOpenHashMap<DataComp
             do if (curr == dataKey) {
                 final Object oldValue = value[pos];
                 if (oldValue != null) {
-                    value[pos] = dataKey.mergeData(oldValue, v);
+                    value[pos] = ((DataComponentKey) dataKey).merge(oldValue, v);
                 } else {
                     value[pos] = v;
                 }

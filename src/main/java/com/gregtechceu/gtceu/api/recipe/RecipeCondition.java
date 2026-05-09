@@ -1,10 +1,9 @@
 package com.gregtechceu.gtceu.api.recipe;
 
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 
 import net.minecraft.network.chat.Component;
-
-import org.jetbrains.annotations.NotNull;
 
 public abstract class RecipeCondition {
 
@@ -24,10 +23,10 @@ public abstract class RecipeCondition {
 
     public abstract Component getTooltips();
 
-    public boolean check(@NotNull GTRecipeDefinition recipe, @NotNull RecipeLogic recipeLogic) {
-        boolean test = testCondition(recipe, recipeLogic);
+    public boolean check(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
+        boolean test = testCondition(holder, unit, recipe);
         return test != isReverse;
     }
 
-    protected abstract boolean testCondition(@NotNull GTRecipeDefinition recipe, @NotNull RecipeLogic recipeLogic);
+    protected abstract boolean testCondition(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipeDefinition recipe);
 }

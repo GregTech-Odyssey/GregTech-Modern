@@ -4,8 +4,6 @@ import com.gregtechceu.gtceu.api.block.ActiveBlock;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.ICleanroomProvider;
@@ -15,11 +13,13 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiContro
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
 import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
@@ -64,12 +64,12 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     protected boolean recipeLogicAvailable;
 
     @Getter
-    protected final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
+    protected final Map<IO, List<RecipeHandlerUnit>> capabilitiesProxy;
     @Getter
     protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
 
     @Getter
-    protected final Int2ReferenceOpenHashMap<RecipeHandlerList> outputColorMap;
+    protected final Int2ReferenceOpenHashMap<RecipeHandlerUnit> outputColorMap;
 
     protected final List<ISubscription> traitSubscriptions;
     @Getter
@@ -78,14 +78,14 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @SyncToClient
     protected boolean isMuffled;
 
-    protected RecipeHandlerList currentHandlerList;
+    protected RecipeHandlerUnit currentHandlerList;
 
     @Getter
     @Setter
-    protected List<RecipeHandlerList> inputList;
+    protected List<RecipeHandlerUnit> inputList;
     @Getter
     @Setter
-    protected List<RecipeHandlerList> outputList;
+    protected List<RecipeHandlerUnit> outputList;
 
     @Nullable
     protected IParallelHatch parallelHatch = null;
@@ -219,7 +219,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
             }
         }
         for (var entry : ioTraits.entrySet()) {
-            var handlerList = RecipeHandlerList.of(entry.getKey(), entry.getValue());
+            var handlerList = RecipeHandlerUnit.of(entry.getKey(), entry.getValue());
             this.addHandlerList(handlerList);
             traitSubscriptions.add(handlerList.subscribe(recipeLogic::updateTickSubscription));
         }
@@ -348,12 +348,12 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     }
 
     @Override
-    public RecipeHandlerList getCurrentHandlerList() {
+    public RecipeHandlerUnit getCurrentHandlerList() {
         return currentHandlerList;
     }
 
     @Override
-    public void setCurrentHandlerList(RecipeHandlerList list) {
+    public void setCurrentHandlerList(RecipeHandlerUnit list) {
         this.currentHandlerList = list;
     }
 

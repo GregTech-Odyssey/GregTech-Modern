@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.data.recipe.builder;
 
-import com.gregtechceu.gtceu.api.recipe.StrictShapedRecipe;
 import com.gregtechceu.gtceu.common.data.GTRecipes;
+import com.gregtechceu.gtceu.common.recipe.StrictShapedRecipe;
 import com.gregtechceu.gtceu.core.mixins.ShapedRecipeAccessor;
 import com.gregtechceu.gtceu.utils.GTUtil;
 

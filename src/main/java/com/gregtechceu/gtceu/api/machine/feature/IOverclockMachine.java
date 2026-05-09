@@ -15,4 +15,8 @@ public interface IOverclockMachine extends IMachineFeature {
     default long getOverclockVoltage() {
         return GTValues.V[getOverclockTier()];
     }
+
+    default int getOverclockLimit() {
+        return 5;
+    }
 }
