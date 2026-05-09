@@ -28,9 +28,9 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.ObjLongConsumer;
-import java.util.function.Predicate;
 
 public class RecipeHandlerUnit {
 
@@ -53,6 +53,9 @@ public class RecipeHandlerUnit {
     protected boolean isDistinct;
 
     public int priority;
+
+    protected boolean isInfiniteOutputItem;
+    protected boolean isInfiniteOutputFluid;
 
     // cache
     public final IntLongMap intIngredientMap = new IntLongMap();
@@ -100,6 +103,8 @@ public class RecipeHandlerUnit {
             allHandlers.add(handler);
             if (handler.canHandleItem()) itemHandlers.add(handler);
             if (handler.canHandleFluid()) fluidHandlers.add(handler);
+            if (!isInfiniteOutputItem && handler.isInfiniteOutputItem()) isInfiniteOutputItem = true;
+            if (!isInfiniteOutputFluid && handler.isInfiniteOutputFluid()) isInfiniteOutputFluid = true;
             if (handler instanceof NotifiableRecipeHandlerTrait<?> rht) allHandlerTraits.add(rht);
         }
         allHandlers.sort(IRecipeHandler.PRIORITY_COMPARATOR);
@@ -153,10 +158,10 @@ public class RecipeHandlerUnit {
         return () -> subs.forEach(ISubscription::unsubscribe);
     }
 
-    public boolean findRecipe(IRecipeHandlerHolder holder, GTRecipeType recipeType, Predicate<GTRecipeDefinition> canHandle) {
+    public boolean findRecipe(GTRecipeType recipeType, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
         var map = this.getIngredientMap(recipeType);
         if (map.isEmpty()) return false;
-        return recipeType.search(map, canHandle);
+        return recipeType.search(this, map, canHandle);
     }
 
     public long getInputItemParallelAmount(List<Content<ItemIngredient>> contents, long multiplier) {
@@ -223,6 +228,7 @@ public class RecipeHandlerUnit {
     }
 
     public long getOutputItemParallelAmount(GTRecipe recipe, List<Content<ItemIngredient>> contents, long multiplier) {
+        if (isInfiniteOutputItem) return multiplier;
         long minMultiplier = 0;
         long maxMultiplier = multiplier;
         long maxCount = 0;
@@ -239,8 +245,8 @@ public class RecipeHandlerUnit {
             var copied = GTRecipe.copyContents(contents, multiplier);
             boolean success = false;
             for (var handler : handlers) {
-                copied = handler.handleRecipeItem(IO.OUT, recipe, copied, true);
-                if (copied == null || copied.isEmpty()) {
+                handler.handleRecipeItem(true, recipe, copied, true);
+                if (copied.isEmpty()) {
                     success = true;
                     break;
                 }
@@ -257,6 +263,7 @@ public class RecipeHandlerUnit {
     }
 
     public long getOutputFluidParallelAmount(GTRecipe recipe, List<Content<FluidIngredient>> contents, long multiplier) {
+        if (isInfiniteOutputFluid) return multiplier;
         long minMultiplier = 0;
         long maxMultiplier = multiplier;
         long maxCount = 0;
@@ -273,8 +280,8 @@ public class RecipeHandlerUnit {
             var copied = GTRecipe.copyContents(contents, multiplier);
             boolean success = false;
             for (var handler : handlers) {
-                copied = handler.handleRecipeFluid(IO.OUT, recipe, copied, true);
-                if (copied == null || copied.isEmpty()) {
+                handler.handleRecipeFluid(true, recipe, copied, true);
+                if (copied.isEmpty()) {
                     success = true;
                     break;
                 }
@@ -325,24 +332,32 @@ public class RecipeHandlerUnit {
         }
     }
 
-    public boolean handleRecipeItem(IO io, GTRecipe recipe, List<Content<ItemIngredient>> items, boolean simulate) {
+    public boolean handleRecipeItem(boolean output, GTRecipe recipe, List<Content<ItemIngredient>> items, boolean simulate) {
         if (items.isEmpty()) return true;
-        items = new ArrayList<>(items);
+        if (output) {
+            if (simulate && isInfiniteOutputItem) return true;
+        } else {
+            items = GTRecipe.copyContents(items, 1);
+        }
         for (var handler : itemHandlers) {
-            items = handler.handleRecipeItem(io, recipe, items, simulate);
-            if (items == null || items.isEmpty()) {
+            handler.handleRecipeItem(output, recipe, items, simulate);
+            if (items.isEmpty()) {
                 return true;
             }
         }
         return false;
     }
 
-    public boolean handleRecipeFluid(IO io, GTRecipe recipe, List<Content<FluidIngredient>> fluids, boolean simulate) {
+    public boolean handleRecipeFluid(boolean output, GTRecipe recipe, List<Content<FluidIngredient>> fluids, boolean simulate) {
         if (fluids.isEmpty()) return true;
-        fluids = new ArrayList<>(fluids);
+        if (output) {
+            if (simulate && isInfiniteOutputFluid) return true;
+        } else {
+            fluids = GTRecipe.copyContents(fluids, 1);
+        }
         for (var handler : fluidHandlers) {
-            fluids = handler.handleRecipeFluid(io, recipe, fluids, simulate);
-            if (fluids == null || fluids.isEmpty()) {
+            handler.handleRecipeFluid(output, recipe, fluids, simulate);
+            if (fluids.isEmpty()) {
                 return true;
             }
         }

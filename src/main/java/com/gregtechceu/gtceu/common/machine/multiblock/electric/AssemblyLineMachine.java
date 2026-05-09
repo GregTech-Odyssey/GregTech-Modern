@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.FluidHatchPartMachine;
@@ -34,8 +35,8 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
     }
 
     @Override
-    public boolean beforeWorking(@NotNull GTRecipe recipe) {
-        if (!super.beforeWorking(recipe)) return false;
+    public boolean matchRecipe(RecipeHandlerUnit unit, GTRecipe recipe) {
+        if (!super.matchRecipe(unit, recipe)) return false;
         var config = ConfigHolder.INSTANCE.machines;
         if (!config.orderedAssemblyLineItems && !config.orderedAssemblyLineFluids) return true;
         if (!checkItemInputs(recipe)) return false;

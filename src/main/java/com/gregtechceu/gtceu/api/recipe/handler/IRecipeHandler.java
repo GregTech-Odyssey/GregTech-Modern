@@ -89,11 +89,7 @@ public interface IRecipeHandler extends IFilteredHandler {
         return false;
     }
 
-    default List<Content<ItemIngredient>> handleRecipeItem(IO io, GTRecipe recipe, List<Content<ItemIngredient>> items, boolean simulate) {
-        return items;
-    }
+    default void handleRecipeItem(boolean output, GTRecipe recipe, List<Content<ItemIngredient>> items, boolean simulate) {}
 
-    default List<Content<FluidIngredient>> handleRecipeFluid(IO io, GTRecipe recipe, List<Content<FluidIngredient>> fluids, boolean simulate) {
-        return fluids;
-    }
+    default void handleRecipeFluid(boolean output, GTRecipe recipe, List<Content<FluidIngredient>> fluids, boolean simulate) {}
 }

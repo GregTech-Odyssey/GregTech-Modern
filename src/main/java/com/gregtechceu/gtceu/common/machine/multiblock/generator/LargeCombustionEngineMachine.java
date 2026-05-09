@@ -182,7 +182,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
         // Previous Recipe is always null on first world load, so try to acquire a new recipe
         AtomicReference<GTRecipe> recipe = new AtomicReference<>(recipeLogic.getLastRecipe());
         if (recipe.get() == null) {
-            getRecipeType().findRecipe(this, r -> {
+            getRecipeType().findRecipe(this, (u, r) -> {
                 var re = r.toRuntime();
                 if (RecipeHelper.matchContents(this, re)) {
                     recipe.set(re);

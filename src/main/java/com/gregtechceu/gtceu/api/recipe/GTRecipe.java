@@ -132,16 +132,11 @@ public final class GTRecipe {
 
     public static <T extends ContentInner> List<Content<T>> copyContents(List<Content<T>> contents, long multiplier) {
         var size = contents.size();
-        if (size == 0) return Collections.emptyList();
-        if (multiplier == 1) return new ArrayList<>(contents);
-        if (multiplier == 0) {
-            return Collections.emptyList();
-        } else {
-            var list = new ArrayList<Content<T>>(size);
-            for (int i = 0; i < size; i++) {
-                list.set(i, contents.get(i).copy(multiplier));
-            }
-            return list;
+        if (multiplier == 0 || size == 0) return Collections.emptyList();
+        var list = new ArrayList<Content<T>>(size);
+        for (int i = 0; i < size; i++) {
+            list.set(i, contents.get(i).copy(multiplier));
         }
+        return list;
     }
 }

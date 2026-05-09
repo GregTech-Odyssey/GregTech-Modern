@@ -191,20 +191,20 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public RecipeHandlerUnit findRecipe(IRecipeHandlerHolder holder, Predicate<GTRecipeDefinition> canHandle) {
+    public RecipeHandlerUnit findRecipe(IRecipeHandlerHolder holder, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
         for (var list : holder.getInputList()) {
-            if (list.findRecipe(holder, this, canHandle)) return list;
+            if (list.findRecipe(this, canHandle)) return list;
             for (var logic : customRecipeLogicRunners) {
-                var r = logic.createCustomRecipe(holder);
-                if (r != null && canHandle.test(r)) return true;
+                var r = logic.createCustomRecipe(holder, list);
+                if (r != null && canHandle.test(list, r)) return list;
             }
         }
         return null;
     }
 
-    public boolean search(IntLongMap map, Predicate<GTRecipeDefinition> canHandle) {
+    public boolean search(RecipeHandlerUnit unit, IntLongMap map, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
         if (db == null) initDB();
-        return db.search(map, canHandle);
+        return db.search(unit, map, canHandle);
     }
 
     protected void initDB() {
@@ -361,7 +361,7 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
          *         recipe is not found to run. Return null if no recipe should be run by your logic.
          */
         @Nullable
-        GTRecipeDefinition createCustomRecipe(IRecipeHandlerHolder holder, RecipeHandlerUnit handlerList);
+        GTRecipeDefinition createCustomRecipe(IRecipeHandlerHolder holder, RecipeHandlerUnit unit);
 
         /**
          * Build all representative recipes in this method, then add them to the appropriate recipe category.
