@@ -58,10 +58,10 @@ public class GTSoundEntries {
 
     public static void init() {
         AddonFinder.getAddons().forEach(IGTAddon::registerSounds);
-        GTRegistries.SOUNDS.values().forEach(SoundEntry::prepare);
-        registerSounds();
 
         GTRegistries.SOUNDS.freeze();
+        GTRegistries.SOUNDS.values().forEach(SoundEntry::prepare);
+        registerSounds();
     }
 
     private static void registerSounds() {
