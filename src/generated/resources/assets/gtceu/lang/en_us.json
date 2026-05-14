@@ -3339,6 +3339,7 @@
   "gtceu.recipe.environmental_hazard": "§cArea must have %s",
   "gtceu.recipe.environmental_hazard.reverse": "§cArea must be free of %s",
   "gtceu.recipe.eu": "Usage: %s EU/t",
+  "gtceu.recipe.eu.tier": "%s A @ %s",
   "gtceu.recipe.eu_inverted": "Generation: %s EU/t",
   "gtceu.recipe.eu_to_start": "EU To Start: %sEU%s",
   "gtceu.recipe.explosive": "Explosive: %s",

@@ -19,6 +19,7 @@ import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.FusionReactorMachine;
 import com.gregtechceu.gtceu.common.recipe.condition.DimensionCondition;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -60,6 +61,7 @@ public class GTRecipeWidget extends WidgetGroup {
     private final int xOffset;
     private final GTRecipeDefinition recipe;
     private final List<LabelWidget> recipeParaTexts = new ArrayList<>();
+    private LabelWidget recipeVoltageText = null;
     private final int minTier;
     private int tier;
     private int yOffset;
@@ -148,6 +150,10 @@ public class GTRecipeWidget extends WidgetGroup {
         int duration = recipe.duration;
         long inputEUt = recipe.getInputEUt();
         long outputEUt = recipe.getOutputEUt();
+        var EUt = inputEUt == 0 ? outputEUt : inputEUt;
+        boolean isInput = inputEUt != 0;
+        var minVoltageTier = GTUtil.getTierByVoltage(EUt);
+        float minAmperage = (float) EUt / V[minVoltageTier];
         List<Component> texts = getRecipeParaText(recipe, duration, inputEUt, outputEUt);
         for (Component text : texts) {
             textsY += 10;
@@ -155,7 +161,17 @@ public class GTRecipeWidget extends WidgetGroup {
             addWidget(labelWidget);
             recipeParaTexts.add(labelWidget);
         }
-        if (inputEUt > 0) {
+        if (EUt > 0) {
+            textsY += 10;
+            Component text = Component.translatable(isInput ? "gtceu.recipe.eu" : "gtceu.recipe.eu_inverted", FormattingUtil.formatNumbers(EUt));
+            recipeVoltageText = new LabelWidget(3 - xOffset, textsY, text).setTextColor(-1).setDropShadow(true);
+            recipeVoltageText.setHoverTooltips(
+                    Component.translatable("gtceu.recipe.eu.tier", FormattingUtil.formatNumber2Places(minAmperage), VN[minVoltageTier]));
+            if (recipeVoltageText != null) {
+                addWidget(recipeVoltageText);
+            }
+        }
+        if (isInput) {
             LabelWidget voltageTextWidget = new LabelWidget(getVoltageXOffset() - xOffset, getSize().height - 10,
                     tierText).setTextColor(-1).setDropShadow(false);
             if (recipe.recipeType.isOffsetVoltageText()) {
@@ -182,12 +198,7 @@ public class GTRecipeWidget extends WidgetGroup {
         if (!recipe.data.getBoolean(GTRecipeDataKeys.HIDE_DURATION)) {
             texts.add(Component.translatable("gtceu.recipe.duration", FormattingUtil.formatNumbers(duration / 20f)));
         }
-        var EUt = inputEUt;
-        boolean isOutput = false;
-        if (EUt == 0) {
-            EUt = outputEUt;
-            isOutput = true;
-        }
+        var EUt = inputEUt == 0 ? outputEUt : inputEUt;
         if (EUt > 0) {
             long euTotal = EUt * duration;
             // sadly we still need a custom override here, since computation uses duration and EU/t very differently
@@ -200,8 +211,6 @@ public class GTRecipeWidget extends WidgetGroup {
             } else {
                 texts.add(Component.translatable("gtceu.recipe.total", FormattingUtil.formatNumbers(euTotal)));
             }
-            texts.add(Component.translatable(!isOutput ? "gtceu.recipe.eu" : "gtceu.recipe.eu_inverted",
-                    FormattingUtil.formatNumbers(EUt)));
         }
 
         return texts;
@@ -264,12 +273,19 @@ public class GTRecipeWidget extends WidgetGroup {
             inputEUt = (long) (inputEUt * result.eutMultiplier());
             tierText = tierText.formatted(ChatFormatting.ITALIC);
         }
+        var minVoltageTier = GTUtil.getTierByVoltage(inputEUt);
+        float minAmperage = (float) inputEUt / V[minVoltageTier];
         List<Component> texts = getRecipeParaText(recipe, duration, inputEUt, 0);
         for (int i = 0; i < texts.size(); i++) {
             recipeParaTexts.get(i).setComponent(texts.get(i));
         }
         voltageTextWidget.setText(tierText);
         voltageTextWidget.setSelfPositionX(getVoltageXOffset() - xOffset);
+        if (recipeVoltageText != null) {
+            recipeVoltageText.setComponent(Component.translatable("gtceu.recipe.eu", FormattingUtil.formatNumbers(inputEUt)));
+            recipeVoltageText.setHoverTooltips(
+                    Component.translatable("gtceu.recipe.eu.tier", FormattingUtil.formatNumber2Places(minAmperage), VN[minVoltageTier]));
+        }
         detectAndSendChanges();
         updateScreen();
     }

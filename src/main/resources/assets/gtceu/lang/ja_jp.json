@@ -3358,6 +3358,7 @@
   "gtceu.recipe.environmental_hazard": "§cエリアには必ず %s",
   "gtceu.recipe.environmental_hazard.reverse": "§cこのエリアには、以下のものがないこと %s",
   "gtceu.recipe.eu": "消費: %s EU/t",
+  "gtceu.recipe.eu.tier": "%s A @ %s",
   "gtceu.recipe.eu_inverted": "発電: %s EU/t",
   "gtceu.recipe.eu_to_start": "開始EU: %sEU",
   "gtceu.recipe.explosive": "爆薬: %s",

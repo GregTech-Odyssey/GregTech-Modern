@@ -4930,6 +4930,7 @@
   "gtceu.recipe.temperature": "Температура: %sK",
   "gtceu.recipe.total": "Загалом: %s EU",
   "gtceu.recipe.eu": "Використання: %s EU/т",
+  "gtceu.recipe.eu.tier": "%s A @ %s",
   "gtceu.recipe_memory_widget.tooltip.0": "§7Клацніть ЛКМ, щоб автоматично внести цей рецепт до сітки виготовлення",
   "gtceu.recipe_memory_widget.tooltip.1": "§7Клацайте із затиснутим Shift, щоб заблокувати/розблокувати цей рецепт",
 

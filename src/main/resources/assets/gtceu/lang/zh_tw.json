@@ -3288,6 +3288,7 @@
     "gtceu.recipe.environmental_hazard": "§c區域內必須有%s",
     "gtceu.recipe.environmental_hazard.reverse": "§c區域內必須沒有%s",
     "gtceu.recipe.eu": "耗能功率：%s EU/t",
+    "gtceu.recipe.eu.tier": "%s A @ %s",
     "gtceu.recipe.eu_inverted": "產能功率：%s EU/t",
     "gtceu.recipe.eu_to_start": "啟動耗能：%sEU%s",
     "gtceu.recipe.explosive": "爆炸物：%s",
