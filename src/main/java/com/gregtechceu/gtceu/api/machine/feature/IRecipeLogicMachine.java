@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.capability.ICleanroomReceiver;
 import com.gregtechceu.gtceu.api.capability.IWorkable;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.*;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.sound.SoundEntry;
@@ -116,8 +117,8 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
     }
 
     default boolean matchRecipeInput(RecipeHandlerUnit unit, GTRecipe recipe) {
-        if (unit.handleRecipeItem(false, recipe, recipe.itemInputs, true) && unit.handleRecipeFluid(false, recipe, recipe.fluidInputs, true)) {
-            for (var e : recipe.definition.contentExpands) {
+        if (unit.handleRecipeItem(IO.IN, recipe, recipe.itemInputs, true) && unit.handleRecipeFluid(IO.IN, recipe, recipe.fluidInputs, true)) {
+            for (var e : recipe.definition.contentExpanders) {
                 if (!e.handle(this, null, recipe, true)) return false;
             }
             return true;
@@ -129,7 +130,7 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
         var items = GTRecipe.copyContents(recipe.itemOutputs, 1);
         var fluids = GTRecipe.copyContents(recipe.fluidOutputs, 1);
         for (var handler : getOutputList()) {
-            if (handler.handleRecipeItem(true, recipe, items, true) && handler.handleRecipeFluid(true, recipe, fluids, true)) {
+            if (handler.handleRecipeItem(IO.OUT, recipe, items, true) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
                 return true;
             }
         }
@@ -137,8 +138,8 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
     }
 
     default boolean handleRecipeInput(RecipeHandlerUnit unit, GTRecipe recipe) {
-        if (unit.handleRecipeItem(false, recipe, recipe.itemInputs, false) && unit.handleRecipeFluid(false, recipe, recipe.fluidInputs, false)) {
-            for (var e : recipe.definition.contentExpands) {
+        if (unit.handleRecipeItem(IO.IN, recipe, recipe.itemInputs, false) && unit.handleRecipeFluid(IO.IN, recipe, recipe.fluidInputs, false)) {
+            for (var e : recipe.definition.contentExpanders) {
                 if (!e.handle(this, null, recipe, false)) return false;
             }
             return true;
@@ -150,7 +151,7 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
         var items = GTRecipe.copyContents(recipe.itemOutputs, 1);
         var fluids = GTRecipe.copyContents(recipe.fluidOutputs, 1);
         for (var handler : getOutputList()) {
-            if (handler.handleRecipeItem(true, recipe, items, false) && handler.handleRecipeFluid(true, recipe, fluids, false)) {
+            if (handler.handleRecipeItem(IO.OUT, recipe, items, false) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, false)) {
                 return true;
             }
         }
@@ -162,7 +163,7 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
         if (eu != 0) {
             return this instanceof IElectricMachine electricMachine && electricMachine.useEnergy(eu, true);
         }
-        for (var e : recipe.definition.tickContentExpands) {
+        for (var e : recipe.definition.tickContentExpanders) {
             if (!e.handle(this, null, recipe, true)) return false;
         }
         return true;
@@ -173,7 +174,7 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
         if (eu != 0) {
             return this instanceof IElectricMachine electricMachine && electricMachine.useEnergy(eu, false);
         }
-        for (var e : recipe.definition.tickContentExpands) {
+        for (var e : recipe.definition.tickContentExpanders) {
             if (!e.handle(this, null, recipe, false)) return false;
         }
         return true;

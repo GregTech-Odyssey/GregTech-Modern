@@ -13,4 +13,8 @@ public interface IRecipeHandlerTrait extends IRecipeHandler {
      * add listener for notification when it changed.
      */
     ISubscription addChangedListener(Runnable listener);
+
+    void setDistinct(boolean distinct);
+
+    boolean isDistinct();
 }

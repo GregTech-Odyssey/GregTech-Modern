@@ -9,11 +9,11 @@ import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.fast.recipesearch.IntLongMap;
 import org.jetbrains.annotations.NotNull;
 
-public final class CWUExpand extends ContentExpand {
+public final class CWUExpander extends ContentExpander {
 
-    public static final CWUExpand INSTANCE = new CWUExpand();
+    public static final CWUExpander INSTANCE = new CWUExpander();
 
-    private CWUExpand() {
+    private CWUExpander() {
         super("cwu", 0xFFEEEE00, false, 3);
     }
 

@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.block.ActiveBlock;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.ICleanroomProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
@@ -66,7 +65,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Getter
     protected final Map<IO, List<RecipeHandlerUnit>> capabilitiesProxy;
     @Getter
-    protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
+    protected final Map<IO, List<IRecipeHandler>> capabilitiesFlat;
 
     @Getter
     protected final Int2ReferenceOpenHashMap<RecipeHandlerUnit> outputColorMap;
@@ -77,8 +76,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @SaveToDisk
     @SyncToClient
     protected boolean isMuffled;
-
-    protected RecipeHandlerUnit currentHandlerList;
 
     @Getter
     @Setter
@@ -212,9 +209,9 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
             }
         }
         // attach self traits
-        Map<IO, List<IRecipeHandler<?>>> ioTraits = new EnumMap<>(IO.class);
+        Map<IO, List<IRecipeHandler>> ioTraits = new EnumMap<>(IO.class);
         for (MachineTrait trait : getTraits()) {
-            if (trait instanceof IRecipeHandlerTrait<?> handlerTrait && handlerTrait.isAvailable() && handlerTrait.getHandlerIO() != IO.NONE) {
+            if (trait instanceof IRecipeHandlerTrait handlerTrait && handlerTrait.isAvailable() && handlerTrait.getHandlerIO() != IO.NONE) {
                 ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ArrayList<>()).add(handlerTrait);
             }
         }
@@ -253,17 +250,17 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Nullable
     @Override
-    public final GTRecipe doModifyRecipe(GTRecipe recipe) {
+    public final GTRecipe doModifyRecipe(RecipeHandlerUnit unit, GTRecipe recipe) {
         for (var part : modifyRecipePart) {
-            recipe = part.modifyRecipe(this, recipe);
+            recipe = part.modifyRecipe(this, unit, recipe);
             if (recipe == null) return null;
         }
-        return getRealRecipe(recipe);
+        return getRealRecipe(unit, recipe);
     }
 
     @Nullable
-    protected GTRecipe getRealRecipe(GTRecipe recipe) {
-        return definition.getRecipeModifier().applyModifier(this, recipe);
+    protected GTRecipe getRealRecipe(RecipeHandlerUnit unit, GTRecipe recipe) {
+        return definition.getRecipeModifier().applyModifier(this, unit, recipe);
     }
 
     @Override
@@ -280,13 +277,11 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     }
 
     @Override
-    public boolean beforeWorking(GTRecipe recipe) {
+    public void beforeWorking(GTRecipe recipe) {
         for (var part : beforeWorkingPart) {
-            if (!part.beforeWorking(this, recipe)) {
-                return false;
-            }
+            part.beforeWorking(this, recipe);
         }
-        return IWorkableMultiController.super.beforeWorking(recipe);
+        IWorkableMultiController.super.beforeWorking(recipe);
     }
 
     @Override
@@ -345,16 +340,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         this.cleanroom = cleanroom;
         getRecipeLogic().markLastRecipeDirty();
         getRecipeLogic().updateTickSubscription();
-    }
-
-    @Override
-    public RecipeHandlerUnit getCurrentHandlerList() {
-        return currentHandlerList;
-    }
-
-    @Override
-    public void setCurrentHandlerList(RecipeHandlerUnit list) {
-        this.currentHandlerList = list;
     }
 
     @Override

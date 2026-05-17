@@ -2,10 +2,7 @@ package com.gregtechceu.gtceu.api.recipe.handler;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public interface IRecipeHandlerHolder {
 
@@ -33,8 +30,8 @@ public interface IRecipeHandlerHolder {
     }
 
     default void addHandlerList(RecipeHandlerUnit handler) {
-        if (handler == RecipeHandlerUnit.NO_DATA || handler.getHandlerIO() == IO.NONE) return;
+        if (handler == RecipeHandlerUnit.NO_DATA || handler.getHandlerIO() == IO.NONE || handler.allHandlers.length == 0) return;
         getCapabilitiesProxy().computeIfAbsent(handler.getHandlerIO(), i -> new ArrayList<>()).add(handler);
-        getCapabilitiesFlat().computeIfAbsent(handler.getHandlerIO(), i -> new ArrayList<>()).addAll(handler.allHandlers);
+        getCapabilitiesFlat().computeIfAbsent(handler.getHandlerIO(), i -> new ArrayList<>()).addAll(Arrays.asList(handler.allHandlers));
     }
 }

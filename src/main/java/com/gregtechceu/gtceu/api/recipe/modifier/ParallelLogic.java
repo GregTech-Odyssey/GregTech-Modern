@@ -61,7 +61,7 @@ public final class ParallelLogic {
                     maxParallel = Math.min(maxParallel, overclockMachine.getOverclockVoltage() / eu);
                 }
             }
-            for (var expand : recipe.definition.tickContentExpands) {
+            for (var expand : recipe.definition.tickContentExpanders) {
                 maxParallel = expand.getParallel(holder, unit, recipe, maxParallel);
                 if (maxParallel == 0) return 0;
             }
@@ -81,7 +81,7 @@ public final class ParallelLogic {
             maxParallel = unit.getInputFluidParallelAmount(fluids, maxParallel);
             if (maxParallel == 0) return 0;
         }
-        for (var expand : recipe.definition.contentExpands) {
+        for (var expand : recipe.definition.contentExpanders) {
             maxParallel = expand.getParallel(holder, unit, recipe, maxParallel);
             if (maxParallel == 0) return 0;
         }

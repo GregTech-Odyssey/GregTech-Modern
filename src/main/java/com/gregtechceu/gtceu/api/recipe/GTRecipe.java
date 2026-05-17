@@ -53,6 +53,10 @@ public final class GTRecipe {
         return new GTRecipe(definition, itemInputs, itemOutputs, fluidInputs, fluidOutputs, data, eut, tier, duration);
     }
 
+    public void durationMultiplier(double multiplier) {
+        this.duration = Math.max(1, (int) (duration * multiplier));
+    }
+
     public void modifier(long multiplier, boolean tick) {
         if (multiplier == 1) return;
         parallels *= multiplier;
@@ -60,12 +64,12 @@ public final class GTRecipe {
         modifierContents(itemOutputs, multiplier);
         modifierContents(fluidInputs, multiplier);
         modifierContents(fluidOutputs, multiplier);
-        for (var expand : definition.contentExpands) {
+        for (var expand : definition.contentExpanders) {
             expand.setParallel(this, multiplier);
         }
         if (tick) {
             eut *= multiplier;
-            for (var expand : definition.tickContentExpands) {
+            for (var expand : definition.tickContentExpanders) {
                 expand.setParallel(this, multiplier);
             }
         }

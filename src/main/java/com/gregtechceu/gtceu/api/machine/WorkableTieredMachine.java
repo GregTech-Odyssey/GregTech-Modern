@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.machine.feature.*;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachine;
 import com.gregtechceu.gtceu.api.machine.trait.*;
@@ -57,10 +56,12 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     public final NotifiableFluidTank importFluids;
     @Persisted
     public final NotifiableFluidTank exportFluids;
+
     @Getter
     protected final Map<IO, List<RecipeHandlerUnit>> capabilitiesProxy;
     @Getter
-    protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
+    protected final Map<IO, List<IRecipeHandler>> capabilitiesFlat;
+
     @Getter
     @Persisted
     protected int overclockTier;
@@ -70,7 +71,6 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     @Persisted
     @SyncToClient
     protected boolean isMuffled;
-    protected RecipeHandlerUnit currentHandlerList;
 
     public WorkableTieredMachine(MetaMachineBlockEntity holder, int tier, Int2IntFunction tankScalingFunction, Object... args) {
         super(holder, tier, args);
@@ -135,9 +135,9 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     public void onLoad() {
         super.onLoad();
         // attach self traits
-        Map<IO, List<IRecipeHandler<?>>> ioTraits = new EnumMap<>(IO.class);
+        Map<IO, List<IRecipeHandler>> ioTraits = new EnumMap<>(IO.class);
         for (MachineTrait trait : getTraits()) {
-            if (trait instanceof IRecipeHandlerTrait<?> handlerTrait && handlerTrait.isAvailable() && handlerTrait.getHandlerIO() != IO.NONE) {
+            if (trait instanceof IRecipeHandlerTrait handlerTrait && handlerTrait.isAvailable() && handlerTrait.getHandlerIO() != IO.NONE) {
                 ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ArrayList<>()).add(handlerTrait);
             }
         }
@@ -221,16 +221,6 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
         this.cleanroom = cleanroom;
         getRecipeLogic().markLastRecipeDirty();
         getRecipeLogic().updateTickSubscription();
-    }
-
-    @Override
-    public @Nullable RecipeHandlerUnit getCurrentHandlerList() {
-        return currentHandlerList;
-    }
-
-    @Override
-    public void setCurrentHandlerList(RecipeHandlerUnit list) {
-        this.currentHandlerList = list;
     }
 
     @Override

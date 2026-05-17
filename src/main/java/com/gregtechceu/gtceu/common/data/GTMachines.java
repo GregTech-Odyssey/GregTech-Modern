@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.steam.SimpleSteamMachine;
 import com.gregtechceu.gtceu.api.machine.steam.SteamBoilerMachine;
+import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.client.renderer.machine.*;
 import com.gregtechceu.gtceu.client.util.TooltipHelper;
@@ -107,7 +108,7 @@ public class GTMachines {
             "steam_macerator", SimpleSteamMachine::new, (pressure, builder) -> builder
                     .nonYAxisRotation()
                     .recipeType(GTRecipeTypes.MACERATOR_RECIPES)
-                    .recipeModifier(SimpleSteamMachine::recipeModifier)
+                    .recipeModifier(RecipeModifier.SIMPLE_STEAM_MODIFIER)
                     .addOutputLimit(ItemRecipeCapability.CAP, 1)
                     .renderer(() -> new WorkableSteamMachineRenderer(pressure, GTCEu.id("block/machines/macerator")))
                     .register());

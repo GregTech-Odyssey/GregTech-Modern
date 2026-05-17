@@ -17,14 +17,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
 
-public abstract class ContentExpand {
+public abstract class ContentExpander {
 
     public final String name;
     public final int color;
     public final boolean doRenderSlot;
     public final int sortIndex;
 
-    protected ContentExpand(String name, int color, boolean doRenderSlot, int sortIndex) {
+    protected ContentExpander(String name, int color, boolean doRenderSlot, int sortIndex) {
         this.name = name;
         this.color = color;
         this.doRenderSlot = doRenderSlot;

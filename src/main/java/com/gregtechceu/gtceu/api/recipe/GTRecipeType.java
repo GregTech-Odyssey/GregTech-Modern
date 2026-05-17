@@ -59,6 +59,7 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
     public final String group;
     public final Object2IntSortedMap<RecipeCapability<?>> maxInputs = new Object2IntAVLTreeMap<>(RecipeCapability.COMPARATOR);
     public final Object2IntSortedMap<RecipeCapability<?>> maxOutputs = new Object2IntAVLTreeMap<>(RecipeCapability.COMPARATOR);
+    public final GTRecipeDefinition defaultDefinition;
     protected GTRecipeBuilder recipeBuilder;
     @Getter
     protected ChanceBoostFunction chanceFunction = ChanceBoostFunction.OVERCLOCK;
@@ -101,6 +102,7 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
         recipeBuilder = new GTRecipeBuilder(registryName, this);
         // must be linked to stop json contents from shuffling
         this.proxyRecipes = new ReferenceOpenHashSet<>(proxyRecipes);
+        this.defaultDefinition = new GTRecipeDefinition(false, this, category, GTCEu.id("default"), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), GTRecipeBuilder.EMPTY_DATA, 0, 0, 100);
     }
 
     public static boolean available(GTRecipeType recipeType, GTRecipeType... types) {

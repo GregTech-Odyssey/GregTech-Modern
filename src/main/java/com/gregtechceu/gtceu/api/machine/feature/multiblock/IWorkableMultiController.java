@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 
 import net.minecraft.server.TickTask;
@@ -43,15 +44,15 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
             serverLevel.getServer().tell(new TickTask(1, getRecipeLogic()::updateTickSubscription));
         }
         getOutputColorMap().clear();
-        setCurrentHandlerList(null);
         var outputs = getCapabilitiesProxy().get(IO.OUT);
         if (outputs == null) {
             setOutputList(Collections.emptyList());
         } else {
+            outputs.sort(RecipeHandlerUnit.PRIORITY_COMPARATOR);
             Int2ObjectOpenHashMap<List<RecipeHandlerUnit>> colour = new Int2ObjectOpenHashMap<>();
             List<RecipeHandlerUnit> untreated = new ArrayList<>();
             List<RecipeHandlerUnit> distinct = new ArrayList<>();
-            for (var handler : RecipeHandlerUnit.filter(outputs)) {
+            for (var handler : RecipeHandlerUnit.filterContent(outputs)) {
                 if (handler.part != null) {
                     var color = handler.part.self().getPaintingColor();
                     if (color != -1) {
@@ -62,31 +63,36 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
                 untreated.add(handler);
             }
             colour.int2ObjectEntrySet().fastForEach(e -> {
-                var rhl = RecipeHandlerUnit.WRAPPER.apply(IO.OUT);
+                var handlers = new ArrayList<IRecipeHandler>();
                 for (var list : e.getValue()) {
-                    rhl.addHandlers(list.allHandlers);
+                    handlers.addAll(Arrays.asList(list.allHandlers));
                 }
+                var wrapper = e.getValue().getFirst().wrapper(handlers);
                 var color = e.getIntKey();
-                rhl.setColor(color);
-                distinct.add(rhl);
-                getOutputColorMap().put(color, rhl);
+                wrapper.setColor(color);
+                distinct.add(wrapper);
+                getOutputColorMap().put(color, wrapper);
             });
-            var indistinct = RecipeHandlerUnit.WRAPPER.apply(IO.OUT);
-            for (var list : untreated) {
-                indistinct.addHandlers(list.allHandlers);
+            if (!untreated.isEmpty()) {
+                var handlers = new ArrayList<IRecipeHandler>();
+                for (var list : untreated) {
+                    handlers.addAll(Arrays.asList(list.allHandlers));
+                }
+                var wrapper = untreated.getFirst().wrapper(handlers);
+                distinct.add(wrapper);
             }
-            if (!indistinct.allHandlers.isEmpty()) distinct.add(indistinct);
-            distinct.sort(Comparator.comparingInt(a -> -a.priority));
+            distinct.sort(RecipeHandlerUnit.PRIORITY_COMPARATOR);
             setOutputList(distinct);
         }
         var inputs = getCapabilitiesProxy().get(IO.IN);
         if (inputs == null) {
             setInputList(Collections.emptyList());
         } else {
+            inputs.sort(RecipeHandlerUnit.PRIORITY_COMPARATOR);
             Int2ObjectOpenHashMap<Map<IMultiPart, List<RecipeHandlerUnit>>> colour = new Int2ObjectOpenHashMap<>();
             List<RecipeHandlerUnit> untreated = new ArrayList<>();
             List<RecipeHandlerUnit> distinct = new ArrayList<>();
-            for (var handler : RecipeHandlerUnit.filter(inputs)) {
+            for (var handler : RecipeHandlerUnit.filterContent(inputs)) {
                 if (handler.part != null) {
                     var color = handler.part.self().getPaintingColor();
                     if (color != -1) {
@@ -103,29 +109,37 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
                 same.sort(Comparator.comparingInt(l -> -l.size()));
                 var first = same.getFirst();
                 for (int i = first.size() - 1; i >= 0; i--) {
-                    var list = first.get(i);
-                    var wrapper = RecipeHandlerUnit.WRAPPER.apply(list);
-                    wrapper.addList(list);
+                    var handlers = new ArrayList<IRecipeHandler>();
                     var size = same.size();
                     for (int j = 1; j < size; j++) {
                         var other = same.get(j);
                         var otherList = other.get(Math.min(other.size() - 1, i));
-                        wrapper.addList(otherList);
+                        handlers.addAll(Arrays.asList(otherList.allHandlers));
                     }
+                    var wrapper = first.get(i).wrapper(handlers);
                     wrapper.setColor(color);
                     distinct.add(wrapper);
                 }
             });
-            var indistinct = RecipeHandlerUnit.WRAPPER.apply(IO.IN);
-            for (var handler : untreated) {
-                if (handler.isDistinct()) {
-                    distinct.add(handler);
-                } else {
-                    indistinct.addHandlers(handler.allHandlers);
+            if (!untreated.isEmpty()) {
+                var it = untreated.iterator();
+                while (it.hasNext()) {
+                    var handler = it.next();
+                    if (handler.isDistinct()) {
+                        distinct.add(handler);
+                        it.remove();
+                    }
+                }
+                if (!untreated.isEmpty()) {
+                    var handlers = new ArrayList<IRecipeHandler>();
+                    for (var handler : untreated) {
+                        handlers.addAll(Arrays.asList(handler.allHandlers));
+                    }
+                    var wrapper = untreated.getFirst().wrapper(handlers);
+                    distinct.add(wrapper);
                 }
             }
-            if (!indistinct.allHandlers.isEmpty()) distinct.add(indistinct);
-            distinct.sort(Comparator.comparingInt(a -> -a.priority));
+            distinct.sort(RecipeHandlerUnit.PRIORITY_COMPARATOR);
             setInputList(distinct);
         }
     }

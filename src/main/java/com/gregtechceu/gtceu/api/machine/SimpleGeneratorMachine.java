@@ -6,13 +6,8 @@ import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
-import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
-import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
@@ -67,30 +62,6 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine {
             return GTValues.VC[getTier()];
         }
         return super.tintColor(index);
-    }
-
-    //////////////////////////////////////
-    // ****** RECIPE LOGIC *******//
-    //////////////////////////////////////
-    /**
-     * Recipe Modifier for <b>Simple Generator Machines</b> - can be used as a valid {@link RecipeModifier}
-     * <p>
-     * Recipe is fast parallelized up to {@code desiredEUt / recipeEUt} times.
-     * </p>
-     * 
-     * @param machine a {@link SimpleGeneratorMachine}
-     * @param recipe  recipe
-     * @return A {@link ModifierFunction} for the given Simple Generator
-     */
-    public static ModifierFunction recipeModifier(MetaMachine machine, GTRecipe recipe) {
-        if (!(machine instanceof SimpleGeneratorMachine generator)) {
-            return RecipeModifier.nullWrongType(SimpleGeneratorMachine.class, machine);
-        }
-        long EUt = recipe.getOutputEUt();
-        if (EUt <= 0) return ModifierFunction.NULL;
-        int maxParallel = (int) (generator.getOverclockVoltage() / EUt);
-        int parallels = ParallelLogic.getParallelAmountFast(generator, recipe, maxParallel);
-        return ModifierFunction.builder().inputModifier(ContentModifier.multiplier(parallels)).outputModifier(ContentModifier.multiplier(parallels)).eutMultiplier(parallels).parallels(parallels).build();
     }
 
     @Override

@@ -107,6 +107,16 @@ public final class Content<T extends ContentInner> {
         }
     }
 
+    public int getIntAmount() {
+        var a = amount;
+        if (a >= Integer.MAX_VALUE) return Integer.MAX_VALUE;
+        return (int) a;
+    }
+
+    public boolean isEmpty() {
+        return amount < 1 || inner.isEmpty();
+    }
+
     public void shrink(long amount) {
         this.amount -= amount;
     }

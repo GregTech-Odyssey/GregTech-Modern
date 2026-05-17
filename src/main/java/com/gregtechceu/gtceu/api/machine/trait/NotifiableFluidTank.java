@@ -1,10 +1,9 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
@@ -31,7 +30,7 @@ import java.util.List;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Predicate;
 
-public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngredient> implements ICapabilityTrait, IFluidHandlerModifiable {
+public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements ICapabilityTrait, IFluidHandlerModifiable {
 
     @Getter
     public final IO handlerIO;
@@ -96,9 +95,8 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     }
 
     @Override
-    public List<FluidIngredient> handleRecipeInner(IO io, GTRecipe recipe, List<FluidIngredient> left, boolean simulate) {
-        if (io != handlerIO) return left;
-        if (io != IO.IN && io != IO.OUT) return left.isEmpty() ? null : left;
+    public void handleRecipeFluid(IO io, GTRecipe recipe, List<Content<FluidIngredient>> left, boolean simulate) {
+        if (io != handlerIO) return;
         Runnable[] listeners = null;
         var length = storages.length;
         if (!simulate) {
@@ -124,8 +122,8 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
                     var stored = storage.getFluid();
                     int amount = (visited == null ? stored.getAmount() : visited.getAmount());
                     if (amount == 0) continue;
-                    if (ingredient.test(stored)) {
-                        var drained = storage.drain(ingredient.getAmount(), action);
+                    if (ingredient.inner.test(stored)) {
+                        var drained = storage.drain(ingredient.getIntAmount(), action);
                         if (drained.getAmount() > 0) {
                             if (simulate) {
                                 visiteds[tank] = new SimpleStack<>(drained, amount - drained.getAmount());
@@ -140,7 +138,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
                     }
                 }
             } else {
-                var fluid = ingredient.getFluid();
+                var fluid = ingredient.inner.getFluid();
                 if (fluid == null) {
                     it.remove();
                     continue;
@@ -151,7 +149,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
                     var stored = storage.getFluid();
                     int amount = (visited == null ? stored.getAmount() : visited.getAmount());
                     if (amount < storage.getCapacity() && (lockedFluid.isEmpty() || lockedFluid.getFluid().getFluid() == fluid) && (stored.isEmpty() || stored.getFluid() == fluid) && (visited == null || visited.inner.getFluid() == fluid)) {
-                        FluidStack output = new FluidStack(fluid, ingredient.getAmount(), ingredient.nbt);
+                        FluidStack output = new FluidStack(fluid, ingredient.getIntAmount(), ingredient.inner.nbt);
                         int filled = storage.fill(output, action);
                         if (filled > 0) {
                             if (simulate) {
@@ -174,7 +172,6 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
                 if (changed) listeners[i].run();
             }
         }
-        return left.isEmpty() ? null : left;
     }
 
     @Override
@@ -211,17 +208,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
         return this;
     }
 
-    @Override
-    public RecipeCapability<FluidIngredient> getCapability() {
-        return FluidRecipeCapability.CAP;
-    }
-
     public int getTanks() {
-        return storages.length;
-    }
-
-    @Override
-    public int getSize() {
         return storages.length;
     }
 
@@ -251,7 +238,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     }
 
     @Override
-    public IntLongMap getIngredientMap(@NotNull GTRecipeType type) {
+    public IntLongMap getSearchMap(@NotNull GTRecipeType type) {
         if (changed) {
             changed = false;
             intIngredientMap.clear();

@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait<Long> implements IOpticalComputationProvider {
+public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait implements IOpticalComputationProvider {
 
     protected boolean transmitter;
     protected long lastTimeStamp;

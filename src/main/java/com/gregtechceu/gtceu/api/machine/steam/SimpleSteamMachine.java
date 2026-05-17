@@ -1,24 +1,17 @@
 package com.gregtechceu.gtceu.api.machine.steam;
 
-import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.PredicatedImageWidget;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IExhaustVentMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
-import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
-import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
-import com.gregtechceu.gtceu.common.recipe.condition.VentCondition;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
@@ -113,32 +106,6 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
 
     public double getConversionRate() {
         return isHighPressure() ? 2.0 : 1.0;
-    }
-
-    //////////////////////////////////////
-    // ****** Recipe Logic ******//
-    //////////////////////////////////////
-    /**
-     * Recipe Modifier for <b>Simple Steam Machines</b> - can be used as a valid {@link RecipeModifier}
-     * <p>
-     * Recipe is rejected if tier is greater than LV or if machine cannot vent.<br>
-     * Duration is multiplied by {@code 2} if the machine is low pressure
-     * </p>
-     *
-     * @param machine a {@link SimpleSteamMachine}
-     * @param recipe  recipe
-     * @return A {@link ModifierFunction} for the given Steam Machine
-     */
-    public static ModifierFunction recipeModifier(MetaMachine machine, GTRecipe recipe) {
-        if (!(machine instanceof SimpleSteamMachine steamMachine)) {
-            return RecipeModifier.nullWrongType(SimpleSteamMachine.class, machine);
-        }
-        if (RecipeHelper.getRecipeEUtTier(recipe) > GTValues.LV || !steamMachine.checkVenting()) {
-            return ModifierFunction.NULL;
-        }
-        var builder = ModifierFunction.builder().conditions(VentCondition.INSTANCE);
-        if (!steamMachine.isHighPressure) builder.durationMultiplier(2);
-        return builder.build();
     }
 
     @Override

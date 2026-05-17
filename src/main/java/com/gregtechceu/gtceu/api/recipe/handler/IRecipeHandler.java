@@ -36,7 +36,7 @@ public interface IRecipeHandler extends IFilteredHandler {
 
     default void fastForEachFluids(ObjLongConsumer<FluidStack> function) {}
 
-    default IntLongMap getIngredientMap(@NotNull GTRecipeType type) {
+    default IntLongMap getSearchMap(@NotNull GTRecipeType type) {
         return IntLongMap.EMPTY;
     }
 
@@ -73,6 +73,10 @@ public interface IRecipeHandler extends IFilteredHandler {
         return true;
     }
 
+    default boolean canHandleContent() {
+        return canHandleItem() || canHandleFluid();
+    }
+
     default boolean canHandleItem() {
         return false;
     }
@@ -89,7 +93,7 @@ public interface IRecipeHandler extends IFilteredHandler {
         return false;
     }
 
-    default void handleRecipeItem(boolean output, GTRecipe recipe, List<Content<ItemIngredient>> items, boolean simulate) {}
+    default void handleRecipeItem(IO io, GTRecipe recipe, List<Content<ItemIngredient>> items, boolean simulate) {}
 
-    default void handleRecipeFluid(boolean output, GTRecipe recipe, List<Content<FluidIngredient>> fluids, boolean simulate) {}
+    default void handleRecipeFluid(IO io, GTRecipe recipe, List<Content<FluidIngredient>> fluids, boolean simulate) {}
 }

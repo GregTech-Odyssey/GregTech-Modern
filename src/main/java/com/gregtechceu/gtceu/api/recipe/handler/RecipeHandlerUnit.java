@@ -3,7 +3,7 @@ package com.gregtechceu.gtceu.api.recipe.handler;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableRecipeHandlerTrait;
+import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
@@ -23,27 +23,26 @@ import net.minecraftforge.fluids.FluidStack;
 
 import com.fast.recipesearch.IntLongMap;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.BiPredicate;
-import java.util.function.Function;
 import java.util.function.ObjLongConsumer;
 
 public class RecipeHandlerUnit {
 
-    public static Function<Object, RecipeHandlerUnit> WRAPPER = o -> new RecipeHandlerUnit(o instanceof RecipeHandlerUnit list ? list.handlerIO : (IO) o);
+    public static final Comparator<RecipeHandlerUnit> PRIORITY_COMPARATOR = Comparator.comparingInt(u -> -u.priority);
 
-    public static final RecipeHandlerUnit NO_DATA = new RecipeHandlerUnit(IO.NONE);
+    public static final RecipeHandlerUnit NO_DATA = new RecipeHandlerUnit(IO.NONE, null);
 
     public final IMultiPart part;
 
-    public final List<IRecipeHandler> itemHandlers = new ArrayList<>();
-    public final List<IRecipeHandler> fluidHandlers = new ArrayList<>();
-    public final List<IRecipeHandler> allHandlers = new ArrayList<>();
-    public final List<NotifiableRecipeHandlerTrait<?>> allHandlerTraits = new ArrayList<>();
+    public final IRecipeHandler[] itemHandlers;
+    public final IRecipeHandler[] fluidHandlers;
+    public final IRecipeHandler[] contentHandlers;
+    public final IRecipeHandler[] allHandlers;
+    public final IRecipeHandlerTrait[] allHandlerTraits;
 
     @Getter
     protected final IO handlerIO;
@@ -62,54 +61,51 @@ public class RecipeHandlerUnit {
     protected Reference2LongOpenHashMap<Item> itemMap;
     protected Reference2LongOpenHashMap<Fluid> fluidMap;
 
-    protected RecipeHandlerUnit(IO handlerIO, IMultiPart part) {
+    protected RecipeHandlerUnit(IO handlerIO, IMultiPart part, IRecipeHandler... handlers) {
         this.handlerIO = handlerIO;
         this.part = part;
-    }
-
-    private RecipeHandlerUnit(IO handlerIO) {
-        this.handlerIO = handlerIO;
-        this.part = null;
+        Arrays.sort(handlers, IFilteredHandler.PRIORITY_COMPARATOR);
+        this.allHandlers = handlers;
+        var items = new ArrayList<IRecipeHandler>();
+        var fluids = new ArrayList<IRecipeHandler>();
+        var searchs = new ArrayList<IRecipeHandler>();
+        var traits = new ArrayList<IRecipeHandlerTrait>();
+        for (var handler : handlers) {
+            if (handler.canHandleItem()) items.add(handler);
+            if (handler.canHandleFluid()) fluids.add(handler);
+            if (handler.canHandleContent()) searchs.add(handler);
+            if (handler instanceof IRecipeHandlerTrait trait) traits.add(trait);
+        }
+        this.itemHandlers = items.toArray(new IRecipeHandler[0]);
+        this.fluidHandlers = fluids.toArray(new IRecipeHandler[0]);
+        this.contentHandlers = searchs.toArray(new IRecipeHandler[0]);
+        this.allHandlerTraits = traits.toArray(new IRecipeHandlerTrait[0]);
     }
 
     public static RecipeHandlerUnit of(IO io, IRecipeHandler... handlers) {
-        RecipeHandlerUnit rhl = new RecipeHandlerUnit(io);
-        rhl.addHandlers(handlers);
-        return rhl;
+        return new RecipeHandlerUnit(io, null, handlers);
     }
 
     public static RecipeHandlerUnit of(IO io, Collection<IRecipeHandler> handlers) {
-        RecipeHandlerUnit rhl = new RecipeHandlerUnit(io);
-        rhl.addHandlers(handlers);
-        return rhl;
+        return new RecipeHandlerUnit(io, null, handlers.toArray(new IRecipeHandler[0]));
     }
 
     public static RecipeHandlerUnit of(IO io, IMultiPart part, Collection<IRecipeHandler> handlers) {
-        RecipeHandlerUnit rhl = new RecipeHandlerUnit(io, part);
-        rhl.addHandlers(handlers);
-        return rhl;
+        return new RecipeHandlerUnit(io, part, handlers.toArray(new IRecipeHandler[0]));
     }
 
-    public void addList(RecipeHandlerUnit list) {
-        addHandlers(list.allHandlers);
+    public static List<RecipeHandlerUnit> filterContent(Collection<RecipeHandlerUnit> handlers) {
+        var list = new ArrayList<RecipeHandlerUnit>();
+        handlers.forEach(h -> {
+            if (h.contentHandlers.length > 0) list.add(h);
+        });
+        return list;
     }
 
-    public void addHandlers(IRecipeHandler... handlers) {
-        addHandlers(Arrays.asList(handlers));
-    }
-
-    public void addHandlers(Collection<IRecipeHandler> handlers) {
-        for (var handler : new ReferenceOpenHashSet<>(handlers)) {
-            allHandlers.add(handler);
-            if (handler.canHandleItem()) itemHandlers.add(handler);
-            if (handler.canHandleFluid()) fluidHandlers.add(handler);
-            if (!isInfiniteOutputItem && handler.isInfiniteOutputItem()) isInfiniteOutputItem = true;
-            if (!isInfiniteOutputFluid && handler.isInfiniteOutputFluid()) isInfiniteOutputFluid = true;
-            if (handler instanceof NotifiableRecipeHandlerTrait<?> rht) allHandlerTraits.add(rht);
-        }
-        allHandlers.sort(IRecipeHandler.PRIORITY_COMPARATOR);
-        itemHandlers.sort(IRecipeHandler.PRIORITY_COMPARATOR);
-        fluidHandlers.sort(IRecipeHandler.PRIORITY_COMPARATOR);
+    public RecipeHandlerUnit wrapper(Collection<IRecipeHandler> handlers) {
+        var u = of(this.handlerIO, handlers);
+        u.priority = this.priority;
+        return u;
     }
 
     public final void setDistinctAndNotify(boolean distinct) {
@@ -153,13 +149,19 @@ public class RecipeHandlerUnit {
     }
 
     public ISubscription subscribe(Runnable listener) {
-        List<ISubscription> subs = new ArrayList<>(allHandlerTraits.size());
-        allHandlerTraits.forEach(rht -> subs.add(rht.addChangedListener(listener)));
-        return () -> subs.forEach(ISubscription::unsubscribe);
+        ISubscription[] subs = new ISubscription[allHandlerTraits.length];
+        for (int i = 0; i < subs.length; i++) {
+            subs[i] = allHandlerTraits[i].addChangedListener(listener);
+        }
+        return () -> {
+            for (var s : subs) {
+                s.unsubscribe();
+            }
+        };
     }
 
     public boolean findRecipe(GTRecipeType recipeType, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
-        var map = this.getIngredientMap(recipeType);
+        var map = this.getSearchMap(recipeType);
         if (map.isEmpty()) return false;
         return recipeType.search(this, map, canHandle);
     }
@@ -240,12 +242,12 @@ public class RecipeHandlerUnit {
             maxMultiplier = multiplier = ParallelLogic.MAX_PARALLEL / maxCount;
         }
         var handlers = itemHandlers;
-        if (handlers.isEmpty()) return 0;
+        if (handlers.length == 0) return 0;
         while (minMultiplier != maxMultiplier) {
             var copied = GTRecipe.copyContents(contents, multiplier);
             boolean success = false;
             for (var handler : handlers) {
-                handler.handleRecipeItem(true, recipe, copied, true);
+                handler.handleRecipeItem(IO.OUT, recipe, copied, true);
                 if (copied.isEmpty()) {
                     success = true;
                     break;
@@ -275,12 +277,12 @@ public class RecipeHandlerUnit {
             maxMultiplier = multiplier = ParallelLogic.MAX_PARALLEL / maxCount;
         }
         var handlers = fluidHandlers;
-        if (handlers.isEmpty()) return 0;
+        if (handlers.length == 0) return 0;
         while (minMultiplier != maxMultiplier) {
             var copied = GTRecipe.copyContents(contents, multiplier);
             boolean success = false;
             for (var handler : handlers) {
-                handler.handleRecipeFluid(true, recipe, copied, true);
+                handler.handleRecipeFluid(IO.OUT, recipe, copied, true);
                 if (copied.isEmpty()) {
                     success = true;
                     break;
@@ -297,9 +299,11 @@ public class RecipeHandlerUnit {
         return multiplier;
     }
 
-    public IntLongMap getIngredientMap(@NotNull GTRecipeType type) {
+    public IntLongMap getSearchMap(@NotNull GTRecipeType type) {
         intIngredientMap.clear();
-        allHandlers.forEach(handler -> handler.getIngredientMap(type).copyTo(intIngredientMap));
+        for (var s : contentHandlers) {
+            s.getSearchMap(type).copyTo(intIngredientMap);
+        }
         return intIngredientMap;
     }
 
@@ -318,11 +322,15 @@ public class RecipeHandlerUnit {
     }
 
     public void fastForEachItems(ObjLongConsumer<ItemStack> function) {
-        itemHandlers.forEach(handler -> handler.fastForEachItems(function));
+        for (var i : itemHandlers) {
+            i.fastForEachItems(function);
+        }
     }
 
     public void fastForEachFluids(ObjLongConsumer<FluidStack> function) {
-        fluidHandlers.forEach(handler -> handler.fastForEachFluids(function));
+        for (var f : fluidHandlers) {
+            f.fastForEachFluids(function);
+        }
     }
 
     public void fastForEach(ObjLongConsumer<ItemStack> itemFunction, ObjLongConsumer<FluidStack> FluidFunction) {
@@ -332,15 +340,15 @@ public class RecipeHandlerUnit {
         }
     }
 
-    public boolean handleRecipeItem(boolean output, GTRecipe recipe, List<Content<ItemIngredient>> items, boolean simulate) {
+    public boolean handleRecipeItem(IO io, GTRecipe recipe, List<Content<ItemIngredient>> items, boolean simulate) {
         if (items.isEmpty()) return true;
-        if (output) {
+        if (io == IO.OUT) {
             if (simulate && isInfiniteOutputItem) return true;
         } else {
             items = GTRecipe.copyContents(items, 1);
         }
         for (var handler : itemHandlers) {
-            handler.handleRecipeItem(output, recipe, items, simulate);
+            handler.handleRecipeItem(io, recipe, items, simulate);
             if (items.isEmpty()) {
                 return true;
             }
@@ -348,15 +356,15 @@ public class RecipeHandlerUnit {
         return false;
     }
 
-    public boolean handleRecipeFluid(boolean output, GTRecipe recipe, List<Content<FluidIngredient>> fluids, boolean simulate) {
+    public boolean handleRecipeFluid(IO io, GTRecipe recipe, List<Content<FluidIngredient>> fluids, boolean simulate) {
         if (fluids.isEmpty()) return true;
-        if (output) {
+        if (io == IO.OUT) {
             if (simulate && isInfiniteOutputFluid) return true;
         } else {
             fluids = GTRecipe.copyContents(fluids, 1);
         }
         for (var handler : fluidHandlers) {
-            handler.handleRecipeFluid(output, recipe, fluids, simulate);
+            handler.handleRecipeFluid(io, recipe, fluids, simulate);
             if (fluids.isEmpty()) {
                 return true;
             }

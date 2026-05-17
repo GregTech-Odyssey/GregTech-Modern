@@ -6,11 +6,14 @@ import com.gregtechceu.gtceu.api.machine.feature.IOverclockMachine;
 import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.ICoilMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
+import com.gregtechceu.gtceu.api.machine.steam.SimpleSteamMachine;
+import com.gregtechceu.gtceu.api.machine.steam.SteamBoilerMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
 import com.gregtechceu.gtceu.common.machine.multiblock.steam.LargeBoilerMachine;
+import com.gregtechceu.gtceu.common.recipe.condition.VentCondition;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTMath;
 
@@ -36,7 +39,7 @@ public interface RecipeModifier {
 
     RecipeModifier HATCH_PARALLEL = RecipeModifier::hatchParallel;
 
-    RecipeModifier SIMPLE_GENERATOR_MACHINEMODIFIER = (holder, unit, recipe) -> {
+    RecipeModifier SIMPLE_GENERATOR_MODIFIER = (holder, unit, recipe) -> {
         if (holder instanceof SimpleGeneratorMachine generator) {
             var EUt = recipe.getOutputEUt();
             if (EUt > 0) {
@@ -45,6 +48,26 @@ public interface RecipeModifier {
             return recipe;
         }
         return null;
+    };
+
+    RecipeModifier SIMPLE_STEAM_MODIFIER = (holder, unit, recipe) -> {
+        if (!(holder instanceof SimpleSteamMachine steamMachine)) {
+            return null;
+        }
+        if (recipe.tier > GTValues.LV || !steamMachine.checkVenting()) {
+            return null;
+        }
+        if (!VentCondition.INSTANCE.testCondition(holder, unit, recipe.definition)) return null;
+        if (!steamMachine.isHighPressure) recipe.durationMultiplier(2);
+        return recipe;
+    };
+
+    RecipeModifier STEAM_BOILER_MODIFIER = (holder, unit, recipe) -> {
+        if (!(holder instanceof SteamBoilerMachine boilerMachine)) {
+            return null;
+        }
+        if (boilerMachine.isHighPressure) recipe.durationMultiplier(0.5);
+        return recipe;
     };
 
     RecipeModifier LARGE_BOILER_MODIFIER = (holder, unit, recipe) -> {

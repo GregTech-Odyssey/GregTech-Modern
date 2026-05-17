@@ -14,7 +14,7 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait implements IRecipeHandlerTrait<T> {
+public abstract class NotifiableRecipeHandlerTrait extends MachineTrait implements IRecipeHandlerTrait {
 
     protected List<Runnable> listeners = new ArrayList<>();
     @Getter

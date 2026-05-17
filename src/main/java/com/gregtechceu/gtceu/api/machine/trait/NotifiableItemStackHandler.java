@@ -1,10 +1,9 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
@@ -31,7 +30,7 @@ import java.util.function.IntFunction;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Predicate;
 
-public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<ItemIngredient> implements ICapabilityTrait, IItemHandlerModifiable {
+public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait implements ICapabilityTrait, IItemHandlerModifiable {
 
     public static NotifiableItemStackHandler empty(MetaMachine machine) {
         return new NotifiableItemStackHandler(machine, 0, IO.NONE).shouldSearchContent(false);
@@ -80,13 +79,12 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ite
     }
 
     @Override
-    public List<ItemIngredient> handleRecipeInner(IO io, GTRecipe recipe, List<ItemIngredient> left, boolean simulate) {
-        return handleRecipe(io, left, simulate, handlerIO, storage);
+    public void handleRecipeItem(IO io, GTRecipe recipe, List<Content<ItemIngredient>> left, boolean simulate) {
+        handleRecipe(io, left, simulate, handlerIO, storage);
     }
 
-    public static List<ItemIngredient> handleRecipe(IO io, List<ItemIngredient> left, boolean simulate, IO handlerIO, CustomItemStackHandler storage) {
-        if (io != handlerIO) return left;
-        if (io != IO.IN && io != IO.OUT) return left.isEmpty() ? null : left;
+    public static void handleRecipe(IO io, List<Content<ItemIngredient>> left, boolean simulate, IO handlerIO, CustomItemStackHandler storage) {
+        if (io != handlerIO) return;
         Runnable listener = null;
         if (!simulate) {
             listener = storage.getOnContentsChanged();
@@ -108,7 +106,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ite
                     var visited = visiteds[slot];
                     int count = (visited == null ? stored.getCount() : visited.getAmount());
                     if (count == 0) continue;
-                    if (ingredient.test(stored)) {
+                    if (ingredient.inner.test(stored)) {
                         var extracted = storage.extractItem(slot, GTMath.saturatedCast(amount), simulate).getCount();
                         if (extracted > 0) {
                             if (simulate) {
@@ -124,7 +122,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ite
                     }
                 }
             } else {
-                var itemStack = ingredient.getInnerItemStack();
+                var itemStack = ingredient.inner.getInnerItemStack();
                 var item = itemStack.getItem();
                 if (item == Items.AIR) {
                     it.remove();
@@ -156,20 +154,10 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ite
             storage.setOnContentsChangedAndfreeze(listener);
             if (changed) listener.run();
         }
-        return left.isEmpty() ? null : left;
     }
 
     @Override
-    public RecipeCapability<ItemIngredient> getCapability() {
-        return ItemRecipeCapability.CAP;
-    }
-
     public int getSlots() {
-        return storage.size;
-    }
-
-    @Override
-    public int getSize() {
         return storage.size;
     }
 
@@ -197,7 +185,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ite
     }
 
     @Override
-    public IntLongMap getIngredientMap(@NotNull GTRecipeType type) {
+    public IntLongMap getSearchMap(@NotNull GTRecipeType type) {
         if (changed) {
             changed = false;
             intIngredientMap.clear();

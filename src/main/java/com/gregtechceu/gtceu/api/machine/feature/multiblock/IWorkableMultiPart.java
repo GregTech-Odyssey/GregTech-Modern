@@ -91,10 +91,10 @@ public interface IWorkableMultiPart extends IMultiPart {
     default RecipeHandlerUnit getHandlerList() {
         var list = getRecipeHandlerList();
         if (list == null) {
-            List<IRecipeHandler<?>> handlers = new ArrayList<>();
+            List<IRecipeHandler> handlers = new ArrayList<>();
             IO handlerIO = null;
             for (var trait : self().getTraits()) {
-                if (trait instanceof IRecipeHandlerTrait<?> rht && rht.isAvailable() && rht.getHandlerIO() != IO.NONE) {
+                if (trait instanceof IRecipeHandlerTrait rht && rht.isAvailable() && rht.getHandlerIO() != IO.NONE) {
                     if (handlerIO == null) handlerIO = rht.getHandlerIO();
                     handlers.add(rht);
                 }
@@ -136,9 +136,7 @@ public interface IWorkableMultiPart extends IMultiPart {
     /**
      * Called in {@link RecipeLogic#setupRecipe(GTRecipe)}
      */
-    default boolean beforeWorking(IWorkableMultiController controller, @NotNull GTRecipe recipe) {
-        return true;
-    }
+    default void beforeWorking(IWorkableMultiController controller, @NotNull GTRecipe recipe) {}
 
     /**
      * Override it to modify recipe on the fly e.g. applying overclock, change chance, etc
@@ -147,7 +145,7 @@ public interface IWorkableMultiPart extends IMultiPart {
      * @return modified recipe.
      *         null -- this recipe is unavailable
      */
-    default @Nullable GTRecipe modifyRecipe(IWorkableMultiController controller, @NotNull GTRecipe recipe) {
+    default @Nullable GTRecipe modifyRecipe(IWorkableMultiController controller, RecipeHandlerUnit unit, @NotNull GTRecipe recipe) {
         return recipe;
     }
 

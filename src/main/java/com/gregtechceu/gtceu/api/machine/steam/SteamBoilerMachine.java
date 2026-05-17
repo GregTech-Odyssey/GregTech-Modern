@@ -6,17 +6,13 @@ import com.gregtechceu.gtceu.api.capability.IWailaDisplayProvider;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
-import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.config.ConfigHolder;
@@ -226,23 +222,6 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     }
 
     protected abstract long getBaseSteamOutput();
-
-    /**
-     * Recipe Modifier for <b>Steam Boiler Machines</b> - can be used as a valid {@link RecipeModifier}
-     * <p>
-     * Duration is multiplied by {@code 0.5} if the machine is high pressure
-     * 
-     * @param machine a {@link SteamBoilerMachine}
-     * @param recipe  recipe
-     * @return A {@link ModifierFunction} for the given Steam Boiler
-     */
-    public static ModifierFunction recipeModifier(MetaMachine machine, GTRecipe recipe) {
-        if (!(machine instanceof SteamBoilerMachine boilerMachine)) {
-            return RecipeModifier.nullWrongType(SteamBoilerMachine.class, machine);
-        }
-        if (!boilerMachine.isHighPressure) return ModifierFunction.IDENTITY;
-        return ModifierFunction.builder().durationMultiplier(0.5).build();
-    }
 
     @Override
     public boolean onWorking() {
