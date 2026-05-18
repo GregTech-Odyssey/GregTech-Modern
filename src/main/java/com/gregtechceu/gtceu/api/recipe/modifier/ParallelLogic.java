@@ -1,6 +1,9 @@
 package com.gregtechceu.gtceu.api.recipe.modifier;
 
+import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.feature.IOverclockMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
@@ -86,12 +89,12 @@ public final class ParallelLogic {
             if (maxParallel == 0) return 0;
         }
         items = recipe.itemOutputs;
-        if (!items.isEmpty()) {
+        if (!(items.isEmpty() || (holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(ItemRecipeCapability.CAP)))) {
             maxParallel = unit.getOutputItemParallelAmount(recipe, items, maxParallel);
             if (maxParallel == 0) return 0;
         }
         fluids = recipe.fluidOutputs;
-        if (!fluids.isEmpty()) {
+        if (!(fluids.isEmpty() || (holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(FluidRecipeCapability.CAP)))) {
             maxParallel = unit.getOutputFluidParallelAmount(recipe, fluids, maxParallel);
         }
         return maxParallel;

@@ -12,6 +12,7 @@ import net.minecraft.server.level.ServerLevel;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -63,7 +64,7 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
                 untreated.add(handler);
             }
             colour.int2ObjectEntrySet().fastForEach(e -> {
-                var handlers = new ArrayList<IRecipeHandler>();
+                var handlers = new ReferenceOpenHashSet<IRecipeHandler>();
                 for (var list : e.getValue()) {
                     handlers.addAll(Arrays.asList(list.allHandlers));
                 }
@@ -74,7 +75,7 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
                 getOutputColorMap().put(color, wrapper);
             });
             if (!untreated.isEmpty()) {
-                var handlers = new ArrayList<IRecipeHandler>();
+                var handlers = new ReferenceOpenHashSet<IRecipeHandler>();
                 for (var list : untreated) {
                     handlers.addAll(Arrays.asList(list.allHandlers));
                 }
@@ -109,7 +110,7 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
                 same.sort(Comparator.comparingInt(l -> -l.size()));
                 var first = same.getFirst();
                 for (int i = first.size() - 1; i >= 0; i--) {
-                    var handlers = new ArrayList<IRecipeHandler>();
+                    var handlers = new ReferenceOpenHashSet<IRecipeHandler>();
                     var size = same.size();
                     for (int j = 1; j < size; j++) {
                         var other = same.get(j);
@@ -131,7 +132,7 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
                     }
                 }
                 if (!untreated.isEmpty()) {
-                    var handlers = new ArrayList<IRecipeHandler>();
+                    var handlers = new ReferenceOpenHashSet<IRecipeHandler>();
                     for (var handler : untreated) {
                         handlers.addAll(Arrays.asList(handler.allHandlers));
                     }

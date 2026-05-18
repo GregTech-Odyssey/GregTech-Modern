@@ -74,27 +74,6 @@ public final class Content<T extends ContentInner> {
         this.tierChanceBoost = content.tierChanceBoost;
     }
 
-    @Nullable
-    public static <T extends ContentInner> Content<T> fromNbt(IContentSerializer<T> serializer, @Nullable Tag tag) {
-        if (tag instanceof CompoundTag compoundTag && compoundTag.tags.get("content") instanceof CompoundTag content) {
-            var ingredient = serializer.fromNbt(content);
-            if (ingredient instanceof ContentInner inner && !inner.isEmpty()) return new Content<>(ingredient, compoundTag.tags.get("amount") instanceof LongTag longTag ? longTag.getAsLong() : ingredient.amount, getChance(compoundTag), getTierChanceBoost(compoundTag));
-        }
-        return null;
-    }
-
-    @Nullable
-    public CompoundTag toNbt() {
-        if (inner instanceof ContentInner contentInner && !contentInner.isEmpty()) {
-            var t = new CompoundTag();
-            addChance(t, this);
-            t.put("content", contentInner.toNbt());
-            t.putLong("amount", amount);
-            return t;
-        }
-        return null;
-    }
-
     public Content<T> copy() {
         return new Content<>(this);
     }
@@ -205,28 +184,5 @@ public final class Content<T extends ContentInner> {
     @Override
     public String toString() {
         return "Content{" + "ContentInner=" + inner + ", chance=" + chance + ", tierChanceBoost=" + tierChanceBoost + '}';
-    }
-
-    private static int getChance(CompoundTag tag) {
-        if (tag.tags.get("chance") instanceof IntTag chance) {
-            return chance.getAsInt();
-        }
-        return Content.MAX_CHANCE;
-    }
-
-    private static int getTierChanceBoost(CompoundTag tag) {
-        if (tag.tags.get("tierChanceBoost") instanceof IntTag tierChanceBoost) {
-            return tierChanceBoost.getAsInt();
-        }
-        return 0;
-    }
-
-    private static void addChance(CompoundTag tag, Content content) {
-        if (content.chance != Content.MAX_CHANCE) {
-            tag.putInt("chance", content.chance);
-            if (content.tierChanceBoost != 0) {
-                tag.putInt("tierChanceBoost", content.tierChanceBoost);
-            }
-        }
     }
 }

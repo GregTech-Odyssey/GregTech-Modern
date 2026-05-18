@@ -12,7 +12,6 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
-import com.gregtechceu.gtceu.common.machine.multiblock.steam.LargeBoilerMachine;
 import com.gregtechceu.gtceu.common.recipe.condition.VentCondition;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTMath;
@@ -21,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@SuppressWarnings("unused")
 @FunctionalInterface
 @ParametersAreNonnullByDefault
 public interface RecipeModifier {
@@ -70,52 +70,14 @@ public interface RecipeModifier {
         return recipe;
     };
 
-    RecipeModifier LARGE_BOILER_MODIFIER = (holder, unit, recipe) -> {
-        if (holder instanceof LargeBoilerMachine largeBoilerMachine) {
-            double duration = recipe.duration * 1600.0D / largeBoilerMachine.maxTemperature;
-            if (duration < 1) {
-                recipe = ParallelLogic.accurateParallel(holder, unit, recipe, (long) (1 / duration));
-                if (recipe == null) return null;
-            }
-            if (largeBoilerMachine.getThrottle() < 100) {
-                duration = duration * 100 / largeBoilerMachine.getThrottle();
-            }
-            recipe.duration = (int) duration;
-        }
-        return recipe;
-    };
-
-    static RecipeModifier overclocking(double durationFactor, double reductionEUt, double reductionDuration) {
-        return (holder, unit, recipe) -> overclocking(holder, unit, recipe, false, reductionEUt, reductionDuration, durationFactor);
-    }
-
-    static RecipeModifier accurateParallel(long parallel) {
-        return (holder, unit, recipe) -> ParallelLogic.accurateParallel(holder, unit, recipe, parallel);
-    }
-
-    static RecipeModifier recipeReduction(double reductionEUt, double reductionDuration) {
-        return (holder, unit, recipe) -> recipeReduction(recipe, reductionEUt, reductionDuration);
-    }
-
-    static RecipeModifier coilReductionOverclock(double durationFactor) {
-        return (holder, unit, recipe) -> {
-            if (holder instanceof ICoilMachine coilMachine) {
-                var r = hatchParallel(holder, unit, recipe);
-                if (r == null) return null;
-                return overclocking(holder, unit, r, false, (1.0 - coilMachine.getCoilTier() * 0.05), (1.0 - coilMachine.getCoilTier() * 0.05), durationFactor);
-            }
-            return null;
-        };
-    }
-
-    static GTRecipe crackerOverclock(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe) {
+    RecipeModifier CRACKER_OVERCLOCK = (holder, unit, recipe) -> {
         if (holder instanceof ICoilMachine coilMachine) {
             return overclocking(holder, unit, recipe, false, Math.max(0.2, 1.0 - (coilMachine.getCoilTier() * 0.1)), 1, 0.5);
         }
         return null;
-    }
+    };
 
-    static GTRecipe pyrolyseOvenOverclock(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe) {
+    RecipeModifier PYROLYSE_OVEN_OVERCLOCK = (holder, unit, recipe) -> {
         if (holder instanceof ICoilMachine coilMachine) {
             if (coilMachine.getCoilTier() == 0) {
                 return overclocking(holder, unit, recipe, false, 1, 1.33, 0.5);
@@ -124,9 +86,9 @@ public interface RecipeModifier {
             }
         }
         return null;
-    }
+    };
 
-    static GTRecipe ebfOverclock(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe) {
+    RecipeModifier EBF_OVERCLOCK = (holder, unit, recipe) -> {
         if (holder instanceof ICoilMachine coilMachine && holder instanceof IOverclockMachine overclockMachine) {
             int temperature = coilMachine.getCoilType().getCoilTemperature() + (100 * Math.max(0, ((ITieredMachine) coilMachine).getTier() - GTValues.MV));
             int recipeTemp = recipe.data.getInt(GTRecipeDataKeys.EBF_TEMP);
@@ -177,9 +139,9 @@ public interface RecipeModifier {
             }
         }
         return recipe;
-    }
+    };
 
-    static GTRecipe multiSmelterParallel(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe) {
+    RecipeModifier MULTI_SMELTER_OVERCLOCK = (holder, unit, recipe) -> {
         if (holder instanceof ICoilMachine coilMachine) {
             int maxParallel = 32 * coilMachine.getCoilType().getLevel();
             recipe = ParallelLogic.accurateParallel(holder, unit, recipe, maxParallel);
@@ -189,6 +151,29 @@ public interface RecipeModifier {
             return overclocking(holder, unit, recipe);
         }
         return null;
+    };
+
+    static RecipeModifier overclocking(double durationFactor, double reductionEUt, double reductionDuration) {
+        return (holder, unit, recipe) -> overclocking(holder, unit, recipe, false, reductionEUt, reductionDuration, durationFactor);
+    }
+
+    static RecipeModifier accurateParallel(long parallel) {
+        return (holder, unit, recipe) -> ParallelLogic.accurateParallel(holder, unit, recipe, parallel);
+    }
+
+    static RecipeModifier recipeReduction(double reductionEUt, double reductionDuration) {
+        return (holder, unit, recipe) -> recipeReduction(recipe, reductionEUt, reductionDuration);
+    }
+
+    static RecipeModifier coilReductionOverclock(double durationFactor) {
+        return (holder, unit, recipe) -> {
+            if (holder instanceof ICoilMachine coilMachine) {
+                var r = hatchParallel(holder, unit, recipe);
+                if (r == null) return null;
+                return overclocking(holder, unit, r, false, (1.0 - coilMachine.getCoilTier() * 0.05), (1.0 - coilMachine.getCoilTier() * 0.05), durationFactor);
+            }
+            return null;
+        };
     }
 
     static @Nullable GTRecipe hatchParallel(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe) {

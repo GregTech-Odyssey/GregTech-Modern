@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
@@ -12,8 +11,10 @@ import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
-import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
+import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.config.ConfigHolder;
@@ -187,14 +188,22 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
      * 
      * @param machine a {@link LargeBoilerMachine}
      * @param recipe  recipe
-     * @return A {@link ModifierFunction} for the given Large Boiler and recipe
      */
-    public static ModifierFunction recipeModifier(MetaMachine machine, GTRecipe recipe) {
-        if (!(machine instanceof LargeBoilerMachine largeBoilerMachine)) {
-            return RecipeModifier.nullWrongType(LargeBoilerMachine.class, machine);
+    @Nullable
+    public static GTRecipe recipeModifier(IRecipeHandlerHolder machine, RecipeHandlerUnit unit, GTRecipe recipe) {
+        if (machine instanceof LargeBoilerMachine largeBoilerMachine) {
+            double duration = recipe.duration * 1600.0D / largeBoilerMachine.maxTemperature;
+            if (duration < 1) {
+                recipe = ParallelLogic.accurateParallel(machine, unit, recipe, (long) (1 / duration));
+                if (recipe == null) return null;
+            }
+            if (largeBoilerMachine.throttle < 100) {
+                duration = duration * 100 / largeBoilerMachine.throttle;
+            }
+            recipe.duration = (int) duration;
+            return recipe;
         }
-        if (largeBoilerMachine.throttle == 100) return ModifierFunction.IDENTITY;
-        return ModifierFunction.builder().durationMultiplier(100.0 / largeBoilerMachine.throttle).build();
+        return null;
     }
 
     public void addDisplayText(List<Component> textList) {

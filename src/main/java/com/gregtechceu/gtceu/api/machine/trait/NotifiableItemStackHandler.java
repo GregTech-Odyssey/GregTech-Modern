@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
-import com.gregtechceu.gtceu.utils.GTMath;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.SimpleStack;
@@ -33,7 +32,7 @@ import java.util.function.Predicate;
 public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait implements ICapabilityTrait, IItemHandlerModifiable {
 
     public static NotifiableItemStackHandler empty(MetaMachine machine) {
-        return new NotifiableItemStackHandler(machine, 0, IO.NONE).shouldSearchContent(false);
+        return new NotifiableItemStackHandler(machine, 0, IO.NONE).setAvailable(false);
     }
 
     @Getter
@@ -42,7 +41,6 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
     public final IO capabilityIO;
     @Persisted
     public final CustomItemStackHandler storage;
-    private boolean shouldSearchContent = true;
     protected Boolean isEmpty;
     protected boolean changed = true;
 
@@ -79,18 +77,77 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
     }
 
     @Override
-    public void handleRecipeItem(IO io, GTRecipe recipe, List<Content<ItemIngredient>> left, boolean simulate) {
-        handleRecipe(io, left, simulate, handlerIO, storage);
+    public boolean canHandleItem() {
+        return true;
     }
 
-    public static void handleRecipe(IO io, List<Content<ItemIngredient>> left, boolean simulate, IO handlerIO, CustomItemStackHandler storage) {
+    @Override
+    public void handleRecipeItem(IO io, GTRecipe recipe, List<Content<ItemIngredient>> left, boolean simulate) {
         if (io != handlerIO) return;
-        Runnable listener = null;
-        if (!simulate) {
-            listener = storage.getOnContentsChanged();
-            storage.setOnContentsChangedAndfreeze(GTUtil.NOOP);
+        if (simulate) {
+            handleRecipeSimulate(io, left, storage);
+        } else {
+            handleRecipe(io, left, storage);
         }
+    }
+
+    public static void handleRecipe(IO io, List<Content<ItemIngredient>> left, CustomItemStackHandler storage) {
+        Runnable listener = storage.getOnContentsChanged();
+        storage.setOnContentsChangedAndfreeze(GTUtil.NOOP);
         boolean changed = false;
+        var size = storage.size;
+        for (var it = left.iterator(); it.hasNext();) {
+            var ingredient = it.next();
+            if (ingredient.isEmpty()) {
+                it.remove();
+                continue;
+            }
+            if (io == IO.IN) {
+                for (int slot = 0; slot < size; ++slot) {
+                    ItemStack stored = storage.stacks[slot];
+                    int count = stored.getCount();
+                    if (count == 0) continue;
+                    if (ingredient.inner.test(stored)) {
+                        var extracted = storage.extractItem(slot, ingredient.getIntAmount(), false).getCount();
+                        if (extracted > 0) {
+                            changed = true;
+                            ingredient.shrink(extracted);
+                            if (ingredient.amount <= 0) {
+                                it.remove();
+                                break;
+                            }
+                        }
+                    }
+                }
+            } else {
+                var itemStack = ingredient.inner.getInnerItemStack();
+                var item = itemStack.getItem();
+                if (item == Items.AIR) {
+                    it.remove();
+                    continue;
+                }
+                for (int slot = 0; slot < size; ++slot) {
+                    ItemStack stored = storage.stacks[slot];
+                    int count = stored.getCount();
+                    if (count < itemStack.getMaxStackSize() && count < storage.getSlotLimit(slot) && (count == 0 || stored.is(item))) {
+                        var remainder = storage.insertItemFast(slot, itemStack, ingredient.getIntAmount(), false);
+                        if (remainder < ingredient.amount) {
+                            changed = true;
+                            if (remainder <= 0) {
+                                it.remove();
+                                break;
+                            }
+                            ingredient.amount = remainder;
+                        }
+                    }
+                }
+            }
+        }
+        storage.setOnContentsChangedAndfreeze(listener);
+        if (changed) listener.run();
+    }
+
+    public static void handleRecipeSimulate(IO io, List<Content<ItemIngredient>> left, CustomItemStackHandler storage) {
         var size = storage.size;
         SimpleStack<ItemStack>[] visiteds = new SimpleStack[size];
         for (var it = left.iterator(); it.hasNext();) {
@@ -99,7 +156,6 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
                 it.remove();
                 continue;
             }
-            long amount = ingredient.amount;
             if (io == IO.IN) {
                 for (int slot = 0; slot < size; ++slot) {
                     ItemStack stored = storage.stacks[slot];
@@ -107,14 +163,11 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
                     int count = (visited == null ? stored.getCount() : visited.getAmount());
                     if (count == 0) continue;
                     if (ingredient.inner.test(stored)) {
-                        var extracted = storage.extractItem(slot, GTMath.saturatedCast(amount), simulate).getCount();
+                        var extracted = storage.extractItem(slot, ingredient.getIntAmount(), true).getCount();
                         if (extracted > 0) {
-                            if (simulate) {
-                                visiteds[slot] = new SimpleStack<>(stored, count - extracted);
-                            }
-                            changed = true;
-                            amount -= extracted;
-                            if (amount <= 0) {
+                            visiteds[slot] = new SimpleStack<>(stored, count - extracted);
+                            ingredient.shrink(extracted);
+                            if (ingredient.amount <= 0) {
                                 it.remove();
                                 break;
                             }
@@ -133,26 +186,18 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
                     var visited = visiteds[slot];
                     int count = (visited == null ? stored.getCount() : visited.getAmount());
                     if (count < itemStack.getMaxStackSize() && count < storage.getSlotLimit(slot) && (count == 0 || stored.is(item)) && (visited == null || visited.inner.is(item))) {
-                        var remainder = storage.insertItemFast(slot, itemStack, GTMath.saturatedCast(amount), simulate);
-                        if (remainder < amount) {
-                            if (simulate) {
-                                visiteds[slot] = new SimpleStack<>(itemStack, remainder);
-                            }
-                            changed = true;
+                        var remainder = storage.insertItemFast(slot, itemStack, ingredient.getIntAmount(), true);
+                        if (remainder < ingredient.amount) {
+                            visiteds[slot] = new SimpleStack<>(itemStack, remainder);
                             if (remainder <= 0) {
                                 it.remove();
                                 break;
                             }
-                            amount = remainder;
+                            ingredient.amount = remainder;
                         }
                     }
                 }
             }
-            if (amount > 0) ingredient.amount = amount;
-        }
-        if (listener != null) {
-            storage.setOnContentsChangedAndfreeze(listener);
-            if (changed) listener.run();
         }
     }
 
@@ -287,18 +332,6 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
     @Override
     public boolean isItemValid(int slot, @NotNull ItemStack stack) {
         return storage.isItemValid(slot, stack);
-    }
-
-    public boolean shouldSearchContent() {
-        return this.shouldSearchContent;
-    }
-
-    /**
-     * @return {@code this}.
-     */
-    public NotifiableItemStackHandler shouldSearchContent(final boolean shouldSearchContent) {
-        this.shouldSearchContent = shouldSearchContent;
-        return this;
     }
 
     @Override

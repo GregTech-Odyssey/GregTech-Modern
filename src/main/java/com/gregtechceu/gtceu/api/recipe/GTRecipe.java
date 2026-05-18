@@ -1,7 +1,10 @@
 package com.gregtechceu.gtceu.api.recipe;
 
+import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentInner;
+import com.gregtechceu.gtceu.api.recipe.content.SerializerFluidIngredient;
+import com.gregtechceu.gtceu.api.recipe.content.SerializerItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
@@ -9,6 +12,10 @@ import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
 import net.minecraft.MethodsReturnNonnullByDefault;
 
 import com.gto.datasynclib.datasream.DataComponentMap;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
 import java.util.*;
@@ -122,11 +129,11 @@ public final class GTRecipe {
 
     public static <T extends ContentInner> void modifierContents(List<Content<T>> contents, long multiplier) {
         if (multiplier == 1) return;
+        var size = contents.size();
+        if (size == 0) return;
         if (multiplier == 0) {
             contents.clear();
         } else {
-            var size = contents.size();
-            if (size == 0) return;
             for (int i = 0; i < size; i++) {
                 var content = contents.get(i);
                 contents.set(i, content.copy(multiplier));
@@ -142,5 +149,36 @@ public final class GTRecipe {
             list.set(i, contents.get(i).copy(multiplier));
         }
         return list;
+    }
+
+    @NotNull
+    public static GTRecipe fromNetwork(@NotNull FriendlyByteBuf buf) {
+        ResourceLocation recipeType = buf.readResourceLocation();
+        int duration = buf.readVarInt();
+        Map<RecipeCapability<?>, List<Content>> inputs = tuplesToMap(
+                buf.readCollection(c -> new ArrayList<>(), GTRecipeSerializer::entryReader));
+        Map<RecipeCapability<?>, List<Content>> tickInputs = tuplesToMap(
+                buf.readCollection(c -> new ArrayList<>(), GTRecipeSerializer::entryReader));
+        Map<RecipeCapability<?>, List<Content>> outputs = tuplesToMap(
+                buf.readCollection(c -> new ArrayList<>(), GTRecipeSerializer::entryReader));
+        Map<RecipeCapability<?>, List<Content>> tickOutputs = tuplesToMap(
+                buf.readCollection(c -> new ArrayList<>(), GTRecipeSerializer::entryReader));
+
+        var data = GTRecipeDataKeys.REGISTRY.decode(buf);
+        if (data == null) {
+            data = new DataComponentMap();
+        }
+
+        GTRecipeType type = (GTRecipeType) BuiltInRegistries.RECIPE_TYPE.get(recipeType);
+        return new GTRecipe(type, inputs, outputs, tickInputs, tickOutputs, data, duration, buf.readVarInt());
+    }
+
+    public static void toNetwork(FriendlyByteBuf buf, GTRecipe recipe) {
+       buf.writeCollection(recipe.itemInputs, SerializerItemIngredient.INSTANCE::toNetworkContent);
+        buf.writeCollection(recipe.itemOutputs, SerializerItemIngredient.INSTANCE::toNetworkContent);
+        buf.writeCollection(recipe.fluidInputs, SerializerFluidIngredient.INSTANCE::toNetworkContent);
+        buf.writeCollection(recipe.fluidOutputs, SerializerFluidIngredient.INSTANCE::toNetworkContent);
+   GTRecipeDataKeys.REGISTRY.encode(buf,recipe.data);
+
     }
 }

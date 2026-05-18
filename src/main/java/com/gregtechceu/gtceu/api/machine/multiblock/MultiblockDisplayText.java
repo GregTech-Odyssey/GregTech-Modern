@@ -315,7 +315,7 @@ public class MultiblockDisplayText {
             return this;
         }
 
-        public Builder addBatchModeLine(boolean batchEnabled, int batchAmount) {
+        public Builder addBatchModeLine(boolean batchEnabled, long batchAmount) {
             if (batchEnabled && batchAmount > 0) {
                 textList.add(Component.translatable("gtceu.multiblock.batch_enabled", batchAmount));
             }
@@ -401,7 +401,7 @@ public class MultiblockDisplayText {
          * <br>
          * Added if structure is formed and the number of parallels is greater than one.
          */
-        public Builder addParallelsLine(int numParallels, boolean exact) {
+        public Builder addParallelsLine(long numParallels, boolean exact) {
             if (!isStructureFormed)
                 return this;
             if (numParallels > 1) {

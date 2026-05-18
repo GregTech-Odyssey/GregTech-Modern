@@ -71,8 +71,14 @@ public class RecipeHandlerUnit {
         var searchs = new ArrayList<IRecipeHandler>();
         var traits = new ArrayList<IRecipeHandlerTrait>();
         for (var handler : handlers) {
-            if (handler.canHandleItem()) items.add(handler);
-            if (handler.canHandleFluid()) fluids.add(handler);
+            if (handler.canHandleItem()) {
+                if (handler.isInfiniteOutputItem()) isInfiniteOutputItem = true;
+                items.add(handler);
+            }
+            if (handler.canHandleFluid()) {
+                if (handler.isInfiniteOutputFluid()) isInfiniteOutputFluid = true;
+                fluids.add(handler);
+            }
             if (handler.canHandleContent()) searchs.add(handler);
             if (handler instanceof IRecipeHandlerTrait trait) traits.add(trait);
         }
@@ -158,6 +164,29 @@ public class RecipeHandlerUnit {
                 s.unsubscribe();
             }
         };
+    }
+
+    public <T> ISubscription subscribe(Runnable listener, Class<T> capabilitie) {
+        var subs = new ArrayList<ISubscription>();
+        for (IRecipeHandlerTrait trait : allHandlerTraits) {
+            if (capabilitie.isInstance(trait)) {
+                subs.add(trait.addChangedListener(listener));
+            }
+        }
+        return () -> subs.forEach(ISubscription::unsubscribe);
+    }
+
+    @NotNull
+    public <T> List<T> getCapabilities(Class<T> capabilitie) {
+        var all = allHandlers;
+        if (all.length == 0) return Collections.emptyList();
+        var list = new ArrayList<T>();
+        for (var handler : all) {
+            if (capabilitie.isInstance(handler)) {
+                list.add((T) handler);
+            }
+        }
+        return list;
     }
 
     public boolean findRecipe(GTRecipeType recipeType, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
