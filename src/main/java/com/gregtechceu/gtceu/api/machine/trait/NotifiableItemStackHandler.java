@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.utils.GTMath;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.SimpleStack;
@@ -87,11 +88,11 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
         if (simulate) {
             handleRecipeSimulate(io, left, storage);
         } else {
-            handleRecipe(io, left, storage);
+            handleRecipe(io, recipe, left, storage);
         }
     }
 
-    public static void handleRecipe(IO io, List<Content<ItemIngredient>> left, CustomItemStackHandler storage) {
+    public static void handleRecipe(IO io, GTRecipe recipe, List<Content<ItemIngredient>> left, CustomItemStackHandler storage) {
         Runnable listener = storage.getOnContentsChanged();
         storage.setOnContentsChangedAndfreeze(GTUtil.NOOP);
         boolean changed = false;
@@ -130,8 +131,9 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
                     ItemStack stored = storage.stacks[slot];
                     int count = stored.getCount();
                     if (count < itemStack.getMaxStackSize() && count < storage.getSlotLimit(slot) && (count == 0 || stored.is(item))) {
-                        var remainder = storage.insertItemFast(slot, itemStack, ingredient.getIntAmount(), false);
-                        if (remainder < ingredient.amount) {
+                        var outputAmount = ingredient.getChanceAmount(recipe.definition.chanceBoost, recipe.tier, recipe.tier + recipe.ocLevel);
+                        var remainder = storage.insertItemFast(slot, itemStack, GTMath.saturatedCast(outputAmount), false);
+                        if (remainder < outputAmount) {
                             changed = true;
                             if (remainder <= 0) {
                                 it.remove();

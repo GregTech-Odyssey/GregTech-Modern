@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.recipe;
 
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
+import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.expand.ContentExpander;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
@@ -38,6 +39,7 @@ public final class GTRecipeDefinition {
     public final ContentExpander[] contentExpanders;
     public final ContentExpander[] tickContentExpanders;
     public final DataComponentMap data;
+    public final ChanceBoostFunction chanceBoost = ChanceBoostFunction.OVERCLOCK;
     public final long eut;
     public final int tier;
     public final int duration;
