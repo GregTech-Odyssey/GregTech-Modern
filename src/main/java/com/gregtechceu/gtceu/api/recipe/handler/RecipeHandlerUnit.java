@@ -3,14 +3,18 @@ package com.gregtechceu.gtceu.api.recipe.handler;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
+import com.gregtechceu.gtceu.api.machine.trait.CircuitHandler;
 import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
+import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
+import com.gregtechceu.gtceu.utils.FluidStackHashStrategy;
+import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 import com.gregtechceu.gtceu.utils.collection.SafeR2LMap;
 import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
 
@@ -18,10 +22,12 @@ import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.fast.recipesearch.IntLongMap;
+import com.gto.datasynclib.util.holder.LongHolder;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -336,34 +342,39 @@ public class RecipeHandlerUnit {
         return intIngredientMap;
     }
 
-    public boolean forEachItems(ObjLongPredicate<ItemStack> function) {
+    public boolean forEachItems(boolean consumable, ObjLongPredicate<ItemStack> function) {
         for (var handler : itemHandlers) {
+            if (consumable && handler.isNotConsumable()) continue;
             if (handler.forEachItems(function)) return true;
         }
         return false;
     }
 
-    public boolean forEachFluids(ObjLongPredicate<FluidStack> function) {
+    public boolean forEachFluids(boolean consumable, ObjLongPredicate<FluidStack> function) {
         for (var handler : fluidHandlers) {
+            if (consumable && handler.isNotConsumable()) continue;
             if (handler.forEachFluids(function)) return true;
         }
         return false;
     }
 
-    public void fastForEachItems(ObjLongConsumer<ItemStack> function) {
-        for (var i : itemHandlers) {
-            i.fastForEachItems(function);
+    public void fastForEachItems(boolean consumable, ObjLongConsumer<ItemStack> function) {
+        for (var handler : itemHandlers) {
+            if (consumable && handler.isNotConsumable()) continue;
+            handler.fastForEachItems(function);
         }
     }
 
-    public void fastForEachFluids(ObjLongConsumer<FluidStack> function) {
-        for (var f : fluidHandlers) {
-            f.fastForEachFluids(function);
+    public void fastForEachFluids(boolean consumable, ObjLongConsumer<FluidStack> function) {
+        for (var handler : fluidHandlers) {
+            if (consumable && handler.isNotConsumable()) continue;
+            handler.fastForEachFluids(function);
         }
     }
 
-    public void fastForEach(ObjLongConsumer<ItemStack> itemFunction, ObjLongConsumer<FluidStack> FluidFunction) {
+    public void fastForEach(boolean consumable, ObjLongConsumer<ItemStack> itemFunction, ObjLongConsumer<FluidStack> FluidFunction) {
         for (var handler : allHandlerTraits) {
+            if (consumable && handler.isNotConsumable()) continue;
             handler.fastForEachItems(itemFunction);
             handler.fastForEachFluids(FluidFunction);
         }
@@ -401,7 +412,221 @@ public class RecipeHandlerUnit {
         return false;
     }
 
-    private static long[] adjustMultiplier(boolean mergedAll, long minMultiplier, long multiplier, long maxMultiplier) {
+    public boolean handleItem(IO io, List<Content<ItemIngredient>> items, boolean simulate) {
+        if (items.isEmpty()) return true;
+        for (var handler : itemHandlers) {
+            handler.handleRecipeItem(io, GTRecipe.EMPTY, items, simulate);
+            if (items.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean handleFluid(IO io, List<Content<FluidIngredient>> fluids, boolean simulate) {
+        if (fluids.isEmpty()) return true;
+        for (var handler : fluidHandlers) {
+            handler.handleRecipeFluid(io, GTRecipe.EMPTY, fluids, simulate);
+            if (fluids.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean inputItem(ItemLike item, long amount) {
+        var contentList = new ArrayList<Content<ItemIngredient>>(1);
+        contentList.add(new Content<>(ItemIngredient.of(item, amount)));
+        return handleItem(IO.IN, GTRecipe.copyContents(contentList, 1), true) && handleItem(IO.IN, contentList, false);
+    }
+
+    public boolean inputItem(ItemStack... items) {
+        var contentList = toItemIngredient(items);
+        return handleItem(IO.IN, GTRecipe.copyContents(contentList, 1), true) && handleItem(IO.IN, contentList, false);
+    }
+
+    public boolean outputItem(ItemLike item, long amount) {
+        var contentList = new ArrayList<Content<ItemIngredient>>(1);
+        contentList.add(new Content<>(ItemIngredient.of(item, amount)));
+        return handleItem(IO.OUT, contentList, false);
+    }
+
+    public boolean outputItem(ItemStack... items) {
+        var contentList = toItemIngredient(items);
+        return handleItem(IO.OUT, contentList, false);
+    }
+
+    public boolean matchItem(ItemLike item, long amount) {
+        var i = item.asItem();
+        var holder = new LongHolder(amount);
+        return forEachItems(false, (stack, a) -> {
+            if (stack.is(i)) {
+                holder.value -= a;
+                return holder.value <= 0;
+            }
+            return false;
+        });
+    }
+
+    public boolean matchItem(ItemStack... items) {
+        for (var item : items) {
+            var holder = new LongHolder(item.getCount());
+            if (!forEachItems(false, (stack, a) -> {
+                if (ItemStackHashStrategy.ITEM_AND_TAG.equals(stack, item)) {
+                    holder.value -= a;
+                    return holder.value <= 0;
+                }
+                return false;
+            })) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean matchCircuit(int configuration) {
+        for (var iRecipeHandler : itemHandlers) {
+            if (iRecipeHandler instanceof CircuitHandler circuitHandler) {
+                var itemStack = circuitHandler.storage.stacks[0];
+                if (itemStack.is(IntCircuitIngredient.PROGRAMMED_CIRCUIT) && configuration == IntCircuitIngredient.getConfiguration(itemStack.getTag())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean inputFluid(Fluid fluid, long amount) {
+        var contentList = new ArrayList<Content<FluidIngredient>>(1);
+        contentList.add(new Content<>(FluidIngredient.of(fluid, amount)));
+        return handleFluid(IO.IN, GTRecipe.copyContents(contentList, 1), true) && handleFluid(IO.IN, contentList, false);
+    }
+
+    public boolean inputFluid(FluidStack... fluids) {
+        var contentList = toFluidIngredient(fluids);
+        return handleFluid(IO.IN, GTRecipe.copyContents(contentList, 1), true) && handleFluid(IO.IN, contentList, false);
+    }
+
+    public boolean outputFluid(Fluid fluid, long amount) {
+        var contentList = new ArrayList<Content<FluidIngredient>>(1);
+        contentList.add(new Content<>(FluidIngredient.of(fluid, amount)));
+        return handleFluid(IO.OUT, contentList, false);
+    }
+
+    public boolean outputFluid(FluidStack... fluids) {
+        var contentList = toFluidIngredient(fluids);
+        return handleFluid(IO.OUT, contentList, false);
+    }
+
+    public boolean matchFluid(Fluid fluid, long amount) {
+        var holder = new LongHolder(amount);
+        return forEachFluids(false, (stack, a) -> {
+            if (stack.getFluid() == fluid) {
+                holder.value -= a;
+                return holder.value <= 0;
+            }
+            return false;
+        });
+    }
+
+    public boolean matchFluid(FluidStack... fluids) {
+        for (var fluid : fluids) {
+            var holder = new LongHolder(fluid.getAmount());
+            if (!forEachFluids(false, (stack, a) -> {
+                if (FluidStackHashStrategy.FLUID_AND_TAG.equals(stack, fluid)) {
+                    holder.value -= a;
+                    return holder.value <= 0;
+                }
+                return false;
+            })) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public int getCircuit(boolean sum) {
+        int circuit = 0;
+        for (var iRecipeHandler : itemHandlers) {
+            if (iRecipeHandler instanceof CircuitHandler circuitHandler) {
+                var itemStack = circuitHandler.storage.stacks[0];
+                if (itemStack.is(IntCircuitIngredient.PROGRAMMED_CIRCUIT)) {
+                    var c = IntCircuitIngredient.getConfiguration(itemStack.getTag());
+                    if (c > 0) {
+                        circuit += c;
+                        if (!sum) break;
+                    }
+                }
+            }
+        }
+        return circuit;
+    }
+
+    public long[] getItemAmount(boolean consumable, Item... items) {
+        long[] amounts = new long[items.length];
+        getItemAmount(consumable, items, amounts);
+        return amounts;
+    }
+
+    public long[] getFluidAmount(boolean consumable, Fluid... fluids) {
+        long[] amounts = new long[fluids.length];
+        getFluidAmount(consumable, fluids, amounts);
+        return amounts;
+    }
+
+    public void getItemAmount(boolean consumable, Item[] items, long[] amounts) {
+        fastForEachItems(consumable, (stack, amount) -> {
+            var item = stack.getItem();
+            for (int i = 0; i < items.length; i++) {
+                if (items[i] == item) {
+                    var a = amount + amounts[i];
+                    if (a < 0) {
+                        amounts[i] = Long.MAX_VALUE;
+                    } else {
+                        amounts[i] = a;
+                    }
+                    break;
+                }
+            }
+        });
+    }
+
+    public void getFluidAmount(boolean consumable, Fluid[] fluids, long[] amounts) {
+        fastForEachFluids(consumable, (stack, amount) -> {
+            var fluid = stack.getFluid();
+            for (int i = 0; i < fluids.length; i++) {
+                if (fluids[i] == fluid) {
+                    var a = amount + amounts[i];
+                    if (a < 0) {
+                        amounts[i] = Long.MAX_VALUE;
+                    } else {
+                        amounts[i] = a;
+                    }
+                    break;
+                }
+            }
+        });
+    }
+
+    public static List<Content<ItemIngredient>> toItemIngredient(ItemStack... item) {
+        var contentList = new ArrayList<Content<ItemIngredient>>(item.length);
+        for (var content : item) {
+            if (content.isEmpty()) continue;
+            contentList.add(new Content<>(ItemIngredient.of(content)));
+        }
+        return contentList;
+    }
+
+    public static List<Content<FluidIngredient>> toFluidIngredient(FluidStack... fluid) {
+        var contentList = new ArrayList<Content<FluidIngredient>>(fluid.length);
+        for (FluidStack content : fluid) {
+            if (content.isEmpty()) continue;
+            contentList.add(new Content<>(FluidIngredient.of(content)));
+        }
+        return contentList;
+    }
+
+    public static long[] adjustMultiplier(boolean mergedAll, long minMultiplier, long multiplier, long maxMultiplier) {
         if (mergedAll) {
             minMultiplier = multiplier;
             long remainder = (maxMultiplier - multiplier) % 2;

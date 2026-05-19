@@ -23,16 +23,22 @@ public final class ParallelLogic {
         if (recipe.contentParallel > 0) {
             return recipe.contentParallel / recipe.parallels;
         }
-        return recipe.contentParallel = getMaxContentParallelAmount(holder, unit, recipe);
+        return getMaxContentParallelAmount(holder, unit, recipe);
+    }
+
+    public static long getMaxParallelAmount(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe, long maxParallel) {
+        if (maxParallel > 1) {
+            long maxContentParallel = getMaxContentParallelAmount(holder, unit, recipe);
+            if (maxContentParallel == 0) return 0;
+            maxParallel = Math.min(maxContentParallel, getTickParallelAmount(holder, unit, recipe, maxParallel));
+        }
+        return maxParallel;
     }
 
     @Nullable
     public static GTRecipe accurateParallel(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe, long maxParallel) {
         if (maxParallel > 1) {
-            long maxContentParallel = getMaxContentParallelAmount(holder, unit, recipe);
-            if (maxContentParallel == 0) return null;
-            recipe.contentParallel = maxContentParallel;
-            maxParallel = Math.min(maxContentParallel, getTickParallelAmount(holder, unit, recipe, maxParallel));
+            maxParallel = getMaxParallelAmount(holder, unit, recipe, maxParallel);
             if (maxParallel == 0) return null;
             recipe.modifier(maxParallel, true);
             return recipe;
@@ -43,10 +49,8 @@ public final class ParallelLogic {
     @Nullable
     public static GTRecipe accurateContentParallel(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe, long maxParallel) {
         if (maxParallel > 1) {
-            long maxContentParallel = getMaxContentParallelAmount(holder, unit, recipe);
-            if (maxContentParallel == 0) return null;
-            recipe.contentParallel = maxContentParallel;
-            maxParallel = Math.min(maxContentParallel, maxParallel);
+            maxParallel = Math.min(maxParallel, getMaxContentParallelAmount(holder, unit, recipe));
+            if (maxParallel == 0) return null;
             recipe.modifier(maxParallel, true);
             return recipe;
         }
@@ -97,6 +101,7 @@ public final class ParallelLogic {
         if (!(fluids.isEmpty() || (holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(FluidRecipeCapability.CAP)))) {
             maxParallel = unit.getOutputFluidParallelAmount(recipe, fluids, maxParallel);
         }
+        recipe.contentParallel = maxParallel;
         return maxParallel;
     }
 }

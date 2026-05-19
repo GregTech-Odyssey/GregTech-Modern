@@ -52,25 +52,11 @@ public interface IRecipeHandler extends IFilteredHandler {
         return false;
     }
 
-    default boolean isRecipeOnly() {
-        return false;
-    }
-
     /**
      * Whether the content of same capability can only be handled distinct.
      */
     default boolean isDistinct() {
         return false;
-    }
-
-    /**
-     * Returns {@code true} if this {@code IRecipeHandler} has content to be searched.
-     * The main use of this is differentiating circuit inventories from item inventories
-     * 
-     * @return {@code true} if this {@code IRecipeHandler} has content to be searched
-     */
-    default boolean shouldSearchContent() {
-        return true;
     }
 
     default boolean canHandleContent() {

@@ -18,7 +18,6 @@ import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifierList;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.client.renderer.GTRendererProvider;
 import com.gregtechceu.gtceu.client.renderer.machine.*;
-import com.gregtechceu.gtceu.common.data.GTRecipeModifiers;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
@@ -101,7 +100,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     private PartAbility[] abilities = new PartAbility[0];
     private final List<Component> tooltips = new ArrayList<>();
     private BiConsumer<ItemStack, List<Component>> tooltipBuilder;
-    private RecipeModifier recipeModifier = new RecipeModifierList(GTRecipeModifiers.OC_NON_PERFECT);
+    private RecipeModifier recipeModifier = RecipeModifier.OVERCLOCKING;
 
     @NotNull
     private Predicate<IRecipeLogicMachine> onWorking = GTUtil.FAVORABLE;
@@ -222,17 +221,17 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     }
 
     public MachineBuilder<DEFINITION> recipeModifier(RecipeModifier recipeModifier) {
-        this.recipeModifier = recipeModifier instanceof RecipeModifierList list ? list : new RecipeModifierList(recipeModifier);
+        this.recipeModifier = recipeModifier;
         return this;
     }
 
     public MachineBuilder<DEFINITION> recipeModifiers(RecipeModifier... recipeModifiers) {
-        this.recipeModifier = new RecipeModifierList(recipeModifiers);
+        this.recipeModifier = recipeModifiers.length > 1 ? new RecipeModifierList(recipeModifiers) : recipeModifiers[0];
         return this;
     }
 
     public MachineBuilder<DEFINITION> noRecipeModifier() {
-        this.recipeModifier = new RecipeModifierList(RecipeModifier.NO_MODIFIER);
+        this.recipeModifier = RecipeModifier.NO_MODIFIER;
         return this;
     }
 

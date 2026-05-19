@@ -15,17 +15,11 @@ import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.sound.SoundEntry;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-
-import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A machine can handle recipes.
@@ -91,48 +85,7 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
         return self().getDefinition().getRecipeModifier().applyModifier(this, unit, recipe);
     }
 
-    default boolean checkConditions(RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
-        if (recipe.conditions.length == 0) return true;
-        Map<Class<?>, List<RecipeCondition>> or = new Reference2ObjectArrayMap<>();
-        for (RecipeCondition condition : recipe.conditions) {
-            if (condition.isOr()) {
-                or.computeIfAbsent(condition.getClass(), type -> new ArrayList<>()).add(condition);
-            } else if (!condition.check(this, unit, recipe)) {
-                return false;
-            }
-        }
-
-        for (List<RecipeCondition> conditions : or.values()) {
-            boolean passed = conditions.isEmpty();
-            MutableComponent component = Component.translatable("gtceu.recipe_logic.condition_fails")
-                    .append(": ");
-            for (RecipeCondition condition : conditions) {
-                passed = condition.check(this, unit, recipe);
-                if (passed) break;
-                else component.append(condition.getTooltips());
-            }
-
-            if (!passed) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    default boolean matchRecipe(RecipeHandlerUnit unit, GTRecipe recipe) {
-        return matchRecipeInput(unit, recipe) && matchRecipeOutput(recipe);
-    }
-
-    default boolean matchRecipeInput(RecipeHandlerUnit unit, GTRecipe recipe) {
-        if (unit.handleRecipeItem(IO.IN, recipe, recipe.itemInputs, true) && unit.handleRecipeFluid(IO.IN, recipe, recipe.fluidInputs, true)) {
-            for (var e : recipe.definition.contentExpanders) {
-                if (!e.handle(this, null, recipe, true)) return false;
-            }
-            return true;
-        }
-        return false;
-    }
-
+    @Override
     default boolean matchRecipeOutput(GTRecipe recipe) {
         List<Content<ItemIngredient>> items = canVoidRecipeOutputs(ItemRecipeCapability.CAP) ? Collections.emptyList() : GTRecipe.copyContents(recipe.itemOutputs, 1);
         List<Content<FluidIngredient>> fluids = canVoidRecipeOutputs(FluidRecipeCapability.CAP) ? Collections.emptyList() : GTRecipe.copyContents(recipe.fluidOutputs, 1);
@@ -142,49 +95,6 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
             }
         }
         return false;
-    }
-
-    default boolean handleRecipeInput(RecipeHandlerUnit unit, GTRecipe recipe) {
-        if (unit.handleRecipeItem(IO.IN, recipe, recipe.itemInputs, false) && unit.handleRecipeFluid(IO.IN, recipe, recipe.fluidInputs, false)) {
-            for (var e : recipe.definition.contentExpanders) {
-                if (!e.handle(this, null, recipe, false)) return false;
-            }
-            return true;
-        }
-        return false;
-    }
-
-    default boolean handleRecipeOutput(GTRecipe recipe) {
-        var items = GTRecipe.copyContents(recipe.itemOutputs, 1);
-        var fluids = GTRecipe.copyContents(recipe.fluidOutputs, 1);
-        for (var handler : getOutputList()) {
-            if (handler.handleRecipeItem(IO.OUT, recipe, items, false) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, false)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    default boolean matchTickRecipe(GTRecipe recipe) {
-        var eu = recipe.eut;
-        if (eu != 0) {
-            return this instanceof IElectricMachine electricMachine && electricMachine.useEnergy(eu, true);
-        }
-        for (var e : recipe.definition.tickContentExpanders) {
-            if (!e.handle(this, null, recipe, true)) return false;
-        }
-        return true;
-    }
-
-    default boolean handleTickRecipe(GTRecipe recipe) {
-        var eu = recipe.eut;
-        if (eu != 0) {
-            return this instanceof IElectricMachine electricMachine && electricMachine.useEnergy(eu, false);
-        }
-        for (var e : recipe.definition.tickContentExpanders) {
-            if (!e.handle(this, null, recipe, false)) return false;
-        }
-        return true;
     }
 
     /**

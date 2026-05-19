@@ -1,21 +1,32 @@
 package com.gregtechceu.gtceu.api.recipe;
 
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentInner;
 import com.gregtechceu.gtceu.api.recipe.content.SerializerFluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.content.SerializerItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
+import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
+import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.nbt.*;
+import net.minecraft.network.FriendlyByteBuf;
 
 import com.gto.datasynclib.datasream.DataComponentMap;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.NotNull;
+import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datasream.codec.DataCodec;
+import com.gto.datasynclib.datasream.codec.DataDecoder;
+import com.gto.datasynclib.datasream.codec.DataEncoder;
+import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.datasream.data.IntData;
+import com.gto.datasynclib.datasream.data.ListData;
+import com.gto.datasynclib.datasream.data.LongData;
+import com.gto.datasynclib.util.DataCodecs;
+import com.gto.datasynclib.util.StreamCodecs;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.util.*;
@@ -25,6 +36,77 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public final class GTRecipe {
+
+    public static final ByteStreamCodec<GTRecipe> STREAM_CODEC = new ByteStreamCodec<GTRecipe>() {
+
+        @Override
+        public GTRecipe decode(FriendlyByteBuf buf) {
+            var type = GTRegistries.RECIPE_TYPES.streamCodec().decode(buf);
+            var id = StreamCodecs.RESOURCE_LOCATION_CODEC.decode(buf);
+            var definition = type.recipes.get(id);
+            var recipe = new GTRecipe(definition == null ? type.defaultDefinition : definition, buf.readList(SerializerItemIngredient.INSTANCE::fromNetworkContent), buf.readList(SerializerItemIngredient.INSTANCE::fromNetworkContent), buf.readList(SerializerFluidIngredient.INSTANCE::fromNetworkContent), buf.readList(SerializerFluidIngredient.INSTANCE::fromNetworkContent), GTRecipeDataKeys.REGISTRY.decode(buf), buf.readVarLong(), buf.readVarInt(), buf.readVarInt());
+            recipe.parallels = buf.readVarLong();
+            recipe.batchParallels = buf.readVarLong();
+            recipe.ocLevel = buf.readVarInt();
+            return recipe;
+        }
+
+        @Override
+        public void encode(FriendlyByteBuf buf, GTRecipe recipe) {
+            GTRegistries.RECIPE_TYPES.streamCodec().encode(recipe.definition.recipeType, buf);
+            StreamCodecs.RESOURCE_LOCATION_CODEC.encode(recipe.definition.id, buf);
+            buf.writeCollection(recipe.itemInputs, SerializerItemIngredient.INSTANCE::toNetworkContent);
+            buf.writeCollection(recipe.itemOutputs, SerializerItemIngredient.INSTANCE::toNetworkContent);
+            buf.writeCollection(recipe.fluidInputs, SerializerFluidIngredient.INSTANCE::toNetworkContent);
+            buf.writeCollection(recipe.fluidOutputs, SerializerFluidIngredient.INSTANCE::toNetworkContent);
+            GTRecipeDataKeys.REGISTRY.encode(buf, recipe.data);
+            buf.writeVarLong(recipe.eut);
+            buf.writeVarInt(recipe.tier);
+            buf.writeVarInt(recipe.duration);
+            buf.writeVarLong(recipe.parallels);
+            buf.writeVarLong(recipe.batchParallels);
+            buf.writeVarInt(recipe.ocLevel);
+        }
+    };
+
+    public static final DataCodec<GTRecipe> DATA_CODEC = new DataCodec<>() {
+
+        @Override
+        public Data encode(GTRecipe recipe) {
+            var list = new ListData(14);
+            list.add(GTRegistries.RECIPE_TYPES.dataCodec().encode(recipe.definition.recipeType));
+            list.add(DataCodecs.RESOURCE_LOCATION_CODEC.encode(recipe.definition.id));
+            list.add(DataEncoder.collection(SerializerItemIngredient.INSTANCE::toDataContent).encode(recipe.itemInputs));
+            list.add(DataEncoder.collection(SerializerItemIngredient.INSTANCE::toDataContent).encode(recipe.itemOutputs));
+            list.add(DataEncoder.collection(SerializerFluidIngredient.INSTANCE::toDataContent).encode(recipe.fluidInputs));
+            list.add(DataEncoder.collection(SerializerFluidIngredient.INSTANCE::toDataContent).encode(recipe.fluidOutputs));
+            list.add(GTRecipeDataKeys.REGISTRY.encode(recipe.data));
+            list.add(LongData.valueOf(recipe.eut));
+            list.add(IntData.valueOf(recipe.tier));
+            list.add(IntData.valueOf(recipe.duration));
+            list.add(LongData.valueOf(recipe.parallels));
+            list.add(LongData.valueOf(recipe.batchParallels));
+            list.add(IntData.valueOf(recipe.ocLevel));
+            list.add(IntData.valueOf(recipe.outputColor));
+            return list;
+        }
+
+        @Override
+        public GTRecipe decode(Data data) {
+            var list = data.getList();
+            var type = GTRegistries.RECIPE_TYPES.dataCodec().decode(list.getFirst());
+            var id = DataCodecs.RESOURCE_LOCATION_CODEC.decode(list.get(1));
+            var definition = type.recipes.get(id);
+            var recipe = new GTRecipe(definition == null ? type.defaultDefinition : definition, DataDecoder.list(SerializerItemIngredient.INSTANCE::fromDataContent).decode(list.get(2)), DataDecoder.list(SerializerItemIngredient.INSTANCE::fromDataContent).decode(list.get(3)), DataDecoder.list(SerializerFluidIngredient.INSTANCE::fromDataContent).decode(list.get(4)), DataDecoder.list(SerializerFluidIngredient.INSTANCE::fromDataContent).decode(list.get(5)), GTRecipeDataKeys.REGISTRY.decode(list.get(6)), list.get(7).getLong(), list.get(8).getInt(), list.get(9).getInt());
+            recipe.parallels = list.get(10).getLong();
+            recipe.batchParallels = list.get(11).getLong();
+            recipe.ocLevel = list.get(12).getInt();
+            recipe.outputColor = list.get(13).getInt();
+            return recipe;
+        }
+    };
+
+    public static final GTRecipe EMPTY = GTRecipeTypes.DUMMY_RECIPES.defaultDefinition.toRuntime();
 
     public final GTRecipeDefinition definition;
 
@@ -64,7 +146,11 @@ public final class GTRecipe {
         this.duration = Math.max(1, (int) (duration * multiplier));
     }
 
-    public void modifier(long multiplier, boolean tick) {
+    public void euMultiplier(double multiplier) {
+        this.eut = (long) (eut * multiplier);
+    }
+
+    public void modifier(@Range(from = 1, to = ParallelLogic.MAX_PARALLEL) long multiplier, boolean tick) {
         if (multiplier == 1) return;
         parallels *= multiplier;
         modifierContents(itemInputs, multiplier);
@@ -127,23 +213,19 @@ public final class GTRecipe {
         return String.valueOf(definition);
     }
 
-    public static <T extends ContentInner> void modifierContents(List<Content<T>> contents, long multiplier) {
+    public static <T extends ContentInner> void modifierContents(List<Content<T>> contents, @Range(from = 1, to = ParallelLogic.MAX_PARALLEL) long multiplier) {
         if (multiplier == 1) return;
         var size = contents.size();
         if (size == 0) return;
-        if (multiplier == 0) {
-            contents.clear();
-        } else {
-            for (int i = 0; i < size; i++) {
-                var content = contents.get(i);
-                contents.set(i, content.copy(multiplier));
-            }
+        for (int i = 0; i < size; i++) {
+            var content = contents.get(i);
+            contents.set(i, content.copy(multiplier));
         }
     }
 
-    public static <T extends ContentInner> List<Content<T>> copyContents(List<Content<T>> contents, long multiplier) {
+    public static <T extends ContentInner> List<Content<T>> copyContents(List<Content<T>> contents, @Range(from = 1, to = ParallelLogic.MAX_PARALLEL) long multiplier) {
         var size = contents.size();
-        if (multiplier == 0 || size == 0) return Collections.emptyList();
+        if (size == 0) return Collections.emptyList();
         var list = new ArrayList<Content<T>>(size);
         for (int i = 0; i < size; i++) {
             list.set(i, contents.get(i).copy(multiplier));
@@ -151,34 +233,15 @@ public final class GTRecipe {
         return list;
     }
 
-    @NotNull
-    public static GTRecipe fromNetwork(@NotNull FriendlyByteBuf buf) {
-        ResourceLocation recipeType = buf.readResourceLocation();
-        int duration = buf.readVarInt();
-        Map<RecipeCapability<?>, List<Content>> inputs = tuplesToMap(
-                buf.readCollection(c -> new ArrayList<>(), GTRecipeSerializer::entryReader));
-        Map<RecipeCapability<?>, List<Content>> tickInputs = tuplesToMap(
-                buf.readCollection(c -> new ArrayList<>(), GTRecipeSerializer::entryReader));
-        Map<RecipeCapability<?>, List<Content>> outputs = tuplesToMap(
-                buf.readCollection(c -> new ArrayList<>(), GTRecipeSerializer::entryReader));
-        Map<RecipeCapability<?>, List<Content>> tickOutputs = tuplesToMap(
-                buf.readCollection(c -> new ArrayList<>(), GTRecipeSerializer::entryReader));
-
-        var data = GTRecipeDataKeys.REGISTRY.decode(buf);
-        if (data == null) {
-            data = new DataComponentMap();
+    @Nullable
+    public static GTRecipe fromNbt(@Nullable Tag t) {
+        if (t instanceof ByteArrayTag tag) {
+            return DATA_CODEC.decode(Data.readData(tag.getAsByteArray()));
         }
-
-        GTRecipeType type = (GTRecipeType) BuiltInRegistries.RECIPE_TYPE.get(recipeType);
-        return new GTRecipe(type, inputs, outputs, tickInputs, tickOutputs, data, duration, buf.readVarInt());
+        return null;
     }
 
-    public static void toNetwork(FriendlyByteBuf buf, GTRecipe recipe) {
-       buf.writeCollection(recipe.itemInputs, SerializerItemIngredient.INSTANCE::toNetworkContent);
-        buf.writeCollection(recipe.itemOutputs, SerializerItemIngredient.INSTANCE::toNetworkContent);
-        buf.writeCollection(recipe.fluidInputs, SerializerFluidIngredient.INSTANCE::toNetworkContent);
-        buf.writeCollection(recipe.fluidOutputs, SerializerFluidIngredient.INSTANCE::toNetworkContent);
-   GTRecipeDataKeys.REGISTRY.encode(buf,recipe.data);
-
+    public static ByteArrayTag toNbt(GTRecipe recipe) {
+        return new ByteArrayTag(DATA_CODEC.encode(recipe).writeToBytes());
     }
 }

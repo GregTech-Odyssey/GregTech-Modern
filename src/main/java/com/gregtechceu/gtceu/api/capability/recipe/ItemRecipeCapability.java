@@ -145,7 +145,7 @@ public class ItemRecipeCapability extends ContentRecipeCapability<ItemIngredient
                 // If in a recipe viewer and a research slot can be added, add it.
                 if (isXEI && recipeType.isHasResearchSlot() && index == items.getSlots()) {
                     if (ConfigHolder.INSTANCE.machines.enableResearch) {
-                        ResearchCondition condition = Arrays.stream(recipeHolder.definition().conditions)
+                        ResearchCondition condition = recipeHolder.conditions().stream()
                                 .filter(ResearchCondition.class::isInstance).findAny()
                                 .map(ResearchCondition.class::cast).orElse(null);
                         if (condition != null) {

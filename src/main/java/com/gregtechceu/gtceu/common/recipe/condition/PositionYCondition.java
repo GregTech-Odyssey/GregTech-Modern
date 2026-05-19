@@ -1,12 +1,11 @@
 package com.gregtechceu.gtceu.common.recipe.condition;
 
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 
 import net.minecraft.network.chat.Component;
-
-import org.jetbrains.annotations.NotNull;
 
 public class PositionYCondition extends RecipeCondition {
 
@@ -25,8 +24,8 @@ public class PositionYCondition extends RecipeCondition {
     }
 
     @Override
-    public boolean testCondition(@NotNull GTRecipeDefinition recipe, @NotNull RecipeLogic recipeLogic) {
-        int y = recipeLogic.machine.self().getPos().getY();
+    public boolean testCondition(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
+        int y = holder.self().getPos().getY();
         return y >= this.min && y <= this.max;
     }
 }

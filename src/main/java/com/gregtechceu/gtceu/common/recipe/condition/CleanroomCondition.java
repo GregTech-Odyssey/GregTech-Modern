@@ -5,15 +5,15 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.ICleanroomProvider;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import net.minecraft.network.chat.Component;
 
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-import org.jetbrains.annotations.NotNull;
 
 public class CleanroomCondition extends RecipeCondition {
 
@@ -35,9 +35,9 @@ public class CleanroomCondition extends RecipeCondition {
     }
 
     @Override
-    public boolean testCondition(@NotNull GTRecipeDefinition recipe, @NotNull RecipeLogic recipeLogic) {
+    public boolean testCondition(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
         if (!ConfigHolder.INSTANCE.machines.enableCleanroom) return true;
-        MetaMachine machine = recipeLogic.getMachine();
+        MetaMachine machine = holder.self();
         if (machine instanceof ICleanroomReceiver receiver && this.cleanroom != null) {
             if (ConfigHolder.INSTANCE.machines.cleanMultiblocks && machine instanceof IMultiController) return true;
             ICleanroomProvider provider = receiver.getCleanroom();

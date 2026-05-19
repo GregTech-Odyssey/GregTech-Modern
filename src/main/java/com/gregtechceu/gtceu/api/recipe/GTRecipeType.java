@@ -102,7 +102,7 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
         recipeBuilder = new GTRecipeBuilder(registryName, this);
         // must be linked to stop json contents from shuffling
         this.proxyRecipes = new ReferenceOpenHashSet<>(proxyRecipes);
-        this.defaultDefinition = new GTRecipeDefinition(false, this, category, GTCEu.id("default"), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), GTRecipeBuilder.EMPTY_DATA, 0, 0, 100);
+        this.defaultDefinition = new GTRecipeDefinition(false, this, category, GTCEu.id("default"), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), new DataComponentMap(), 0, 0, 100);
     }
 
     public static boolean available(GTRecipeType recipeType, GTRecipeType... types) {

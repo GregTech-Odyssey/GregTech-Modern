@@ -16,6 +16,7 @@ import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerators;
 import com.gregtechceu.gtceu.api.gui.factory.CoverUIFactory;
 import com.gregtechceu.gtceu.api.gui.factory.GTUIEditorFactory;
 import com.gregtechceu.gtceu.api.gui.factory.MachineUIFactory;
+import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidContainerIngredient;
@@ -199,5 +200,6 @@ public class CommonProxy {
     private static void initDataSync() {
         CombinationCodec.register(Material.class, Material.STREAM_CODEC, Material.DATA_CODEC);
         CombinationCodec.register(GTRecipeType.class, GTRegistries.RECIPE_TYPES.streamCodec(), GTRegistries.RECIPE_TYPES.dataCodec());
+        CombinationCodec.register(GTRecipe.class, GTRecipe.STREAM_CODEC, GTRecipe.DATA_CODEC);
     }
 }

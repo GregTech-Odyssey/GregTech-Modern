@@ -41,16 +41,6 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     }
 
     @Override
-    public boolean isRecipeOnly() {
-        return true;
-    }
-
-    @Override
-    public boolean shouldSearchContent() {
-        return false;
-    }
-
-    @Override
     public boolean isEmpty() {
         if (isEmpty == null) {
             isEmpty = storage.stacks[0].isEmpty();

@@ -1,15 +1,15 @@
 package com.gregtechceu.gtceu.common.recipe.condition;
 
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.material.Fluid;
-
-import org.jetbrains.annotations.NotNull;
 
 public class AdjacentFluidCondition extends RecipeCondition {
 
@@ -28,20 +28,25 @@ public class AdjacentFluidCondition extends RecipeCondition {
     }
 
     @Override
-    public boolean testCondition(@NotNull GTRecipeDefinition recipe, @NotNull RecipeLogic recipeLogic) {
-        boolean hasFluidA = false;
-        boolean hasFluidB = false;
-        for (Direction side : GTUtil.DIRECTIONS) {
-            if (side.getAxis() != Direction.Axis.Y) {
-                var fluid = recipeLogic.machine.self().getNeighborFluidState(side).getType();
-                if (fluid == A) {
-                    hasFluidA = true;
-                } else if (fluid == B) {
-                    hasFluidB = true;
+    public boolean testCondition(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
+        boolean hasFluidA = false, hasFluidB = false;
+        if (holder instanceof IMultiController) {
+            var as = unit.getFluidAmount(false, A, B);
+            if (as[0] > 0) hasFluidA = true;
+            if (as[1] > 0) hasFluidB = true;
+        } else {
+            for (Direction side : GTUtil.DIRECTIONS) {
+                if (side.getAxis() != Direction.Axis.Y) {
+                    var fluid = holder.self().getNeighborFluidState(side).getType();
+                    if (fluid == A) {
+                        hasFluidA = true;
+                    } else if (fluid == B) {
+                        hasFluidB = true;
+                    }
+                    if (hasFluidA && hasFluidB) return true;
                 }
-                if (hasFluidA && hasFluidB) return true;
             }
         }
-        return false;
+        return hasFluidA && hasFluidB;
     }
 }

@@ -8,9 +8,6 @@ import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.NumericTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -21,6 +18,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
 import appeng.api.stacks.AEItemKey;
+import com.gto.datasynclib.datasream.data.*;
 import com.mojang.serialization.JsonOps;
 import it.unimi.dsi.fastutil.Hash;
 import lombok.Getter;
@@ -90,39 +88,41 @@ public class ItemIngredient extends ContentInner implements Predicate<ItemStack>
         };
     }
 
-    @Override
-    public CompoundTag toNbt() {
-        var tag = new CompoundTag();
+    public Data toData() {
+        if (isEmpty) return NullData.INSTANCE;
+        var data = new MapData();
         switch (value) {
-            case Ingredient.ItemValue itemValue -> tag.putString("item", GTUtil.ITEM_ID.apply(itemValue.item.getItem()).toString());
-            case Ingredient.TagValue tagValue -> tag.putString("tag", tagValue.tag.location().toString());
-            case null, default -> tag.put("ingredient", JsonOps.INSTANCE.convertTo(NbtOps.INSTANCE, inner.toJson()));
+            case Ingredient.ItemValue itemValue -> data.putString("i", GTUtil.ITEM_ID.apply(itemValue.item.getItem()).toString());
+            case Ingredient.TagValue tagValue -> data.putString("t", tagValue.tag.location().toString());
+            case null, default -> data.put("j", JsonOps.INSTANCE.convertTo(DataOps.INSTANCE, inner.toJson()));
         }
-        tag.putLong("count", amount);
-        return tag;
+        data.putLong("a", amount);
+        return data;
     }
 
-    public static ItemIngredient fromNbt(CompoundTag tag) {
-        if (tag.tags.get(IntCircuitIngredient.Configuration) instanceof NumericTag numericTag) {
-            return IntCircuitIngredient.CIRCUIT_INPUTS[numericTag.getAsInt()];
+    public static ItemIngredient fromData(Data data) {
+        if (data.isNull()) return EMPTY;
+        if (data instanceof ByteData(byte i)) {
+            return IntCircuitIngredient.CIRCUIT_INPUTS[i];
         }
-        var amount = tag.getLong("count");
-        var item = tag.tags.get("item");
+        var map = data.getMap();
+        var amount = map.get("a").getLong();
+        var item = map.get("i");
         if (item != null) {
-            return ItemIngredient.of(GTUtil.ITEM_VALUE.apply(GTUtil.getResourceLocation(item.getAsString())), amount);
+            return ItemIngredient.of(GTUtil.ITEM_VALUE.apply(GTUtil.getResourceLocation(item.getString())), amount);
         }
-        var t = tag.tags.get("tag");
+        var t = map.get("t");
         if (t != null) {
-            return ItemIngredient.of(TagKey.create(Registries.ITEM, GTUtil.getResourceLocation(t.getAsString())), amount);
+            return ItemIngredient.of(TagKey.create(Registries.ITEM, GTUtil.getResourceLocation(t.getString())), amount);
         }
-        var in = tag.tags.get("ingredient");
+        var in = map.get("j");
         if (in != null) {
-            Ingredient inner = Ingredient.fromJson(NbtOps.INSTANCE.convertTo(JsonOps.INSTANCE, in));
+            Ingredient inner = Ingredient.fromJson(DataOps.INSTANCE.convertTo(JsonOps.INSTANCE, in));
             if (!inner.isEmpty()) {
                 return new ItemIngredient(inner, amount);
             }
         }
-        return EMPTY;
+        throw new IllegalArgumentException("Invalid ItemIngredient data: " + data);
     }
 
     public ItemIngredient copy(long amount) {

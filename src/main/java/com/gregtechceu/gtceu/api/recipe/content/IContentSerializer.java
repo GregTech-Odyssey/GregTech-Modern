@@ -2,9 +2,9 @@ package com.gregtechceu.gtceu.api.recipe.content;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
-import net.minecraft.nbt.LongTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
+
+import com.gto.datasynclib.datasream.data.*;
 import org.jetbrains.annotations.Nullable;
 
 public interface IContentSerializer<T extends ContentInner> {
@@ -13,29 +13,42 @@ public interface IContentSerializer<T extends ContentInner> {
 
     T fromNetwork(FriendlyByteBuf buf);
 
-    Tag toNbt(T content);
+    Data toData(T content);
 
-    T fromNbt(Tag tag);
+    T fromData(Data data);
 
     @Nullable
-   default Tag toNbtContent(Content<T> content){
-        if ( !content.isEmpty()) {
-            var t = new CompoundTag();
-            addChance(t, content);
-            t.put("content", content.inner.toNbt());
-            t.putLong("amount", content.amount);
+    default Data toDataContent(Content<T> content) {
+        if (!content.isEmpty()) {
+            var t = new ListData(4);
+            t.add(LongData.valueOf(content.amount));
+            if (content.chance == Content.MAX_CHANCE) {
+                t.addNull();
+            } else {
+                t.add(IntData.valueOf(content.chance));
+            }
+            if (content.tierChanceBoost == 0) {
+                t.addNull();
+            } else {
+                t.add(IntData.valueOf(content.tierChanceBoost));
+            }
+            t.add(toData(content.inner));
             return t;
         }
         return null;
     }
 
     @Nullable
-    default Content<T> fromNbtContent(Tag tag){
-        if (tag instanceof CompoundTag compoundTag && compoundTag.tags.get("content") instanceof CompoundTag content) {
-            var ingredient = fromNbt(content);
-            if (ingredient instanceof ContentInner inner && !inner.isEmpty()) return new Content<>(ingredient, compoundTag.tags.get("amount") instanceof LongTag longTag ? longTag.getAsLong() : ingredient.amount, getChance(compoundTag), getTierChanceBoost(compoundTag));
-        }
-        return null;
+    default Content<T> fromDataContent(Data data) {
+        var list = data.getList();
+        if (list.isEmpty()) return null;
+        var amount = list.getFirst().getLong();
+        var chanceData = list.get(1);
+        var chance = chanceData.isNull() ? Content.MAX_CHANCE : chanceData.getInt();
+        var tierChanceBoostData = list.get(2);
+        var tierChanceBoost = tierChanceBoostData.isNull() ? 0 : tierChanceBoostData.getInt();
+        var inner = fromData(list.get(3));
+        return new Content<>(inner, amount, chance, tierChanceBoost);
     }
 
     default void toNetworkContent(FriendlyByteBuf buf, Content<T> content) {
@@ -51,7 +64,7 @@ public interface IContentSerializer<T extends ContentInner> {
         long amount = buf.readVarLong();
         int chance = buf.readVarInt();
         int tierChanceBoost = buf.readVarInt();
-        return new Content<>(inner, amount,chance, tierChanceBoost);
+        return new Content<>(inner, amount, chance, tierChanceBoost);
     }
 
     private static int getChance(CompoundTag tag) {

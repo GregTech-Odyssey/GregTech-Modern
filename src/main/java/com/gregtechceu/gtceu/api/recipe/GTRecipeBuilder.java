@@ -49,6 +49,7 @@ import com.gto.datasynclib.datasream.DataComponentMap;
 import dev.ftb.mods.ftbquests.quest.QuestObjectBase;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -85,12 +86,18 @@ public class GTRecipeBuilder {
     @Nullable
     protected DataComponentMap data;
 
+    @Getter
     protected ResourceLocation id;
+    @Getter
     protected GTRecipeType recipeType;
+    @Getter
     protected GTRecipeCategory recipeCategory;
+    @Getter
     protected int duration = 100;
 
+    @Getter
     protected long eut;
+    @Getter
     protected int tier;
 
     protected int chance = Content.MAX_CHANCE;
@@ -189,6 +196,12 @@ public class GTRecipeBuilder {
     public GTRecipeBuilder addCondition(RecipeCondition condition) {
         if (conditions == null) conditions = new ReferenceOpenHashSet<>();
         conditions.add(condition);
+        return this;
+    }
+
+    public GTRecipeBuilder addCondition(Collection<RecipeCondition> conditions) {
+        if (this.conditions == null) this.conditions = new ReferenceOpenHashSet<>();
+        this.conditions.addAll(conditions);
         return this;
     }
 

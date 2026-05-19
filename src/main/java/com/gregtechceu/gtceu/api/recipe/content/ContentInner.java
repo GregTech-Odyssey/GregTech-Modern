@@ -1,8 +1,6 @@
 package com.gregtechceu.gtceu.api.recipe.content;
 
-import com.gregtechceu.gtceu.api.capability.INbtConvertible;
-
-public abstract class ContentInner implements INbtConvertible {
+public abstract class ContentInner {
 
     public final long amount;
 

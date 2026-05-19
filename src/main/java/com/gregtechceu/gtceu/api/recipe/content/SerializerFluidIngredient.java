@@ -2,9 +2,9 @@ package com.gregtechceu.gtceu.api.recipe.content;
 
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
+
+import com.gto.datasynclib.datasream.data.Data;
 
 public class SerializerFluidIngredient implements IContentSerializer<FluidIngredient> {
 
@@ -23,12 +23,12 @@ public class SerializerFluidIngredient implements IContentSerializer<FluidIngred
     }
 
     @Override
-    public Tag toNbt(FluidIngredient content) {
-        return content.toNbt();
+    public Data toData(FluidIngredient content) {
+        return content.toData();
     }
 
     @Override
-    public FluidIngredient fromNbt(Tag tag) {
-        return FluidIngredient.fromNbt((CompoundTag) tag);
+    public FluidIngredient fromData(Data data) {
+        return FluidIngredient.fromData(data);
     }
 }

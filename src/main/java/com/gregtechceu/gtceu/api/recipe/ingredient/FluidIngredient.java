@@ -8,7 +8,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.material.Fluid;
@@ -20,6 +19,7 @@ import appeng.api.stacks.AEFluidKey;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import com.gto.datasynclib.datasream.data.*;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,7 @@ import java.util.function.Predicate;
 
 public final class FluidIngredient extends ContentInner implements Predicate<FluidStack> {
 
-    public static Codec<FluidIngredient> CODEC = Codec.PASSTHROUGH.xmap(dynamic -> FluidIngredient.fromNbt((CompoundTag) dynamic.convert(NbtOps.INSTANCE).getValue()), ingredient -> new Dynamic<>(NbtOps.INSTANCE, ingredient.toNbt()));
+    public static Codec<FluidIngredient> CODEC = Codec.PASSTHROUGH.xmap(dynamic -> FluidIngredient.fromData(dynamic.convert(DataOps.INSTANCE).getValue()), ingredient -> new Dynamic<>(DataOps.INSTANCE, ingredient.toData()));
     public static FluidIngredient EMPTY = new FluidIngredient(null, 0, null);
 
     public static final FluidStack[] EMPTY_STACKS = new FluidStack[0];
@@ -91,31 +91,31 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
         };
     }
 
-    @Override
-    public CompoundTag toNbt() {
-        var tag = new CompoundTag();
+    public Data toData() {
+        var data = new MapData();
         switch (value) {
             case null -> {
-                tag.putBoolean("empty", true);
-                return tag;
+                return NullData.INSTANCE;
             }
-            case Fluid fluid -> tag.putString("fluid", GTUtil.FLUID_ID.apply(fluid).toString());
-            case TagKey<?> tagKey -> tag.putString("tag", tagKey.location().toString());
+            case Fluid fluid -> data.putString("f", GTUtil.FLUID_ID.apply(fluid).toString());
+            case TagKey<?> tagKey -> data.putString("t", tagKey.location().toString());
             default -> throw new IllegalStateException("Unknown fluid ingredient type");
         }
-        tag.putLong("amount", amount);
-        if (nbt != null) tag.put("nbt", nbt);
-        return tag;
+        data.putLong("a", amount);
+        if (nbt != null) data.put("n", NbtOps.INSTANCE.convertTo(DataOps.INSTANCE, nbt));
+        return data;
     }
 
-    public static FluidIngredient fromNbt(CompoundTag tag) {
-        if (tag.getBoolean("empty")) return EMPTY;
-        var amount = tag.getLong("amount");
-        var nbt = tag.tags.get("nbt") instanceof CompoundTag nbtTag ? nbtTag : null;
-        if (tag.tags.get("fluid") instanceof StringTag stringTag) {
-            return new FluidIngredient(GTUtil.FLUID_VALUE.apply(GTUtil.getResourceLocation(stringTag.getAsString())), amount, nbt);
-        } else if (tag.tags.get("tag") instanceof StringTag stringTag) {
-            return new FluidIngredient(TagKey.create(Registries.FLUID, GTUtil.getResourceLocation(stringTag.getAsString())), amount, nbt);
+    public static FluidIngredient fromData(Data data) {
+        if (data.isNull()) return EMPTY;
+        var map = data.getMap();
+        var amount = map.get("a").getLong();
+        var nbt = map.get("n") instanceof MapData mapData ? (CompoundTag) DataOps.INSTANCE.convertTo(NbtOps.INSTANCE, mapData) : null;
+        var fluid = map.get("f");
+        if (fluid != null) {
+            return new FluidIngredient(GTUtil.FLUID_VALUE.apply(GTUtil.getResourceLocation(fluid.getString())), amount, nbt);
+        } else if (map.get("t") instanceof StringData(String s)) {
+            return new FluidIngredient(TagKey.create(Registries.FLUID, GTUtil.getResourceLocation(s)), amount, nbt);
         } else {
             throw new IllegalStateException("Unknown fluid ingredient type");
         }
