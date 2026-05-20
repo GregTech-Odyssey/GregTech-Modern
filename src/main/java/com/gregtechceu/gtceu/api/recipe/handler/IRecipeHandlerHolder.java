@@ -1,7 +1,5 @@
 package com.gregtechceu.gtceu.api.recipe.handler;
 
-import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
-import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.machine.feature.IElectricMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineFeature;
@@ -41,6 +39,10 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         return getCapabilitiesProxy().getOrDefault(IO.OUT, Collections.emptyList());
     }
 
+    default List<RecipeHandlerUnit> getOutputList(GTRecipe recipe) {
+        return getCapabilitiesProxy().getOrDefault(IO.OUT, Collections.emptyList());
+    }
+
     @NotNull
     Map<IO, List<RecipeHandlerUnit>> getCapabilitiesProxy();
 
@@ -50,26 +52,6 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     @NotNull
     default List<IRecipeHandler> getCapabilitiesFlat(IO io) {
         return getCapabilitiesFlat().getOrDefault(io, Collections.emptyList());
-    }
-
-    @NotNull
-    @Deprecated
-    default List<IRecipeHandler> getCapabilitiesFlat(IO io, RecipeCapability<?> capability) {
-        var all = getCapabilitiesFlat(io);
-        if (all.isEmpty()) return Collections.emptyList();
-        var list = new ArrayList<IRecipeHandler>();
-        for (var handler : all) {
-            if (ItemRecipeCapability.CAP == capability && handler.canHandleItem()) {
-                list.add(handler);
-            } else if (FluidRecipeCapability.CAP == capability && handler.canHandleFluid()) {
-                list.add(handler);
-            } else if (EURecipeCapability.CAP == capability && handler instanceof IEnergyContainer) {
-                list.add(handler);
-            } else if (CWURecipeCapability.CAP == capability && handler instanceof IOpticalComputationProvider) {
-                list.add(handler);
-            }
-        }
-        return list;
     }
 
     @NotNull
@@ -112,9 +94,9 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     }
 
     default void addHandlerList(RecipeHandlerUnit unit) {
-        if (unit == RecipeHandlerUnit.NO_DATA || unit.getHandlerIO() == IO.NONE || unit.allHandlers.length == 0) return;
-        getCapabilitiesProxy().computeIfAbsent(unit.getHandlerIO(), i -> new ArrayList<>()).add(unit);
-        var list = getCapabilitiesFlat().computeIfAbsent(unit.getHandlerIO(), i -> new ArrayList<>());
+        if (unit == RecipeHandlerUnit.NO_DATA || unit.handlerIO == IO.NONE || unit.allHandlers.length == 0) return;
+        getCapabilitiesProxy().computeIfAbsent(unit.handlerIO, i -> new ArrayList<>()).add(unit);
+        var list = getCapabilitiesFlat().computeIfAbsent(unit.handlerIO, i -> new ArrayList<>());
         for (var handler : unit.allHandlers) {
             if (list.contains(handler)) continue;
             list.add(handler);
@@ -154,7 +136,9 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     }
 
     default boolean matchRecipeInput(RecipeHandlerUnit unit, GTRecipe recipe) {
-        if (unit.handleRecipeItem(IO.IN, recipe, recipe.itemInputs, true) && unit.handleRecipeFluid(IO.IN, recipe, recipe.fluidInputs, true)) {
+        var items = GTRecipe.copyContents(recipe.itemInputs, 1);
+        var fluids = GTRecipe.copyContents(recipe.fluidInputs, 1);
+        if (unit.handleRecipeItem(IO.IN, recipe, items, true) && unit.handleRecipeFluid(IO.IN, recipe, fluids, true)) {
             for (var e : recipe.definition.contentExpanders) {
                 if (!e.handle(this, null, recipe, true)) return false;
             }
@@ -164,9 +148,9 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     }
 
     default boolean matchRecipeOutput(GTRecipe recipe) {
-        List<Content<ItemIngredient>> items = GTRecipe.copyContents(recipe.itemOutputs, 1);
-        List<Content<FluidIngredient>> fluids = GTRecipe.copyContents(recipe.fluidOutputs, 1);
-        for (var handler : getOutputList()) {
+        var items = GTRecipe.copyContents(recipe.itemOutputs, 1);
+        var fluids = GTRecipe.copyContents(recipe.fluidOutputs, 1);
+        for (var handler : getOutputList(recipe)) {
             if (handler.handleRecipeItem(IO.OUT, recipe, items, true) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
                 return true;
             }
@@ -175,7 +159,9 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     }
 
     default boolean handleRecipeInput(RecipeHandlerUnit unit, GTRecipe recipe) {
-        if (unit.handleRecipeItem(IO.IN, recipe, recipe.itemInputs, false) && unit.handleRecipeFluid(IO.IN, recipe, recipe.fluidInputs, false)) {
+        var items = recipe.copyAndRoll(recipe.itemInputs);
+        var fluids = recipe.copyAndRoll(recipe.fluidInputs);
+        if (unit.handleRecipeItem(IO.IN, recipe, items, false) && unit.handleRecipeFluid(IO.IN, recipe, fluids, false)) {
             for (var e : recipe.definition.contentExpanders) {
                 if (!e.handle(this, null, recipe, false)) return false;
             }
@@ -185,9 +171,9 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     }
 
     default boolean handleRecipeOutput(GTRecipe recipe) {
-        var items = GTRecipe.copyContents(recipe.itemOutputs, 1);
-        var fluids = GTRecipe.copyContents(recipe.fluidOutputs, 1);
-        for (var handler : getOutputList()) {
+        var items = recipe.copyAndRoll(recipe.itemOutputs);
+        var fluids = recipe.copyAndRoll(recipe.fluidOutputs);
+        for (var handler : getOutputList(recipe)) {
             if (handler.handleRecipeItem(IO.OUT, recipe, items, false) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, false)) {
                 return true;
             }

@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.item.TurbineRotorBehaviour;
 
 import net.minecraft.ChatFormatting;
@@ -186,7 +187,7 @@ public interface IRotorHolderMachine extends IWorkableMultiPart {
     // ****** RECIPE LOGIC *******//
     //////////////////////////////////////
     @Override
-    default GTRecipe modifyRecipe(IWorkableMultiController controller, GTRecipe recipe) {
+    default GTRecipe modifyRecipe(IWorkableMultiController controller, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (!isFrontFaceFree() || !hasRotor()) {
             return null;
         }

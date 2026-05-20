@@ -126,7 +126,7 @@ public class GTMachineUtils {
                                                              int... tiers) {
         return registerTieredMachines(name,
                 (holder, tier) -> new SimpleTieredMachine(holder, tier, tankScalingFunction), (tier, builder) -> {
-                    builder.recipeModifier(GTRecipeModifiers.OC_NON_PERFECT);
+                    builder.recipeModifier(RecipeModifier.OVERCLOCKING);
                     return builder
                             .langValue("%s %s %s".formatted(VLVH[tier], toEnglishName(name), VLVT[tier]))
                             .editableUI(SimpleTieredMachine.EDITABLE_UI_CREATOR.apply(GTCEu.id(name), recipeType))

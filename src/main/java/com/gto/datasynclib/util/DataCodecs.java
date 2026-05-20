@@ -17,6 +17,7 @@ import com.gto.datasynclib.datasream.data.DataOps;
 import com.gto.datasynclib.datasream.data.MapData;
 import com.gto.datasynclib.datasream.data.StringData;
 import lombok.experimental.UtilityClass;
+import org.jetbrains.annotations.NotNull;
 
 @UtilityClass
 public class DataCodecs {
@@ -30,13 +31,13 @@ public class DataCodecs {
     public static final DataCodec<BlockPos> BLOCK_POS_CODEC = new DataCodec<>() {
 
         @Override
-        public BlockPos decode(Data data) {
+        public BlockPos decode(@NotNull Data data) {
             var map = (MapData) data;
             return new BlockPos(map.getInt("X"), map.getInt("Y"), map.getInt("Z"));
         }
 
         @Override
-        public Data encode(BlockPos obj) {
+        public @NotNull Data encode(BlockPos obj) {
             var mapData = new MapData();
             mapData.putInt("X", obj.getX());
             mapData.putInt("Y", obj.getY());
@@ -52,12 +53,12 @@ public class DataCodecs {
     public static final DataCodec<CompoundTag> COMPOUND_TAG_CODEC = new DataCodec<>() {
 
         @Override
-        public CompoundTag decode(Data data) {
+        public CompoundTag decode(@NotNull Data data) {
             return (CompoundTag) DataOps.INSTANCE.convertTo(NbtOps.INSTANCE, data);
         }
 
         @Override
-        public Data encode(CompoundTag obj) {
+        public @NotNull Data encode(CompoundTag obj) {
             return NbtOps.INSTANCE.convertTo(DataOps.INSTANCE, obj);
         }
 
@@ -69,12 +70,12 @@ public class DataCodecs {
     public static final DataCodec<ItemStack> ITEM_STACK_CODEC = new DataCodec<>() {
 
         @Override
-        public ItemStack decode(Data data) {
+        public ItemStack decode(@NotNull Data data) {
             return ItemStack.of(COMPOUND_TAG_CODEC.decode(data));
         }
 
         @Override
-        public Data encode(ItemStack obj) {
+        public @NotNull Data encode(ItemStack obj) {
             return COMPOUND_TAG_CODEC.encode(obj.save(new CompoundTag()));
         }
 
@@ -86,12 +87,12 @@ public class DataCodecs {
     public static final DataCodec<FluidStack> FLUID_STACK_CODEC = new DataCodec<>() {
 
         @Override
-        public FluidStack decode(Data data) {
+        public FluidStack decode(@NotNull Data data) {
             return FluidStack.loadFluidStackFromNBT(COMPOUND_TAG_CODEC.decode(data));
         }
 
         @Override
-        public Data encode(FluidStack obj) {
+        public @NotNull Data encode(FluidStack obj) {
             return COMPOUND_TAG_CODEC.encode(obj.writeToNBT(new CompoundTag()));
         }
 
@@ -103,12 +104,12 @@ public class DataCodecs {
     public static final DataCodec<Component> COMPONENT_CODEC = new DataCodec<>() {
 
         @Override
-        public Component decode(Data data) {
+        public Component decode(@NotNull Data data) {
             return Component.Serializer.fromJson(data.getString());
         }
 
         @Override
-        public Data encode(Component obj) {
+        public @NotNull Data encode(Component obj) {
             return StringData.valueOf(Component.Serializer.toJson(obj));
         }
 

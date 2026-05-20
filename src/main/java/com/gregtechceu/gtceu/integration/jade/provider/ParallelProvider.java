@@ -26,7 +26,7 @@ public class ParallelProvider implements IBlockComponentProvider, IServerDataPro
     @Override
     public void appendTooltip(ITooltip iTooltip, BlockAccessor blockAccessor, IPluginConfig iPluginConfig) {
         if (blockAccessor.getServerData().contains("parallel")) {
-            int parallel = blockAccessor.getServerData().getInt("parallel");
+            var parallel = blockAccessor.getServerData().getLong("parallel");
             if (parallel > 1) {
                 Component parallels = Component.literal(FormattingUtil.formatNumbers(parallel))
                         .withStyle(ChatFormatting.DARK_PURPLE);
@@ -41,7 +41,7 @@ public class ParallelProvider implements IBlockComponentProvider, IServerDataPro
     public void appendServerData(CompoundTag compoundTag, BlockAccessor blockAccessor) {
         if (blockAccessor.getBlockEntity() instanceof MetaMachineBlockEntity blockEntity) {
             if (blockEntity.getMetaMachine() instanceof IParallelHatch parallelHatch) {
-                compoundTag.putInt("parallel", parallelHatch.getCurrentParallel());
+                compoundTag.putLong("parallel", parallelHatch.getCurrentParallel());
             } else if (blockEntity.getMetaMachine() instanceof IMultiController controller) {
                 if (controller instanceof IRecipeLogicMachine rlm &&
                         rlm.getRecipeLogic().isActive() &&
@@ -50,7 +50,7 @@ public class ParallelProvider implements IBlockComponentProvider, IServerDataPro
                     compoundTag.putBoolean("exact", true);
                 } else if (controller instanceof IWorkableMultiController workableMultiController) {
                     Optional.ofNullable(workableMultiController.getParallelHatch())
-                            .ifPresent(parallelHatch -> compoundTag.putInt("parallel",
+                            .ifPresent(parallelHatch -> compoundTag.putLong("parallel",
                                     parallelHatch.getCurrentParallel()));
                 }
             }

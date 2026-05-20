@@ -1,8 +1,6 @@
 package com.gregtechceu.gtceu.api.recipe;
 
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
-import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
-import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 
 import com.fast.recipesearch.AbstractRecipeDB;
 import com.fast.recipesearch.IntLongMap;
@@ -42,8 +40,8 @@ public class RecipeDB extends AbstractRecipeDB<GTRecipeDefinition> {
     @Override
     protected IntLongMap extractIntMap(GTRecipeDefinition recipe) {
         var intMap = new IntLongMap();
-        recipe.itemInputs.forEach(content -> recipe.recipeType.convertItem((ItemIngredient) content.inner, intMap));
-        recipe.fluidInputs.forEach(content -> recipe.recipeType.convertFluid((FluidIngredient) content.inner, intMap));
+        recipe.itemInputs.forEach(content -> recipe.recipeType.convertItem(content.inner, intMap));
+        recipe.fluidInputs.forEach(content -> recipe.recipeType.convertFluid(content.inner, intMap));
         for (var expand : recipe.contentExpanders) {
             expand.extractInput(recipe, intMap);
         }

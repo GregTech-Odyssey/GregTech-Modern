@@ -10,8 +10,7 @@ import com.gregtechceu.gtceu.api.data.worldgen.bedrockore.WeightedMaterial;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeBuilder;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
-import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.BedrockOreMinerMachine;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -53,8 +52,8 @@ public class BedrockOreMinerLogic extends RecipeLogic {
             }
             var match = getOreMinerRecipe();
             if (match != null) {
-                if (RecipeHelper.matchContents(this.machine, match)) {
-                    setupRecipe(match);
+                if (machine.matchTickRecipe(match) && machine.matchRecipeOutput(match)) {
+                    setupRecipe(RecipeHandlerUnit.NO_DATA, match);
                 }
             }
         }
@@ -90,10 +89,7 @@ public class BedrockOreMinerLogic extends RecipeLogic {
             if (stack.isEmpty()) {
                 return null;
             }
-            var recipe = GTRecipeBuilder.ofRaw().duration(MAX_PROGRESS).EUt(GTValues.VA[getMachine().getEnergyTier()]).outputItems(stack).buildRawRecipe();
-            if (RecipeHelper.matchContents(getMachine(), recipe)) {
-                return recipe;
-            }
+            return GTRecipeBuilder.ofRaw().duration(MAX_PROGRESS).EUt(GTValues.VA[getMachine().getEnergyTier()]).outputItems(stack).buildRawRecipe();
         }
         return null;
     }
@@ -127,14 +123,14 @@ public class BedrockOreMinerLogic extends RecipeLogic {
     public void onRecipeFinish() {
         machine.afterWorking();
         if (lastRecipe != null) {
-            handleRecipeIO(lastRecipe, IO.OUT);
+            machine.handleRecipeOutput(lastRecipe);
         }
         depleteVein();
         // try it again
         var match = getOreMinerRecipe();
         if (match != null) {
-            if (RecipeHelper.matchContents(this.machine, match)) {
-                setupRecipe(match);
+            if (machine.matchTickRecipe(match) && machine.matchRecipeOutput(match)) {
+                setupRecipe(RecipeHandlerUnit.NO_DATA, match);
                 return;
             }
         }

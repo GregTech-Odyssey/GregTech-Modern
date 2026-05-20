@@ -25,6 +25,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,6 +35,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class MultiblockTankMachine extends MultiblockControllerMachine implements IFancyUIMachine {
 
+    @Getter
     @Persisted
     @NotNull
     private final NotifiableFluidTank tank;
@@ -97,9 +99,5 @@ public class MultiblockTankMachine extends MultiblockControllerMachine implement
 
     private String getFluidLabel() {
         return String.valueOf(tank.getFluidInTank(0).getAmount());
-    }
-
-    public NotifiableFluidTank getTank() {
-        return this.tank;
     }
 }

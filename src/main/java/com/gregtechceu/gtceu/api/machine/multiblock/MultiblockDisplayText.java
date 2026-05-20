@@ -2,8 +2,6 @@ package com.gregtechceu.gtceu.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
@@ -328,16 +326,16 @@ public class MultiblockDisplayText {
             if (recipe != null) {
                 int recipeTier = RecipeHelper.getPreOCRecipeEuTier(recipe);
                 int chanceTier = recipeTier + recipe.ocLevel;
-                var function = recipe.recipeType.getChanceFunction();
+                var function = recipe.definition.chanceFunction;
                 double maxDurationSec = (double) recipe.duration / 20.0;
-                var itemOutputs = recipe.getOutputContents(ItemRecipeCapability.CAP);
-                var fluidOutputs = recipe.getOutputContents(FluidRecipeCapability.CAP);
+                var itemOutputs = recipe.itemOutputs;
+                var fluidOutputs = recipe.fluidOutputs;
 
                 for (var item : itemOutputs) {
-                    var ingredient = ItemRecipeCapability.CAP.of(item);
+                    var ingredient = item.inner;
                     var stack = ingredient.getInnerItemStack();
                     if (stack.isEmpty()) continue;
-                    int count = ingredient.getAmount();
+                    int count = item.getIntAmount();
                     double countD = count;
                     if (item.chance < Content.MAX_CHANCE) {
                         countD = countD * recipe.parallels *
@@ -355,10 +353,10 @@ public class MultiblockDisplayText {
                     }
                 }
                 for (var fluid : fluidOutputs) {
-                    var ingredient = FluidRecipeCapability.CAP.of(fluid);
+                    var ingredient = fluid.inner;
                     var stack = ingredient.getFluidStack();
                     if (stack.isEmpty()) continue;
-                    int amount = ingredient.getAmount();
+                    int amount = fluid.getIntAmount();
                     double amountD = amount;
                     if (fluid.chance < Content.MAX_CHANCE) {
                         amountD = amountD * recipe.parallels *

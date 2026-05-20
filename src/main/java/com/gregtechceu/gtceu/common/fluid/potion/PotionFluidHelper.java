@@ -128,7 +128,7 @@ public class PotionFluidHelper {
 
                 if (effectInstance.getAmplifier() > 0) {
                     name = Component.translatable("potion.withAmplifier", name,
-                            Component.translatable("potion.potency." + effectInstance.getAmplifier()));;
+                            Component.translatable("potion.potency." + effectInstance.getAmplifier()));
                 }
 
                 if (!effectInstance.endsWithin(20)) {

@@ -143,21 +143,14 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
         if (!(machine instanceof FusionReactorMachine fusionReactorMachine)) {
             return null;
         }
-        if (RecipeHelper.getRecipeEUtTier(recipe) > fusionReactorMachine.getTier() || !recipe.data.contains(GTRecipeDataKeys.EU_TO_START) || recipe.data.getLong(GTRecipeDataKeys.EU_TO_START) > fusionReactorMachine.energyContainer.getEnergyCapacity()) {
-            return null;
+        var eu = recipe.data.getLong(GTRecipeDataKeys.EU_TO_START);
+        if (eu > fusionReactorMachine.energyContainer.getEnergyCapacity()) return null;
+        long heatDiff = eu - fusionReactorMachine.heat;
+        if (heatDiff > 0) {
+            if (fusionReactorMachine.energyContainer.getEnergyStored() < heatDiff) return null;
+            fusionReactorMachine.energyContainer.removeEnergy(heatDiff);
+            fusionReactorMachine.heat += heatDiff;
         }
-        long heatDiff = recipe.data.getLong(GTRecipeDataKeys.EU_TO_START) - fusionReactorMachine.heat;
-        // if the stored heat is >= required energy, recipe is okay to run
-        if (heatDiff <= 0) {
-            return RecipeModifier.perfectOverclocking(machine, unit, recipe);
-        }
-        // if the remaining energy needed is more than stored, do not run
-        if (fusionReactorMachine.energyContainer.getEnergyStored() < heatDiff) return null;
-        // remove the energy needed
-        fusionReactorMachine.energyContainer.removeEnergy(heatDiff);
-        // increase the stored heat
-        fusionReactorMachine.heat += heatDiff;
-        fusionReactorMachine.updatePreHeatSubscription();
         return RecipeModifier.perfectOverclocking(machine, unit, recipe);
     }
 
@@ -223,6 +216,11 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     @Override
     public long getMaxVoltage() {
         return Math.min(GTValues.V[tier], super.getMaxVoltage());
+    }
+
+    @Override
+    public long getOverclockVoltage() {
+        return super.getMaxVoltage();
     }
 
     //////////////////////////////////////

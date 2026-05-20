@@ -2,12 +2,14 @@ package com.gregtechceu.gtceu.common.machine.multiblock.steam;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.UITemplate;
+import com.gregtechceu.gtceu.api.machine.feature.IElectricMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
-import com.gregtechceu.gtceu.api.machine.steam.SteamEnergyRecipeHandler;
+import com.gregtechceu.gtceu.api.machine.steam.SteamEnergyContainer;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
@@ -40,13 +42,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine implements IDisplayUIMachine {
+public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine implements IDisplayUIMachine, IElectricMachine {
 
     @Getter
     @Setter
     private int maxParallels = ConfigHolder.INSTANCE.machines.steamMultiParallelAmount;
-    @Nullable
-    protected SteamEnergyRecipeHandler steamEnergy = null;
+
+    @Getter
+    protected IEnergyContainer energyContainer = IEnergyContainer.DEFAULT;
     // if in millibuckets, this is 2.0, Meaning 2mb of steam -> 1 EU
     public static final double CONVERSION_RATE = 2.0;
 
@@ -58,10 +61,16 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
     }
 
     @Override
+    public void onStructureInvalid() {
+        super.onStructureInvalid();
+        energyContainer = IEnergyContainer.DEFAULT;
+    }
+
+    @Override
     public void onStructureFormed() {
         super.onStructureFormed();
         addSteamEnergy();
-        if (steamEnergy == null) {
+        if (energyContainer == IEnergyContainer.DEFAULT) {
             // No steam hatch found
             onStructureInvalid();
         }
@@ -74,8 +83,7 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
             for (var hl : handlers) {
                 if (!hl.isValid(IO.IN)) continue;
                 for (var fluidHandler : hl.getCapabilities(NotifiableFluidTank.class)) {
-                    steamEnergy = new SteamEnergyRecipeHandler(fluidHandler, getConversionRate());
-                    addHandlerList(RecipeHandlerUnit.of(IO.IN, steamEnergy));
+                    energyContainer = new SteamEnergyContainer(CONVERSION_RATE, fluidHandler);
                     return;
                 }
             }
@@ -122,9 +130,9 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
     public void addDisplayText(List<Component> textList) {
         IDisplayUIMachine.super.addDisplayText(textList);
         if (isFormed()) {
-            if (steamEnergy != null && steamEnergy.getCapacity() > 0) {
-                long steamStored = steamEnergy.getStored();
-                textList.add(Component.translatable("gtceu.multiblock.steam.steam_stored", steamStored, steamEnergy.getCapacity()));
+            if (energyContainer.getEnergyCapacity() > 0) {
+                long steamStored = energyContainer.getEnergyStored();
+                textList.add(Component.translatable("gtceu.multiblock.steam.steam_stored", steamStored / CONVERSION_RATE, energyContainer.getEnergyCapacity() / CONVERSION_RATE));
             }
             if (!isWorkingEnabled()) {
                 textList.add(Component.translatable("gtceu.multiblock.work_paused"));

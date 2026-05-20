@@ -205,6 +205,15 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
     }
 
     @NotNull
+    public FluidStack getFluidStack(int amount) {
+        var stacks = getStacks();
+        if (stacks.length == 0) return FluidStack.EMPTY;
+        var stack = stacks[0].copy();
+        stack.setAmount(amount);
+        return stack;
+    }
+
+    @NotNull
     public FluidStack getFluidStack() {
         var stacks = getStacks();
         if (stacks.length == 0) return FluidStack.EMPTY;

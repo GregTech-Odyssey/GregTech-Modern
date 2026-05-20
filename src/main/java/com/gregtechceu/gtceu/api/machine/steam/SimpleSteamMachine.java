@@ -6,12 +6,12 @@ import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.PredicatedImageWidget;
+import com.gregtechceu.gtceu.api.machine.feature.IElectricMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IExhaustVentMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
@@ -26,6 +26,7 @@ import net.minecraftforge.fluids.FluidType;
 import com.google.common.collect.Tables;
 import com.gto.datasynclib.datasream.DataComponentMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
+import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Collections;
@@ -35,7 +36,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaustVentMachine, IUIMachine {
+public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaustVentMachine, IUIMachine, IElectricMachine {
 
     @Persisted
     public final NotifiableItemStackHandler importItems;
@@ -45,15 +46,19 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
     @Persisted
     private boolean needsVenting;
 
+    @Getter
+    private final SteamEnergyContainer energyContainer;
+
     public SimpleSteamMachine(MetaMachineBlockEntity holder, boolean isHighPressure, Object... args) {
         super(holder, isHighPressure, args);
         this.importItems = createImportItemHandler(args);
         this.exportItems = createExportItemHandler(args);
+        this.energyContainer = new SteamEnergyContainer(getConversionRate(), steamTank);
     }
 
     @Override
     protected NotifiableFluidTank createSteamTank(Object... args) {
-        return new NotifiableFluidTank(this, 1, 16 * FluidType.BUCKET_VOLUME, IO.IN);
+        return new NotifiableFluidTank(this, 1, 16 * FluidType.BUCKET_VOLUME, IO.NONE, IO.IN);
     }
 
     protected NotifiableItemStackHandler createImportItemHandler(Object... args) {
@@ -66,13 +71,6 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
         var handler = new NotifiableItemStackHandler(this, getRecipeType().getMaxOutputs(ItemRecipeCapability.CAP), IO.OUT);
         if (handler.storage.size == 0) handler.setAvailable(false);
         return handler;
-    }
-
-    @Override
-    public void onLoad() {
-        super.onLoad();
-        // Simulate an EU machine via a SteamEnergyHandler
-        this.addHandlerList(RecipeHandlerUnit.of(IO.IN, new SteamEnergyRecipeHandler(steamTank, getConversionRate())));
     }
 
     @Override

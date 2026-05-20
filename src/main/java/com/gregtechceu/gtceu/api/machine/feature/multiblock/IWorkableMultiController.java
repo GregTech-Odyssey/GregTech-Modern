@@ -1,16 +1,11 @@
 package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
-import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
-import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
@@ -46,39 +41,14 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
     }
 
     @Override
-    default boolean matchRecipeOutput(GTRecipe recipe) {
-        List<Content<ItemIngredient>> items = canVoidRecipeOutputs(ItemRecipeCapability.CAP) ? Collections.emptyList() : GTRecipe.copyContents(recipe.itemOutputs, 1);
-        List<Content<FluidIngredient>> fluids = canVoidRecipeOutputs(FluidRecipeCapability.CAP) ? Collections.emptyList() : GTRecipe.copyContents(recipe.fluidOutputs, 1);
+    default List<RecipeHandlerUnit> getOutputList(GTRecipe recipe) {
         if (recipe.outputColor != -1) {
             var unit = getOutputColorMap().get(recipe.outputColor);
             if (unit != null) {
-                return unit.handleRecipeItem(IO.OUT, recipe, items, true) && unit.handleRecipeFluid(IO.OUT, recipe, fluids, true);
+                return Collections.singletonList(unit);
             }
         }
-        for (var handler : getOutputList()) {
-            if (handler.handleRecipeItem(IO.OUT, recipe, items, true) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    default boolean handleRecipeOutput(GTRecipe recipe) {
-        var items = GTRecipe.copyContents(recipe.itemOutputs, 1);
-        var fluids = GTRecipe.copyContents(recipe.fluidOutputs, 1);
-        if (recipe.outputColor != -1) {
-            var unit = getOutputColorMap().get(recipe.outputColor);
-            if (unit != null) {
-                return unit.handleRecipeItem(IO.OUT, recipe, items, false) && unit.handleRecipeFluid(IO.OUT, recipe, fluids, false);
-            }
-        }
-        for (var handler : getOutputList()) {
-            if (handler.handleRecipeItem(IO.OUT, recipe, items, false) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, false)) {
-                return true;
-            }
-        }
-        return false;
+        return getOutputList();
     }
 
     default void arrangeHandlerList() {
@@ -168,7 +138,7 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
                 var it = untreated.iterator();
                 while (it.hasNext()) {
                     var handler = it.next();
-                    if (handler.isDistinct()) {
+                    if (handler.isDistinct) {
                         distinct.add(handler);
                         it.remove();
                     }

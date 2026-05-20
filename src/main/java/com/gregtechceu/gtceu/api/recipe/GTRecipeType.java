@@ -3,9 +3,6 @@ package com.gregtechceu.gtceu.api.recipe;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.SteamTexture;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
@@ -61,8 +58,7 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
     public final Object2IntSortedMap<RecipeCapability<?>> maxOutputs = new Object2IntAVLTreeMap<>(RecipeCapability.COMPARATOR);
     public final GTRecipeDefinition defaultDefinition;
     protected GTRecipeBuilder recipeBuilder;
-    @Getter
-    protected ChanceBoostFunction chanceFunction = ChanceBoostFunction.OVERCLOCK;
+
     @Getter
     protected GTRecipeTypeUI recipeUI = new GTRecipeTypeUI(this);
     @Getter
@@ -102,7 +98,7 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
         recipeBuilder = new GTRecipeBuilder(registryName, this);
         // must be linked to stop json contents from shuffling
         this.proxyRecipes = new ReferenceOpenHashSet<>(proxyRecipes);
-        this.defaultDefinition = new GTRecipeDefinition(false, this, category, GTCEu.id("default"), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), new DataComponentMap(), 0, 0, 100);
+        this.defaultDefinition = new GTRecipeDefinition(false, this, category, GTCEu.id("default"), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), new DataComponentMap(), ChanceBoostFunction.OVERCLOCK, 0, 0, 100);
     }
 
     public static boolean available(GTRecipeType recipeType, GTRecipeType... types) {
@@ -378,14 +374,6 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
      */
     public GTRecipeType setRecipeBuilder(final GTRecipeBuilder recipeBuilder) {
         this.recipeBuilder = recipeBuilder;
-        return this;
-    }
-
-    /**
-     * @return {@code this}.
-     */
-    public GTRecipeType setChanceFunction(final ChanceBoostFunction chanceFunction) {
-        this.chanceFunction = chanceFunction;
         return this;
     }
 

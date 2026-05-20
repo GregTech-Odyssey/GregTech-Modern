@@ -96,7 +96,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
 
     @Override
     protected NotifiableFluidTank createSteamTank(Object... args) {
-        return new NotifiableFluidTank(this, 1, 16 * FluidType.BUCKET_VOLUME, IO.OUT);
+        return new NotifiableFluidTank(this, 1, 16 * FluidType.BUCKET_VOLUME, IO.NONE, IO.OUT);
     }
 
     protected NotifiableFluidTank createWaterTank(@SuppressWarnings("unused") Object... args) {

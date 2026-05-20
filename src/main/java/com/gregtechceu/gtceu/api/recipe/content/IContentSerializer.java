@@ -5,6 +5,7 @@ import net.minecraft.nbt.IntTag;
 import net.minecraft.network.FriendlyByteBuf;
 
 import com.gto.datasynclib.datasream.data.*;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface IContentSerializer<T extends ContentInner> {
@@ -17,7 +18,7 @@ public interface IContentSerializer<T extends ContentInner> {
 
     T fromData(Data data);
 
-    @Nullable
+    @NotNull
     default Data toDataContent(Content<T> content) {
         if (!content.isEmpty()) {
             var t = new ListData(4);
@@ -35,7 +36,7 @@ public interface IContentSerializer<T extends ContentInner> {
             t.add(toData(content.inner));
             return t;
         }
-        return null;
+        return NullData.INSTANCE;
     }
 
     @Nullable

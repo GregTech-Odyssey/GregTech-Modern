@@ -98,8 +98,8 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
             serverLevel.getServer().tell(new TickTask(0, this::updateInventorySubscription));
-            getHandlerList().setDistinct(isDistinct);
-            getHandlerList().setColor(getPaintingColor());
+            getHandlerUnit().setDistinct(isDistinct);
+            getHandlerUnit().setColor(getPaintingColor());
             inventorySubs = getInventory().addChangedListener(this::updateInventorySubscription);
         }
     }
@@ -115,13 +115,13 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
 
     @Override
     public void onPaintingColorChanged(int color) {
-        getHandlerList().setColor(color, true);
+        getHandlerUnit().setColor(color, true);
     }
 
     @Override
     public void setDistinct(boolean distinct) {
         isDistinct = (io != IO.OUT && distinct);
-        getHandlerList().setDistinctAndNotify(isDistinct);
+        getHandlerUnit().setDistinctAndNotify(isDistinct);
     }
 
     @Override

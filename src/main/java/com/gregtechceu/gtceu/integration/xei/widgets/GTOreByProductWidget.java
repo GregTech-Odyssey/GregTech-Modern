@@ -142,7 +142,7 @@ public class GTOreByProductWidget extends WidgetGroup {
         for (int i = 0; i < ITEM_OUTPUT_LOCATIONS.size(); i += 2) {
             int slotIndex = i / 2;
             float xeiChance = 1.0f;
-            Content chance = recipeWrapper.getChance(i / 2 + itemInputs.size());
+            var chance = recipeWrapper.getChance(i / 2 + itemInputs.size());
             IGuiTexture overlay = null;
             if (chance != null) {
                 xeiChance = (float) chance.chance / Content.MAX_CHANCE;

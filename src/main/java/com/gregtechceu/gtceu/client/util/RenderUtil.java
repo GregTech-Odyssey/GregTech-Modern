@@ -1,7 +1,5 @@
 package com.gregtechceu.gtceu.client.util;
 
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
@@ -158,21 +156,20 @@ public class RenderUtil {
         if (recipe == null) {
             return null;
         }
-        var contents = new ArrayList<Content>();
-        var empty = new ArrayList<Content>();
-        contents.addAll(recipe.outputs.getOrDefault(FluidRecipeCapability.CAP, empty));
-        contents.addAll(recipe.inputs.getOrDefault(FluidRecipeCapability.CAP, empty));
+        var contents = new ArrayList<Content<FluidIngredient>>();
+        contents.addAll(recipe.fluidOutputs);
+        contents.addAll(recipe.fluidInputs);
         if (contents.isEmpty()) {
             return null;
         }
 
         var fluidContent = contents.stream()
-                .filter(content -> content.inner instanceof FluidIngredient ingredient && !ingredient.isEmpty())
+                .filter(content -> !content.isEmpty())
                 .findAny();
         if (fluidContent.isEmpty()) {
             return null;
         }
-        var ingredient = (FluidIngredient) fluidContent.get().inner;
+        var ingredient = fluidContent.get().inner;
         return ingredient.getFluid();
     }
 
@@ -189,18 +186,18 @@ public class RenderUtil {
 
         for (var recipe : recipes) {
             // check item outputs first
-            List<Content> outputs = recipe.getOutputContents(ItemRecipeCapability.CAP);
-            if (!outputs.isEmpty()) {
-                var output = ItemRecipeCapability.CAP.of(outputs.getFirst()).getInnerItemStack();
+            var items = recipe.itemOutputs;
+            if (!items.isEmpty()) {
+                var output = items.getFirst().inner.getInnerItemStack();
                 if (!output.isEmpty() && !ItemStack.isSameItemSameTags(output, stack)) {
                     originalMethod.call(entity, level, output, x, y, seed, z);
                     return true;
                 }
             }
             // if there are no item outputs, try to find a fluid output
-            outputs = recipe.getOutputContents(FluidRecipeCapability.CAP);
-            if (!outputs.isEmpty()) {
-                FluidStack output = FluidRecipeCapability.CAP.of(outputs.getFirst()).getFluidStack();
+            var fluids = recipe.fluidOutputs;
+            if (!fluids.isEmpty()) {
+                FluidStack output = fluids.getFirst().inner.getFluidStack();
                 if (!output.isEmpty()) {
                     var clientExt = IClientFluidTypeExtensions.of(output.getFluid());
                     var texture = RenderUtil.FluidTextureType.STILL.map(clientExt, output);

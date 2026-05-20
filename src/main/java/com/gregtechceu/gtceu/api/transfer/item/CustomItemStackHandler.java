@@ -109,26 +109,26 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
     }
 
     /**
-     * @return Remaining amount.
+     * @return inserted.
      **/
-    public int insertItemFast(int slot, @NotNull ItemStack stack, int count, boolean simulate) {
-        if (!filter.test(stack)) return count;
+    public int insert(int slot, @NotNull ItemStack stack, int amount, boolean simulate) {
+        if (!filter.test(stack)) return 0;
         ItemStack existing = this.stacks[slot];
         var stored = existing.getCount();
         int limit = getStackLimit(slot, stack) - stored;
-        if (limit < 1) return count;
+        if (limit < 1) return 0;
         if (stored == 0 || canItemStacksStack(stack, existing)) {
-            boolean reachedLimit = count > limit;
+            boolean reachedLimit = amount > limit;
             if (!simulate) {
                 if (existing.isEmpty()) {
-                    this.stacks[slot] = stack.copyWithCount(reachedLimit ? limit : count);
+                    this.stacks[slot] = stack.copyWithCount(reachedLimit ? limit : amount);
                 } else {
-                    existing.grow(reachedLimit ? limit : count);
+                    existing.grow(reachedLimit ? limit : amount);
                 }
             }
-            return reachedLimit ? count - limit : 0;
+            return reachedLimit ? limit : amount;
         }
-        return count;
+        return 0;
     }
 
     @Override
@@ -153,6 +153,30 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
                 onContentsChanged(slot);
             }
             return ItemHandlerHelper.copyStackWithSize(existing, toExtract);
+        }
+    }
+
+    /**
+     * @return extracted.
+     **/
+    public int extract(int slot, int amount, boolean simulate) {
+        if (amount == 0) return 0;
+        ItemStack existing = this.stacks[slot];
+        int count = existing.getCount();
+        if (count < 1) return 0;
+        int toExtract = Math.min(amount, existing.getMaxStackSize());
+        if (count <= toExtract) {
+            if (!simulate) {
+                this.stacks[slot] = ItemStack.EMPTY;
+                onContentsChanged(slot);
+            }
+            return count;
+        } else {
+            if (!simulate) {
+                existing.setCount(count - toExtract);
+                onContentsChanged(slot);
+            }
+            return toExtract;
         }
     }
 
@@ -264,7 +288,7 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
             ItemStack stored = inventory.stacks[slot];
             int count = stored.getCount();
             if (count < 64 && (count == 0 || stored.is(item))) {
-                amount = inventory.insertItemFast(slot, stack, amount, false);
+                amount -= inventory.insert(slot, stack, amount, false);
                 if (amount < 1) break;
             }
         }

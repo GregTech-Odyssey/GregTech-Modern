@@ -12,6 +12,7 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
+import org.jetbrains.annotations.NotNull;
 
 public final class DataComponentRegistry extends Registry<String, DataComponentKey<?>> implements ByteStreamCodec<DataComponentMap>, DataCodec<DataComponentMap>, Codec<DataComponentMap> {
 
@@ -68,7 +69,7 @@ public final class DataComponentRegistry extends Registry<String, DataComponentK
     }
 
     @Override
-    public DataComponentMap decode(Data d) {
+    public DataComponentMap decode(@NotNull Data d) {
         var data = d.getMap();
         var map = new DataComponentMap(data.size());
         data.forEach((k, v) -> {
@@ -81,7 +82,7 @@ public final class DataComponentRegistry extends Registry<String, DataComponentK
     }
 
     @Override
-    public Data encode(DataComponentMap obj) {
+    public @NotNull Data encode(DataComponentMap obj) {
         var data = new MapData();
         obj.fastForEach((k, v) -> data.put(k.name, k.codec.dataWriter.encode(v)));
         return data;

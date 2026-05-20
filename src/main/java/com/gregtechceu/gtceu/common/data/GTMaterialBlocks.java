@@ -34,7 +34,6 @@ import com.gto.registrate.util.nullness.NonNullBiConsumer;
 
 import java.util.Map;
 
-@SuppressWarnings("removal")
 public class GTMaterialBlocks {
 
     // Reference Table Builders

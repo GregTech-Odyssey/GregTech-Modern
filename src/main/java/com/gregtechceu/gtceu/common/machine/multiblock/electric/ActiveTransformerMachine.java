@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
@@ -85,19 +84,16 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
         List<IEnergyContainer> powerOutput = new ArrayList<>();
         for (var part : getPrioritySortedParts()) {
             for (var handlerList : part.getRecipeHandlers()) {
-                var containers = handlerList.getCapability(EURecipeCapability.CAP).stream()
-                        .filter(IEnergyContainer.class::isInstance)
-                        .map(IEnergyContainer.class::cast)
-                        .toList();
+                var containers = handlerList.getCapabilities(IEnergyContainer.class);
 
-                if (handlerList.getHandlerIO() == IO.IN) {
+                if (handlerList.handlerIO == IO.IN) {
                     powerInput.addAll(containers);
-                } else if (handlerList.getHandlerIO() == IO.OUT) {
+                } else if (handlerList.handlerIO == IO.OUT) {
                     powerOutput.addAll(containers);
                 }
 
                 traitSubscriptions
-                        .add(handlerList.subscribe(converterSubscription::updateSubscription, EURecipeCapability.CAP));
+                        .add(handlerList.subscribe(converterSubscription::updateSubscription, IEnergyContainer.class));
             }
         }
 

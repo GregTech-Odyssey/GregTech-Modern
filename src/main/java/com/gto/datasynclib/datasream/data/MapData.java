@@ -35,12 +35,12 @@ public record MapData(Map<String, Data> value) implements Data {
     public static final DataCodec<MapData> DATA_CODEC = new DataCodec<>() {
 
         @Override
-        public Data encode(MapData obj) {
+        public @NotNull Data encode(MapData obj) {
             return obj;
         }
 
         @Override
-        public MapData decode(Data data) {
+        public MapData decode(@NotNull Data data) {
             return (MapData) data;
         }
 

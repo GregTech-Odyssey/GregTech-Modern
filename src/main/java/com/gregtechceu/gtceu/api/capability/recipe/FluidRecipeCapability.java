@@ -101,7 +101,7 @@ public class FluidRecipeCapability extends ContentRecipeCapability<FluidIngredie
             tank.setAllowClickDrained(!isXEI && io.support(IO.IN));
             if (isXEI) tank.setShowAmount(false);
             if (content != null) {
-                float chance = (float) recipeType.getChanceFunction()
+                float chance = (float) recipe.chanceFunction
                         .getBoostedChance(content, recipeTier, chanceTier) / Content.MAX_CHANCE;
                 tank.setXEIChance(chance);
                 tank.setOnAddedTooltips((w, tooltips) -> {
@@ -109,7 +109,7 @@ public class FluidRecipeCapability extends ContentRecipeCapability<FluidIngredie
                     if (!isXEI && !ingredient.getFluidStack().isEmpty()) {
                         TooltipsHandler.appendFluidTooltips(ingredient.getFluidStack(), tooltips::add, TooltipFlag.NORMAL);
                     }
-                    GTRecipeWidget.setConsumedChance(content, ChanceLogic.OR, tooltips, recipeTier, chanceTier, recipeType.getChanceFunction());
+                    GTRecipeWidget.setConsumedChance(content, ChanceLogic.OR, tooltips, recipeTier, chanceTier, recipe.chanceFunction);
                 });
                 if (io == IO.IN && (content.chance == 0)) {
                     tank.setIngredientIO(IngredientIO.CATALYST);

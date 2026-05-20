@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.api.recipe;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.ItemMaterialData;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
@@ -13,6 +12,7 @@ import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
+import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.expand.CWUExpander;
 import com.gregtechceu.gtceu.api.recipe.expand.ContentExpander;
@@ -50,6 +50,9 @@ import dev.ftb.mods.ftbquests.quest.QuestObjectBase;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -85,6 +88,12 @@ public class GTRecipeBuilder {
     protected Set<ContentExpander> tickContentExpanders;
     @Nullable
     protected DataComponentMap data;
+
+    @NotNull
+    @Setter
+    @Getter
+    @Accessors(fluent = true, chain = true)
+    protected ChanceBoostFunction chanceFunction = ChanceBoostFunction.OVERCLOCK;
 
     @Getter
     protected ResourceLocation id;
@@ -320,7 +329,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder inputItems(ItemIngredient input) {
-        return inputItems(new Content<>(input));
+        return inputItems(new Content<>(input, chance, tierChanceBoost));
     }
 
     public GTRecipeBuilder inputItems(Ingredient inputs) {
@@ -524,7 +533,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder outputItems(ItemIngredient ingredient) {
-        return outputItems(new Content<>(ingredient));
+        return outputItems(new Content<>(ingredient, chance, tierChanceBoost));
     }
 
     public GTRecipeBuilder outputItems(Ingredient ingredient) {
@@ -690,7 +699,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder inputFluids(FluidIngredient inputs) {
-        return inputFluids(new Content<>(inputs));
+        return inputFluids(new Content<>(inputs, chance, tierChanceBoost));
     }
 
     public GTRecipeBuilder inputFluids(Content<FluidIngredient> inputs) {
@@ -711,7 +720,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder outputFluids(FluidIngredient outputs) {
-        return outputFluids(new Content<>(outputs));
+        return outputFluids(new Content<>(outputs, chance, tierChanceBoost));
     }
 
     public GTRecipeBuilder outputFluids(Content<FluidIngredient> inputs) {
@@ -1014,7 +1023,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeDefinition build(boolean registered) {
-        return new GTRecipeDefinition(registered, recipeType, recipeCategory, id.withPrefix(recipeType.registryName.getPath() + "/"), getItemInputs(), getItemOutputs(), getFluidInputs(), getFluidOutputs(), ImmutableList.copyOf(getConditions()), ImmutableList.copyOf(getContentExpanders()), ImmutableList.copyOf(getTickContentExpanders()), getData(), eut, tier, duration);
+        return new GTRecipeDefinition(registered, recipeType, recipeCategory, id.withPrefix(recipeType.registryName.getPath() + "/"), getItemInputs(), getItemOutputs(), getFluidInputs(), getFluidOutputs(), ImmutableList.copyOf(getConditions()), ImmutableList.copyOf(getContentExpanders()), ImmutableList.copyOf(getTickContentExpanders()), getData(), chanceFunction, eut, tier, duration);
     }
 
     protected boolean checkChanceAndPrintError(int chance) {
@@ -1034,7 +1043,7 @@ public class GTRecipeBuilder {
     }
 
     public int getSolderMultiplier() {
-        return Math.max(1, data.getInt(GTRecipeDataKeys.SOLDER_MULTIPLIER));
+        return Math.max(1, getData().getInt(GTRecipeDataKeys.SOLDER_MULTIPLIER));
     }
 
     /**

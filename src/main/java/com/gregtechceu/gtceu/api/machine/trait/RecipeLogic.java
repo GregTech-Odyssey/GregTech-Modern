@@ -181,7 +181,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     public boolean checkMatchedRecipeAvailable(RecipeHandlerUnit unit, GTRecipeDefinition match) {
         var modified = machine.fullModifyRecipe(unit, match.toRuntime());
         if (modified != null) {
-            if (machine.matchRecipe(unit, modified)) {
+            if (machine.matchTickRecipe(modified) && machine.matchRecipe(unit, modified)) {
                 setupRecipe(unit, modified);
             }
             if (lastRecipe != null && status == WORKING) {
@@ -210,6 +210,11 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
         lastRecipe = null;
         lastOriginRecipe = null;
         machine.getRecipeType().findRecipe(machine, this);
+    }
+
+    @Override
+    public boolean test(RecipeHandlerUnit unit, GTRecipeDefinition definition) {
+        return machine.checkConditions(unit, definition) && checkMatchedRecipeAvailable(unit, definition);
     }
 
     public void setupRecipe(RecipeHandlerUnit unit, @NotNull GTRecipe recipe) {
@@ -319,7 +324,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
                 if (originRecipe != null && originUnit != null && machine.checkConditions(originUnit, originRecipe)) {
                     lastRecipe = machine.fullModifyRecipe(originUnit, originRecipe.toRuntime());
                 }
-                if (lastRecipe != null && machine.matchRecipe(originUnit, lastRecipe)) {
+                if (lastRecipe != null && machine.matchTickRecipe(lastRecipe) && machine.matchRecipe(originUnit, lastRecipe)) {
                     setupRecipe(originUnit, lastRecipe);
                     return;
                 }
@@ -390,10 +395,5 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     @Nullable
     public GTRecipe getLastRecipe() {
         return this.lastRecipe;
-    }
-
-    @Override
-    public boolean test(RecipeHandlerUnit unit, GTRecipeDefinition definition) {
-        return machine.checkConditions(unit, definition) && checkMatchedRecipeAvailable(unit, definition);
     }
 }

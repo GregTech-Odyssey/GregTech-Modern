@@ -1,9 +1,7 @@
 package com.gregtechceu.gtceu.api.recipe;
 
-import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.api.recipe.content.ContentInner;
-import com.gregtechceu.gtceu.api.recipe.content.SerializerFluidIngredient;
-import com.gregtechceu.gtceu.api.recipe.content.SerializerItemIngredient;
+import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.recipe.content.*;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
@@ -97,7 +95,7 @@ public final class GTRecipe {
             var type = GTRegistries.RECIPE_TYPES.dataCodec().decode(list.getFirst());
             var id = DataCodecs.RESOURCE_LOCATION_CODEC.decode(list.get(1));
             var definition = type.recipes.get(id);
-            var recipe = new GTRecipe(definition == null ? type.defaultDefinition : definition, DataDecoder.list(SerializerItemIngredient.INSTANCE::fromDataContent).decode(list.get(2)), DataDecoder.list(SerializerItemIngredient.INSTANCE::fromDataContent).decode(list.get(3)), DataDecoder.list(SerializerFluidIngredient.INSTANCE::fromDataContent).decode(list.get(4)), DataDecoder.list(SerializerFluidIngredient.INSTANCE::fromDataContent).decode(list.get(5)), GTRecipeDataKeys.REGISTRY.decode(list.get(6)), list.get(7).getLong(), list.get(8).getInt(), list.get(9).getInt());
+            var recipe = new GTRecipe(definition == null ? type.defaultDefinition : definition, DataDecoder.notNullCollection(ArrayList::new, SerializerItemIngredient.INSTANCE::fromDataContent).decode(list.get(2)), DataDecoder.notNullCollection(ArrayList::new, SerializerItemIngredient.INSTANCE::fromDataContent).decode(list.get(3)), DataDecoder.notNullCollection(ArrayList::new, SerializerFluidIngredient.INSTANCE::fromDataContent).decode(list.get(4)), DataDecoder.notNullCollection(ArrayList::new, SerializerFluidIngredient.INSTANCE::fromDataContent).decode(list.get(5)), GTRecipeDataKeys.REGISTRY.decode(list.get(6)), list.get(7).getLong(), list.get(8).getInt(), list.get(9).getInt());
             recipe.parallels = list.get(10).getLong();
             recipe.batchParallels = list.get(11).getLong();
             recipe.ocLevel = list.get(12).getInt();
@@ -213,6 +211,28 @@ public final class GTRecipe {
         return String.valueOf(definition);
     }
 
+    public <T extends ContentInner> List<Content<T>> copyAndRoll(List<Content<T>> contents) {
+        if (contents.isEmpty()) return Collections.emptyList();
+        var contentList = new ArrayList<Content<T>>(contents.size());
+        var boost = definition.chanceFunction;
+        var recipeTier = tier;
+        var chanceTier = recipeTier + ocLevel;
+        for (var content : contents) {
+            if (content.chance == Content.MAX_CHANCE) {
+                contentList.add(content.copy());
+            } else {
+                if (content.chance == 0) continue;
+                var inner = content.inner;
+                long chance = (long) (((double) content.amount / inner.amount) * boost.getBoostedChance(content, recipeTier, chanceTier)) + GTValues.RNG.nextInt(Content.MAX_CHANCE);
+                long multiplier = chance / Content.MAX_CHANCE;
+                if (multiplier > 0) {
+                    contentList.add(new Content<>(content, inner.amount * multiplier));
+                }
+            }
+        }
+        return contentList;
+    }
+
     public static <T extends ContentInner> void modifierContents(List<Content<T>> contents, @Range(from = 1, to = ParallelLogic.MAX_PARALLEL) long multiplier) {
         if (multiplier == 1) return;
         var size = contents.size();
@@ -227,8 +247,8 @@ public final class GTRecipe {
         var size = contents.size();
         if (size == 0) return Collections.emptyList();
         var list = new ArrayList<Content<T>>(size);
-        for (int i = 0; i < size; i++) {
-            list.set(i, contents.get(i).copy(multiplier));
+        for (Content<T> content : contents) {
+            list.add(content.copy(multiplier));
         }
         return list;
     }

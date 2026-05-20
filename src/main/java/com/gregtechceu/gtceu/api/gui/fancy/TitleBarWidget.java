@@ -82,7 +82,7 @@ public class TitleBarWidget extends WidgetGroup {
         this.showBackButton = showBackButton;
         this.showMenuButton = showMenuButton;
 
-        titleText = new TextTexture(ChatFormatting.BLACK.toString() + currentPage.getTitle().copy().getString())
+        titleText = new TextTexture(ChatFormatting.BLACK + currentPage.getTitle().copy().getString())
                 .setDropShadow(false)
                 .setType(TextTexture.TextType.ROLL);
         titleText.setRollSpeed(ROLL_SPEED);

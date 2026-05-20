@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.recipe.content;
 
-import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GradientUtil;
@@ -75,7 +74,7 @@ public final class Content<T extends ContentInner> {
     }
 
     public Content<T> copy(long multiplier) {
-        if (multiplier == 1) {
+        if (multiplier == 1 || this.chance == 0) {
             return new Content<>(this);
         } else {
             return new Content<>(this, amount * multiplier);
@@ -94,18 +93,6 @@ public final class Content<T extends ContentInner> {
 
     public void shrink(long amount) {
         this.amount -= amount;
-    }
-
-    public boolean isChanced() {
-        return chance > 0 && chance < MAX_CHANCE;
-    }
-
-    public long getChanceAmount(ChanceBoostFunction function, int recipeTier, int chanceTier) {
-        if (this.chance == MAX_CHANCE) return this.amount;
-        var chance = function.getBoostedChance(this, recipeTier, chanceTier);
-        if (chance == MAX_CHANCE) return this.amount;
-        if (chance == 0) return 0;
-        return (long) ((double) GTValues.RNG.nextInt(chance) / MAX_CHANCE) * this.amount;
     }
 
     public IGuiTexture createOverlay(boolean perTick, int recipeTier, int chanceTier, @Nullable ChanceBoostFunction function) {
@@ -145,7 +132,7 @@ public final class Content<T extends ContentInner> {
         graphics.pose().pushPose();
         graphics.pose().translate(0, 0, 400);
         graphics.pose().scale(0.5F, 0.5F, 1);
-        var func = function == null ? ChanceBoostFunction.OVERCLOCK : function;
+        var func = function == null ? ChanceBoostFunction.NONE : function;
         int chance = func.getBoostedChance(this, recipeTier, chanceTier);
         float chanceFloat = 1.0F * chance / MAX_CHANCE;
         String percent = FormattingUtil.formatNumber2Places(100 * chanceFloat);

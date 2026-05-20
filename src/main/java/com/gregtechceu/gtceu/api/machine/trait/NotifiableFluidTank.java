@@ -150,7 +150,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements
                     var stored = storage.getFluid();
                     int amount = stored.getAmount();
                     if (amount < storage.getCapacity() && (lockedFluid.isEmpty() || lockedFluid.getFluid().getFluid() == fluid) && (stored.isEmpty() || stored.getFluid() == fluid)) {
-                        FluidStack output = new FluidStack(fluid, ingredient.getIntAmount(), ingredient.inner.nbt);
+                        FluidStack output = ingredient.inner.getFluidStack(ingredient.getIntAmount());
                         int filled = storage.fill(output, FluidAction.EXECUTE);
                         if (filled > 0) {
                             changed = true;
@@ -210,7 +210,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements
                     var stored = storage.getFluid();
                     int amount = (visited == null ? stored.getAmount() : visited.getAmount());
                     if (amount < storage.getCapacity() && (lockedFluid.isEmpty() || lockedFluid.getFluid().getFluid() == fluid) && (stored.isEmpty() || stored.getFluid() == fluid) && (visited == null || visited.inner.getFluid() == fluid)) {
-                        FluidStack output = new FluidStack(fluid, ingredient.getIntAmount(), ingredient.inner.nbt);
+                        FluidStack output = ingredient.inner.getFluidStack(ingredient.getIntAmount());
                         int filled = storage.fill(output, IFluidHandler.FluidAction.SIMULATE);
                         if (filled > 0) {
                             visiteds[tank] = new SimpleStack<>(output, filled);

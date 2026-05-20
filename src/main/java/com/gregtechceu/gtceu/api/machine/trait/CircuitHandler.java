@@ -114,7 +114,12 @@ public class CircuitHandler extends NotifiableItemStackHandler {
         }
 
         @Override
-        public int insertItemFast(int slot, @NotNull ItemStack stack, int count, boolean simulate) {
+        public int insert(int slot, @NotNull ItemStack stack, int count, boolean simulate) {
+            return 0;
+        }
+
+        @Override
+        public int extract(int slot, int amount, boolean simulate) {
             return 0;
         }
 

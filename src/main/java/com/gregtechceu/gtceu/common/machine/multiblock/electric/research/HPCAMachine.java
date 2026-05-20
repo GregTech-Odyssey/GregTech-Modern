@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.capability.IHPCAComputationProvider;
 import com.gregtechceu.gtceu.api.capability.IHPCACoolantProvider;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.util.TimedProgressSupplier;
 import com.gregtechceu.gtceu.api.gui.widget.ExtendedProgressWidget;
@@ -105,7 +104,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
                 componentHatches.add(componentHatch);
             } else if (part instanceof IWorkableMultiPart workableMultiPart) {
                 for (var handlerList : workableMultiPart.getRecipeHandlers()) {
-                    handlerList.getCapability(FluidRecipeCapability.CAP).stream().filter(IFluidHandler.class::isInstance).map(IFluidHandler.class::cast).forEach(coolantContainers::add);
+                    coolantContainers.addAll(handlerList.getCapabilities(IFluidHandler.class));
                 }
             }
         }

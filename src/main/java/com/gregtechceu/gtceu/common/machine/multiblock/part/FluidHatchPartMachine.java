@@ -103,8 +103,8 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
             serverLevel.getServer().tell(new TickTask(0, this::updateTankSubscription));
-            getHandlerList().setDistinct(isDistinct);
-            getHandlerList().setColor(getPaintingColor());
+            getHandlerUnit().setDistinct(isDistinct);
+            getHandlerUnit().setColor(getPaintingColor());
             tankSubs = tank.addChangedListener(this::updateTankSubscription);
         }
     }
@@ -121,12 +121,12 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     @Override
     public void setDistinct(boolean distinct) {
         isDistinct = (io != IO.OUT && distinct);
-        getHandlerList().setDistinctAndNotify(isDistinct);
+        getHandlerUnit().setDistinctAndNotify(isDistinct);
     }
 
     @Override
     public void onPaintingColorChanged(int color) {
-        getHandlerList().setColor(color, true);
+        getHandlerUnit().setColor(color, true);
     }
 
     @Override

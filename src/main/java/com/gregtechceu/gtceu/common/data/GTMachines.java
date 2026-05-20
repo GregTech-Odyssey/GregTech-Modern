@@ -12,7 +12,6 @@ import com.gregtechceu.gtceu.api.machine.SimpleTieredMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.steam.SimpleSteamMachine;
-import com.gregtechceu.gtceu.api.machine.steam.SteamBoilerMachine;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.client.renderer.machine.*;
@@ -68,7 +67,7 @@ public class GTMachines {
             SteamSolidBoilerMachine::new,
             (pressure, builder) -> builder.allRotation()
                     .recipeType(STEAM_BOILER_RECIPES)
-                    .recipeModifier(SteamBoilerMachine::recipeModifier)
+                    .recipeModifier(RecipeModifier.STEAM_BOILER_MODIFIER)
                     .workableSteamHullRenderer(pressure, GTCEu.id("block/generators/boiler/coal"))
                     .tooltips(Component.translatable("gtceu.universal.tooltip.produces_fluid",
                             (pressure ? ConfigHolder.INSTANCE.machines.smallBoilers.hpSolidBoilerBaseOutput :
@@ -81,7 +80,7 @@ public class GTMachines {
             SteamLiquidBoilerMachine::new,
             (pressure, builder) -> builder.allRotation()
                     .recipeType(STEAM_BOILER_RECIPES)
-                    .recipeModifier(SteamBoilerMachine::recipeModifier)
+                    .recipeModifier(RecipeModifier.STEAM_BOILER_MODIFIER)
                     .workableSteamHullRenderer(pressure, GTCEu.id("block/generators/boiler/lava"))
                     .tooltips(Component.translatable("gtceu.universal.tooltip.produces_fluid",
                             (pressure ? ConfigHolder.INSTANCE.machines.smallBoilers.hpLiquidBoilerBaseOutput :
@@ -94,7 +93,7 @@ public class GTMachines {
             SteamSolarBoiler::new,
             (pressure, builder) -> builder.nonYAxisRotation()
                     .recipeType(STEAM_BOILER_RECIPES)
-                    .recipeModifier(SteamBoilerMachine::recipeModifier)
+                    .recipeModifier(RecipeModifier.STEAM_BOILER_MODIFIER)
                     .workableSteamHullRenderer(pressure, GTCEu.id("block/generators/boiler/solar"))
                     .tooltips(Component.translatable("gtceu.universal.tooltip.produces_fluid",
                             (pressure ? ConfigHolder.INSTANCE.machines.smallBoilers.hpSolarBoilerBaseOutput :
@@ -229,7 +228,7 @@ public class GTMachines {
                         case 3 -> 3;
                         default -> 4;
                     })
-                    .recipeModifier(GTRecipeModifiers.OC_NON_PERFECT)
+                    .recipeModifier(RecipeModifier.OVERCLOCKING)
                     .workableTieredHullRenderer(GTCEu.id("block/machines/macerator"))
                     .tooltips(workableTiered(tier, GTValues.V[tier], GTValues.V[tier] * 64,
                             GTRecipeTypes.MACERATOR_RECIPES, defaultTankSizeFunction.applyAsInt(tier), true))
@@ -244,7 +243,7 @@ public class GTMachines {
                             GTRecipeTypes.ROCK_BREAKER_RECIPES))
                     .nonYAxisRotation()
                     .recipeType(GTRecipeTypes.ROCK_BREAKER_RECIPES)
-                    .recipeModifier(GTRecipeModifiers.OC_NON_PERFECT)
+                    .recipeModifier(RecipeModifier.OVERCLOCKING)
                     .workableTieredHullRenderer(GTCEu.id("block/machines/rock_crusher"))
                     .tooltips(workableTiered(tier, GTValues.V[tier], GTValues.V[tier] * 64,
                             GTRecipeTypes.ROCK_BREAKER_RECIPES, defaultTankSizeFunction.applyAsInt(tier), true))
@@ -258,7 +257,7 @@ public class GTMachines {
                             GTRecipeTypes.AIR_SCRUBBER_RECIPES))
                     .nonYAxisRotation()
                     .recipeType(GTRecipeTypes.AIR_SCRUBBER_RECIPES)
-                    .recipeModifier(GTRecipeModifiers.OC_NON_PERFECT)
+                    .recipeModifier(RecipeModifier.OVERCLOCKING)
                     .workableTieredHullRenderer(GTCEu.id("block/machines/air_scrubber"))
                     .tooltips(workableTiered(tier, GTValues.V[tier], GTValues.V[tier] * 64,
                             GTRecipeTypes.AIR_SCRUBBER_RECIPES, defaultTankSizeFunction.applyAsInt(tier), true))

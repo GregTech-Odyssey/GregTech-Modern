@@ -214,7 +214,7 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
 
     protected enum TransferDirection {
         INSERT,
-        EXTRACT;
+        EXTRACT
     }
 
     protected Object2LongMap<FluidStack> enumerateDistinctFluids(IFluidHandlerModifiable fluidHandler, TransferDirection direction) {

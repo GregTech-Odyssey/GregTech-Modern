@@ -306,7 +306,7 @@ public class MinerLogic extends RecipeLogic {
 
     protected NotifiableAccountedInvWrapper getCachedItemHandler() {
         if (cachedItemHandler == null) {
-            cachedItemHandler = new NotifiableAccountedInvWrapper(machine.getCapabilitiesFlat(IO.OUT, ItemRecipeCapability.CAP).stream().map(IItemHandlerModifiable.class::cast).toArray(IItemHandlerModifiable[]::new));
+            cachedItemHandler = new NotifiableAccountedInvWrapper(machine.getCapabilitiesFlat(IO.OUT, IItemHandlerModifiable.class).toArray(IItemHandlerModifiable[]::new));
         }
         return cachedItemHandler;
     }

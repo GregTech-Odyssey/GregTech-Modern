@@ -12,7 +12,6 @@ import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
-import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.utils.FluidStackHashStrategy;
 import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 import com.gregtechceu.gtceu.utils.collection.SafeR2LMap;
@@ -29,7 +28,6 @@ import net.minecraftforge.fluids.FluidStack;
 import com.fast.recipesearch.IntLongMap;
 import com.gto.datasynclib.util.holder.LongHolder;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -50,20 +48,17 @@ public class RecipeHandlerUnit {
     public final IRecipeHandler[] allHandlers;
     public final IRecipeHandlerTrait[] allHandlerTraits;
 
-    @Getter
-    protected final IO handlerIO;
-    @Getter
-    protected int color = -1;
-    @Getter
-    protected boolean isDistinct;
+    public final IO handlerIO;
+    public int color = -1;
+    public boolean isDistinct;
 
     public int priority;
 
-    protected boolean isInfiniteOutputItem;
-    protected boolean isInfiniteOutputFluid;
+    public boolean isInfiniteOutputItem;
+    public boolean isInfiniteOutputFluid;
 
     // cache
-    public final IntLongMap intIngredientMap = new IntLongMap();
+    protected final IntLongMap intIngredientMap = new IntLongMap();
     protected Reference2LongOpenHashMap<Item> itemMap;
     protected Reference2LongOpenHashMap<Fluid> fluidMap;
 
@@ -78,15 +73,24 @@ public class RecipeHandlerUnit {
         var traits = new ArrayList<IRecipeHandlerTrait>();
         for (var handler : handlers) {
             if (handler.canHandleItem()) {
-                if (handler.isInfiniteOutputItem()) isInfiniteOutputItem = true;
+                if (handler.isInfiniteOutputItem()) {
+                    isInfiniteOutputItem = true;
+                    priority = IFilteredHandler.HIGH;
+                }
                 items.add(handler);
             }
             if (handler.canHandleFluid()) {
-                if (handler.isInfiniteOutputFluid()) isInfiniteOutputFluid = true;
+                if (handler.isInfiniteOutputFluid()) {
+                    isInfiniteOutputFluid = true;
+                    priority = IFilteredHandler.HIGH;
+                }
                 fluids.add(handler);
             }
             if (handler.canHandleContent()) searchs.add(handler);
-            if (handler instanceof IRecipeHandlerTrait trait) traits.add(trait);
+            if (handler instanceof IRecipeHandlerTrait trait) {
+                if (trait.getHandlerIO() != handlerIO) throw new IllegalArgumentException("RecipeHandlerTrait IO must match RecipeHandlerUnit IO");
+                traits.add(trait);
+            }
         }
         this.itemHandlers = items.toArray(new IRecipeHandler[0]);
         this.fluidHandlers = fluids.toArray(new IRecipeHandler[0]);
@@ -157,7 +161,7 @@ public class RecipeHandlerUnit {
 
     public boolean isValid(IO extIO) {
         if (this == NO_DATA || handlerIO == IO.NONE) return false;
-        return (extIO == IO.BOTH || handlerIO == IO.BOTH || extIO == handlerIO);
+        return extIO == handlerIO;
     }
 
     public ISubscription subscribe(Runnable listener) {
@@ -264,76 +268,6 @@ public class RecipeHandlerUnit {
         return multiplier;
     }
 
-    public long getOutputItemParallelAmount(GTRecipe recipe, List<Content<ItemIngredient>> contents, long multiplier) {
-        if (isInfiniteOutputItem) return multiplier;
-        long minMultiplier = 0;
-        long maxMultiplier = multiplier;
-        long maxCount = 0;
-        for (var content : contents) {
-            maxCount = Math.max(maxCount, content.amount);
-        }
-        if (maxCount == 0) return multiplier;
-        if (multiplier > ParallelLogic.MAX_PARALLEL / maxCount) {
-            maxMultiplier = multiplier = ParallelLogic.MAX_PARALLEL / maxCount;
-        }
-        var handlers = itemHandlers;
-        if (handlers.length == 0) return 0;
-        while (minMultiplier != maxMultiplier) {
-            var copied = GTRecipe.copyContents(contents, multiplier);
-            boolean success = false;
-            for (var handler : handlers) {
-                handler.handleRecipeItem(IO.OUT, recipe, copied, true);
-                if (copied.isEmpty()) {
-                    success = true;
-                    break;
-                }
-            }
-            if (!success && multiplier == 1) {
-                return 0;
-            }
-            long[] bin = adjustMultiplier(success, minMultiplier, multiplier, maxMultiplier);
-            minMultiplier = bin[0];
-            multiplier = bin[1];
-            maxMultiplier = bin[2];
-        }
-        return multiplier;
-    }
-
-    public long getOutputFluidParallelAmount(GTRecipe recipe, List<Content<FluidIngredient>> contents, long multiplier) {
-        if (isInfiniteOutputFluid) return multiplier;
-        long minMultiplier = 0;
-        long maxMultiplier = multiplier;
-        long maxCount = 0;
-        for (var content : contents) {
-            maxCount = Math.max(maxCount, content.amount);
-        }
-        if (maxCount == 0) return multiplier;
-        if (multiplier > ParallelLogic.MAX_PARALLEL / maxCount) {
-            maxMultiplier = multiplier = ParallelLogic.MAX_PARALLEL / maxCount;
-        }
-        var handlers = fluidHandlers;
-        if (handlers.length == 0) return 0;
-        while (minMultiplier != maxMultiplier) {
-            var copied = GTRecipe.copyContents(contents, multiplier);
-            boolean success = false;
-            for (var handler : handlers) {
-                handler.handleRecipeFluid(IO.OUT, recipe, copied, true);
-                if (copied.isEmpty()) {
-                    success = true;
-                    break;
-                }
-            }
-            if (!success && multiplier == 1) {
-                return 0;
-            }
-            long[] bin = adjustMultiplier(success, minMultiplier, multiplier, maxMultiplier);
-            minMultiplier = bin[0];
-            multiplier = bin[1];
-            maxMultiplier = bin[2];
-        }
-        return multiplier;
-    }
-
     public IntLongMap getSearchMap(@NotNull GTRecipeType type) {
         intIngredientMap.clear();
         for (var s : contentHandlers) {
@@ -382,12 +316,10 @@ public class RecipeHandlerUnit {
 
     public boolean handleRecipeItem(IO io, GTRecipe recipe, List<Content<ItemIngredient>> items, boolean simulate) {
         if (items.isEmpty()) return true;
-        if (io == IO.OUT) {
-            if (simulate && isInfiniteOutputItem) return true;
-        } else {
-            items = GTRecipe.copyContents(items, 1);
-        }
+        if (io != handlerIO) throw new IllegalStateException("IO is not the same");
+        if (io == IO.OUT && simulate && isInfiniteOutputItem) return true;
         for (var handler : itemHandlers) {
+            if (!simulate && handler.isNotConsumable()) continue;
             handler.handleRecipeItem(io, recipe, items, simulate);
             if (items.isEmpty()) {
                 return true;
@@ -398,12 +330,10 @@ public class RecipeHandlerUnit {
 
     public boolean handleRecipeFluid(IO io, GTRecipe recipe, List<Content<FluidIngredient>> fluids, boolean simulate) {
         if (fluids.isEmpty()) return true;
-        if (io == IO.OUT) {
-            if (simulate && isInfiniteOutputFluid) return true;
-        } else {
-            fluids = GTRecipe.copyContents(fluids, 1);
-        }
+        if (io != handlerIO) throw new IllegalStateException("IO is not the same");
+        if (io == IO.OUT && simulate && isInfiniteOutputFluid) return true;
         for (var handler : fluidHandlers) {
+            if (!simulate && handler.isNotConsumable()) continue;
             handler.handleRecipeFluid(io, recipe, fluids, simulate);
             if (fluids.isEmpty()) {
                 return true;
@@ -413,25 +343,11 @@ public class RecipeHandlerUnit {
     }
 
     public boolean handleItem(IO io, List<Content<ItemIngredient>> items, boolean simulate) {
-        if (items.isEmpty()) return true;
-        for (var handler : itemHandlers) {
-            handler.handleRecipeItem(io, GTRecipe.EMPTY, items, simulate);
-            if (items.isEmpty()) {
-                return true;
-            }
-        }
-        return false;
+        return handleRecipeItem(io, GTRecipe.EMPTY, items, simulate);
     }
 
     public boolean handleFluid(IO io, List<Content<FluidIngredient>> fluids, boolean simulate) {
-        if (fluids.isEmpty()) return true;
-        for (var handler : fluidHandlers) {
-            handler.handleRecipeFluid(io, GTRecipe.EMPTY, fluids, simulate);
-            if (fluids.isEmpty()) {
-                return true;
-            }
-        }
-        return false;
+        return handleRecipeFluid(io, GTRecipe.EMPTY, fluids, simulate);
     }
 
     public boolean inputItem(ItemLike item, long amount) {
@@ -624,20 +540,5 @@ public class RecipeHandlerUnit {
             contentList.add(new Content<>(FluidIngredient.of(content)));
         }
         return contentList;
-    }
-
-    public static long[] adjustMultiplier(boolean mergedAll, long minMultiplier, long multiplier, long maxMultiplier) {
-        if (mergedAll) {
-            minMultiplier = multiplier;
-            long remainder = (maxMultiplier - multiplier) % 2;
-            multiplier = multiplier + remainder + (maxMultiplier - multiplier) / 2;
-        } else {
-            maxMultiplier = multiplier;
-            multiplier = (multiplier + minMultiplier) / 2;
-        }
-        if (maxMultiplier - minMultiplier <= 1) {
-            multiplier = maxMultiplier = minMultiplier;
-        }
-        return new long[] { minMultiplier, multiplier, maxMultiplier };
     }
 }

@@ -48,7 +48,7 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
     public enum State {
         IDLE,
         RUNNING,
-        FINISHED;
+        FINISHED
     }
 
     @Setter

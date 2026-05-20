@@ -94,7 +94,7 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
 
     @Override
     protected NotifiableFluidTank createSteamTank(Object... args) {
-        return new NotifiableFluidTank(this, 1, 16 * FluidType.BUCKET_VOLUME, IO.IN);
+        return new NotifiableFluidTank(this, 1, 16 * FluidType.BUCKET_VOLUME, IO.NONE, IO.IN);
     }
 
     protected NotifiableItemStackHandler createImportItemHandler(@SuppressWarnings("unused") Object... args) {

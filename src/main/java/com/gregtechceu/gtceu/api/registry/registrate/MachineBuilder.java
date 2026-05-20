@@ -322,7 +322,6 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
 
     static class BlockBuilderWrapper {
 
-        @SuppressWarnings("removal")
         public static <DEFINITION extends MachineDefinition> BlockBuilder<MetaMachineBlock, Registrate> makeBlockBuilder(MachineBuilder<DEFINITION> builder, DEFINITION definition) {
             return
             // .tag(GTToolType.WRENCH.harvestTag)

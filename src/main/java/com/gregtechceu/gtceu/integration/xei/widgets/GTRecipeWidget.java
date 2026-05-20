@@ -376,7 +376,7 @@ public class GTRecipeWidget extends WidgetGroup {
                                                 content,
                                                 null, minTier, tier);
                                         widget.setOverlay(content.createOverlay(index >= nonTickCount, minTier, tier,
-                                                recipe.recipeType.getChanceFunction()));
+                                                recipe.chanceFunction));
                                     }
                                 });
                     }

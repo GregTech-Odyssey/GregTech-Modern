@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
-import com.gregtechceu.gtceu.utils.GTMath;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.SimpleStack;
@@ -88,11 +87,11 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
         if (simulate) {
             handleRecipeSimulate(io, left, storage);
         } else {
-            handleRecipe(io, recipe, left, storage);
+            handleRecipe(io, left, storage);
         }
     }
 
-    public static void handleRecipe(IO io, GTRecipe recipe, List<Content<ItemIngredient>> left, CustomItemStackHandler storage) {
+    public static void handleRecipe(IO io, List<Content<ItemIngredient>> left, CustomItemStackHandler storage) {
         Runnable listener = storage.getOnContentsChanged();
         storage.setOnContentsChangedAndfreeze(GTUtil.NOOP);
         boolean changed = false;
@@ -109,7 +108,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
                     int count = stored.getCount();
                     if (count == 0) continue;
                     if (ingredient.inner.test(stored)) {
-                        var extracted = storage.extractItem(slot, ingredient.getIntAmount(), false).getCount();
+                        var extracted = storage.extract(slot, ingredient.getIntAmount(), false);
                         if (extracted > 0) {
                             changed = true;
                             ingredient.shrink(extracted);
@@ -131,15 +130,14 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
                     ItemStack stored = storage.stacks[slot];
                     int count = stored.getCount();
                     if (count < itemStack.getMaxStackSize() && count < storage.getSlotLimit(slot) && (count == 0 || stored.is(item))) {
-                        var outputAmount = ingredient.getChanceAmount(recipe.definition.chanceBoost, recipe.tier, recipe.tier + recipe.ocLevel);
-                        var remainder = storage.insertItemFast(slot, itemStack, GTMath.saturatedCast(outputAmount), false);
-                        if (remainder < outputAmount) {
+                        var inserted = storage.insert(slot, itemStack, ingredient.getIntAmount(), false);
+                        if (inserted > 0) {
                             changed = true;
-                            if (remainder <= 0) {
+                            ingredient.shrink(inserted);
+                            if (ingredient.amount <= 0) {
                                 it.remove();
                                 break;
                             }
-                            ingredient.amount = remainder;
                         }
                     }
                 }
@@ -165,7 +163,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
                     int count = (visited == null ? stored.getCount() : visited.getAmount());
                     if (count == 0) continue;
                     if (ingredient.inner.test(stored)) {
-                        var extracted = storage.extractItem(slot, ingredient.getIntAmount(), true).getCount();
+                        var extracted = storage.extract(slot, ingredient.getIntAmount(), true);
                         if (extracted > 0) {
                             visiteds[slot] = new SimpleStack<>(stored, count - extracted);
                             ingredient.shrink(extracted);
@@ -188,14 +186,14 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
                     var visited = visiteds[slot];
                     int count = (visited == null ? stored.getCount() : visited.getAmount());
                     if (count < itemStack.getMaxStackSize() && count < storage.getSlotLimit(slot) && (count == 0 || stored.is(item)) && (visited == null || visited.inner.is(item))) {
-                        var remainder = storage.insertItemFast(slot, itemStack, ingredient.getIntAmount(), true);
-                        if (remainder < ingredient.amount) {
-                            visiteds[slot] = new SimpleStack<>(itemStack, remainder);
-                            if (remainder <= 0) {
+                        var inserted = storage.insert(slot, itemStack, ingredient.getIntAmount(), true);
+                        if (inserted > 0) {
+                            visiteds[slot] = new SimpleStack<>(itemStack, inserted);
+                            ingredient.shrink(inserted);
+                            if (ingredient.amount <= 0) {
                                 it.remove();
                                 break;
                             }
-                            ingredient.amount = remainder;
                         }
                     }
                 }

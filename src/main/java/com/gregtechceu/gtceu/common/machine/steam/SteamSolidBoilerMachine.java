@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.common.machine.steam;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
@@ -26,8 +25,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidUtil;
 
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-
-import java.util.Collections;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -73,10 +70,9 @@ public class SteamSolidBoilerMachine extends SteamBoilerMachine {
     public void afterWorking() {
         super.afterWorking();
         if (recipeLogic.getLastRecipe() != null) {
-            var inputs = recipeLogic.getLastRecipe().inputs.getOrDefault(ItemRecipeCapability.CAP,
-                    Collections.emptyList());
+            var inputs = recipeLogic.getLastRecipe().itemInputs;
             if (!inputs.isEmpty()) {
-                var input = ItemRecipeCapability.CAP.of(inputs.getFirst()).getInnerItemStack();
+                var input = inputs.getFirst().inner.getInnerItemStack();
                 if (!input.isEmpty()) {
                     var remaining = getBurningFuelRemainder(input);
                     if (!remaining.isEmpty()) {

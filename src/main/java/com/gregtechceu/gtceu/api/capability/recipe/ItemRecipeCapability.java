@@ -159,13 +159,13 @@ public class ItemRecipeCapability extends ContentRecipeCapability<ItemIngredient
                 }
             }
             if (content != null) {
-                float chance = (float) recipeType.getChanceFunction()
+                float chance = (float) recipe.chanceFunction
                         .getBoostedChance(content, recipeTier, chanceTier) / Content.MAX_CHANCE;
                 slot.setXEIChance(chance);
                 slot.setOnAddedTooltips((w, tooltips) -> {
                     GTRecipeWidget.setConsumedChance(content,
                             ChanceLogic.OR,
-                            tooltips, recipeTier, chanceTier, recipeType.getChanceFunction());
+                            tooltips, recipeTier, chanceTier, recipe.chanceFunction);
                 });
                 if (io == IO.IN && content.chance == 0) {
                     slot.setIngredientIO(IngredientIO.CATALYST);

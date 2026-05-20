@@ -61,7 +61,7 @@ public interface IWorkableMultiPart extends IMultiPart {
         var c = part.getClass();
         return MODIFY_RECIPE_METHOD.computeIfAbsent(c, k -> {
             try {
-                return EmptyMethodChecker.hasMethodBody(c.getMethod("modifyRecipe", IWorkableMultiController.class, GTRecipe.class));
+                return EmptyMethodChecker.hasMethodBody(c.getMethod("modifyRecipe", IWorkableMultiController.class, RecipeHandlerUnit.class, GTRecipe.class));
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
@@ -85,11 +85,11 @@ public interface IWorkableMultiPart extends IMultiPart {
     }
 
     default List<RecipeHandlerUnit> getRecipeHandlers() {
-        return Collections.singletonList(getHandlerList());
+        return Collections.singletonList(getHandlerUnit());
     }
 
-    default RecipeHandlerUnit getHandlerList() {
-        var list = getRecipeHandlerList();
+    default RecipeHandlerUnit getHandlerUnit() {
+        var list = getRecipeHandlerUnit();
         if (list == null) {
             List<IRecipeHandler> handlers = new ArrayList<>();
             IO handlerIO = null;
@@ -102,10 +102,10 @@ public interface IWorkableMultiPart extends IMultiPart {
 
             if (handlers.isEmpty()) {
                 list = RecipeHandlerUnit.NO_DATA;
-                setRecipeHandlerList(list);
+                setRecipeHandlerUnit(list);
             } else {
                 list = RecipeHandlerUnit.of(handlerIO, this, handlers);
-                setRecipeHandlerList(list);
+                setRecipeHandlerUnit(list);
             }
         }
         return list;
@@ -149,7 +149,7 @@ public interface IWorkableMultiPart extends IMultiPart {
         return recipe;
     }
 
-    RecipeHandlerUnit getRecipeHandlerList();
+    RecipeHandlerUnit getRecipeHandlerUnit();
 
-    void setRecipeHandlerList(RecipeHandlerUnit list);
+    void setRecipeHandlerUnit(RecipeHandlerUnit list);
 }

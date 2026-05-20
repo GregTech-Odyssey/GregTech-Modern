@@ -66,7 +66,7 @@ public class MedicalCondition {
     public enum IdleProgressionType {
         UNTREATED_PROGRESSION,
         HEAL,
-        NONE;
+        NONE
     }
 
     /**

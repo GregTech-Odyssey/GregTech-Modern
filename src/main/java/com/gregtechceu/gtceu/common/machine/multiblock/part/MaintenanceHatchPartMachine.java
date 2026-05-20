@@ -16,6 +16,7 @@ import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredPartMachi
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -149,7 +150,7 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
     }
 
     @Override
-    public @Nullable GTRecipe modifyRecipe(IWorkableMultiController controller, GTRecipe recipe) {
+    public @Nullable GTRecipe modifyRecipe(IWorkableMultiController controller, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (ConfigHolder.INSTANCE.machines.enableMaintenance) {
             if (hasMaintenanceProblems()) {
                 return null;

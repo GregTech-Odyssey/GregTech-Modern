@@ -50,7 +50,7 @@ public class PrimitivePumpMachine extends MultiblockControllerMachine implements
 
             for (var handlerList : handlerLists) {
                 var recipeCap = handlerList.getCapabilities(NotifiableFluidTank.class);
-                if (handlerList.getHandlerIO() == IO.OUT && !recipeCap.isEmpty()) {
+                if (handlerList.handlerIO == IO.OUT && !recipeCap.isEmpty()) {
                     fluidTank = recipeCap.getFirst();
                     long tankCapacity = fluidTank.getTankCapacity(0);
                     if (tankCapacity == FluidType.BUCKET_VOLUME) {
