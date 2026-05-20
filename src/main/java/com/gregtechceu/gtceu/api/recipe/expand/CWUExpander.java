@@ -5,8 +5,15 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
+import com.gregtechceu.gtceu.utils.FormattingUtil;
+
+import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
+import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
 import com.fast.recipesearch.IntLongMap;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 
 public final class CWUExpander extends ContentExpander {
@@ -47,5 +54,17 @@ public final class CWUExpander extends ContentExpander {
         var cwu = recipe.getInputCWUt();
         if (cwu < 1) return;
         recipe.setCWUt(cwu * parallel);
+    }
+
+    @Override
+    public void addXEIInfo(GTRecipeDefinition recipe, WidgetGroup group, int xOffset, MutableInt yOffset, boolean isTick) {
+        if (isTick) {
+            group.addWidget(new LabelWidget(3 - xOffset, yOffset.addAndGet(10),
+                    LocalizationUtils.format("gtceu.recipe.computation_per_tick", FormattingUtil.formatNumbers(recipe.data.getLong(GTRecipeDataKeys.CWUT)))));
+        }
+        if (recipe.data.getBoolean(GTRecipeDataKeys.DURATION_IS_TOTAL_CWU)) {
+            group.addWidget(new LabelWidget(3 - xOffset, yOffset.addAndGet(10),
+                    LocalizationUtils.format("gtceu.recipe.total_computation", FormattingUtil.formatNumbers(recipe.duration))));
+        }
     }
 }
