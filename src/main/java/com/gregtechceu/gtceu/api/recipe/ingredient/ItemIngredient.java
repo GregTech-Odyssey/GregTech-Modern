@@ -8,6 +8,9 @@ import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.NumericTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -98,6 +101,29 @@ public class ItemIngredient extends ContentInner implements Predicate<ItemStack>
         }
         data.putLong("a", amount);
         return data;
+    }
+
+    public static ItemIngredient fromNbt(CompoundTag tag) {
+        if (tag.tags.get(IntCircuitIngredient.Configuration) instanceof NumericTag numericTag) {
+            return IntCircuitIngredient.CIRCUIT_INPUTS[numericTag.getAsInt()];
+        }
+        var amount = tag.getLong("count");
+        var item = tag.tags.get("item");
+        if (item != null) {
+            return ItemIngredient.of(GTUtil.ITEM_VALUE.apply(GTUtil.getResourceLocation(item.getAsString())), amount);
+        }
+        var t = tag.tags.get("tag");
+        if (t != null) {
+            return ItemIngredient.of(TagKey.create(Registries.ITEM, GTUtil.getResourceLocation(t.getAsString())), amount);
+        }
+        var in = tag.tags.get("ingredient");
+        if (in != null) {
+            Ingredient inner = Ingredient.fromJson(NbtOps.INSTANCE.convertTo(JsonOps.INSTANCE, in));
+            if (!inner.isEmpty()) {
+                return new ItemIngredient(inner, amount);
+            }
+        }
+        return EMPTY;
     }
 
     public static ItemIngredient fromData(Data data) {

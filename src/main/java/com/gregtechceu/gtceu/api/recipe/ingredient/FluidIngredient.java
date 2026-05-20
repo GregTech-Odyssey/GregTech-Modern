@@ -8,6 +8,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.material.Fluid;
@@ -104,6 +105,19 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
         data.putLong("a", amount);
         if (nbt != null) data.put("n", NbtOps.INSTANCE.convertTo(DataOps.INSTANCE, nbt));
         return data;
+    }
+
+    public static FluidIngredient fromNbt(CompoundTag tag) {
+        if (tag.getBoolean("empty")) return EMPTY;
+        var amount = tag.getLong("amount");
+        var nbt = tag.tags.get("nbt") instanceof CompoundTag nbtTag ? nbtTag : null;
+        if (tag.tags.get("fluid") instanceof StringTag stringTag) {
+            return new FluidIngredient(GTUtil.FLUID_VALUE.apply(GTUtil.getResourceLocation(stringTag.getAsString())), amount, nbt);
+        } else if (tag.tags.get("tag") instanceof StringTag stringTag) {
+            return new FluidIngredient(TagKey.create(Registries.FLUID, GTUtil.getResourceLocation(stringTag.getAsString())), amount, nbt);
+        } else {
+            throw new IllegalStateException("Unknown fluid ingredient type");
+        }
     }
 
     public static FluidIngredient fromData(Data data) {
