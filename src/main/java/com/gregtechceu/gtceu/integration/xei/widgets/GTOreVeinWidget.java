@@ -201,7 +201,8 @@ public class GTOreVeinWidget extends WidgetGroup {
 
     public static String getOreName(GTOreDefinition oreDefinition) {
         ResourceLocation id = GTRegistries.ORE_VEINS.getKey(oreDefinition);
-        return id.getPath();
+        String path = id.getPath();
+        return path.startsWith("ores/") ? path.substring("ores/".length()) : path;
     }
 
     public static String getFluidName(BedrockFluidDefinition fluid) {

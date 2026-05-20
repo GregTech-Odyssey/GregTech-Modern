@@ -89,6 +89,11 @@ public class GTShovelItem extends ShovelItem implements IGTTool {
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
+        InteractionResult result = definition$onItemUse(context);
+        if (result != InteractionResult.PASS) {
+            return result;
+        }
+
         Level level = context.getLevel();
         BlockPos blockpos = context.getClickedPos();
         BlockState blockstate = level.getBlockState(blockpos);

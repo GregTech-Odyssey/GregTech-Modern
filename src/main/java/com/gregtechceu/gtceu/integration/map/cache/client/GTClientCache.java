@@ -36,8 +36,7 @@ public class GTClientCache extends WorldCache implements IClientCache {
         if (player == null) return;
 
         for (var vein : veins) {
-            var veinId = vein.id().toString();
-            var name = Component.translatable(veinId.replace("gtceu:", "gtceu.jei.ore_vein."));
+            var name = OreRenderLayer.getName(vein);
             var material = OreRenderLayer.getMaterial(vein);
 
             if (!material.isNull()) {

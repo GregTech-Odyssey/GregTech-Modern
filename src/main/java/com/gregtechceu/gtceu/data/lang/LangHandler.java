@@ -436,7 +436,7 @@ public class LangHandler {
         provider.add("cover.machine_controller.normal", "Normal");
         provider.add("cover.machine_controller.inverted", "Inverted");
         multilineLang(provider, "cover.machine_controller.invert.enabled",
-                "§eInverted§r - in this mode, the cover will require a signal stronger than the set redstone level to run");
+                "§eInverted§r - in this mode, the cover will require a signal not weaker than the set redstone level to run");
         multilineLang(provider, "cover.machine_controller.invert.disabled",
                 "§eNormal§r - in this mode, the cover will require a signal weaker than the set redstone level to run");
         provider.add("cover.machine_controller.redstone", "Min Redstone Strength: %d");
@@ -958,6 +958,7 @@ public class LangHandler {
         provider.add("gtceu.recipe.total", "Total: %s EU");
         provider.add("gtceu.recipe.max_eu", "Max. EU: %s EU");
         provider.add("gtceu.recipe.eu", "Usage: %s EU/t");
+        provider.add("gtceu.recipe.eu.tier", "%s A @ %s");
         provider.add("gtceu.recipe.eu_inverted", "Generation: %s EU/t");
         provider.add("gtceu.recipe.duration", "Duration: %s secs");
         provider.add("gtceu.recipe.amperage", "Amperage: %s");

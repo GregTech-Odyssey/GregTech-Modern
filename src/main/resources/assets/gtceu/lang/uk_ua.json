@@ -4930,6 +4930,7 @@
   "gtceu.recipe.temperature": "Температура: %sK",
   "gtceu.recipe.total": "Загалом: %s EU",
   "gtceu.recipe.eu": "Використання: %s EU/т",
+  "gtceu.recipe.eu.tier": "%s A @ %s",
   "gtceu.recipe_memory_widget.tooltip.0": "§7Клацніть ЛКМ, щоб автоматично внести цей рецепт до сітки виготовлення",
   "gtceu.recipe_memory_widget.tooltip.1": "§7Клацайте із затиснутим Shift, щоб заблокувати/розблокувати цей рецепт",
 
@@ -5500,8 +5501,8 @@
   "cover.item_smart_filter.filtering_mode.description.0": "Виберіть машину, яку буде використовувати розумний фільтр для фільтрації.",
   "cover.item_smart_filter.filtering_mode.description.1": "Він автоматично вибере потрібні обсяги предметів для маніпулятора.",
   "cover.item_smart_filter.title": "Розумний фільтр предметів",
-  "cover.machine_controller.invert.disabled.0": "§eНормальний§r - у цьому режимі для запуску кришка потребує слабшого сигналу редстоуна, ніж встановлений рівень",
-  "cover.machine_controller.invert.enabled.0": "§eІнвертований§r - у цьому режимі для запуску кришки потребує сильнішого сигналу редстоуна, ніж встановлений рівень",
+  "cover.machine_controller.invert.disabled.0": "§eНормальний§r - у цьому режимі для запуску кришка потребує сигналу редстоуна слабшого за встановлений рівень",
+  "cover.machine_controller.invert.enabled.0": "§eІнвертований§r - у цьому режимі для запуску кришка потребує сигналу редстоуна не слабшого за встановлений рівень",
   "cover.machine_controller.inverted": "Інвертований",
   "cover.machine_controller.mode.cover_down": "Кришка управління (низ)",
   "cover.machine_controller.mode.cover_east": "Контрольна кришка (схід)",

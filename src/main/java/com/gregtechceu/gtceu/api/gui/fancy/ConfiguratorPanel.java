@@ -35,6 +35,16 @@ import java.util.List;
 
 public class ConfiguratorPanel extends WidgetGroup {
 
+    // 配置panel的默认属性
+    private static final int TAB_SIZE = 24;
+    private static final int TAB_GAP = 2;
+    private static final int DEFAULT_MAX_TABS_PER_COLUMN = 3;
+    private static final int MAX_COLUMNS = 3;
+    // 配置panel的动态属性
+    protected int maxTabsPerColumn = DEFAULT_MAX_TABS_PER_COLUMN;
+    protected int columnCount = 1;
+    protected int rowCount = 0;
+
     @Getter
     protected List<Tab> tabs = new ArrayList<>();
     @Nullable
@@ -52,10 +62,17 @@ public class ConfiguratorPanel extends WidgetGroup {
         clearAllWidgets();
         tabs.clear();
         expanded = null;
+        columnCount = 1;
+        rowCount = 0;
+        setSize(new Size(getTabSize(), 0));
     }
 
     public int getTabSize() {
-        return getSize().width;
+        return TAB_SIZE;
+    }
+
+    public void setAvailableHeight(int availableHeight) {
+        this.maxTabsPerColumn = Math.max(1, (availableHeight + TAB_GAP) / (getTabSize() + TAB_GAP));
     }
 
     public void attachConfigurators(IFancyConfigurator... fancyConfigurators) {
@@ -65,15 +82,16 @@ public class ConfiguratorPanel extends WidgetGroup {
             tabs.add(tab);
             addWidgetAnima(tab, new Transform().scale(0).duration(getAnimationTime()).ease(Eases.EaseQuadOut));
         }
-        setSize(new Size(getSize().width, Math.max(0, tabs.size() * (getTabSize() + 2) - 2)));
+        updateLayout();
     }
 
     public void expandTab(Tab tab) {
         tab.expand();
-        int i = 0;
-        for (Tab otherTab : tabs) {
+        for (int i = 0; i < tabs.size(); i++) {
+            var otherTab = tabs.get(i);
             if (otherTab != tab) {
-                otherTab.collapseTo(0, i++ * (getTabSize() + 2));
+                var position = getTabPosition(i);
+                otherTab.collapseTo(position.x, position.y);
             }
         }
         expanded = tab;
@@ -82,13 +100,41 @@ public class ConfiguratorPanel extends WidgetGroup {
     public void collapseTab() {
         if (expanded != null) {
             for (int i = 0; i < tabs.size(); i++) {
-                tabs.get(i).collapseTo(0, i * (getTabSize() + 2));
+                var position = getTabPosition(i);
+                tabs.get(i).collapseTo(position.x, position.y);
             }
             if (expanded instanceof FloatingTab) {
                 expanded.collapseTo(0, 0);
             }
         }
         expanded = null;
+    }
+
+    // 初始化配置panel
+    protected void updateLayout() {
+        columnCount = Math.min(MAX_COLUMNS, Math.max(1, (tabs.size() + maxTabsPerColumn - 1) / maxTabsPerColumn));
+        rowCount = Math.min(tabs.size(), maxTabsPerColumn);
+
+        // 算整个配置panel的大小
+        setSize(new Size(
+                columnCount * getTabSize() + (columnCount - 1) * TAB_GAP,
+                Math.max(0, rowCount * getTabSize() + Math.max(0, rowCount - 1) * TAB_GAP)));
+
+        if (expanded == null) {
+            for (int i = 0; i < tabs.size(); i++) {
+                tabs.get(i).setSelfPosition(getTabPosition(i));
+            }
+        }
+    }
+
+    // 给第i个按钮算坐标
+    protected Position getTabPosition(int index) {
+        int column = index / maxTabsPerColumn;
+        int row = index % maxTabsPerColumn;
+        int columnSize = Math.min(maxTabsPerColumn, Math.max(0, tabs.size() - column * maxTabsPerColumn));
+        int x = (columnCount - column - 1) * (getTabSize() + TAB_GAP);
+        int y = (rowCount - columnSize + row) * (getTabSize() + TAB_GAP);
+        return new Position(x, y);
     }
 
     @Override
@@ -175,7 +221,7 @@ public class ConfiguratorPanel extends WidgetGroup {
         protected boolean isDragging;
 
         public Tab(IFancyConfigurator configurator) {
-            super(0, tabs.size() * (getTabSize() + 2), getTabSize(), getTabSize());
+            super(0, tabs.size() * (getTabSize() + TAB_GAP), getTabSize(), getTabSize());
             this.configurator = configurator;
             this.button = new ButtonWidget(0, 0, getTabSize(), getTabSize(), null, this::onClick) {
 
