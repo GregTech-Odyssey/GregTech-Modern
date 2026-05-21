@@ -109,6 +109,11 @@ public class GTRecipeBuilder {
     @Getter
     protected int tier;
 
+    @Setter
+    @Getter
+    @Accessors(fluent = true, chain = true)
+    protected int priority;
+
     protected int chance = Content.MAX_CHANCE;
     protected int tierChanceBoost = 0;
 
@@ -1023,7 +1028,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeDefinition build(boolean registered) {
-        return new GTRecipeDefinition(registered, recipeType, recipeCategory, id.withPrefix(recipeType.registryName.getPath() + "/"), getItemInputs(), getItemOutputs(), getFluidInputs(), getFluidOutputs(), ImmutableList.copyOf(getConditions()), ImmutableList.copyOf(getContentExpanders()), ImmutableList.copyOf(getTickContentExpanders()), getData(), chanceFunction, eut, tier, duration);
+        return new GTRecipeDefinition(registered, recipeType, recipeCategory, id.withPrefix(recipeType.registryName.getPath() + "/"), getItemInputs(), getItemOutputs(), getFluidInputs(), getFluidOutputs(), ImmutableList.copyOf(getConditions()), ImmutableList.copyOf(getContentExpanders()), ImmutableList.copyOf(getTickContentExpanders()), getData(), chanceFunction, eut, tier, duration, priority);
     }
 
     protected boolean checkChanceAndPrintError(int chance) {

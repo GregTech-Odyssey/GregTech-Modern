@@ -43,8 +43,9 @@ public final class GTRecipeDefinition {
     public final long eut;
     public final int tier;
     public final int duration;
+    public final int priority;
 
-    public GTRecipeDefinition(boolean registered, GTRecipeType recipeType, GTRecipeCategory recipeCategory, ResourceLocation id, List<Content<ItemIngredient>> itemInputs, List<Content<ItemIngredient>> itemOutputs, List<Content<FluidIngredient>> fluidInputs, List<Content<FluidIngredient>> fluidOutputs, List<RecipeCondition> conditions, List<ContentExpander> contentExpanders, List<ContentExpander> tickContentExpanders, DataComponentMap data, ChanceBoostFunction chanceFunction, long eut, int tier, int duration) {
+    public GTRecipeDefinition(boolean registered, GTRecipeType recipeType, GTRecipeCategory recipeCategory, ResourceLocation id, List<Content<ItemIngredient>> itemInputs, List<Content<ItemIngredient>> itemOutputs, List<Content<FluidIngredient>> fluidInputs, List<Content<FluidIngredient>> fluidOutputs, List<RecipeCondition> conditions, List<ContentExpander> contentExpanders, List<ContentExpander> tickContentExpanders, DataComponentMap data, ChanceBoostFunction chanceFunction, long eut, int tier, int duration, int priority) {
         this.registered = registered;
         this.recipeType = recipeType;
         this.recipeCategory = recipeCategory;
@@ -61,6 +62,7 @@ public final class GTRecipeDefinition {
         this.eut = eut;
         this.tier = tier;
         this.duration = duration;
+        this.priority = priority;
     }
 
     @Range(from = 0, to = Long.MAX_VALUE)

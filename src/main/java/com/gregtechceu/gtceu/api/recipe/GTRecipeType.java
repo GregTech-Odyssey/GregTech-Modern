@@ -40,6 +40,7 @@ import com.fast.fastcollection.OpenCacheHashSet;
 import com.fast.recipesearch.IntLongMap;
 import com.fast.recipesearch.RecipeSearcher;
 import com.gto.datasynclib.datasream.DataComponentMap;
+import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.Object2IntAVLTreeMap;
 import it.unimi.dsi.fastutil.objects.Object2IntSortedMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
@@ -87,9 +88,15 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
     protected final Map<String, Collection<GTRecipeDefinition>> researchEntries = new O2OOpenCacheHashMap<>();
     @Getter
     protected final List<ICustomRecipeLogic> customRecipeLogicRunners = new ArrayList<>();
-    public final Map<ResourceLocation, GTRecipeDefinition> recipes = new O2OOpenCacheHashMap<>();
+
+    @Getter
+    protected boolean noSearch;
+    @Getter
+    protected boolean prioritySearch = false;
 
     protected RecipeDB db;
+
+    public final Map<ResourceLocation, GTRecipeDefinition> recipes = new O2OOpenCacheHashMap<>();
 
     public GTRecipeType(ResourceLocation registryName, String group, RecipeType<?>... proxyRecipes) {
         this.registryName = registryName;
@@ -98,7 +105,7 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
         recipeBuilder = new GTRecipeBuilder(registryName, this);
         // must be linked to stop json contents from shuffling
         this.proxyRecipes = new ReferenceOpenHashSet<>(proxyRecipes);
-        this.defaultDefinition = new GTRecipeDefinition(false, this, category, GTCEu.id("default"), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), new DataComponentMap(), ChanceBoostFunction.OVERCLOCK, 0, 0, 100);
+        this.defaultDefinition = new GTRecipeDefinition(false, this, category, GTCEu.id("default"), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), new DataComponentMap(), ChanceBoostFunction.OVERCLOCK, 0, 0, 100, 0);
     }
 
     public static boolean available(GTRecipeType recipeType, GTRecipeType... types) {
@@ -189,7 +196,8 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public RecipeHandlerUnit findRecipe(IRecipeHandlerHolder holder, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
+    public final RecipeHandlerUnit findRecipe(IRecipeHandlerHolder holder, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
+        if (prioritySearch) prioritySearch(holder, canHandle);
         for (var list : holder.getInputList()) {
             if (list.findRecipe(this, canHandle)) return list;
             for (var logic : customRecipeLogicRunners) {
@@ -200,7 +208,23 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
         return null;
     }
 
+    private RecipeHandlerUnit prioritySearch(IRecipeHandlerHolder holder, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
+        var recipes = new ArrayList<Pair<RecipeHandlerUnit, GTRecipeDefinition>>();
+        for (var list : holder.getInputList()) {
+            list.findRecipe(this, (u, r) -> {
+                recipes.add(Pair.of(u, r));
+                return false;
+            });
+            recipes.sort(Comparator.comparingInt(p -> -p.getSecond().priority));
+            for (var p : recipes) {
+                if (canHandle.test(p.getFirst(), p.getSecond())) return p.getFirst();
+            }
+        }
+        return null;
+    }
+
     public boolean search(RecipeHandlerUnit unit, IntLongMap map, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
+        if (noSearch) return false;
         if (db == null) initDB();
         return db.search(unit, map, canHandle);
     }
