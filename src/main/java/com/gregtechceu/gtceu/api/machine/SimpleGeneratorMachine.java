@@ -6,8 +6,12 @@ import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
+import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
@@ -23,6 +27,7 @@ import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -72,6 +77,18 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine {
     @Override
     public boolean canVoidRecipeOutputs(RecipeCapability<?> capability) {
         return true;
+    }
+
+    @Nullable
+    public static GTRecipe recipeModifier(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe) {
+        if (holder instanceof SimpleGeneratorMachine generator) {
+            var EUt = recipe.getOutputEUt();
+            if (EUt > 0) {
+                recipe = ParallelLogic.accurateParallel(holder, unit, recipe, (generator.getOverclockVoltage() / EUt));
+            }
+            return recipe;
+        }
+        return null;
     }
 
     //////////////////////////////////////

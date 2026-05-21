@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
@@ -31,6 +32,7 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
         if (!super.matchRecipeOutput(recipe)) return false;
         if (ConfigHolder.INSTANCE.machines.orderedAssemblyLineItems) {
             if (!consumeOrderedItemInputs(recipe, true)) {
+                setFailReason(ActionResult.FAIL_ORDERED_ITEM::reason);
                 return false;
             }
         } else {
@@ -39,7 +41,11 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
             }
         }
         if (ConfigHolder.INSTANCE.machines.orderedAssemblyLineFluids) {
-            return consumeOrderedFluidInputs(recipe, true);
+            if (!consumeOrderedFluidInputs(recipe, true)) {
+                setFailReason(ActionResult.FAIL_ORDERED_FLUID::reason);
+                return false;
+            }
+            return true;
         } else {
             return unit.handleRecipeFluid(IO.IN, recipe, recipe.fluidInputs, true);
         }

@@ -15,6 +15,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Player;
@@ -41,6 +42,9 @@ public class RecipeLogicProvider extends CapabilityBlockProvider<RecipeLogic> {
     @Override
     protected void write(CompoundTag data, RecipeLogic capability) {
         data.putBoolean("Working", capability.isWorking());
+        if (capability.showFancyTooltip()) {
+            data.putString("IdleReason", Component.Serializer.toJson(capability.getIdleReason()));
+        }
         var recipeInfo = new CompoundTag();
         var recipe = capability.getLastRecipe();
         if (recipe != null) {
@@ -63,6 +67,9 @@ public class RecipeLogicProvider extends CapabilityBlockProvider<RecipeLogic> {
     @Override
     protected void addTooltip(CompoundTag capData, ITooltip tooltip, Player player, BlockAccessor block,
                               BlockEntity blockEntity, IPluginConfig config) {
+        if (capData.get("IdleReason") instanceof StringTag stringTag) {
+            tooltip.add(Component.Serializer.fromJson(stringTag.getAsString()).withStyle(ChatFormatting.GRAY));
+        }
         if (capData.getBoolean("Working")) {
             var recipeInfo = capData.getCompound("Recipe");
             if (!recipeInfo.isEmpty()) {

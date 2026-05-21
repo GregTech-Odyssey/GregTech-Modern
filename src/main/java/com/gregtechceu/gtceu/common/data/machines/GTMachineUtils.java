@@ -237,7 +237,7 @@ public class GTMachineUtils {
                         .editableUI(SimpleGeneratorMachine.EDITABLE_UI_CREATOR.apply(GTCEu.id(name), recipeType))
                         .allRotation()
                         .recipeType(recipeType)
-                        .recipeModifier(RecipeModifier.SIMPLE_GENERATOR_MODIFIER)
+                        .recipeModifier(SimpleGeneratorMachine::recipeModifier)
                         .addOutputLimit(ItemRecipeCapability.CAP, 0)
                         .addOutputLimit(FluidRecipeCapability.CAP, 0)
                         .renderer(() -> new SimpleGeneratorMachineRenderer(tier, GTCEu.id("block/generators/" + name)))
@@ -252,7 +252,7 @@ public class GTMachineUtils {
         return registerSteamMachines("steam_" + name, SimpleSteamMachine::new, (pressure, builder) -> builder
                 .allRotation()
                 .recipeType(recipeType)
-                .recipeModifier(RecipeModifier.SIMPLE_STEAM_MODIFIER)
+                .recipeModifier(SimpleSteamMachine::recipeModifier)
                 .renderer(() -> new WorkableSteamMachineRenderer(pressure, GTCEu.id("block/machines/" + name)))
                 .register());
     }

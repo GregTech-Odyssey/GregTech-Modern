@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
+import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.sound.AutoReleasedSound;
 import com.gregtechceu.gtceu.utils.TaskHandler;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiPredicate;
+import java.util.function.Supplier;
 
 public class RecipeLogic extends MachineTrait implements IWorkable, IFancyTooltip, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> {
 
@@ -50,10 +52,13 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     @DescSynced
     @UpdateListener(methodName = "onActiveSynced")
     protected boolean isActive;
+
     @Nullable
-    @Persisted
     @DescSynced
-    protected Component waitingReason = null;
+    protected Component idleReason = null;
+
+    @Setter
+    protected Supplier<Component> idleReasonSupplier = null;
 
     @Nullable
     @Persisted
@@ -208,13 +213,17 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
 
     public void findAndHandleRecipe() {
         lastRecipe = null;
-        lastOriginRecipe = null;
+        markLastRecipeDirty();
         machine.getRecipeType().findRecipe(machine, this);
+        if (idleReasonSupplier != null) {
+            idleReason = idleReasonSupplier.get();
+            idleReasonSupplier = null;
+        }
     }
 
     @Override
     public boolean test(RecipeHandlerUnit unit, GTRecipeDefinition definition) {
-        return machine.checkConditions(unit, definition) && checkMatchedRecipeAvailable(unit, definition);
+        return machine.checkTier(definition) && machine.checkConditions(unit, definition) && checkMatchedRecipeAvailable(unit, definition);
     }
 
     public void setupRecipe(RecipeHandlerUnit unit, @NotNull GTRecipe recipe) {
@@ -243,16 +252,13 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
             machine.self().requestSync();
             this.status = status;
             updateTickSubscription();
-            if (this.status != WAITING) {
-                waitingReason = null;
-            }
         }
     }
 
     public void setWaiting(@Nullable Component reason) {
         if (this.status != WAITING) {
             setStatus(WAITING);
-            waitingReason = reason;
+            if (reason != null) idleReason = reason;
             machine.onWaiting();
         }
     }
@@ -264,6 +270,8 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     public void markLastRecipeDirty() {
         this.lastOriginRecipe = null;
         this.lastOriginUnit = null;
+        this.idleReasonSupplier = null;
+        this.idleReason = null;
     }
 
     public boolean isWorking() {
@@ -373,7 +381,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
 
     @Override
     public IGuiTexture getFancyTooltipIcon() {
-        if (waitingReason != null) {
+        if (showFancyTooltip()) {
             return GuiTextures.INSUFFICIENT_INPUT;
         }
         return IGuiTexture.EMPTY;
@@ -381,15 +389,20 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
 
     @Override
     public List<Component> getFancyTooltip() {
-        if (waitingReason != null) {
-            return List.of(waitingReason);
+        if (showFancyTooltip()) {
+            return List.of(getIdleReason());
         }
         return Collections.emptyList();
     }
 
     @Override
     public boolean showFancyTooltip() {
-        return waitingReason != null;
+        return status != WORKING && (status == IDLE || idleReason != null);
+    }
+
+    public Component getIdleReason() {
+        if (idleReason == null) return ActionResult.FAIL_NO_RECIPE_FOUND.reason();
+        return idleReason;
     }
 
     @Nullable

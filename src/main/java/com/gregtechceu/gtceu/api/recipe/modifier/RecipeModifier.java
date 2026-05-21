@@ -1,18 +1,14 @@
 package com.gregtechceu.gtceu.api.recipe.modifier;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.machine.SimpleGeneratorMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IOverclockMachine;
 import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.ICoilMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
-import com.gregtechceu.gtceu.api.machine.steam.SimpleSteamMachine;
-import com.gregtechceu.gtceu.api.machine.steam.SteamBoilerMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
-import com.gregtechceu.gtceu.common.recipe.condition.VentCondition;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTMath;
 
@@ -38,37 +34,6 @@ public interface RecipeModifier {
     RecipeModifier BATCH_PROCESSING = RecipeModifier::batchProcessing;
 
     RecipeModifier HATCH_PARALLEL = RecipeModifier::hatchParallel;
-
-    RecipeModifier SIMPLE_GENERATOR_MODIFIER = (holder, unit, recipe) -> {
-        if (holder instanceof SimpleGeneratorMachine generator) {
-            var EUt = recipe.getOutputEUt();
-            if (EUt > 0) {
-                recipe = ParallelLogic.accurateParallel(holder, unit, recipe, (generator.getOverclockVoltage() / EUt));
-            }
-            return recipe;
-        }
-        return null;
-    };
-
-    RecipeModifier SIMPLE_STEAM_MODIFIER = (holder, unit, recipe) -> {
-        if (!(holder instanceof SimpleSteamMachine steamMachine)) {
-            return null;
-        }
-        if (recipe.tier > GTValues.LV || !steamMachine.checkVenting()) {
-            return null;
-        }
-        if (!VentCondition.INSTANCE.testCondition(holder, unit, recipe.definition)) return null;
-        if (!steamMachine.isHighPressure) recipe.durationMultiplier(2);
-        return recipe;
-    };
-
-    RecipeModifier STEAM_BOILER_MODIFIER = (holder, unit, recipe) -> {
-        if (!(holder instanceof SteamBoilerMachine boilerMachine)) {
-            return null;
-        }
-        if (boilerMachine.isHighPressure) recipe.durationMultiplier(0.5);
-        return recipe;
-    };
 
     RecipeModifier CRACKER_OVERCLOCK = (holder, unit, recipe) -> {
         if (holder instanceof ICoilMachine coilMachine) {
@@ -161,8 +126,8 @@ public interface RecipeModifier {
         return (holder, unit, recipe) -> ParallelLogic.accurateParallel(holder, unit, recipe, parallel);
     }
 
-    static RecipeModifier recipeReduction(double reductionEUt, double reductionDuration) {
-        return (holder, unit, recipe) -> recipeReduction(recipe, reductionEUt, reductionDuration);
+    static RecipeModifier multiplier(double euMultiplier, double durationMultiplier) {
+        return (holder, unit, recipe) -> multiplier(recipe, euMultiplier, durationMultiplier);
     }
 
     static RecipeModifier coilReductionOverclock(double durationFactor) {
@@ -180,12 +145,12 @@ public interface RecipeModifier {
         return ParallelLogic.accurateParallel(holder, unit, recipe, holder instanceof IWorkableMultiController controller ? controller.getParallelHatch() != null ? controller.getParallelHatch().getCurrentParallel() : 1 : 1);
     }
 
-    static GTRecipe recipeReduction(GTRecipe recipe, double reductionEUt, double reductionDuration) {
-        if (reductionEUt != 1) {
-            recipe.eut = Math.max(1, (long) (recipe.getInputEUt() * reductionEUt));
+    static GTRecipe multiplier(GTRecipe recipe, double euMultiplier, double durationMultiplier) {
+        if (euMultiplier != 1) {
+            recipe.eut = (long) (recipe.eut * euMultiplier);
         }
-        if (reductionDuration != 1) {
-            recipe.duration = Math.max(1, (int) (recipe.duration * reductionDuration));
+        if (durationMultiplier != 1) {
+            recipe.duration = Math.max(1, (int) (recipe.duration * durationMultiplier));
         }
         return recipe;
     }

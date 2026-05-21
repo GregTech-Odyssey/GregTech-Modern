@@ -11,7 +11,11 @@ import com.gregtechceu.gtceu.api.machine.feature.IExhaustVentMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.common.recipe.condition.VentCondition;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
@@ -28,6 +32,7 @@ import com.gto.datasynclib.datasream.DataComponentMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -111,6 +116,19 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
         super.afterWorking();
         needsVenting = true;
         checkVenting();
+    }
+
+    @Nullable
+    public static GTRecipe recipeModifier(IRecipeHandlerHolder machine, RecipeHandlerUnit unit, GTRecipe recipe) {
+        if (!(machine instanceof SimpleSteamMachine steamMachine)) {
+            return null;
+        }
+        if (!steamMachine.checkVenting()) {
+            return null;
+        }
+        if (!VentCondition.INSTANCE.testCondition(machine, unit, recipe.definition)) return null;
+        if (!steamMachine.isHighPressure) recipe.durationMultiplier(2);
+        return recipe;
     }
 
     //////////////////////////////////////

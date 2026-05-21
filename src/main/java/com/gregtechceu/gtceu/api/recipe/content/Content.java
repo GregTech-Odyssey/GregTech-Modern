@@ -11,6 +11,8 @@ import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -93,6 +95,10 @@ public final class Content<T extends ContentInner> {
 
     public void shrink(long amount) {
         this.amount -= amount;
+    }
+
+    public MutableComponent getName() {
+        return Component.literal(amount + "× ").append(inner.getName());
     }
 
     public IGuiTexture createOverlay(boolean perTick, int recipeTier, int chanceTier, @Nullable ChanceBoostFunction function) {

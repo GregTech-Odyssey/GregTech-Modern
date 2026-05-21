@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
@@ -353,12 +354,12 @@ public class RecipeHandlerUnit {
     public boolean inputItem(ItemLike item, long amount) {
         var contentList = new ArrayList<Content<ItemIngredient>>(1);
         contentList.add(new Content<>(ItemIngredient.of(item, amount)));
-        return handleItem(IO.IN, GTRecipe.copyContents(contentList, 1), true) && handleItem(IO.IN, contentList, false);
+        return handleItem(IO.IN, RecipeHelper.copyContents(contentList, 1), true) && handleItem(IO.IN, contentList, false);
     }
 
     public boolean inputItem(ItemStack... items) {
         var contentList = toItemIngredient(items);
-        return handleItem(IO.IN, GTRecipe.copyContents(contentList, 1), true) && handleItem(IO.IN, contentList, false);
+        return handleItem(IO.IN, RecipeHelper.copyContents(contentList, 1), true) && handleItem(IO.IN, contentList, false);
     }
 
     public boolean outputItem(ItemLike item, long amount) {
@@ -415,12 +416,12 @@ public class RecipeHandlerUnit {
     public boolean inputFluid(Fluid fluid, long amount) {
         var contentList = new ArrayList<Content<FluidIngredient>>(1);
         contentList.add(new Content<>(FluidIngredient.of(fluid, amount)));
-        return handleFluid(IO.IN, GTRecipe.copyContents(contentList, 1), true) && handleFluid(IO.IN, contentList, false);
+        return handleFluid(IO.IN, RecipeHelper.copyContents(contentList, 1), true) && handleFluid(IO.IN, contentList, false);
     }
 
     public boolean inputFluid(FluidStack... fluids) {
         var contentList = toFluidIngredient(fluids);
-        return handleFluid(IO.IN, GTRecipe.copyContents(contentList, 1), true) && handleFluid(IO.IN, contentList, false);
+        return handleFluid(IO.IN, RecipeHelper.copyContents(contentList, 1), true) && handleFluid(IO.IN, contentList, false);
     }
 
     public boolean outputFluid(Fluid fluid, long amount) {

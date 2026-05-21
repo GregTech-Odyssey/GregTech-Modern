@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.api.recipe.content;
 
+import net.minecraft.network.chat.Component;
+
 public abstract class ContentInner {
 
     public final long amount;
@@ -13,4 +15,6 @@ public abstract class ContentInner {
     public abstract boolean isEmpty();
 
     public abstract ContentInner copy(long amount);
+
+    public abstract Component getName();
 }

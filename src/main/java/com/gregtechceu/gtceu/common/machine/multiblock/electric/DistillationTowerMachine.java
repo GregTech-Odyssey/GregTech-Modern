@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
@@ -100,7 +101,7 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
 
     @Override
     public boolean matchRecipeOutput(GTRecipe recipe) {
-        var items = GTRecipe.copyContents(recipe.itemOutputs, 1);
+        var items = RecipeHelper.copyContents(recipe.itemOutputs, 1);
         for (var handler : getOutputList(recipe)) {
             if (handler.handleRecipeItem(IO.OUT, recipe, items, true)) {
                 updateWorkingRecipe(recipe);
@@ -112,7 +113,7 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
 
     @Override
     public boolean handleRecipeOutput(GTRecipe recipe) {
-        var items = recipe.copyAndRoll(recipe.itemOutputs);
+        var items = RecipeHelper.copyAndRoll(recipe, recipe.itemOutputs);
         for (var handler : getOutputList(recipe)) {
             if (handler.handleRecipeItem(IO.OUT, recipe, items, false)) {
                 return applyFluidOutputs(recipe, FluidAction.EXECUTE);

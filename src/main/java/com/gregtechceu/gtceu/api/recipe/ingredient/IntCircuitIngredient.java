@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
@@ -46,6 +47,11 @@ public final class IntCircuitIngredient extends ItemIngredient {
             return intTag.getAsInt();
         }
         return -1;
+    }
+
+    @Override
+    public Component getName() {
+        return Component.translatable("item.gtceu.programmed_circuit").append("[" + configuration + "]");
     }
 
     @Override

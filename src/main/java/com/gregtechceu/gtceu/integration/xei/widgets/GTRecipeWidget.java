@@ -8,7 +8,6 @@ import com.gregtechceu.gtceu.api.gui.WidgetUtils;
 import com.gregtechceu.gtceu.api.gui.widget.PredicatedButtonWidget;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.content.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
@@ -70,7 +69,7 @@ public class GTRecipeWidget extends WidgetGroup {
                 recipe.recipeType.getRecipeUI().getJEISize().height);
         this.recipe = recipe;
         this.xOffset = getXOffset(recipe);
-        this.minTier = RecipeHelper.getRecipeEUtTier(recipe);
+        this.minTier = recipe.tier;
         setRecipeWidget();
         setTierToMin();
         initializeRecipeTextWidget();

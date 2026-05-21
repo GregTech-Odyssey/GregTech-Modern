@@ -5,7 +5,9 @@ import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.feature.IOverclockMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
@@ -100,11 +102,18 @@ public final class ParallelLogic {
         items = recipe.itemOutputs;
         if (!(items.isEmpty() || (holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(ItemRecipeCapability.CAP)))) {
             maxParallel = getOutputItemParallelAmount(holder.getOutputList(recipe), recipe, items, maxParallel);
-            if (maxParallel == 0) return 0;
+            if (maxParallel == 0) {
+                holder.setFailReason(ActionResult.FAIL_INSUFFICIENT_OUT::reason);
+                return 0;
+            }
         }
         fluids = recipe.fluidOutputs;
         if (!(fluids.isEmpty() || (holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(FluidRecipeCapability.CAP)))) {
             maxParallel = getOutputFluidParallelAmount(holder.getOutputList(recipe), recipe, fluids, maxParallel);
+            if (maxParallel == 0) {
+                holder.setFailReason(ActionResult.FAIL_INSUFFICIENT_OUT::reason);
+                return 0;
+            }
         }
         recipe.contentParallel = maxParallel;
         return maxParallel;
@@ -126,7 +135,7 @@ public final class ParallelLogic {
         }
         while (minMultiplier != maxMultiplier) {
             boolean success = false;
-            var items = GTRecipe.copyContents(contents, multiplier);
+            var items = RecipeHelper.copyContents(contents, multiplier);
             for (var unit : list) {
                 if (unit.handleRecipeItem(IO.OUT, recipe, items, true)) {
                     success = true;
@@ -160,7 +169,7 @@ public final class ParallelLogic {
         }
         while (minMultiplier != maxMultiplier) {
             boolean success = false;
-            var fluids = GTRecipe.copyContents(contents, multiplier);
+            var fluids = RecipeHelper.copyContents(contents, multiplier);
             for (var unit : list) {
                 if (unit.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
                     success = true;

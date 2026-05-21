@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.steam;
 
-import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
@@ -12,7 +11,6 @@ import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.steam.SteamEnergyContainer;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
@@ -58,6 +56,11 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
         if (args.length > 0 && args[0] instanceof Integer i) {
             this.maxParallels = i;
         }
+    }
+
+    @Override
+    public int getTier() {
+        return 1;
     }
 
     @Override
@@ -113,7 +116,6 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
         if (!(machine instanceof SteamParallelMultiblockMachine steamMachine)) {
             return null;
         }
-        if (RecipeHelper.getRecipeEUtTier(recipe) > GTValues.LV) return null;
         // Duration = 1.5x base duration
         // EUt (not steam) = (4/3) * (2/3) * parallels * base EUt, up to a max of 32 EUt
         long eut = recipe.getInputEUt();

@@ -12,6 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -153,6 +154,28 @@ public class ItemIngredient extends ContentInner implements Predicate<ItemStack>
 
     public ItemIngredient copy(long amount) {
         return new ItemIngredient(this, amount);
+    }
+
+    @Override
+    public Component getName() {
+        if (isEmpty) return Component.literal("Item[empty]");
+        if (value != null) {
+            return getComponent(value);
+        } else if (inner.values.length == 1) {
+            return getComponent(inner.values[0]);
+        }
+        return Component.literal(inner.toString());
+    }
+
+    public static Component getComponent(Ingredient.Value value) {
+        if (value instanceof Ingredient.TagValue tagValue) {
+            return Component.literal("Tag[" + tagValue.tag.location() + "]");
+        } else if (value instanceof Ingredient.ItemValue itemValue) {
+            return itemValue.item.getDisplayName();
+        }
+        var component = Component.empty();
+        value.getItems().forEach(i -> component.append(i.getDisplayName()));
+        return component;
     }
 
     public boolean testItem(Item item) {

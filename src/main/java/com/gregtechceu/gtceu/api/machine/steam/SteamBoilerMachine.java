@@ -12,7 +12,10 @@ import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
+import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.config.ConfigHolder;
@@ -237,6 +240,15 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     public void afterWorking() {
         super.afterWorking();
         this.timeBeforeCoolingDown = getCooldownInterval();
+    }
+
+    @Nullable
+    public static GTRecipe recipeModifier(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe) {
+        if (!(holder instanceof SteamBoilerMachine boilerMachine)) {
+            return null;
+        }
+        if (boilerMachine.isHighPressure) recipe.durationMultiplier(0.5);
+        return recipe;
     }
 
     //////////////////////////////////////

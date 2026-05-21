@@ -3,9 +3,11 @@ package com.gregtechceu.gtceu.api.recipe.handler;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.machine.feature.IElectricMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineFeature;
+import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
+import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
@@ -24,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.ObjLongConsumer;
+import java.util.function.Supplier;
 
 public interface IRecipeHandlerHolder extends IMachineFeature {
 
@@ -103,6 +106,8 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         }
     }
 
+    default void setFailReason(Supplier<Component> reason) {}
+
     default boolean checkConditions(RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
         if (recipe.conditions.length == 0) return true;
         Map<Class<?>, List<RecipeCondition>> or = new Reference2ObjectArrayMap<>();
@@ -110,14 +115,14 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
             if (condition.isOr()) {
                 or.computeIfAbsent(condition.getClass(), type -> new ArrayList<>()).add(condition);
             } else if (!condition.check(this, unit, recipe)) {
+                setFailReason(() -> ActionResult.failCondition(condition.getTooltips()).reason());
                 return false;
             }
         }
 
         for (List<RecipeCondition> conditions : or.values()) {
             boolean passed = conditions.isEmpty();
-            MutableComponent component = Component.translatable("gtceu.recipe_logic.condition_fails")
-                    .append(": ");
+            MutableComponent component = Component.translatable("gtceu.recipe_logic.condition_fails").append(": ");
             for (RecipeCondition condition : conditions) {
                 passed = condition.check(this, unit, recipe);
                 if (passed) break;
@@ -125,6 +130,18 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
             }
 
             if (!passed) {
+                setFailReason(() -> component);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    default boolean checkTier(GTRecipeDefinition recipe) {
+        int tier = recipe.tier;
+        if (tier > 0 && this instanceof ITieredMachine tieredMachine) {
+            if (tier > tieredMachine.getRecipeTier()) {
+                setFailReason(ActionResult.FAIL_INSUFFICIENT_TIER::reason);
                 return false;
             }
         }
@@ -136,8 +153,8 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     }
 
     default boolean matchRecipeInput(RecipeHandlerUnit unit, GTRecipe recipe) {
-        var items = GTRecipe.copyContents(recipe.itemInputs, 1);
-        var fluids = GTRecipe.copyContents(recipe.fluidInputs, 1);
+        var items = RecipeHelper.copyContents(recipe.itemInputs, 1);
+        var fluids = RecipeHelper.copyContents(recipe.fluidInputs, 1);
         if (unit.handleRecipeItem(IO.IN, recipe, items, true) && unit.handleRecipeFluid(IO.IN, recipe, fluids, true)) {
             for (var e : recipe.definition.contentExpanders) {
                 if (!e.handle(this, null, recipe, true)) return false;
@@ -148,19 +165,20 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     }
 
     default boolean matchRecipeOutput(GTRecipe recipe) {
-        var items = GTRecipe.copyContents(recipe.itemOutputs, 1);
-        var fluids = GTRecipe.copyContents(recipe.fluidOutputs, 1);
+        var items = RecipeHelper.copyContents(recipe.itemOutputs, 1);
+        var fluids = RecipeHelper.copyContents(recipe.fluidOutputs, 1);
         for (var handler : getOutputList(recipe)) {
             if (handler.handleRecipeItem(IO.OUT, recipe, items, true) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
                 return true;
             }
         }
+        setFailReason(ActionResult.FAIL_INSUFFICIENT_OUT::reason);
         return false;
     }
 
     default boolean handleRecipeInput(RecipeHandlerUnit unit, GTRecipe recipe) {
-        var items = recipe.copyAndRoll(recipe.itemInputs);
-        var fluids = recipe.copyAndRoll(recipe.fluidInputs);
+        var items = RecipeHelper.copyAndRoll(recipe, recipe.itemInputs);
+        var fluids = RecipeHelper.copyAndRoll(recipe, recipe.fluidInputs);
         if (unit.handleRecipeItem(IO.IN, recipe, items, false) && unit.handleRecipeFluid(IO.IN, recipe, fluids, false)) {
             for (var e : recipe.definition.contentExpanders) {
                 if (!e.handle(this, null, recipe, false)) return false;
@@ -171,8 +189,8 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     }
 
     default boolean handleRecipeOutput(GTRecipe recipe) {
-        var items = recipe.copyAndRoll(recipe.itemOutputs);
-        var fluids = recipe.copyAndRoll(recipe.fluidOutputs);
+        var items = RecipeHelper.copyAndRoll(recipe, recipe.itemOutputs);
+        var fluids = RecipeHelper.copyAndRoll(recipe, recipe.fluidOutputs);
         for (var handler : getOutputList(recipe)) {
             if (handler.handleRecipeItem(IO.OUT, recipe, items, false) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, false)) {
                 return true;
@@ -184,7 +202,10 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     default boolean matchTickRecipe(GTRecipe recipe) {
         var eu = recipe.eut;
         if (eu != 0) {
-            return this instanceof IElectricMachine electricMachine && electricMachine.useEnergy(eu, true);
+            if (!(this instanceof IElectricMachine electricMachine && electricMachine.useEnergy(eu, true))) {
+                setFailReason(() -> ActionResult.failInsufficientIn(EURecipeCapability.CAP.getName()).reason());
+                return false;
+            }
         }
         for (var e : recipe.definition.tickContentExpanders) {
             if (!e.handle(this, null, recipe, true)) return false;
@@ -195,7 +216,10 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     default boolean handleTickRecipe(GTRecipe recipe) {
         var eu = recipe.eut;
         if (eu != 0) {
-            return this instanceof IElectricMachine electricMachine && electricMachine.useEnergy(eu, false);
+            if (!(this instanceof IElectricMachine electricMachine && electricMachine.useEnergy(eu, false))) {
+                setFailReason(() -> ActionResult.failInsufficientIn(EURecipeCapability.CAP.getName()).reason());
+                return false;
+            }
         }
         for (var e : recipe.definition.tickContentExpanders) {
             if (!e.handle(this, null, recipe, false)) return false;

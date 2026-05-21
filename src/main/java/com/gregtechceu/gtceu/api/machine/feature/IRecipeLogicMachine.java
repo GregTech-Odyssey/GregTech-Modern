@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.*;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
@@ -15,11 +16,14 @@ import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.sound.SoundEntry;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
+import net.minecraft.network.chat.Component;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * A machine can handle recipes.
@@ -86,14 +90,20 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
     }
 
     @Override
+    default void setFailReason(Supplier<Component> reason) {
+        getRecipeLogic().setIdleReasonSupplier(reason);
+    }
+
+    @Override
     default boolean matchRecipeOutput(GTRecipe recipe) {
-        List<Content<ItemIngredient>> items = canVoidRecipeOutputs(ItemRecipeCapability.CAP) ? Collections.emptyList() : GTRecipe.copyContents(recipe.itemOutputs, 1);
-        List<Content<FluidIngredient>> fluids = canVoidRecipeOutputs(FluidRecipeCapability.CAP) ? Collections.emptyList() : GTRecipe.copyContents(recipe.fluidOutputs, 1);
+        List<Content<ItemIngredient>> items = canVoidRecipeOutputs(ItemRecipeCapability.CAP) ? Collections.emptyList() : RecipeHelper.copyContents(recipe.itemOutputs, 1);
+        List<Content<FluidIngredient>> fluids = canVoidRecipeOutputs(FluidRecipeCapability.CAP) ? Collections.emptyList() : RecipeHelper.copyContents(recipe.fluidOutputs, 1);
         for (var handler : getOutputList()) {
             if (handler.handleRecipeItem(IO.OUT, recipe, items, true) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
                 return true;
             }
         }
+        setFailReason(ActionResult.FAIL_INSUFFICIENT_OUT::reason);
         return false;
     }
 
@@ -114,7 +124,7 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
     }
 
     /**
-     * Called in {@link RecipeLogic#setupRecipe(GTRecipe)} ()}
+     * Called in {@link RecipeLogic#setupRecipe(RecipeHandlerUnit,GTRecipe)} ()
      */
     default void beforeWorking(@NotNull GTRecipe recipe) {}
 

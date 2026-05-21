@@ -5,12 +5,12 @@ import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.CleanroomMachine;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
-import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 
 import lombok.Getter;
@@ -72,7 +72,7 @@ public class CleanroomLogic extends RecipeLogic {
                     if (machine.self().getOffsetTimer() % duration == 0) {
                         adjustCleanAmount(true);
                     }
-                    setWaiting(Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(EURecipeCapability.CAP.getName()));
+                    setWaiting(ActionResult.failInsufficientIn(EURecipeCapability.CAP.getName()).reason());
                     return;
                 }
                 setStatus(WORKING);

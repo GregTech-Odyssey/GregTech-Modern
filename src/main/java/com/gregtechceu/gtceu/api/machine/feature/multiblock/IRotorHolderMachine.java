@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.item.TurbineRotorBehaviour;
 
@@ -188,9 +189,11 @@ public interface IRotorHolderMachine extends IWorkableMultiPart {
     //////////////////////////////////////
     @Override
     default GTRecipe modifyRecipe(IWorkableMultiController controller, RecipeHandlerUnit unit, GTRecipe recipe) {
-        if (!isFrontFaceFree() || !hasRotor()) {
+        if (!isFrontFaceFree()) {
+            controller.setFailReason(ActionResult.FAIL_ROTOR_OBSTRUCTED::reason);
             return null;
         }
+        if (!hasRotor()) return null;
         return recipe;
     }
 

@@ -10,6 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
@@ -167,6 +168,16 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
             return new FluidIngredient(TagKey.create(Registries.FLUID, GTUtil.getResourceLocation(tag.getAsString())), amount, nbt);
         }
         throw new JsonSyntaxException("Unknown fluid ingredient type");
+    }
+
+    @Override
+    public Component getName() {
+        if (value instanceof TagKey<?> tagKey) {
+            return Component.literal("Tag[" + tagKey.location() + "]");
+        } else if (value instanceof Fluid fluid) {
+            return fluid.getFluidType().getDescription();
+        }
+        return Component.literal("Fluid[empty]");
     }
 
     public FluidIngredient copy(long amount) {
