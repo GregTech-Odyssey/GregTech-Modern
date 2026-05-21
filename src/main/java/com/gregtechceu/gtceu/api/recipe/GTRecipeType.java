@@ -198,11 +198,15 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
     @SuppressWarnings("UnusedReturnValue")
     public final RecipeHandlerUnit findRecipe(IRecipeHandlerHolder holder, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
         if (prioritySearch) return prioritySearch(holder, canHandle);
+        var customRecipeLogic = this.customRecipeLogicRunners;
+        var hasCustomRecipeLogic = !customRecipeLogic.isEmpty();
         for (var list : holder.getInputList()) {
             if (list.findRecipe(this, canHandle)) return list;
-            for (var logic : customRecipeLogicRunners) {
-                var r = logic.createCustomRecipe(holder, list);
-                if (r != null && canHandle.test(list, r)) return list;
+            if (hasCustomRecipeLogic) {
+                for (var logic : customRecipeLogic) {
+                    var r = logic.createCustomRecipe(holder, list);
+                    if (r != null && canHandle.test(list, r)) return list;
+                }
             }
         }
         return null;

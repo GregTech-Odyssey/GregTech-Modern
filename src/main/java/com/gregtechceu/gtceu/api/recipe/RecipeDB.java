@@ -9,9 +9,9 @@ import com.fast.recipesearch.RecipeSearcher;
 
 import java.util.function.BiPredicate;
 
-public class RecipeDB extends AbstractRecipeDB<GTRecipeDefinition> {
+public final class RecipeDB extends AbstractRecipeDB<GTRecipeDefinition> {
 
-    protected RecipeSearcher<GTRecipeDefinition> searchContext = new RecipeSearcher<>();
+    RecipeSearcher<GTRecipeDefinition> searchContext = new RecipeSearcher<>();
 
     public RecipeDB() {
         super();
