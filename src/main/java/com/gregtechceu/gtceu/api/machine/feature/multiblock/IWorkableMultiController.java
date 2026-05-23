@@ -41,14 +41,14 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
     }
 
     @Override
-    default List<RecipeHandlerUnit> getOutputList(GTRecipe recipe) {
+    default List<RecipeHandlerUnit> getOutputUnits(GTRecipe recipe) {
         if (recipe.outputColor != -1) {
             var unit = getOutputColorMap().get(recipe.outputColor);
             if (unit != null) {
                 return Collections.singletonList(unit);
             }
         }
-        return getOutputList();
+        return getOutputUnits();
     }
 
     default void arrangeHandlerList() {

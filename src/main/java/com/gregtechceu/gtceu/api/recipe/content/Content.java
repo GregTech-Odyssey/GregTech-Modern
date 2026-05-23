@@ -75,6 +75,14 @@ public final class Content<T extends ContentInner> {
         return new Content<>(this);
     }
 
+    public Content<T> modifier(long multiplier) {
+        if (multiplier == 1 || this.chance == 0) {
+            return this;
+        } else {
+            return new Content<>(this, amount * multiplier);
+        }
+    }
+
     public Content<T> copy(long multiplier) {
         if (multiplier == 1 || this.chance == 0) {
             return new Content<>(this);

@@ -102,7 +102,7 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
     @Override
     public boolean matchRecipeOutput(GTRecipe recipe) {
         var items = RecipeHelper.copyContents(recipe.itemOutputs, 1);
-        for (var handler : getOutputList(recipe)) {
+        for (var handler : getOutputUnits(recipe)) {
             if (handler.handleRecipeItem(IO.OUT, recipe, items, true)) {
                 updateWorkingRecipe(recipe);
                 return applyFluidOutputs(recipe, FluidAction.SIMULATE);
@@ -114,7 +114,7 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
     @Override
     public boolean handleRecipeOutput(GTRecipe recipe) {
         var items = RecipeHelper.copyAndRoll(recipe, recipe.itemOutputs);
-        for (var handler : getOutputList(recipe)) {
+        for (var handler : getOutputUnits(recipe)) {
             if (handler.handleRecipeItem(IO.OUT, recipe, items, false)) {
                 return applyFluidOutputs(recipe, FluidAction.EXECUTE);
             }

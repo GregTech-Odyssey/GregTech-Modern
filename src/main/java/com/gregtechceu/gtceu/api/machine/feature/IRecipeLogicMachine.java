@@ -98,7 +98,7 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
     default boolean matchRecipeOutput(GTRecipe recipe) {
         List<Content<ItemIngredient>> items = canVoidRecipeOutputs(ItemRecipeCapability.CAP) ? Collections.emptyList() : RecipeHelper.copyContents(recipe.itemOutputs, 1);
         List<Content<FluidIngredient>> fluids = canVoidRecipeOutputs(FluidRecipeCapability.CAP) ? Collections.emptyList() : RecipeHelper.copyContents(recipe.fluidOutputs, 1);
-        for (var handler : getOutputList()) {
+        for (var handler : getOutputUnits()) {
             if (handler.handleRecipeItem(IO.OUT, recipe, items, true) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
                 return true;
             }
@@ -166,10 +166,6 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
      */
     default boolean regressWhenWaiting() {
         return self().getDefinition().isRegressWhenWaiting();
-    }
-
-    default boolean alwaysSearchRecipe() {
-        return false;
     }
 
     default boolean shouldWorkingPlaySound() {

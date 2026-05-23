@@ -150,10 +150,10 @@ public final class GTRecipe {
     public void modifier(@Range(from = 1, to = ParallelLogic.MAX_PARALLEL) long multiplier, boolean tick) {
         if (multiplier == 1) return;
         parallels *= multiplier;
-        RecipeHelper.modifierContents(itemInputs, multiplier);
-        RecipeHelper.modifierContents(itemOutputs, multiplier);
-        RecipeHelper.modifierContents(fluidInputs, multiplier);
-        RecipeHelper.modifierContents(fluidOutputs, multiplier);
+        itemInputs = RecipeHelper.modifierContents(itemInputs, multiplier);
+        itemOutputs = RecipeHelper.modifierContents(itemOutputs, multiplier);
+        fluidInputs = RecipeHelper.modifierContents(fluidInputs, multiplier);
+        fluidOutputs = RecipeHelper.modifierContents(fluidOutputs, multiplier);
         for (var expand : definition.contentExpanders) {
             expand.setParallel(this, multiplier);
         }

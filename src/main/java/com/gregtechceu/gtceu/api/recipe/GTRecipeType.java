@@ -40,7 +40,6 @@ import com.fast.fastcollection.OpenCacheHashSet;
 import com.fast.recipesearch.IntLongMap;
 import com.fast.recipesearch.RecipeSearcher;
 import com.gto.datasynclib.datasream.DataComponentMap;
-import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.Object2IntAVLTreeMap;
 import it.unimi.dsi.fastutil.objects.Object2IntSortedMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
@@ -91,8 +90,6 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
 
     @Getter
     protected boolean noSearch;
-    @Getter
-    protected boolean prioritySearch = false;
 
     protected RecipeDB db;
 
@@ -193,38 +190,6 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
     @Override
     public String toString() {
         return registryName.toString();
-    }
-
-    @SuppressWarnings("UnusedReturnValue")
-    public final RecipeHandlerUnit findRecipe(IRecipeHandlerHolder holder, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
-        if (prioritySearch) return prioritySearch(holder, canHandle);
-        var customRecipeLogic = this.customRecipeLogicRunners;
-        var hasCustomRecipeLogic = !customRecipeLogic.isEmpty();
-        for (var list : holder.getInputList()) {
-            if (list.findRecipe(this, canHandle)) return list;
-            if (hasCustomRecipeLogic) {
-                for (var logic : customRecipeLogic) {
-                    var r = logic.createCustomRecipe(holder, list);
-                    if (r != null && canHandle.test(list, r)) return list;
-                }
-            }
-        }
-        return null;
-    }
-
-    private RecipeHandlerUnit prioritySearch(IRecipeHandlerHolder holder, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
-        var recipes = new ArrayList<Pair<RecipeHandlerUnit, GTRecipeDefinition>>();
-        for (var list : holder.getInputList()) {
-            list.findRecipe(this, (u, r) -> {
-                recipes.add(Pair.of(u, r));
-                return false;
-            });
-            recipes.sort(Comparator.comparingInt(p -> -p.getSecond().priority));
-            for (var p : recipes) {
-                if (canHandle.test(p.getFirst(), p.getSecond())) return p.getFirst();
-            }
-        }
-        return null;
     }
 
     public boolean search(RecipeHandlerUnit unit, IntLongMap map, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {

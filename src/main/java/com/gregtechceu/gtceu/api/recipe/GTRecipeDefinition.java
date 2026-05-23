@@ -14,7 +14,6 @@ import com.fast.recipesearch.IntMapContainer;
 import com.gto.datasynclib.datasream.DataComponentMap;
 import org.jetbrains.annotations.Range;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -80,7 +79,7 @@ public final class GTRecipeDefinition {
     }
 
     public GTRecipe toRuntime() {
-        return new GTRecipe(this, new ArrayList<>(itemInputs), new ArrayList<>(itemOutputs), new ArrayList<>(fluidInputs), new ArrayList<>(fluidOutputs), data.clone(), eut, tier, duration);
+        return new GTRecipe(this, itemInputs, itemOutputs, fluidInputs, fluidOutputs, data.clone(), eut, tier, duration);
     }
 
     @Override

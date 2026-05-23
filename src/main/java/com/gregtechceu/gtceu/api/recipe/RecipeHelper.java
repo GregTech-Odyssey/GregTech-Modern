@@ -89,14 +89,15 @@ public class RecipeHelper {
         return contentList;
     }
 
-    public static <T extends ContentInner> void modifierContents(List<Content<T>> contents, @Range(from = 1, to = ParallelLogic.MAX_PARALLEL) long multiplier) {
-        if (multiplier == 1) return;
+    public static <T extends ContentInner> List<Content<T>> modifierContents(List<Content<T>> contents, @Range(from = 1, to = ParallelLogic.MAX_PARALLEL) long multiplier) {
+        if (multiplier == 1) return contents;
         var size = contents.size();
-        if (size == 0) return;
-        for (int i = 0; i < size; i++) {
-            var content = contents.get(i);
-            contents.set(i, content.copy(multiplier));
+        if (size == 0) return contents;
+        var list = new ArrayList<Content<T>>(size);
+        for (Content<T> content : contents) {
+            list.add(content.modifier(multiplier));
         }
+        return list;
     }
 
     public static <T extends ContentInner> List<Content<T>> copyContents(List<Content<T>> contents, @Range(from = 1, to = ParallelLogic.MAX_PARALLEL) long multiplier) {

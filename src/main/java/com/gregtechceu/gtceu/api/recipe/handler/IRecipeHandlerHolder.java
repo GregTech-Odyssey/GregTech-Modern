@@ -4,10 +4,7 @@ import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.machine.feature.IElectricMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineFeature;
 import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
-import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
+import com.gregtechceu.gtceu.api.recipe.*;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
@@ -21,10 +18,12 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.function.BiPredicate;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Supplier;
 
@@ -34,15 +33,15 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         return !getCapabilitiesProxy().isEmpty();
     }
 
-    default List<RecipeHandlerUnit> getInputList() {
+    default List<RecipeHandlerUnit> getInputUnits() {
         return getCapabilitiesProxy().getOrDefault(IO.IN, Collections.emptyList());
     }
 
-    default List<RecipeHandlerUnit> getOutputList() {
+    default List<RecipeHandlerUnit> getOutputUnits() {
         return getCapabilitiesProxy().getOrDefault(IO.OUT, Collections.emptyList());
     }
 
-    default List<RecipeHandlerUnit> getOutputList(GTRecipe recipe) {
+    default List<RecipeHandlerUnit> getOutputUnits(GTRecipe recipe) {
         return getCapabilitiesProxy().getOrDefault(IO.OUT, Collections.emptyList());
     }
 
@@ -106,6 +105,46 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         }
     }
 
+    default boolean usePrioritySearch() {
+        return false;
+    }
+
+    default boolean alwaysSearchRecipe() {
+        return false;
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    default boolean findRecipe(GTRecipeType type, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
+        if (usePrioritySearch()) return prioritySearch(type, this, canHandle);
+        var customRecipeLogic = type.getCustomRecipeLogicRunners();
+        var hasCustomRecipeLogic = !customRecipeLogic.isEmpty();
+        for (var unit : this.getInputUnits()) {
+            if (unit.findRecipe(type, canHandle)) return true;
+            if (hasCustomRecipeLogic) {
+                for (var logic : customRecipeLogic) {
+                    var r = logic.createCustomRecipe(this, unit);
+                    if (r != null && canHandle.test(unit, r)) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    static boolean prioritySearch(GTRecipeType type, IRecipeHandlerHolder holder, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
+        var recipes = new ArrayList<Pair<RecipeHandlerUnit, GTRecipeDefinition>>();
+        for (var list : holder.getInputUnits()) {
+            list.findRecipe(type, (u, r) -> {
+                recipes.add(Pair.of(u, r));
+                return false;
+            });
+            recipes.sort(Comparator.comparingInt(p -> -p.getSecond().priority));
+            for (var p : recipes) {
+                if (canHandle.test(p.getFirst(), p.getSecond())) return true;
+            }
+        }
+        return false;
+    }
+
     default void setFailReason(Supplier<Component> reason) {}
 
     default boolean checkConditions(RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
@@ -167,7 +206,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     default boolean matchRecipeOutput(GTRecipe recipe) {
         var items = RecipeHelper.copyContents(recipe.itemOutputs, 1);
         var fluids = RecipeHelper.copyContents(recipe.fluidOutputs, 1);
-        for (var handler : getOutputList(recipe)) {
+        for (var handler : getOutputUnits(recipe)) {
             if (handler.handleRecipeItem(IO.OUT, recipe, items, true) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
                 return true;
             }
@@ -191,7 +230,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     default boolean handleRecipeOutput(GTRecipe recipe) {
         var items = RecipeHelper.copyAndRoll(recipe, recipe.itemOutputs);
         var fluids = RecipeHelper.copyAndRoll(recipe, recipe.fluidOutputs);
-        for (var handler : getOutputList(recipe)) {
+        for (var handler : getOutputUnits(recipe)) {
             if (handler.handleRecipeItem(IO.OUT, recipe, items, false) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, false)) {
                 return true;
             }
@@ -229,7 +268,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
 
     default int getCircuit(boolean sum) {
         int circuit = 0;
-        for (var handler : getInputList()) {
+        for (var handler : getInputUnits()) {
             var c = handler.getCircuit(sum);
             if (c > 0) {
                 circuit += c;
@@ -241,7 +280,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
 
     default long[] getFluidAmount(boolean consumable, Fluid... fluids) {
         long[] amounts = new long[fluids.length];
-        for (var handler : getInputList()) {
+        for (var handler : getInputUnits()) {
             handler.getFluidAmount(consumable, fluids, amounts);
         }
         return amounts;
@@ -249,43 +288,43 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
 
     default long[] getItemAmount(boolean consumable, Item... items) {
         long[] amounts = new long[items.length];
-        for (var handler : getInputList()) {
+        for (var handler : getInputUnits()) {
             handler.getItemAmount(consumable, items, amounts);
         }
         return amounts;
     }
 
     default boolean forEachItems(boolean consumable, ObjLongPredicate<ItemStack> function) {
-        for (var handler : getInputList()) {
+        for (var handler : getInputUnits()) {
             if (handler.forEachItems(consumable, function)) return true;
         }
         return false;
     }
 
     default boolean forEachFluids(boolean consumable, ObjLongPredicate<FluidStack> function) {
-        for (var handler : getInputList()) {
+        for (var handler : getInputUnits()) {
             if (handler.forEachFluids(consumable, function)) return true;
         }
         return false;
     }
 
     default void fastForEachItems(boolean consumable, ObjLongConsumer<ItemStack> function) {
-        getInputList().forEach(h -> h.fastForEachItems(consumable, function));
+        getInputUnits().forEach(h -> h.fastForEachItems(consumable, function));
     }
 
     default void fastForEachFluids(boolean consumable, ObjLongConsumer<FluidStack> function) {
-        getInputList().forEach(h -> h.fastForEachFluids(consumable, function));
+        getInputUnits().forEach(h -> h.fastForEachFluids(consumable, function));
     }
 
     default boolean inputItem(ItemLike item, long amount) {
-        for (var handler : getInputList()) {
+        for (var handler : getInputUnits()) {
             if (handler.inputItem(item, amount)) return true;
         }
         return false;
     }
 
     default boolean inputItem(ItemStack... items) {
-        for (var handler : getInputList()) {
+        for (var handler : getInputUnits()) {
             if (handler.inputItem(items)) return true;
         }
         return false;
@@ -294,7 +333,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     default boolean outputItem(ItemLike item, long amount) {
         var contentList = new ArrayList<Content<ItemIngredient>>(1);
         contentList.add(new Content<>(ItemIngredient.of(item, amount)));
-        for (var handler : getOutputList()) {
+        for (var handler : getOutputUnits()) {
             if (handler.handleItem(IO.OUT, contentList, false)) return true;
         }
         return false;
@@ -302,42 +341,42 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
 
     default boolean outputItem(ItemStack... items) {
         var contentList = RecipeHandlerUnit.toItemIngredient(items);
-        for (var handler : getOutputList()) {
+        for (var handler : getOutputUnits()) {
             if (handler.handleItem(IO.OUT, contentList, false)) return true;
         }
         return false;
     }
 
     default boolean matchItem(ItemLike item, long amount) {
-        for (var handler : getInputList()) {
+        for (var handler : getInputUnits()) {
             if (handler.matchItem(item, amount)) return true;
         }
         return false;
     }
 
     default boolean matchItem(ItemStack... items) {
-        for (var handler : getInputList()) {
+        for (var handler : getInputUnits()) {
             if (handler.matchItem(items)) return true;
         }
         return false;
     }
 
     default boolean matchCircuit(int configuration) {
-        for (var handler : getInputList()) {
+        for (var handler : getInputUnits()) {
             if (handler.matchCircuit(configuration)) return true;
         }
         return false;
     }
 
     default boolean inputFluid(Fluid fluid, long amount) {
-        for (var handler : getInputList()) {
+        for (var handler : getInputUnits()) {
             if (handler.inputFluid(fluid, amount)) return true;
         }
         return false;
     }
 
     default boolean inputFluid(FluidStack... fluids) {
-        for (var handler : getInputList()) {
+        for (var handler : getInputUnits()) {
             if (handler.inputFluid(fluids)) return true;
         }
         return false;
@@ -346,7 +385,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     default boolean outputFluid(Fluid fluid, long amount) {
         var contentList = new ArrayList<Content<FluidIngredient>>(1);
         contentList.add(new Content<>(FluidIngredient.of(fluid, amount)));
-        for (var handler : getOutputList()) {
+        for (var handler : getOutputUnits()) {
             if (handler.handleFluid(IO.OUT, contentList, false)) return true;
         }
         return false;
@@ -354,21 +393,21 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
 
     default boolean outputFluid(FluidStack... fluids) {
         var contentList = RecipeHandlerUnit.toFluidIngredient(fluids);
-        for (var handler : getOutputList()) {
+        for (var handler : getOutputUnits()) {
             if (handler.handleFluid(IO.OUT, contentList, false)) return true;
         }
         return false;
     }
 
     default boolean matchFluid(Fluid fluid, long amount) {
-        for (var handler : getInputList()) {
+        for (var handler : getInputUnits()) {
             if (handler.matchFluid(fluid, amount)) return true;
         }
         return false;
     }
 
     default boolean matchFluid(FluidStack... fluids) {
-        for (var handler : getInputList()) {
+        for (var handler : getInputUnits()) {
             if (handler.matchFluid(fluids)) return true;
         }
         return false;

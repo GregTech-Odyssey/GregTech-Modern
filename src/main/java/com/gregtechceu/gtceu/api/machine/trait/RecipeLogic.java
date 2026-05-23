@@ -214,7 +214,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     public void findAndHandleRecipe() {
         lastRecipe = null;
         markLastRecipeDirty();
-        machine.getRecipeType().findRecipe(machine, this);
+        machine.findRecipe(machine.getRecipeType(), this);
         if (idleReasonSupplier != null) {
             idleReason = idleReasonSupplier.get();
             idleReasonSupplier = null;
