@@ -14,11 +14,6 @@ public interface ICustomRecipeLogicHolder extends IRecipeHandlerHolder {
     }
 
     @Override
-    default boolean alwaysSearchRecipe() {
-        return true;
-    }
-
-    @Override
     default boolean findRecipe(GTRecipeType type, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
         var customRecipeLogic = type.getCustomRecipeLogicRunners();
         var hasCustomRecipeLogic = !customRecipeLogic.isEmpty();

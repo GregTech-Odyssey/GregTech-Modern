@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.recipe.content.*;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
-import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 
@@ -21,8 +20,6 @@ import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.IntData;
 import com.gto.datasynclib.datasream.data.ListData;
 import com.gto.datasynclib.datasream.data.LongData;
-import com.gto.datasynclib.util.DataCodecs;
-import com.gto.datasynclib.util.StreamCodecs;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
@@ -34,14 +31,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public final class GTRecipe {
 
-    public static final ByteStreamCodec<GTRecipe> STREAM_CODEC = new ByteStreamCodec<GTRecipe>() {
+    public static final ByteStreamCodec<GTRecipe> STREAM_CODEC = new ByteStreamCodec<>() {
 
         @Override
         public GTRecipe decode(FriendlyByteBuf buf) {
-            var type = GTRegistries.RECIPE_TYPES.streamCodec().decode(buf);
-            var id = StreamCodecs.RESOURCE_LOCATION_CODEC.decode(buf);
-            var definition = type.recipes.get(id);
-            var recipe = new GTRecipe(definition == null ? type.defaultDefinition : definition, buf.readList(SerializerItemIngredient.INSTANCE::fromNetworkContent), buf.readList(SerializerItemIngredient.INSTANCE::fromNetworkContent), buf.readList(SerializerFluidIngredient.INSTANCE::fromNetworkContent), buf.readList(SerializerFluidIngredient.INSTANCE::fromNetworkContent), GTRecipeDataKeys.REGISTRY.decode(buf), buf.readVarLong(), buf.readVarInt(), buf.readVarInt());
+            var recipe = new GTRecipe(GTRecipeDefinition.STREAM_CODEC.decode(buf), buf.readList(SerializerItemIngredient.INSTANCE::fromNetworkContent), buf.readList(SerializerItemIngredient.INSTANCE::fromNetworkContent), buf.readList(SerializerFluidIngredient.INSTANCE::fromNetworkContent), buf.readList(SerializerFluidIngredient.INSTANCE::fromNetworkContent), GTRecipeDataKeys.REGISTRY.decode(buf), buf.readVarLong(), buf.readVarInt(), buf.readVarInt());
             recipe.parallels = buf.readVarLong();
             recipe.batchParallels = buf.readVarLong();
             recipe.ocLevel = buf.readVarInt();
@@ -50,8 +44,7 @@ public final class GTRecipe {
 
         @Override
         public void encode(FriendlyByteBuf buf, GTRecipe recipe) {
-            GTRegistries.RECIPE_TYPES.streamCodec().encode(recipe.definition.recipeType, buf);
-            StreamCodecs.RESOURCE_LOCATION_CODEC.encode(recipe.definition.id, buf);
+            GTRecipeDefinition.STREAM_CODEC.encode(recipe.definition, buf);
             buf.writeCollection(recipe.itemInputs, SerializerItemIngredient.INSTANCE::toNetworkContent);
             buf.writeCollection(recipe.itemOutputs, SerializerItemIngredient.INSTANCE::toNetworkContent);
             buf.writeCollection(recipe.fluidInputs, SerializerFluidIngredient.INSTANCE::toNetworkContent);
@@ -70,9 +63,8 @@ public final class GTRecipe {
 
         @Override
         public Data encode(GTRecipe recipe) {
-            var list = new ListData(14);
-            list.add(GTRegistries.RECIPE_TYPES.dataCodec().encode(recipe.definition.recipeType));
-            list.add(DataCodecs.RESOURCE_LOCATION_CODEC.encode(recipe.definition.id));
+            var list = new ListData(13);
+            list.add(GTRecipeDefinition.DATA_CODEC.encode(recipe.definition));
             list.add(DataEncoder.collection(SerializerItemIngredient.INSTANCE::toDataContent).encode(recipe.itemInputs));
             list.add(DataEncoder.collection(SerializerItemIngredient.INSTANCE::toDataContent).encode(recipe.itemOutputs));
             list.add(DataEncoder.collection(SerializerFluidIngredient.INSTANCE::toDataContent).encode(recipe.fluidInputs));
@@ -91,14 +83,11 @@ public final class GTRecipe {
         @Override
         public GTRecipe decode(Data data) {
             var list = data.getList();
-            var type = GTRegistries.RECIPE_TYPES.dataCodec().decode(list.getFirst());
-            var id = DataCodecs.RESOURCE_LOCATION_CODEC.decode(list.get(1));
-            var definition = type.recipes.get(id);
-            var recipe = new GTRecipe(definition == null ? type.defaultDefinition : definition, DataDecoder.notNullCollection(ArrayList::new, SerializerItemIngredient.INSTANCE::fromDataContent).decode(list.get(2)), DataDecoder.notNullCollection(ArrayList::new, SerializerItemIngredient.INSTANCE::fromDataContent).decode(list.get(3)), DataDecoder.notNullCollection(ArrayList::new, SerializerFluidIngredient.INSTANCE::fromDataContent).decode(list.get(4)), DataDecoder.notNullCollection(ArrayList::new, SerializerFluidIngredient.INSTANCE::fromDataContent).decode(list.get(5)), GTRecipeDataKeys.REGISTRY.decode(list.get(6)), list.get(7).getLong(), list.get(8).getInt(), list.get(9).getInt());
-            recipe.parallels = list.get(10).getLong();
-            recipe.batchParallels = list.get(11).getLong();
-            recipe.ocLevel = list.get(12).getInt();
-            recipe.outputColor = list.get(13).getInt();
+            var recipe = new GTRecipe(GTRecipeDefinition.DATA_CODEC.decode(list.getFirst()), DataDecoder.notNullCollection(ArrayList::new, SerializerItemIngredient.INSTANCE::fromDataContent).decode(list.get(1)), DataDecoder.notNullCollection(ArrayList::new, SerializerItemIngredient.INSTANCE::fromDataContent).decode(list.get(2)), DataDecoder.notNullCollection(ArrayList::new, SerializerFluidIngredient.INSTANCE::fromDataContent).decode(list.get(3)), DataDecoder.notNullCollection(ArrayList::new, SerializerFluidIngredient.INSTANCE::fromDataContent).decode(list.get(4)), GTRecipeDataKeys.REGISTRY.decode(list.get(5)), list.get(6).getLong(), list.get(7).getInt(), list.get(8).getInt());
+            recipe.parallels = list.get(8).getLong();
+            recipe.batchParallels = list.get(10).getLong();
+            recipe.ocLevel = list.get(11).getInt();
+            recipe.outputColor = list.get(12).getInt();
             return recipe;
         }
     };

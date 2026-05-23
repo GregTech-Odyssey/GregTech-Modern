@@ -6,12 +6,20 @@ import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.expand.ContentExpander;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
 import com.fast.recipesearch.IntMapContainer;
 import com.gto.datasynclib.datasream.DataComponentMap;
+import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datasream.codec.DataCodec;
+import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.datasream.data.ListData;
+import com.gto.datasynclib.util.DataCodecs;
+import com.gto.datasynclib.util.StreamCodecs;
 import org.jetbrains.annotations.Range;
 
 import java.util.List;
@@ -21,6 +29,57 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public final class GTRecipeDefinition {
+
+    public static final ByteStreamCodec<GTRecipeDefinition> STREAM_CODEC = new ByteStreamCodec<>() {
+
+        @Override
+        public GTRecipeDefinition decode(FriendlyByteBuf buf) {
+            var type = GTRegistries.RECIPE_TYPES.streamCodec().decode(buf);
+            if (buf.readBoolean()) {
+                var id = StreamCodecs.RESOURCE_LOCATION_CODEC.decode(buf);
+                var definition = type.recipes.get(id);
+                return definition == null ? type.defaultDefinition : definition;
+            }
+            return type.defaultDefinition;
+        }
+
+        @Override
+        public void encode(FriendlyByteBuf buf, GTRecipeDefinition recipe) {
+            GTRegistries.RECIPE_TYPES.streamCodec().encode(recipe.recipeType, buf);
+            if (recipe.registered) {
+                buf.writeBoolean(true);
+                StreamCodecs.RESOURCE_LOCATION_CODEC.encode(recipe.id, buf);
+            } else {
+                buf.writeBoolean(false);
+            }
+        }
+    };
+
+    public static final DataCodec<GTRecipeDefinition> DATA_CODEC = new DataCodec<>() {
+
+        @Override
+        public Data encode(GTRecipeDefinition recipe) {
+            var list = new ListData(2);
+            list.add(GTRegistries.RECIPE_TYPES.dataCodec().encode(recipe.recipeType));
+            if (recipe.registered) {
+                list.add(DataCodecs.RESOURCE_LOCATION_CODEC.encode(recipe.id));
+            } else {
+                list.addNull();
+            }
+            return list;
+        }
+
+        @Override
+        public GTRecipeDefinition decode(Data data) {
+            var list = data.getList();
+            var type = GTRegistries.RECIPE_TYPES.dataCodec().decode(list.getFirst());
+            var idData = list.get(1);
+            if (idData.isNull()) return type.defaultDefinition;
+            var id = DataCodecs.RESOURCE_LOCATION_CODEC.decode(idData);
+            var definition = type.recipes.get(id);
+            return definition == null ? type.defaultDefinition : definition;
+        }
+    };
 
     IntMapContainer container;
 
