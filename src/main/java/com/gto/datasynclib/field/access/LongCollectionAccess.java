@@ -9,7 +9,7 @@ import com.gto.datasynclib.datasream.data.LongArrayData;
 import it.unimi.dsi.fastutil.longs.LongCollection;
 import org.jetbrains.annotations.NotNull;
 
-public final class LongCollectionAccess<E> extends AbstractMarkFieldAccess<LongCollection> {
+public final class LongCollectionAccess extends AbstractMarkFieldAccess<LongCollection> {
 
     private int hashCode;
 

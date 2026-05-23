@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
-public final class IntArrayAccess<T> extends AbstractMarkFieldAccess<int[]> {
+public final class IntArrayAccess extends AbstractMarkFieldAccess<int[]> {
 
     private int hashCode;
 

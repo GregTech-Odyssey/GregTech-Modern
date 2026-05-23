@@ -9,7 +9,7 @@ import com.gto.datasynclib.datasream.data.IntArrayData;
 import it.unimi.dsi.fastutil.ints.IntCollection;
 import org.jetbrains.annotations.NotNull;
 
-public final class IntCollectionAccess<E> extends AbstractMarkFieldAccess<IntCollection> {
+public final class IntCollectionAccess extends AbstractMarkFieldAccess<IntCollection> {
 
     private int hashCode;
 
