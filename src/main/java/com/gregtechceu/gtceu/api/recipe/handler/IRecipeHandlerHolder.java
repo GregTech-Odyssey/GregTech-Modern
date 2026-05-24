@@ -145,7 +145,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         return false;
     }
 
-    default void setIdleReason(Supplier<Component> reason) {}
+    void setIdleReason(Supplier<Component> reason);
 
     default void setIdleReason(Component reason) {
         setIdleReason(() -> reason);
