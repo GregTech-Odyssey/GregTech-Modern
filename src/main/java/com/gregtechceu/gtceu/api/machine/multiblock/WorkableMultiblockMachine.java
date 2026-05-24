@@ -318,10 +318,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         return parallelHatch;
     }
 
-    public GTRecipeType getRecipeType() {
-        return recipeTypes[Math.min(recipeTypes.length - 1, activeRecipeType)];
-    }
-
     @Override
     public void setActiveRecipeType(final int activeRecipeType) {
         if (this.activeRecipeType != activeRecipeType) {

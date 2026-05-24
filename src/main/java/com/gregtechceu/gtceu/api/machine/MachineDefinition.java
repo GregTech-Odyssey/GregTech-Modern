@@ -111,8 +111,6 @@ public class MachineDefinition implements Supplier<MetaMachineBlock>, ItemLike {
     @Getter
     @Setter
     private Reference2IntOpenHashMap<RecipeCapability<?>> recipeOutputLimits;
-    @Setter
-    private boolean disabledCombined;
 
     protected MachineDefinition(ResourceLocation id) {
         this.id = id;
@@ -195,10 +193,6 @@ public class MachineDefinition implements Supplier<MetaMachineBlock>, ItemLike {
 
     public void setEditableUI(@Nullable final EditableMachineUI editableUI) {
         this.editableUI = editableUI;
-    }
-
-    public boolean disabledCombined() {
-        return disabledCombined;
     }
 
     private static final ThreadLocal<MachineDefinition> STATE = new ThreadLocal<>();

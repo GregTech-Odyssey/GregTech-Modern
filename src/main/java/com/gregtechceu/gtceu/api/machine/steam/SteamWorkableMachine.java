@@ -123,11 +123,6 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
         return super.onWrenchClick(playerIn, hand, gridSide, hitResult);
     }
 
-    @Override
-    public GTRecipeType getRecipeType() {
-        return recipeTypes[activeRecipeType];
-    }
-
     //////////////////////////////////////
     // ******* Rendering ********//
     //////////////////////////////////////

@@ -37,19 +37,23 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
     @NotNull
     GTRecipeType[] getRecipeTypes();
 
-    @NotNull
-    GTRecipeType getRecipeType();
-
-    default boolean disabledCombined() {
-        return self().getDefinition().disabledCombined();
-    }
-
     int getActiveRecipeType();
 
     void setActiveRecipeType(int type);
 
+    @NotNull
+    default GTRecipeType[] getAvailableRecipeTypes() {
+        return getRecipeTypes();
+    }
+
+    @NotNull
+    default GTRecipeType getRecipeType() {
+        var types = getAvailableRecipeTypes();
+        return types[Math.min(types.length - 1, getActiveRecipeType())];
+    }
+
     default void setRecipeType(GTRecipeType type) {
-        var types = getRecipeTypes();
+        var types = getAvailableRecipeTypes();
         if (types.length > 1 && getRecipeType() != type) {
             int i = 0;
             for (var t : types) {
@@ -73,7 +77,6 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
     }
 
     default GTRecipe fullModifyRecipe(RecipeHandlerUnit unit, GTRecipe recipe) {
-        RecipeHelper.trimRecipeOutputs(recipe, this.getOutputLimits());
         return doModifyRecipe(unit, recipe);
     }
 
@@ -98,7 +101,8 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
     default boolean matchRecipeOutput(GTRecipe recipe) {
         List<Content<ItemIngredient>> items = canVoidRecipeOutputs(ItemRecipeCapability.CAP) ? Collections.emptyList() : RecipeHelper.copyContents(recipe.itemOutputs, 1);
         List<Content<FluidIngredient>> fluids = canVoidRecipeOutputs(FluidRecipeCapability.CAP) ? Collections.emptyList() : RecipeHelper.copyContents(recipe.fluidOutputs, 1);
-        for (var handler : getOutputUnits()) {
+        if (items.isEmpty() && fluids.isEmpty()) return true;
+        for (var handler : getOutputUnits(recipe)) {
             if (handler.handleRecipeItem(IO.OUT, recipe, items, true) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
                 return true;
             }

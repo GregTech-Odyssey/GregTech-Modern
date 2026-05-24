@@ -135,9 +135,6 @@ public class RecipeHandlerUnit {
     public final void setDistinct(boolean distinct) {
         if (isDistinct != distinct) {
             isDistinct = distinct;
-            for (var rht : allHandlerTraits) {
-                rht.setDistinct(isDistinct);
-            }
         }
     }
 
@@ -308,7 +305,7 @@ public class RecipeHandlerUnit {
     }
 
     public void fastForEach(boolean consumable, ObjLongConsumer<ItemStack> itemFunction, ObjLongConsumer<FluidStack> FluidFunction) {
-        for (var handler : allHandlerTraits) {
+        for (var handler : allHandlers) {
             if (consumable && handler.isNotConsumable()) continue;
             handler.fastForEachItems(itemFunction);
             handler.fastForEachFluids(FluidFunction);

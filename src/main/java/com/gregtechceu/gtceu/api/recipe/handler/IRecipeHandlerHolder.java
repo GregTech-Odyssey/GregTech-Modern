@@ -206,6 +206,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     default boolean matchRecipeOutput(GTRecipe recipe) {
         var items = RecipeHelper.copyContents(recipe.itemOutputs, 1);
         var fluids = RecipeHelper.copyContents(recipe.fluidOutputs, 1);
+        if (items.isEmpty() && fluids.isEmpty()) return true;
         for (var handler : getOutputUnits(recipe)) {
             if (handler.handleRecipeItem(IO.OUT, recipe, items, true) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
                 return true;

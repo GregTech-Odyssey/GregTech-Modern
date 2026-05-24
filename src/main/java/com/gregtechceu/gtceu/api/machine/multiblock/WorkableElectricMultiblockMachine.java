@@ -91,7 +91,7 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
             numParallels = Optional.ofNullable(getParallelHatch()).map(IParallelHatch::getCurrentParallel).orElse(0L);
             batchParallels = 0;
         }
-        MultiblockDisplayText.builder(textList, isFormed()).setWorkingStatus(recipeLogic.isWorkingEnabled(), recipeLogic.isActive()).addEnergyUsageLine(energyContainer).addEnergyTierLine(tier).addMachineModeLine(getRecipeType(), getRecipeTypes().length > 1).addParallelsLine(numParallels, exact).addBatchModeLine(isBatchEnabled(), batchParallels).addWorkingStatusLine().addProgressLine(recipeLogic.getProgress(), recipeLogic.getMaxProgress(), recipeLogic.getProgressPercent()).addOutputLines(recipeLogic.getLastRecipe());
+        MultiblockDisplayText.builder(textList, isFormed()).setWorkingStatus(recipeLogic.isWorkingEnabled(), recipeLogic.isActive()).addEnergyUsageLine(energyContainer).addEnergyTierLine(tier).addMachineModeLine(getRecipeType(), getAvailableRecipeTypes().length > 1).addParallelsLine(numParallels, exact).addBatchModeLine(isBatchEnabled(), batchParallels).addWorkingStatusLine().addProgressLine(recipeLogic.getProgress(), recipeLogic.getMaxProgress(), recipeLogic.getProgressPercent()).addOutputLines(recipeLogic.getLastRecipe());
         getDefinition().getAdditionalDisplay().accept(this, textList);
         IDisplayUIMachine.super.addDisplayText(textList);
     }

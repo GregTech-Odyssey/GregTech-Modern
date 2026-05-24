@@ -52,13 +52,6 @@ public interface IRecipeHandler extends IFilteredHandler {
         return false;
     }
 
-    /**
-     * Whether the content of same capability can only be handled distinct.
-     */
-    default boolean isDistinct() {
-        return false;
-    }
-
     default boolean canHandleContent() {
         return canHandleItem() || canHandleFluid();
     }
