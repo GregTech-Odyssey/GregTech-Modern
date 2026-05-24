@@ -61,7 +61,7 @@ public interface IMufflerMachine extends IWorkableMultiPart {
     @Override
     default GTRecipe modifyRecipe(IWorkableMultiController controller, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (!isFrontFaceFree()) {
-            controller.setIdleReason(ActionResult.FAIL_MUFFLER_OBSTRUCTED::reason);
+            controller.setIdleReason(ActionResult.FAIL_MUFFLER_OBSTRUCTED);
             return null;
         }
         return recipe;

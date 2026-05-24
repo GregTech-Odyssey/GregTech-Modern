@@ -147,6 +147,14 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
 
     default void setIdleReason(Supplier<Component> reason) {}
 
+    default void setIdleReason(Component reason) {
+        setIdleReason(() -> reason);
+    }
+
+    default void setIdleReason(ActionResult result) {
+        setIdleReason(result::reason);
+    }
+
     default boolean checkConditions(RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
         if (recipe.conditions.length == 0) return true;
         Map<Class<?>, List<RecipeCondition>> or = new Reference2ObjectArrayMap<>();
@@ -169,7 +177,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
             }
 
             if (!passed) {
-                setIdleReason(() -> component);
+                setIdleReason(component);
                 return false;
             }
         }
@@ -180,7 +188,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         int tier = recipe.tier;
         if (tier > 0 && this instanceof ITieredMachine tieredMachine) {
             if (tier > tieredMachine.getRecipeTier()) {
-                setIdleReason(ActionResult.FAIL_INSUFFICIENT_TIER::reason);
+                setIdleReason(ActionResult.FAIL_INSUFFICIENT_TIER);
                 return false;
             }
         }
@@ -212,7 +220,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
                 return true;
             }
         }
-        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT::reason);
+        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
         return false;
     }
 

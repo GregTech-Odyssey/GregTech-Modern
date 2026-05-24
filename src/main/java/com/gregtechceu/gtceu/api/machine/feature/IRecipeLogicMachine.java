@@ -107,7 +107,7 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
                 return true;
             }
         }
-        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT::reason);
+        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
         return false;
     }
 
