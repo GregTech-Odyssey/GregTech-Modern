@@ -32,7 +32,7 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
         if (!super.matchRecipeOutput(recipe)) return false;
         if (ConfigHolder.INSTANCE.machines.orderedAssemblyLineItems) {
             if (!consumeOrderedItemInputs(recipe, true)) {
-                setFailReason(ActionResult.FAIL_ORDERED_ITEM::reason);
+                setIdleReason(ActionResult.FAIL_ORDERED_ITEM::reason);
                 return false;
             }
         } else {
@@ -42,7 +42,7 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
         }
         if (ConfigHolder.INSTANCE.machines.orderedAssemblyLineFluids) {
             if (!consumeOrderedFluidInputs(recipe, true)) {
-                setFailReason(ActionResult.FAIL_ORDERED_FLUID::reason);
+                setIdleReason(ActionResult.FAIL_ORDERED_FLUID::reason);
                 return false;
             }
             return true;

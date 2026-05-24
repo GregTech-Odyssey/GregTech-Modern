@@ -103,7 +103,7 @@ public final class ParallelLogic {
         if (!(items.isEmpty() || (holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(ItemRecipeCapability.CAP)))) {
             maxParallel = getOutputItemParallelAmount(holder.getOutputUnits(recipe), recipe, items, maxParallel);
             if (maxParallel == 0) {
-                holder.setFailReason(ActionResult.FAIL_INSUFFICIENT_OUT::reason);
+                holder.setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT::reason);
                 return 0;
             }
         }
@@ -111,7 +111,7 @@ public final class ParallelLogic {
         if (!(fluids.isEmpty() || (holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(FluidRecipeCapability.CAP)))) {
             maxParallel = getOutputFluidParallelAmount(holder.getOutputUnits(recipe), recipe, fluids, maxParallel);
             if (maxParallel == 0) {
-                holder.setFailReason(ActionResult.FAIL_INSUFFICIENT_OUT::reason);
+                holder.setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT::reason);
                 return 0;
             }
         }

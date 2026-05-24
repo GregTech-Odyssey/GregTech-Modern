@@ -93,7 +93,7 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
     }
 
     @Override
-    default void setFailReason(Supplier<Component> reason) {
+    default void setIdleReason(Supplier<Component> reason) {
         getRecipeLogic().setIdleReasonSupplier(reason);
     }
 
@@ -107,7 +107,7 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
                 return true;
             }
         }
-        setFailReason(ActionResult.FAIL_INSUFFICIENT_OUT::reason);
+        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT::reason);
         return false;
     }
 

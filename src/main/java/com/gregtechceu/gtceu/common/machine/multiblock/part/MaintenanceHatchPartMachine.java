@@ -154,7 +154,7 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
     public @Nullable GTRecipe modifyRecipe(IWorkableMultiController controller, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (ConfigHolder.INSTANCE.machines.enableMaintenance) {
             if (hasMaintenanceProblems()) {
-                controller.setFailReason(ActionResult.FAIL_MAINTENANCE_BROKEN::reason);
+                controller.setIdleReason(ActionResult.FAIL_MAINTENANCE_BROKEN::reason);
                 return null;
             }
             var durationMultiplier = this.durationMultiplier;

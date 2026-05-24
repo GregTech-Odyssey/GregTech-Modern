@@ -145,7 +145,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         return false;
     }
 
-    default void setFailReason(Supplier<Component> reason) {}
+    default void setIdleReason(Supplier<Component> reason) {}
 
     default boolean checkConditions(RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
         if (recipe.conditions.length == 0) return true;
@@ -154,7 +154,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
             if (condition.isOr()) {
                 or.computeIfAbsent(condition.getClass(), type -> new ArrayList<>()).add(condition);
             } else if (!condition.check(this, unit, recipe)) {
-                setFailReason(() -> ActionResult.failCondition(condition.getTooltips()).reason());
+                setIdleReason(() -> ActionResult.failCondition(condition.getTooltips()).reason());
                 return false;
             }
         }
@@ -169,7 +169,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
             }
 
             if (!passed) {
-                setFailReason(() -> component);
+                setIdleReason(() -> component);
                 return false;
             }
         }
@@ -180,7 +180,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         int tier = recipe.tier;
         if (tier > 0 && this instanceof ITieredMachine tieredMachine) {
             if (tier > tieredMachine.getRecipeTier()) {
-                setFailReason(ActionResult.FAIL_INSUFFICIENT_TIER::reason);
+                setIdleReason(ActionResult.FAIL_INSUFFICIENT_TIER::reason);
                 return false;
             }
         }
@@ -212,7 +212,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
                 return true;
             }
         }
-        setFailReason(ActionResult.FAIL_INSUFFICIENT_OUT::reason);
+        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT::reason);
         return false;
     }
 
@@ -243,7 +243,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         var eu = recipe.eut;
         if (eu != 0) {
             if (!(this instanceof IElectricMachine electricMachine && electricMachine.useEnergy(eu, true))) {
-                setFailReason(() -> ActionResult.failInsufficientIn(EURecipeCapability.CAP.getName()).reason());
+                setIdleReason(() -> ActionResult.failInsufficientIn(EURecipeCapability.CAP.getName()).reason());
                 return false;
             }
         }
@@ -257,7 +257,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         var eu = recipe.eut;
         if (eu != 0) {
             if (!(this instanceof IElectricMachine electricMachine && electricMachine.useEnergy(eu, false))) {
-                setFailReason(() -> ActionResult.failInsufficientIn(EURecipeCapability.CAP.getName()).reason());
+                setIdleReason(() -> ActionResult.failInsufficientIn(EURecipeCapability.CAP.getName()).reason());
                 return false;
             }
         }

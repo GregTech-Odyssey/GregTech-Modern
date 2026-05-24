@@ -190,7 +190,7 @@ public interface IRotorHolderMachine extends IWorkableMultiPart {
     @Override
     default GTRecipe modifyRecipe(IWorkableMultiController controller, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (!isFrontFaceFree()) {
-            controller.setFailReason(ActionResult.FAIL_ROTOR_OBSTRUCTED::reason);
+            controller.setIdleReason(ActionResult.FAIL_ROTOR_OBSTRUCTED::reason);
             return null;
         }
         if (!hasRotor()) return null;
