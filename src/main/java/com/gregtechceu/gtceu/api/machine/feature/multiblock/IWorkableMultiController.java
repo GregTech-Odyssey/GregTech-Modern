@@ -59,7 +59,7 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
         getOutputColorMap().clear();
         var outputs = getCapabilitiesProxy().get(IO.OUT);
         if (outputs == null) {
-            setOutputList(Collections.emptyList());
+            setOutputUnits(Collections.emptyList());
         } else {
             outputs.sort(RecipeHandlerUnit.PRIORITY_COMPARATOR);
             Int2ObjectOpenHashMap<List<RecipeHandlerUnit>> colour = new Int2ObjectOpenHashMap<>();
@@ -95,11 +95,11 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
                 distinct.add(wrapper);
             }
             distinct.sort(RecipeHandlerUnit.PRIORITY_COMPARATOR);
-            setOutputList(distinct);
+            setOutputUnits(distinct);
         }
         var inputs = getCapabilitiesProxy().get(IO.IN);
         if (inputs == null) {
-            setInputList(Collections.emptyList());
+            setInputUnits(Collections.emptyList());
         } else {
             inputs.sort(RecipeHandlerUnit.PRIORITY_COMPARATOR);
             Int2ObjectOpenHashMap<Map<IMultiPart, List<RecipeHandlerUnit>>> colour = new Int2ObjectOpenHashMap<>();
@@ -153,15 +153,15 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
                 }
             }
             distinct.sort(RecipeHandlerUnit.PRIORITY_COMPARATOR);
-            setInputList(distinct);
+            setInputUnits(distinct);
         }
     }
 
     Int2ReferenceOpenHashMap<RecipeHandlerUnit> getOutputColorMap();
 
-    void setInputList(List<RecipeHandlerUnit> handlers);
+    void setInputUnits(List<RecipeHandlerUnit> handlers);
 
-    void setOutputList(List<RecipeHandlerUnit> handlers);
+    void setOutputUnits(List<RecipeHandlerUnit> handlers);
 
     IWorkableMultiPart[] getOnWorkingPart();
 

@@ -79,10 +79,10 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Getter
     @Setter
-    protected List<RecipeHandlerUnit> inputList;
+    protected List<RecipeHandlerUnit> inputUnits;
     @Getter
     @Setter
-    protected List<RecipeHandlerUnit> outputList;
+    protected List<RecipeHandlerUnit> outputUnits;
 
     @Nullable
     protected IParallelHatch parallelHatch = null;
@@ -116,8 +116,8 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         this.capabilitiesFlat = new EnumMap<>(IO.class);
         this.traitSubscriptions = new ArrayList<>();
         this.outputColorMap = new Int2ReferenceOpenHashMap<>();
-        this.inputList = Collections.emptyList();
-        this.outputList = Collections.emptyList();
+        this.inputUnits = Collections.emptyList();
+        this.outputUnits = Collections.emptyList();
     }
 
     @Override
@@ -238,8 +238,8 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         outputColorMap.clear();
         traitSubscriptions.forEach(ISubscription::unsubscribe);
         traitSubscriptions.clear();
-        inputList = Collections.emptyList();
-        outputList = Collections.emptyList();
+        inputUnits = Collections.emptyList();
+        outputUnits = Collections.emptyList();
         // reset recipe Logic
         recipeLogic.resetRecipeLogic();
     }

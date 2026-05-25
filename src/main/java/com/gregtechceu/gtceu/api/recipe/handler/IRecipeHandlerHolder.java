@@ -339,6 +339,23 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         return false;
     }
 
+    default boolean simulateOutputItem(ItemLike item, long amount) {
+        var contentList = new ArrayList<Content<ItemIngredient>>(1);
+        contentList.add(new Content<>(ItemIngredient.of(item, amount)));
+        for (var handler : getOutputUnits()) {
+            if (handler.handleItem(IO.OUT, contentList, true)) return true;
+        }
+        return false;
+    }
+
+    default boolean simulateOutputItem(ItemStack... items) {
+        var contentList = RecipeHandlerUnit.toItemIngredient(items);
+        for (var handler : getOutputUnits()) {
+            if (handler.handleItem(IO.OUT, contentList, true)) return true;
+        }
+        return false;
+    }
+
     default boolean outputItem(ItemLike item, long amount) {
         var contentList = new ArrayList<Content<ItemIngredient>>(1);
         contentList.add(new Content<>(ItemIngredient.of(item, amount)));
@@ -391,6 +408,23 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     default boolean inputFluid(FluidStack... fluids) {
         for (var handler : getInputUnits()) {
             if (handler.inputFluid(fluids)) return true;
+        }
+        return false;
+    }
+
+    default boolean simulateOutputFluid(Fluid fluid, long amount) {
+        var contentList = new ArrayList<Content<FluidIngredient>>(1);
+        contentList.add(new Content<>(FluidIngredient.of(fluid, amount)));
+        for (var handler : getOutputUnits()) {
+            if (handler.handleFluid(IO.OUT, contentList, true)) return true;
+        }
+        return false;
+    }
+
+    default boolean simulateOutputFluid(FluidStack... fluids) {
+        var contentList = RecipeHandlerUnit.toFluidIngredient(fluids);
+        for (var handler : getOutputUnits()) {
+            if (handler.handleFluid(IO.OUT, contentList, true)) return true;
         }
         return false;
     }
