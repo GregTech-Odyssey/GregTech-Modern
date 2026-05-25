@@ -10,7 +10,9 @@ import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.jei.IngredientIO;
 
 import net.minecraft.network.chat.Component;
@@ -19,6 +21,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 
+import org.apache.commons.lang3.mutable.MutableInt;
+
 public class DimensionCondition extends RecipeCondition {
 
     public final ResourceKey<Level> dimension;
@@ -26,6 +30,13 @@ public class DimensionCondition extends RecipeCondition {
     public DimensionCondition(boolean isReverse, ResourceKey<Level> dimension) {
         super(isReverse);
         this.dimension = dimension;
+    }
+
+    @Override
+    public void addXEIInfo(GTRecipeDefinition recipe, WidgetGroup group, int xOffset, MutableInt yOffset) {
+        group.addWidget(setupDimensionMarkers(recipe.recipeType.getRecipeUI().getJEISize().width - xOffset - 44,
+                recipe.recipeType.getRecipeUI().getJEISize().height - 32)
+                .setBackgroundTexture(IGuiTexture.EMPTY));
     }
 
     @Override

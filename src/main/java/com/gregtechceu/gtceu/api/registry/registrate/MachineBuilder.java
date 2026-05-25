@@ -100,7 +100,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     private PartAbility[] abilities = new PartAbility[0];
     private final List<Component> tooltips = new ArrayList<>();
     private BiConsumer<ItemStack, List<Component>> tooltipBuilder;
-    private RecipeModifier recipeModifier = RecipeModifier.OVERCLOCKING;
+    private RecipeModifier recipeModifier = RecipeModifier.NO_MODIFIER;
 
     @NotNull
     private Predicate<IRecipeLogicMachine> onWorking = GTUtil.FAVORABLE;

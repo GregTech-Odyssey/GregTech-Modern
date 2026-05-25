@@ -13,12 +13,10 @@ import com.gregtechceu.gtceu.api.recipe.content.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
-import com.gregtechceu.gtceu.common.recipe.condition.DimensionCondition;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
@@ -127,16 +125,10 @@ public class GTRecipeWidget extends WidgetGroup {
         }
 
         for (RecipeCondition condition : recipe.conditions) {
-            if (condition.getTooltips() == null) continue;
-            if (condition instanceof DimensionCondition dimCondition) {
-                addWidget(dimCondition
-                        .setupDimensionMarkers(recipe.recipeType.getRecipeUI().getJEISize().width - xOffset - 44,
-                                recipe.recipeType.getRecipeUI().getJEISize().height - 32)
-                        .setBackgroundTexture(IGuiTexture.EMPTY));
-            } else addWidget(new LabelWidget(3 - xOffset, yOffset += LINE_HEIGHT, condition.getTooltips().getString()));
+            condition.addXEIInfo(recipe, this, xOffset, yOff);
         }
         for (Function<DataComponentMap, String> dataInfo : recipe.recipeType.getDataInfos()) {
-            addWidget(new LabelWidget(3 - xOffset, yOffset += LINE_HEIGHT, dataInfo.apply(recipe.data)));
+            addWidget(new LabelWidget(3 - xOffset, yOff.addAndGet(LINE_HEIGHT), dataInfo.apply(recipe.data)));
         }
         recipe.recipeType.getRecipeUI().appendJEIUI(recipe, this);
     }
