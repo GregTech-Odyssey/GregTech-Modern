@@ -4,7 +4,7 @@ import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 
 import net.minecraft.core.Direction;
 
-public interface IDummyEnergyMachine {
+public interface IDummyEnergyMachine extends IElectricMachine {
 
     default boolean jade() {
         return true;
