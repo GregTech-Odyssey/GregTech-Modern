@@ -356,6 +356,10 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         return false;
     }
 
+    default boolean matchItem(ItemLike item) {
+        return matchItem(item, 1);
+    }
+
     default boolean matchItem(ItemLike item, long amount) {
         for (var handler : getInputUnits()) {
             if (handler.matchItem(item, amount)) return true;
@@ -406,6 +410,10 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
             if (handler.handleFluid(IO.OUT, contentList, false)) return true;
         }
         return false;
+    }
+
+    default boolean matchFluid(Fluid fluid) {
+        return matchFluid(fluid, 1);
     }
 
     default boolean matchFluid(Fluid fluid, long amount) {
