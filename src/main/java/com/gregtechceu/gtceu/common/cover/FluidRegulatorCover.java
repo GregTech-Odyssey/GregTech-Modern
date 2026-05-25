@@ -152,7 +152,7 @@ public class FluidRegulatorCover extends PumpCover {
         configureTransferSizeInput();
     }
 
-    private int getFilteredFluidAmount(FluidStack fluidStack) {
+    public int getFilteredFluidAmount(FluidStack fluidStack) {
         if (!filterHandler.isFilterPresent()) return globalTransferLimit;
         FluidFilter filter = filterHandler.getFilter();
         return (filter.supportsAmounts() ? filter.testFluidAmount(fluidStack) : globalTransferLimit);
