@@ -155,7 +155,8 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     }
 
     @Override
-    public boolean onWorking() {
+    public void onWorking() {
+        super.onWorking();
         GTRecipe recipe = recipeLogic.getLastRecipe();
         assert recipe != null;
         if (recipe.data.contains(GTRecipeDataKeys.EU_TO_START)) {
@@ -164,7 +165,9 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
             if (heatDiff > 0) {
                 recipeLogic.setWaiting(Component.translatable("gtceu.recipe_logic.insufficient_fuel"));
                 // if the remaining energy needed is more than stored, do not run
-                if (this.energyContainer.getEnergyStored() < heatDiff) return super.onWorking();
+                if (this.energyContainer.getEnergyStored() < heatDiff) {
+                    return;
+                }
                 // remove the energy needed
                 this.energyContainer.removeEnergy(heatDiff);
                 // increase the stored heat
@@ -181,7 +184,6 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
                 }
             }
         }
-        return super.onWorking();
     }
 
     public void updateHeat() {

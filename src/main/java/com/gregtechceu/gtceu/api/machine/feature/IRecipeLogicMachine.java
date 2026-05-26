@@ -135,8 +135,8 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
     /**
      * Called per tick in {@link RecipeLogic#handleRecipeWorking()}
      */
-    default boolean onWorking() {
-        return self().getDefinition().getOnWorking().test(this);
+    default void onWorking() {
+        self().getDefinition().getOnWorking().accept(this);
     }
 
     /**

@@ -39,7 +39,7 @@ public interface IWorkableMultiPart extends IMultiPart {
         var c = part.getClass();
         return BEFORE_WORKING_METHOD.computeIfAbsent(c, k -> {
             try {
-                return EmptyMethodChecker.hasMethodBody(c.getMethod("beforeWorking", IWorkableMultiController.class, GTRecipe.class));
+                return EmptyMethodChecker.hasMethodBody(c.getMethod("beforeWorking", IWorkableMultiController.class, RecipeHandlerUnit.class, GTRecipe.class));
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
@@ -114,9 +114,7 @@ public interface IWorkableMultiPart extends IMultiPart {
     /**
      * Called per tick in {@link RecipeLogic#handleRecipeWorking()}
      */
-    default boolean onWorking(IWorkableMultiController controller) {
-        return true;
-    }
+    default void onWorking(IWorkableMultiController controller) {}
 
     /**
      * Called per tick in {@link RecipeLogic#handleRecipeWorking()}
@@ -134,9 +132,9 @@ public interface IWorkableMultiPart extends IMultiPart {
     default void afterWorking(IWorkableMultiController controller) {}
 
     /**
-     * Called in {@link RecipeLogic#setupRecipe(GTRecipe)}
+     * Called in {@link RecipeLogic#setupRecipe(RecipeHandlerUnit,GTRecipe)}
      */
-    default void beforeWorking(IWorkableMultiController controller, @NotNull GTRecipe recipe) {}
+    default void beforeWorking(IWorkableMultiController controller, RecipeHandlerUnit unit, @NotNull GTRecipe recipe) {}
 
     /**
      * Override it to modify recipe on the fly e.g. applying overclock, change chance, etc

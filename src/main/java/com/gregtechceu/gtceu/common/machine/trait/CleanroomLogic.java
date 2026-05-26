@@ -78,10 +78,7 @@ public class CleanroomLogic extends RecipeLogic {
                 setStatus(WORKING);
                 // increase progress
                 if (progress++ < getMaxProgress()) {
-                    if (!machine.onWorking()) {
-                        this.interruptRecipe();
-                    }
-                    return;
+                    machine.onWorking();
                 }
                 progress = 0;
                 adjustCleanAmount(false);

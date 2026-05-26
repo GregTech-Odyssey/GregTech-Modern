@@ -33,10 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 /**
  * Representing basic information of a machine.
@@ -69,7 +66,7 @@ public class MachineDefinition implements Supplier<MetaMachineBlock>, ItemLike {
     @Setter
     private RecipeModifier recipeModifier;
     @NotNull
-    private Predicate<IRecipeLogicMachine> onWorking = GTUtil.FAVORABLE;
+    private Consumer<IRecipeLogicMachine> onWorking = GTUtil.NOOP_CONSUMER;
     @Getter
     @Setter
     private boolean regressWhenWaiting = true;
@@ -177,12 +174,12 @@ public class MachineDefinition implements Supplier<MetaMachineBlock>, ItemLike {
         this.recipeTypes = recipeTypes;
     }
 
-    public void setOnWorking(@NotNull final Predicate<IRecipeLogicMachine> onWorking) {
+    public void setOnWorking(@NotNull final Consumer<IRecipeLogicMachine> onWorking) {
         this.onWorking = onWorking;
     }
 
     @NotNull
-    public Predicate<IRecipeLogicMachine> getOnWorking() {
+    public Consumer<IRecipeLogicMachine> getOnWorking() {
         return this.onWorking;
     }
 

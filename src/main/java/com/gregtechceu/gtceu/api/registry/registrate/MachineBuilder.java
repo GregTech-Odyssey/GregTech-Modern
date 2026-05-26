@@ -103,7 +103,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     private RecipeModifier recipeModifier = RecipeModifier.NO_MODIFIER;
 
     @NotNull
-    private Predicate<IRecipeLogicMachine> onWorking = GTUtil.FAVORABLE;
+    private Consumer<IRecipeLogicMachine> onWorking = GTUtil.NOOP_CONSUMER;
     private boolean regressWhenWaiting = true;
     private boolean allowCoverOnFront = false;
 
@@ -506,7 +506,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     /**
      * @return {@code this}.
      */
-    public MachineBuilder<DEFINITION> onWorking(final Predicate<IRecipeLogicMachine> onWorking) {
+    public MachineBuilder<DEFINITION> onWorking(final Consumer<IRecipeLogicMachine> onWorking) {
         this.onWorking = onWorking;
         return this;
     }

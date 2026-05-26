@@ -120,14 +120,14 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
     }
 
     @Override
-    public boolean onWorking() {
-        boolean value = super.onWorking();
+    public void onWorking() {
+        super.onWorking();
         // check lubricant
         if (runningTimer % 72 == 0) {
             // insufficient lubricant
             if (!inputFluid(LUBRICANT_STACK)) {
                 recipeLogic.interruptRecipe();
-                return false;
+                return;
             }
         }
         // check boost fluid
@@ -136,7 +136,6 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
         }
         runningTimer++;
         if (runningTimer > 72000) runningTimer %= 72000; // reset once every hour of running
-        return value;
     }
 
     @Override

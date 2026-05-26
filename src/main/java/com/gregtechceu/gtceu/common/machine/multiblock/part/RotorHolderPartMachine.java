@@ -171,7 +171,7 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
     }
 
     @Override
-    public boolean onWorking(IWorkableMultiController controller) {
+    public void onWorking(IWorkableMultiController controller) {
         if (rotorSpeed < maxRotorHolderSpeed) {
             setRotorSpeed(rotorSpeed + SPEED_INCREMENT);
             updateRotorSubscription();
@@ -183,7 +183,7 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
             }
             damageRotor(1 + numMaintenanceProblems);
         }
-        return true;
+        super.onWorking(controller);
     }
 
     public int getTierDifference() {

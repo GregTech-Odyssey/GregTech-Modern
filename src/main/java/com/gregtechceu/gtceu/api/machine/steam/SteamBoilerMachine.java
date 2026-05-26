@@ -227,13 +227,12 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     protected abstract long getBaseSteamOutput();
 
     @Override
-    public boolean onWorking() {
-        boolean value = super.onWorking();
+    public void onWorking() {
+        super.onWorking();
         if (currentTemperature < getMaxTemperature()) {
             currentTemperature = Math.max(1, currentTemperature);
             updateSteamSubscription();
         }
-        return value;
     }
 
     @Override

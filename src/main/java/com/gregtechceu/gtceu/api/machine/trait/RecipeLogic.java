@@ -199,12 +199,13 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     }
 
     public void handleRecipeWorking() {
-        if (lastRecipe != null && machine.handleTickRecipe(lastRecipe) && machine.onWorking()) {
+        if (lastRecipe != null && machine.handleTickRecipe(lastRecipe)) {
             setStatus(WORKING);
             progress++;
             totalContinuousRunningTime++;
+            machine.onWorking();
         } else {
-            setWaiting(null);
+            interruptRecipe();
         }
         if (isWaiting()) {
             machine.regressRecipe(this);
@@ -352,6 +353,11 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
      */
     public void interruptRecipe() {
         setWaiting(null);
+        unsubscribe();
+    }
+
+    public void interruptRecipe(@Nullable Component reason) {
+        setWaiting(reason);
         unsubscribe();
     }
 
