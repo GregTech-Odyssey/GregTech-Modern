@@ -1,8 +1,6 @@
-package com.gregtechceu.gtceu.api.machine.feature;
+package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -50,10 +48,10 @@ public interface IDistillationTower extends IWorkableMultiController {
                     fluidOutputs.add(VoidFluidHandler.INSTANCE);
                 } else {
                     GTCEu.LOGGER.error("The Distillation Tower at {} has a fluid export hatch with an unexpected Y position", self().getPos());
-                    onStructureInvalid();
-                    return true;
+                    return false;
                 }
             }
+            return true;
         }
         return false;
     }
