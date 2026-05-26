@@ -1,5 +1,7 @@
 package com.gto.datasynclib.datasream.codec;
 
+import net.minecraft.nbt.ByteArrayTag;
+
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ListData;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
@@ -14,6 +16,10 @@ import java.util.function.IntFunction;
 public interface DataDecoder<T> {
 
     T decode(@NotNull Data data);
+
+    default T fromNbt(ByteArrayTag tag) {
+        return decode(Data.readData(tag.getAsByteArray()));
+    }
 
     static <K, V> DataDecoder<V> convert(DataDecoder<? extends K> serializer, Function<K, V> converter) {
         return dis -> converter.apply(serializer.decode(dis));

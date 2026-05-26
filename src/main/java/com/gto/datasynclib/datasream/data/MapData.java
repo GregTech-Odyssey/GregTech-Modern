@@ -5,8 +5,11 @@ import net.minecraft.network.FriendlyByteBuf;
 import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datasream.codec.DataCodec;
+import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -82,16 +85,20 @@ public record MapData(Map<String, Data> value) implements Data {
         return this.value.isEmpty();
     }
 
-    public Data get(String key) {
-        return this.value.get(key);
-    }
-
     public boolean containsKey(String key) {
         return this.value.containsKey(key);
     }
 
     public Data remove(String key) {
         return this.value.remove(key);
+    }
+
+    public <T> Data put(String key, Codec<T> codec, T data) {
+        return this.value.put(key, codec.encodeStart(DataOps.INSTANCE, data).result().orElseThrow());
+    }
+
+    public <T> Data put(String key, DataCodec<T> codec, T data) {
+        return this.value.put(key, codec.encode(data));
     }
 
     public Data put(String key, Data data) {
@@ -190,22 +197,78 @@ public record MapData(Map<String, Data> value) implements Data {
         return data.getDouble();
     }
 
+    @Nullable
+    public Data get(String key) {
+        return this.value.get(key);
+    }
+
+    @Nullable
     public String getString(String key) {
         var data = this.value.get(key);
         if (data == null) return null;
         return data.getString();
     }
 
+    @Nullable
+    public BigInteger getBigInteger(String key) {
+        var data = this.value.get(key);
+        if (data == null) return null;
+        return data.getBigInteger();
+    }
+
+    @Nullable
     public UUID getUUID(String key) {
         var data = this.value.get(key);
         if (data == null) return null;
         return data.getUUID();
     }
 
-    public BigInteger getBigInteger(String key) {
+    @Nullable
+    public <T> T get(String key, Codec<T> codec) {
         var data = this.value.get(key);
         if (data == null) return null;
-        return data.getBigInteger();
+        return codec.decode(DataOps.INSTANCE, data).result().orElseThrow().getFirst();
+    }
+
+    @Nullable
+    public <T> T get(String key, DataCodec<T> codec) {
+        var data = this.value.get(key);
+        if (data == null) return null;
+        return codec.decode(data);
+    }
+
+    @NotNull
+    public Optional<Data> getOptional(String key) {
+        return Optional.ofNullable(this.value.get(key));
+    }
+
+    @NotNull
+    public Optional<String> getOptionalString(String key) {
+        return Optional.ofNullable(getString(key));
+    }
+
+    @NotNull
+    public Optional<BigInteger> getOptionalBigInteger(String key) {
+        return Optional.ofNullable(getBigInteger(key));
+    }
+
+    @NotNull
+    public Optional<UUID> getOptionalUUID(String key) {
+        return Optional.ofNullable(getUUID(key));
+    }
+
+    @NotNull
+    public <T> Optional<T> getOptional(String key, Codec<T> codec) {
+        var data = this.value.get(key);
+        if (data == null) return Optional.empty();
+        return codec.decode(DataOps.INSTANCE, data).result().map(Pair::getFirst);
+    }
+
+    @NotNull
+    public <T> Optional<T> getOptional(String key, DataCodec<T> codec) {
+        var data = this.value.get(key);
+        if (data == null) return Optional.empty();
+        return Optional.ofNullable(codec.decode(data));
     }
 
     public Set<Map.Entry<String, Data>> entrySet() {

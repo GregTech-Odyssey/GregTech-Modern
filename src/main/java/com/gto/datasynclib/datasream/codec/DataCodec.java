@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.math.BigInteger;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 
 public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
 
@@ -71,6 +72,21 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
             @Override
             public @NotNull Data encode(T obj) {
                 return encoder.encode(obj);
+            }
+        };
+    }
+
+    static <K, V> DataCodec<V> map(DataCodec<K> codec, Function<? super V, ? extends K> encodeConverter, Function<? super K, ? extends V> decodeConverter) {
+        return new DataCodec<>() {
+
+            @Override
+            public V decode(@NotNull Data data) {
+                return decodeConverter.apply(codec.decode(data));
+            }
+
+            @Override
+            public @NotNull Data encode(V obj) {
+                return codec.encode(encodeConverter.apply(obj));
             }
         };
     }

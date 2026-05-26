@@ -1,5 +1,7 @@
 package com.gto.datasynclib.datasream.codec;
 
+import net.minecraft.nbt.ByteArrayTag;
+
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ListData;
 import org.jetbrains.annotations.NotNull;
@@ -13,6 +15,11 @@ public interface DataEncoder<T> {
 
     @NotNull
     Data encode(T obj);
+
+    @NotNull
+    default ByteArrayTag toNbt(T obj) {
+        return new ByteArrayTag(encode(obj).writeToBytes());
+    }
 
     static <K, V> DataEncoder<V> convert(DataEncoder<? super K> serializer, Function<V, K> converter) {
         return obj -> serializer.encode(converter.apply(obj));
