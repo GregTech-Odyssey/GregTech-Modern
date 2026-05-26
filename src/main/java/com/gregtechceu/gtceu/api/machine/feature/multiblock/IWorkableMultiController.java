@@ -118,14 +118,12 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
             colour.int2ObjectEntrySet().fastForEach(e -> {
                 var map = e.getValue();
                 var color = e.getIntKey();
-                List<List<RecipeHandlerUnit>> same = new ArrayList<>(map.values());
+                var same = new ArrayList<>(map.values());
                 same.sort(Comparator.comparingInt(l -> -l.size()));
                 var first = same.getFirst();
                 for (int i = first.size() - 1; i >= 0; i--) {
                     var handlers = new ReferenceOpenHashSet<IRecipeHandler>();
-                    var size = same.size();
-                    for (int j = 1; j < size; j++) {
-                        var other = same.get(j);
+                    for (var other : same) {
                         var otherList = other.get(Math.min(other.size() - 1, i));
                         handlers.addAll(Arrays.asList(otherList.allHandlers));
                     }
