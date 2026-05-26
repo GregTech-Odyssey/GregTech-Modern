@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.recipe;
 
 import com.gregtechceu.gtceu.api.recipe.content.*;
+import com.gregtechceu.gtceu.api.recipe.expand.ContentExpander;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
@@ -83,7 +84,30 @@ public final class GTRecipe {
         @Override
         public GTRecipe decode(Data data) {
             var list = data.getList();
-            var recipe = new GTRecipe(GTRecipeDefinition.DATA_CODEC.decode(list.getFirst()), DataDecoder.notNullCollection(ArrayList::new, SerializerItemIngredient.INSTANCE::fromDataContent).decode(list.get(1)), DataDecoder.notNullCollection(ArrayList::new, SerializerItemIngredient.INSTANCE::fromDataContent).decode(list.get(2)), DataDecoder.notNullCollection(ArrayList::new, SerializerFluidIngredient.INSTANCE::fromDataContent).decode(list.get(3)), DataDecoder.notNullCollection(ArrayList::new, SerializerFluidIngredient.INSTANCE::fromDataContent).decode(list.get(4)), GTRecipeDataKeys.REGISTRY.decode(list.get(5)), list.get(6).getLong(), list.get(7).getInt(), list.get(8).getInt());
+            var definition = GTRecipeDefinition.DATA_CODEC.decode(list.getFirst());
+            var recipeData = GTRecipeDataKeys.REGISTRY.decode(list.get(5));
+            if (definition == definition.recipeType.defaultDefinition && !recipeData.isEmpty()) {
+                List<ContentExpander> expanders = null;
+                List<ContentExpander> tickExpanders = null;
+                for (var k : recipeData.keySet()) {
+                    if (k instanceof ContentExpander expander) {
+                        if (expander.isTick()) {
+                            if (tickExpanders == null) tickExpanders = new ArrayList<>();
+                            tickExpanders.add(expander);
+                        } else {
+                            if (expanders == null) expanders = new ArrayList<>();
+                            expanders.add(expander);
+                        }
+                    }
+                }
+                if (expanders != null || tickExpanders != null) {
+                    var b = definition.recipeType.recipeBuilder(definition.id);
+                    if (expanders != null) expanders.forEach(b::addContentExpand);
+                    if (tickExpanders != null) tickExpanders.forEach(b::addTickContentExpand);
+                    definition = b.build();
+                }
+            }
+            var recipe = new GTRecipe(definition, DataDecoder.notNullCollection(ArrayList::new, SerializerItemIngredient.INSTANCE::fromDataContent).decode(list.get(1)), DataDecoder.notNullCollection(ArrayList::new, SerializerItemIngredient.INSTANCE::fromDataContent).decode(list.get(2)), DataDecoder.notNullCollection(ArrayList::new, SerializerFluidIngredient.INSTANCE::fromDataContent).decode(list.get(3)), DataDecoder.notNullCollection(ArrayList::new, SerializerFluidIngredient.INSTANCE::fromDataContent).decode(list.get(4)), recipeData, list.get(6).getLong(), list.get(7).getInt(), list.get(8).getInt());
             recipe.parallels = list.get(8).getLong();
             recipe.batchParallels = list.get(10).getLong();
             recipe.ocLevel = list.get(11).getInt();

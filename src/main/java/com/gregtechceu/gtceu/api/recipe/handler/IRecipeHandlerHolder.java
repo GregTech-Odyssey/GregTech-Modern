@@ -204,7 +204,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         var fluids = RecipeHelper.copyContents(recipe.fluidInputs, 1);
         if (unit.handleRecipeItem(IO.IN, recipe, items, true) && unit.handleRecipeFluid(IO.IN, recipe, fluids, true)) {
             for (var e : recipe.definition.contentExpanders) {
-                if (!e.handle(this, null, recipe, true)) return false;
+                if (!e.handle(IO.IN, this, unit, recipe, true)) return false;
             }
             return true;
         }
@@ -212,11 +212,14 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     }
 
     default boolean matchRecipeOutput(GTRecipe recipe) {
+        for (var e : recipe.definition.contentExpanders) {
+            if (!e.handle(IO.OUT, this, null, recipe, true)) return false;
+        }
         var items = RecipeHelper.copyContents(recipe.itemOutputs, 1);
         var fluids = RecipeHelper.copyContents(recipe.fluidOutputs, 1);
         if (items.isEmpty() && fluids.isEmpty()) return true;
-        for (var handler : getOutputUnits(recipe)) {
-            if (handler.handleRecipeItem(IO.OUT, recipe, items, true) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
+        for (var unit : getOutputUnits(recipe)) {
+            if (unit.handleRecipeItem(IO.OUT, recipe, items, true) && unit.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
                 return true;
             }
         }
@@ -229,7 +232,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         var fluids = RecipeHelper.copyAndRoll(recipe, recipe.fluidInputs);
         if (unit.handleRecipeItem(IO.IN, recipe, items, false) && unit.handleRecipeFluid(IO.IN, recipe, fluids, false)) {
             for (var e : recipe.definition.contentExpanders) {
-                if (!e.handle(this, null, recipe, false)) return false;
+                if (!e.handle(IO.IN, this, unit, recipe, false)) return false;
             }
             return true;
         }
@@ -237,6 +240,9 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     }
 
     default boolean handleRecipeOutput(GTRecipe recipe) {
+        for (var e : recipe.definition.contentExpanders) {
+            if (!e.handle(IO.OUT, this, null, recipe, true)) return false;
+        }
         var items = RecipeHelper.copyAndRoll(recipe, recipe.itemOutputs);
         var fluids = RecipeHelper.copyAndRoll(recipe, recipe.fluidOutputs);
         for (var handler : getOutputUnits(recipe)) {
@@ -256,7 +262,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
             }
         }
         for (var e : recipe.definition.tickContentExpanders) {
-            if (!e.handle(this, null, recipe, true)) return false;
+            if (!e.handle(IO.BOTH, this, null, recipe, true)) return false;
         }
         return true;
     }
@@ -270,7 +276,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
             }
         }
         for (var e : recipe.definition.tickContentExpanders) {
-            if (!e.handle(this, null, recipe, false)) return false;
+            if (!e.handle(IO.BOTH, this, null, recipe, false)) return false;
         }
         return true;
     }

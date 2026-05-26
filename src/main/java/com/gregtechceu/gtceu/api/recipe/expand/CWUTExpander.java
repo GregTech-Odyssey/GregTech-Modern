@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.recipe.expand;
 import com.gregtechceu.gtceu.api.machine.feature.IComputationContainerMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
@@ -13,19 +14,27 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
 import com.fast.recipesearch.IntLongMap;
+import com.gto.datasynclib.CombinationCodec;
+import com.gto.datasynclib.datasream.DataComponentKey;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public final class CWUExpander extends ContentExpander {
+public final class CWUTExpander extends DataComponentKey<Long> implements ContentExpander {
 
-    public static final CWUExpander INSTANCE = new CWUExpander();
+    public static final CWUTExpander INSTANCE = new CWUTExpander();
 
-    private CWUExpander() {
-        super("cwu", 0xFFEEEE00, false, 3);
+    private CWUTExpander() {
+        super("cwut", CombinationCodec.LONG_CODEC);
     }
 
     @Override
-    public boolean handle(@NotNull IRecipeHandlerHolder holder, RecipeHandlerUnit unit, @NotNull GTRecipe recipe, boolean simulate) {
+    public boolean isTick() {
+        return true;
+    }
+
+    @Override
+    public boolean handle(IO io, @NotNull IRecipeHandlerHolder holder, @Nullable RecipeHandlerUnit unit, @NotNull GTRecipe recipe, boolean simulate) {
         var cwu = recipe.getInputCWUt();
         if (cwu < 1) return true;
         if (holder instanceof IComputationContainerMachine machine) {
@@ -57,11 +66,9 @@ public final class CWUExpander extends ContentExpander {
     }
 
     @Override
-    public void addXEIInfo(GTRecipeDefinition recipe, WidgetGroup group, int xOffset, MutableInt yOffset, boolean isTick) {
-        if (isTick) {
-            group.addWidget(new LabelWidget(3 - xOffset, yOffset.addAndGet(10),
-                    LocalizationUtils.format("gtceu.recipe.computation_per_tick", FormattingUtil.formatNumbers(recipe.data.getLong(GTRecipeDataKeys.CWUT)))));
-        }
+    public void addXEIInfo(GTRecipeDefinition recipe, WidgetGroup group, int xOffset, MutableInt yOffset) {
+        group.addWidget(new LabelWidget(3 - xOffset, yOffset.addAndGet(10),
+                LocalizationUtils.format("gtceu.recipe.computation_per_tick", FormattingUtil.formatNumbers(recipe.data.getLong(GTRecipeDataKeys.CWUT)))));
         if (recipe.data.getBoolean(GTRecipeDataKeys.DURATION_IS_TOTAL_CWU)) {
             group.addWidget(new LabelWidget(3 - xOffset, yOffset.addAndGet(10),
                     LocalizationUtils.format("gtceu.recipe.total_computation", FormattingUtil.formatNumbers(recipe.duration))));

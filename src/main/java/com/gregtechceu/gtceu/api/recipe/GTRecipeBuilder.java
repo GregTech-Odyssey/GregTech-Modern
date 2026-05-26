@@ -14,7 +14,7 @@ import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.api.recipe.expand.CWUExpander;
+import com.gregtechceu.gtceu.api.recipe.expand.CWUTExpander;
 import com.gregtechceu.gtceu.api.recipe.expand.ContentExpander;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
@@ -244,7 +244,7 @@ public class GTRecipeBuilder {
         }
         if (cwu > 0) {
             addData(GTRecipeDataKeys.CWUT, cwu);
-            addTickContentExpand(CWUExpander.INSTANCE);
+            addTickContentExpand(CWUTExpander.INSTANCE);
         } else if (cwu < 0) {
             throw new IllegalArgumentException("CWUt can't be negative");
         }

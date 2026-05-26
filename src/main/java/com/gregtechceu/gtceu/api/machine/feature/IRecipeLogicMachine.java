@@ -99,6 +99,9 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
 
     @Override
     default boolean matchRecipeOutput(GTRecipe recipe) {
+        for (var e : recipe.definition.contentExpanders) {
+            if (!e.handle(IO.OUT, this, null, recipe, true)) return false;
+        }
         List<Content<ItemIngredient>> items = canVoidRecipeOutputs(ItemRecipeCapability.CAP) ? Collections.emptyList() : RecipeHelper.copyContents(recipe.itemOutputs, 1);
         List<Content<FluidIngredient>> fluids = canVoidRecipeOutputs(FluidRecipeCapability.CAP) ? Collections.emptyList() : RecipeHelper.copyContents(recipe.fluidOutputs, 1);
         if (items.isEmpty() && fluids.isEmpty()) return true;

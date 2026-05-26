@@ -118,10 +118,10 @@ public class GTRecipeWidget extends WidgetGroup {
         /// add text based on i/o's
         MutableInt yOff = new MutableInt(yOffset);
         for (var e : recipe.contentExpanders) {
-            e.addXEIInfo(recipe, this, xOffset, yOff, false);
+            e.addXEIInfo(recipe, this, xOffset, yOff);
         }
         for (var e : recipe.tickContentExpanders) {
-            e.addXEIInfo(recipe, this, xOffset, yOff, true);
+            e.addXEIInfo(recipe, this, xOffset, yOff);
         }
 
         for (RecipeCondition condition : recipe.conditions) {

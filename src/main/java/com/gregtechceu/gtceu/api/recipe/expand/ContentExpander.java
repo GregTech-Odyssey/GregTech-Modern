@@ -8,52 +8,22 @@ import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-
 import com.fast.recipesearch.IntLongMap;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Locale;
+public interface ContentExpander {
 
-public abstract class ContentExpander {
+    boolean isTick();
 
-    public final String name;
-    public final int color;
-    public final boolean doRenderSlot;
-    public final int sortIndex;
+    boolean handle(IO io, @NotNull IRecipeHandlerHolder holder, @Nullable RecipeHandlerUnit unit, @NotNull GTRecipe recipe, boolean simulate);
 
-    protected ContentExpander(String name, int color, boolean doRenderSlot, int sortIndex) {
-        this.name = name;
-        this.color = color;
-        this.doRenderSlot = doRenderSlot;
-        this.sortIndex = sortIndex;
-    }
+    void extractInput(GTRecipeDefinition recipe, IntLongMap map);
 
-    public abstract boolean handle(@NotNull IRecipeHandlerHolder holder, RecipeHandlerUnit unit, @NotNull GTRecipe recipe, boolean simulate);
+    long getParallel(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe, long parallel);
 
-    public abstract void extractInput(GTRecipeDefinition recipe, IntLongMap map);
+    void setParallel(GTRecipe recipe, long parallel);
 
-    public abstract long getParallel(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe, long parallel);
-
-    public abstract void setParallel(GTRecipe recipe, long parallel);
-
-    public String slotName(IO io) {
-        return "%s_%s".formatted(name, io.name().toLowerCase(Locale.ROOT));
-    }
-
-    public String slotName(IO io, int index) {
-        return "%s_%s_%s".formatted(name, io.name().toLowerCase(Locale.ROOT), index);
-    }
-
-    public MutableComponent getName() {
-        return Component.translatable("recipe.capability.%s.name".formatted(name));
-    }
-
-    public MutableComponent getColoredName() {
-        return getName().withStyle(style -> style.withColor(this.color));
-    }
-
-    public void addXEIInfo(GTRecipeDefinition recipe, WidgetGroup group, int xOffset, MutableInt yOffset, boolean isTick) {}
+    void addXEIInfo(GTRecipeDefinition recipe, WidgetGroup group, int xOffset, MutableInt yOffset);
 }
