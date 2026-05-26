@@ -229,7 +229,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     public void setupRecipe(RecipeHandlerUnit unit, @NotNull GTRecipe recipe) {
         progress = 0;
         if (machine.handleRecipeInput(unit, recipe)) {
-            machine.beforeWorking(recipe);
+            machine.beforeWorking(unit, recipe);
             interval = 5;
             lastRecipe = recipe;
             setStatus(WORKING);

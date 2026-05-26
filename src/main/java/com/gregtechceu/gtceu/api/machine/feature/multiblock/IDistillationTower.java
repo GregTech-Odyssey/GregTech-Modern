@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 
@@ -57,9 +58,9 @@ public interface IDistillationTower extends IWorkableMultiController {
     }
 
     @Override
-    default void beforeWorking(@NotNull GTRecipe recipe) {
+    default void beforeWorking(@NotNull RecipeHandlerUnit unit, @NotNull GTRecipe recipe) {
         updateWorkingRecipe(recipe);
-        IWorkableMultiController.super.beforeWorking(recipe);
+        IWorkableMultiController.super.beforeWorking(unit, recipe);
     }
 
     @Override
@@ -87,6 +88,7 @@ public interface IDistillationTower extends IWorkableMultiController {
     default boolean applyFluidOutputs(GTRecipe recipe, IFluidHandler.FluidAction action) {
         var fluids = recipe.fluidOutputs;
         if (fluids.isEmpty()) return true;
+        if (action.execute()) fluids = RecipeHelper.copyAndRoll(recipe, fluids);
         // Distillery recipes should output to the first non-void handler
         if (recipe.definition.recipeType != GTRecipeTypes.DISTILLATION_RECIPES) {
             if (getFluidOutputs().isEmpty()) return false;

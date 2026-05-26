@@ -277,11 +277,11 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     }
 
     @Override
-    public void beforeWorking(GTRecipe recipe) {
+    public void beforeWorking(RecipeHandlerUnit unit, GTRecipe recipe) {
         for (var part : beforeWorkingPart) {
             part.beforeWorking(this, recipe);
         }
-        IWorkableMultiController.super.beforeWorking(recipe);
+        IWorkableMultiController.super.beforeWorking(unit, recipe);
     }
 
     @Override

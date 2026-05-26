@@ -130,7 +130,7 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
     /**
      * Called in {@link RecipeLogic#setupRecipe(RecipeHandlerUnit,GTRecipe)} ()
      */
-    default void beforeWorking(@NotNull GTRecipe recipe) {}
+    default void beforeWorking(@NotNull RecipeHandlerUnit unit, @NotNull GTRecipe recipe) {}
 
     /**
      * Called per tick in {@link RecipeLogic#handleRecipeWorking()}
