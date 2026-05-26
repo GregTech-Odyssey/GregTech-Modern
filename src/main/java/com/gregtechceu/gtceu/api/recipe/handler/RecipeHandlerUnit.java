@@ -39,7 +39,18 @@ public class RecipeHandlerUnit {
 
     public static final Comparator<RecipeHandlerUnit> PRIORITY_COMPARATOR = Comparator.comparingInt(u -> -u.priority);
 
-    public static final RecipeHandlerUnit NO_DATA = new RecipeHandlerUnit(IO.NONE, null);
+    public static final RecipeHandlerUnit NO_DATA = new RecipeHandlerUnit(IO.NONE, null) {
+
+        @Override
+        public boolean handleRecipeItem(IO io, GTRecipe recipe, List<Content<ItemIngredient>> items, boolean simulate) {
+            return items.isEmpty();
+        }
+
+        @Override
+        public boolean handleRecipeFluid(IO io, GTRecipe recipe, List<Content<FluidIngredient>> fluids, boolean simulate) {
+            return fluids.isEmpty();
+        }
+    };;
 
     public final IMultiPart part;
 
