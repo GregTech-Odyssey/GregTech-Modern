@@ -69,11 +69,7 @@ public class DataComponentKey<T> {
         this.codec = codec;
     }
 
-    public final Object mergeData(Object oldData, Object newData) {
-        return merge((T) oldData, (T) newData);
-    }
-
-    protected T merge(T oldData, T newData) {
+    public T merge(T oldData, T newData) {
         return newData;
     }
 

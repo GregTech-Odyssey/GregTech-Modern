@@ -31,6 +31,11 @@ public abstract class SteamMachine extends MetaMachine implements ITieredMachine
     }
 
     @Override
+    public int getRecipeTier() {
+        return 1;
+    }
+
+    @Override
     public int getTier() {
         return isHighPressure ? 1 : 0;
     }

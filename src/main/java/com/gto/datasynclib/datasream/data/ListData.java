@@ -103,8 +103,8 @@ public record ListData(List<Data> value) implements CollectionData, Iterable<Dat
     public Data copy() {
         var size = value.size();
         var copy = new ArrayList<Data>(size);
-        for (int i = 0; i < size; i++) {
-            copy.set(i, value.get(i).copy());
+        for (Data data : value) {
+            copy.add(data.copy());
         }
         return new ListData(copy);
     }

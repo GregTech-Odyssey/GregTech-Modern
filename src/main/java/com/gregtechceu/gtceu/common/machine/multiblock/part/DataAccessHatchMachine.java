@@ -3,8 +3,6 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IDataAccessHatch;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
@@ -14,6 +12,7 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.research.DataBankMachine;
 import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
@@ -143,7 +142,7 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
             list.add(Component.empty());
             Collection<ItemStack> itemsAdded = new ObjectOpenCustomHashSet<>(ItemStackHashStrategy.ALL);
             for (GTRecipeDefinition recipe : recipes) {
-                ItemStack stack = ItemRecipeCapability.CAP.of(recipe.getOutputContents(ItemRecipeCapability.CAP).getFirst()).getInnerItemStack();
+                ItemStack stack = recipe.itemOutputs.getFirst().inner.getInnerItemStack();
                 if (!itemsAdded.contains(stack)) {
                     itemsAdded.add(stack);
                     list.add(Component.translatable("behavior.data_item.assemblyline.data", stack.getDisplayName()));

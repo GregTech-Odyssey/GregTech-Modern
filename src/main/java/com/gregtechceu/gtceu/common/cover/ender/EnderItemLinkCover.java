@@ -77,7 +77,7 @@ public class EnderItemLinkCover extends AbstractEnderLinkCover<VirtualItemStorag
                     filterHandler.getFilter(), 64);
             case OUT -> GTTransferUtils.transferItemsFiltered(storage.getHandler(), ownHandler,
                     filterHandler.getFilter(), 64);
-        };
+        }
     }
 
     public @Nullable IItemHandler getOwnItemHandler() {

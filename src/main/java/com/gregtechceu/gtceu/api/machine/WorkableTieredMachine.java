@@ -2,12 +2,15 @@ package com.gregtechceu.gtceu.api.machine;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.*;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
+import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.feature.*;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachine;
 import com.gregtechceu.gtceu.api.machine.trait.*;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
@@ -53,10 +56,12 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     public final NotifiableFluidTank importFluids;
     @Persisted
     public final NotifiableFluidTank exportFluids;
+
     @Getter
-    protected final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
+    protected final Map<IO, List<RecipeHandlerUnit>> capabilitiesProxy;
     @Getter
-    protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
+    protected final Map<IO, List<IRecipeHandler>> capabilitiesFlat;
+
     @Getter
     @Persisted
     protected int overclockTier;
@@ -66,7 +71,6 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     @Persisted
     @SyncToClient
     protected boolean isMuffled;
-    protected RecipeHandlerList currentHandlerList;
 
     public WorkableTieredMachine(MetaMachineBlockEntity holder, int tier, Int2IntFunction tankScalingFunction, Object... args) {
         super(holder, tier, args);
@@ -131,14 +135,14 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     public void onLoad() {
         super.onLoad();
         // attach self traits
-        Map<IO, List<IRecipeHandler<?>>> ioTraits = new EnumMap<>(IO.class);
+        Map<IO, List<IRecipeHandler>> ioTraits = new EnumMap<>(IO.class);
         for (MachineTrait trait : getTraits()) {
-            if (trait instanceof IRecipeHandlerTrait<?> handlerTrait && handlerTrait.isAvailable() && handlerTrait.getHandlerIO() != IO.NONE) {
+            if (trait instanceof IRecipeHandlerTrait handlerTrait && handlerTrait.isAvailable() && handlerTrait.getHandlerIO() != IO.NONE) {
                 ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ArrayList<>()).add(handlerTrait);
             }
         }
         for (var entry : ioTraits.entrySet()) {
-            var handlerList = RecipeHandlerList.of(entry.getKey(), entry.getValue());
+            var handlerList = RecipeHandlerUnit.of(entry.getKey(), entry.getValue());
             this.addHandlerList(handlerList);
             traitSubscriptions.add(handlerList.subscribe(recipeLogic::updateTickSubscription));
         }
@@ -196,11 +200,6 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     //////////////////////////////////////
     // ****** RECIPE LOGIC *******//
     //////////////////////////////////////
-
-    public GTRecipeType getRecipeType() {
-        return recipeTypes[activeRecipeType];
-    }
-
     public void setActiveRecipeType(final int activeRecipeType) {
         if (this.activeRecipeType != activeRecipeType) {
             getRecipeLogic().markLastRecipeDirty();
@@ -217,16 +216,6 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
         this.cleanroom = cleanroom;
         getRecipeLogic().markLastRecipeDirty();
         getRecipeLogic().updateTickSubscription();
-    }
-
-    @Override
-    public @Nullable RecipeHandlerList getCurrentHandlerList() {
-        return currentHandlerList;
-    }
-
-    @Override
-    public void setCurrentHandlerList(RecipeHandlerList list) {
-        this.currentHandlerList = list;
     }
 
     @Override

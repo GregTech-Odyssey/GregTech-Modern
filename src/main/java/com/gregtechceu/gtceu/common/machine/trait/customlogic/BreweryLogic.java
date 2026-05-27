@@ -1,13 +1,10 @@
 package com.gregtechceu.gtceu.common.machine.trait.customlogic;
 
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.IRecipeCapabilityHolder;
-import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.data.tag.TagUtil;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.common.fluid.potion.PotionFluidHelper;
@@ -27,8 +24,6 @@ import net.minecraftforge.common.brewing.BrewingRecipeRegistry;
 import net.minecraftforge.common.brewing.IBrewingRecipe;
 import net.minecraftforge.fluids.FluidStack;
 
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,163 +49,40 @@ public enum BreweryLogic implements GTRecipeType.ICustomRecipeLogic {
             brew -> PotionFluidHelper.getPotionFluidIngredientFrom(brew.getInput(), PotionFluidHelper.MB_PER_RECIPE));
 
     @Override
-    public @Nullable GTRecipeDefinition createCustomRecipe(IRecipeCapabilityHolder holder) {
-        var handlerLists = holder.getInputList();
-        if (handlerLists.isEmpty()) return null;
-        List<RecipeHandlerList> distinct = new ArrayList<>();
-        List<IRecipeHandler<?>> notDistinctItems = new ArrayList<>();
-        List<IRecipeHandler<?>> notDistinctFluids = new ArrayList<>();
-
-        for (var handlerList : handlerLists) {
-            if (handlerList.isDistinct()) {
-                distinct.add(handlerList);
-            } else {
-                notDistinctItems.addAll(handlerList.getCapability(ItemRecipeCapability.CAP));
-                notDistinctFluids.addAll(handlerList.getCapability(FluidRecipeCapability.CAP));
-            }
-        }
-
-        if (distinct.isEmpty() && notDistinctItems.isEmpty() && notDistinctFluids.isEmpty()) return null;
-
+    public @Nullable GTRecipeDefinition createCustomRecipe(IRecipeHandlerHolder holder, RecipeHandlerUnit unit) {
         List<ItemStack> itemStacks = new ArrayList<>();
         List<FluidStack> fluidStacks = new ArrayList<>();
 
-        for (var handlerList : distinct) {
-            itemStacks.clear();
-            fluidStacks.clear();
-            if (!collect(handlerList, itemStacks, fluidStacks)) continue;
+        if (!collect(unit, itemStacks, fluidStacks)) return null;
 
-            for (var itemStack : itemStacks) {
-                for (PotionBrewing.Mix<Potion> mix : PotionBrewingAccessor.getPotionMixes()) {
-                    // test item ingredient first
-                    if (!mix.ingredient.test(itemStack)) {
-                        continue;
-                    }
-                    FluidStack fromFluid = MIX_INPUTS.apply(mix);
-                    // then match fluid input
-                    for (var fluidStack : fluidStacks) {
-                        if (testMixFluid(fluidStack, fromFluid)) {
-                            return vanillaPotionRecipe(mix, fromFluid);
-                        }
-                    }
+        for (var itemStack : itemStacks) {
+            for (PotionBrewing.Mix<Potion> mix : PotionBrewingAccessor.getPotionMixes()) {
+                // test item ingredient first
+                if (!mix.ingredient.test(itemStack)) {
+                    continue;
                 }
-
-                for (IBrewingRecipe recipe : BrewingRecipeRegistry.getRecipes()) {
-                    if (!(recipe instanceof BrewingRecipe brew) || !brew.isIngredient(itemStack)) {
-                        continue;
-                    }
-                    FluidIngredient fromFluid = BREW_INGREDIENTS.apply(brew);
-
-                    for (var fluidStack : fluidStacks) {
-                        if (fromFluid.test(fluidStack)) {
-                            return forgePotionRecipe(brew, fromFluid);
-                        }
-                    }
-                }
-            }
-        }
-
-        if (notDistinctItems.isEmpty() && notDistinctFluids.isEmpty()) return null;
-
-        itemStacks.clear();
-        fluidStacks.clear();
-        collect(notDistinctItems, notDistinctFluids, itemStacks, fluidStacks);
-        if (itemStacks.isEmpty() && fluidStacks.isEmpty()) return null;
-
-        ReferenceOpenHashSet<PotionBrewing.Mix<Potion>> mixesWithIngredient = new ReferenceOpenHashSet<>();
-        ReferenceOpenHashSet<BrewingRecipe> brewsWithIngredient = new ReferenceOpenHashSet<>();
-        Reference2ObjectOpenHashMap<PotionBrewing.Mix<Potion>, FluidStack> mixesWithInput = new Reference2ObjectOpenHashMap<>();
-        Reference2ObjectOpenHashMap<BrewingRecipe, FluidIngredient> brewsWithInput = new Reference2ObjectOpenHashMap<>();
-
-        for (PotionBrewing.Mix<Potion> mix : PotionBrewingAccessor.getPotionMixes()) {
-            for (var itemStack : itemStacks) {
-                if (mix.ingredient.test(itemStack)) {
-                    mixesWithIngredient.add(mix);
-                    break;
-                }
-            }
-
-            for (var fluidStack : fluidStacks) {
                 FluidStack fromFluid = MIX_INPUTS.apply(mix);
-                if (testMixFluid(fluidStack, fromFluid)) {
-                    if (mixesWithIngredient.contains(mix)) {
-                        return vanillaPotionRecipe(mix, fromFluid);
-                    } else {
-                        mixesWithInput.put(mix, fromFluid);
-                        break;
-                    }
-                }
-            }
-        }
-
-        for (IBrewingRecipe recipe : BrewingRecipeRegistry.getRecipes()) {
-            if (!(recipe instanceof BrewingRecipe brew)) continue;
-            for (var itemStack : itemStacks) {
-                if (brew.isIngredient(itemStack)) {
-                    brewsWithIngredient.add(brew);
-                    break;
-                }
-            }
-
-            for (var fluidStack : fluidStacks) {
-                FluidIngredient fromFluid = BREW_INGREDIENTS.apply(brew);
-                if (fromFluid.test(fluidStack)) {
-                    if (brewsWithIngredient.contains(brew)) {
-                        return forgePotionRecipe(brew, fromFluid);
-                    } else {
-                        brewsWithInput.put(brew, fromFluid);
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (mixesWithIngredient.isEmpty() &&
-                mixesWithInput.isEmpty() &&
-                brewsWithIngredient.isEmpty() &&
-                brewsWithInput.isEmpty()) {
-            return null;
-        }
-
-        for (var handlerList : distinct) {
-            itemStacks.clear();
-            fluidStacks.clear();
-            collect(handlerList, itemStacks, fluidStacks);
-            if (!mixesWithInput.isEmpty() || !brewsWithInput.isEmpty()) {
-                for (var itemStack : itemStacks) {
-                    for (var entry : mixesWithInput.reference2ObjectEntrySet()) {
-                        var mix = entry.getKey();
-                        var fluid = entry.getValue();
-                        if (mix.ingredient.test(itemStack)) return vanillaPotionRecipe(mix, fluid);
-                    }
-
-                    for (var entry : brewsWithInput.reference2ObjectEntrySet()) {
-                        var brew = entry.getKey();
-                        var fluid = entry.getValue();
-                        if (brew.isIngredient(itemStack)) return forgePotionRecipe(brew, fluid);
-                    }
-                }
-            }
-
-            if (!mixesWithIngredient.isEmpty() || !brewsWithIngredient.isEmpty()) {
+                // then match fluid input
                 for (var fluidStack : fluidStacks) {
-                    for (var mix : mixesWithIngredient) {
-                        FluidStack fromFluid = MIX_INPUTS.apply(mix);
-                        if (testMixFluid(fluidStack, fromFluid)) {
-                            return vanillaPotionRecipe(mix, fromFluid);
-                        }
+                    if (testMixFluid(fluidStack, fromFluid)) {
+                        return vanillaPotionRecipe(mix, fromFluid);
                     }
+                }
+            }
 
-                    for (var brew : brewsWithIngredient) {
-                        FluidIngredient fromFluid = BREW_INGREDIENTS.apply(brew);
-                        if (fromFluid.test(fluidStack)) {
-                            return forgePotionRecipe(brew, fromFluid);
-                        }
+            for (IBrewingRecipe recipe : BrewingRecipeRegistry.getRecipes()) {
+                if (!(recipe instanceof BrewingRecipe brew) || !brew.isIngredient(itemStack)) {
+                    continue;
+                }
+                FluidIngredient fromFluid = BREW_INGREDIENTS.apply(brew);
+
+                for (var fluidStack : fluidStacks) {
+                    if (fromFluid.test(fluidStack)) {
+                        return forgePotionRecipe(brew, fromFluid);
                     }
                 }
             }
         }
-
         return null;
     }
 
@@ -251,22 +123,9 @@ public enum BreweryLogic implements GTRecipeType.ICustomRecipeLogic {
                 .build();
     }
 
-    private static boolean collect(RecipeHandlerList rhl, List<ItemStack> itemStacks, List<FluidStack> fluidStacks) {
-        rhl.fastForEach((stack, amount) -> itemStacks.add(stack), (stack, amount) -> fluidStacks.add(stack));
+    private static boolean collect(RecipeHandlerUnit rhl, List<ItemStack> itemStacks, List<FluidStack> fluidStacks) {
+        rhl.fastForEach(true, (stack, amount) -> itemStacks.add(stack), (stack, amount) -> fluidStacks.add(stack));
         return !(itemStacks.isEmpty() || fluidStacks.isEmpty());
-    }
-
-    private static void collect(List<IRecipeHandler<?>> itemHandlers, List<IRecipeHandler<?>> fluidHandlers,
-                                List<ItemStack> itemStacks, List<FluidStack> fluidStacks) {
-        for (var handler : itemHandlers) {
-            if (!handler.shouldSearchContent()) continue;
-            handler.fastForEachItems((stack, amount) -> itemStacks.add(stack));
-        }
-
-        for (var handler : fluidHandlers) {
-            if (!handler.shouldSearchContent()) continue;
-            handler.fastForEachFluids((stack, amount) -> fluidStacks.add(stack));
-        }
     }
 
     @Override

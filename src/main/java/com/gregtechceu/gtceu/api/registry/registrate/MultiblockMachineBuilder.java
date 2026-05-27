@@ -309,7 +309,7 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
     }
 
     @Override
-    public MultiblockMachineBuilder onWorking(Predicate<IRecipeLogicMachine> onWorking) {
+    public MultiblockMachineBuilder onWorking(Consumer<IRecipeLogicMachine> onWorking) {
         return (MultiblockMachineBuilder) super.onWorking(onWorking);
     }
 

@@ -3,12 +3,10 @@ package com.gregtechceu.gtceu.common.machine.multiblock.primitive;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IWailaDisplayProvider;
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
-import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -18,12 +16,11 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.biome.Biome.Precipitation;
 import net.minecraftforge.fluids.FluidType;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
-
-import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -52,9 +49,9 @@ public class PrimitivePumpMachine extends MultiblockControllerMachine implements
             var handlerLists = part.getRecipeHandlers();
 
             for (var handlerList : handlerLists) {
-                var recipeCap = handlerList.getCapability(FluidRecipeCapability.CAP);
-                if (handlerList.getHandlerIO() == IO.OUT && !recipeCap.isEmpty()) {
-                    fluidTank = (NotifiableFluidTank) recipeCap.getFirst();
+                var recipeCap = handlerList.getCapabilities(NotifiableFluidTank.class);
+                if (handlerList.handlerIO == IO.OUT && !recipeCap.isEmpty()) {
+                    fluidTank = recipeCap.getFirst();
                     long tankCapacity = fluidTank.getTankCapacity(0);
                     if (tankCapacity == FluidType.BUCKET_VOLUME) {
                         hatchModifier = 1;
@@ -94,8 +91,7 @@ public class PrimitivePumpMachine extends MultiblockControllerMachine implements
             } else if (biomeModifier > 0) {
                 if (fluidTank == null) initializeTank();
                 if (fluidTank != null) {
-                    fluidTank.handleRecipe(IO.OUT, null,
-                            List.of(FluidIngredient.of(GTMaterials.Water.getFluid(getFluidProduction()))), false);
+                    fluidTank.fill(GTMaterials.Water.getFluid(getFluidProduction()), IFluidHandler.FluidAction.EXECUTE);
                 }
             }
         }

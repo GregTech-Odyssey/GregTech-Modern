@@ -6,15 +6,11 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.api.block.ICoilType;
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.recipe.*;
-import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.sound.ExistingSoundEntry;
@@ -26,9 +22,9 @@ import com.gregtechceu.gtceu.common.machine.trait.customlogic.ArcFurnaceLogic;
 import com.gregtechceu.gtceu.common.machine.trait.customlogic.BreweryLogic;
 import com.gregtechceu.gtceu.common.machine.trait.customlogic.CannerLogic;
 import com.gregtechceu.gtceu.common.machine.trait.customlogic.MaceratorLogic;
+import com.gregtechceu.gtceu.common.recipe.*;
 import com.gregtechceu.gtceu.common.recipe.condition.AdjacentFluidCondition;
 import com.gregtechceu.gtceu.data.recipe.RecipeUtil;
-import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemStackHandler;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.ResearchManager;
@@ -45,7 +41,7 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidStack;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.lowdragmc.lowdraglib.gui.texture.ProgressTexture.FillDirection.*;
@@ -71,20 +67,20 @@ public class GTRecipeTypes {
             .setProgressBar(GuiTextures.PROGRESS_BAR_BOILER_FUEL.get(true), DOWN_TO_UP)
             .onRecipeBuild((builder) -> {
                 // remove the * 12 if SteamBoilerMachine:240 is uncommented
-                var duration = (builder.duration / 12 / 80); // copied for large boiler
+                var duration = (builder.getDuration() / 12 / 80); // copied for large boiler
                 if (duration > 0) {
                     GTRecipeTypes.LARGE_BOILER_RECIPES.copyFrom(builder).duration(duration).save();
                 }
-                var list = builder.input.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList());
-                if (!list.isEmpty()) {
-                    var fluid = FluidRecipeCapability.CAP.of(list.getFirst()).getFluid();
+                var fluids = builder.getFluidInputs();
+                if (!fluids.isEmpty()) {
+                    var fluid = fluids.getFirst().inner.getFluid();
                     if (fluid != null) SteamLiquidBoilerMachine.FUEL_CACHE.add(fluid);
                 }
-                list = builder.input.getOrDefault(ItemRecipeCapability.CAP, Collections.emptyList());
-                if (!list.isEmpty()) {
-                    var items = ItemRecipeCapability.CAP.of(list.getFirst()).getInnerItemStack();
-                    if (!items.isEmpty()) {
-                        SteamSolidBoilerMachine.FUEL_CACHE.add(items.getItem());
+                var items = builder.getItemInputs();
+                if (!items.isEmpty()) {
+                    var item = items.getFirst().inner.getInnerItemStack();
+                    if (!item.isEmpty()) {
+                        SteamSolidBoilerMachine.FUEL_CACHE.add(item.getItem());
                     }
                 }
             })
@@ -115,10 +111,8 @@ public class GTRecipeTypes {
             .setProgressBar(GuiTextures.PROGRESS_BAR_ARC_FURNACE, LEFT_TO_RIGHT)
             .setSound(GTSoundEntries.ARC)
             .onRecipeBuild((recipeBuilder) -> {
-                if (recipeBuilder.input.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList()).isEmpty() &&
-                        recipeBuilder.tickInput.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList())
-                                .isEmpty()) {
-                    recipeBuilder.inputFluids(GTMaterials.Oxygen.getFluid(recipeBuilder.duration));
+                if (recipeBuilder.getFluidInputs().isEmpty()) {
+                    recipeBuilder.inputFluids(GTMaterials.Oxygen.getFluid(recipeBuilder.getDuration()));
                 }
             })
             .addCustomRecipeLogic(ArcFurnaceLogic.INSTANCE);
@@ -224,21 +218,19 @@ public class GTRecipeTypes {
             .setSound(GTSoundEntries.CUT)
             .setMaxTooltips(4)
             .onRecipeBuild((recipeBuilder) -> {
-                if (recipeBuilder.input.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList()).isEmpty() &&
-                        recipeBuilder.tickInput.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList())
-                                .isEmpty()) {
+                if (recipeBuilder.getFluidInputs().isEmpty()) {
                     recipeBuilder
-                            .copy(GTUtil.getResourceLocation(recipeBuilder.id.toString() + "_water"))
+                            .copy(GTUtil.getResourceLocation(recipeBuilder.getId() + "_water"))
                             .inputFluids(GTMaterials.Water.getFluid((int) Math.max(4,
-                                    Math.min(1000, recipeBuilder.duration * recipeBuilder.EUt() / 320))))
-                            .duration(recipeBuilder.duration * 2)
+                                    Math.min(1000, recipeBuilder.getDuration() * recipeBuilder.EUt() / 320))))
+                            .duration(recipeBuilder.getDuration() * 2)
                             .save();
 
                     recipeBuilder
-                            .copy(GTUtil.getResourceLocation(recipeBuilder.id.toString() + "_distilled_water"))
+                            .copy(GTUtil.getResourceLocation(recipeBuilder.getId() + "_distilled_water"))
                             .inputFluids(GTMaterials.DistilledWater.getFluid((int) Math.max(3,
-                                    Math.min(750, recipeBuilder.duration * recipeBuilder.EUt() / 426))))
-                            .duration((int) (recipeBuilder.duration * 1.5))
+                                    Math.min(750, recipeBuilder.getDuration() * recipeBuilder.EUt() / 426))))
+                            .duration((int) (recipeBuilder.getDuration() * 1.5))
                             .save();
 
                     // Don't call buildAndRegister as we are mutating the original recipe and already in the middle of a
@@ -246,8 +238,8 @@ public class GTRecipeTypes {
                     // Adding a second call will result in duplicate recipe generation attempts
                     recipeBuilder
                             .inputFluids(GTMaterials.Lubricant.getFluid((int) Math.max(1,
-                                    Math.min(250, recipeBuilder.duration * recipeBuilder.EUt() / 1280))))
-                            .duration(Math.max(1, recipeBuilder.duration));
+                                    Math.min(250, recipeBuilder.getDuration() * recipeBuilder.EUt() / 1280))))
+                            .duration(Math.max(1, recipeBuilder.getDuration()));
                 }
             });
 
@@ -391,10 +383,8 @@ public class GTRecipeTypes {
             .setSound(GTSoundEntries.ASSEMBLER)
             .setMaxTooltips(4)
             .onRecipeBuild((recipeBuilder) -> {
-                if (recipeBuilder.input.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList()).isEmpty() &&
-                        recipeBuilder.tickInput.getOrDefault(FluidRecipeCapability.CAP, Collections.emptyList())
-                                .isEmpty()) {
-                    recipeBuilder.copy(GTUtil.getResourceLocation(recipeBuilder.id.toString() + "_soldering_alloy"))
+                if (recipeBuilder.getFluidInputs().isEmpty()) {
+                    recipeBuilder.copy(GTUtil.getResourceLocation(recipeBuilder.getId() + "_soldering_alloy"))
                             .inputFluids(GTMaterials.SolderingAlloy
                                     .getFluid(Math.max(1, (GTValues.L / 2) * recipeBuilder.getSolderMultiplier())))
                             .save();
@@ -438,7 +428,7 @@ public class GTRecipeTypes {
             .setProgressBar(GuiTextures.PROGRESS_BAR_MACERATE, LEFT_TO_RIGHT)
             .setIconSupplier(() -> GTMachines.ROCK_CRUSHER[GTValues.LV].asStack())
             .setSteamProgressBar(GuiTextures.PROGRESS_BAR_MACERATE_STEAM, LEFT_TO_RIGHT)
-            .setUiBuilder((recipe, widgetGroup) -> recipe.conditions.stream().filter(AdjacentFluidCondition.class::isInstance).map(AdjacentFluidCondition.class::cast).findFirst().ifPresent(c -> {
+            .setUiBuilder((recipe, widgetGroup) -> Arrays.stream(recipe.conditions).filter(AdjacentFluidCondition.class::isInstance).map(AdjacentFluidCondition.class::cast).findFirst().ifPresent(c -> {
                 var fluidA = c.A;
                 var fluidB = c.B;
                 if (fluidA != Fluids.EMPTY) {
@@ -543,42 +533,35 @@ public class GTRecipeTypes {
             .setSound(GTSoundEntries.CHEMICAL)
             .setProgressBar(GuiTextures.PROGRESS_BAR_ARROW_MULTIPLE, LEFT_TO_RIGHT)
             .onRecipeBuild((recipeBuilder) -> {
-                if (recipeBuilder.data.getBoolean(GTRecipeDataKeys.DISABLE_DISTILLERY)) return;
-                if (recipeBuilder.output.containsKey(FluidRecipeCapability.CAP)) {
-                    long EUt = EURecipeCapability.CAP
-                            .of(recipeBuilder.tickInput.get(EURecipeCapability.CAP).getFirst());
-                    Content inputContent = recipeBuilder.input.get(FluidRecipeCapability.CAP).getFirst();
-                    FluidIngredient input = FluidRecipeCapability.CAP.of(inputContent);
-                    ItemStack outputItem = recipeBuilder.output.containsKey(ItemRecipeCapability.CAP) ?
-                            ItemRecipeCapability.CAP
-                                    .of(recipeBuilder.output.get(ItemRecipeCapability.CAP).getFirst())
-                                    .getInnerItemStack() :
+                if (recipeBuilder.getData().getBoolean(GTRecipeDataKeys.DISABLE_DISTILLERY)) return;
+                if (!recipeBuilder.getFluidOutputs().isEmpty()) {
+                    long EUt = recipeBuilder.getEut();
+                    var inputContent = recipeBuilder.getFluidInputs().getFirst();
+                    FluidIngredient input = inputContent.inner;
+                    ItemStack outputItem = !recipeBuilder.getItemOutputs().isEmpty() ?
+                            recipeBuilder.getItemOutputs().getFirst().inner.getInnerItemStack() :
                             ItemStack.EMPTY;
-                    var count = recipeBuilder.output.containsKey(ItemRecipeCapability.CAP) ? ItemRecipeCapability.CAP
-                            .of(recipeBuilder.output.get(ItemRecipeCapability.CAP).getFirst())
-                            .getAmount() : 0;
+                    var count = !recipeBuilder.getItemOutputs().isEmpty() ? recipeBuilder.getItemOutputs().getFirst().getIntAmount() : 0;
                     if (input.isEmpty()) return;
-                    List<Content> contents = recipeBuilder.output.get(FluidRecipeCapability.CAP);
+                    var contents = recipeBuilder.getFluidOutputs();
                     for (int i = 0; i < contents.size(); ++i) {
-                        Content outputContent = contents.get(i);
-                        FluidIngredient output = FluidRecipeCapability.CAP.of(outputContent);
+                        var outputContent = contents.get(i);
+                        var output = outputContent.inner;
                         if (output.isEmpty()) continue;
                         GTRecipeBuilder builder = DISTILLERY_RECIPES
-                                .recipeBuilder(recipeBuilder.id.getPath() + "_to_" +
+                                .recipeBuilder(recipeBuilder.getId().getPath() + "_to_" +
                                         GTUtil.FLUID_ID.apply(output.getFluid()).getPath())
                                 .EUt(Math.max(1, EUt / 4)).circuitMeta(i + 1);
 
                         int ratio = RecipeUtil.getRatioForDistillery(input, output, count);
-                        int recipeDuration = (int) (recipeBuilder.duration * OverclockingLogic.STD_DURATION_FACTOR_INV);
+                        int recipeDuration = (int) (recipeBuilder.getDuration() * 0.5);
                         boolean shouldDivide = ratio != 1;
 
                         boolean fluidsDivisible = RecipeUtil.isFluidStackDivisibleForDistillery(input, ratio) &&
                                 RecipeUtil.isFluidStackDivisibleForDistillery(output, ratio);
 
-                        FluidIngredient dividedInputFluid = input.depthCopy();
-                        dividedInputFluid.changeAmount(Math.max(1, dividedInputFluid.amount / ratio));
-                        FluidIngredient dividedOutputFluid = output.depthCopy();
-                        dividedOutputFluid.changeAmount(Math.max(1, dividedOutputFluid.amount / ratio));
+                        FluidIngredient dividedInputFluid = input.copy(Math.max(1, input.amount / ratio));
+                        FluidIngredient dividedOutputFluid = output.copy(Math.max(1, output.amount / ratio));
 
                         if (shouldDivide && fluidsDivisible) {
                             builder.chance(inputContent.chance)
@@ -592,7 +575,7 @@ public class GTRecipeTypes {
                             if (!outputItem.isEmpty()) {
                                 builder.outputItems(outputItem, count);
                             }
-                            builder.conditions.addAll(recipeBuilder.conditions);
+                            builder.addCondition(recipeBuilder.getConditions());
                             builder.chance(inputContent.chance)
                                     .tierChanceBoost(inputContent.tierChanceBoost)
                                     .inputFluids(input)

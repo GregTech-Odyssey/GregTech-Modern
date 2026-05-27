@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.api.recipe;
+package com.gregtechceu.gtceu.common.recipe;
 
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;

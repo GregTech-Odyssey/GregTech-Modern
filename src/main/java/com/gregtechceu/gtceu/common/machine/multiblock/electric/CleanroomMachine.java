@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.ICleanroomReceiver;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.SimpleGeneratorMachine;
 import com.gregtechceu.gtceu.api.machine.feature.ICleanroomProvider;
@@ -194,7 +193,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         for (var part : getWorkableParts()) {
             if (isPartIgnored(part)) continue;
             for (var handlerList : part.getRecipeHandlers()) {
-                handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).forEach(energyContainers::add);
+                energyContainers.addAll(handlerList.getCapabilities(IEnergyContainer.class));
             }
             if (part instanceof IMaintenanceMachine maintenanceMachine) {
                 getRecipeLogic().setMaintenanceMachine(maintenanceMachine);

@@ -18,7 +18,6 @@ import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifierList;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.client.renderer.GTRendererProvider;
 import com.gregtechceu.gtceu.client.renderer.machine.*;
-import com.gregtechceu.gtceu.common.data.GTRecipeModifiers;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
@@ -101,13 +100,12 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     private PartAbility[] abilities = new PartAbility[0];
     private final List<Component> tooltips = new ArrayList<>();
     private BiConsumer<ItemStack, List<Component>> tooltipBuilder;
-    private RecipeModifier recipeModifier = new RecipeModifierList(GTRecipeModifiers.OC_NON_PERFECT);
+    private RecipeModifier recipeModifier = RecipeModifier.NO_MODIFIER;
 
     @NotNull
-    private Predicate<IRecipeLogicMachine> onWorking = GTUtil.FAVORABLE;
+    private Consumer<IRecipeLogicMachine> onWorking = GTUtil.NOOP_CONSUMER;
     private boolean regressWhenWaiting = true;
     private boolean allowCoverOnFront = false;
-    private boolean disabledCombined = false;
 
     @Setter
     @Accessors(chain = true, fluent = true)
@@ -222,27 +220,22 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     }
 
     public MachineBuilder<DEFINITION> recipeModifier(RecipeModifier recipeModifier) {
-        this.recipeModifier = recipeModifier instanceof RecipeModifierList list ? list : new RecipeModifierList(recipeModifier);
+        this.recipeModifier = recipeModifier;
         return this;
     }
 
     public MachineBuilder<DEFINITION> recipeModifiers(RecipeModifier... recipeModifiers) {
-        this.recipeModifier = new RecipeModifierList(recipeModifiers);
+        this.recipeModifier = recipeModifiers.length > 1 ? new RecipeModifierList(recipeModifiers) : recipeModifiers[0];
         return this;
     }
 
     public MachineBuilder<DEFINITION> noRecipeModifier() {
-        this.recipeModifier = new RecipeModifierList(RecipeModifier.NO_MODIFIER);
+        this.recipeModifier = RecipeModifier.NO_MODIFIER;
         return this;
     }
 
     public MachineBuilder<DEFINITION> addOutputLimit(RecipeCapability<?> capability, int limit) {
         this.recipeOutputLimits.put(capability, limit);
-        return this;
-    }
-
-    public MachineBuilder<DEFINITION> disabledCombined() {
-        this.disabledCombined = true;
         return this;
     }
 
@@ -278,7 +271,6 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
             blockEntityBuilder = blockEntityBuilder.renderer(() -> GTRendererProvider::getOrCreate);
         }
         var blockEntity = blockEntityBuilder.register();
-        definition.setDisabledCombined(disabledCombined);
         definition.setRecipeTypes(recipeTypes);
         definition.setBlockSupplier(block);
         definition.setItemSupplier(item);
@@ -323,7 +315,6 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
 
     static class BlockBuilderWrapper {
 
-        @SuppressWarnings("removal")
         public static <DEFINITION extends MachineDefinition> BlockBuilder<MetaMachineBlock, Registrate> makeBlockBuilder(MachineBuilder<DEFINITION> builder, DEFINITION definition) {
             return
             // .tag(GTToolType.WRENCH.harvestTag)
@@ -515,7 +506,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     /**
      * @return {@code this}.
      */
-    public MachineBuilder<DEFINITION> onWorking(final Predicate<IRecipeLogicMachine> onWorking) {
+    public MachineBuilder<DEFINITION> onWorking(final Consumer<IRecipeLogicMachine> onWorking) {
         this.onWorking = onWorking;
         return this;
     }

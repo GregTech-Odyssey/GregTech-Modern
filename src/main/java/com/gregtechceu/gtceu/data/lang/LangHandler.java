@@ -1302,9 +1302,15 @@ public class LangHandler {
         provider.add("gtceu.recipe_logic.insufficient_fuel", "Insufficient Fuel");
         provider.add("gtceu.recipe_logic.insufficient_in", "Insufficient Inputs");
         provider.add("gtceu.recipe_logic.insufficient_out", "Insufficient Outputs");
+        provider.add("gtceu.recipe_logic.insufficient_tier", "Insufficient Tier");
         provider.add("gtceu.recipe_logic.condition_fails", "Condition Fails");
         provider.add("gtceu.recipe_logic.no_contents", "Recipe has no Contents");
+        provider.add("gtceu.recipe_logic.no_recipe_found", "No Recipe found");
         provider.add("gtceu.recipe_logic.no_capabilities", "Machine has no Capabilities");
+        provider.add("gtceu.recipe_logic.amount_not_enough", "%s, need %s but only %s is available");
+        provider.add("gtceu.recipe_logic.unable_handle", "Unable to handle %s");
+        provider.add("gtceu.recipe_logic.ordered_item", "Item ordered not satisfies");
+        provider.add("gtceu.recipe_logic.ordered_fluid", "Fluid ordered not satisfies");
         provider.add("gtceu.gui.cover_setting.title", "Cover Settings");
         provider.add("gtceu.gui.output_setting.title", "Output Settings");
         provider.add("gtceu.gui.circuit.title", "Circuit Settings");

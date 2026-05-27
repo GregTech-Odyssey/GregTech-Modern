@@ -1,9 +1,6 @@
 package com.gregtechceu.gtceu.api.machine.steam;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.feature.ICleanroomProvider;
@@ -12,9 +9,11 @@ import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
@@ -63,9 +62,9 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
     @SyncToClient
     protected boolean isMuffled;
     @Getter
-    protected final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
+    protected final Map<IO, List<RecipeHandlerUnit>> capabilitiesProxy;
     @Getter
-    protected final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
+    protected final Map<IO, List<IRecipeHandler>> capabilitiesFlat;
     protected final List<ISubscription> traitSubscriptions;
 
     public SteamWorkableMachine(MetaMachineBlockEntity holder, boolean isHighPressure, Object... args) {
@@ -83,14 +82,14 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
     public void onLoad() {
         super.onLoad();
         // attach self traits
-        Map<IO, List<IRecipeHandler<?>>> ioTraits = new EnumMap<>(IO.class);
+        Map<IO, List<IRecipeHandler>> ioTraits = new EnumMap<>(IO.class);
         for (MachineTrait trait : getTraits()) {
-            if (trait instanceof IRecipeHandlerTrait<?> handlerTrait && handlerTrait.isAvailable() && handlerTrait.getHandlerIO() != IO.NONE) {
+            if (trait instanceof IRecipeHandlerTrait handlerTrait && handlerTrait.isAvailable() && handlerTrait.getHandlerIO() != IO.NONE) {
                 ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ArrayList<>()).add(handlerTrait);
             }
         }
         for (var entry : ioTraits.entrySet()) {
-            var handlerList = RecipeHandlerList.of(entry.getKey(), entry.getValue());
+            var handlerList = RecipeHandlerUnit.of(entry.getKey(), entry.getValue());
             this.addHandlerList(handlerList);
             traitSubscriptions.add(handlerList.subscribe(recipeLogic::updateTickSubscription));
         }
@@ -122,11 +121,6 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
             return InteractionResult.CONSUME;
         }
         return super.onWrenchClick(playerIn, hand, gridSide, hitResult);
-    }
-
-    @Override
-    public GTRecipeType getRecipeType() {
-        return recipeTypes[activeRecipeType];
     }
 
     //////////////////////////////////////

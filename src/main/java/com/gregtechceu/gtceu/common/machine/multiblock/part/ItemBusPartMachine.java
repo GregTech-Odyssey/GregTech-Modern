@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
@@ -14,6 +13,7 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachi
 import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.CircuitHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -98,8 +98,8 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
             serverLevel.getServer().tell(new TickTask(0, this::updateInventorySubscription));
-            getHandlerList().setDistinct(isDistinct);
-            getHandlerList().setColor(getPaintingColor());
+            getHandlerUnit().setDistinct(isDistinct);
+            getHandlerUnit().setColor(getPaintingColor());
             inventorySubs = getInventory().addChangedListener(this::updateInventorySubscription);
         }
     }
@@ -115,13 +115,13 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
 
     @Override
     public void onPaintingColorChanged(int color) {
-        getHandlerList().setColor(color, true);
+        getHandlerUnit().setColor(color, true);
     }
 
     @Override
     public void setDistinct(boolean distinct) {
         isDistinct = (io != IO.OUT && distinct);
-        getHandlerList().setDistinctAndNotify(isDistinct);
+        getHandlerUnit().setDistinctAndNotify(isDistinct);
     }
 
     @Override

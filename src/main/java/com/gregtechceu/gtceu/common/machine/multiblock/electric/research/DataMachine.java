@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
+import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
@@ -112,7 +113,7 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
         if (this.energyContainer.removeEnergy(energyUsage) >= energyUsage) {
             getRecipeLogic().setStatus(RecipeLogic.WORKING);
         } else {
-            getRecipeLogic().setWaiting(Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(EURecipeCapability.CAP.getName()));
+            getRecipeLogic().setWaiting(ActionResult.failInsufficientIn(EURecipeCapability.CAP.getName()).reason());
         }
     }
 

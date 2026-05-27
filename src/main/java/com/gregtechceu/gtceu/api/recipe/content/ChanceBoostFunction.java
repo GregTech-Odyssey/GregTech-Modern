@@ -1,7 +1,6 @@
-package com.gregtechceu.gtceu.api.recipe.chance.boost;
+package com.gregtechceu.gtceu.api.recipe.content;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.recipe.content.Content;
 
 import net.minecraft.util.Mth;
 
@@ -34,5 +33,5 @@ public interface ChanceBoostFunction {
      * @param chanceTier the tier the recipe is run at
      * @return the boosted chance
      */
-    int getBoostedChance(@NotNull Content entry, int recipeTier, int chanceTier);
+    int getBoostedChance(@NotNull Content<?> entry, int recipeTier, int chanceTier);
 }

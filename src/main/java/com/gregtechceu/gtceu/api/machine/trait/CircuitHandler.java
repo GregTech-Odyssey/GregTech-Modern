@@ -1,9 +1,10 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
@@ -15,7 +16,6 @@ import net.minecraft.world.item.ItemStack;
 import com.fast.recipesearch.IntLongMap;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntFunction;
 import java.util.function.ObjLongConsumer;
@@ -38,16 +38,6 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     @Override
     public boolean isNotConsumable() {
         return true;
-    }
-
-    @Override
-    public boolean isRecipeOnly() {
-        return true;
-    }
-
-    @Override
-    public boolean shouldSearchContent() {
-        return false;
     }
 
     @Override
@@ -78,7 +68,7 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     }
 
     @Override
-    public IntLongMap getIngredientMap(@NotNull GTRecipeType type) {
+    public IntLongMap getSearchMap(@NotNull GTRecipeType type) {
         if (changed) {
             changed = false;
             intIngredientMap.clear();
@@ -98,26 +88,19 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     }
 
     @Override
-    public List<ItemIngredient> handleRecipe(IO io, GTRecipe recipe, List<?> left, boolean simulate) {
-        return handleRecipeInner(io, recipe, (List<ItemIngredient>) left, simulate);
-    }
-
-    @Override
-    public List<ItemIngredient> handleRecipeInner(IO io, GTRecipe recipe, List<ItemIngredient> left, boolean simulate) {
+    public boolean handleRecipeItem(IO io, GTRecipe recipe, List<Content<ItemIngredient>> items, boolean simulate) {
         if (simulate && io == IO.IN) {
             ItemStack stored = storage.stacks[0];
-            int count = stored.getCount();
-            if (count == 1) {
-                left = new ArrayList<>(left);
-                for (var it = left.listIterator(0); it.hasNext();) {
-                    if (it.next().test(stored)) {
+            if (stored.getCount() > 0) {
+                for (var it = items.iterator(); it.hasNext();) {
+                    if (it.next().inner.test(stored)) {
                         it.remove();
                         break;
                     }
                 }
             }
         }
-        return left.isEmpty() ? null : left;
+        return items.isEmpty();
     }
 
     public static class ItemStackHandler extends SingleCustomItemStackHandler {
@@ -132,7 +115,12 @@ public class CircuitHandler extends NotifiableItemStackHandler {
         }
 
         @Override
-        public int insertItemFast(int slot, @NotNull ItemStack stack, int count, boolean simulate) {
+        public int insert(int slot, @NotNull ItemStack stack, int count, boolean simulate) {
+            return 0;
+        }
+
+        @Override
+        public int extract(int slot, int amount, boolean simulate) {
             return 0;
         }
 

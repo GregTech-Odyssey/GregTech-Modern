@@ -1,13 +1,12 @@
 package com.gregtechceu.gtceu.common.recipe.condition;
 
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
-
-import org.jetbrains.annotations.NotNull;
 
 public class DaytimeCondition extends RecipeCondition {
 
@@ -28,8 +27,8 @@ public class DaytimeCondition extends RecipeCondition {
     }
 
     @Override
-    public boolean testCondition(@NotNull GTRecipeDefinition recipe, @NotNull RecipeLogic recipeLogic) {
-        Level level = recipeLogic.machine.self().getLevel();
+    public boolean testCondition(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
+        Level level = holder.self().getLevel();
         return level != null && !level.isNight();
     }
 }

@@ -2,12 +2,12 @@ package com.gregtechceu.gtceu.common.machine.trait.miner;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.IMiner;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.item.NotifiableAccountedInvWrapper;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
@@ -306,7 +306,7 @@ public class MinerLogic extends RecipeLogic {
 
     protected NotifiableAccountedInvWrapper getCachedItemHandler() {
         if (cachedItemHandler == null) {
-            cachedItemHandler = new NotifiableAccountedInvWrapper(machine.getCapabilitiesFlat(IO.OUT, ItemRecipeCapability.CAP).stream().map(IItemHandlerModifiable.class::cast).toArray(IItemHandlerModifiable[]::new));
+            cachedItemHandler = new NotifiableAccountedInvWrapper(machine.getCapabilitiesFlat(IO.OUT, IItemHandlerModifiable.class).toArray(IItemHandlerModifiable[]::new));
         }
         return cachedItemHandler;
     }

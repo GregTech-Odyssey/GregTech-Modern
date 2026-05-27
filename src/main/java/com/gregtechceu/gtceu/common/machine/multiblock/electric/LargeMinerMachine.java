@@ -4,8 +4,6 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.IMiner;
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
@@ -122,8 +120,8 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
         List<IFluidHandler> fluidTanks = new ArrayList<>();
         for (var part : getWorkableParts()) {
             for (var handlerList : part.getRecipeHandlers()) {
-                handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).forEach(energyContainers::add);
-                handlerList.getCapability(FluidRecipeCapability.CAP).stream().filter(IFluidHandler.class::isInstance).map(IFluidHandler.class::cast).forEach(fluidTanks::add);
+                energyContainers.addAll(handlerList.getCapabilities(IEnergyContainer.class));
+                fluidTanks.addAll(handlerList.getCapabilities(IFluidHandler.class));
             }
         }
         this.energyContainer = new EnergyContainerList(energyContainers);

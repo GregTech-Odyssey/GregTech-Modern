@@ -86,7 +86,6 @@ import static com.gregtechceu.gtceu.common.data.GCYMBlocks.*;
 import static com.gregtechceu.gtceu.common.data.GTModels.createModelBlockState;
 import static com.gregtechceu.gtceu.common.registry.GTRegistration.REGISTRATE;
 
-@SuppressWarnings("removal")
 public class GTBlocks {
     //////////////////////////////////////
     // ***** Procedural Blocks *****//

@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.steam.SimpleSteamMachine;
 import com.gregtechceu.gtceu.api.machine.steam.SteamBoilerMachine;
+import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.client.renderer.machine.*;
 import com.gregtechceu.gtceu.client.util.TooltipHelper;
@@ -43,8 +44,8 @@ import java.util.List;
 import java.util.function.BiConsumer;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
-import static com.gregtechceu.gtceu.api.capability.recipe.IO.IN;
-import static com.gregtechceu.gtceu.api.capability.recipe.IO.OUT;
+import static com.gregtechceu.gtceu.api.recipe.handler.IO.IN;
+import static com.gregtechceu.gtceu.api.recipe.handler.IO.OUT;
 import static com.gregtechceu.gtceu.common.data.GTCreativeModeTabs.MACHINE;
 import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.DUMMY_RECIPES;
 import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.STEAM_BOILER_RECIPES;
@@ -228,7 +229,7 @@ public class GTMachines {
                         case 3 -> 3;
                         default -> 4;
                     })
-                    .recipeModifier(GTRecipeModifiers.OC_NON_PERFECT)
+                    .recipeModifier(RecipeModifier.OVERCLOCKING)
                     .workableTieredHullRenderer(GTCEu.id("block/machines/macerator"))
                     .tooltips(workableTiered(tier, GTValues.V[tier], GTValues.V[tier] * 64,
                             GTRecipeTypes.MACERATOR_RECIPES, defaultTankSizeFunction.applyAsInt(tier), true))
@@ -243,7 +244,7 @@ public class GTMachines {
                             GTRecipeTypes.ROCK_BREAKER_RECIPES))
                     .nonYAxisRotation()
                     .recipeType(GTRecipeTypes.ROCK_BREAKER_RECIPES)
-                    .recipeModifier(GTRecipeModifiers.OC_NON_PERFECT)
+                    .recipeModifier(RecipeModifier.OVERCLOCKING)
                     .workableTieredHullRenderer(GTCEu.id("block/machines/rock_crusher"))
                     .tooltips(workableTiered(tier, GTValues.V[tier], GTValues.V[tier] * 64,
                             GTRecipeTypes.ROCK_BREAKER_RECIPES, defaultTankSizeFunction.applyAsInt(tier), true))
@@ -257,7 +258,7 @@ public class GTMachines {
                             GTRecipeTypes.AIR_SCRUBBER_RECIPES))
                     .nonYAxisRotation()
                     .recipeType(GTRecipeTypes.AIR_SCRUBBER_RECIPES)
-                    .recipeModifier(GTRecipeModifiers.OC_NON_PERFECT)
+                    .recipeModifier(RecipeModifier.OVERCLOCKING)
                     .workableTieredHullRenderer(GTCEu.id("block/machines/air_scrubber"))
                     .tooltips(workableTiered(tier, GTValues.V[tier], GTValues.V[tier] * 64,
                             GTRecipeTypes.AIR_SCRUBBER_RECIPES, defaultTankSizeFunction.applyAsInt(tier), true))

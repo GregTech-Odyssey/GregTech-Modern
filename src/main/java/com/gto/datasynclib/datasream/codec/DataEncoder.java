@@ -1,7 +1,10 @@
 package com.gto.datasynclib.datasream.codec;
 
+import net.minecraft.nbt.ByteArrayTag;
+
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ListData;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Map;
@@ -10,13 +13,19 @@ import java.util.function.Function;
 @FunctionalInterface
 public interface DataEncoder<T> {
 
+    @NotNull
     Data encode(T obj);
 
-    static <K, V> DataEncoder<V> convert(DataEncoder<K> serializer, Function<V, K> converter) {
+    @NotNull
+    default ByteArrayTag toNbt(T obj) {
+        return new ByteArrayTag(encode(obj).writeToBytes());
+    }
+
+    static <K, V> DataEncoder<V> convert(DataEncoder<? super K> serializer, Function<V, K> converter) {
         return obj -> serializer.encode(converter.apply(obj));
     }
 
-    static <K, V> DataEncoder<Map<K, V>> map(DataEncoder<K> keySerializer, DataEncoder<V> valueSerializer) {
+    static <K, V> DataEncoder<Map<? extends K, ? extends V>> map(DataEncoder<? super K> keySerializer, DataEncoder<? super V> valueSerializer) {
         return map -> {
             var data = new ListData();
             map.forEach((k, v) -> {
@@ -27,7 +36,7 @@ public interface DataEncoder<T> {
         };
     }
 
-    static <E> DataEncoder<Collection<E>> collection(DataEncoder<E> serializer) {
+    static <E> DataEncoder<Collection<? extends E>> collection(DataEncoder<? super E> serializer) {
         return list -> {
             var data = new ListData();
             list.forEach(o -> data.add(serializer.encode(o)));
@@ -35,7 +44,7 @@ public interface DataEncoder<T> {
         };
     }
 
-    static <E> DataEncoder<E[]> array(DataEncoder<E> serializer) {
+    static <E> DataEncoder<E[]> array(DataEncoder<? super E> serializer) {
         return list -> {
             var data = new ListData();
             for (var o : list) {

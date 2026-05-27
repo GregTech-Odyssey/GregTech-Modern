@@ -1,23 +1,20 @@
 package com.gregtechceu.gtceu.api.machine.steam;
 
-import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.PredicatedImageWidget;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IDummyEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IExhaustVentMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
-import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
-import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.recipe.condition.VentCondition;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -33,7 +30,9 @@ import net.minecraftforge.fluids.FluidType;
 import com.google.common.collect.Tables;
 import com.gto.datasynclib.datasream.DataComponentMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
+import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -42,7 +41,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaustVentMachine, IUIMachine {
+public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaustVentMachine, IUIMachine, IDummyEnergyMachine {
 
     @Persisted
     public final NotifiableItemStackHandler importItems;
@@ -52,15 +51,19 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
     @Persisted
     private boolean needsVenting;
 
+    @Getter
+    private final SteamEnergyContainer energyContainer;
+
     public SimpleSteamMachine(MetaMachineBlockEntity holder, boolean isHighPressure, Object... args) {
         super(holder, isHighPressure, args);
         this.importItems = createImportItemHandler(args);
         this.exportItems = createExportItemHandler(args);
+        this.energyContainer = new SteamEnergyContainer(getConversionRate(), steamTank);
     }
 
     @Override
     protected NotifiableFluidTank createSteamTank(Object... args) {
-        return new NotifiableFluidTank(this, 1, 16 * FluidType.BUCKET_VOLUME, IO.IN);
+        return new NotifiableFluidTank(this, 1, 16 * FluidType.BUCKET_VOLUME, IO.NONE, IO.IN);
     }
 
     protected NotifiableItemStackHandler createImportItemHandler(Object... args) {
@@ -73,13 +76,6 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
         var handler = new NotifiableItemStackHandler(this, getRecipeType().getMaxOutputs(ItemRecipeCapability.CAP), IO.OUT);
         if (handler.storage.size == 0) handler.setAvailable(false);
         return handler;
-    }
-
-    @Override
-    public void onLoad() {
-        super.onLoad();
-        // Simulate an EU machine via a SteamEnergyHandler
-        this.addHandlerList(RecipeHandlerList.of(IO.IN, new SteamEnergyRecipeHandler(steamTank, getConversionRate())));
     }
 
     @Override
@@ -115,37 +111,24 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
         return isHighPressure() ? 2.0 : 1.0;
     }
 
-    //////////////////////////////////////
-    // ****** Recipe Logic ******//
-    //////////////////////////////////////
-    /**
-     * Recipe Modifier for <b>Simple Steam Machines</b> - can be used as a valid {@link RecipeModifier}
-     * <p>
-     * Recipe is rejected if tier is greater than LV or if machine cannot vent.<br>
-     * Duration is multiplied by {@code 2} if the machine is low pressure
-     * </p>
-     *
-     * @param machine a {@link SimpleSteamMachine}
-     * @param recipe  recipe
-     * @return A {@link ModifierFunction} for the given Steam Machine
-     */
-    public static ModifierFunction recipeModifier(MetaMachine machine, GTRecipe recipe) {
-        if (!(machine instanceof SimpleSteamMachine steamMachine)) {
-            return RecipeModifier.nullWrongType(SimpleSteamMachine.class, machine);
-        }
-        if (RecipeHelper.getRecipeEUtTier(recipe) > GTValues.LV || !steamMachine.checkVenting()) {
-            return ModifierFunction.NULL;
-        }
-        var builder = ModifierFunction.builder().conditions(VentCondition.INSTANCE);
-        if (!steamMachine.isHighPressure) builder.durationMultiplier(2);
-        return builder.build();
-    }
-
     @Override
     public void afterWorking() {
         super.afterWorking();
         needsVenting = true;
         checkVenting();
+    }
+
+    @Nullable
+    public static GTRecipe recipeModifier(IRecipeHandlerHolder machine, RecipeHandlerUnit unit, GTRecipe recipe) {
+        if (!(machine instanceof SimpleSteamMachine steamMachine)) {
+            return null;
+        }
+        if (!steamMachine.checkVenting()) {
+            return null;
+        }
+        if (!VentCondition.INSTANCE.testCondition(machine, unit, recipe.definition)) return null;
+        if (!steamMachine.isHighPressure) recipe.durationMultiplier(2);
+        return recipe;
     }
 
     //////////////////////////////////////

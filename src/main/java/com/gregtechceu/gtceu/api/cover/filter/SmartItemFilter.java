@@ -1,9 +1,7 @@
 package com.gregtechceu.gtceu.api.cover.filter;
 
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 
@@ -92,9 +90,9 @@ public class SmartItemFilter implements ItemFilter {
         var map = new IntLongMap();
         filterMode.type.convertItem(itemStack, Integer.MAX_VALUE, map);
         AtomicInteger count = new AtomicInteger();
-        filterMode.type.search(map, recipe -> {
-            for (Content content : recipe.getInputContents(ItemRecipeCapability.CAP)) {
-                var ingredient = ItemRecipeCapability.CAP.of(content);
+        filterMode.type.search(null, map, (u, r) -> {
+            for (var content : r.itemInputs) {
+                var ingredient = content.inner;
                 var stacks = ingredient.inner.getItems();
                 for (var stack : stacks) {
                     if (ItemStack.isSameItem(stack, itemStack)) {

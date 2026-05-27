@@ -1,114 +1,196 @@
 package com.gregtechceu.gtceu.api.recipe.modifier;
 
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.IRecipeCapabilityHolder;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
+import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
+import com.gregtechceu.gtceu.api.machine.feature.IOverclockMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
-import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
+import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
+import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class ParallelLogic {
+public final class ParallelLogic {
 
-    /**
-     * Calculates the maximum parallel amount that can be done for the given machine and recipe, up to the passed limit
-     *
-     * @param machine       machine to test against
-     * @param recipe        recipe to test with
-     * @param parallelLimit hard upper limit of parallels that can be done
-     * @return The number of possible parallels, 0 if the recipe cannot be done
-     */
-    public static int getParallelAmount(MetaMachine machine, GTRecipe recipe, int parallelLimit) {
-        if (parallelLimit <= 1) return parallelLimit;
-        if (!(machine instanceof IRecipeLogicMachine rlm)) return 1;
-        // First check if we are limited by recipe inputs. This can short circuit a lot of consecutive checking
-        int maxInputMultiplier = getMaxByInput(rlm, recipe, parallelLimit, Collections.emptyList());
-        if (maxInputMultiplier == 0) return 0;
+    public static final long MAX_PARALLEL = 9007199254740991L;
 
-        // Simulate the merging of the maximum amount of recipes that can be run with these items
-        // and limit by the amount we can successfully merge
-        return limitByOutputMerging(rlm, recipe, maxInputMultiplier, rlm::canVoidRecipeOutputs,
-                Collections.emptyList());
+    public static long getRemainingMaxParallelAmount(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe) {
+        if (recipe.contentParallel > 0) {
+            return recipe.contentParallel / recipe.parallels;
+        }
+        return getMaxContentParallelAmount(holder, unit, recipe, MAX_PARALLEL);
     }
 
-    /**
-     * @param holder        The inventories
-     * @param recipe        The recipe
-     * @param parallelLimit hard cap on the amount returned
-     * @param capsToSkip    the capabilities to skip parallel testing
-     * @return returns the amount of possible time a recipe can be made from a given input inventory
-     */
-    public static int getMaxByInput(IRecipeCapabilityHolder holder, GTRecipe recipe, int parallelLimit,
-                                    List<RecipeCapability<?>> capsToSkip) {
-        return 0;
+    public static long getMaxParallelAmount(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe, long maxParallel) {
+        if (maxParallel > 1) {
+            maxParallel = getMaxTickParallelAmount(holder, unit, recipe, maxParallel);
+            if (maxParallel == 0) return 0;
+            maxParallel = getMaxContentParallelAmount(holder, unit, recipe, maxParallel);
+        }
+        return maxParallel;
     }
 
-    /**
-     * @param holder        the inventories
-     * @param recipe        The recipe
-     * @param parallelLimit the maximum allowed amount
-     * @param canVoid       predicate for what parallel limits should be ignored
-     * @param capsToSkip    the capabilities to skip parallel testing
-     * @return returns the amount of recipes that can be merged successfully into a given output inventory
-     */
-    public static int limitByOutputMerging(IRecipeCapabilityHolder holder, GTRecipe recipe, int parallelLimit,
-                                           Predicate<RecipeCapability<?>> canVoid,
-                                           List<RecipeCapability<?>> capsToSkip) {
-        return 0;
+    @Nullable
+    public static GTRecipe accurateParallel(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe, long maxParallel) {
+        if (maxParallel > 1) {
+            maxParallel = getMaxParallelAmount(holder, unit, recipe, maxParallel);
+            if (maxParallel == 0) return null;
+            recipe.modifier(maxParallel, true);
+            return recipe;
+        }
+        return recipe;
     }
 
-    /**
-     * Calculates the maximum parallel amount that can be done for the given machine and recipe, up to the passed limit
-     *
-     * @param machine       machine to test against
-     * @param recipe        recipe to test with
-     * @param parallelLimit hard upper limit of parallels that can be done
-     * @return The number of possible parallels, 0 if the recipe cannot be done
-     */
-    public static int getParallelAmountWithoutEU(MetaMachine machine, GTRecipe recipe, int parallelLimit) {
-        if (parallelLimit <= 1) return parallelLimit;
-        if (!(machine instanceof IRecipeLogicMachine rlm)) return 1;
-        // First check if we are limited by recipe inputs. This can short circuit a lot of consecutive checking
-        int maxInputMultiplier = getMaxByInput(rlm, recipe, parallelLimit, List.of(EURecipeCapability.CAP));
-        if (maxInputMultiplier == 0) return 0;
-
-        // Simulate the merging of the maximum amount of recipes that can be run with these items
-        // and limit by the amount we can successfully merge
-        return limitByOutputMerging(rlm, recipe, maxInputMultiplier, rlm::canVoidRecipeOutputs,
-                List.of(EURecipeCapability.CAP));
+    @Nullable
+    public static GTRecipe accurateContentParallel(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe, long maxParallel) {
+        if (maxParallel > 1) {
+            maxParallel = getMaxContentParallelAmount(holder, unit, recipe, maxParallel);
+            if (maxParallel == 0) return null;
+            recipe.modifier(maxParallel, true);
+            return recipe;
+        }
+        return recipe;
     }
 
-    /**
-     * Binary-search-like approach to find the maximum amount that can be inserted
-     *
-     * @param mergedAll     if the merge was successful.
-     *                      If true sets {@code minMultiplier} to the as the current multiplier
-     *                      then sets {@code multiplier} to the sum of the mean difference between
-     *                      {@code multiplier} and {@code maxMultiplier} plus the remainder of the division, if any,
-     *                      and itself
-     *                      If false, sets {@code maxMultiplier} as the current multiplier, then sets {@code multiplier}
-     *                      to half of its value limited it to no less or than the value of {@code minMultiplier}
-     * @param minMultiplier the last known multiplier what was fully merged
-     * @param multiplier    the current multiplier
-     * @param maxMultiplier the last know multiplier that resulted in simulation failure
-     * @return an array consisting of the last known multiplier, new multiplier to be attempted and
-     *         the last know multiplier that resulted in failure
-     */
-    public static int[] adjustMultiplier(boolean mergedAll, int minMultiplier, int multiplier, int maxMultiplier) {
+    private static long getMaxTickParallelAmount(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe, long maxParallel) {
+        if (maxParallel > 1) {
+            long eu = recipe.eut;
+            if (eu != 0) {
+                if (holder instanceof IOverclockMachine overclockMachine) {
+                    if (eu < 0) {
+                        eu = -eu;
+                    }
+                    maxParallel = Math.min(maxParallel, overclockMachine.getOverclockVoltage() / eu);
+                }
+            }
+            for (var expand : recipe.definition.tickContentExpanders) {
+                maxParallel = expand.getParallel(holder, unit, recipe, maxParallel);
+                if (maxParallel == 0) return 0;
+            }
+        }
+        return maxParallel;
+    }
+
+    public static long getMaxContentParallelAmount(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe, long maxParallel) {
+        var items = recipe.itemInputs;
+        if (!items.isEmpty()) {
+            maxParallel = unit.getInputItemParallelAmount(items, maxParallel);
+            if (maxParallel == 0) return 0;
+        }
+        var fluids = recipe.fluidInputs;
+        if (!fluids.isEmpty()) {
+            maxParallel = unit.getInputFluidParallelAmount(fluids, maxParallel);
+            if (maxParallel == 0) return 0;
+        }
+        for (var expand : recipe.definition.contentExpanders) {
+            maxParallel = expand.getParallel(holder, unit, recipe, maxParallel);
+            if (maxParallel == 0) return 0;
+        }
+        items = recipe.itemOutputs;
+        if (!(items.isEmpty() || (holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(ItemRecipeCapability.CAP)))) {
+            maxParallel = getOutputItemParallelAmount(holder.getOutputUnits(recipe), recipe, items, maxParallel);
+            if (maxParallel == 0) {
+                holder.setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
+                return 0;
+            }
+        }
+        fluids = recipe.fluidOutputs;
+        if (!(fluids.isEmpty() || (holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(FluidRecipeCapability.CAP)))) {
+            maxParallel = getOutputFluidParallelAmount(holder.getOutputUnits(recipe), recipe, fluids, maxParallel);
+            if (maxParallel == 0) {
+                holder.setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
+                return 0;
+            }
+        }
+        recipe.contentParallel = maxParallel;
+        return maxParallel;
+    }
+
+    public static long getOutputItemParallelAmount(List<RecipeHandlerUnit> list, GTRecipe recipe, List<Content<ItemIngredient>> contents, long multiplier) {
+        for (var unit : list) {
+            if (unit.isInfiniteOutputItem) return multiplier;
+        }
+        long minMultiplier = 0;
+        long maxMultiplier = multiplier;
+        long maxCount = 0;
+        for (var content : contents) {
+            maxCount = Math.max(maxCount, content.amount);
+        }
+        if (maxCount == 0) return multiplier;
+        if (multiplier > ParallelLogic.MAX_PARALLEL / maxCount) {
+            maxMultiplier = multiplier = ParallelLogic.MAX_PARALLEL / maxCount;
+        }
+        while (minMultiplier != maxMultiplier) {
+            boolean success = false;
+            var items = RecipeHelper.copyContents(contents, multiplier);
+            for (var unit : list) {
+                if (unit.handleRecipeItem(IO.OUT, recipe, items, true)) {
+                    success = true;
+                    break;
+                }
+            }
+            if (!success && multiplier == 1) {
+                return 0;
+            }
+            long[] bin = adjustMultiplier(success, minMultiplier, multiplier, maxMultiplier);
+            minMultiplier = bin[0];
+            multiplier = bin[1];
+            maxMultiplier = bin[2];
+        }
+        return multiplier;
+    }
+
+    public static long getOutputFluidParallelAmount(List<RecipeHandlerUnit> list, GTRecipe recipe, List<Content<FluidIngredient>> contents, long multiplier) {
+        for (var unit : list) {
+            if (unit.isInfiniteOutputFluid) return multiplier;
+        }
+        long minMultiplier = 0;
+        long maxMultiplier = multiplier;
+        long maxCount = 0;
+        for (var content : contents) {
+            maxCount = Math.max(maxCount, content.amount);
+        }
+        if (maxCount == 0) return multiplier;
+        if (multiplier > ParallelLogic.MAX_PARALLEL / maxCount) {
+            maxMultiplier = multiplier = ParallelLogic.MAX_PARALLEL / maxCount;
+        }
+        while (minMultiplier != maxMultiplier) {
+            boolean success = false;
+            var fluids = RecipeHelper.copyContents(contents, multiplier);
+            for (var unit : list) {
+                if (unit.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
+                    success = true;
+                    break;
+                }
+            }
+            if (!success && multiplier == 1) {
+                return 0;
+            }
+            long[] bin = adjustMultiplier(success, minMultiplier, multiplier, maxMultiplier);
+            minMultiplier = bin[0];
+            multiplier = bin[1];
+            maxMultiplier = bin[2];
+        }
+        return multiplier;
+    }
+
+    public static long[] adjustMultiplier(boolean mergedAll, long minMultiplier, long multiplier, long maxMultiplier) {
         if (mergedAll) {
             minMultiplier = multiplier;
-            int remainder = (maxMultiplier - multiplier) % 2;
+            long remainder = (maxMultiplier - multiplier) % 2;
             multiplier = multiplier + remainder + (maxMultiplier - multiplier) / 2;
         } else {
             maxMultiplier = multiplier;
@@ -117,29 +199,6 @@ public class ParallelLogic {
         if (maxMultiplier - minMultiplier <= 1) {
             multiplier = maxMultiplier = minMultiplier;
         }
-        return new int[] { minMultiplier, multiplier, maxMultiplier };
-    }
-
-    /**
-     * Fast parallel, the parallel amount is always the 2 times the divisor of parallelLimit.
-     *
-     * @param machine       recipe holder
-     * @param recipe        current recipe
-     * @param parallelLimit max parallel limited
-     * @return Returns the number of parallels that can be done (fast calc)
-     */
-    public static int getParallelAmountFast(MetaMachine machine, GTRecipe recipe, int parallelLimit) {
-        if (parallelLimit <= 1) return parallelLimit;
-        if (!(machine instanceof IRecipeCapabilityHolder holder)) return 1;
-
-        while (parallelLimit > 0) {
-            var copied = recipe.copy(ContentModifier.multiplier(parallelLimit), false);
-            if (RecipeHelper.matchRecipe(holder, copied) &&
-                    RecipeHelper.matchTickRecipe(holder, copied)) {
-                return parallelLimit;
-            }
-            parallelLimit /= 2;
-        }
-        return 1;
+        return new long[] { minMultiplier, multiplier, maxMultiplier };
     }
 }

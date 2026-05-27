@@ -4,21 +4,15 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
-import com.gregtechceu.gtceu.api.capability.recipe.CWURecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.*;
 import com.gregtechceu.gtceu.api.gui.widget.CustomComponentPanelWidget;
-import com.gregtechceu.gtceu.api.machine.feature.IComputationContainerMachine;
-import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
-import com.gregtechceu.gtceu.api.machine.feature.IOverclockMachine;
-import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
+import com.gregtechceu.gtceu.api.machine.feature.*;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.misc.ComputationProviderList;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -41,7 +35,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine implements IFancyUIMachine, IDisplayUIMachine, ITieredMachine, IOverclockMachine, IComputationContainerMachine {
+public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine implements IFancyUIMachine, IDisplayUIMachine, IOverclockMachine, IComputationContainerMachine, IElectricMachine {
 
     // runtime
     @Getter
@@ -73,20 +67,9 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        List<IEnergyContainer> containers = new ArrayList<>();
-        List<IOpticalComputationProvider> providers = new ArrayList<>();
-        var handlers = getCapabilitiesFlat(IO.IN, EURecipeCapability.CAP);
-        if (handlers.isEmpty()) handlers = getCapabilitiesFlat(IO.OUT, EURecipeCapability.CAP);
-        for (IRecipeHandler<?> handler : handlers) {
-            if (handler instanceof IEnergyContainer container) {
-                containers.add(container);
-            }
-        }
-        for (IRecipeHandler<?> handler : getCapabilitiesFlat(IO.IN, CWURecipeCapability.CAP)) {
-            if (handler instanceof IOpticalComputationProvider provider) {
-                providers.add(provider);
-            }
-        }
+        var containers = getCapabilitiesFlat(IO.IN, IEnergyContainer.class);
+        if (containers.isEmpty()) containers = getCapabilitiesFlat(IO.OUT, IEnergyContainer.class);
+        List<IOpticalComputationProvider> providers = getCapabilitiesFlat(IO.IN, IOpticalComputationProvider.class);
         if (!containers.isEmpty()) energyContainer = new EnergyContainerList(containers);
         if (!providers.isEmpty()) computationProviderList = new ComputationProviderList(providers);
         this.tier = GTUtil.getFloorTierByVoltage(getMaxVoltage());
@@ -97,18 +80,18 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     //////////////////////////////////////
     @Override
     public void addDisplayText(List<Component> textList) {
-        int numParallels;
-        int batchParallels;
+        long numParallels;
+        long batchParallels;
         boolean exact = false;
         if (recipeLogic.isActive() && recipeLogic.getLastRecipe() != null) {
             numParallels = (int) recipeLogic.getLastRecipe().parallels;
             batchParallels = recipeLogic.getLastRecipe().batchParallels;
             exact = true;
         } else {
-            numParallels = Optional.ofNullable(getParallelHatch()).map(IParallelHatch::getCurrentParallel).orElse(0);
+            numParallels = Optional.ofNullable(getParallelHatch()).map(IParallelHatch::getCurrentParallel).orElse(0L);
             batchParallels = 0;
         }
-        MultiblockDisplayText.builder(textList, isFormed()).setWorkingStatus(recipeLogic.isWorkingEnabled(), recipeLogic.isActive()).addEnergyUsageLine(energyContainer).addEnergyTierLine(tier).addMachineModeLine(getRecipeType(), getRecipeTypes().length > 1).addParallelsLine(numParallels, exact).addBatchModeLine(isBatchEnabled(), batchParallels).addWorkingStatusLine().addProgressLine(recipeLogic.getProgress(), recipeLogic.getMaxProgress(), recipeLogic.getProgressPercent()).addOutputLines(recipeLogic.getLastRecipe());
+        MultiblockDisplayText.builder(textList, isFormed()).setWorkingStatus(recipeLogic.isWorkingEnabled(), recipeLogic.isActive()).addEnergyUsageLine(energyContainer).addEnergyTierLine(tier).addMachineModeLine(getRecipeType(), getAvailableRecipeTypes().length > 1).addParallelsLine(numParallels, exact).addBatchModeLine(isBatchEnabled(), batchParallels).addWorkingStatusLine().addProgressLine(recipeLogic.getProgress(), recipeLogic.getMaxProgress(), recipeLogic.getProgressPercent()).addOutputLines(recipeLogic.getLastRecipe());
         getDefinition().getAdditionalDisplay().accept(this, textList);
         IDisplayUIMachine.super.addDisplayText(textList);
     }

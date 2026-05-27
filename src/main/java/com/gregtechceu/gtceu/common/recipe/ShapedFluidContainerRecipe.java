@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.api.recipe;
+package com.gregtechceu.gtceu.common.recipe;
 
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidContainerIngredient;
 import com.gregtechceu.gtceu.core.mixins.ShapedRecipeAccessor;

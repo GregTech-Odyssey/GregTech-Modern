@@ -4,18 +4,15 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.IFusionCasingType;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
-import com.gregtechceu.gtceu.api.recipe.OverclockingLogic;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
-import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.common.block.FusionCasingBlock;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
@@ -46,16 +43,12 @@ import java.util.Objects;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
-import static com.gregtechceu.gtceu.api.recipe.OverclockingLogic.PERFECT_HALF_DURATION_FACTOR;
-import static com.gregtechceu.gtceu.api.recipe.OverclockingLogic.PERFECT_HALF_VOLTAGE_FACTOR;
 import static com.gregtechceu.gtceu.common.data.GTBlocks.*;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
 
-    // Standard OC used for Fusion
-    public static final OverclockingLogic FUSION_OC = OverclockingLogic.create(PERFECT_HALF_DURATION_FACTOR, PERFECT_HALF_VOLTAGE_FACTOR, false);
     // Max EU -> Tier map, used to find minimum tier needed for X EU to start
     private static final Long2IntSortedMap FUSION_ENERGY = new Long2IntAVLTreeMap();
     // Tier -> Suffix map, i.e. LuV -> MKI
@@ -110,8 +103,11 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
         List<IEnergyContainer> energyContainers = new ArrayList<>();
         for (var part : getWorkableParts()) {
             for (var handlerList : part.getRecipeHandlers()) {
-                handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).forEach(energyContainers::add);
-                traitSubscriptions.add(handlerList.subscribe(this::updatePreHeatSubscription, EURecipeCapability.CAP));
+                var containers = handlerList.getCapabilities(IEnergyContainer.class);
+                if (!containers.isEmpty()) {
+                    energyContainers.addAll(containers);
+                    traitSubscriptions.add(handlerList.subscribe(this::updatePreHeatSubscription, IEnergyContainer.class));
+                }
             }
         }
         this.inputEnergyContainers = new EnergyContainerList(energyContainers);
@@ -142,43 +138,25 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
         }
     }
 
-    /**
-     * Recipe Modifier for <b>Fusion Reactors</b> - can be used as a valid {@link RecipeModifier}
-     * <p>
-     * If the Fusion Reactor has enough heat or can get enough heat to run the recipe based on the {@code eu_to_start}
-     * data,
-     * apply {@link FusionReactorMachine#FUSION_OC} to the recipe.
-     * Otherwise, the recipe is rejected.
-     * </p>
-     * 
-     * @param machine a {@link FusionReactorMachine}
-     * @param recipe  recipe
-     * @return A {@link ModifierFunction} for the given Fusion Reactor and recipe
-     */
-    public static ModifierFunction recipeModifier(MetaMachine machine, GTRecipe recipe) {
+    @Nullable
+    public static GTRecipe recipeModifier(IRecipeHandlerHolder machine, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (!(machine instanceof FusionReactorMachine fusionReactorMachine)) {
-            return RecipeModifier.nullWrongType(FusionReactorMachine.class, machine);
+            return null;
         }
-        if (RecipeHelper.getRecipeEUtTier(recipe) > fusionReactorMachine.getTier() || !recipe.data.contains(GTRecipeDataKeys.EU_TO_START) || recipe.data.getLong(GTRecipeDataKeys.EU_TO_START) > fusionReactorMachine.energyContainer.getEnergyCapacity()) {
-            return ModifierFunction.NULL;
+        var eu = recipe.data.getLong(GTRecipeDataKeys.EU_TO_START);
+        if (eu > fusionReactorMachine.energyContainer.getEnergyCapacity()) return null;
+        long heatDiff = eu - fusionReactorMachine.heat;
+        if (heatDiff > 0) {
+            if (fusionReactorMachine.energyContainer.getEnergyStored() < heatDiff) return null;
+            fusionReactorMachine.energyContainer.removeEnergy(heatDiff);
+            fusionReactorMachine.heat += heatDiff;
         }
-        long heatDiff = recipe.data.getLong(GTRecipeDataKeys.EU_TO_START) - fusionReactorMachine.heat;
-        // if the stored heat is >= required energy, recipe is okay to run
-        if (heatDiff <= 0) {
-            return FUSION_OC.getModifier(machine, recipe, fusionReactorMachine.getMaxVoltage(), false);
-        }
-        // if the remaining energy needed is more than stored, do not run
-        if (fusionReactorMachine.energyContainer.getEnergyStored() < heatDiff) return ModifierFunction.NULL;
-        // remove the energy needed
-        fusionReactorMachine.energyContainer.removeEnergy(heatDiff);
-        // increase the stored heat
-        fusionReactorMachine.heat += heatDiff;
-        fusionReactorMachine.updatePreHeatSubscription();
-        return FUSION_OC.getModifier(machine, recipe, fusionReactorMachine.getMaxVoltage(), false);
+        return RecipeModifier.perfectOverclocking(machine, unit, recipe);
     }
 
     @Override
-    public boolean onWorking() {
+    public void onWorking() {
+        super.onWorking();
         GTRecipe recipe = recipeLogic.getLastRecipe();
         assert recipe != null;
         if (recipe.data.contains(GTRecipeDataKeys.EU_TO_START)) {
@@ -187,7 +165,9 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
             if (heatDiff > 0) {
                 recipeLogic.setWaiting(Component.translatable("gtceu.recipe_logic.insufficient_fuel"));
                 // if the remaining energy needed is more than stored, do not run
-                if (this.energyContainer.getEnergyStored() < heatDiff) return super.onWorking();
+                if (this.energyContainer.getEnergyStored() < heatDiff) {
+                    return;
+                }
                 // remove the energy needed
                 this.energyContainer.removeEnergy(heatDiff);
                 // increase the stored heat
@@ -196,15 +176,14 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
             }
         }
         if (color == -1) {
-            if (!recipe.getOutputContents(FluidRecipeCapability.CAP).isEmpty()) {
-                var fluid = FluidRecipeCapability.CAP.of(recipe.getOutputContents(FluidRecipeCapability.CAP).getFirst()).getFluid();
+            if (!recipe.fluidOutputs.isEmpty()) {
+                var fluid = recipe.fluidOutputs.getFirst().inner.getFluid();
                 int newColor = -16777216 | GTUtil.getFluidColor(fluid);
                 if (color != newColor) {
                     color = newColor;
                 }
             }
         }
-        return super.onWorking();
     }
 
     public void updateHeat() {
@@ -239,6 +218,11 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     @Override
     public long getMaxVoltage() {
         return Math.min(GTValues.V[tier], super.getMaxVoltage());
+    }
+
+    @Override
+    public long getOverclockVoltage() {
+        return super.getMaxVoltage();
     }
 
     //////////////////////////////////////

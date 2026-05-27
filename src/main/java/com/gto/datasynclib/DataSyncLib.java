@@ -6,6 +6,10 @@ import com.gto.datasynclib.field.object.CustomObjCodecField;
 import com.gto.datasynclib.field.object.ObjCodecField;
 import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.longs.LongCollection;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import it.unimi.dsi.fastutil.objects.Reference2IntMap;
+import it.unimi.dsi.fastutil.objects.Reference2LongMap;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,6 +48,11 @@ public final class DataSyncLib {
         registerAccessInterfaceFactory(IntCollection.class, k -> IntCollectionAccess::new, 1000);
         registerAccessInterfaceFactory(LongCollection.class, k -> LongCollectionAccess::new, 1000);
         registerAccessInterfaceFactory(Collection.class, k -> CollectionAccess::new, 100);
+
+        registerAccessInterfaceFactory(Reference2LongMap.class, k -> Reference2LongMapAccess::new, 1000);
+        registerAccessInterfaceFactory(Object2LongMap.class, k -> Object2LongMapAccess::new, 1000);
+        registerAccessInterfaceFactory(Reference2IntMap.class, k -> Reference2IntMapAccess::new, 1000);
+        registerAccessInterfaceFactory(Object2IntMap.class, k -> Object2IntMapAccess::new, 1000);
         registerAccessInterfaceFactory(Map.class, k -> MapAccess::new, 100);
 
         registerAccessCustomFactory(c -> c.isArray() && !c.componentType().isPrimitive(), c -> {

@@ -56,12 +56,12 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
     DataCodec<Data> DATA_CODEC = new DataCodec<>() {
 
         @Override
-        public Data encode(Data obj) {
+        public @NotNull Data encode(Data obj) {
             return obj;
         }
 
         @Override
-        public Data decode(Data data) {
+        public Data decode(@NotNull Data data) {
             return data;
         }
 

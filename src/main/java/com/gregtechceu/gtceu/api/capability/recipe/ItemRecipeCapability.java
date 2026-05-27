@@ -3,8 +3,9 @@ package com.gregtechceu.gtceu.api.capability.recipe;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.content.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.api.recipe.content.SerializerItemIngredient;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
@@ -42,7 +43,7 @@ public class ItemRecipeCapability extends ContentRecipeCapability<ItemIngredient
     public final static ItemRecipeCapability CAP = new ItemRecipeCapability();
 
     protected ItemRecipeCapability() {
-        super("item", 0xFFD96106, true, 0, SerializerItemIngredient.INSTANCE);
+        super("item", 0xFFD96106, true, 0);
     }
 
     @Override
@@ -59,10 +60,8 @@ public class ItemRecipeCapability extends ContentRecipeCapability<ItemIngredient
     }
 
     @Override
-    public @NotNull List<Object> createXEIContainerContents(List<Content> contents, GTRecipeDefinition recipe, IO io) {
+    public @NotNull List<Object> createXEIContainerContents(List<Content<ItemIngredient>> contents, GTRecipeDefinition recipe, IO io) {
         List<Object> entryLists = contents.stream()
-
-                .map(this::of)
                 .map(ItemRecipeCapability::mapItem)
                 .collect(Collectors.toList());
 
@@ -70,8 +69,8 @@ public class ItemRecipeCapability extends ContentRecipeCapability<ItemIngredient
             List<Object> scannerPossibilities = new ArrayList<>();
             // Scanner Output replacing, used for cycling research outputs
             ResearchManager.ResearchItem researchData = null;
-            for (Content stack : recipe.getOutputContents(this)) {
-                ItemStack stacks = this.of(stack).getInnerItemStack();
+            for (Content<ItemIngredient> stack : recipe.itemOutputs) {
+                ItemStack stacks = stack.inner.getInnerItemStack();
                 if (stacks.isEmpty()) continue;
 
                 researchData = ResearchManager.readResearchId(stacks);
@@ -83,11 +82,11 @@ public class ItemRecipeCapability extends ContentRecipeCapability<ItemIngredient
                 Set<ItemStack> cache = new ObjectOpenCustomHashSet<>(ItemStackHashStrategy.ITEM);
                 if (possibleRecipes != null) {
                     for (GTRecipeDefinition r : possibleRecipes) {
-                        var outputs = r.getOutputContents(this);
+                        var outputs = r.itemOutputs;
                         if (outputs.isEmpty()) continue;
 
-                        Content outputContent = outputs.getFirst();
-                        var stack = this.of(outputContent).getInnerItemStack();
+                        var outputContent = outputs.getFirst();
+                        var stack = outputContent.inner.getInnerItemStack();
                         if (stack.isEmpty()) continue;
                         if (!cache.contains(stack)) {
                             cache.add(stack);
@@ -160,13 +159,13 @@ public class ItemRecipeCapability extends ContentRecipeCapability<ItemIngredient
                 }
             }
             if (content != null) {
-                float chance = (float) recipeType.getChanceFunction()
+                float chance = (float) recipe.chanceFunction
                         .getBoostedChance(content, recipeTier, chanceTier) / Content.MAX_CHANCE;
                 slot.setXEIChance(chance);
                 slot.setOnAddedTooltips((w, tooltips) -> {
                     GTRecipeWidget.setConsumedChance(content,
-                            recipe.getChanceLogicForCapability(this, io),
-                            tooltips, recipeTier, chanceTier, recipeType.getChanceFunction());
+                            ChanceLogic.OR,
+                            tooltips, recipeTier, chanceTier, recipe.chanceFunction);
                 });
                 if (io == IO.IN && content.chance == 0) {
                     slot.setIngredientIO(IngredientIO.CATALYST);
@@ -176,8 +175,8 @@ public class ItemRecipeCapability extends ContentRecipeCapability<ItemIngredient
     }
 
     // Maps ingredients to an ItemEntryList for XEI: either an ItemTagList or an ItemStackList
-    private static ItemEntryList mapItem(final ItemIngredient ingredient) {
-        return tryMapInner(ingredient.inner, ingredient.getAmount());
+    private static ItemEntryList mapItem(final Content<ItemIngredient> ingredient) {
+        return tryMapInner(ingredient.inner.inner, ingredient.inner.getAmount());
     }
 
     private static ItemEntryList tryMapInner(final Ingredient ingredient, int amount) {

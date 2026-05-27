@@ -2,14 +2,17 @@ package com.gregtechceu.gtceu.common.recipe.condition;
 
 import com.gregtechceu.gtceu.api.data.DimensionMarker;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.jei.IngredientIO;
 
 import net.minecraft.network.chat.Component;
@@ -18,7 +21,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 
-import org.jetbrains.annotations.NotNull;
+import org.apache.commons.lang3.mutable.MutableInt;
 
 public class DimensionCondition extends RecipeCondition {
 
@@ -27,6 +30,13 @@ public class DimensionCondition extends RecipeCondition {
     public DimensionCondition(boolean isReverse, ResourceKey<Level> dimension) {
         super(isReverse);
         this.dimension = dimension;
+    }
+
+    @Override
+    public void addXEIInfo(GTRecipeDefinition recipe, WidgetGroup group, int xOffset, MutableInt yOffset) {
+        group.addWidget(setupDimensionMarkers(recipe.recipeType.getRecipeUI().getJEISize().width - xOffset - 44,
+                recipe.recipeType.getRecipeUI().getJEISize().height - 32)
+                .setBackgroundTexture(IGuiTexture.EMPTY));
     }
 
     @Override
@@ -52,8 +62,8 @@ public class DimensionCondition extends RecipeCondition {
     }
 
     @Override
-    public boolean testCondition(@NotNull GTRecipeDefinition recipe, @NotNull RecipeLogic recipeLogic) {
-        Level level = recipeLogic.machine.self().getLevel();
+    public boolean testCondition(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
+        Level level = holder.self().getLevel();
         return level != null && dimension == level.dimension();
     }
 }

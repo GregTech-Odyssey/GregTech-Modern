@@ -6,13 +6,14 @@ import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
 import appeng.api.stacks.AEItemKey;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.gto.datasynclib.datasream.data.ByteData;
+import com.gto.datasynclib.datasream.data.Data;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,32 +42,30 @@ public final class IntCircuitIngredient extends ItemIngredient {
         this.configuration = configuration;
     }
 
+    public static int getConfiguration(@Nullable CompoundTag tag) {
+        if (tag != null && tag.tags.get(IntCircuitIngredient.Configuration) instanceof IntTag intTag) {
+            return intTag.getAsInt();
+        }
+        return -1;
+    }
+
+    @Override
+    public Component getName() {
+        return Component.translatable("item.gtceu.programmed_circuit").append("[" + configuration + "]");
+    }
+
     @Override
     public void toNetwork(FriendlyByteBuf buffer) {
         buffer.writeByte(-configuration);
     }
 
     @Override
-    public CompoundTag toNbt() {
-        var tag = new CompoundTag();
-        tag.putInt(Configuration, configuration);
-        return tag;
-    }
-
-    @Override
-    public @NotNull JsonElement toJson() {
-        JsonObject json = new JsonObject();
-        json.addProperty("configuration", configuration);
-        return json;
+    public Data toData() {
+        return ByteData.valueOf((byte) configuration);
     }
 
     @Override
     public ItemIngredient copy(long amount) {
-        return this;
-    }
-
-    @Override
-    public ItemIngredient copy() {
         return this;
     }
 
@@ -79,12 +78,7 @@ public final class IntCircuitIngredient extends ItemIngredient {
     public boolean testAeKay(@NotNull AEItemKey key) {
         var item = key.getItem();
         if (item != PROGRAMMED_CIRCUIT) return false;
-        var tag = key.getTag();
-        if (tag == null) return false;
-        if (tag.tags.get(IntCircuitIngredient.Configuration) instanceof IntTag intTag) {
-            return intTag.getAsInt() == configuration;
-        }
-        return false;
+        return getConfiguration(key.getTag()) == configuration;
     }
 
     @Override
@@ -92,12 +86,7 @@ public final class IntCircuitIngredient extends ItemIngredient {
         if (stack == null) return false;
         var item = stack.getItem();
         if (item != PROGRAMMED_CIRCUIT) return false;
-        var tag = stack.getTag();
-        if (tag == null) return false;
-        if (tag.tags.get(IntCircuitIngredient.Configuration) instanceof IntTag intTag) {
-            return intTag.getAsInt() == configuration;
-        }
-        return false;
+        return getConfiguration(stack.getTag()) == configuration;
     }
 
     @Override

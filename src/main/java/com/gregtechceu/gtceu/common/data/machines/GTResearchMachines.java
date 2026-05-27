@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
+import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.api.registry.registrate.MachineBuilder;
 import com.gregtechceu.gtceu.client.renderer.machine.HPCAPartRenderer;
 import com.gregtechceu.gtceu.client.renderer.machine.OverlayTieredActiveMachineRenderer;
@@ -61,6 +62,7 @@ public class GTResearchMachines {
             .nonYAxisRotation()
             .recipeType(GTRecipeTypes.RESEARCH_STATION_RECIPES)
             .appearanceBlock(ADVANCED_COMPUTER_CASING)
+            .recipeModifier(RecipeModifier.OVERCLOCKING)
             .tooltipBuilder((s, l) -> l.addAll(LangHandler.getMultiLang("gtceu.machine.research_station.tooltip")))
             .pattern(definition -> FactoryBlockPattern.start(definition)
                     .aisle("XXX", "VVV", "PPP", "PPP", "PPP", "VVV", "XXX")

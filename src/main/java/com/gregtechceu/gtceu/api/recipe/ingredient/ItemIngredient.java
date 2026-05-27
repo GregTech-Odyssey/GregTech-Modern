@@ -12,6 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -21,9 +22,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
 import appeng.api.stacks.AEItemKey;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
+import com.gto.datasynclib.datasream.data.*;
 import com.mojang.serialization.JsonOps;
 import it.unimi.dsi.fastutil.Hash;
 import lombok.Getter;
@@ -43,22 +42,14 @@ public class ItemIngredient extends ContentInner implements Predicate<ItemStack>
     private final Ingredient.Value value;
 
     protected ItemIngredient(Ingredient inner, long amount) {
+        super(amount);
         this.inner = inner;
-        this.amount = amount;
         isEmpty = inner.isEmpty();
         value = isEmpty ? null : inner.getClass() == Ingredient.class ? inner.values[0] : null;
     }
 
     private ItemIngredient(ItemIngredient ingredient, long amount) {
-        this.amount = amount;
-        this.inner = ingredient.inner;
-        this.isEmpty = ingredient.isEmpty;
-        this.value = ingredient.value;
-        this.hashCode = ingredient.hashCode;
-    }
-
-    private ItemIngredient(ItemIngredient ingredient) {
-        this.amount = ingredient.amount;
+        super(amount);
         this.inner = ingredient.inner;
         this.isEmpty = ingredient.isEmpty;
         this.value = ingredient.value;
@@ -101,16 +92,16 @@ public class ItemIngredient extends ContentInner implements Predicate<ItemStack>
         };
     }
 
-    @Override
-    public CompoundTag toNbt() {
-        var tag = new CompoundTag();
+    public Data toData() {
+        if (isEmpty) return NullData.INSTANCE;
+        var data = new MapData();
         switch (value) {
-            case Ingredient.ItemValue itemValue -> tag.putString("item", GTUtil.ITEM_ID.apply(itemValue.item.getItem()).toString());
-            case Ingredient.TagValue tagValue -> tag.putString("tag", tagValue.tag.location().toString());
-            case null, default -> tag.put("ingredient", JsonOps.INSTANCE.convertTo(NbtOps.INSTANCE, inner.toJson()));
+            case Ingredient.ItemValue itemValue -> data.putString("i", GTUtil.ITEM_ID.apply(itemValue.item.getItem()).toString());
+            case Ingredient.TagValue tagValue -> data.putString("t", tagValue.tag.location().toString());
+            case null, default -> data.put("j", JsonOps.INSTANCE.convertTo(DataOps.INSTANCE, inner.toJson()));
         }
-        tag.putLong("count", amount);
-        return tag;
+        data.putLong("a", amount);
+        return data;
     }
 
     public static ItemIngredient fromNbt(CompoundTag tag) {
@@ -136,49 +127,55 @@ public class ItemIngredient extends ContentInner implements Predicate<ItemStack>
         return EMPTY;
     }
 
-    public JsonElement toJson() {
-        JsonObject json = new JsonObject();
-        switch (value) {
-            case Ingredient.ItemValue itemValue -> json.addProperty("item", GTUtil.ITEM_ID.apply(itemValue.item.getItem()).toString());
-            case Ingredient.TagValue tagValue -> json.addProperty("tag", tagValue.tag.location().toString());
-            case null, default -> json.add("ingredient", inner.toJson());
+    public static ItemIngredient fromData(Data data) {
+        if (data.isNull()) return EMPTY;
+        if (data instanceof ByteData(byte i)) {
+            return IntCircuitIngredient.CIRCUIT_INPUTS[i];
         }
-        json.addProperty("count", amount);
-        return json;
-    }
-
-    public static ItemIngredient fromJson(JsonElement json) {
-        if (json == null || json.isJsonNull()) throw new JsonSyntaxException("Fluid ingredient cannot be null");
-        var jsonObject = json.getAsJsonObject();
-        var configuration = jsonObject.get("configuration");
-        if (configuration != null) {
-            return IntCircuitIngredient.CIRCUIT_INPUTS[configuration.getAsInt()];
-        }
-        long amount = jsonObject.get("count").getAsLong();
-        var item = jsonObject.get("item");
+        var map = data.getMap();
+        var amount = map.get("a").getLong();
+        var item = map.get("i");
         if (item != null) {
-            return of(BuiltInRegistries.ITEM.get(GTUtil.getResourceLocation(item.getAsString())), amount);
+            return ItemIngredient.of(GTUtil.ITEM_VALUE.apply(GTUtil.getResourceLocation(item.getString())), amount);
         }
-        var tag = jsonObject.get("tag");
-        if (tag != null) {
-            return of(TagKey.create(Registries.ITEM, GTUtil.getResourceLocation(tag.getAsString())), amount);
+        var t = map.get("t");
+        if (t != null) {
+            return ItemIngredient.of(TagKey.create(Registries.ITEM, GTUtil.getResourceLocation(t.getString())), amount);
         }
-        var in = jsonObject.get("ingredient");
+        var in = map.get("j");
         if (in != null) {
-            Ingredient inner = Ingredient.fromJson(in);
+            Ingredient inner = Ingredient.fromJson(DataOps.INSTANCE.convertTo(JsonOps.INSTANCE, in));
             if (!inner.isEmpty()) {
-                return of(inner, amount);
+                return new ItemIngredient(inner, amount);
             }
         }
-        return EMPTY;
+        throw new IllegalArgumentException("Invalid ItemIngredient data: " + data);
     }
 
     public ItemIngredient copy(long amount) {
         return new ItemIngredient(this, amount);
     }
 
-    public ItemIngredient copy() {
-        return new ItemIngredient(this);
+    @Override
+    public Component getName() {
+        if (isEmpty) return Component.literal("Item[empty]");
+        if (value != null) {
+            return getComponent(value);
+        } else if (inner.values.length == 1) {
+            return getComponent(inner.values[0]);
+        }
+        return Component.literal(inner.toString());
+    }
+
+    public static Component getComponent(Ingredient.Value value) {
+        if (value instanceof Ingredient.TagValue tagValue) {
+            return Component.literal("Tag[" + tagValue.tag.location() + "]");
+        } else if (value instanceof Ingredient.ItemValue itemValue) {
+            return itemValue.item.getDisplayName();
+        }
+        var component = Component.empty();
+        value.getItems().forEach(i -> component.append(i.getDisplayName()));
+        return component;
     }
 
     public boolean testItem(Item item) {

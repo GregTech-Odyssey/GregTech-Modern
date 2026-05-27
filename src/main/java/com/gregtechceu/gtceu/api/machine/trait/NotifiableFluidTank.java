@@ -1,11 +1,10 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
 import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
@@ -31,7 +30,7 @@ import java.util.List;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Predicate;
 
-public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngredient> implements ICapabilityTrait, IFluidHandlerModifiable {
+public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements ICapabilityTrait, IFluidHandlerModifiable {
 
     @Getter
     public final IO handlerIO;
@@ -96,22 +95,86 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     }
 
     @Override
-    public List<FluidIngredient> handleRecipeInner(IO io, GTRecipe recipe, List<FluidIngredient> left, boolean simulate) {
-        if (io != handlerIO) return left;
-        if (io != IO.IN && io != IO.OUT) return left.isEmpty() ? null : left;
-        Runnable[] listeners = null;
+    public boolean canHandleFluid() {
+        return true;
+    }
+
+    @Override
+    public boolean handleRecipeFluid(IO io, GTRecipe recipe, List<Content<FluidIngredient>> fluids, boolean simulate) {
+        if (io != handlerIO) throw new IllegalStateException("IO is not the same");
+        if (simulate) {
+            return handleRecipeSimulate(io, fluids, storages, lockedFluid);
+        } else {
+            return handleRecipe(io, fluids, storages, lockedFluid);
+        }
+    }
+
+    public static boolean handleRecipe(IO io, List<Content<FluidIngredient>> fluids, CustomFluidTank[] storages, CustomFluidTank lockedFluid) {
         var length = storages.length;
-        if (!simulate) {
-            listeners = new Runnable[length];
-            for (int i = 0; i < length; i++) {
-                listeners[i] = storages[i].getOnContentsChanged();
-                storages[i].setOnContentsChangedAndfreeze(GTUtil.NOOP);
-            }
+        Runnable[] listeners = new Runnable[length];
+        for (int i = 0; i < length; i++) {
+            listeners[i] = storages[i].getOnContentsChanged();
+            storages[i].setOnContentsChangedAndfreeze(GTUtil.NOOP);
         }
         boolean changed = false;
+        for (var it = fluids.iterator(); it.hasNext();) {
+            var ingredient = it.next();
+            if (ingredient.isEmpty()) {
+                it.remove();
+                continue;
+            }
+            if (io == IO.IN) {
+                for (CustomFluidTank storage : storages) {
+                    var stored = storage.getFluid();
+                    int amount = stored.getAmount();
+                    if (amount == 0) continue;
+                    if (ingredient.inner.test(stored)) {
+                        var drained = storage.drain(ingredient.getIntAmount(), FluidAction.EXECUTE);
+                        if (drained.getAmount() > 0) {
+                            changed = true;
+                            ingredient.shrink(drained.getAmount());
+                            if (ingredient.amount <= 0) {
+                                it.remove();
+                                break;
+                            }
+                        }
+                    }
+                }
+            } else {
+                var fluid = ingredient.inner.getFluid();
+                if (fluid == null) {
+                    it.remove();
+                    continue;
+                }
+                for (CustomFluidTank storage : storages) {
+                    var stored = storage.getFluid();
+                    int amount = stored.getAmount();
+                    if (amount < storage.getCapacity() && (lockedFluid.isEmpty() || lockedFluid.getFluid().getFluid() == fluid) && (stored.isEmpty() || stored.getFluid() == fluid)) {
+                        FluidStack output = ingredient.inner.getFluidStack(ingredient.getIntAmount());
+                        int filled = storage.fill(output, FluidAction.EXECUTE);
+                        if (filled > 0) {
+                            changed = true;
+                            ingredient.shrink(filled);
+                            if (ingredient.amount <= 0) {
+                                it.remove();
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        for (int i = 0; i < length; i++) {
+            storages[i].setOnContentsChangedAndfreeze(listeners[i]);
+            if (changed) listeners[i].run();
+        }
+        return fluids.isEmpty();
+    }
+
+    public static boolean handleRecipeSimulate(IO io, List<Content<FluidIngredient>> fluids, CustomFluidTank[] storages, CustomFluidTank lockedFluid) {
+        var length = storages.length;
         SimpleStack<FluidStack>[] visiteds = new SimpleStack[length];
-        IFluidHandler.FluidAction action = simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE;
-        for (var it = left.iterator(); it.hasNext();) {
+        for (var it = fluids.iterator(); it.hasNext();) {
             var ingredient = it.next();
             if (ingredient.isEmpty()) {
                 it.remove();
@@ -124,13 +187,10 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
                     var stored = storage.getFluid();
                     int amount = (visited == null ? stored.getAmount() : visited.getAmount());
                     if (amount == 0) continue;
-                    if (ingredient.test(stored)) {
-                        var drained = storage.drain(ingredient.getAmount(), action);
+                    if (ingredient.inner.test(stored)) {
+                        var drained = storage.drain(ingredient.getIntAmount(), IFluidHandler.FluidAction.SIMULATE);
                         if (drained.getAmount() > 0) {
-                            if (simulate) {
-                                visiteds[tank] = new SimpleStack<>(drained, amount - drained.getAmount());
-                            }
-                            changed = true;
+                            visiteds[tank] = new SimpleStack<>(drained, amount - drained.getAmount());
                             ingredient.shrink(drained.getAmount());
                             if (ingredient.amount <= 0) {
                                 it.remove();
@@ -140,7 +200,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
                     }
                 }
             } else {
-                var fluid = ingredient.getFluid();
+                var fluid = ingredient.inner.getFluid();
                 if (fluid == null) {
                     it.remove();
                     continue;
@@ -151,13 +211,10 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
                     var stored = storage.getFluid();
                     int amount = (visited == null ? stored.getAmount() : visited.getAmount());
                     if (amount < storage.getCapacity() && (lockedFluid.isEmpty() || lockedFluid.getFluid().getFluid() == fluid) && (stored.isEmpty() || stored.getFluid() == fluid) && (visited == null || visited.inner.getFluid() == fluid)) {
-                        FluidStack output = new FluidStack(fluid, ingredient.getAmount(), ingredient.nbt);
-                        int filled = storage.fill(output, action);
+                        FluidStack output = ingredient.inner.getFluidStack(ingredient.getIntAmount());
+                        int filled = storage.fill(output, IFluidHandler.FluidAction.SIMULATE);
                         if (filled > 0) {
-                            if (simulate) {
-                                visiteds[tank] = new SimpleStack<>(output, filled);
-                            }
-                            changed = true;
+                            visiteds[tank] = new SimpleStack<>(output, filled);
                             ingredient.shrink(filled);
                             if (ingredient.amount <= 0) {
                                 it.remove();
@@ -168,18 +225,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
                 }
             }
         }
-        if (listeners != null) {
-            for (int i = 0; i < length; i++) {
-                storages[i].setOnContentsChangedAndfreeze(listeners[i]);
-                if (changed) listeners[i].run();
-            }
-        }
-        return left.isEmpty() ? null : left;
-    }
-
-    @Override
-    public boolean test(FluidIngredient ingredient) {
-        return !this.isLocked() || ingredient.test(this.lockedFluid.getFluid());
+        return fluids.isEmpty();
     }
 
     @Override
@@ -216,17 +262,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
         return this;
     }
 
-    @Override
-    public RecipeCapability<FluidIngredient> getCapability() {
-        return FluidRecipeCapability.CAP;
-    }
-
     public int getTanks() {
-        return storages.length;
-    }
-
-    @Override
-    public int getSize() {
         return storages.length;
     }
 
@@ -256,7 +292,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait<FluidIngre
     }
 
     @Override
-    public IntLongMap getIngredientMap(@NotNull GTRecipeType type) {
+    public IntLongMap getSearchMap(@NotNull GTRecipeType type) {
         if (changed) {
             changed = false;
             intIngredientMap.clear();

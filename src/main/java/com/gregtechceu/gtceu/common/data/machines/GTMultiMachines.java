@@ -15,6 +15,7 @@ import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
+import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.client.renderer.machine.*;
 import com.gregtechceu.gtceu.client.util.TooltipHelper;
 import com.gregtechceu.gtceu.common.block.BoilerFireboxType;
@@ -52,7 +53,6 @@ import static com.gregtechceu.gtceu.api.pattern.util.RelativeDirection.*;
 import static com.gregtechceu.gtceu.common.data.GTBlocks.*;
 import static com.gregtechceu.gtceu.common.data.GTMachines.*;
 import static com.gregtechceu.gtceu.common.data.GTMaterials.DrillingFluid;
-import static com.gregtechceu.gtceu.common.data.GTRecipeModifiers.*;
 import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.DUMMY_RECIPES;
 import static com.gregtechceu.gtceu.common.data.machines.GTMachineUtils.*;
 import static com.gregtechceu.gtceu.common.registry.GTRegistration.REGISTRATE;
@@ -124,7 +124,7 @@ public class GTMultiMachines {
             .multiblock("electric_blast_furnace", CoilWorkableElectricMultiblockMachine::new)
             .nonYAxisRotation()
             .recipeType(GTRecipeTypes.BLAST_RECIPES)
-            .recipeModifiers(GTRecipeModifiers::ebfOverclock)
+            .recipeModifiers(RecipeModifier.EBF_OVERCLOCK)
             .appearanceBlock(CASING_INVAR_HEATPROOF)
             .pattern(definition -> FactoryBlockPattern.start(definition)
                     .aisle("XXX", "CCC", "CCC", "XXX")
@@ -162,7 +162,7 @@ public class GTMultiMachines {
             .multiblock("large_chemical_reactor", WorkableElectricMultiblockMachine::new)
             .allRotation()
             .recipeType(GTRecipeTypes.LARGE_CHEMICAL_RECIPES)
-            .recipeModifiers(OC_PERFECT_SUBTICK)
+            .recipeModifiers(RecipeModifier.PERFECT_OVERCLOCKING)
             .appearanceBlock(CASING_PTFE_INERT)
             .pattern(definition -> {
                 var casing = blocks(CASING_PTFE_INERT.get()).setMinGlobalLimited(10);
@@ -228,7 +228,7 @@ public class GTMultiMachines {
             .multiblock("implosion_compressor", WorkableElectricMultiblockMachine::new)
             .allRotation()
             .recipeType(GTRecipeTypes.IMPLOSION_RECIPES)
-            .recipeModifiers(OC_NON_PERFECT_SUBTICK)
+            .recipeModifiers(RecipeModifier.OVERCLOCKING)
             .appearanceBlock(CASING_STEEL_SOLID)
             .pattern(definition -> FactoryBlockPattern.start(definition)
                     .aisle("XXX", "XXX", "XXX")
@@ -248,7 +248,7 @@ public class GTMultiMachines {
             .multiblock("pyrolyse_oven", CoilWorkableElectricMultiblockMachine::new)
             .allRotation()
             .recipeType(GTRecipeTypes.PYROLYSE_RECIPES)
-            .recipeModifiers(GTRecipeModifiers::pyrolyseOvenOverclock)
+            .recipeModifiers(RecipeModifier.PYROLYSE_OVEN_OVERCLOCK)
             .appearanceBlock(MACHINE_CASING_ULV)
             .pattern(definition -> FactoryBlockPattern.start(definition)
                     .aisle("XXX", "XXX", "XXX")
@@ -278,7 +278,7 @@ public class GTMultiMachines {
             .multiblock("multi_smelter", CoilWorkableElectricMultiblockMachine::new)
             .nonYAxisRotation()
             .recipeTypes(GTRecipeTypes.FURNACE_RECIPES, GTRecipeTypes.ALLOY_SMELTER_RECIPES)
-            .recipeModifiers(GTRecipeModifiers::multiSmelterParallel)
+            .recipeModifiers(RecipeModifier.MULTI_SMELTER_OVERCLOCK)
             .appearanceBlock(CASING_INVAR_HEATPROOF)
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_2.tooltip",
                     Component.translatable("gtceu.electric_furnace"), Component.translatable("gtceu.alloy_smelter")))
@@ -312,7 +312,7 @@ public class GTMultiMachines {
             .multiblock("cracker", CoilWorkableElectricMultiblockMachine::new)
             .allRotation()
             .recipeType(GTRecipeTypes.CRACKING_RECIPES)
-            .recipeModifiers(GTRecipeModifiers::crackerOverclock)
+            .recipeModifiers(RecipeModifier.CRACKER_OVERCLOCK)
             .appearanceBlock(CASING_STAINLESS_CLEAN)
             .pattern(definition -> FactoryBlockPattern.start(definition)
                     .aisle("HCHCH", "HCHCH", "HCHCH")
@@ -340,7 +340,7 @@ public class GTMultiMachines {
             .multiblock("distillation_tower", DistillationTowerMachine::new)
             .nonYAxisRotation()
             .recipeType(GTRecipeTypes.DISTILLATION_RECIPES)
-            .recipeModifiers(OC_NON_PERFECT_SUBTICK)
+            .recipeModifiers(RecipeModifier.OVERCLOCKING)
             .appearanceBlock(CASING_STAINLESS_CLEAN)
             .pattern(definition -> {
                 TraceabilityPredicate exportPredicate = abilities(PartAbility.EXPORT_FLUIDS_1X);
@@ -408,7 +408,7 @@ public class GTMultiMachines {
             .multiblock("vacuum_freezer", WorkableElectricMultiblockMachine::new)
             .allRotation()
             .recipeType(GTRecipeTypes.VACUUM_RECIPES)
-            .recipeModifiers(GTRecipeModifiers.OC_NON_PERFECT_SUBTICK)
+            .recipeModifiers(RecipeModifier.OVERCLOCKING)
             .appearanceBlock(CASING_ALUMINIUM_FROSTPROOF)
             .pattern(definition -> FactoryBlockPattern.start(definition)
                     .aisle("XXX", "XXX", "XXX")
@@ -428,7 +428,7 @@ public class GTMultiMachines {
             .multiblock("assembly_line", AssemblyLineMachine::new)
             .allRotation()
             .recipeType(GTRecipeTypes.ASSEMBLY_LINE_RECIPES)
-            .recipeModifiers(OC_NON_PERFECT)
+            .recipeModifiers(RecipeModifier.OVERCLOCKING)
             .appearanceBlock(CASING_STEEL_SOLID)
             .pattern(definition -> FactoryBlockPattern.start(definition, BACK, UP, RIGHT)
                     .aisle("FIF", "RTR", "SAG", "#Y#")

@@ -2,21 +2,33 @@ package com.gregtechceu.gtceu.api.machine.feature;
 
 import com.gregtechceu.gtceu.api.capability.ICleanroomReceiver;
 import com.gregtechceu.gtceu.api.capability.IWorkable;
-import com.gregtechceu.gtceu.api.capability.recipe.IRecipeCapabilityHolder;
+import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
+import com.gregtechceu.gtceu.api.recipe.*;
+import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
+import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.sound.SoundEntry;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+
+import net.minecraft.network.chat.Component;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Supplier;
+
 /**
  * A machine can handle recipes.
  */
-public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IWorkable, ICleanroomReceiver,
+public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, ICleanroomReceiver,
                                      IVoidable {
 
     /**
@@ -25,19 +37,23 @@ public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IWorkable,
     @NotNull
     GTRecipeType[] getRecipeTypes();
 
-    @NotNull
-    GTRecipeType getRecipeType();
-
-    default boolean disabledCombined() {
-        return self().getDefinition().disabledCombined();
-    }
-
     int getActiveRecipeType();
 
     void setActiveRecipeType(int type);
 
+    @NotNull
+    default GTRecipeType[] getAvailableRecipeTypes() {
+        return getRecipeTypes();
+    }
+
+    @NotNull
+    default GTRecipeType getRecipeType() {
+        var types = getAvailableRecipeTypes();
+        return types[Math.min(types.length - 1, getActiveRecipeType())];
+    }
+
     default void setRecipeType(GTRecipeType type) {
-        var types = getRecipeTypes();
+        var types = getAvailableRecipeTypes();
         if (types.length > 1 && getRecipeType() != type) {
             int i = 0;
             for (var t : types) {
@@ -60,8 +76,9 @@ public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IWorkable,
         return new RecipeLogic(this);
     }
 
-    default GTRecipe fullModifyRecipe(GTRecipe recipe) {
-        return doModifyRecipe(RecipeHelper.trimRecipeOutputs(recipe, this.getOutputLimits()));
+    default GTRecipe fullModifyRecipe(RecipeHandlerUnit unit, GTRecipe recipe) {
+        if (unit.color != -1) recipe.outputColor = unit.color;
+        return doModifyRecipe(unit, recipe);
     }
 
     /**
@@ -72,8 +89,30 @@ public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IWorkable,
      *         null -- this recipe is unavailable
      */
     @Nullable
-    default GTRecipe doModifyRecipe(GTRecipe recipe) {
-        return self().getDefinition().getRecipeModifier().applyModifier(self(), recipe);
+    default GTRecipe doModifyRecipe(RecipeHandlerUnit unit, GTRecipe recipe) {
+        return self().getDefinition().getRecipeModifier().applyModifier(this, unit, recipe);
+    }
+
+    @Override
+    default void setIdleReason(Supplier<Component> reason) {
+        getRecipeLogic().setIdleReasonSupplier(reason);
+    }
+
+    @Override
+    default boolean matchRecipeOutput(GTRecipe recipe) {
+        for (var e : recipe.definition.contentExpanders) {
+            if (!e.handle(IO.OUT, this, null, recipe, true)) return false;
+        }
+        List<Content<ItemIngredient>> items = canVoidRecipeOutputs(ItemRecipeCapability.CAP) ? Collections.emptyList() : RecipeHelper.copyContents(recipe.itemOutputs, 1);
+        List<Content<FluidIngredient>> fluids = canVoidRecipeOutputs(FluidRecipeCapability.CAP) ? Collections.emptyList() : RecipeHelper.copyContents(recipe.fluidOutputs, 1);
+        if (items.isEmpty() && fluids.isEmpty()) return true;
+        for (var handler : getOutputUnits(recipe)) {
+            if (handler.handleRecipeItem(IO.OUT, recipe, items, true) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
+                return true;
+            }
+        }
+        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
+        return false;
     }
 
     /**
@@ -93,17 +132,15 @@ public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IWorkable,
     }
 
     /**
-     * Called in {@link RecipeLogic#setupRecipe(GTRecipe)} ()}
+     * Called in {@link RecipeLogic#setupRecipe(RecipeHandlerUnit,GTRecipe)} ()
      */
-    default boolean beforeWorking(@NotNull GTRecipe recipe) {
-        return true;
-    }
+    default void beforeWorking(@NotNull RecipeHandlerUnit unit, @NotNull GTRecipe recipe) {}
 
     /**
      * Called per tick in {@link RecipeLogic#handleRecipeWorking()}
      */
-    default boolean onWorking() {
-        return self().getDefinition().getOnWorking().test(this);
+    default void onWorking() {
+        self().getDefinition().getOnWorking().accept(this);
     }
 
     /**
@@ -137,10 +174,6 @@ public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IWorkable,
      */
     default boolean regressWhenWaiting() {
         return self().getDefinition().isRegressWhenWaiting();
-    }
-
-    default boolean alwaysSearchRecipe() {
-        return false;
     }
 
     default boolean shouldWorkingPlaySound() {

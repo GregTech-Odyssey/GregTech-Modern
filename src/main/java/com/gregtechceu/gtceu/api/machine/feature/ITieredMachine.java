@@ -4,6 +4,10 @@ import com.gregtechceu.gtceu.api.GTValues;
 
 public interface ITieredMachine extends IMachineFeature {
 
+    default int getRecipeTier() {
+        return getTier();
+    }
+
     /**
      * Tier of machine determines it's input voltage, storage and generation rate
      *

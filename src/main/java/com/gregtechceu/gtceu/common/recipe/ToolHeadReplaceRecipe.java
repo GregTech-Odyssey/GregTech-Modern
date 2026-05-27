@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.api.recipe;
+package com.gregtechceu.gtceu.common.recipe;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;

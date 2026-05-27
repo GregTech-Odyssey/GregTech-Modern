@@ -3,8 +3,6 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.IEnergyInfoProvider;
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
@@ -21,6 +19,7 @@ import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
@@ -88,13 +87,13 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
                 this.maintenance = maintenanceMachine;
             } else {
                 for (var handlerList : part.getRecipeHandlers()) {
-                    var containers = handlerList.getCapability(EURecipeCapability.CAP).stream().filter(IEnergyContainer.class::isInstance).map(IEnergyContainer.class::cast).toList();
-                    if (handlerList.getHandlerIO() == IO.IN) {
+                    var containers = handlerList.getCapabilities(IEnergyContainer.class);
+                    if (handlerList.handlerIO == IO.IN) {
                         inputs.addAll(containers);
-                    } else if (handlerList.getHandlerIO() == IO.OUT) {
+                    } else if (handlerList.handlerIO == IO.OUT) {
                         outputs.addAll(containers);
                     }
-                    traitSubscriptions.add(handlerList.subscribe(tickSubscription::updateSubscription, EURecipeCapability.CAP));
+                    traitSubscriptions.add(handlerList.subscribe(tickSubscription::updateSubscription, IEnergyContainer.class));
                 }
             }
         }

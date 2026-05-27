@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.common.item;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IDataItem;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
@@ -62,8 +61,7 @@ public class DataItemBehavior implements IInteractionItem, IAddInformation, IDat
                 Collection<ItemStack> added = new OpenCacheHashSet<>();
                 outer:
                 for (GTRecipeDefinition recipe : recipes) {
-                    ItemStack output = ItemRecipeCapability.CAP
-                            .of(recipe.getOutputContents(ItemRecipeCapability.CAP).getFirst()).getInnerItemStack();
+                    ItemStack output = recipe.itemOutputs.getFirst().inner.getInnerItemStack();
                     for (var item : added) {
                         if (output.is(item.getItem())) continue outer;
                     }

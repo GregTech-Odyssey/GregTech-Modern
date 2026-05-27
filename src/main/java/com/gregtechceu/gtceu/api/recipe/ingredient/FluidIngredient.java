@@ -7,8 +7,10 @@ import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
@@ -19,9 +21,9 @@ import appeng.api.stacks.AEFluidKey;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import com.gto.datasynclib.datasream.data.*;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
-import com.mojang.serialization.JsonOps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +33,7 @@ import java.util.function.Predicate;
 
 public final class FluidIngredient extends ContentInner implements Predicate<FluidStack> {
 
-    public static Codec<FluidIngredient> CODEC = Codec.PASSTHROUGH.xmap(dynamic -> FluidIngredient.fromJson(dynamic.convert(JsonOps.INSTANCE).getValue()), ingredient -> new Dynamic<>(JsonOps.INSTANCE, ingredient.toJson()));
+    public static Codec<FluidIngredient> CODEC = Codec.PASSTHROUGH.xmap(dynamic -> FluidIngredient.fromData(dynamic.convert(DataOps.INSTANCE).getValue()), ingredient -> new Dynamic<>(DataOps.INSTANCE, ingredient.toData()));
     public static FluidIngredient EMPTY = new FluidIngredient(null, 0, null);
 
     public static final FluidStack[] EMPTY_STACKS = new FluidStack[0];
@@ -40,28 +42,17 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
     public final CompoundTag nbt;
 
     private FluidStack[] stacks;
-    private boolean changed = true;
 
     private FluidIngredient(Object value, long amount, @Nullable CompoundTag nbt) {
+        super(amount);
         this.value = value;
-        this.amount = amount;
         this.nbt = nbt;
     }
 
     private FluidIngredient(FluidIngredient ingredient, long amount) {
-        this.amount = amount;
+        super(amount);
         this.value = ingredient.value;
         this.nbt = ingredient.nbt;
-        this.stacks = ingredient.stacks;
-        this.hashCode = ingredient.hashCode;
-    }
-
-    private FluidIngredient(FluidIngredient ingredient) {
-        this.amount = ingredient.amount;
-        this.value = ingredient.value;
-        this.nbt = ingredient.nbt;
-        this.stacks = ingredient.stacks;
-        this.changed = ingredient.changed;
         this.hashCode = ingredient.hashCode;
     }
 
@@ -102,21 +93,19 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
         };
     }
 
-    @Override
-    public CompoundTag toNbt() {
-        var tag = new CompoundTag();
+    public Data toData() {
+        var data = new MapData();
         switch (value) {
             case null -> {
-                tag.putBoolean("empty", true);
-                return tag;
+                return NullData.INSTANCE;
             }
-            case Fluid fluid -> tag.putString("fluid", GTUtil.FLUID_ID.apply(fluid).toString());
-            case TagKey<?> tagKey -> tag.putString("tag", tagKey.location().toString());
+            case Fluid fluid -> data.putString("f", GTUtil.FLUID_ID.apply(fluid).toString());
+            case TagKey<?> tagKey -> data.putString("t", tagKey.location().toString());
             default -> throw new IllegalStateException("Unknown fluid ingredient type");
         }
-        tag.putLong("amount", amount);
-        if (nbt != null) tag.put("nbt", nbt);
-        return tag;
+        data.putLong("a", amount);
+        if (nbt != null) data.put("n", NbtOps.INSTANCE.convertTo(DataOps.INSTANCE, nbt));
+        return data;
     }
 
     public static FluidIngredient fromNbt(CompoundTag tag) {
@@ -127,6 +116,21 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
             return new FluidIngredient(GTUtil.FLUID_VALUE.apply(GTUtil.getResourceLocation(stringTag.getAsString())), amount, nbt);
         } else if (tag.tags.get("tag") instanceof StringTag stringTag) {
             return new FluidIngredient(TagKey.create(Registries.FLUID, GTUtil.getResourceLocation(stringTag.getAsString())), amount, nbt);
+        } else {
+            throw new IllegalStateException("Unknown fluid ingredient type");
+        }
+    }
+
+    public static FluidIngredient fromData(Data data) {
+        if (data.isNull()) return EMPTY;
+        var map = data.getMap();
+        var amount = map.get("a").getLong();
+        var nbt = map.get("n") instanceof MapData mapData ? (CompoundTag) DataOps.INSTANCE.convertTo(NbtOps.INSTANCE, mapData) : null;
+        var fluid = map.get("f");
+        if (fluid != null) {
+            return new FluidIngredient(GTUtil.FLUID_VALUE.apply(GTUtil.getResourceLocation(fluid.getString())), amount, nbt);
+        } else if (map.get("t") instanceof StringData(String s)) {
+            return new FluidIngredient(TagKey.create(Registries.FLUID, GTUtil.getResourceLocation(s)), amount, nbt);
         } else {
             throw new IllegalStateException("Unknown fluid ingredient type");
         }
@@ -166,16 +170,18 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
         throw new JsonSyntaxException("Unknown fluid ingredient type");
     }
 
+    @Override
+    public Component getName() {
+        if (value instanceof TagKey<?> tagKey) {
+            return Component.literal("Tag[" + tagKey.location() + "]");
+        } else if (value instanceof Fluid fluid) {
+            return fluid.getFluidType().getDescription();
+        }
+        return Component.literal("Fluid[empty]");
+    }
+
     public FluidIngredient copy(long amount) {
         return new FluidIngredient(this, amount);
-    }
-
-    public FluidIngredient copy() {
-        return new FluidIngredient(this);
-    }
-
-    public FluidIngredient depthCopy() {
-        return new FluidIngredient(value, amount, nbt);
     }
 
     public boolean testFluid(@NotNull Fluid fluid) {
@@ -224,15 +230,19 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
     }
 
     @NotNull
+    public FluidStack getFluidStack(int amount) {
+        var stacks = getStacks();
+        if (stacks.length == 0) return FluidStack.EMPTY;
+        var stack = stacks[0].copy();
+        stack.setAmount(amount);
+        return stack;
+    }
+
+    @NotNull
     public FluidStack getFluidStack() {
         var stacks = getStacks();
         if (stacks.length == 0) return FluidStack.EMPTY;
         return stacks[0];
-    }
-
-    public FluidStack[] getLatestStacks() {
-        if (changed) this.stacks = null;
-        return getStacks();
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -257,19 +267,8 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
                 }
                 default -> throw new IllegalStateException("Unknown fluid ingredient type");
             }
-            this.changed = false;
         }
         return this.stacks;
-    }
-
-    public void changeAmount(long amount) {
-        this.amount = amount;
-        this.changed = true;
-    }
-
-    public void shrink(long amount) {
-        this.amount -= amount;
-        this.changed = true;
     }
 
     public static FluidIngredient of() {

@@ -1,12 +1,12 @@
 package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.utils.asm.EmptyMethodChecker;
 
 import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
@@ -39,7 +39,7 @@ public interface IWorkableMultiPart extends IMultiPart {
         var c = part.getClass();
         return BEFORE_WORKING_METHOD.computeIfAbsent(c, k -> {
             try {
-                return EmptyMethodChecker.hasMethodBody(c.getMethod("beforeWorking", IWorkableMultiController.class, GTRecipe.class));
+                return EmptyMethodChecker.hasMethodBody(c.getMethod("beforeWorking", IWorkableMultiController.class, RecipeHandlerUnit.class, GTRecipe.class));
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
@@ -61,7 +61,7 @@ public interface IWorkableMultiPart extends IMultiPart {
         var c = part.getClass();
         return MODIFY_RECIPE_METHOD.computeIfAbsent(c, k -> {
             try {
-                return EmptyMethodChecker.hasMethodBody(c.getMethod("modifyRecipe", IWorkableMultiController.class, GTRecipe.class));
+                return EmptyMethodChecker.hasMethodBody(c.getMethod("modifyRecipe", IWorkableMultiController.class, RecipeHandlerUnit.class, GTRecipe.class));
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
@@ -84,28 +84,28 @@ public interface IWorkableMultiPart extends IMultiPart {
         return IWorkableMultiPart.hasModifyRecipeMethod(this);
     }
 
-    default List<RecipeHandlerList> getRecipeHandlers() {
-        return Collections.singletonList(getHandlerList());
+    default List<RecipeHandlerUnit> getRecipeHandlers() {
+        return Collections.singletonList(getHandlerUnit());
     }
 
-    default RecipeHandlerList getHandlerList() {
-        var list = getRecipeHandlerList();
+    default RecipeHandlerUnit getHandlerUnit() {
+        var list = getRecipeHandlerUnit();
         if (list == null) {
-            List<IRecipeHandler<?>> handlers = new ArrayList<>();
+            List<IRecipeHandler> handlers = new ArrayList<>();
             IO handlerIO = null;
             for (var trait : self().getTraits()) {
-                if (trait instanceof IRecipeHandlerTrait<?> rht && rht.isAvailable() && rht.getHandlerIO() != IO.NONE) {
+                if (trait instanceof IRecipeHandlerTrait rht && rht.isAvailable() && rht.getHandlerIO() != IO.NONE) {
                     if (handlerIO == null) handlerIO = rht.getHandlerIO();
                     handlers.add(rht);
                 }
             }
 
             if (handlers.isEmpty()) {
-                list = RecipeHandlerList.NO_DATA;
-                setRecipeHandlerList(list);
+                list = RecipeHandlerUnit.NO_DATA;
+                setRecipeHandlerUnit(list);
             } else {
-                list = RecipeHandlerList.of(handlerIO, this, handlers);
-                setRecipeHandlerList(list);
+                list = RecipeHandlerUnit.of(handlerIO, this, handlers);
+                setRecipeHandlerUnit(list);
             }
         }
         return list;
@@ -114,9 +114,7 @@ public interface IWorkableMultiPart extends IMultiPart {
     /**
      * Called per tick in {@link RecipeLogic#handleRecipeWorking()}
      */
-    default boolean onWorking(IWorkableMultiController controller) {
-        return true;
-    }
+    default void onWorking(IWorkableMultiController controller) {}
 
     /**
      * Called per tick in {@link RecipeLogic#handleRecipeWorking()}
@@ -134,11 +132,9 @@ public interface IWorkableMultiPart extends IMultiPart {
     default void afterWorking(IWorkableMultiController controller) {}
 
     /**
-     * Called in {@link RecipeLogic#setupRecipe(GTRecipe)}
+     * Called in {@link RecipeLogic#setupRecipe(RecipeHandlerUnit,GTRecipe)}
      */
-    default boolean beforeWorking(IWorkableMultiController controller, @NotNull GTRecipe recipe) {
-        return true;
-    }
+    default void beforeWorking(IWorkableMultiController controller, RecipeHandlerUnit unit, @NotNull GTRecipe recipe) {}
 
     /**
      * Override it to modify recipe on the fly e.g. applying overclock, change chance, etc
@@ -147,11 +143,11 @@ public interface IWorkableMultiPart extends IMultiPart {
      * @return modified recipe.
      *         null -- this recipe is unavailable
      */
-    default @Nullable GTRecipe modifyRecipe(IWorkableMultiController controller, @NotNull GTRecipe recipe) {
+    default @Nullable GTRecipe modifyRecipe(IWorkableMultiController controller, RecipeHandlerUnit unit, @NotNull GTRecipe recipe) {
         return recipe;
     }
 
-    RecipeHandlerList getRecipeHandlerList();
+    RecipeHandlerUnit getRecipeHandlerUnit();
 
-    void setRecipeHandlerList(RecipeHandlerList list);
+    void setRecipeHandlerUnit(RecipeHandlerUnit list);
 }

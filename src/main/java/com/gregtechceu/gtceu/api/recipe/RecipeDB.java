@@ -1,32 +1,32 @@
 package com.gregtechceu.gtceu.api.recipe;
 
-import com.gregtechceu.gtceu.api.capability.recipe.ContentRecipeCapability;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 
 import com.fast.recipesearch.AbstractRecipeDB;
 import com.fast.recipesearch.IntLongMap;
 import com.fast.recipesearch.IntMapContainer;
 import com.fast.recipesearch.RecipeSearcher;
 
-import java.util.function.Predicate;
+import java.util.function.BiPredicate;
 
-public class RecipeDB extends AbstractRecipeDB<GTRecipeDefinition> {
+public final class RecipeDB extends AbstractRecipeDB<GTRecipeDefinition> {
 
-    protected RecipeSearcher<GTRecipeDefinition> searchContext = new RecipeSearcher<>();
+    RecipeSearcher<GTRecipeDefinition> searchContext = new RecipeSearcher<>();
 
     public RecipeDB() {
         super();
     }
 
-    public boolean search(IntLongMap map, Predicate<GTRecipeDefinition> canHandle) {
+    public boolean search(RecipeHandlerUnit unit, IntLongMap map, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
         if (rootBranch != null) {
-            searchContext.reset(maxSearchDepth, rootBranch, map, map.toIntArray(), r -> r.container.match(map) && canHandle.test(r), null);
+            searchContext.reset(maxSearchDepth, rootBranch, map, map.toIntArray(), r -> r.container.match(map) && canHandle.test(unit, r), null);
             if (searchContext.findAny() != null) {
                 return true;
             }
         }
         if (!serialRecipes.isEmpty()) {
             for (var recipe : serialRecipes) {
-                if (canHandle.test(recipe)) return true;
+                if (canHandle.test(unit, recipe)) return true;
             }
         }
         return false;
@@ -40,9 +40,14 @@ public class RecipeDB extends AbstractRecipeDB<GTRecipeDefinition> {
     @Override
     protected IntLongMap extractIntMap(GTRecipeDefinition recipe) {
         var intMap = new IntLongMap();
-        recipe.inputs.forEach((cap, contents) -> {
-            if (cap instanceof ContentRecipeCapability<?> capability) contents.forEach(content -> recipe.recipeType.convert(capability, content.inner, intMap));
-        });
+        recipe.itemInputs.forEach(content -> recipe.recipeType.convertItem(content.inner, intMap));
+        recipe.fluidInputs.forEach(content -> recipe.recipeType.convertFluid(content.inner, intMap));
+        for (var expand : recipe.contentExpanders) {
+            expand.extractInput(recipe, intMap);
+        }
+        for (var expand : recipe.tickContentExpanders) {
+            expand.extractInput(recipe, intMap);
+        }
         return intMap;
     }
 

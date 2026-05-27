@@ -3,16 +3,15 @@ package com.gregtechceu.gtceu.api.machine;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
-import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
-import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
@@ -28,6 +27,7 @@ import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -69,30 +69,6 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine {
         return super.tintColor(index);
     }
 
-    //////////////////////////////////////
-    // ****** RECIPE LOGIC *******//
-    //////////////////////////////////////
-    /**
-     * Recipe Modifier for <b>Simple Generator Machines</b> - can be used as a valid {@link RecipeModifier}
-     * <p>
-     * Recipe is fast parallelized up to {@code desiredEUt / recipeEUt} times.
-     * </p>
-     * 
-     * @param machine a {@link SimpleGeneratorMachine}
-     * @param recipe  recipe
-     * @return A {@link ModifierFunction} for the given Simple Generator
-     */
-    public static ModifierFunction recipeModifier(MetaMachine machine, GTRecipe recipe) {
-        if (!(machine instanceof SimpleGeneratorMachine generator)) {
-            return RecipeModifier.nullWrongType(SimpleGeneratorMachine.class, machine);
-        }
-        long EUt = recipe.getOutputEUt();
-        if (EUt <= 0) return ModifierFunction.NULL;
-        int maxParallel = (int) (generator.getOverclockVoltage() / EUt);
-        int parallels = ParallelLogic.getParallelAmountFast(generator, recipe, maxParallel);
-        return ModifierFunction.builder().inputModifier(ContentModifier.multiplier(parallels)).outputModifier(ContentModifier.multiplier(parallels)).eutMultiplier(parallels).parallels(parallels).build();
-    }
-
     @Override
     public boolean regressWhenWaiting() {
         return false;
@@ -101,6 +77,18 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine {
     @Override
     public boolean canVoidRecipeOutputs(RecipeCapability<?> capability) {
         return true;
+    }
+
+    @Nullable
+    public static GTRecipe recipeModifier(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe) {
+        if (holder instanceof SimpleGeneratorMachine generator) {
+            var EUt = recipe.getOutputEUt();
+            if (EUt > 0) {
+                recipe = ParallelLogic.accurateParallel(holder, unit, recipe, (generator.getOverclockVoltage() / EUt));
+            }
+            return recipe;
+        }
+        return null;
     }
 
     //////////////////////////////////////

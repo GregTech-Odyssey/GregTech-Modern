@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.api.data.medicalcondition;
 
 import com.gregtechceu.gtceu.api.data.damagesource.DamageTypeData;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeBuilder;
 import com.gregtechceu.gtceu.common.capability.MedicalConditionTracker;
-import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 import com.gregtechceu.gtceu.data.recipe.misc.AirScrubberRecipes;
 
 import net.minecraft.tags.DamageTypeTags;
@@ -66,7 +66,7 @@ public class MedicalCondition {
     public enum IdleProgressionType {
         UNTREATED_PROGRESSION,
         HEAL,
-        NONE;
+        NONE
     }
 
     /**

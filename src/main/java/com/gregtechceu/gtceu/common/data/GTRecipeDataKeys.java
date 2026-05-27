@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.common.data;
 
 import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
+import com.gregtechceu.gtceu.api.recipe.expand.CWUTExpander;
 
 import com.gto.datasynclib.CombinationCodec;
 import com.gto.datasynclib.datasream.DataComponentKey;
@@ -15,6 +16,7 @@ public final class GTRecipeDataKeys {
         REGISTRY.unfreeze();
     }
 
+    public static final DataComponentKey<Long> CWUT = REGISTRY.register(CWUTExpander.INSTANCE);
     public static final DataComponentKey<Integer> EBF_TEMP = REGISTRY.register("ebf_temp", CombinationCodec.INT_CODEC);
     public static final DataComponentKey<Integer> SOLDER_MULTIPLIER = REGISTRY.register("solder_multiplier", CombinationCodec.INT_CODEC);
     public static final DataComponentKey<Boolean> DISABLE_DISTILLERY = REGISTRY.register("disable_distillery", CombinationCodec.BOOLEAN_CODEC);

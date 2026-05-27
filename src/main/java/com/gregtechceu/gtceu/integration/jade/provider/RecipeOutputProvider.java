@@ -2,10 +2,7 @@ package com.gregtechceu.gtceu.integration.jade.provider;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.integration.jade.GTElementHelper;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -52,21 +49,21 @@ public class RecipeOutputProvider extends CapabilityBlockProvider<RecipeLogic> {
             data.putBoolean("Working", recipeLogic.isWorking());
             var recipe = recipeLogic.getLastRecipe();
             if (recipe != null) {
-                int recipeTier = RecipeHelper.getPreOCRecipeEuTier(recipe);
+                int recipeTier = recipe.tier;
                 int chanceTier = recipeTier + recipe.ocLevel;
-                var function = recipe.recipeType.getChanceFunction();
-                var itemContents = recipe.getOutputContents(ItemRecipeCapability.CAP);
-                var fluidContents = recipe.getOutputContents(FluidRecipeCapability.CAP);
+                var function = recipe.definition.chanceFunction;
+                var itemContents = recipe.itemOutputs;
+                var fluidContents = recipe.fluidOutputs;
 
                 ListTag itemTags = new ListTag();
                 for (var item : itemContents) {
-                    var ingredient = ItemRecipeCapability.CAP.of(item);
+                    var ingredient = item.inner;
                     var stack = ingredient.getInnerItemStack();
                     if (stack.isEmpty()) continue;
                     var itemTag = new CompoundTag();
                     GTUtil.saveItemStack(stack, itemTag);
                     if (item.chance < Content.MAX_CHANCE) {
-                        int count = ingredient.getAmount();
+                        int count = item.getIntAmount();
                         double countD = (double) count * recipe.parallels *
                                 function.getBoostedChance(item, recipeTier, chanceTier) / Content.MAX_CHANCE;
                         count = countD < 1 ? 1 : (int) Math.round(countD);
@@ -81,13 +78,13 @@ public class RecipeOutputProvider extends CapabilityBlockProvider<RecipeLogic> {
 
                 ListTag fluidTags = new ListTag();
                 for (var fluid : fluidContents) {
-                    var ingredient = FluidRecipeCapability.CAP.of(fluid);
+                    var ingredient = fluid.inner;
                     var stack = ingredient.getFluidStack();
                     if (stack.isEmpty()) continue;
                     var fluidTag = new CompoundTag();
                     stack.writeToNBT(fluidTag);
                     if (fluid.chance < Content.MAX_CHANCE) {
-                        int amount = ingredient.getAmount();
+                        int amount = fluid.getIntAmount();
                         double amountD = (double) amount * recipe.parallels *
                                 function.getBoostedChance(fluid, recipeTier, chanceTier) / Content.MAX_CHANCE;
                         amount = amountD < 1 ? 1 : (int) Math.round(amountD);

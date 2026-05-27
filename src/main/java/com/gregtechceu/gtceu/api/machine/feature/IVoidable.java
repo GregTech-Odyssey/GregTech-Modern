@@ -21,7 +21,7 @@ import java.util.List;
 public interface IVoidable extends IMachineFeature {
 
     default boolean canVoidRecipeOutputs(RecipeCapability<?> capability) {
-        return getVoidingMode().canVoid(capability) || self().getDefinition().getRecipeOutputLimits().getOrDefault(capability, -1) == 0;
+        return getVoidingMode().canVoid(capability) || getOutputLimits().getOrDefault(capability, -1) == 0;
     }
 
     default Reference2IntOpenHashMap<RecipeCapability<?>> getOutputLimits() {

@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.widget.PhantomFluidWidget;
@@ -16,6 +15,7 @@ import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredIOPartMac
 import com.gregtechceu.gtceu.api.machine.trait.CircuitHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
@@ -103,8 +103,8 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
             serverLevel.getServer().tell(new TickTask(0, this::updateTankSubscription));
-            getHandlerList().setDistinct(isDistinct);
-            getHandlerList().setColor(getPaintingColor());
+            getHandlerUnit().setDistinct(isDistinct);
+            getHandlerUnit().setColor(getPaintingColor());
             tankSubs = tank.addChangedListener(this::updateTankSubscription);
         }
     }
@@ -121,12 +121,12 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     @Override
     public void setDistinct(boolean distinct) {
         isDistinct = (io != IO.OUT && distinct);
-        getHandlerList().setDistinctAndNotify(isDistinct);
+        getHandlerUnit().setDistinctAndNotify(isDistinct);
     }
 
     @Override
     public void onPaintingColorChanged(int color) {
-        getHandlerList().setColor(color, true);
+        getHandlerUnit().setColor(color, true);
     }
 
     @Override

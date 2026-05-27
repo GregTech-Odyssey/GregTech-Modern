@@ -95,7 +95,7 @@ public interface IFancyUIMachine extends IUIMachine, IFancyUIProvider {
     default void attachSideTabs(TabsWidget sideTabs) {
         sideTabs.setMainTab(this);
 
-        if (this instanceof IRecipeLogicMachine rLMachine && rLMachine.getRecipeTypes().length > 1) {
+        if (this instanceof IRecipeLogicMachine rLMachine && rLMachine.getAvailableRecipeTypes().length > 1) {
             sideTabs.attachSubTab(new MachineModeFancyConfigurator(rLMachine));
         }
         var directionalConfigurator = CombinedDirectionalFancyConfigurator.of(self(), self());

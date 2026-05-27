@@ -242,7 +242,6 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluidImpl.Flowin
         return onRegister(fluidConsumer::accept);
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public RegistryEntry<GTFluidImpl.Flowing> register() {
         // Check the fluid has a type.

@@ -1,9 +1,9 @@
 package com.gregtechceu.gtceu.api.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 
@@ -19,7 +19,7 @@ public class WorkableTieredIOPartMachine extends TieredIOPartMachine implements 
 
     @Getter
     @Setter
-    protected @Nullable RecipeHandlerList recipeHandlerList;
+    protected @Nullable RecipeHandlerUnit recipeHandlerUnit;
 
     public WorkableTieredIOPartMachine(MetaMachineBlockEntity holder, int tier, IO io) {
         super(holder, tier, io);

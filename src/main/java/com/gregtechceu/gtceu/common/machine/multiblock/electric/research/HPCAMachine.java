@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.capability.IHPCAComputationProvider;
 import com.gregtechceu.gtceu.api.capability.IHPCACoolantProvider;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.util.TimedProgressSupplier;
 import com.gregtechceu.gtceu.api.gui.widget.ExtendedProgressWidget;
@@ -20,6 +19,7 @@ import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMa
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
+import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerList;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -105,7 +105,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
                 componentHatches.add(componentHatch);
             } else if (part instanceof IWorkableMultiPart workableMultiPart) {
                 for (var handlerList : workableMultiPart.getRecipeHandlers()) {
-                    handlerList.getCapability(FluidRecipeCapability.CAP).stream().filter(IFluidHandler.class::isInstance).map(IFluidHandler.class::cast).forEach(coolantContainers::add);
+                    coolantContainers.addAll(handlerList.getCapabilities(IFluidHandler.class));
                 }
             }
         }
@@ -173,7 +173,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
             if (this.energyContainer.removeEnergy(energyToConsume) >= energyToConsume) {
                 getRecipeLogic().setStatus(RecipeLogic.WORKING);
             } else {
-                getRecipeLogic().setWaiting(Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(EURecipeCapability.CAP.getName()));
+                getRecipeLogic().setWaiting(ActionResult.failInsufficientIn(EURecipeCapability.CAP.getName()).reason());
             }
             // forcibly use active coolers at full rate if temperature is half-way to damaging temperature
             double midpoint = (DAMAGE_TEMPERATURE - IDLE_TEMPERATURE) / 2;

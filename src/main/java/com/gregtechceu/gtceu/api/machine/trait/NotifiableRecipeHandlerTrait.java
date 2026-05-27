@@ -3,24 +3,16 @@ package com.gregtechceu.gtceu.api.machine.trait;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class NotifiableRecipeHandlerTrait<T> extends MachineTrait implements IRecipeHandlerTrait<T> {
+public abstract class NotifiableRecipeHandlerTrait extends MachineTrait implements IRecipeHandlerTrait {
 
     protected List<Runnable> listeners = new ArrayList<>();
-    @Getter
-    @Setter
-    @Persisted
-    protected boolean isDistinct;
 
     protected boolean isDirty = true;
 

@@ -2,11 +2,8 @@ package com.gregtechceu.gtceu.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -315,7 +312,7 @@ public class MultiblockDisplayText {
             return this;
         }
 
-        public Builder addBatchModeLine(boolean batchEnabled, int batchAmount) {
+        public Builder addBatchModeLine(boolean batchEnabled, long batchAmount) {
             if (batchEnabled && batchAmount > 0) {
                 textList.add(Component.translatable("gtceu.multiblock.batch_enabled", batchAmount));
             }
@@ -326,18 +323,18 @@ public class MultiblockDisplayText {
             if (!isStructureFormed || !isActive)
                 return this;
             if (recipe != null) {
-                int recipeTier = RecipeHelper.getPreOCRecipeEuTier(recipe);
+                int recipeTier = recipe.tier;
                 int chanceTier = recipeTier + recipe.ocLevel;
-                var function = recipe.recipeType.getChanceFunction();
+                var function = recipe.definition.chanceFunction;
                 double maxDurationSec = (double) recipe.duration / 20.0;
-                var itemOutputs = recipe.getOutputContents(ItemRecipeCapability.CAP);
-                var fluidOutputs = recipe.getOutputContents(FluidRecipeCapability.CAP);
+                var itemOutputs = recipe.itemOutputs;
+                var fluidOutputs = recipe.fluidOutputs;
 
                 for (var item : itemOutputs) {
-                    var ingredient = ItemRecipeCapability.CAP.of(item);
+                    var ingredient = item.inner;
                     var stack = ingredient.getInnerItemStack();
                     if (stack.isEmpty()) continue;
-                    int count = ingredient.getAmount();
+                    int count = item.getIntAmount();
                     double countD = count;
                     if (item.chance < Content.MAX_CHANCE) {
                         countD = countD * recipe.parallels *
@@ -355,10 +352,10 @@ public class MultiblockDisplayText {
                     }
                 }
                 for (var fluid : fluidOutputs) {
-                    var ingredient = FluidRecipeCapability.CAP.of(fluid);
+                    var ingredient = fluid.inner;
                     var stack = ingredient.getFluidStack();
                     if (stack.isEmpty()) continue;
-                    int amount = ingredient.getAmount();
+                    int amount = fluid.getIntAmount();
                     double amountD = amount;
                     if (fluid.chance < Content.MAX_CHANCE) {
                         amountD = amountD * recipe.parallels *
@@ -401,7 +398,7 @@ public class MultiblockDisplayText {
          * <br>
          * Added if structure is formed and the number of parallels is greater than one.
          */
-        public Builder addParallelsLine(int numParallels, boolean exact) {
+        public Builder addParallelsLine(long numParallels, boolean exact) {
             if (!isStructureFormed)
                 return this;
             if (numParallels > 1) {

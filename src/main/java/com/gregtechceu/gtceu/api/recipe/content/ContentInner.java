@@ -1,16 +1,20 @@
 package com.gregtechceu.gtceu.api.recipe.content;
 
-import com.gregtechceu.gtceu.api.capability.INbtConvertible;
+import net.minecraft.network.chat.Component;
 
-public abstract class ContentInner implements INbtConvertible {
+public abstract class ContentInner {
 
-    public long amount;
+    public final long amount;
 
     protected int hashCode;
 
+    protected ContentInner(long amount) {
+        this.amount = amount;
+    }
+
     public abstract boolean isEmpty();
 
-    public abstract ContentInner copy();
-
     public abstract ContentInner copy(long amount);
+
+    public abstract Component getName();
 }

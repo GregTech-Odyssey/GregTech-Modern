@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.api.misc;
 
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.item.ItemHandlerList;
 import com.gregtechceu.gtceu.utils.GTUtil;
 

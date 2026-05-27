@@ -39,9 +39,9 @@ public class MachineModeFancyConfigurator implements IFancyUIProvider {
 
     @Override
     public Widget createMainPage(FancyMachineUIWidget widget) {
-        var group = new MachineModeConfigurator(0, 0, 140, 20 * machine.getRecipeTypes().length + 4);
+        var group = new MachineModeConfigurator(0, 0, 140, 20 * machine.getAvailableRecipeTypes().length + 4);
         group.setBackground(GuiTextures.BACKGROUND_INVERSE);
-        for (int i = 0; i < machine.getRecipeTypes().length; i++) {
+        for (int i = 0; i < machine.getAvailableRecipeTypes().length; i++) {
             int finalI = i;
             group.addWidget(new ButtonWidget(2, 2 + i * 20, 136, 20, IGuiTexture.EMPTY,
                     cd -> machine.setActiveRecipeType(finalI)));
@@ -49,7 +49,7 @@ public class MachineModeFancyConfigurator implements IFancyUIProvider {
                     () -> new GuiTextureGroup(
                             ResourceBorderTexture.BUTTON_COMMON.copy()
                                     .setColor(machine.getActiveRecipeType() == finalI ? ColorPattern.CYAN.color : -1),
-                            new TextTexture(machine.getRecipeTypes()[finalI].registryName.toLanguageKey()).setWidth(136)
+                            new TextTexture(machine.getAvailableRecipeTypes()[finalI].registryName.toLanguageKey()).setWidth(136)
                                     .setType(TextTexture.TextType.ROLL))));
 
         }
