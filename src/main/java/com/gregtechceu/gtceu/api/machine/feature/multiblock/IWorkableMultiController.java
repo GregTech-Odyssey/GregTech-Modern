@@ -14,7 +14,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -39,12 +38,6 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
 
     default boolean hasBatchConfig() {
         return true;
-    }
-
-    @Override
-    default void beforeWorking(@NotNull RecipeHandlerUnit unit, @NotNull GTRecipe recipe) {
-        if (unit.color != -1) recipe.outputColor = unit.color;
-        IRecipeLogicMachine.super.beforeWorking(unit, recipe);
     }
 
     @Override
