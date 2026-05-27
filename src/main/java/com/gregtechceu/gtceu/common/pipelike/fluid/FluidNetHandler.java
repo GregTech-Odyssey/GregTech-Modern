@@ -6,8 +6,10 @@ import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import com.gregtechceu.gtceu.common.blockentity.FluidPipeBlockEntity;
 import com.gregtechceu.gtceu.common.cover.FluidFilterCover;
+import com.gregtechceu.gtceu.common.cover.FluidRegulatorCover;
 import com.gregtechceu.gtceu.common.cover.PumpCover;
 import com.gregtechceu.gtceu.common.cover.data.FilterMode;
+import com.gregtechceu.gtceu.api.capability.recipe.IO;
 
 import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
@@ -67,6 +69,17 @@ public class FluidNetHandler implements IFluidHandlerModifiable {
         }
         IFluidHandler neighbourHandler = routePath.getHandler(net.getLevel());
         if (neighbourHandler == null) return 0;
+
+        // Check for FluidRegulatorCover at target pipe endpoint or destination tile
+        CoverBehavior pipeCover = routePath.getTargetPipe().getCoverContainer().getCoverAtSide(routePath.getTargetFacing());
+        CoverBehavior tileCover = getCoverOnPipeNeighbour(routePath.getTargetPipe(), routePath.getTargetFacing());
+        if (pipeCover instanceof FluidRegulatorCover regulator && regulator.getIo() == IO.OUT) {
+            return fillOverFluidRegulator(neighbourHandler, regulator, stack, amount, simulate, allowed, ignoreLimit);
+        }
+        if (tileCover instanceof FluidRegulatorCover regulator && regulator.getIo() == IO.IN) {
+            return fillOverFluidRegulator(neighbourHandler, regulator, stack, amount, simulate, allowed, ignoreLimit);
+        }
+
         return fill(neighbourHandler, stack.copy(), amount, simulate, allowed, ignoreLimit);
     }
 
@@ -87,6 +100,43 @@ public class FluidNetHandler implements IFluidHandlerModifiable {
         ICoverable coverable = GTCapabilityHelper.getCoverable(pipe.getNeighbor(handlerFacing), handlerFacing.getOpposite());
         if (coverable == null) return null;
         return coverable.getCoverAtSide(handlerFacing.getOpposite());
+    }
+
+    private CoverBehavior getCoverOnPipeNeighbour(FluidPipeBlockEntity targetPipe, Direction targetFacing) {
+        ICoverable coverable = GTCapabilityHelper.getCoverable(targetPipe.getNeighbor(targetFacing), targetFacing.getOpposite());
+        if (coverable == null) return null;
+        return coverable.getCoverAtSide(targetFacing.getOpposite());
+    }
+
+    public static int countFluid(IFluidHandler handler, FluidStack stack) {
+        int count = 0;
+        for (int i = 0; i < handler.getTanks(); i++) {
+            FluidStack inTank = handler.getFluidInTank(i);
+            if (!inTank.isEmpty() && inTank.isFluidEqual(stack)) {
+                count += inTank.getAmount();
+            }
+        }
+        return count;
+    }
+
+    private int fillOverFluidRegulator(IFluidHandler handler, FluidRegulatorCover regulator, FluidStack stack, int amount, boolean simulate, int allowed, boolean ignoreLimit) {
+        switch (regulator.getTransferMode()) {
+            case KEEP_EXACT:
+                int rate = regulator.getFilteredFluidAmount(stack);
+                if (rate <= 0) return 0;
+                int current = countFluid(handler, stack);
+                int deficit = rate - current;
+                if (deficit <= 0) return 0;
+                int toFill = Math.min(allowed, Math.min(amount, deficit));
+                return fill(handler, stack.copy(), toFill, simulate, toFill, ignoreLimit);
+            case TRANSFER_EXACT:
+                int exactAmount = regulator.getFilteredFluidAmount(stack);
+                if (exactAmount <= 0) return 0;
+                int exact = Math.min(allowed, Math.min(amount, exactAmount));
+                return fill(handler, stack.copy(), exact, simulate, exact, ignoreLimit);
+            default:
+                return fill(handler, stack.copy(), amount, simulate, allowed, ignoreLimit);
+        }
     }
 
     private int checkTransferable(int rate, int amount, boolean simulate) {
