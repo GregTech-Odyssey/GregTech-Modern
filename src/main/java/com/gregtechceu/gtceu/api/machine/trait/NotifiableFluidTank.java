@@ -100,16 +100,16 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements
     }
 
     @Override
-    public void handleRecipeFluid(IO io, GTRecipe recipe, List<Content<FluidIngredient>> left, boolean simulate) {
-        if (io != handlerIO) return;
+    public boolean handleRecipeFluid(IO io, GTRecipe recipe, List<Content<FluidIngredient>> fluids, boolean simulate) {
+        if (io != handlerIO) throw new IllegalStateException("IO is not the same");
         if (simulate) {
-            handleRecipeSimulate(io, left, storages, lockedFluid);
+            return handleRecipeSimulate(io, fluids, storages, lockedFluid);
         } else {
-            handleRecipe(io, left, storages, lockedFluid);
+            return handleRecipe(io, fluids, storages, lockedFluid);
         }
     }
 
-    public static void handleRecipe(IO io, List<Content<FluidIngredient>> left, CustomFluidTank[] storages, CustomFluidTank lockedFluid) {
+    public static boolean handleRecipe(IO io, List<Content<FluidIngredient>> fluids, CustomFluidTank[] storages, CustomFluidTank lockedFluid) {
         var length = storages.length;
         Runnable[] listeners = new Runnable[length];
         for (int i = 0; i < length; i++) {
@@ -117,7 +117,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements
             storages[i].setOnContentsChangedAndfreeze(GTUtil.NOOP);
         }
         boolean changed = false;
-        for (var it = left.iterator(); it.hasNext();) {
+        for (var it = fluids.iterator(); it.hasNext();) {
             var ingredient = it.next();
             if (ingredient.isEmpty()) {
                 it.remove();
@@ -168,12 +168,13 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements
             storages[i].setOnContentsChangedAndfreeze(listeners[i]);
             if (changed) listeners[i].run();
         }
+        return fluids.isEmpty();
     }
 
-    public static void handleRecipeSimulate(IO io, List<Content<FluidIngredient>> left, CustomFluidTank[] storages, CustomFluidTank lockedFluid) {
+    public static boolean handleRecipeSimulate(IO io, List<Content<FluidIngredient>> fluids, CustomFluidTank[] storages, CustomFluidTank lockedFluid) {
         var length = storages.length;
         SimpleStack<FluidStack>[] visiteds = new SimpleStack[length];
-        for (var it = left.iterator(); it.hasNext();) {
+        for (var it = fluids.iterator(); it.hasNext();) {
             var ingredient = it.next();
             if (ingredient.isEmpty()) {
                 it.remove();
@@ -224,6 +225,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements
                 }
             }
         }
+        return fluids.isEmpty();
     }
 
     @Override

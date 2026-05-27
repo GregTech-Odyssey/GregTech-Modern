@@ -72,7 +72,11 @@ public interface IRecipeHandler extends IFilteredHandler {
         return false;
     }
 
-    default void handleRecipeItem(IO io, GTRecipe recipe, List<Content<ItemIngredient>> items, boolean simulate) {}
+    default boolean handleRecipeItem(IO io, GTRecipe recipe, List<Content<ItemIngredient>> items, boolean simulate) {
+        return false;
+    }
 
-    default void handleRecipeFluid(IO io, GTRecipe recipe, List<Content<FluidIngredient>> fluids, boolean simulate) {}
+    default boolean handleRecipeFluid(IO io, GTRecipe recipe, List<Content<FluidIngredient>> fluids, boolean simulate) {
+        return false;
+    }
 }

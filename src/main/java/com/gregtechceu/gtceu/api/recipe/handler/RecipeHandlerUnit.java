@@ -329,8 +329,7 @@ public class RecipeHandlerUnit {
         if (io == IO.OUT && simulate && isInfiniteOutputItem) return true;
         for (var handler : itemHandlers) {
             if (!simulate && handler.isNotConsumable()) continue;
-            handler.handleRecipeItem(io, recipe, items, simulate);
-            if (items.isEmpty()) {
+            if (handler.handleRecipeItem(io, recipe, items, simulate)) {
                 return true;
             }
         }
@@ -343,8 +342,7 @@ public class RecipeHandlerUnit {
         if (io == IO.OUT && simulate && isInfiniteOutputFluid) return true;
         for (var handler : fluidHandlers) {
             if (!simulate && handler.isNotConsumable()) continue;
-            handler.handleRecipeFluid(io, recipe, fluids, simulate);
-            if (fluids.isEmpty()) {
+            if (handler.handleRecipeFluid(io, recipe, fluids, simulate)) {
                 return true;
             }
         }

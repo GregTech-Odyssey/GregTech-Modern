@@ -82,21 +82,21 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
     }
 
     @Override
-    public void handleRecipeItem(IO io, GTRecipe recipe, List<Content<ItemIngredient>> left, boolean simulate) {
-        if (io != handlerIO) return;
+    public boolean handleRecipeItem(IO io, GTRecipe recipe, List<Content<ItemIngredient>> items, boolean simulate) {
+        if (io != handlerIO) throw new IllegalStateException("IO is not the same");
         if (simulate) {
-            handleRecipeSimulate(io, left, storage);
+            return handleRecipeSimulate(io, items, storage);
         } else {
-            handleRecipe(io, left, storage);
+            return handleRecipe(io, items, storage);
         }
     }
 
-    public static void handleRecipe(IO io, List<Content<ItemIngredient>> left, CustomItemStackHandler storage) {
+    public static boolean handleRecipe(IO io, List<Content<ItemIngredient>> items, CustomItemStackHandler storage) {
         Runnable listener = storage.getOnContentsChanged();
         storage.setOnContentsChangedAndfreeze(GTUtil.NOOP);
         boolean changed = false;
         var size = storage.size;
-        for (var it = left.iterator(); it.hasNext();) {
+        for (var it = items.iterator(); it.hasNext();) {
             var ingredient = it.next();
             if (ingredient.isEmpty()) {
                 it.remove();
@@ -145,12 +145,13 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
         }
         storage.setOnContentsChangedAndfreeze(listener);
         if (changed) listener.run();
+        return items.isEmpty();
     }
 
-    public static void handleRecipeSimulate(IO io, List<Content<ItemIngredient>> left, CustomItemStackHandler storage) {
+    public static boolean handleRecipeSimulate(IO io, List<Content<ItemIngredient>> items, CustomItemStackHandler storage) {
         var size = storage.size;
         SimpleStack<ItemStack>[] visiteds = new SimpleStack[size];
-        for (var it = left.iterator(); it.hasNext();) {
+        for (var it = items.iterator(); it.hasNext();) {
             var ingredient = it.next();
             if (ingredient.isEmpty()) {
                 it.remove();
@@ -199,6 +200,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
                 }
             }
         }
+        return items.isEmpty();
     }
 
     @Override

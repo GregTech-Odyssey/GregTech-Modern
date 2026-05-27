@@ -88,11 +88,11 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     }
 
     @Override
-    public void handleRecipeItem(IO io, GTRecipe recipe, List<Content<ItemIngredient>> left, boolean simulate) {
+    public boolean handleRecipeItem(IO io, GTRecipe recipe, List<Content<ItemIngredient>> items, boolean simulate) {
         if (simulate && io == IO.IN) {
             ItemStack stored = storage.stacks[0];
             if (stored.getCount() > 0) {
-                for (var it = left.iterator(); it.hasNext();) {
+                for (var it = items.iterator(); it.hasNext();) {
                     if (it.next().inner.test(stored)) {
                         it.remove();
                         break;
@@ -100,6 +100,7 @@ public class CircuitHandler extends NotifiableItemStackHandler {
                 }
             }
         }
+        return items.isEmpty();
     }
 
     public static class ItemStackHandler extends SingleCustomItemStackHandler {
