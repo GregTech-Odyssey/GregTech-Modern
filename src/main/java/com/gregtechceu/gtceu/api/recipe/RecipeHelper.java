@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.recipe;
 
-import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
@@ -8,6 +7,8 @@ import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentInner;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.utils.GTUtil;
+
+import net.minecraft.util.RandomSource;
 
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.jetbrains.annotations.Contract;
@@ -18,6 +19,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class RecipeHelper {
+
+    public static final RandomSource RNG = RandomSource.create();
 
     public static int getRecipeEUtTier(GTRecipe recipe) {
         long EUt = recipe.getInputEUt();
@@ -80,7 +83,7 @@ public class RecipeHelper {
             } else {
                 if (content.chance == 0) continue;
                 var inner = content.inner;
-                long chance = (long) (((double) content.amount / inner.amount) * boost.getBoostedChance(content, recipeTier, chanceTier)) + GTValues.RNG.nextInt(Content.MAX_CHANCE);
+                long chance = (long) (((double) content.amount / inner.amount) * boost.getBoostedChance(content, recipeTier, chanceTier)) + RNG.nextInt(Content.MAX_CHANCE);
                 long multiplier = chance / Content.MAX_CHANCE;
                 if (multiplier > 0) {
                     contentList.add(new Content<>(content, inner.amount * multiplier));
