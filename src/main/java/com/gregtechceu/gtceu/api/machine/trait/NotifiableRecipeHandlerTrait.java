@@ -1,10 +1,10 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
-import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 
 import java.util.ArrayList;
@@ -39,15 +39,16 @@ public abstract class NotifiableRecipeHandlerTrait extends MachineTrait implemen
     }
 
     protected void runNotify() {
+        if (machine.holder.isRemoved()) return;
         listeners.forEach(Runnable::run);
         isDirty = true;
     }
 
     public void notifyListeners() {
         if (isDirty) {
-            if (machine.getLevel() instanceof ServerLevel serverLevel) {
+            if (!machine.holder.isRemoved() && machine.getLevel() instanceof ServerLevel serverLevel) {
                 isDirty = false;
-                serverLevel.getServer().tell(new TickTask(0, this::runNotify));
+                TaskHandler.enqueueTask(serverLevel, this::runNotify, 0);
             }
         }
     }

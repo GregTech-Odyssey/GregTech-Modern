@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.core.mixins;
 
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
 import com.gregtechceu.gtceu.core.ILevel;
+import com.gregtechceu.gtceu.core.IServerChunkCache;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
@@ -12,18 +13,18 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 
 import com.gto.datasynclib.datasream.DataComponentMap;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import javax.annotation.Nullable;
 
 @Mixin(Level.class)
 public abstract class LevelMixin implements LevelAccessor, ILevel {
@@ -116,28 +117,21 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
         gtceu$capabilitie = null;
     }
 
-    @Unique
-    private @Nullable ChunkAccess gtceu$maybeGetChunkAsync(int chunkX, int chunkZ) {
-        if (Thread.currentThread() == this.thread) return null;
-        if (!TaskHandler.isAsyncService()) return null;
-        if (!this.getChunkSource().hasChunk(chunkX, chunkZ)) return null;
-        return this.getChunkSource().getChunkNow(chunkX, chunkZ);
-    }
-
     /**
      * @author .
      * @reason .
      */
-    @javax.annotation.Nullable
+    @Nullable
     @Overwrite
     public BlockEntity getBlockEntity(BlockPos pos) {
         int chunkX = pos.getX() >> 4;
         int chunkZ = pos.getZ() >> 4;
-        ChunkAccess chunk = gtceu$maybeGetChunkAsync(chunkX, chunkZ);
-        if (chunk instanceof LevelChunk levelChunk) {
-            return levelChunk.getBlockEntities().get(pos);
+        var async = Thread.currentThread() != this.thread;
+        if (async && getChunkSource() instanceof IServerChunkCache cache) {
+            var chunk = cache.gtceu$getCachedChunk(chunkX, chunkZ);
+            if (chunk != null) return chunk.getBlockEntities().get(pos);
         }
-        return !this.isClientSide && Thread.currentThread() != this.thread ? null : this.getChunk(chunkX, chunkZ).getBlockEntity(pos, LevelChunk.EntityCreationType.IMMEDIATE);
+        return async && !this.isClientSide ? null : this.getChunk(chunkX, chunkZ).getBlockEntity(pos, LevelChunk.EntityCreationType.IMMEDIATE);
     }
 
     /**
@@ -148,11 +142,16 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
     public @NotNull BlockState getBlockState(BlockPos pos) {
         int chunkX = pos.getX() >> 4;
         int chunkZ = pos.getZ() >> 4;
-        ChunkAccess chunk = gtceu$maybeGetChunkAsync(chunkX, chunkZ);
-        if (chunk == null) {
-            chunk = this.getChunk(chunkX, chunkZ);
+        LevelChunkSection[] sections = null;
+        if (Thread.currentThread() != this.thread && getChunkSource() instanceof IServerChunkCache cache) {
+            var chunk = cache.gtceu$getCachedChunk(chunkX, chunkZ);
+            if (chunk != null) {
+                sections = chunk.getSections();
+            }
         }
-        LevelChunkSection[] sections = chunk.getSections();
+        if (sections == null) {
+            sections = this.getChunk(chunkX, chunkZ).getSections();
+        }
         int x = pos.getX();
         int y = pos.getY();
         int z = pos.getZ();

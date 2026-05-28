@@ -1,33 +1,25 @@
 package com.gregtechceu.gtceu.core.mixins;
 
-import com.gregtechceu.gtceu.utils.TaskHandler;
+import com.gregtechceu.gtceu.core.IServerChunkCache;
 
 import net.minecraft.server.level.ChunkHolder;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
 
-import com.mojang.datafixers.util.Either;
 import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Arrays;
 
 @Mixin(ServerChunkCache.class)
-public abstract class ServerChunkProviderMixin {
-
-    @Shadow
-    @Final
-    Thread mainThread;
+public abstract class ServerChunkProviderMixin implements IServerChunkCache {
 
     @Unique
     private final long[] gtceu$mbdLastChunkPos = new long[4];
@@ -60,32 +52,26 @@ public abstract class ServerChunkProviderMixin {
         }
     }
 
-    @Inject(method = "getChunkNow", at = @At(value = "HEAD"), cancellable = true)
-    private void getTileEntity(int pChunkX, int pChunkZ, CallbackInfoReturnable<LevelChunk> cir) {
-        if (Thread.currentThread() != this.mainThread && TaskHandler.isAsyncService()) {
-            long i = ChunkPos.asLong(pChunkX, pChunkZ);
-
-            for (int j = 0; j < 4; ++j) {
-                if (i == this.gtceu$mbdLastChunkPos[j]) {
-                    cir.setReturnValue(this.gtceu$mbdLastChunk[j]);
-                    return;
-                }
+    @Override
+    public LevelChunk gtceu$getCachedChunk(int pChunkX, int pChunkZ) {
+        long i = ChunkPos.asLong(pChunkX, pChunkZ);
+        for (int j = 0; j < 4; ++j) {
+            if (i == this.gtceu$mbdLastChunkPos[j]) {
+                return this.gtceu$mbdLastChunk[j];
             }
-
-            ChunkHolder chunkholder = this.getVisibleChunkIfPresent(i);
-            if (chunkholder != null) {
-                Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure> either = chunkholder
-                        .getFutureIfPresent(ChunkStatus.FULL).getNow(null);
-                if (either != null) {
-                    ChunkAccess chunk = either.left().orElse(null);
-                    if (chunk instanceof LevelChunk levelChunk) {
-                        gtceu$storeInCache(i, levelChunk);
-                        cir.setReturnValue(levelChunk);
-                        return;
-                    }
-                }
-            }
-            cir.setReturnValue(null);
         }
+
+        ChunkHolder chunkholder = this.getVisibleChunkIfPresent(i);
+        if (chunkholder != null) {
+            var either = chunkholder.getFutureIfPresent(ChunkStatus.FULL).getNow(null);
+            if (either != null) {
+                var chunk = either.left().orElse(null);
+                if (chunk instanceof LevelChunk levelChunk) {
+                    gtceu$storeInCache(i, levelChunk);
+                    return levelChunk;
+                }
+            }
+        }
+        return null;
     }
 }
