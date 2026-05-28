@@ -21,6 +21,7 @@ import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
+import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -36,7 +37,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -159,7 +159,7 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
     public void onLoad() {
         super.onLoad();
         if (isRemote()) return;
-        if (getLevel() instanceof ServerLevel serverLevel) serverLevel.getServer().tell(new TickTask(0, this::updateAutoOutputSubscription));
+        if (getLevel() instanceof ServerLevel serverLevel) TaskHandler.enqueueTask(serverLevel, this::updateAutoOutputSubscription, 0);
         exportItemSubs = cache.addChangedListener(this::updateAutoOutputSubscription);
         energySubs = energyContainer.addChangedListener(() -> {
             this.updateBatterySubscription();

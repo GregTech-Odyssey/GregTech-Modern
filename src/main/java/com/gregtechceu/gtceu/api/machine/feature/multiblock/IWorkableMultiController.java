@@ -6,8 +6,8 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.utils.TaskHandler;
 
-import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -54,7 +54,7 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
     default void arrangeHandlerList() {
         if (self().getLevel() instanceof ServerLevel serverLevel) {
             getRecipeLogic().markLastRecipeDirty();
-            serverLevel.getServer().tell(new TickTask(1, getRecipeLogic()::updateTickSubscription));
+            TaskHandler.enqueueTask(serverLevel, getRecipeLogic()::updateTickSubscription, 0);
         }
         getOutputColorMap().clear();
         var outputs = getCapabilitiesProxy().get(IO.OUT);

@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.pattern.error.PatternError;
 import com.gregtechceu.gtceu.api.pattern.error.PatternStringError;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.PatternMatchContext;
+import com.gregtechceu.gtceu.core.ILevel;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -143,7 +144,7 @@ public class MultiblockState {
 
     public BlockState getBlockState() {
         if (this.blockState == null) {
-            this.blockState = blockStateCache.computeIfAbsent(pos.asLong(), k -> this.world.getBlockState(this.pos));
+            this.blockState = blockStateCache.computeIfAbsent(pos.asLong(), k -> ILevel.asyncGetBlockState(world, pos));
         }
         return this.blockState;
     }
@@ -152,7 +153,7 @@ public class MultiblockState {
     public BlockEntity getTileEntity() {
         if (this.tileEntityInitialized) return tileEntity;
         if (getBlockState().hasBlockEntity()) {
-            this.tileEntity = this.world.getBlockEntity(this.pos);
+            this.tileEntity = ILevel.asyncGetBlockEntity(world, pos);
         } else {
             this.tileEntity = null;
         }

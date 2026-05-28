@@ -4,21 +4,18 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.core.ILevel;
-import com.gregtechceu.gtceu.utils.collection.FastObjectArrayList;
+import com.gregtechceu.gtceu.utils.collection.CustomLinkedQueue;
 
 import net.minecraft.world.level.Level;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.*;
 import java.util.function.BooleanSupplier;
 
 public class TaskHandler {
-
-    public static boolean isAsyncService() {
-        return AsyncTask.IN_SERVICE.get();
-    }
 
     public static int getTickCount(TaskHandler handler) {
         if (handler instanceof AsyncTask asyncTask) return asyncTask.tickCount;
@@ -35,9 +32,9 @@ public class TaskHandler {
         return new TaskHandler();
     }
 
-    private ObjectArrayList<TaskRunnableEntry> waitingTasks = new ObjectArrayList<>();
+    private final CustomLinkedQueue<TaskRunnableEntry> waitingTasks = new CustomLinkedQueue<>();
 
-    private FastObjectArrayList<TaskRunnableEntry> tasks = new FastObjectArrayList<>();
+    private final CustomLinkedQueue<TaskRunnableEntry> tasks = new CustomLinkedQueue<>();
 
     TaskHandler() {}
 
@@ -48,6 +45,10 @@ public class TaskHandler {
     public static void onWorldUnLoad(ILevel level) {
         level.gtceu$getTaskHandler().unsubscribe();
         level.gtceu$getAsyncTaskHandler().unsubscribe();
+    }
+
+    public static void enqueueTask(Level level, Runnable task) {
+        ((ILevel) level).gtceu$getTaskHandler().enqueueTask(task, 0);
     }
 
     public static void enqueueTask(Level level, Runnable task, int delay) {
@@ -64,6 +65,10 @@ public class TaskHandler {
 
     public static TickableSubscription enqueueTick(Level level, Runnable runnable, int cycle, int delay) {
         return ((ILevel) level).gtceu$getTaskHandler().enqueueTick(TaskRunnableEntry.FALSE, runnable, cycle, delay);
+    }
+
+    public static void enqueueAsyncTask(Level level, Runnable task) {
+        ((ILevel) level).gtceu$getAsyncTaskHandler().enqueueTask(task, 0);
     }
 
     public static void enqueueAsyncTask(Level level, Runnable task, int delay) {
@@ -84,25 +89,20 @@ public class TaskHandler {
 
     void runTask(int tickCount) {
         synchronized (this) {
-            if (!waitingTasks.isEmpty()) {
-                tasks.addAll(waitingTasks);
-                waitingTasks.clear();
-            }
-            if (tasks.isEmpty()) return;
+            tasks.merge(waitingTasks);
+            waitingTasks.clear();
         }
-        Object[] array = tasks.getArray();
-        for (int i = 0, size = tasks.size(); i < size; i++) {
-            var o = array[i];
-            if (o == null) continue;
+        var it = tasks.iterator();
+        while (it.hasNext()) {
             if (isUnsubscribe()) break;
-            var task = (TaskRunnableEntry) o;
+            var task = it.next();
             if (task.delay > 0) {
                 task.delay--;
             } else {
                 if (task.stillSubscribed) {
                     if (task.task) {
                         task.runnable.run();
-                        tasks.fastRemove(i);
+                        it.remove();
                     } else if (tickCount >= task.lastTick) {
                         if (task.remove.getAsBoolean()) {
                             task.stillSubscribed = false;
@@ -112,7 +112,7 @@ public class TaskHandler {
                         }
                     }
                 } else {
-                    tasks.fastRemove(i);
+                    it.remove();
                 }
             }
         }
@@ -125,16 +125,16 @@ public class TaskHandler {
     public void unsubscribe() {
         synchronized (this) {
             waitingTasks.forEach(TickableSubscription::unsubscribe);
-            waitingTasks = new ObjectArrayList<>();
+            waitingTasks.clear();
         }
         tasks.forEach(TickableSubscription::unsubscribe);
-        tasks = new FastObjectArrayList<>();
+        tasks.clear();
     }
 
     public void enqueueTask(Runnable task, int delay) {
         var entry = new TaskRunnableEntry(task, TaskRunnableEntry.FALSE, true, delay);
         synchronized (this) {
-            waitingTasks.add(entry);
+            waitingTasks.addLast(entry);
         }
     }
 
@@ -142,7 +142,7 @@ public class TaskHandler {
         var entry = new TaskRunnableEntry(runnable, isRemove, false, delay);
         entry.cycle = cycle;
         synchronized (this) {
-            waitingTasks.add(entry);
+            waitingTasks.addLast(entry);
             return entry;
         }
     }
@@ -159,8 +159,6 @@ public class TaskHandler {
     }
 
     private static final class AsyncTask extends TaskHandler {
-
-        private static final ThreadLocal<Boolean> IN_SERVICE = ThreadLocal.withInitial(() -> false);
 
         private volatile ScheduledFuture<?> scheduledFuture;
         private volatile int tickCount;
@@ -212,25 +210,29 @@ public class TaskHandler {
 
         private void tick() {
             try {
-                IN_SERVICE.set(true);
                 runTask(tickCount);
             } catch (Throwable e) {
                 GTCEu.LOGGER.error("Error while AsyncTask: {}", e.getMessage());
                 e.printStackTrace();
             } finally {
                 tickCount++;
-                IN_SERVICE.set(false);
             }
         }
     }
 
-    private static final class TaskRunnableEntry extends TickableSubscription {
+    private static final class TaskRunnableEntry extends TickableSubscription implements CustomLinkedQueue.LinkNode<TaskRunnableEntry> {
 
         private static final BooleanSupplier FALSE = () -> false;
 
         private final BooleanSupplier remove;
         private final boolean task;
         private int delay;
+        @Setter
+        @Getter
+        private TaskRunnableEntry prev;
+        @Setter
+        @Getter
+        private TaskRunnableEntry next;
 
         private TaskRunnableEntry(Runnable runnable, BooleanSupplier remove, boolean task, int delay) {
             super(runnable);

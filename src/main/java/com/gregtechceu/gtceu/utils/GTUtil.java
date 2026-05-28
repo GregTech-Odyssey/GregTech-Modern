@@ -110,7 +110,7 @@ public class GTUtil {
     public static final ScheduledExecutorService ASYNC_EXECUTOR = Util.make(() -> {
         AtomicInteger workercount = new AtomicInteger(0);
         ThreadFactory factory = r -> {
-            var thread = new Thread(r);
+            var thread = new AsyncExecutorThread(r);
             thread.setName("Async-worker-" + workercount.getAndIncrement());
             thread.setDaemon(true);
             thread.setPriority(1);
@@ -602,5 +602,12 @@ public class GTUtil {
                     Component.literal(String.valueOf(100 * probability))
                             .setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN))));
         });
+    }
+
+    public static final class AsyncExecutorThread extends Thread {
+
+        public AsyncExecutorThread(Runnable runnable) {
+            super(runnable);
+        }
     }
 }

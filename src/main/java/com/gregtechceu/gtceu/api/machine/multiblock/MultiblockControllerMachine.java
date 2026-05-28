@@ -16,13 +16,13 @@ import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.SCPacketStructureFormed;
 import com.gregtechceu.gtceu.core.ILevel;
+import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -308,7 +308,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @MustBeInvokedByOverriders
     public void onStructureFormed() {
         if (getLevel() instanceof ServerLevel serverLevel) {
-            serverLevel.getServer().tell(new TickTask(1, this::onStructureFormedAfter));
+            TaskHandler.enqueueTask(serverLevel, this::onStructureFormedAfter, 0);
         }
         isFormed = true;
         modules.clear();
@@ -351,7 +351,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         this.parts = new IMultiPart[0];
         updatePartPositions();
         if (getLevel() instanceof ServerLevel serverLevel) {
-            serverLevel.getServer().tell(new TickTask(1, this::onStructureInvalidAfter));
+            TaskHandler.enqueueTask(serverLevel, this::onStructureInvalidAfter, 0);
         }
     }
 

@@ -3,7 +3,12 @@ package com.gregtechceu.gtceu.core;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
 import com.gto.datasynclib.datasream.DataComponentKey;
 import com.gto.datasynclib.datasream.DataComponentMap;
@@ -47,5 +52,35 @@ public interface ILevel {
             setCapability(level, HIGHLIGHTCACHEKEY, cache);
         }
         return cache;
+    }
+
+    @Nullable
+    static BlockEntity asyncGetBlockEntity(Level level, BlockPos pos) {
+        if (level instanceof ServerLevel serverLevel) {
+            int chunkX = pos.getX() >> 4;
+            int chunkZ = pos.getZ() >> 4;
+            if (serverLevel.getChunkSource() instanceof IServerChunkCache cache) {
+                var chunk = cache.gtceu$getCachedChunk(chunkX, chunkZ);
+                if (chunk != null) return chunk.getBlockEntities().get(pos);
+            }
+        } else {
+            return level.getBlockEntity(pos);
+        }
+        return null;
+    }
+
+    @NotNull
+    static BlockState asyncGetBlockState(Level level, BlockPos pos) {
+        if (level instanceof ServerLevel serverLevel) {
+            int chunkX = pos.getX() >> 4;
+            int chunkZ = pos.getZ() >> 4;
+            if (serverLevel.getChunkSource() instanceof IServerChunkCache cache) {
+                var chunk = cache.gtceu$getCachedChunk(chunkX, chunkZ);
+                if (chunk != null) return chunk.getBlockState(pos);
+            }
+        } else {
+            return level.getBlockState(pos);
+        }
+        return Blocks.VOID_AIR.defaultBlockState();
     }
 }

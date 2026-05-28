@@ -47,6 +47,8 @@ public abstract class TickBlockEntity extends BlockEntity implements ISync, IAsy
 
     public boolean observe;
 
+    private boolean changed;
+
     public TickBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
     }
@@ -77,6 +79,7 @@ public abstract class TickBlockEntity extends BlockEntity implements ISync, IAsy
     }
 
     public @Nullable LevelChunk getChunk() {
+        if (remove) return null;
         if (chunk != null) return chunk;
         if (level != null) return chunk = level.getChunkAt(worldPosition);
         return null;
@@ -117,9 +120,16 @@ public abstract class TickBlockEntity extends BlockEntity implements ISync, IAsy
 
     @Override
     public void setChanged() {
-        var chunk = getChunk();
-        if (chunk != null) {
-            chunk.setUnsaved(true);
+        if (changed) return;
+        if (level instanceof ServerLevel serverLevel) {
+            changed = true;
+            TaskHandler.enqueueTask(serverLevel, () -> {
+                var chunk = getChunk();
+                if (chunk != null) {
+                    chunk.setUnsaved(true);
+                }
+                changed = false;
+            }, 0);
         }
     }
 
@@ -138,6 +148,7 @@ public abstract class TickBlockEntity extends BlockEntity implements ISync, IAsy
 
     @Override
     public void clearRemoved() {
+        changed = false;
         this.remove = false;
         chunk = null;
         super.clearRemoved();
@@ -193,19 +204,28 @@ public abstract class TickBlockEntity extends BlockEntity implements ISync, IAsy
 
     @Override
     public void asyncTick(long periodID) {
+        if (remove) return;
         if (needSync() || periodID % 40 == 0) {
             var server = GTCEu.getMinecraftServer();
             if (server != null) {
                 if (getFieldDataManager().updateFieldDirtyFlags(LogicalSide.SERVER, true)) {
                     var p = SCPacketSBlockEntitySync.of(this, false);
-                    server.execute(() -> GTNetwork.NETWORK.sendToTrackingChunk(p, getChunk()));
+                    if (remove) return;
+                    server.execute(() -> {
+                        if (remove) return;
+                        GTNetwork.NETWORK.sendToTrackingChunk(p, getChunk());
+                    });
                 }
                 for (IRef field : getNonLazyFields()) {
+                    if (remove) return;
                     field.update();
                 }
                 if (getRootStorage().hasDirtySyncFields()) {
+                    if (remove) return;
                     server.execute(() -> {
+                        if (remove) return;
                         var packet = SPacketManagedPayload.of(this, false);
+                        if (remove) return;
                         LDLNetworking.NETWORK.sendToTrackingChunk(packet, getChunk());
                     });
                 }

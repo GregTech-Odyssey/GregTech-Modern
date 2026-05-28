@@ -1,11 +1,9 @@
 package com.gregtechceu.gtceu.api.machine;
 
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
+import com.gregtechceu.gtceu.utils.TaskHandler;
 
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.thread.BlockableEventLoop;
 import net.minecraft.world.level.Level;
 
 import lombok.Getter;
@@ -43,17 +41,15 @@ public class ConditionalSubscriptionHandler {
      */
     public void initialize(Level level) {
         if (level instanceof ServerLevel serverLevel) {
-            this.initialize(serverLevel.getServer());
+            this.initialize(serverLevel);
         }
     }
 
     /**
      * Initializes the subscription and adds it to the event loop.
-     *
-     * @param server The event loop to create the subscription in. This is usually the {@link MinecraftServer}.
      */
-    protected void initialize(BlockableEventLoop<TickTask> server) {
-        server.tell(new TickTask(0, this::updateSubscription));
+    protected void initialize(ServerLevel level) {
+        TaskHandler.enqueueTask(level, this::updateSubscription, 0);
     }
 
     /**

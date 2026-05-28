@@ -8,10 +8,10 @@ import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.SCPacketUpdateActiveBlock;
+import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -195,7 +195,7 @@ public interface IMultiController extends IMachineFeature {
         if (self().getLevel() instanceof ServerLevel serverLevel) {
             var vaBlocks = getMultiblockState().matchContext.get(Predicates.DataKey.ACTIVE_BLOCKS);
             if (vaBlocks == null || vaBlocks.isEmpty()) return;
-            serverLevel.getServer().tell(new TickTask(0, () -> GTNetwork.NETWORK.sendToAll(new SCPacketUpdateActiveBlock(vaBlocks, active))));
+            TaskHandler.enqueueTask(serverLevel, () -> GTNetwork.NETWORK.sendToAll(new SCPacketUpdateActiveBlock(vaBlocks, active)), 0);
         }
     }
 }
