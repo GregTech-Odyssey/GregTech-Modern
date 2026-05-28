@@ -144,7 +144,7 @@ public class MultiblockState {
 
     public BlockState getBlockState() {
         if (this.blockState == null) {
-            this.blockState = blockStateCache.computeIfAbsent(pos.asLong(), k -> ILevel.asyncGetBlockState(world, pos));
+            this.blockState = blockStateCache.computeIfAbsent(pos.asLong(), k -> world.getBlockState(pos));
         }
         return this.blockState;
     }

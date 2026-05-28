@@ -20,6 +20,10 @@ import org.jetbrains.annotations.Nullable;
 
 public interface ILevel {
 
+    BlockState OUTSIDE_WORLD_BLOCK = Blocks.VOID_AIR.defaultBlockState();
+
+    BlockState INSIDE_WORLD_DEFAULT_BLOCK = Blocks.AIR.defaultBlockState();
+
     DataComponentKey<LongSet> HIGHLIGHTCACHEKEY = DataComponentKey.createNoCodec("highlightcache");
 
     DataComponentMap gtceu$getCapabilities();
@@ -81,6 +85,6 @@ public interface ILevel {
         } else {
             return level.getBlockState(pos);
         }
-        return Blocks.VOID_AIR.defaultBlockState();
+        return OUTSIDE_WORLD_BLOCK;
     }
 }

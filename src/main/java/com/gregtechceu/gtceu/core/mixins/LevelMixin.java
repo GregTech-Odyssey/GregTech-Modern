@@ -10,7 +10,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -29,11 +28,6 @@ import javax.annotation.Nullable;
 @Mixin(Level.class)
 public abstract class LevelMixin implements LevelAccessor, ILevel {
 
-    @Unique
-    private static final BlockState OUTSIDE_WORLD_BLOCK = Blocks.VOID_AIR.defaultBlockState();
-    @Unique
-    private static final BlockState INSIDE_WORLD_DEFAULT_BLOCK = Blocks.AIR.defaultBlockState();
-
     @Shadow
     @Final
     public boolean isClientSide;
@@ -45,6 +39,9 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
     @Shadow
     public abstract LevelChunk getChunk(int chunkX, int chunkZ);
 
+    @Shadow
+    @Final
+    private boolean isDebug;
     @Unique
     private volatile DataComponentMap gtceu$capabilitie;
 
@@ -143,13 +140,16 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
         int chunkX = pos.getX() >> 4;
         int chunkZ = pos.getZ() >> 4;
         LevelChunkSection[] sections = null;
-        if (Thread.currentThread() != this.thread && getChunkSource() instanceof IServerChunkCache cache) {
+        var currentThread = Thread.currentThread();
+        var async = currentThread != this.thread;
+        if (async && getChunkSource() instanceof IServerChunkCache cache) {
             var chunk = cache.gtceu$getCachedChunk(chunkX, chunkZ);
             if (chunk != null) {
                 sections = chunk.getSections();
             }
         }
         if (sections == null) {
+            if (async && currentThread instanceof GTUtil.AsyncExecutorThread) return OUTSIDE_WORLD_BLOCK;
             sections = this.getChunk(chunkX, chunkZ).getSections();
         }
         int x = pos.getX();

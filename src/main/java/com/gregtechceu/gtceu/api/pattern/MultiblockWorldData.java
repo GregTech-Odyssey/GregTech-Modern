@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.core.ILevel;
-import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.PosUtils;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
@@ -42,7 +41,7 @@ public class MultiblockWorldData {
     }
 
     private static final ScheduledExecutorService SERVICE = Executors.newSingleThreadScheduledExecutor(r -> {
-        var thread = new GTUtil.AsyncExecutorThread(r);
+        var thread = new Thread(r);
         thread.setName("Multiblock World Data");
         thread.setPriority(1);
         thread.setDaemon(true);
