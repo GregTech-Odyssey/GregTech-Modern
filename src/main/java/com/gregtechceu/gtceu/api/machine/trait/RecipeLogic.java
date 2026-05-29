@@ -43,6 +43,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     public final static int SEARCH_MAX_INTERVAL = 80;
 
     public final IRecipeLogicMachine machine;
+
     @Getter
     @Persisted
     @DescSynced

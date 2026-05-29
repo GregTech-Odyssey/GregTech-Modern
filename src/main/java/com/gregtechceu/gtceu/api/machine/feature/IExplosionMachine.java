@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.machine.feature;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -41,14 +42,14 @@ public interface IExplosionMachine extends IMachineFeature {
                         executeExplosion(level, explosionPower);
                     } else if (GTValues.RNG.nextInt(10) == 0) {
                         executeExplosion(level, explosionPower);
-                    } else level.getServer().execute(() -> setOnFire(additionalFireChance));
+                    } else TaskHandler.enqueueTask(level, () -> setOnFire(additionalFireChance));
                 }
             }
         } catch (Exception ignored) {}
     }
 
     default void executeExplosion(ServerLevel serverLevel, float explosionPower) {
-        serverLevel.getServer().execute(() -> doExplosion(explosionPower));
+        TaskHandler.enqueueTask(serverLevel, () -> doExplosion(explosionPower));
     }
 
     default void doExplosion(float explosionPower) {

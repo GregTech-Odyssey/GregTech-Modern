@@ -54,8 +54,10 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Persisted
     @DescSynced
     public final RecipeLogic recipeLogic;
+    @Setter
     @Getter
-    protected final GTRecipeType[] recipeTypes;
+    @Nullable
+    protected GTRecipeType[] availableRecipeTypesCache;
     @Getter
     @Persisted
     protected int activeRecipeType;
@@ -109,7 +111,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     public WorkableMultiblockMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder);
-        this.recipeTypes = getDefinition().getRecipeTypes();
         this.activeRecipeType = 0;
         this.recipeLogic = createRecipeLogic(args);
         this.capabilitiesProxy = new EnumMap<>(IO.class);
@@ -171,6 +172,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
+        availableRecipeTypesCache = null;
         var parts = getParts();
         List<IWorkableMultiPart> workableMultiPart = new ArrayList<>();
         List<IWorkableMultiPart> onWorkingList = new ArrayList<>();
@@ -224,6 +226,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @Override
     public void onStructureInvalid() {
+        availableRecipeTypesCache = null;
         recipeLogicAvailable = false;
         markFieldsForSync("activeBlocks");
         updateActiveBlock(false);

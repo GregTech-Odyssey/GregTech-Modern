@@ -108,6 +108,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     public void onLoad() {
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
+            multiblockState = new MultiblockState(this, getLevel(), getPos());
             MultiblockWorldData.getOrCreate(serverLevel).addAsyncLogic(this);
         } else if (isFormed) {
             onStructureFormedClient();
@@ -120,9 +121,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     public void onUnload() {
         super.onUnload();
         if (getLevel() instanceof ServerLevel serverLevel) {
-            onStructureInvalid();
-            getMultiblockState().clear();
-            MultiblockWorldData.getOrCreate(serverLevel).removeMapping(getMultiblockState());
             MultiblockWorldData.getOrCreate(serverLevel).removeAsyncLogic(this);
         } else {
             ILevel.getHighlightCache(getLevel()).remove(getPos().asLong());
@@ -205,11 +203,12 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     public boolean checkPattern() {
         if (waitingTime < 1) {
             BlockPattern pattern = getPattern();
+            var state = getMultiblockState();
             boolean result = false;
             if (pattern != null) {
                 checking = true;
-                var state = getMultiblockState();
                 state.clearCache();
+                state.removeShared();
                 result = pattern.checkPatternAt(state, false);
                 if (result) {
                     var subPattern = getSubPattern();
@@ -231,7 +230,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                     }
                     if (getLevel() instanceof ServerLevel serverLevel) {
                         var c = state.blockEntityCache.longStream().mapToObj(BlockPos::of).toList();
-                        serverLevel.getServer().execute(() -> c.forEach(pos -> serverLevel.getChunkAt(pos).removeBlockEntityTicker(pos)));
+                        TaskHandler.enqueueTask(serverLevel, () -> c.forEach(pos -> serverLevel.getChunkAt(pos).removeBlockEntityTicker(pos)));
                     }
                 }
                 state.clearCache();
@@ -242,9 +241,10 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                 checking = false;
             }
             if (result) {
+                state.addShared();
                 waitingTime = 0;
                 return true;
-            } else if (hasCheckButton()) {
+            } else if (state.error != MultiblockState.UNLOAD_ERROR && hasCheckButton()) {
                 waitingTime = 10;
             } else {
                 waitingTime = 1;
@@ -266,7 +266,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         if (getLevel() instanceof ServerLevel serverLevel) {
             simpleLock = true;
             if (checkPatternWithTryLock()) {
-                serverLevel.getServer().execute(() -> {
+                TaskHandler.enqueueTask(serverLevel, () -> {
                     if (requiresServerCheck() && !checkPatternWithLock()) {
                         simpleLock = false;
                         return;
@@ -281,7 +281,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                 });
             } else {
                 if (sendMessage && getMultiblockState().error != MultiblockState.UNINIT_ERROR && !toldNotFormed && getOwner() != null) {
-                    serverLevel.getServer().execute(() -> getOwner().getMembers().forEach(uuid -> {
+                    TaskHandler.enqueueTask(serverLevel, () -> getOwner().getMembers().forEach(uuid -> {
                         Player p = serverLevel.getPlayerByUUID(uuid);
                         Component m = Component.translatable("gtocore.multiblock.invalid.message",
                                 getDefinition().get().getName().withStyle(ChatFormatting.YELLOW),
@@ -415,7 +415,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
 
     @Override
     public void requestCheck() {
-        if (!simpleLock && isFormed && !holder.isRemoved() && getLevel() instanceof ServerLevel serverLevel) {
+        if (!simpleLock && isFormed && getLevel() instanceof ServerLevel serverLevel) {
             patternLock.lock();
             try {
                 if (isFormed) {

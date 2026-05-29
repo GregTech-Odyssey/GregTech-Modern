@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
@@ -67,6 +68,8 @@ public interface IWorkableMultiPart extends IMultiPart {
             }
         });
     }
+
+    default void setAvailableRecipeTypes(@NotNull GTRecipeType[] types) {}
 
     default boolean hasOnWorkingMethod() {
         return IWorkableMultiPart.hasOnWorkingMethod(this);

@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.pattern.error.PatternStringError;
 import com.gregtechceu.gtceu.api.pattern.error.SinglePredicateError;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
+import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.core.Iblock;
 
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
@@ -152,7 +153,7 @@ public class BlockPattern {
                                     success = false;
                                     worldState.setError(MultiblockState.SHARE_ERROR);
                                 } else {
-                                    worldState.shareds.add(posLong);
+                                    worldState.sharedCache.add(posLong);
                                 }
                             }
                             if (success) {
@@ -180,6 +181,9 @@ public class BlockPattern {
                         if (success) {
                             if (!savePredicate) worldState.cache.add(posLong);
                         } else {
+                            if (worldState.blockState == ILevel.OUTSIDE_WORLD_BLOCK) {
+                                worldState.setError(MultiblockState.UNLOAD_ERROR);
+                            }
                             // matching failed
                             if (findFirstAisle) {
                                 if (r < aisleRepetitions[c][0]) {
@@ -227,7 +231,7 @@ public class BlockPattern {
             }
         }
         worldState.setNeededFlip(isFlipped);
-        worldState.success();
+        worldState.setError(null);
         return true;
     }
 

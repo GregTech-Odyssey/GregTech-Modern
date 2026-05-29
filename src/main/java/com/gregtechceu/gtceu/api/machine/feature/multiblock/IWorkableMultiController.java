@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
@@ -14,6 +15,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -27,6 +29,27 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
      */
     @Nullable
     IParallelHatch getParallelHatch();
+
+    @NotNull
+    @Override
+    default GTRecipeType[] getAvailableRecipeTypes() {
+        var cache = getAvailableRecipeTypesCache();
+        if (cache == null) {
+            cache = getRecipeTypes();
+            var list = new ArrayList<GTRecipeType>(cache.length);
+            for (var type : cache) {
+                if (recipeTypeAvailable(type)) list.add(type);
+            }
+            cache = list.toArray(new GTRecipeType[0]);
+            setAvailableRecipeTypesCache(cache);
+            for (var p : getParts()) {
+                if (p instanceof IWorkableMultiPart part) {
+                    part.setAvailableRecipeTypes(cache);
+                }
+            }
+        }
+        return cache;
+    }
 
     /**
      *

@@ -39,15 +39,17 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     @Persisted
     @DescSynced
     public final RecipeLogic recipeLogic;
+    @Setter
     @Getter
-    public final GTRecipeType[] recipeTypes;
+    @Nullable
+    protected GTRecipeType[] availableRecipeTypesCache;
     @Getter
     @Persisted
-    public int activeRecipeType;
+    protected int activeRecipeType;
     @Getter
-    public final Int2IntFunction tankScalingFunction;
+    protected final Int2IntFunction tankScalingFunction;
     @Nullable
-    private ICleanroomProvider cleanroom;
+    protected ICleanroomProvider cleanroom;
     @Persisted
     public final NotifiableItemStackHandler importItems;
     @Persisted
@@ -75,7 +77,6 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     public WorkableTieredMachine(MetaMachineBlockEntity holder, int tier, Int2IntFunction tankScalingFunction, Object... args) {
         super(holder, tier, args);
         this.overclockTier = getMaxOverclockTier();
-        this.recipeTypes = getDefinition().getRecipeTypes();
         this.activeRecipeType = 0;
         this.tankScalingFunction = tankScalingFunction;
         this.capabilitiesProxy = new EnumMap<>(IO.class);

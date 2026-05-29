@@ -57,7 +57,7 @@ public class MultiblockState {
     @Getter
     public final PatternMatchContext matchContext;
     public final LongOpenHashSet cache = new LongOpenHashSet();
-    public final LongOpenHashSet shareds = new LongOpenHashSet();
+    public final LongOpenHashSet sharedCache = new LongOpenHashSet();
 
     public final List<PatternError> errorRecord = new ArrayList<>();
 
@@ -94,6 +94,7 @@ public class MultiblockState {
     public void merge(MultiblockState state) {
         this.matchContext.merge(state.matchContext);
         this.cache.addAll(state.cache);
+        this.sharedCache.addAll(state.sharedCache);
         this.blockEntityCache.addAll(state.blockEntityCache);
     }
 
@@ -102,9 +103,8 @@ public class MultiblockState {
         this.globalCount.clear();
         this.layerCount.clear();
         this.cache.clear();
+        this.sharedCache.clear();
         this.blockEntityCache.clear();
-        if (data != null) this.shareds.forEach(data::removeShared);
-        this.shareds.clear();
     }
 
     public void clearCache() {
@@ -117,9 +117,12 @@ public class MultiblockState {
         this.tileEntityInitialized = false;
     }
 
-    public void success() {
-        setError(null);
-        if (data != null) this.shareds.forEach(data::addShared);
+    public void removeShared() {
+        if (data != null) this.sharedCache.forEach(data::removeShared);
+    }
+
+    public void addShared() {
+        if (data != null) this.sharedCache.forEach(data::addShared);
     }
 
     public void update(BlockPos posIn, TraceabilityPredicate predicate) {
@@ -144,7 +147,7 @@ public class MultiblockState {
 
     public BlockState getBlockState() {
         if (this.blockState == null) {
-            this.blockState = blockStateCache.computeIfAbsent(pos.asLong(), k -> world.getBlockState(pos));
+            this.blockState = blockStateCache.computeIfAbsent(pos.asLong(), k -> ILevel.asyncGetBlockState(world, pos));
         }
         return this.blockState;
     }

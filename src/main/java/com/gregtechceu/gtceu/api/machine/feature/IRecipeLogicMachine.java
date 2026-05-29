@@ -21,6 +21,7 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
@@ -32,18 +33,42 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
                                      IVoidable {
 
     /**
-     * RecipeType held
+     * definition
      */
     @NotNull
-    GTRecipeType[] getRecipeTypes();
+    default GTRecipeType[] getRecipeTypes() {
+        return self().getDefinition().getRecipeTypes();
+    }
 
     int getActiveRecipeType();
 
     void setActiveRecipeType(int type);
 
+    /**
+     * runtime
+     */
+    @Nullable
+    GTRecipeType[] getAvailableRecipeTypesCache();
+
+    void setAvailableRecipeTypesCache(@Nullable GTRecipeType[] types);
+
+    default boolean recipeTypeAvailable(GTRecipeType type) {
+        return true;
+    }
+
     @NotNull
     default GTRecipeType[] getAvailableRecipeTypes() {
-        return getRecipeTypes();
+        var cache = getAvailableRecipeTypesCache();
+        if (cache == null) {
+            cache = getRecipeTypes();
+            var list = new ArrayList<GTRecipeType>(cache.length);
+            for (var type : cache) {
+                if (recipeTypeAvailable(type)) list.add(type);
+            }
+            cache = list.toArray(new GTRecipeType[0]);
+            setAvailableRecipeTypesCache(cache);
+        }
+        return cache;
     }
 
     @NotNull

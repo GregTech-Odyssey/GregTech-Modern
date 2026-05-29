@@ -43,15 +43,20 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public abstract class SteamWorkableMachine extends SteamMachine implements IRecipeLogicMachine, IMufflableMachine, IMachineLife {
 
     @Nullable
-    private ICleanroomProvider cleanroom;
+    protected ICleanroomProvider cleanroom;
     @Getter
     @Persisted
     @DescSynced
     public final RecipeLogic recipeLogic;
+
+    @Setter
     @Getter
-    public final GTRecipeType[] recipeTypes;
+    @Nullable
+    protected GTRecipeType[] availableRecipeTypesCache;
+
     @Getter
-    public int activeRecipeType;
+    protected int activeRecipeType;
+
     @Getter
     @Persisted
     @SyncToClient(notifyUpdate = true)
@@ -69,7 +74,6 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
 
     public SteamWorkableMachine(MetaMachineBlockEntity holder, boolean isHighPressure, Object... args) {
         super(holder, isHighPressure, args);
-        this.recipeTypes = getDefinition().getRecipeTypes();
         this.activeRecipeType = 0;
         this.recipeLogic = createRecipeLogic(args);
         this.capabilitiesProxy = new EnumMap<>(IO.class);
@@ -153,6 +157,7 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
         if (this.activeRecipeType != activeRecipeType) {
             getRecipeLogic().markLastRecipeDirty();
             getRecipeLogic().updateTickSubscription();
+            this.activeRecipeType = activeRecipeType;
         }
     }
 }

@@ -4,6 +4,8 @@ import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.data.GTItems;
 
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
@@ -15,6 +17,9 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+
+import com.gto.datasynclib.datasream.codec.ByteStreamDecoder;
+import com.gto.datasynclib.datasream.codec.ByteStreamEncoder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,11 +77,13 @@ public class MachineModeFancyConfigurator implements IFancyUIProvider {
         @Override
         public void writeInitialData(FriendlyByteBuf buffer) {
             buffer.writeVarInt(machine.getActiveRecipeType());
+            ByteStreamEncoder.array(GTRegistries.RECIPE_TYPES.streamCodec()).encode(buffer, machine.getAvailableRecipeTypes());
         }
 
         @Override
         public void readInitialData(FriendlyByteBuf buffer) {
             machine.setActiveRecipeType(buffer.readVarInt());
+            machine.setAvailableRecipeTypesCache(ByteStreamDecoder.list(GTRegistries.RECIPE_TYPES.streamCodec()).decode(buffer).toArray(new GTRecipeType[0]));
         }
 
         @Override
