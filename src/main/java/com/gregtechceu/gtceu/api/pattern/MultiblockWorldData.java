@@ -97,9 +97,6 @@ public class MultiblockWorldData {
     }
 
     public void removeMapping(MultiblockState state) {
-        synchronized (shareds) {
-            state.removeShared();
-        }
         synchronized (chunkPosMapping) {
             for (Set<MultiblockState> set : chunkPosMapping.values()) {
                 set.remove(state);

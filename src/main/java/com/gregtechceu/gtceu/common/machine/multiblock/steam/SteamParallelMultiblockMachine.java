@@ -31,7 +31,6 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.player.Player;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -42,24 +41,25 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine implements IDisplayUIMachine, IDummyEnergyMachine {
 
-    @Getter
-    @Setter
-    private int maxParallels = ConfigHolder.INSTANCE.machines.steamMultiParallelAmount;
+    // if in millibuckets, this is 2.0, Meaning 2mb of steam -> 1 EU
+    public static final double CONVERSION_RATE = 2.0;
+
+    protected final int maxParallels;
 
     @Getter
     protected IEnergyContainer energyContainer = IEnergyContainer.DEFAULT;
-    // if in millibuckets, this is 2.0, Meaning 2mb of steam -> 1 EU
-    public static final double CONVERSION_RATE = 2.0;
 
     public SteamParallelMultiblockMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder);
         if (args.length > 0 && args[0] instanceof Integer i) {
             this.maxParallels = i;
+        } else {
+            this.maxParallels = 8;
         }
     }
 
     @Override
-    public int getTier() {
+    public int getRecipeTier() {
         return 1;
     }
 
@@ -72,6 +72,7 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
+        energyContainer = IEnergyContainer.DEFAULT;
         addSteamEnergy();
         if (energyContainer == IEnergyContainer.DEFAULT) {
             // No steam hatch found

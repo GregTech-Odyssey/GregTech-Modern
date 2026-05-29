@@ -342,6 +342,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @Override
     @MustBeInvokedByOverriders
     public void onStructureInvalid() {
+        getMultiblockState().removeShared();
         isFormed = false;
         Arrays.fill(formeds, false);
         modules.forEach(m -> m.removedFromController(this));
