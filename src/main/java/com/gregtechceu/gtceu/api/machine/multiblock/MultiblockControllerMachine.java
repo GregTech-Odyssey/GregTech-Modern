@@ -61,6 +61,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     protected MultiblockState[] subMultiblockState = new MultiblockState[subPatternAmount];
     @SyncToClient
     protected final boolean[] formeds = new boolean[subPatternAmount];
+    @SyncToClient
     protected int formedAmount;
     protected IMultiPart[] parts = new IMultiPart[0];
     protected final List<IMultiModule<?>> modules = new ArrayList<>();

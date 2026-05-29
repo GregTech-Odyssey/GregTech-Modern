@@ -57,6 +57,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Setter
     @Getter
     @Nullable
+    @SyncToClient
     protected GTRecipeType[] availableRecipeTypesCache;
     @Getter
     @Persisted
