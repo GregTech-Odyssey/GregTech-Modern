@@ -73,15 +73,21 @@ public class MultiblockWorldData {
     }
 
     public void addShared(long pos) {
-        shareds.add(pos);
+        synchronized (shareds) {
+            shareds.add(pos);
+        }
     }
 
     public void removeShared(long pos) {
-        shareds.remove(pos);
+        synchronized (shareds) {
+            shareds.remove(pos);
+        }
     }
 
     public boolean hasShared(long pos) {
-        return shareds.contains(pos);
+        synchronized (shareds) {
+            return shareds.contains(pos);
+        }
     }
 
     public void addMapping(MultiblockState state) {
@@ -91,6 +97,9 @@ public class MultiblockWorldData {
     }
 
     public void removeMapping(MultiblockState state) {
+        synchronized (shareds) {
+            state.removeShared();
+        }
         synchronized (chunkPosMapping) {
             for (Set<MultiblockState> set : chunkPosMapping.values()) {
                 set.remove(state);

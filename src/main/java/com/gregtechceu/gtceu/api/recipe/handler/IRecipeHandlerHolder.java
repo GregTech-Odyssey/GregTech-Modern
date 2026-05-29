@@ -245,6 +245,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         }
         var items = RecipeHelper.copyAndRoll(recipe, recipe.itemOutputs);
         var fluids = RecipeHelper.copyAndRoll(recipe, recipe.fluidOutputs);
+        if (items.isEmpty() && fluids.isEmpty()) return true;
         for (var handler : getOutputUnits(recipe)) {
             if (handler.handleRecipeItem(IO.OUT, recipe, items, false) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, false)) {
                 return true;

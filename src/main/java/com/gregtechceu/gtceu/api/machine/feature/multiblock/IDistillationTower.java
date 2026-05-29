@@ -66,9 +66,18 @@ public interface IDistillationTower extends IWorkableMultiController {
     @Override
     default boolean matchRecipeOutput(GTRecipe recipe) {
         var items = RecipeHelper.copyContents(recipe.itemOutputs, 1);
+        var fluids = RecipeHelper.copyContents(recipe.fluidOutputs, 1);
+        if (items.isEmpty() && fluids.isEmpty()) return true;
         for (var handler : getOutputUnits(recipe)) {
             if (handler.handleRecipeItem(IO.OUT, recipe, items, true)) {
-                return applyFluidOutputs(recipe, IFluidHandler.FluidAction.SIMULATE);
+                if (fluids.isEmpty()) return true;
+                if (recipe.definition.recipeType != GTRecipeTypes.DISTILLATION_RECIPES) {
+                    if (handler.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
+                        return true;
+                    }
+                } else {
+                    return applyFluidOutputs(fluids, IFluidHandler.FluidAction.SIMULATE);
+                }
             }
         }
         return false;
@@ -77,27 +86,24 @@ public interface IDistillationTower extends IWorkableMultiController {
     @Override
     default boolean handleRecipeOutput(GTRecipe recipe) {
         var items = RecipeHelper.copyAndRoll(recipe, recipe.itemOutputs);
+        var fluids = RecipeHelper.copyAndRoll(recipe, recipe.fluidOutputs);
+        if (items.isEmpty() && fluids.isEmpty()) return true;
         for (var handler : getOutputUnits(recipe)) {
             if (handler.handleRecipeItem(IO.OUT, recipe, items, false)) {
-                return applyFluidOutputs(recipe, IFluidHandler.FluidAction.EXECUTE);
+                if (fluids.isEmpty()) return true;
+                if (recipe.definition.recipeType != GTRecipeTypes.DISTILLATION_RECIPES) {
+                    if (handler.handleRecipeFluid(IO.OUT, recipe, fluids, false)) {
+                        return true;
+                    }
+                } else {
+                    return applyFluidOutputs(fluids, IFluidHandler.FluidAction.EXECUTE);
+                }
             }
         }
         return false;
     }
 
-    default boolean applyFluidOutputs(GTRecipe recipe, IFluidHandler.FluidAction action) {
-        var fluids = recipe.fluidOutputs;
-        if (fluids.isEmpty()) return true;
-        if (action.execute()) fluids = RecipeHelper.copyAndRoll(recipe, fluids);
-        // Distillery recipes should output to the first non-void handler
-        if (recipe.definition.recipeType != GTRecipeTypes.DISTILLATION_RECIPES) {
-            if (getFluidOutputs().isEmpty()) return false;
-            var firstValid = getFluidOutputs().getFirst();
-            var output = fluids.getFirst();
-            var fluid = output.inner.getFluidStack(output.getIntAmount());
-            int filled = (firstValid instanceof NotifiableFluidTank nft) ? nft.fillInternal(fluid, action) : firstValid.fill(fluid, action);
-            return filled == fluid.getAmount();
-        }
+    default boolean applyFluidOutputs(List<Content<FluidIngredient>> fluids, IFluidHandler.FluidAction action) {
         boolean valid = true;
         var outputs = getFluidOutputs();
         for (int i = 0; i < Math.min(fluids.size(), outputs.size()); ++i) {
@@ -122,7 +128,11 @@ public interface IDistillationTower extends IWorkableMultiController {
         } else {
             var trimmed = new ArrayList<Content<FluidIngredient>>(size);
             for (int i = 0; i < size; ++i) {
-                if (!(outputs.get(i) instanceof VoidFluidHandler)) trimmed.add(contents.get(i));
+                if ((outputs.get(i) instanceof VoidFluidHandler)) {
+                    trimmed.add(Content.EMPTY_FLUID);
+                } else {
+                    trimmed.add(contents.get(i));
+                }
             }
             recipe.fluidOutputs = trimmed;
         }

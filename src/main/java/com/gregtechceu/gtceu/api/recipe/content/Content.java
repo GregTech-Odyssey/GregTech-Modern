@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.recipe.content;
 
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
+import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GradientUtil;
 
@@ -21,6 +22,9 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
 
 public final class Content<T extends ContentInner> {
+
+    public static final Content<FluidIngredient> EMPTY_FLUID = new Content<>(FluidIngredient.EMPTY, 0);
+    public static final Content<ItemIngredient> EMPTY_ITEM = new Content<>(ItemIngredient.EMPTY, 0);
 
     public static final int MAX_CHANCE = 10_000;
 
