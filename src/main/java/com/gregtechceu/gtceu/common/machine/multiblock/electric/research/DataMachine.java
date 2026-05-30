@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric.research;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
@@ -10,6 +9,7 @@ import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMa
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
+import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -113,7 +113,7 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
         if (this.energyContainer.removeEnergy(energyUsage) >= energyUsage) {
             getRecipeLogic().setStatus(RecipeLogic.WORKING);
         } else {
-            getRecipeLogic().setWaiting(ActionResult.failInsufficientIn(EURecipeCapability.CAP.getName()).reason());
+            getRecipeLogic().setWaiting(ActionResult.failInsufficientIn(EURecipeInfo.INSTANCE.getName()).reason());
         }
     }
 

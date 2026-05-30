@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.common.data.machines;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.fluids.PropertyFluidFilter;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
@@ -15,6 +14,7 @@ import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
+import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.client.renderer.machine.*;
 import com.gregtechceu.gtceu.client.util.TooltipHelper;
@@ -485,7 +485,7 @@ public class GTMultiMachines {
             .appearanceBlock(CASING_BRONZE_BRICKS)
             .recipeType(GTRecipeTypes.MACERATOR_RECIPES)
             .recipeModifier(SteamParallelMultiblockMachine::recipeModifier)
-            .addOutputLimit(ItemRecipeCapability.CAP, 1)
+            .addOutputLimit(ItemRecipeInfo.INSTANCE, 1)
             .pattern(definition -> FactoryBlockPattern.start(definition)
                     .aisle("XXX", "XXX", "XXX")
                     .aisle("XXX", "X#X", "XXX")
@@ -508,7 +508,7 @@ public class GTMultiMachines {
             .appearanceBlock(CASING_BRONZE_BRICKS)
             .recipeType(GTRecipeTypes.FURNACE_RECIPES)
             .recipeModifier(SteamParallelMultiblockMachine::recipeModifier)
-            .addOutputLimit(ItemRecipeCapability.CAP, 1)
+            .addOutputLimit(ItemRecipeInfo.INSTANCE, 1)
             .pattern(definition -> FactoryBlockPattern.start(definition)
                     .aisle("FFF", "XXX", " X ")
                     .aisle("FFF", "X#X", " X ")

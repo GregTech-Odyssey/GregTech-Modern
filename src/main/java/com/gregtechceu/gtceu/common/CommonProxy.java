@@ -96,7 +96,7 @@ public class CommonProxy {
         UIFactory.register(GTUIEditorFactory.INSTANCE);
         GTPlacerTypes.init();
         GTRecipeDataKeys.init();
-        GTRecipeCapabilities.init();
+        GTRecipeInfos.init();
         GTToolTiers.init();
         GTElements.init();
         MaterialIconSet.init();

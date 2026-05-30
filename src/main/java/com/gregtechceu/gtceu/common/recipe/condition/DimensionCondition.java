@@ -33,14 +33,14 @@ public class DimensionCondition extends RecipeCondition {
     }
 
     @Override
-    public void addXEIInfo(GTRecipeDefinition recipe, WidgetGroup group, int xOffset, MutableInt yOffset) {
-        group.addWidget(setupDimensionMarkers(recipe.recipeType.getRecipeUI().getJEISize().width - xOffset - 44,
-                recipe.recipeType.getRecipeUI().getJEISize().height - 32)
+    public void addInfo(GTRecipeDefinition recipe, WidgetGroup group, int xOffset, MutableInt yOffset) {
+        group.addWidget(setupDimensionMarkers(recipe.recipeType.getRecipeUI().getJEISize(recipe).width - xOffset - 44,
+                recipe.recipeType.getRecipeUI().getJEISize(recipe).height - 32)
                 .setBackgroundTexture(IGuiTexture.EMPTY));
     }
 
     @Override
-    public int getHeight(GTRecipeDefinition recipe) {
+    public int getInfoHeight(GTRecipeDefinition recipe) {
         return 0;
     }
 

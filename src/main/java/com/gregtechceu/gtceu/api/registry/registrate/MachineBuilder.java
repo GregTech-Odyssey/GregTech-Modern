@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.data.RotationState;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
 import com.gregtechceu.gtceu.api.item.MetaMachineItem;
@@ -13,6 +12,7 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifierList;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
@@ -94,7 +94,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     private GTRecipeType[] recipeTypes;
     // getter for KJS
     private int tier;
-    private Reference2IntOpenHashMap<RecipeCapability<?>> recipeOutputLimits = new Reference2IntOpenHashMap<>();
+    private Reference2IntOpenHashMap<RecipeInfo> recipeOutputLimits = new Reference2IntOpenHashMap<>();
     private int paintingColor = Long.decode(ConfigHolder.INSTANCE.client.defaultPaintingColor).intValue();
     private BiFunction<ItemStack, Integer, Integer> itemColor = ((itemStack, tintIndex) -> tintIndex == 2 ? GTValues.VC[tier] : tintIndex == 1 ? paintingColor : -1);
     private PartAbility[] abilities = new PartAbility[0];
@@ -234,7 +234,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
         return this;
     }
 
-    public MachineBuilder<DEFINITION> addOutputLimit(RecipeCapability<?> capability, int limit) {
+    public MachineBuilder<DEFINITION> addOutputLimit(RecipeInfo capability, int limit) {
         this.recipeOutputLimits.put(capability, limit);
         return this;
     }
@@ -474,7 +474,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     /**
      * @return {@code this}.
      */
-    public MachineBuilder<DEFINITION> recipeOutputLimits(final Reference2IntOpenHashMap<RecipeCapability<?>> recipeOutputLimits) {
+    public MachineBuilder<DEFINITION> recipeOutputLimits(final Reference2IntOpenHashMap<RecipeInfo> recipeOutputLimits) {
         this.recipeOutputLimits = recipeOutputLimits;
         return this;
     }

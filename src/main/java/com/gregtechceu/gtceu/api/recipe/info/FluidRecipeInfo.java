@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.api.capability.recipe;
+package com.gregtechceu.gtceu.api.recipe.info;
 
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
@@ -26,7 +26,6 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
-import com.fast.recipesearch.IntLongMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
@@ -34,27 +33,18 @@ import org.jetbrains.annotations.UnknownNullability;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class FluidRecipeCapability extends ContentRecipeCapability<FluidIngredient> {
+public final class FluidRecipeInfo extends ContentRecipeInfo<FluidIngredient> {
 
-    public final static FluidRecipeCapability CAP = new FluidRecipeCapability();
+    public final static FluidRecipeInfo INSTANCE = new FluidRecipeInfo();
 
-    protected FluidRecipeCapability() {
+    private FluidRecipeInfo() {
         super("fluid", 0xFF3C70EE, true, 1);
-    }
-
-    @Override
-    public void convert(FluidIngredient ingredient, IntLongMap map) {
-        if (ingredient.value instanceof Fluid fluid) {
-            map.add(fluid.hashCode(), ingredient.amount);
-        } else if (ingredient.value instanceof TagKey<?> tagKey) {
-            map.add(tagKey.hashCode(), ingredient.amount);
-        }
     }
 
     @Override
     public @NotNull List<Object> createXEIContainerContents(List<Content<FluidIngredient>> contents, GTRecipeDefinition recipe, IO io) {
         List<Object> entryLists = contents.stream()
-                .map(FluidRecipeCapability::mapFluid)
+                .map(FluidRecipeInfo::mapFluid)
                 .collect(Collectors.toList());
 
         while (entryLists.size() < recipe.recipeType.getMaxOutputs(this)) entryLists.add(null);

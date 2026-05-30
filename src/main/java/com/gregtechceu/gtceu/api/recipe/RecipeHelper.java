@@ -1,17 +1,16 @@
 package com.gregtechceu.gtceu.api.recipe;
 
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentInner;
+import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.util.RandomSource;
 
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Range;
 
 import java.util.ArrayList;
@@ -39,11 +38,10 @@ public class RecipeHelper {
      * Creates a copy of the recipe matching the trim limits -
      * Returns the recipe itself if no valid trim limits are passed
      */
-    @Contract(pure = true)
-    public static void trimRecipeOutputs(GTRecipe recipe, Reference2IntOpenHashMap<RecipeCapability<?>> trimLimits) {
+    public static void trimRecipeOutputs(GTRecipe recipe, Reference2IntOpenHashMap<RecipeInfo> trimLimits) {
         if (trimLimits.isEmpty()) return;
-        recipe.itemOutputs = doTrim(recipe.itemOutputs, ItemRecipeCapability.CAP, trimLimits);
-        recipe.fluidOutputs = doTrim(recipe.fluidOutputs, FluidRecipeCapability.CAP, trimLimits);
+        recipe.itemOutputs = doTrim(recipe.itemOutputs, ItemRecipeInfo.INSTANCE, trimLimits);
+        recipe.fluidOutputs = doTrim(recipe.fluidOutputs, FluidRecipeInfo.INSTANCE, trimLimits);
     }
 
     /**
@@ -54,21 +52,21 @@ public class RecipeHelper {
      * @param trimLimits The limit(s) on the number of outputs
      * @return All recipe outputs, limited by some factor(s)
      */
-    @Contract(pure = true)
     public static <T extends ContentInner> List<Content<T>> doTrim(List<Content<T>> contents,
-                                                                   RecipeCapability<T> capability, Reference2IntOpenHashMap<RecipeCapability<?>> trimLimits) {
+                                                                   RecipeInfo capability, Reference2IntOpenHashMap<RecipeInfo> trimLimits) {
         if (contents.isEmpty()) return contents;
-        int N = trimLimits.getOrDefault(capability, -1);
-        if (N == -1) return contents;
+        return doTrim(contents, trimLimits.getOrDefault(capability, -1));
+    }
+
+    public static <T extends ContentInner> List<Content<T>> doTrim(List<Content<T>> contents, int trimLimit) {
+        int N = Math.min(contents.size(), trimLimit);
         if (N == 0) return Collections.emptyList();
-        List<Content<T>> list = new ArrayList<>();
-        int added = 0;
-        for (var content : contents) {
-            if (added == N) break;
-            list.add(content);
-            added++;
+        if (N == -1) return contents;
+        var array = new Content[N];
+        for (var i = 0; i < N; i++) {
+            array[i] = contents.get(i);
         }
-        return list;
+        return Arrays.asList(array);
     }
 
     public static <T extends ContentInner> List<Content<T>> copyAndRoll(GTRecipe recipe, List<Content<T>> contents) {

@@ -1,7 +1,5 @@
 package com.gregtechceu.gtceu.api.recipe.modifier;
 
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.feature.IOverclockMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -11,6 +9,8 @@ import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 
@@ -100,7 +100,7 @@ public final class ParallelLogic {
             if (maxParallel == 0) return 0;
         }
         items = recipe.itemOutputs;
-        if (!(items.isEmpty() || (holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(ItemRecipeCapability.CAP)))) {
+        if (!(items.isEmpty() || (holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(ItemRecipeInfo.INSTANCE)))) {
             maxParallel = getOutputItemParallelAmount(holder.getOutputUnits(recipe), recipe, items, maxParallel);
             if (maxParallel == 0) {
                 holder.setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
@@ -108,7 +108,7 @@ public final class ParallelLogic {
             }
         }
         fluids = recipe.fluidOutputs;
-        if (!(fluids.isEmpty() || (holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(FluidRecipeCapability.CAP)))) {
+        if (!(fluids.isEmpty() || (holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(FluidRecipeInfo.INSTANCE)))) {
             maxParallel = getOutputFluidParallelAmount(holder.getOutputUnits(recipe), recipe, fluids, maxParallel);
             if (maxParallel == 0) {
                 holder.setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);

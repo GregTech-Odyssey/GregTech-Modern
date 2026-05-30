@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.common.item.tool.behavior;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
@@ -9,6 +8,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
+import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 
@@ -170,7 +170,7 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
             tooltipComponents.add(CommonComponents.EMPTY);
             if (data.contains(ORIGINAL_FRONT)) {
                 var origFront = tagToDirection(data.get(ORIGINAL_FRONT));
-                for (RecipeCapability<?> cap : GTRegistries.RECIPE_CAPABILITIES) {
+                for (RecipeInfo cap : GTRegistries.RECIPE_INFOS) {
                     if (!data.contains(cap.name)) continue;
                     var configData = data.getCompound(cap.name);
                     var component = cap.getColoredName();

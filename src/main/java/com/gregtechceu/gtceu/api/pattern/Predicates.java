@@ -5,9 +5,6 @@ import com.gregtechceu.gtceu.api.block.ICoilType;
 import com.gregtechceu.gtceu.api.block.IFilterType;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
@@ -17,6 +14,9 @@ import com.gregtechceu.gtceu.api.pattern.error.PatternStringError;
 import com.gregtechceu.gtceu.api.pattern.predicates.*;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.common.block.BatteryBlock;
 import com.gregtechceu.gtceu.common.block.CoilBlock;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
@@ -118,7 +118,7 @@ public class Predicates {
 
         if (checkEnergyIn) {
             for (var type : recipeType) {
-                if (type.getMaxInputs(EURecipeCapability.CAP) > 0) {
+                if (type.getMaxInputs(EURecipeInfo.INSTANCE) > 0) {
                     predicate = predicate.or(abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1)
                             .setMaxGlobalLimited(2).setPreviewCount(1));
                     break;
@@ -127,7 +127,7 @@ public class Predicates {
         }
         if (checkEnergyOut) {
             for (var type : recipeType) {
-                if (type.getMaxOutputs(EURecipeCapability.CAP) > 0) {
+                if (type.getMaxOutputs(EURecipeInfo.INSTANCE) > 0) {
                     predicate = predicate.or(abilities(PartAbility.OUTPUT_ENERGY).setMinGlobalLimited(1)
                             .setMaxGlobalLimited(2).setPreviewCount(1));
                     break;
@@ -136,7 +136,7 @@ public class Predicates {
         }
         if (checkItemIn) {
             for (var type : recipeType) {
-                if (type.getMaxInputs(ItemRecipeCapability.CAP) > 0) {
+                if (type.getMaxInputs(ItemRecipeInfo.INSTANCE) > 0) {
                     predicate = predicate.or(abilities(PartAbility.IMPORT_ITEMS).setPreviewCount(1));
                     break;
                 }
@@ -144,7 +144,7 @@ public class Predicates {
         }
         if (checkItemOut) {
             for (var type : recipeType) {
-                if (type.getMaxOutputs(ItemRecipeCapability.CAP) > 0) {
+                if (type.getMaxOutputs(ItemRecipeInfo.INSTANCE) > 0) {
                     predicate = predicate.or(abilities(PartAbility.EXPORT_ITEMS).setPreviewCount(1));
                     break;
                 }
@@ -152,7 +152,7 @@ public class Predicates {
         }
         if (checkFluidIn) {
             for (var type : recipeType) {
-                if (type.getMaxInputs(FluidRecipeCapability.CAP) > 0) {
+                if (type.getMaxInputs(FluidRecipeInfo.INSTANCE) > 0) {
                     predicate = predicate.or(abilities(PartAbility.IMPORT_FLUIDS).setPreviewCount(1));
                     break;
                 }
@@ -160,7 +160,7 @@ public class Predicates {
         }
         if (checkFluidOut) {
             for (var type : recipeType) {
-                if (type.getMaxOutputs(FluidRecipeCapability.CAP) > 0) {
+                if (type.getMaxOutputs(FluidRecipeInfo.INSTANCE) > 0) {
                     predicate = predicate.or(abilities(PartAbility.EXPORT_FLUIDS).setPreviewCount(1));
                     break;
                 }

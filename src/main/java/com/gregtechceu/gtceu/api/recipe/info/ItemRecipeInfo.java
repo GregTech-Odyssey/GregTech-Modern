@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.api.capability.recipe;
+package com.gregtechceu.gtceu.api.recipe.info;
 
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 import com.gregtechceu.gtceu.common.recipe.condition.ResearchCondition;
@@ -29,7 +28,6 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.common.crafting.IntersectionIngredient;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import com.fast.recipesearch.IntLongMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,31 +36,18 @@ import org.jetbrains.annotations.UnknownNullability;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ItemRecipeCapability extends ContentRecipeCapability<ItemIngredient> {
+public final class ItemRecipeInfo extends ContentRecipeInfo<ItemIngredient> {
 
-    public final static ItemRecipeCapability CAP = new ItemRecipeCapability();
+    public final static ItemRecipeInfo INSTANCE = new ItemRecipeInfo();
 
-    protected ItemRecipeCapability() {
+    private ItemRecipeInfo() {
         super("item", 0xFFD96106, true, 0);
-    }
-
-    @Override
-    public void convert(ItemIngredient ingredient, IntLongMap map) {
-        if (ingredient instanceof IntCircuitIngredient circuitIngredient) {
-            map.add(circuitIngredient.configuration, 1);
-        } else if (ingredient.inner.isVanilla() && ingredient.inner.values.length == 1) {
-            if (ingredient.inner.values[0] instanceof Ingredient.ItemValue itemValue) {
-                map.add(itemValue.item.getItem().hashCode(), ingredient.amount);
-            } else if (ingredient.inner.values[0] instanceof Ingredient.TagValue tagValue) {
-                map.add(tagValue.tag.hashCode(), ingredient.amount);
-            }
-        }
     }
 
     @Override
     public @NotNull List<Object> createXEIContainerContents(List<Content<ItemIngredient>> contents, GTRecipeDefinition recipe, IO io) {
         List<Object> entryLists = contents.stream()
-                .map(ItemRecipeCapability::mapItem)
+                .map(ItemRecipeInfo::mapItem)
                 .collect(Collectors.toList());
 
         if (io == IO.OUT && recipe.recipeType.isScanner()) {

@@ -2,15 +2,15 @@ package com.gregtechceu.gtceu.api.machine;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 
@@ -75,7 +75,7 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine {
     }
 
     @Override
-    public boolean canVoidRecipeOutputs(RecipeCapability<?> capability) {
+    public boolean canVoidRecipeOutputs(RecipeInfo capability) {
         return true;
     }
 
@@ -104,11 +104,11 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine {
         return group;
     }, (template, machine) -> {
         if (machine instanceof SimpleGeneratorMachine generatorMachine) {
-            var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeCapability<?>, Object>::new);
-            storages.put(IO.IN, ItemRecipeCapability.CAP, generatorMachine.importItems.storage);
-            storages.put(IO.OUT, ItemRecipeCapability.CAP, generatorMachine.exportItems.storage);
-            storages.put(IO.IN, FluidRecipeCapability.CAP, generatorMachine.importFluids);
-            storages.put(IO.OUT, FluidRecipeCapability.CAP, generatorMachine.exportFluids);
+            var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeInfo, Object>::new);
+            storages.put(IO.IN, ItemRecipeInfo.INSTANCE, generatorMachine.importItems.storage);
+            storages.put(IO.OUT, ItemRecipeInfo.INSTANCE, generatorMachine.exportItems.storage);
+            storages.put(IO.IN, FluidRecipeInfo.INSTANCE, generatorMachine.importFluids);
+            storages.put(IO.OUT, FluidRecipeInfo.INSTANCE, generatorMachine.exportFluids);
             generatorMachine.getRecipeType().getRecipeUI().createEditableUITemplate(false, false).setupUI(template, new GTRecipeTypeUI.RecipeHolder(generatorMachine.recipeLogic::getProgressPercent, storages, new DataComponentMap(), Collections.emptyList(), false, false));
             createEnergyBar().setupUI(template, generatorMachine);
         }

@@ -2,13 +2,13 @@ package com.gregtechceu.gtceu.api.recipe;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.gui.SteamTexture;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.info.*;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
@@ -54,8 +54,8 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
 
     public final ResourceLocation registryName;
     public final String group;
-    public final Object2IntSortedMap<RecipeCapability<?>> maxInputs = new Object2IntAVLTreeMap<>(RecipeCapability.COMPARATOR);
-    public final Object2IntSortedMap<RecipeCapability<?>> maxOutputs = new Object2IntAVLTreeMap<>(RecipeCapability.COMPARATOR);
+    public final Object2IntSortedMap<RecipeInfo> maxInputs = new Object2IntAVLTreeMap<>(RecipeInfo.COMPARATOR);
+    public final Object2IntSortedMap<RecipeInfo> maxOutputs = new Object2IntAVLTreeMap<>(RecipeInfo.COMPARATOR);
     public final GTRecipeDefinition defaultDefinition;
     protected GTRecipeBuilder recipeBuilder;
 
@@ -114,21 +114,20 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
     }
 
     public GTRecipeType setMaxIOSize(int maxInputs, int maxOutputs, int maxFluidInputs, int maxFluidOutputs) {
-        return setMaxSize(IO.IN, ItemRecipeCapability.CAP, maxInputs).setMaxSize(IO.IN, FluidRecipeCapability.CAP, maxFluidInputs).setMaxSize(IO.OUT, ItemRecipeCapability.CAP, maxOutputs).setMaxSize(IO.OUT, FluidRecipeCapability.CAP, maxFluidOutputs);
+        return setMaxSize(IO.IN, ItemRecipeInfo.INSTANCE, maxInputs).setMaxSize(IO.IN, FluidRecipeInfo.INSTANCE, maxFluidInputs).setMaxSize(IO.OUT, ItemRecipeInfo.INSTANCE, maxOutputs).setMaxSize(IO.OUT, FluidRecipeInfo.INSTANCE, maxFluidOutputs);
     }
 
     public GTRecipeType setEUIO(IO io) {
         if (io.support(IO.IN)) {
-            setMaxSize(IO.IN, EURecipeCapability.CAP, 1);
+            setMaxSize(IO.IN, EURecipeInfo.INSTANCE, 1);
         }
         if (io.support(IO.OUT)) {
-            setMaxSize(IO.OUT, EURecipeCapability.CAP, 1);
+            setMaxSize(IO.OUT, EURecipeInfo.INSTANCE, 1);
         }
-        setMaxTooltips(3);
-        return this;
+        return setMaxTooltips(3);
     }
 
-    public GTRecipeType setMaxSize(IO io, RecipeCapability<?> cap, int max) {
+    public GTRecipeType setMaxSize(IO io, RecipeInfo cap, int max) {
         if (io == IO.IN || io == IO.BOTH) {
             maxInputs.put(cap, max);
         }
@@ -231,11 +230,11 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
         return builder.build();
     }
 
-    public int getMaxInputs(RecipeCapability<?> cap) {
+    public int getMaxInputs(RecipeInfo cap) {
         return maxInputs.getOrDefault(cap, 0);
     }
 
-    public int getMaxOutputs(RecipeCapability<?> cap) {
+    public int getMaxOutputs(RecipeInfo cap) {
         return maxOutputs.getOrDefault(cap, 0);
     }
 

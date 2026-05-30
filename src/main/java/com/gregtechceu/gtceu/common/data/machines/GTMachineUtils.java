@@ -5,8 +5,6 @@ import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidPipeProperties;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
@@ -25,6 +23,8 @@ import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.api.registry.registrate.MachineBuilder;
 import com.gregtechceu.gtceu.api.registry.registrate.MultiblockMachineBuilder;
@@ -238,8 +238,8 @@ public class GTMachineUtils {
                         .allRotation()
                         .recipeType(recipeType)
                         .recipeModifier(SimpleGeneratorMachine::recipeModifier)
-                        .addOutputLimit(ItemRecipeCapability.CAP, 0)
-                        .addOutputLimit(FluidRecipeCapability.CAP, 0)
+                        .addOutputLimit(ItemRecipeInfo.INSTANCE, 0)
+                        .addOutputLimit(FluidRecipeInfo.INSTANCE, 0)
                         .renderer(() -> new SimpleGeneratorMachineRenderer(tier, GTCEu.id("block/generators/" + name)))
                         .tooltips(workableTiered(tier, GTValues.V[tier], GTValues.V[tier] * 64, recipeType,
                                 tankScalingFunction.applyAsInt(tier), false))
@@ -668,8 +668,8 @@ public class GTMachineUtils {
         tooltipComponents
                 .add(Component.translatable("gtceu.universal.tooltip.energy_storage_capacity",
                         FormattingUtil.formatNumbers(energyCapacity)));
-        if (recipeType.getMaxInputs(FluidRecipeCapability.CAP) > 0 ||
-                recipeType.getMaxOutputs(FluidRecipeCapability.CAP) > 0)
+        if (recipeType.getMaxInputs(FluidRecipeInfo.INSTANCE) > 0 ||
+                recipeType.getMaxOutputs(FluidRecipeInfo.INSTANCE) > 0)
             tooltipComponents
                     .add(Component.translatable("gtceu.universal.tooltip.fluid_storage_capacity",
                             FormattingUtil.formatNumbers(tankCapacity)));

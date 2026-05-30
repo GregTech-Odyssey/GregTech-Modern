@@ -2,10 +2,10 @@ package com.gregtechceu.gtceu.common.machine.trait;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
+import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.CleanroomMachine;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
@@ -72,7 +72,7 @@ public class CleanroomLogic extends RecipeLogic {
                     if (machine.self().getOffsetTimer() % duration == 0) {
                         adjustCleanAmount(true);
                     }
-                    setWaiting(ActionResult.failInsufficientIn(EURecipeCapability.CAP.getName()).reason());
+                    setWaiting(ActionResult.failInsufficientIn(EURecipeInfo.INSTANCE.getName()).reason());
                     return;
                 }
                 setStatus(WORKING);

@@ -28,12 +28,12 @@ public abstract class RecipeCondition {
 
     public abstract Component getTooltips();
 
-    public void addXEIInfo(GTRecipeDefinition recipe, WidgetGroup group, int xOffset, MutableInt yOffset) {
+    public void addInfo(GTRecipeDefinition recipe, WidgetGroup group, int xOffset, MutableInt yOffset) {
         if (getTooltips() == null) return;
         group.addWidget(new LabelWidget(3 - xOffset, yOffset.addAndGet(10), getTooltips().getString()));
     }
 
-    public int getHeight(GTRecipeDefinition recipe) {
+    public int getInfoHeight(GTRecipeDefinition recipe) {
         return 10;
     }
 

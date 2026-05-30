@@ -66,7 +66,7 @@ public final class CWUTExpander extends DataComponentKey<Long> implements Conten
     }
 
     @Override
-    public void addXEIInfo(GTRecipeDefinition recipe, WidgetGroup group, int xOffset, MutableInt yOffset) {
+    public void addInfo(GTRecipeDefinition recipe, WidgetGroup group, int xOffset, MutableInt yOffset) {
         group.addWidget(new LabelWidget(3 - xOffset, yOffset.addAndGet(10),
                 LocalizationUtils.format("gtceu.recipe.computation_per_tick", FormattingUtil.formatNumbers(recipe.data.getLong(GTRecipeDataKeys.CWUT)))));
         if (recipe.data.getBoolean(GTRecipeDataKeys.DURATION_IS_TOTAL_CWU)) {
@@ -76,7 +76,7 @@ public final class CWUTExpander extends DataComponentKey<Long> implements Conten
     }
 
     @Override
-    public int getHeight(GTRecipeDefinition recipe) {
+    public int getInfoHeight(GTRecipeDefinition recipe) {
         return 10;
     }
 }

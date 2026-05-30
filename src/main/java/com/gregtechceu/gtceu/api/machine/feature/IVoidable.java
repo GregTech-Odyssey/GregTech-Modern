@@ -1,12 +1,12 @@
 package com.gregtechceu.gtceu.api.machine.feature;
 
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.FancySelectorConfigurator;
+import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -20,11 +20,11 @@ import java.util.List;
 
 public interface IVoidable extends IMachineFeature {
 
-    default boolean canVoidRecipeOutputs(RecipeCapability<?> capability) {
+    default boolean canVoidRecipeOutputs(RecipeInfo capability) {
         return getVoidingMode().canVoid(capability) || getOutputLimits().getOrDefault(capability, -1) == 0;
     }
 
-    default Reference2IntOpenHashMap<RecipeCapability<?>> getOutputLimits() {
+    default Reference2IntOpenHashMap<RecipeInfo> getOutputLimits() {
         return self().getDefinition().getRecipeOutputLimits();
     }
 
@@ -44,21 +44,21 @@ public interface IVoidable extends IMachineFeature {
         VOID_ITEMS("gtceu.gui.multiblock_item_voiding") {
 
             @Override
-            public boolean canVoid(RecipeCapability<?> capability) {
-                return capability == ItemRecipeCapability.CAP;
+            public boolean canVoid(RecipeInfo capability) {
+                return capability == ItemRecipeInfo.INSTANCE;
             }
         },
         VOID_FLUIDS("gtceu.gui.multiblock_fluid_voiding") {
 
             @Override
-            public boolean canVoid(RecipeCapability<?> capability) {
-                return capability == FluidRecipeCapability.CAP;
+            public boolean canVoid(RecipeInfo capability) {
+                return capability == FluidRecipeInfo.INSTANCE;
             }
         },
         VOID_BOTH("gtceu.gui.multiblock_item_fluid_voiding") {
 
             @Override
-            public boolean canVoid(RecipeCapability<?> capability) {
+            public boolean canVoid(RecipeInfo capability) {
                 return true;
             }
         };
@@ -73,7 +73,7 @@ public interface IVoidable extends IMachineFeature {
             this.icon = GuiTextures.BUTTON_VOID_MULTIBLOCK.getSubTexture(0, ordinal(), 1, 0.25);
         }
 
-        public boolean canVoid(RecipeCapability<?> capability) {
+        public boolean canVoid(RecipeInfo capability) {
             return false;
         }
 

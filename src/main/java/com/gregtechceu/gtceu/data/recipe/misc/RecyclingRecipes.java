@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.data.recipe.misc;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.BlastProperty;
@@ -11,6 +10,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeBuilder;
+import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTRecipeCategories;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
@@ -105,7 +105,7 @@ public class RecyclingRecipes {
         // Finalize the output list.
         List<ItemStack> outputs = finalizeOutputs(
                 materials,
-                GTRecipeTypes.MACERATOR_RECIPES.getMaxOutputs(ItemRecipeCapability.CAP),
+                GTRecipeTypes.MACERATOR_RECIPES.getMaxOutputs(ItemRecipeInfo.INSTANCE),
                 ChemicalHelper::getDust);
 
         MaterialEntry entry = ChemicalHelper.getMaterialEntry(input.getItem());
@@ -275,7 +275,7 @@ public class RecyclingRecipes {
         // Finalize the output List
         List<ItemStack> outputs = finalizeOutputs(
                 materials,
-                GTRecipeTypes.ARC_FURNACE_RECIPES.getMaxOutputs(ItemRecipeCapability.CAP),
+                GTRecipeTypes.ARC_FURNACE_RECIPES.getMaxOutputs(ItemRecipeInfo.INSTANCE),
                 RecyclingRecipes::getArcIngotOrDust);
 
         // Exit if no valid outputs exist for this recycling Recipe.

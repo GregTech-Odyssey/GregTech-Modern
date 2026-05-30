@@ -1,10 +1,6 @@
 package com.gregtechceu.gtceu.api.recipe.ui;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.capability.recipe.ContentRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.SteamTexture;
 import com.gregtechceu.gtceu.api.gui.WidgetUtils;
@@ -16,6 +12,10 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.info.ContentRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.integration.emi.recipe.GTRecipeEMICategory;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -126,31 +126,31 @@ public class GTRecipeTypeUI {
         this.xeiSize = null;
     }
 
-    public Size getJEISize() {
+    public Size getJEISize(GTRecipeDefinition recipe) {
         Size size = this.xeiSize;
         if (size == null) {
             var originalSize = createEditableUITemplate(false, false).createDefault().getSize();
             this.originalWidth = originalSize.width;
-            this.xeiSize = size = new Size(Math.max(originalWidth, 150), getPropertyHeightShift() + 5 + originalSize.height);
+            this.xeiSize = size = new Size(Math.max(originalWidth, 150), 5 + originalSize.height);
         }
-        return size;
+        return new Size(size.width, size.height + getPropertyHeightShift(recipe));
     }
 
-    public record RecipeHolder(DoubleSupplier progressSupplier, Table<IO, RecipeCapability<?>, Object> storages, DataComponentMap data, List<RecipeCondition> conditions, boolean isSteam, boolean isHighPressure) {}
+    public record RecipeHolder(DoubleSupplier progressSupplier, Table<IO, RecipeInfo, Object> storages, DataComponentMap data, List<RecipeCondition> conditions, boolean isSteam, boolean isHighPressure) {}
 
     /**
      * Auto layout UI template for recipes.
      * 
      * @param progressSupplier progress. To create a JEI / REI UI, use the para {@link ProgressWidget#JEIProgress}.
      */
-    public WidgetGroup createUITemplate(DoubleSupplier progressSupplier, Table<IO, RecipeCapability<?>, Object> storages, DataComponentMap data, List<RecipeCondition> conditions, boolean isSteam, boolean isHighPressure) {
+    public WidgetGroup createUITemplate(DoubleSupplier progressSupplier, Table<IO, RecipeInfo, Object> storages, DataComponentMap data, List<RecipeCondition> conditions, boolean isSteam, boolean isHighPressure) {
         var template = createEditableUITemplate(isSteam, isHighPressure);
         var group = template.createDefault();
         template.setupUI(group, new RecipeHolder(progressSupplier, storages, data, conditions, isSteam, isHighPressure));
         return group;
     }
 
-    public WidgetGroup createUITemplate(DoubleSupplier progressSupplier, Table<IO, RecipeCapability<?>, Object> storages, DataComponentMap data, List<RecipeCondition> conditions) {
+    public WidgetGroup createUITemplate(DoubleSupplier progressSupplier, Table<IO, RecipeInfo, Object> storages, DataComponentMap data, List<RecipeCondition> conditions) {
         return createUITemplate(progressSupplier, storages, data, conditions, false, false);
     }
 
@@ -212,7 +212,7 @@ public class GTRecipeTypeUI {
             for (var capabilityEntry : recipeHolder.storages.rowMap().entrySet()) {
                 IO io = capabilityEntry.getKey();
                 for (var storagesEntry : capabilityEntry.getValue().entrySet()) {
-                    if (storagesEntry.getKey() instanceof ContentRecipeCapability<?> cap) {
+                    if (storagesEntry.getKey() instanceof ContentRecipeInfo cap) {
                         Object storage = storagesEntry.getValue();
                         // bind overlays
                         var widgetClass = cap.getWidgetClass();
@@ -231,7 +231,7 @@ public class GTRecipeTypeUI {
     protected WidgetGroup addInventorySlotGroup(boolean isOutputs, boolean isSteam, boolean isHighPressure) {
         int maxCount = 0;
         int totalR = 0;
-        Object2IntSortedMap<RecipeCapability<?>> map = new Object2IntAVLTreeMap<>(RecipeCapability.COMPARATOR);
+        Object2IntSortedMap<RecipeInfo> map = new Object2IntAVLTreeMap<>(RecipeInfo.COMPARATOR);
         if (isOutputs) {
             for (var value : recipeType.maxOutputs.object2IntEntrySet()) {
                 if (value.getKey().doRenderSlot) {
@@ -258,7 +258,7 @@ public class GTRecipeTypeUI {
         WidgetGroup group = new WidgetGroup(0, 0, maxCount * 18 + 8, totalR * 18 + 8);
         int index = 0;
         for (var entry : map.object2IntEntrySet()) {
-            if (entry.getKey() instanceof ContentRecipeCapability<?> cap) {
+            if (entry.getKey() instanceof ContentRecipeInfo cap) {
                 var widgetClass = cap.getWidgetClass();
                 if (widgetClass == null) {
                     continue;
@@ -282,13 +282,13 @@ public class GTRecipeTypeUI {
     /**
      * Add a slot to this ui
      */
-    protected void addSlot(WidgetGroup group, int x, int y, int slotIndex, int count, RecipeCapability<?> capability, boolean isOutputs, boolean isSteam, boolean isHighPressure) {
-        if (capability != FluidRecipeCapability.CAP) {
+    protected void addSlot(WidgetGroup group, int x, int y, int slotIndex, int count, RecipeInfo capability, boolean isOutputs, boolean isSteam, boolean isHighPressure) {
+        if (capability != FluidRecipeInfo.INSTANCE) {
             var slot = new SlotWidget();
             slot.initTemplate();
             slot.setSelfPosition(new Position(x, y));
             slot.setBackground(getOverlaysForSlot(isOutputs, capability, slotIndex == count - 1, isSteam, isHighPressure));
-            slot.setId(ItemRecipeCapability.CAP.slotName(isOutputs ? IO.OUT : IO.IN, slotIndex));
+            slot.setId(ItemRecipeInfo.INSTANCE.slotName(isOutputs ? IO.OUT : IO.IN, slotIndex));
             group.addWidget(slot);
         } else {
             var tank = new TankWidget();
@@ -296,7 +296,7 @@ public class GTRecipeTypeUI {
             tank.setFillDirection(ProgressTexture.FillDirection.ALWAYS_FULL);
             tank.setSelfPosition(new Position(x, y));
             tank.setBackground(getOverlaysForSlot(isOutputs, capability, slotIndex == count - 1, isSteam, isHighPressure));
-            tank.setId(FluidRecipeCapability.CAP.slotName(isOutputs ? IO.OUT : IO.IN, slotIndex));
+            tank.setId(FluidRecipeInfo.INSTANCE.slotName(isOutputs ? IO.OUT : IO.IN, slotIndex));
             group.addWidget(tank);
         }
     }
@@ -326,9 +326,9 @@ public class GTRecipeTypeUI {
         return new int[] { itemSlotsToLeft, itemSlotsToDown };
     }
 
-    protected IGuiTexture getOverlaysForSlot(boolean isOutput, RecipeCapability<?> capability, boolean isLast, boolean isSteam, boolean isHighPressure) {
-        IGuiTexture base = capability == FluidRecipeCapability.CAP ? GuiTextures.FLUID_SLOT : (isSteam ? GuiTextures.SLOT_STEAM.get(isHighPressure) : GuiTextures.SLOT);
-        byte overlayKey = (byte) ((isOutput ? 2 : 0) + (capability == FluidRecipeCapability.CAP ? 1 : 0) + (isLast ? 4 : 0));
+    protected IGuiTexture getOverlaysForSlot(boolean isOutput, RecipeInfo capability, boolean isLast, boolean isSteam, boolean isHighPressure) {
+        IGuiTexture base = capability == FluidRecipeInfo.INSTANCE ? GuiTextures.FLUID_SLOT : (isSteam ? GuiTextures.SLOT_STEAM.get(isHighPressure) : GuiTextures.SLOT);
+        byte overlayKey = (byte) ((isOutput ? 2 : 0) + (capability == FluidRecipeInfo.INSTANCE ? 1 : 0) + (isLast ? 4 : 0));
         if (slotOverlays.containsKey(overlayKey)) {
             return new GuiTextureGroup(base, slotOverlays.get(overlayKey));
         }
@@ -338,9 +338,22 @@ public class GTRecipeTypeUI {
     /**
      * @return the height used to determine size of background texture in JEI
      */
-    public int getPropertyHeightShift() {
-        int maxPropertyCount = maxTooltips + recipeType.getDataInfos().size();
-        return maxPropertyCount * 10; // GTRecipeWidget#LINE_HEIGHT
+    public int getPropertyHeightShift(GTRecipeDefinition recipe) {
+        int height = maxTooltips * 10;
+        for (var info : recipe.recipeType.getDataInfos()) {
+            if (info.apply(recipe.data).isBlank()) continue;
+            height += 10;
+        }
+        for (var c : recipe.conditions) {
+            height += c.getInfoHeight(recipe);
+        }
+        for (var c : recipe.contentExpanders) {
+            height += c.getInfoHeight(recipe);
+        }
+        for (var c : recipe.tickContentExpanders) {
+            height += c.getInfoHeight(recipe);
+        }
+        return height;
     }
 
     public void appendJEIUI(GTRecipeDefinition recipe, WidgetGroup widgetGroup) {

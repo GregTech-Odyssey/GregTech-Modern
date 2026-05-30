@@ -1,32 +1,23 @@
-package com.gregtechceu.gtceu.api.capability.recipe;
+package com.gregtechceu.gtceu.api.recipe.info;
 
-import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
-import org.apache.commons.lang3.mutable.MutableInt;
-
 import java.util.Comparator;
 import java.util.Locale;
 
-/**
- * Used to detect whether a machine has a certain capability.
- */
-@Deprecated
-public abstract class RecipeCapability<T> {
+public abstract class RecipeInfo {
 
     public final String name;
     public final int color;
     public final boolean doRenderSlot;
     public final int sortIndex;
 
-    public static final Comparator<RecipeCapability<?>> COMPARATOR = Comparator.comparingInt(o -> o.sortIndex);
+    public static final Comparator<RecipeInfo> COMPARATOR = Comparator.comparingInt(o -> o.sortIndex);
 
-    protected RecipeCapability(String name, int color, boolean doRenderSlot, int sortIndex) {
+    protected RecipeInfo(String name, int color, boolean doRenderSlot, int sortIndex) {
         this.name = name;
         this.color = color;
         this.doRenderSlot = doRenderSlot;
@@ -48,7 +39,4 @@ public abstract class RecipeCapability<T> {
     public MutableComponent getColoredName() {
         return getName().withStyle(style -> style.withColor(this.color));
     }
-
-    public void addXEIInfo(WidgetGroup group, int xOffset, GTRecipeDefinition recipe, T content, boolean perTick,
-                           boolean isInput, MutableInt yOffset) {}
 }

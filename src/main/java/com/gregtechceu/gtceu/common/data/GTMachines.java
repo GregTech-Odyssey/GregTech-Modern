@@ -6,13 +6,13 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.api.capability.IMiner;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.SimpleTieredMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.steam.SimpleSteamMachine;
 import com.gregtechceu.gtceu.api.machine.steam.SteamBoilerMachine;
+import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.client.renderer.machine.*;
@@ -109,7 +109,7 @@ public class GTMachines {
                     .nonYAxisRotation()
                     .recipeType(GTRecipeTypes.MACERATOR_RECIPES)
                     .recipeModifier(SimpleSteamMachine::recipeModifier)
-                    .addOutputLimit(ItemRecipeCapability.CAP, 1)
+                    .addOutputLimit(ItemRecipeInfo.INSTANCE, 1)
                     .renderer(() -> new WorkableSteamMachineRenderer(pressure, GTCEu.id("block/machines/macerator")))
                     .register());
     public static final Pair<MachineDefinition, MachineDefinition> STEAM_COMPRESSOR = registerSimpleSteamMachines(
@@ -224,7 +224,7 @@ public class GTMachines {
                             GTRecipeTypes.MACERATOR_RECIPES))
                     .nonYAxisRotation()
                     .recipeType(GTRecipeTypes.MACERATOR_RECIPES)
-                    .addOutputLimit(ItemRecipeCapability.CAP, switch (tier) {
+                    .addOutputLimit(ItemRecipeInfo.INSTANCE, switch (tier) {
                         case 1, 2 -> 1;
                         case 3 -> 3;
                         default -> 4;

@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.integration.xei.widgets;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.WidgetUtils;
 import com.gregtechceu.gtceu.api.gui.widget.PredicatedButtonWidget;
@@ -12,6 +11,7 @@ import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.content.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.info.*;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -63,8 +63,8 @@ public class GTRecipeWidget extends WidgetGroup {
     private LabelWidget voltageTextWidget;
 
     public GTRecipeWidget(GTRecipeDefinition recipe) {
-        super(getXOffset(recipe), 0, recipe.recipeType.getRecipeUI().getJEISize().width,
-                getHeight(recipe));
+        super(getXOffset(recipe), 0, recipe.recipeType.getRecipeUI().getJEISize(recipe).width,
+                recipe.recipeType.getRecipeUI().getJEISize(recipe).height);
         this.recipe = recipe;
         this.xOffset = getXOffset(recipe);
         this.minTier = recipe.tier;
@@ -75,34 +75,20 @@ public class GTRecipeWidget extends WidgetGroup {
     }
 
     public static int getXOffset(GTRecipeDefinition recipe) {
-        if (recipe.recipeType.getRecipeUI().getOriginalWidth() != recipe.recipeType.getRecipeUI().getJEISize().width) {
-            return (recipe.recipeType.getRecipeUI().getJEISize().width -
+        if (recipe.recipeType.getRecipeUI().getOriginalWidth() != recipe.recipeType.getRecipeUI().getJEISize(recipe).width) {
+            return (recipe.recipeType.getRecipeUI().getJEISize(recipe).width -
                     recipe.recipeType.getRecipeUI().getOriginalWidth()) / 2;
         }
         return 0;
-    }
-
-    public static int getHeight(GTRecipeDefinition recipe) {
-        var height = recipe.recipeType.getRecipeUI().getJEISize().height;
-        for (var c : recipe.conditions) {
-            height += c.getHeight(recipe);
-        }
-        for (var c : recipe.contentExpanders) {
-            height += c.getHeight(recipe);
-        }
-        for (var c : recipe.tickContentExpanders) {
-            height += c.getHeight(recipe);
-        }
-        return height;
     }
 
     @SuppressWarnings("UnstableApiUsage")
     private void setRecipeWidget() {
         setClientSideWidget();
 
-        var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeCapability<?>, Object>::new);
+        var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeInfo, Object>::new);
         var contents = Tables.newCustomTable(new EnumMap<>(IO.class),
-                Reference2ReferenceLinkedOpenHashMap<RecipeCapability<?>, List<Content>>::new);
+                Reference2ReferenceLinkedOpenHashMap<RecipeInfo, List<Content>>::new);
         collectStorage(storages, contents, recipe);
 
         WidgetGroup group = recipe.recipeType.getRecipeUI().createUITemplate(ProgressWidget.JEIProgress, storages,
@@ -125,21 +111,21 @@ public class GTRecipeWidget extends WidgetGroup {
         int yOffset = 5 + size.height;
         this.yOffset = yOffset;
         yOffset += EUt > 0 ? 20 : 0;
-        if (recipe.data.getBoolean(GTRecipeDataKeys.DURATION_IS_TOTAL_CWU)) {
+        if (recipe.data.getBoolean(GTRecipeDataKeys.HIDE_DURATION)) {
             yOffset -= 10;
         }
 
         /// add text based on i/o's
         MutableInt yOff = new MutableInt(yOffset);
         for (var e : recipe.contentExpanders) {
-            e.addXEIInfo(recipe, this, xOffset, yOff);
+            e.addInfo(recipe, this, xOffset, yOff);
         }
         for (var e : recipe.tickContentExpanders) {
-            e.addXEIInfo(recipe, this, xOffset, yOff);
+            e.addInfo(recipe, this, xOffset, yOff);
         }
 
         for (RecipeCondition condition : recipe.conditions) {
-            condition.addXEIInfo(recipe, this, xOffset, yOff);
+            condition.addInfo(recipe, this, xOffset, yOff);
         }
         for (Function<DataComponentMap, String> dataInfo : recipe.recipeType.getDataInfos()) {
             addWidget(new LabelWidget(3 - xOffset, yOff.addAndGet(LINE_HEIGHT), dataInfo.apply(recipe.data)));
@@ -326,23 +312,23 @@ public class GTRecipeWidget extends WidgetGroup {
         setTier(minTier);
     }
 
-    public void collectStorage(Table<IO, RecipeCapability<?>, Object> extraTable,
-                               Table<IO, RecipeCapability<?>, List<Content>> extraContents, GTRecipeDefinition recipe) {
-        var inputCapabilities = new Reference2ReferenceOpenHashMap<RecipeCapability<?>, List<Object>>();
+    public void collectStorage(Table<IO, RecipeInfo, Object> extraTable,
+                               Table<IO, RecipeInfo, List<Content>> extraContents, GTRecipeDefinition recipe) {
+        var inputCapabilities = new Reference2ReferenceOpenHashMap<RecipeInfo, List<Object>>();
         if (!recipe.itemInputs.isEmpty()) {
             List contents = recipe.itemInputs;
-            var cap = ItemRecipeCapability.CAP;
+            var cap = ItemRecipeInfo.INSTANCE;
             extraContents.put(IO.IN, cap, contents);
             inputCapabilities.put(cap, cap.createXEIContainerContents(contents, recipe, IO.IN));
         }
         if (!recipe.fluidInputs.isEmpty()) {
             List contents = recipe.fluidInputs;
-            var cap = FluidRecipeCapability.CAP;
+            var cap = FluidRecipeInfo.INSTANCE;
             extraContents.put(IO.IN, cap, contents);
             inputCapabilities.put(cap, cap.createXEIContainerContents(contents, recipe, IO.IN));
         }
         for (var entry : inputCapabilities.entrySet()) {
-            if (entry.getKey() instanceof ContentRecipeCapability<?> cap) {
+            if (entry.getKey() instanceof ContentRecipeInfo cap) {
                 while (entry.getValue().size() < recipe.recipeType.getMaxInputs(cap))
                     entry.getValue().add(null);
                 var container = cap.createXEIContainer(entry.getValue());
@@ -352,21 +338,21 @@ public class GTRecipeWidget extends WidgetGroup {
             }
         }
 
-        var outputCapabilities = new Reference2ReferenceOpenHashMap<RecipeCapability<?>, List<Object>>();
+        var outputCapabilities = new Reference2ReferenceOpenHashMap<RecipeInfo, List<Object>>();
         if (!recipe.itemOutputs.isEmpty()) {
             List contents = recipe.itemOutputs;
-            var cap = ItemRecipeCapability.CAP;
+            var cap = ItemRecipeInfo.INSTANCE;
             extraContents.put(IO.OUT, cap, contents);
             outputCapabilities.put(cap, cap.createXEIContainerContents(contents, recipe, IO.OUT));
         }
         if (!recipe.fluidOutputs.isEmpty()) {
             List contents = recipe.fluidOutputs;
-            var cap = FluidRecipeCapability.CAP;
+            var cap = FluidRecipeInfo.INSTANCE;
             extraContents.put(IO.OUT, cap, contents);
             outputCapabilities.put(cap, cap.createXEIContainerContents(contents, recipe, IO.OUT));
         }
         for (var entry : outputCapabilities.entrySet()) {
-            if (entry.getKey() instanceof ContentRecipeCapability<?> cap) {
+            if (entry.getKey() instanceof ContentRecipeInfo cap) {
                 while (entry.getValue().size() < recipe.recipeType.getMaxOutputs(cap))
                     entry.getValue().add(null);
                 var container = cap.createXEIContainer(entry.getValue());
@@ -377,13 +363,13 @@ public class GTRecipeWidget extends WidgetGroup {
         }
     }
 
-    public void addSlots(Table<IO, RecipeCapability<?>, List<Content>> contentTable, WidgetGroup group,
+    public void addSlots(Table<IO, RecipeInfo, List<Content>> contentTable, WidgetGroup group,
                          GTRecipeDefinition recipe) {
         for (var capabilityEntry : contentTable.rowMap().entrySet()) {
             IO io = capabilityEntry.getKey();
             for (var contentsEntry : capabilityEntry.getValue().entrySet()) {
-                if (contentsEntry.getKey() instanceof ContentRecipeCapability<?> cap) {
-                    int nonTickCount = (io == IO.IN ? cap == ItemRecipeCapability.CAP ? recipe.itemInputs : recipe.fluidInputs : cap == ItemRecipeCapability.CAP ? recipe.itemOutputs : recipe.fluidOutputs).size();
+                if (contentsEntry.getKey() instanceof ContentRecipeInfo cap) {
+                    int nonTickCount = (io == IO.IN ? cap == ItemRecipeInfo.INSTANCE ? recipe.itemInputs : recipe.fluidInputs : cap == ItemRecipeInfo.INSTANCE ? recipe.itemOutputs : recipe.fluidOutputs).size();
                     List<Content> contents = contentsEntry.getValue();
                     // bind fluid out overlay
                     var widgetClass = cap.getWidgetClass();

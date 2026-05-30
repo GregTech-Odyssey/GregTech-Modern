@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.api.capability.recipe;
+package com.gregtechceu.gtceu.api.recipe.info;
 
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
@@ -9,19 +9,16 @@ import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
-import com.fast.recipesearch.IntLongMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public abstract class ContentRecipeCapability<T extends ContentInner> extends RecipeCapability<T> {
+public abstract class ContentRecipeInfo<T extends ContentInner> extends RecipeInfo {
 
-    protected ContentRecipeCapability(String name, int color, boolean doRenderSlot, int sortIndex) {
+    protected ContentRecipeInfo(String name, int color, boolean doRenderSlot, int sortIndex) {
         super(name, color, doRenderSlot, sortIndex);
     }
-
-    public abstract void convert(T content, IntLongMap map);
 
     @NotNull
     public abstract List<Object> createXEIContainerContents(List<Content<T>> contents, GTRecipeDefinition recipe, IO io);

@@ -2,8 +2,6 @@ package com.gregtechceu.gtceu.api.machine;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.feature.*;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachine;
 import com.gregtechceu.gtceu.api.machine.trait.*;
@@ -11,6 +9,8 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
@@ -109,25 +109,25 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     }
 
     protected NotifiableItemStackHandler createImportItemHandler(Object... args) {
-        var handler = new NotifiableItemStackHandler(this, getRecipeType().getMaxInputs(ItemRecipeCapability.CAP), IO.IN);
+        var handler = new NotifiableItemStackHandler(this, getRecipeType().getMaxInputs(ItemRecipeInfo.INSTANCE), IO.IN);
         if (handler.storage.size == 0) handler.setAvailable(false);
         return handler;
     }
 
     protected NotifiableItemStackHandler createExportItemHandler(Object... args) {
-        var handler = new NotifiableItemStackHandler(this, getRecipeType().getMaxOutputs(ItemRecipeCapability.CAP), IO.OUT);
+        var handler = new NotifiableItemStackHandler(this, getRecipeType().getMaxOutputs(ItemRecipeInfo.INSTANCE), IO.OUT);
         if (handler.storage.size == 0) handler.setAvailable(false);
         return handler;
     }
 
     protected NotifiableFluidTank createImportFluidHandler(Object... args) {
-        var handler = new NotifiableFluidTank(this, getRecipeType().getMaxInputs(FluidRecipeCapability.CAP), this.tankScalingFunction.applyAsInt(this.getTier()), IO.IN);
+        var handler = new NotifiableFluidTank(this, getRecipeType().getMaxInputs(FluidRecipeInfo.INSTANCE), this.tankScalingFunction.applyAsInt(this.getTier()), IO.IN);
         if (handler.getStorages().length == 0) handler.setAvailable(false);
         return handler;
     }
 
     protected NotifiableFluidTank createExportFluidHandler(Object... args) {
-        var handler = new NotifiableFluidTank(this, getRecipeType().getMaxOutputs(FluidRecipeCapability.CAP), this.tankScalingFunction.applyAsInt(this.getTier()), IO.OUT);
+        var handler = new NotifiableFluidTank(this, getRecipeType().getMaxOutputs(FluidRecipeInfo.INSTANCE), this.tankScalingFunction.applyAsInt(this.getTier()), IO.OUT);
         if (handler.getStorages().length == 0) handler.setAvailable(false);
         return handler;
     }

@@ -1,11 +1,11 @@
 package com.gregtechceu.gtceu.api.recipe.handler;
 
-import com.gregtechceu.gtceu.api.capability.recipe.*;
 import com.gregtechceu.gtceu.api.machine.feature.IElectricMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineFeature;
 import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.api.recipe.*;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.info.*;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
@@ -258,7 +258,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         var eu = recipe.eut;
         if (eu != 0) {
             if (!(this instanceof IElectricMachine electricMachine && electricMachine.useEnergy(eu, true))) {
-                setIdleReason(() -> ActionResult.failInsufficientIn(EURecipeCapability.CAP.getName()).reason());
+                setIdleReason(() -> ActionResult.failInsufficientIn(EURecipeInfo.INSTANCE.getName()).reason());
                 return false;
             }
         }
@@ -272,7 +272,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         var eu = recipe.eut;
         if (eu != 0) {
             if (!(this instanceof IElectricMachine electricMachine && electricMachine.useEnergy(eu, false))) {
-                setIdleReason(() -> ActionResult.failInsufficientIn(EURecipeCapability.CAP.getName()).reason());
+                setIdleReason(() -> ActionResult.failInsufficientIn(EURecipeInfo.INSTANCE.getName()).reason());
                 return false;
             }
         }

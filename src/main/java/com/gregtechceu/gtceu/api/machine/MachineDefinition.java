@@ -2,11 +2,11 @@ package com.gregtechceu.gtceu.api.machine;
 
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
 import com.gregtechceu.gtceu.api.item.MetaMachineItem;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -107,7 +107,7 @@ public class MachineDefinition implements Supplier<MetaMachineBlock>, ItemLike {
     private EditableMachineUI editableUI;
     @Getter
     @Setter
-    private Reference2IntOpenHashMap<RecipeCapability<?>> recipeOutputLimits;
+    private Reference2IntOpenHashMap<RecipeInfo> recipeOutputLimits;
 
     protected MachineDefinition(ResourceLocation id) {
         this.id = id;
