@@ -33,7 +33,7 @@ public abstract class RecipeCondition {
         group.addWidget(new LabelWidget(3 - xOffset, yOffset.addAndGet(10), getTooltips().getString()));
     }
 
-    public int getYOffset(GTRecipeDefinition recipe) {
+    public int getHeight(GTRecipeDefinition recipe) {
         return 10;
     }
 

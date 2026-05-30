@@ -64,7 +64,7 @@ public class GTRecipeWidget extends WidgetGroup {
 
     public GTRecipeWidget(GTRecipeDefinition recipe) {
         super(getXOffset(recipe), 0, recipe.recipeType.getRecipeUI().getJEISize().width,
-                getYOffset(recipe));
+                getHeight(recipe));
         this.recipe = recipe;
         this.xOffset = getXOffset(recipe);
         this.minTier = recipe.tier;
@@ -82,16 +82,16 @@ public class GTRecipeWidget extends WidgetGroup {
         return 0;
     }
 
-    public static int getYOffset(GTRecipeDefinition recipe) {
+    public static int getHeight(GTRecipeDefinition recipe) {
         var height = recipe.recipeType.getRecipeUI().getJEISize().height;
         for (var c : recipe.conditions) {
-            height += c.getYOffset(recipe);
+            height += c.getHeight(recipe);
         }
         for (var c : recipe.contentExpanders) {
-            height += c.getYOffset(recipe);
+            height += c.getHeight(recipe);
         }
         for (var c : recipe.tickContentExpanders) {
-            height += c.getYOffset(recipe);
+            height += c.getHeight(recipe);
         }
         return height;
     }

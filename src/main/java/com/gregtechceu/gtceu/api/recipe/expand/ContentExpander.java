@@ -27,5 +27,5 @@ public interface ContentExpander {
 
     void addXEIInfo(GTRecipeDefinition recipe, WidgetGroup group, int xOffset, MutableInt yOffset);
 
-    int getYOffset(GTRecipeDefinition recipe);
+    int getHeight(GTRecipeDefinition recipe);
 }

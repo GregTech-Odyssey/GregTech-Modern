@@ -124,6 +124,7 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
         if (io.support(IO.OUT)) {
             setMaxSize(IO.OUT, EURecipeCapability.CAP, 1);
         }
+        setMaxTooltips(3);
         return this;
     }
 

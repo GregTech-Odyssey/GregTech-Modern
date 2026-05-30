@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Range;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -97,11 +98,11 @@ public class RecipeHelper {
         if (multiplier == 1) return contents;
         var size = contents.size();
         if (size == 0) return contents;
-        var list = new ArrayList<Content<T>>(size);
-        for (Content<T> content : contents) {
-            list.add(content.modifier(multiplier));
+        var array = new Content[size];
+        for (var i = 0; i < size; i++) {
+            array[i] = contents.get(i).modifier(multiplier);
         }
-        return list;
+        return Arrays.asList(array);
     }
 
     public static <T extends ContentInner> List<Content<T>> copyContents(List<Content<T>> contents, @Range(from = 1, to = ParallelLogic.MAX_PARALLEL) long multiplier) {
