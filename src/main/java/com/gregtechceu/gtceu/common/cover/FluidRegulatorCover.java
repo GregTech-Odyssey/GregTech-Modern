@@ -7,7 +7,7 @@ import com.gregtechceu.gtceu.api.cover.filter.SimpleFluidFilter;
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.gui.widget.IntInputWidget;
 import com.gregtechceu.gtceu.api.gui.widget.NumberInputWidget;
-import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
+import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.common.cover.data.BucketMode;
 import com.gregtechceu.gtceu.common.cover.data.TransferMode;
 
@@ -58,7 +58,7 @@ public class FluidRegulatorCover extends PumpCover {
     // ***** Transfer Logic ******//
     //////////////////////////////////////
     @Override
-    protected int doTransferFluidsInternal(IFluidHandlerModifiable source, IFluidHandlerModifiable destination, int platformTransferLimit) {
+    protected int doTransferFluidsInternal(ICustomFluidStackHandler source, ICustomFluidStackHandler destination, int platformTransferLimit) {
         return switch (transferMode) {
             case TRANSFER_ANY -> transferAny(source, destination, platformTransferLimit);
             case TRANSFER_EXACT -> transferExact(source, destination, platformTransferLimit);
@@ -99,7 +99,7 @@ public class FluidRegulatorCover extends PumpCover {
         return platformTransferLimit - fluidLeftToTransfer;
     }
 
-    private int keepExact(IFluidHandlerModifiable source, IFluidHandlerModifiable destination, int platformTransferLimit) {
+    private int keepExact(ICustomFluidStackHandler source, ICustomFluidStackHandler destination, int platformTransferLimit) {
         int fluidLeftToTransfer = platformTransferLimit;
         var sourceAmounts = enumerateDistinctFluids(source, TransferDirection.EXTRACT);
         var destinationAmounts = enumerateDistinctFluids(destination, TransferDirection.INSERT);

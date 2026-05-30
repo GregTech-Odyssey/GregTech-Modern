@@ -5,7 +5,8 @@ import com.gregtechceu.gtceu.api.block.IAppearance;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
-import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
+import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 
@@ -24,7 +25,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.items.IItemHandlerModifiable;
 
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.Nullable;
@@ -62,9 +62,9 @@ public interface ICoverable extends ITickSubscription, IAppearance {
 
     boolean shouldRenderBackSide();
 
-    IItemHandlerModifiable getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability);
+    ICustomItemStackHandler getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability);
 
-    IFluidHandlerModifiable getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability);
+    ICustomFluidStackHandler getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability);
 
     /**
      * Its an internal method, you should never call it yourself.

@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMa
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerList;
+import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
@@ -117,11 +118,11 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
 
     private void initializeAbilities() {
         List<IEnergyContainer> energyContainers = new ArrayList<>();
-        List<IFluidHandler> fluidTanks = new ArrayList<>();
+        List<ICustomFluidStackHandler> fluidTanks = new ArrayList<>();
         for (var part : getWorkableParts()) {
             for (var handlerList : part.getRecipeHandlers()) {
                 energyContainers.addAll(handlerList.getCapabilities(IEnergyContainer.class));
-                fluidTanks.addAll(handlerList.getCapabilities(IFluidHandler.class));
+                fluidTanks.addAll(handlerList.getCapabilities(ICustomFluidStackHandler.class));
             }
         }
         this.energyContainer = new EnergyContainerList(energyContainers);

@@ -1,16 +1,15 @@
 package com.gregtechceu.gtceu.api.transfer.item;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandlerModifiable;
 
 import org.jetbrains.annotations.NotNull;
 
-public class LockableItemStackHandler implements IItemHandlerModifiable {
+public class LockableItemStackHandler implements ICustomItemStackHandler {
 
-    protected final IItemHandlerModifiable delegate;
+    protected final ICustomItemStackHandler delegate;
     protected boolean lock;
 
-    public LockableItemStackHandler(IItemHandlerModifiable delegate) {
+    public LockableItemStackHandler(ICustomItemStackHandler delegate) {
         this.delegate = delegate;
     }
 

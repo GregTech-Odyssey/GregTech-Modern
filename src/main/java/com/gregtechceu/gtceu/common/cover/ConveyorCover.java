@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.gui.widget.IntInputWidget;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.ItemHandlerDelegate;
 import com.gregtechceu.gtceu.common.blockentity.ItemPipeBlockEntity;
 import com.gregtechceu.gtceu.common.cover.data.DistributionMode;
@@ -37,7 +38,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 import com.fast.fastcollection.O2OOpenCustomCacheHashMap;
@@ -107,7 +107,7 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     }
 
     @Nullable
-    protected IItemHandlerModifiable getOwnItemHandler() {
+    protected ICustomItemStackHandler getOwnItemHandler() {
         return coverHolder.getItemHandlerCap(attachedSide, false);
     }
 
@@ -187,8 +187,8 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     }
 
     protected void update() {
-        IItemHandler adjacent = this.getAdjacentItemHandler();
-        IItemHandlerModifiable self = this.getOwnItemHandler();
+        var adjacent = this.getAdjacentItemHandler();
+        var self = this.getOwnItemHandler();
         if (adjacent != null && self != null) {
             switch (this.io) {
                 case IN -> this.doTransferItems(adjacent, self, this.transferRate);
@@ -409,7 +409,7 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
 
     @Nullable
     @Override
-    public IItemHandlerModifiable getItemHandlerCap(@Nullable IItemHandlerModifiable defaultValue) {
+    public ICustomItemStackHandler getItemHandlerCap(@Nullable ICustomItemStackHandler defaultValue) {
         if (defaultValue == null) {
             return null;
         }
@@ -421,7 +421,7 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
 
     private class CoverableItemHandlerWrapper extends ItemHandlerDelegate {
 
-        public CoverableItemHandlerWrapper(IItemHandlerModifiable delegate) {
+        public CoverableItemHandlerWrapper(ICustomItemStackHandler delegate) {
             super(delegate);
         }
 

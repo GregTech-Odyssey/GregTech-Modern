@@ -1,20 +1,18 @@
 package com.gregtechceu.gtceu.api.transfer.item;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
 
 import org.jetbrains.annotations.NotNull;
 
-public class ItemHandlerList implements IItemHandlerModifiable {
+public class ItemHandlerList implements ICustomItemStackHandler {
 
-    protected final IItemHandler[] handlers;
+    protected final ICustomItemStackHandler[] handlers;
     protected final int size;
 
-    public ItemHandlerList(IItemHandler... handlers) {
+    public ItemHandlerList(ICustomItemStackHandler... handlers) {
         this.handlers = handlers;
         int size = 0;
-        for (IItemHandler handler : handlers) {
+        for (var handler : handlers) {
             size += handler.getSlots();
         }
         this.size = size;
@@ -27,7 +25,7 @@ public class ItemHandlerList implements IItemHandlerModifiable {
 
     @Override
     public @NotNull ItemStack getStackInSlot(int slot) {
-        for (IItemHandler handler : handlers) {
+        for (var handler : handlers) {
             var slots = handler.getSlots();
             if (slot < slots) {
                 return handler.getStackInSlot(slot);
@@ -39,10 +37,10 @@ public class ItemHandlerList implements IItemHandlerModifiable {
 
     @Override
     public void setStackInSlot(int slot, @NotNull ItemStack stack) {
-        for (IItemHandler handler : handlers) {
+        for (var handler : handlers) {
             var slots = handler.getSlots();
             if (slot < slots) {
-                if (handler instanceof IItemHandlerModifiable modifiable) modifiable.setStackInSlot(slot, stack);
+                handler.setStackInSlot(slot, stack);
                 return;
             }
             slot -= slots;
@@ -51,7 +49,7 @@ public class ItemHandlerList implements IItemHandlerModifiable {
 
     @Override
     public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
-        for (IItemHandler handler : handlers) {
+        for (var handler : handlers) {
             var slots = handler.getSlots();
             if (slot < slots) {
                 return handler.insertItem(slot, stack, simulate);
@@ -63,7 +61,7 @@ public class ItemHandlerList implements IItemHandlerModifiable {
 
     @Override
     public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
-        for (IItemHandler handler : handlers) {
+        for (var handler : handlers) {
             var slots = handler.getSlots();
             if (slot < slots) {
                 return handler.extractItem(slot, amount, simulate);
@@ -75,7 +73,7 @@ public class ItemHandlerList implements IItemHandlerModifiable {
 
     @Override
     public int getSlotLimit(int slot) {
-        for (IItemHandler handler : handlers) {
+        for (var handler : handlers) {
             var slots = handler.getSlots();
             if (slot < slots) {
                 return handler.getSlotLimit(slot);
@@ -87,7 +85,7 @@ public class ItemHandlerList implements IItemHandlerModifiable {
 
     @Override
     public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-        for (IItemHandler handler : handlers) {
+        for (var handler : handlers) {
             var slots = handler.getSlots();
             if (slot < slots) {
                 return handler.isItemValid(slot, stack);

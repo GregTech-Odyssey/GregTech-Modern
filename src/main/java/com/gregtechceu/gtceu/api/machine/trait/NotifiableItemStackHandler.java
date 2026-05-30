@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.SimpleStack;
@@ -17,10 +18,10 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.items.IItemHandlerModifiable;
 
 import com.fast.recipesearch.IntLongMap;
 import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,7 +30,7 @@ import java.util.function.IntFunction;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Predicate;
 
-public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait implements ICapabilityTrait, IItemHandlerModifiable {
+public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait implements ICapabilityTrait, ICustomItemStackHandler {
 
     public static NotifiableItemStackHandler empty(MetaMachine machine) {
         return new NotifiableItemStackHandler(machine, 0, IO.NONE).setAvailable(false);
@@ -39,6 +40,9 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
     public final IO handlerIO;
     @Getter
     public final IO capabilityIO;
+    @Setter
+    @Getter
+    protected Predicate<@Nullable Direction> capabilityValidator = GTUtil.FAVORABLE;
     @Persisted
     public final CustomItemStackHandler storage;
     protected Boolean isEmpty;
@@ -280,15 +284,6 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
         }
     }
 
-    //////////////////////////////////////
-    // ******* Capability ********//
-    //////////////////////////////////////
-    @Override
-    public boolean hasCapability(@Nullable Direction side) {
-        if (capabilityIO == IO.NONE) return false;
-        return isAvailable && capabilityValidator.test(side);
-    }
-
     @NotNull
     @Override
     public ItemStack getStackInSlot(int slot) {
@@ -309,6 +304,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
         return stack;
     }
 
+    @Override
     public ItemStack insertItemInternal(int slot, @NotNull ItemStack stack, boolean simulate) {
         return storage.insertItem(slot, stack, simulate);
     }
@@ -322,6 +318,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
         return ItemStack.EMPTY;
     }
 
+    @Override
     public ItemStack extractItemInternal(int slot, int amount, boolean simulate) {
         return storage.extractItem(slot, amount, simulate);
     }

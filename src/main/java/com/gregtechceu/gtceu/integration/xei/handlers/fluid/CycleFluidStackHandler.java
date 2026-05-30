@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.integration.xei.handlers.fluid;
 
-import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
+import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidStackList;
 
 import net.minecraftforge.fluids.FluidStack;
@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CycleFluidStackHandler implements IFluidHandlerModifiable {
+public class CycleFluidStackHandler implements ICustomFluidStackHandler {
 
     private final List<FluidStackList> stacks;
 

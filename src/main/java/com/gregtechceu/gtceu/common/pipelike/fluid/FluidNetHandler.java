@@ -4,7 +4,7 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
+import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.common.blockentity.FluidPipeBlockEntity;
 import com.gregtechceu.gtceu.common.cover.FluidFilterCover;
 import com.gregtechceu.gtceu.common.cover.FluidRegulatorCover;
@@ -18,7 +18,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
-public class FluidNetHandler implements IFluidHandlerModifiable {
+public class FluidNetHandler implements ICustomFluidStackHandler {
 
     @Getter
     private FluidPipeNet net;

@@ -21,6 +21,7 @@ import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
 import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerList;
+import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
@@ -98,14 +99,14 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        List<IFluidHandler> coolantContainers = new ArrayList<>();
+        List<ICustomFluidStackHandler> coolantContainers = new ArrayList<>();
         List<IHPCAComponentHatch> componentHatches = new ArrayList<>();
         for (IMultiPart part : getParts()) {
             if (part instanceof IHPCAComponentHatch componentHatch) {
                 componentHatches.add(componentHatch);
             } else if (part instanceof IWorkableMultiPart workableMultiPart) {
                 for (var handlerList : workableMultiPart.getRecipeHandlers()) {
-                    coolantContainers.addAll(handlerList.getCapabilities(IFluidHandler.class));
+                    coolantContainers.addAll(handlerList.getCapabilities(ICustomFluidStackHandler.class));
                 }
             }
         }

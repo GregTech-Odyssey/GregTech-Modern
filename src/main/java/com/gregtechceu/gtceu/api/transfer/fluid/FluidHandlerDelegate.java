@@ -11,11 +11,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @Setter
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public abstract class FluidHandlerDelegate implements IFluidHandlerModifiable {
+public abstract class FluidHandlerDelegate implements ICustomFluidStackHandler {
 
-    public IFluidHandlerModifiable delegate;
+    public ICustomFluidStackHandler delegate;
 
-    public FluidHandlerDelegate(IFluidHandlerModifiable delegate) {
+    public FluidHandlerDelegate(ICustomFluidStackHandler delegate) {
         this.delegate = delegate;
     }
 

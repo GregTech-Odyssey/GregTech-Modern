@@ -7,7 +7,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -15,24 +14,24 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializable<CompoundTag> {
+public class FluidHandlerList implements ICustomFluidStackHandler, INBTSerializable<CompoundTag> {
 
-    public final IFluidHandler[] handlers;
+    public final ICustomFluidStackHandler[] handlers;
     protected final int size;
     @Setter
     protected Predicate<FluidStack> filter = GTUtil.FAVORABLE;
 
-    public FluidHandlerList(IFluidHandler... handlers) {
+    public FluidHandlerList(ICustomFluidStackHandler... handlers) {
         this.handlers = handlers;
         int size = 0;
-        for (IFluidHandler handler : handlers) {
+        for (var handler : handlers) {
             size += handler.getTanks();
         }
         this.size = size;
     }
 
-    public FluidHandlerList(List<IFluidHandler> handlers) {
-        this(handlers.toArray(new IFluidHandler[0]));
+    public FluidHandlerList(List<ICustomFluidStackHandler> handlers) {
+        this(handlers.toArray(new ICustomFluidStackHandler[0]));
     }
 
     @Override
@@ -42,7 +41,7 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
 
     @Override
     public @NotNull FluidStack getFluidInTank(int tank) {
-        for (IFluidHandler handler : handlers) {
+        for (var handler : handlers) {
             var tanks = handler.getTanks();
             if (tank < tanks) {
                 return handler.getFluidInTank(tank);
@@ -54,10 +53,10 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
 
     @Override
     public void setFluidInTank(int tank, FluidStack stack) {
-        for (IFluidHandler handler : handlers) {
+        for (var handler : handlers) {
             var tanks = handler.getTanks();
             if (tank < tanks) {
-                if (handler instanceof IFluidHandlerModifiable modifiable) modifiable.setFluidInTank(tank, stack);
+                handler.setFluidInTank(tank, stack);
                 return;
             }
             tank -= tanks;
@@ -66,7 +65,7 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
 
     @Override
     public int getTankCapacity(int tank) {
-        for (IFluidHandler handler : handlers) {
+        for (var handler : handlers) {
             var tanks = handler.getTanks();
             if (tank < tanks) {
                 return handler.getTankCapacity(tank);
@@ -79,7 +78,7 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
     @Override
     public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
         if (!filter.test(stack)) return false;
-        for (IFluidHandler handler : handlers) {
+        for (var handler : handlers) {
             var tanks = handler.getTanks();
             if (tank < tanks) {
                 return handler.isFluidValid(tank, stack);
@@ -91,14 +90,14 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
 
     @Override
     public int fill(FluidStack resource, FluidAction action) {
-        if (resource.isEmpty() || !filter.test(resource)) return 0;
-        var copied = resource.copy();
-        for (IFluidHandler handler : handlers) {
-            var candidate = copied.copy();
-            copied.shrink(handler.fill(candidate, action));
-            if (copied.isEmpty()) break;
+        var amount = resource.getAmount();
+        if (amount < 1 || !filter.test(resource)) return 0;
+        var filled = 0;
+        for (var handler : handlers) {
+            filled += handler.fill(ICustomFluidStackHandler.copy(resource, amount - filled), action);
+            if (filled >= amount) break;
         }
-        return resource.getAmount() - copied.getAmount();
+        return filled;
     }
 
     @Override
@@ -106,7 +105,7 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
     public FluidStack drain(FluidStack resource, FluidAction action) {
         if (resource.isEmpty() || !filter.test(resource)) return FluidStack.EMPTY;
         var copied = resource.copy();
-        for (IFluidHandler handler : handlers) {
+        for (var handler : handlers) {
             var candidate = copied.copy();
             copied.shrink(handler.drain(candidate, action).getAmount());
             if (copied.isEmpty()) break;
@@ -120,7 +119,7 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
     public FluidStack drain(int maxDrain, FluidAction action) {
         if (maxDrain == 0) return FluidStack.EMPTY;
         FluidStack totalDrained = null;
-        for (IFluidHandler handler : handlers) {
+        for (var handler : handlers) {
             if (totalDrained == null || totalDrained.isEmpty()) {
                 totalDrained = handler.drain(maxDrain, action);
                 if (totalDrained.isEmpty()) totalDrained = null;
@@ -141,7 +140,7 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
     public CompoundTag serializeNBT() {
         var tag = new CompoundTag();
         var list = new ListTag();
-        for (IFluidHandler handler : handlers) {
+        for (var handler : handlers) {
             if (handler instanceof INBTSerializable<?> serializable) {
                 list.add(serializable.serializeNBT());
             } else {
@@ -167,10 +166,10 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
 
     @Override
     public boolean supportsFill(int tank) {
-        for (IFluidHandler handler : handlers) {
+        for (var handler : handlers) {
             var tanks = handler.getTanks();
             if (tank < tanks) {
-                if (handler instanceof IFluidHandlerModifiable modifiable) {
+                if (handler instanceof ICustomFluidStackHandler modifiable) {
                     return modifiable.supportsFill(tank);
                 }
                 return true;
@@ -182,10 +181,10 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
 
     @Override
     public boolean supportsDrain(int tank) {
-        for (IFluidHandler handler : handlers) {
+        for (var handler : handlers) {
             var tanks = handler.getTanks();
             if (tank < tanks) {
-                if (handler instanceof IFluidHandlerModifiable modifiable) {
+                if (handler instanceof ICustomFluidStackHandler modifiable) {
                     return modifiable.supportsDrain(tank);
                 }
                 return true;

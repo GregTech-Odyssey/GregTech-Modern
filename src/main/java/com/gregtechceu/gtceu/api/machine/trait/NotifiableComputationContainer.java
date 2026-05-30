@@ -7,12 +7,22 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
-public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait implements IOpticalComputationProvider {
+import java.util.function.Predicate;
+
+public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait implements ICapabilityTrait, IOpticalComputationProvider {
+
+    @Setter
+    @Getter
+    protected Predicate<@Nullable Direction> capabilityValidator = GTUtil.FAVORABLE;
 
     protected boolean transmitter;
     protected long lastTimeStamp;
@@ -129,5 +139,10 @@ public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait
 
     public IO getHandlerIO() {
         return transmitter ? IO.NONE : IO.IN;
+    }
+
+    @Override
+    public IO getCapabilityIO() {
+        return getHandlerIO();
     }
 }

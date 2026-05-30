@@ -11,7 +11,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 import lombok.Getter;
@@ -22,7 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSerializable<CompoundTag>, IContentChange, ITagSerializable<CompoundTag> {
+public class CustomItemStackHandler implements ICustomItemStackHandler, INBTSerializable<CompoundTag>, IContentChange, ITagSerializable<CompoundTag> {
 
     @NotNull
     protected Runnable onContentsChanged = GTUtil.NOOP;
@@ -108,9 +107,6 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
         return stack;
     }
 
-    /**
-     * @return inserted.
-     **/
     public int insert(int slot, @NotNull ItemStack stack, int amount, boolean simulate) {
         if (!filter.test(stack)) return 0;
         ItemStack existing = this.stacks[slot];
@@ -138,34 +134,29 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
         ItemStack existing = this.stacks[slot];
         int count = existing.getCount();
         if (count < 1) return ItemStack.EMPTY;
-        int toExtract = Math.min(amount, existing.getMaxStackSize());
-        if (count <= toExtract) {
-            if (!simulate) {
+        if (count <= amount) {
+            if (simulate) {
+                return existing.copy();
+            } else {
                 this.stacks[slot] = ItemStack.EMPTY;
                 onContentsChanged(slot);
                 return existing;
-            } else {
-                return existing.copy();
             }
         } else {
             if (!simulate) {
-                existing.setCount(count - toExtract);
+                existing.setCount(count - amount);
                 onContentsChanged(slot);
             }
-            return ItemHandlerHelper.copyStackWithSize(existing, toExtract);
+            return ItemHandlerHelper.copyStackWithSize(existing, amount);
         }
     }
 
-    /**
-     * @return extracted.
-     **/
     public int extract(int slot, int amount, boolean simulate) {
         if (amount == 0) return 0;
         ItemStack existing = this.stacks[slot];
         int count = existing.getCount();
         if (count < 1) return 0;
-        int toExtract = Math.min(amount, existing.getMaxStackSize());
-        if (count <= toExtract) {
+        if (count <= amount) {
             if (!simulate) {
                 this.stacks[slot] = ItemStack.EMPTY;
                 onContentsChanged(slot);
@@ -173,10 +164,10 @@ public class CustomItemStackHandler implements IItemHandlerModifiable, INBTSeria
             return count;
         } else {
             if (!simulate) {
-                existing.setCount(count - toExtract);
+                existing.setCount(count - amount);
                 onContentsChanged(slot);
             }
-            return toExtract;
+            return amount;
         }
     }
 

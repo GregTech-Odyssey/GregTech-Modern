@@ -7,7 +7,7 @@ import com.gregtechceu.gtceu.api.cover.filter.SimpleFluidFilter;
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.gui.widget.IntInputWidget;
 import com.gregtechceu.gtceu.api.gui.widget.NumberInputWidget;
-import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
+import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.common.cover.data.BucketMode;
 import com.gregtechceu.gtceu.common.cover.data.VoidingMode;
 import com.gregtechceu.gtceu.utils.GTMath;
@@ -50,7 +50,7 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
     //////////////////////////////////////////////
     @Override
     protected void doVoidFluids() {
-        IFluidHandlerModifiable fluidHandler = getOwnFluidHandler();
+        ICustomFluidStackHandler fluidHandler = getOwnFluidHandler();
         if (fluidHandler == null) {
             return;
         }
@@ -60,7 +60,7 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
         }
     }
 
-    private void voidOverflow(IFluidHandlerModifiable fluidHandler) {
+    private void voidOverflow(ICustomFluidStackHandler fluidHandler) {
         var fluidAmounts = enumerateDistinctFluids(fluidHandler, TransferDirection.EXTRACT);
         for (var entry : Object2LongMaps.fastIterable(fluidAmounts)) {
             var stack = entry.getKey();

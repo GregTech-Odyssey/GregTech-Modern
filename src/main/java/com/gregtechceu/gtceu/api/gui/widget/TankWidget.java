@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.api.gui.widget;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
-import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
+import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.client.TooltipsHandler;
 import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidEntryList;
 import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidStackList;
@@ -161,7 +161,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
     }
 
     public TankWidget setFluid(FluidStack fluidStack, boolean notify) {
-        if (fluidTank instanceof IFluidHandlerModifiable modifiable) {
+        if (fluidTank instanceof ICustomFluidStackHandler modifiable) {
             modifiable.setFluidInTank(tank, fluidStack);
             if (notify) {
                 detectAndSendChanges();

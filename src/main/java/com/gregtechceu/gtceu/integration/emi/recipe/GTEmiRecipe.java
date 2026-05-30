@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.integration.emi.recipe;
 
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.integration.xei.widgets.GTRecipeWidget;
 
 import com.lowdragmc.lowdraglib.emi.ModularEmiRecipe;
@@ -15,8 +16,6 @@ import com.lowdragmc.lowdraglib.jei.ModularWrapper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fluids.capability.templates.EmptyFluidHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.wrapper.EmptyHandler;
 
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
 import dev.emi.emi.api.stack.EmiIngredient;
@@ -76,7 +75,7 @@ public class GTEmiRecipe extends ModularEmiRecipe<WidgetGroup> {
                     SlotWidget slotWidget = null;
                     // Clear the LDLib slots & add EMI slots based on them.
                     if (slot instanceof com.gregtechceu.gtceu.api.gui.widget.SlotWidget slotW) {
-                        slotW.setHandlerSlot((IItemHandlerModifiable) EmptyHandler.INSTANCE, 0);
+                        slotW.setHandlerSlot(ICustomItemStackHandler.EMPTY, 0);
                         slotW.setDrawHoverOverlay(false).setDrawHoverTips(false);
                     } else if (slot instanceof com.gregtechceu.gtceu.api.gui.widget.TankWidget tankW) {
                         tankW.setFluidTank(EmptyFluidHandler.INSTANCE);

@@ -5,9 +5,9 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface IFluidHandlerModifiable extends IFluidHandler {
+public interface ICustomFluidStackHandler extends IFluidHandler {
 
-    IFluidHandlerModifiable EMPTY = new IFluidHandlerModifiable() {
+    ICustomFluidStackHandler EMPTY = new ICustomFluidStackHandler() {
 
         @Override
         public void setFluidInTank(int tank, FluidStack stack) {}
@@ -43,11 +43,26 @@ public interface IFluidHandlerModifiable extends IFluidHandler {
 
     void setFluidInTank(int tank, FluidStack stack);
 
+    default int fillInternal(FluidStack resource, FluidAction action) {
+        return fill(resource, action);
+    }
+
+    default FluidStack drainInternal(FluidStack resource, FluidAction action) {
+        return drain(resource, action);
+    }
+
     default boolean supportsFill(int tank) {
         return true;
     }
 
     default boolean supportsDrain(int tank) {
         return true;
+    }
+
+    static FluidStack copy(FluidStack stack, int amount) {
+        if (amount < 1) return FluidStack.EMPTY;
+        var copy = stack.copy();
+        copy.setAmount(amount);
+        return stack;
     }
 }

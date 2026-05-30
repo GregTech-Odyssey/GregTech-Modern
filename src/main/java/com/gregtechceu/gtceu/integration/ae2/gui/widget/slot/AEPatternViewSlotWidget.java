@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.integration.ae2.gui.widget.slot;
 
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -11,7 +12,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.Container;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.items.IItemHandlerModifiable;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +32,7 @@ public class AEPatternViewSlotWidget extends SlotWidget {
     }
 
     public AEPatternViewSlotWidget(
-                                   IItemHandlerModifiable itemHandler,
+                                   ICustomItemStackHandler itemHandler,
                                    int slotIndex,
                                    int xPosition,
                                    int yPosition,
@@ -42,7 +42,7 @@ public class AEPatternViewSlotWidget extends SlotWidget {
     }
 
     public AEPatternViewSlotWidget(
-                                   IItemHandlerModifiable itemHandler, int slotIndex, int xPosition, int yPosition) {
+                                   ICustomItemStackHandler itemHandler, int slotIndex, int xPosition, int yPosition) {
         super(itemHandler, slotIndex, xPosition, yPosition);
     }
 

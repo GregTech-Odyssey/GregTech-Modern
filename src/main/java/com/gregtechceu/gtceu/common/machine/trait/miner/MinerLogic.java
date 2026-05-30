@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.NotifiableAccountedInvWrapper;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
@@ -32,7 +33,6 @@ import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.Tags;
-import net.minecraftforge.items.IItemHandlerModifiable;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import lombok.Getter;
@@ -306,7 +306,7 @@ public class MinerLogic extends RecipeLogic {
 
     protected NotifiableAccountedInvWrapper getCachedItemHandler() {
         if (cachedItemHandler == null) {
-            cachedItemHandler = new NotifiableAccountedInvWrapper(machine.getCapabilitiesFlat(IO.OUT, IItemHandlerModifiable.class).toArray(IItemHandlerModifiable[]::new));
+            cachedItemHandler = new NotifiableAccountedInvWrapper(machine.getCapabilitiesFlat(IO.OUT, ICustomItemStackHandler.class).toArray(ICustomItemStackHandler[]::new));
         }
         return cachedItemHandler;
     }

@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.ItemHandlerList;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
@@ -18,7 +19,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandlerModifiable;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -125,9 +125,9 @@ public final class ResearchManager {
         @Override
         public @Nullable GTRecipeDefinition createCustomRecipe(IRecipeHandlerHolder holder, RecipeHandlerUnit unit) {
             var itemInputs = Arrays.stream(unit.itemHandlers)
-                    .filter(IItemHandlerModifiable.class::isInstance)
-                    .map(IItemHandlerModifiable.class::cast)
-                    .toArray(IItemHandlerModifiable[]::new);
+                    .filter(ICustomItemStackHandler.class::isInstance)
+                    .map(ICustomItemStackHandler.class::cast)
+                    .toArray(ICustomItemStackHandler[]::new);
             var inputs = new ItemHandlerList(itemInputs);
             if (inputs.getSlots() > 1) {
                 // try the data recipe both ways, prioritizing overwriting the first

@@ -2,21 +2,20 @@ package com.gregtechceu.gtceu.api.transfer.item;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandlerModifiable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public abstract class ItemHandlerDelegate implements IItemHandlerModifiable {
+public abstract class ItemHandlerDelegate implements ICustomItemStackHandler {
 
-    public IItemHandlerModifiable delegate;
+    public ICustomItemStackHandler delegate;
 
-    public ItemHandlerDelegate(IItemHandlerModifiable delegate) {
+    public ItemHandlerDelegate(ICustomItemStackHandler delegate) {
         this.delegate = delegate;
     }
 
-    protected void setDelegate(IItemHandlerModifiable delegate) {
+    protected void setDelegate(ICustomItemStackHandler delegate) {
         this.delegate = delegate;
     }
 

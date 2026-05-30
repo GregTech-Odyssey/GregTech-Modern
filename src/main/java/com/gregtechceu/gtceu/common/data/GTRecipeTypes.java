@@ -26,6 +26,7 @@ import com.gregtechceu.gtceu.common.recipe.*;
 import com.gregtechceu.gtceu.common.recipe.condition.AdjacentFluidCondition;
 import com.gregtechceu.gtceu.data.recipe.RecipeUtil;
 import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemStackHandler;
+import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.ResearchManager;
 
@@ -509,12 +510,12 @@ public class GTRecipeTypes {
     public final static GTRecipeType BLAST_RECIPES = register("electric_blast_furnace", MULTIBLOCK)
             .setMaxIOSize(3, 3, 1, 1)
             .setEUIO(IO.IN)
-            .addDataInfo(data -> {
-                int temp = data.getInt(GTRecipeDataKeys.EBF_TEMP);
+            .addDataInfo(recipe -> {
+                int temp = recipe.data.getInt(GTRecipeDataKeys.EBF_TEMP);
                 return LocalizationUtils.format("gtceu.recipe.temperature", temp);
             })
-            .addDataInfo(data -> {
-                int temp = data.getInt(GTRecipeDataKeys.EBF_TEMP);
+            .addDataInfo(recipe -> {
+                int temp = recipe.data.getInt(GTRecipeDataKeys.EBF_TEMP);
                 ICoilType requiredCoil = ICoilType.getMinRequiredType(temp);
 
                 if (requiredCoil != null && !requiredCoil.getMaterial().isNull()) {
@@ -658,7 +659,13 @@ public class GTRecipeTypes {
             .setProgressBar(GuiTextures.PROGRESS_BAR_FUSION, LEFT_TO_RIGHT)
             .setSound(GTSoundEntries.ARC)
             .setOffsetVoltageText(true)
-            .setUiBuilder(FusionReactorMachine::addEUToStartLabel);
+            .addDataInfo(recipe -> {
+                long euToStart = recipe.data.getLong(GTRecipeDataKeys.EU_TO_START);
+                if (euToStart <= 0) return "";
+                int fusionTier = FusionReactorMachine.findCeilingTier(euToStart);
+                int tier = Math.max(FusionReactorMachine.MINIMUM_TIER, Math.max(recipe.tier, fusionTier));
+                return LocalizationUtils.format("gtceu.recipe.eu_to_start", FormattingUtil.formatNumberReadable2F(euToStart, false), FusionReactorMachine.FUSION_NAMES.get(tier));
+            });
 
     public static final GTRecipeType DUMMY_RECIPES = register("dummy", DUMMY)
             .setXEIVisible(false);

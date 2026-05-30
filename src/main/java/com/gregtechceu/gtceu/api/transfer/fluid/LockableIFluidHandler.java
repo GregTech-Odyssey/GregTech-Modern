@@ -4,12 +4,12 @@ import net.minecraftforge.fluids.FluidStack;
 
 import org.jetbrains.annotations.NotNull;
 
-public class LockableIFluidHandler implements IFluidHandlerModifiable {
+public class LockableIFluidHandler implements ICustomFluidStackHandler {
 
-    protected final IFluidHandlerModifiable delegate;
+    protected final ICustomFluidStackHandler delegate;
     protected boolean lock;
 
-    public LockableIFluidHandler(IFluidHandlerModifiable delegate) {
+    public LockableIFluidHandler(ICustomFluidStackHandler delegate) {
         this.delegate = delegate;
     }
 

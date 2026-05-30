@@ -87,7 +87,7 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
             for (var hl : handlers) {
                 if (!hl.isValid(IO.IN)) continue;
                 for (var fluidHandler : hl.getCapabilities(NotifiableFluidTank.class)) {
-                    energyContainer = new SteamEnergyContainer(CONVERSION_RATE, fluidHandler);
+                    energyContainer = new SteamEnergyContainer(getConversionRate(), fluidHandler);
                     return;
                 }
             }
@@ -135,7 +135,7 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
         if (isFormed()) {
             if (energyContainer.getEnergyCapacity() > 0) {
                 long steamStored = energyContainer.getEnergyStored();
-                textList.add(Component.translatable("gtceu.multiblock.steam.steam_stored", steamStored / CONVERSION_RATE, energyContainer.getEnergyCapacity() / CONVERSION_RATE));
+                textList.add(Component.translatable("gtceu.multiblock.steam.steam_stored", steamStored / getConversionRate(), energyContainer.getEnergyCapacity() / getConversionRate()));
             }
             if (!isWorkingEnabled()) {
                 textList.add(Component.translatable("gtceu.multiblock.work_paused"));

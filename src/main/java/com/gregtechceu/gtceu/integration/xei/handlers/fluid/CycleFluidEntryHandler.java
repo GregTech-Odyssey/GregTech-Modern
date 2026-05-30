@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.integration.xei.handlers.fluid;
 
-import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
+import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidEntryList;
 import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidStackList;
 
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CycleFluidEntryHandler implements IFluidHandlerModifiable {
+public class CycleFluidEntryHandler implements ICustomFluidStackHandler {
 
     @Getter
     private final List<FluidEntryList> entries;

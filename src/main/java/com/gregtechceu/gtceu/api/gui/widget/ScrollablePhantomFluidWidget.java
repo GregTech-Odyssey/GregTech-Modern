@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.api.gui.widget;
 
-import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
+import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.network.FriendlyByteBuf;
@@ -17,7 +17,7 @@ public class ScrollablePhantomFluidWidget extends PhantomFluidWidget {
 
     private static final int SCROLL_ACTION_ID = 0x0001_0001;
 
-    public ScrollablePhantomFluidWidget(@Nullable IFluidHandlerModifiable fluidTank, int tank, int x, int y, int width,
+    public ScrollablePhantomFluidWidget(@Nullable ICustomFluidStackHandler fluidTank, int tank, int x, int y, int width,
                                         int height, Supplier<FluidStack> phantomFluidGetter,
                                         Consumer<FluidStack> phantomFluidSetter) {
         super(fluidTank, tank, x, y, width, height, phantomFluidGetter, phantomFluidSetter);
@@ -60,7 +60,7 @@ public class ScrollablePhantomFluidWidget extends PhantomFluidWidget {
     }
 
     private void handleScrollAction(int delta) {
-        IFluidHandlerModifiable fluidTank = (IFluidHandlerModifiable) getFluidTank();
+        ICustomFluidStackHandler fluidTank = (ICustomFluidStackHandler) getFluidTank();
         if (fluidTank == null)
             return;
 

@@ -31,7 +31,6 @@ import net.minecraftforge.fml.loading.FMLLoader;
 
 import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
-import com.gto.datasynclib.datasream.DataComponentMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -41,7 +40,6 @@ import org.lwjgl.glfw.GLFW;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
@@ -127,8 +125,8 @@ public class GTRecipeWidget extends WidgetGroup {
         for (RecipeCondition condition : recipe.conditions) {
             condition.addInfo(recipe, this, xOffset, yOff);
         }
-        for (Function<DataComponentMap, String> dataInfo : recipe.recipeType.getDataInfos()) {
-            addWidget(new LabelWidget(3 - xOffset, yOff.addAndGet(LINE_HEIGHT), dataInfo.apply(recipe.data)));
+        for (var dataInfo : recipe.recipeType.getDataInfos()) {
+            addWidget(new LabelWidget(3 - xOffset, yOff.addAndGet(LINE_HEIGHT), dataInfo.apply(recipe)));
         }
         recipe.recipeType.getRecipeUI().appendJEIUI(recipe, this);
     }

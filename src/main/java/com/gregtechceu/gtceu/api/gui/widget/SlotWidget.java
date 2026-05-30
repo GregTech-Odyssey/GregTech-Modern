@@ -1,6 +1,8 @@
 package com.gregtechceu.gtceu.api.gui.widget;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemEntryList;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemStackList;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemTagList;
@@ -23,8 +25,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemStackHandler;
 
 import com.fast.fastcollection.O2OOpenCacheHashMap;
 import dev.emi.emi.api.stack.EmiIngredient;
@@ -51,7 +51,7 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
         super(inventory, slotIndex, xPosition, yPosition, canTakeItems, canPutItems);
     }
 
-    public SlotWidget(IItemHandlerModifiable itemHandler, int slotIndex, int xPosition, int yPosition, boolean canTakeItems, boolean canPutItems) {
+    public SlotWidget(ICustomItemStackHandler itemHandler, int slotIndex, int xPosition, int yPosition, boolean canTakeItems, boolean canPutItems) {
         this.setSelfPosition(xPosition, yPosition);
         this.setSize(18, 18);
         this.recomputePosition();
@@ -72,7 +72,7 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
     }
 
-    public SlotWidget(IItemHandlerModifiable itemHandler, int slotIndex, int xPosition, int yPosition) {
+    public SlotWidget(ICustomItemStackHandler itemHandler, int slotIndex, int xPosition, int yPosition) {
         this(itemHandler, slotIndex, xPosition, yPosition, true, true);
     }
 
@@ -80,7 +80,7 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
         this(container, slotIndex, xPosition, yPosition, true, true);
     }
 
-    protected Slot createSlot(IItemHandlerModifiable itemHandler, int index) {
+    protected Slot createSlot(ICustomItemStackHandler itemHandler, int index) {
         return new WidgetSlotItemHandler(itemHandler, index, 0, 0);
     }
 
@@ -100,7 +100,7 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
         return this;
     }
 
-    public SlotWidget setHandlerSlot(IItemHandlerModifiable itemHandler, int slotIndex) {
+    public SlotWidget setHandlerSlot(ICustomItemStackHandler itemHandler, int slotIndex) {
         updateSlot(createSlot(itemHandler, slotIndex));
         return this;
     }
@@ -173,7 +173,7 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
 
     @Override
     public void buildConfigurator(ConfiguratorGroup father) {
-        var handler = new ItemStackHandler();
+        var handler = new CustomItemStackHandler();
         handler.setStackInSlot(0, Blocks.STONE.asItem().getDefaultInstance());
         father.addConfigurators(new WrapperConfigurator("ldlib.gui.editor.group.preview", new SlotWidget() {
 
@@ -251,10 +251,10 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
     public class WidgetSlotItemHandler extends Slot {
 
         private static final Container emptyInventory = new SimpleContainer(0);
-        private final IItemHandlerModifiable itemHandler;
+        private final ICustomItemStackHandler itemHandler;
         private final int index;
 
-        public WidgetSlotItemHandler(IItemHandlerModifiable itemHandler, int index, int xPosition, int yPosition) {
+        public WidgetSlotItemHandler(ICustomItemStackHandler itemHandler, int index, int xPosition, int yPosition) {
             super(emptyInventory, index, xPosition, yPosition);
             this.itemHandler = itemHandler;
             this.index = index;

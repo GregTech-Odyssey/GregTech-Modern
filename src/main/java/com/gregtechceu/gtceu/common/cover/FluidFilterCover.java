@@ -7,7 +7,7 @@ import com.gregtechceu.gtceu.api.cover.IUICover;
 import com.gregtechceu.gtceu.api.cover.filter.FluidFilter;
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerDelegate;
-import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
+import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.common.cover.data.FilterMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
 
@@ -65,7 +65,7 @@ public class FluidFilterCover extends CoverBehavior implements IUICover {
 
     @Override
     @Nullable
-    public IFluidHandlerModifiable getFluidHandlerCap(@Nullable IFluidHandlerModifiable defaultValue) {
+    public ICustomFluidStackHandler getFluidHandlerCap(@Nullable ICustomFluidStackHandler defaultValue) {
         if (defaultValue == null) {
             return null;
         }
@@ -87,7 +87,7 @@ public class FluidFilterCover extends CoverBehavior implements IUICover {
 
     private class FilteredFluidHandlerWrapper extends FluidHandlerDelegate {
 
-        public FilteredFluidHandlerWrapper(IFluidHandlerModifiable delegate) {
+        public FilteredFluidHandlerWrapper(ICustomFluidStackHandler delegate) {
             super(delegate);
         }
 

@@ -2,34 +2,32 @@ package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
+import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Predicate;
+
 @Getter
-public class FluidTankProxyTrait extends MachineTrait implements IFluidHandlerModifiable, ICapabilityTrait {
+public class FluidTankProxyTrait extends MachineTrait implements ICustomFluidStackHandler, ICapabilityTrait {
 
     public final IO capabilityIO;
-    public IFluidHandlerModifiable proxy;
+    public ICustomFluidStackHandler proxy;
+    @Setter
+    @Getter
+    protected Predicate<@Nullable Direction> capabilityValidator = GTUtil.FAVORABLE;
 
     public FluidTankProxyTrait(MetaMachine machine, IO capabilityIO) {
         super(machine);
         this.capabilityIO = capabilityIO;
-    }
-
-    //////////////////////////////////////
-    // ******* Capability ********//
-    //////////////////////////////////////
-    @Override
-    public boolean hasCapability(@Nullable Direction side) {
-        if (capabilityIO == IO.NONE) return false;
-        return capabilityValidator.test(side);
     }
 
     @Override
@@ -131,7 +129,7 @@ public class FluidTankProxyTrait extends MachineTrait implements IFluidHandlerMo
     /**
      * @return {@code this}.
      */
-    public FluidTankProxyTrait setProxy(final IFluidHandlerModifiable proxy) {
+    public FluidTankProxyTrait setProxy(final ICustomFluidStackHandler proxy) {
         this.proxy = proxy;
         return this;
     }

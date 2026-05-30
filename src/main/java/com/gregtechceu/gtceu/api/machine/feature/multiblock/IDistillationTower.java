@@ -2,13 +2,13 @@ package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
+import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 
 import net.minecraftforge.fluids.capability.IFluidHandler;
@@ -110,7 +110,7 @@ public interface IDistillationTower extends IWorkableMultiController {
             var handler = outputs.get(i);
             var output = fluids.get(i);
             var fluid = output.inner.getFluidStack(output.getIntAmount());
-            int filled = (handler instanceof NotifiableFluidTank nft) ? nft.fillInternal(fluid, action) : handler.fill(fluid, action);
+            int filled = (handler instanceof ICustomFluidStackHandler nft) ? nft.fillInternal(fluid, action) : handler.fill(fluid, action);
             if (filled != fluid.getAmount()) valid = false;
             if (action.simulate() && !valid) break;
         }

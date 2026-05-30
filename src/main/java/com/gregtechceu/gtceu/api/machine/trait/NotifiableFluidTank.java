@@ -7,7 +7,7 @@ import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
-import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
+import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.SimpleStack;
@@ -23,6 +23,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import com.fast.recipesearch.IntLongMap;
 import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,12 +31,15 @@ import java.util.List;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Predicate;
 
-public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements ICapabilityTrait, IFluidHandlerModifiable {
+public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements ICapabilityTrait, ICustomFluidStackHandler {
 
     @Getter
     public final IO handlerIO;
     @Getter
     public final IO capabilityIO;
+    @Setter
+    @Getter
+    protected Predicate<@Nullable Direction> capabilityValidator = GTUtil.FAVORABLE;
     @Getter
     @Persisted
     protected final CustomFluidTank[] storages;
@@ -341,15 +345,6 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements
         }
     }
 
-    //////////////////////////////////////
-    // ******* Capability ********//
-    //////////////////////////////////////
-    @Override
-    public boolean hasCapability(@Nullable Direction side) {
-        if (capabilityIO == IO.NONE) return false;
-        return isAvailable && capabilityValidator.test(side);
-    }
-
     @NotNull
     @Override
     public FluidStack getFluidInTank(int tank) {
@@ -376,9 +371,11 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements
         return fillInternal(resource, action);
     }
 
+    @Override
     public int fillInternal(FluidStack resource, FluidAction action) {
-        if (resource.isEmpty()) return 0;
-        var copied = resource.copy();
+        var amount = resource.getAmount();
+        if (amount < 1) return 0;
+        var filled = 0;
         boolean canVoidResource = false;
         CustomFluidTank existingStorage = null;
         if (!allowSameFluids) {
@@ -396,19 +393,19 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements
                 if (canFillStorage) {
                     canVoidResource = true;
                 }
-                var filled = storage.fill(copied.copy(), action);
-                if (filled > 0) {
-                    copied.shrink(filled);
+                var f = storage.fill(ICustomFluidStackHandler.copy(resource, amount - filled), action);
+                if (f > 0) {
+                    filled += f;
                     if (!allowSameFluids) {
                         break;
                     }
                 }
-                if (copied.isEmpty()) break;
+                if (filled >= amount) break;
             }
         } else {
-            copied.shrink(existingStorage.fill(copied.copy(), action));
+            filled = existingStorage.fill(resource.copy(), action);
         }
-        return resource.getAmount() - (isVoiding && canVoidResource ? 0 : copied.getAmount());
+        return isVoiding && canVoidResource ? amount : filled;
     }
 
     @NotNull
@@ -420,6 +417,7 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements
         return FluidStack.EMPTY;
     }
 
+    @Override
     public FluidStack drainInternal(FluidStack resource, FluidAction action) {
         if (resource.isEmpty()) return FluidStack.EMPTY;
         var copied = resource.copy();

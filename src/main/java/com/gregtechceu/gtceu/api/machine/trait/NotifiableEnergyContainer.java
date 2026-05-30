@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -19,7 +20,6 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.items.IItemHandlerModifiable;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -28,7 +28,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait implements IEnergyContainer {
+public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait implements ICapabilityTrait, IEnergyContainer {
+
+    @Setter
+    @Getter
+    protected Predicate<@Nullable Direction> capabilityValidator = GTUtil.FAVORABLE;
 
     @Getter
     protected IO handlerIO;
@@ -161,7 +165,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait impl
         }
     }
 
-    public boolean dischargeOrRechargeEnergyContainers(IItemHandlerModifiable itemHandler, int slotIndex, boolean simulate) {
+    public boolean dischargeOrRechargeEnergyContainers(ICustomItemStackHandler itemHandler, int slotIndex, boolean simulate) {
         var stackInSlot = itemHandler.getStackInSlot(slotIndex).copy();
         if (stackInSlot.isEmpty()) {
             // no stack to charge/discharge
@@ -267,5 +271,10 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait impl
             setEnergyStored(stored + energyToAdd);
             return energyToAdd;
         }
+    }
+
+    @Override
+    public IO getCapabilityIO() {
+        return handlerIO;
     }
 }

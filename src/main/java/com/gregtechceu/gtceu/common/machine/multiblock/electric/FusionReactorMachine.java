@@ -9,20 +9,14 @@ import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMa
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.common.block.FusionCasingBlock;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
-import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
@@ -52,9 +46,9 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     // Max EU -> Tier map, used to find minimum tier needed for X EU to start
     private static final Long2IntSortedMap FUSION_ENERGY = new Long2IntAVLTreeMap();
     // Tier -> Suffix map, i.e. LuV -> MKI
-    private static final Int2ObjectMap<String> FUSION_NAMES = new Int2ObjectArrayMap<>(4);
+    public static final Int2ObjectMap<String> FUSION_NAMES = new Int2ObjectArrayMap<>(4);
     // Minimum registered fusion reactor tier
-    private static int MINIMUM_TIER = MAX;
+    public static int MINIMUM_TIER = MAX;
     @Getter
     private final int tier;
     @Nullable
@@ -237,15 +231,6 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
         }
     }
 
-    public static void addEUToStartLabel(GTRecipeDefinition recipe, WidgetGroup group) {
-        long euToStart = recipe.data.getLong(GTRecipeDataKeys.EU_TO_START);
-        if (euToStart <= 0) return;
-        int recipeTier = RecipeHelper.getRecipeEUtTier(recipe);
-        int fusionTier = findCeilingTier(euToStart);
-        int tier = Math.max(MINIMUM_TIER, Math.max(recipeTier, fusionTier));
-        group.addWidget(new LabelWidget(-8, group.getSizeHeight() - 10, LocalizationUtils.format("gtceu.recipe.eu_to_start", FormattingUtil.formatNumberReadable2F(euToStart, false), FUSION_NAMES.get(tier))));
-    }
-
     //////////////////////////////////////
     // ******** MISC *********//
     //////////////////////////////////////
@@ -256,7 +241,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
         MINIMUM_TIER = Math.min(tier, MINIMUM_TIER);
     }
 
-    private static int findCeilingTier(long euToStart) {
+    public static int findCeilingTier(long euToStart) {
         long key;
         // tail = submap where all keys are >= EU to start
         // if tail is empty, then EU is greater than all the EU values, so we choose the last key

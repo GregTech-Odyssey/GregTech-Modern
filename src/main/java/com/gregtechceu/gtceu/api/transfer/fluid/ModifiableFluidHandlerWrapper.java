@@ -5,7 +5,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import org.jetbrains.annotations.NotNull;
 
-public class ModifiableFluidHandlerWrapper implements IFluidHandlerModifiable {
+public class ModifiableFluidHandlerWrapper implements ICustomFluidStackHandler {
 
     private IFluidHandler handler;
 

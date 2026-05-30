@@ -1,10 +1,10 @@
 package com.gregtechceu.gtceu.integration.xei.handlers.item;
 
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemEntryList;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemStackList;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandlerModifiable;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CycleItemEntryHandler implements IItemHandlerModifiable {
+public class CycleItemEntryHandler implements ICustomItemStackHandler {
 
     @Getter
     private final List<ItemEntryList> entries;

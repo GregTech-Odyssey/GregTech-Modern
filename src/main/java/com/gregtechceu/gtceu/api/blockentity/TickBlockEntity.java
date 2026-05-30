@@ -124,10 +124,7 @@ public abstract class TickBlockEntity extends BlockEntity implements ISync, IAsy
         if (level instanceof ServerLevel serverLevel) {
             changed = true;
             TaskHandler.enqueueTask(serverLevel, () -> {
-                var chunk = getChunk();
-                if (chunk != null) {
-                    chunk.setUnsaved(true);
-                }
+                serverLevel.blockEntityChanged(worldPosition);
                 changed = false;
             }, 0);
         }

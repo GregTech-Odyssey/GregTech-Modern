@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.item.tool.IToolGridHighlight;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.trait.ICapabilityTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.misc.EnergyInfoProviderList;
@@ -174,7 +175,7 @@ public class MetaMachineBlockEntity extends TickBlockEntity implements IToolGrid
         if (traits.isEmpty()) return Collections.emptyList();
         List<T> list = new ArrayList<>();
         for (MachineTrait trait : traits) {
-            if (trait.hasCapability(accessSide) && capability.isInstance(trait)) {
+            if (trait instanceof ICapabilityTrait capabilityTrait && capabilityTrait.hasCapability(accessSide) && capability.isInstance(trait)) {
                 list.add(capability.cast(trait));
             }
         }

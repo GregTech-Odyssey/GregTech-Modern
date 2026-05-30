@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.cover.filter.SmartItemFilter;
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.machine.MachineCoverContainer;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.ItemHandlerDelegate;
 import com.gregtechceu.gtceu.common.cover.data.FilterMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
@@ -23,7 +24,6 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandlerModifiable;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -73,7 +73,7 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
 
     @Override
     @Nullable
-    public IItemHandlerModifiable getItemHandlerCap(IItemHandlerModifiable defaultValue) {
+    public ICustomItemStackHandler getItemHandlerCap(ICustomItemStackHandler defaultValue) {
         if (defaultValue == null) {
             return null;
         }
@@ -100,7 +100,7 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
 
     private class FilteredItemHandlerWrapper extends ItemHandlerDelegate {
 
-        public FilteredItemHandlerWrapper(IItemHandlerModifiable delegate) {
+        public FilteredItemHandlerWrapper(ICustomItemStackHandler delegate) {
             super(delegate);
         }
 

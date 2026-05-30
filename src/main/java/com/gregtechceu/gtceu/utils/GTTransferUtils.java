@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.utils;
 
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerList;
+import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -202,7 +202,7 @@ public class GTTransferUtils {
             var copied = stack.copy();
             for (var handler : handlerList.handlers) {
                 var candidate = copied.copy();
-                if (handler instanceof NotifiableFluidTank notifiable) {
+                if (handler instanceof ICustomFluidStackHandler notifiable) {
                     copied.shrink(notifiable.fillInternal(candidate, action));
                 } else {
                     copied.shrink(handler.fill(candidate, action));
@@ -221,7 +221,7 @@ public class GTTransferUtils {
             var copied = stack.copy();
             for (var handler : handlerList.handlers) {
                 var candidate = copied.copy();
-                if (handler instanceof NotifiableFluidTank notifiable) {
+                if (handler instanceof ICustomFluidStackHandler notifiable) {
                     copied.shrink(notifiable.drainInternal(candidate, action).getAmount());
                 } else {
                     copied.shrink(handler.drain(candidate, action).getAmount());

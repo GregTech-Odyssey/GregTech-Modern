@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
 import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
@@ -11,11 +10,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.function.Predicate;
 
 /**
  * represents an abstract capability held by machine. Such as item, fluid, energy, etc.
@@ -28,22 +23,15 @@ public abstract class MachineTrait implements IEnhancedManaged {
     private final ManagedFieldHolder managedFieldHolder = MetaMachine.getManagedFieldHolder(getClass());
     @Getter
     protected final MetaMachine machine;
-    @Setter
-    protected Predicate<@Nullable Direction> capabilityValidator;
 
     public MachineTrait(MetaMachine machine) {
         this.machine = machine;
-        this.capabilityValidator = GTUtil.FAVORABLE;
         machine.attachTraits(this);
     }
 
     @Override
     public final ManagedFieldHolder getFieldHolder() {
         return managedFieldHolder;
-    }
-
-    public boolean hasCapability(@Nullable Direction side) {
-        return capabilityValidator.test(side);
     }
 
     @Override

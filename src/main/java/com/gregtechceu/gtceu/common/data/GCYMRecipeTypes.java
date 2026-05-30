@@ -36,12 +36,12 @@ public class GCYMRecipeTypes {
             .setSlotOverlay(false, true, true, GuiTextures.FURNACE_OVERLAY_2)
             .setSlotOverlay(true, true, false, GuiTextures.FURNACE_OVERLAY_2)
             .setSlotOverlay(true, true, true, GuiTextures.FURNACE_OVERLAY_2)
-            .addDataInfo(data -> {
-                int temp = data.getInt(GTRecipeDataKeys.EBF_TEMP);
+            .addDataInfo(recipe -> {
+                int temp = recipe.data.getInt(GTRecipeDataKeys.EBF_TEMP);
                 return LocalizationUtils.format("gtceu.recipe.temperature", FormattingUtil.formatNumbers(temp));
             })
-            .addDataInfo(data -> {
-                int temp = data.getInt(GTRecipeDataKeys.EBF_TEMP);
+            .addDataInfo(recipe -> {
+                int temp = recipe.data.getInt(GTRecipeDataKeys.EBF_TEMP);
                 ICoilType requiredCoil = ICoilType.getMinRequiredType(temp);
 
                 if (requiredCoil != null && !requiredCoil.getMaterial().isNull()) {

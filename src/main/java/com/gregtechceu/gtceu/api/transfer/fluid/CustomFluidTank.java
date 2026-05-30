@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Predicate;
 
-public class CustomFluidTank extends FluidTank implements IFluidHandlerModifiable, ITagSerializable<CompoundTag>, IContentChange {
+public class CustomFluidTank extends FluidTank implements ICustomFluidStackHandler, ITagSerializable<CompoundTag>, IContentChange {
 
     @NotNull
     protected Runnable onContentsChanged = GTUtil.NOOP;

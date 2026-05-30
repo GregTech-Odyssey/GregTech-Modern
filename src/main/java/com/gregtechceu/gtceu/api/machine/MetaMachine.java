@@ -17,12 +17,14 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.feature.*;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
+import com.gregtechceu.gtceu.api.machine.trait.ICapabilityTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.misc.IOFilteredInvWrapper;
 import com.gregtechceu.gtceu.api.misc.IOFluidHandlerList;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
+import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.common.cover.FluidFilterCover;
 import com.gregtechceu.gtceu.common.cover.ItemFilterCover;
 import com.gregtechceu.gtceu.common.item.tool.behavior.ToolModeSwitchBehavior;
@@ -68,7 +70,6 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
 
 import com.gto.datasynclib.FieldDataManager;
 import com.gto.datasynclib.LazyFieldDataManager;
@@ -143,10 +144,10 @@ public class MetaMachine implements ISync, IEnhancedManaged, ITickSubscription, 
     @Getter
     protected final List<MachineTrait> traits = new ArrayList<>();
 
-    protected final DirectionCache<IItemHandlerModifiable> itemHandlerModifiableCache = DirectionCache.create();
-    protected final DirectionCache<IFluidHandlerModifiable> fluidHandlerModifiableCache = DirectionCache.create();
-    protected final DirectionCache<IItemHandlerModifiable> itemHandlerModifiableCoverCache = DirectionCache.create();
-    protected final DirectionCache<IFluidHandlerModifiable> fluidHandlerModifiableCoverCache = DirectionCache.create();
+    protected final DirectionCache<ICustomItemStackHandler> itemHandlerModifiableCache = DirectionCache.create();
+    protected final DirectionCache<ICustomFluidStackHandler> fluidHandlerModifiableCache = DirectionCache.create();
+    protected final DirectionCache<ICustomItemStackHandler> itemHandlerModifiableCoverCache = DirectionCache.create();
+    protected final DirectionCache<ICustomFluidStackHandler> fluidHandlerModifiableCoverCache = DirectionCache.create();
 
     public final DirectionCache<LazyOptional<IItemHandler>> itemCapDirectionCache = DirectionCache.create();
     public final DirectionCache<LazyOptional<IFluidHandler>> fluidCapDirectionCache = DirectionCache.create();
@@ -459,7 +460,7 @@ public class MetaMachine implements ISync, IEnhancedManaged, ITickSubscription, 
         energyDirectionCache.clearCache();
     }
 
-    public void clearInventory(IItemHandlerModifiable inventory) {
+    public void clearInventory(ICustomItemStackHandler inventory) {
         for (int i = 0; i < inventory.getSlots(); i++) {
             ItemStack stackInSlot = inventory.getStackInSlot(i);
             if (!stackInSlot.isEmpty()) {
@@ -712,20 +713,20 @@ public class MetaMachine implements ISync, IEnhancedManaged, ITickSubscription, 
         return GTUtil.FAVORABLE;
     }
 
-    public @Nullable IItemHandlerModifiable getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
+    public @Nullable ICustomItemStackHandler getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
         var cache = useCoverCapability ? itemHandlerModifiableCoverCache : itemHandlerModifiableCache;
         return cache.getOrSet(side, () -> {
             var ts = getTraits();
-            List<IItemHandlerModifiable> filteredTraits = new ArrayList<>(ts.size());
+            List<ICustomItemStackHandler> filteredTraits = new ArrayList<>(ts.size());
             for (var t : ts) {
-                if (t instanceof IItemHandlerModifiable && t.hasCapability(side)) {
-                    filteredTraits.add((IItemHandlerModifiable) t);
+                if (t instanceof ICustomItemStackHandler && t instanceof ICapabilityTrait capabilityTrait && capabilityTrait.hasCapability(side)) {
+                    filteredTraits.add((ICustomItemStackHandler) t);
                 }
             }
             if (filteredTraits.isEmpty()) {
                 return null;
             }
-            IItemHandlerModifiable handlerList = null;
+            ICustomItemStackHandler handlerList = null;
             IO io = IO.BOTH;
             var inf = getItemCapFilter(side, IO.IN);
             var outf = getItemCapFilter(side, IO.OUT);
@@ -741,26 +742,26 @@ public class MetaMachine implements ISync, IEnhancedManaged, ITickSubscription, 
         });
     }
 
-    public @Nullable IFluidHandlerModifiable getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
+    public @Nullable ICustomFluidStackHandler getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
         var cache = useCoverCapability ? fluidHandlerModifiableCoverCache : fluidHandlerModifiableCache;
         return cache.getOrSet(side, () -> {
             var ts = getTraits();
-            List<IFluidHandler> filteredTraits = new ArrayList<>(ts.size());
+            List<ICustomFluidStackHandler> filteredTraits = new ArrayList<>(ts.size());
             for (var t : ts) {
-                if (t instanceof IFluidHandler && t.hasCapability(side)) {
-                    filteredTraits.add((IFluidHandler) t);
+                if (t instanceof ICustomFluidStackHandler && t instanceof ICapabilityTrait capabilityTrait && capabilityTrait.hasCapability(side)) {
+                    filteredTraits.add((ICustomFluidStackHandler) t);
                 }
             }
             if (filteredTraits.isEmpty()) {
                 return null;
             }
-            IFluidHandlerModifiable handlerList = null;
+            ICustomFluidStackHandler handlerList = null;
             var inf = getFluidCapFilter(side, IO.IN);
             var outf = getFluidCapFilter(side, IO.OUT);
             IO io = IO.BOTH;
             if (side != null && this instanceof IAutoOutputFluid autoOutput && autoOutput.getOutputFacingFluids() == side && !autoOutput.isAllowInputFromOutputSideFluids()) {
                 io = IO.OUT;
-            } else if (filteredTraits.size() == 1 && inf == GTUtil.FAVORABLE && outf == GTUtil.FAVORABLE && filteredTraits.getFirst() instanceof IFluidHandlerModifiable modifiable) {
+            } else if (filteredTraits.size() == 1 && inf == GTUtil.FAVORABLE && outf == GTUtil.FAVORABLE && filteredTraits.getFirst() instanceof ICustomFluidStackHandler modifiable) {
                 handlerList = modifiable;
             }
             if (handlerList == null) handlerList = new IOFluidHandlerList(filteredTraits, io, inf, outf);

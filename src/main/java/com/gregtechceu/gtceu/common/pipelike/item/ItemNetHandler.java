@@ -6,6 +6,8 @@ import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.filter.ItemFilter;
 import com.gregtechceu.gtceu.api.cover.filter.SimpleItemFilter;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.common.blockentity.ItemPipeBlockEntity;
 import com.gregtechceu.gtceu.common.cover.ConveyorCover;
 import com.gregtechceu.gtceu.common.cover.ItemFilterCover;
@@ -17,9 +19,7 @@ import com.gregtechceu.gtceu.utils.FacingPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.ItemStackHandler;
 
 import com.fast.fastcollection.O2IOpenCacheHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -33,7 +33,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-public class ItemNetHandler implements IItemHandlerModifiable {
+public class ItemNetHandler implements ICustomItemStackHandler {
 
     @Getter
     private ItemPipeNet net;
@@ -42,7 +42,7 @@ public class ItemNetHandler implements IItemHandlerModifiable {
     private final Direction facing;
     private final Object2IntOpenHashMap<FacingPos> simulatedTransfersGlobalRoundRobin = new O2IOpenCacheHashMap<>();
     private int simulatedTransfers = 0;
-    private final ItemStackHandler testHandler = new ItemStackHandler(1);
+    private final CustomItemStackHandler testHandler = new CustomItemStackHandler(1);
 
     public ItemNetHandler(ItemPipeNet net, ItemPipeBlockEntity pipe, Direction facing) {
         this.net = net;
@@ -259,7 +259,7 @@ public class ItemNetHandler implements IItemHandlerModifiable {
         CoverBehavior tileCover = getCoverOnNeighbour(routePath.getTargetFacing());
         if (pipeCover != null) {
             testHandler.setStackInSlot(0, stack.copy());
-            IItemHandlerModifiable itemHandler = pipeCover.getItemHandlerCap(testHandler);
+            var itemHandler = pipeCover.getItemHandlerCap(testHandler);
             if (itemHandler == null || (itemHandler != testHandler && (allowed = itemHandler.extractItem(0, allowed, true).getCount()) <= 0)) {
                 testHandler.setStackInSlot(0, ItemStack.EMPTY);
                 return stack;

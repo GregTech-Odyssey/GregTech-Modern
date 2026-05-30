@@ -68,7 +68,7 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
     @Nullable
     protected SoundEntry sound;
     @Getter
-    protected List<Function<DataComponentMap, String>> dataInfos = new ArrayList<>();
+    protected List<Function<GTRecipeDefinition, String>> dataInfos = new ArrayList<>();
     @Getter
     protected boolean isScanner;
     // Does this recipe type have a research item slot? If this is true you MUST create a custom UI.
@@ -173,7 +173,7 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
         return this;
     }
 
-    public GTRecipeType addDataInfo(Function<DataComponentMap, String> dataInfo) {
+    public GTRecipeType addDataInfo(Function<GTRecipeDefinition, String> dataInfo) {
         this.dataInfos.add(dataInfo);
         return this;
     }

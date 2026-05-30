@@ -2,35 +2,33 @@ package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandlerModifiable;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ItemHandlerProxyTrait extends MachineTrait implements IItemHandlerModifiable, ICapabilityTrait {
+import java.util.function.Predicate;
+
+public class ItemHandlerProxyTrait extends MachineTrait implements ICustomItemStackHandler, ICapabilityTrait {
 
     @Getter
     public final IO capabilityIO;
     @Nullable
-    public IItemHandlerModifiable proxy;
+    public ICustomItemStackHandler proxy;
+    @Setter
+    @Getter
+    protected Predicate<@Nullable Direction> capabilityValidator = GTUtil.FAVORABLE;
 
     public ItemHandlerProxyTrait(MetaMachine machine, IO capabilityIO) {
         super(machine);
         this.capabilityIO = capabilityIO;
-    }
-
-    //////////////////////////////////////
-    // ******* Capability ********//
-    //////////////////////////////////////
-    @Override
-    public boolean hasCapability(@Nullable Direction side) {
-        if (capabilityIO == IO.NONE) return false;
-        return capabilityValidator.test(side);
     }
 
     @Override
@@ -114,13 +112,13 @@ public class ItemHandlerProxyTrait extends MachineTrait implements IItemHandlerM
     /**
      * @return {@code this}.
      */
-    public ItemHandlerProxyTrait setProxy(@Nullable final IItemHandlerModifiable proxy) {
+    public ItemHandlerProxyTrait setProxy(@Nullable final ICustomItemStackHandler proxy) {
         this.proxy = proxy;
         return this;
     }
 
     @Nullable
-    public IItemHandlerModifiable getProxy() {
+    public ICustomItemStackHandler getProxy() {
         return this.proxy;
     }
 }

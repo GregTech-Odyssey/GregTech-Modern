@@ -1,11 +1,11 @@
 package com.gregtechceu.gtceu.api.misc;
 
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.ItemHandlerList;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandlerModifiable;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -22,9 +22,9 @@ public class IOFilteredInvWrapper extends ItemHandlerList {
     private final Predicate<ItemStack> inFilter;
     private final Predicate<ItemStack> outFilter;
 
-    public IOFilteredInvWrapper(List<IItemHandlerModifiable> handlers, IO io, Predicate<ItemStack> inFilter,
+    public IOFilteredInvWrapper(List<ICustomItemStackHandler> handlers, IO io, Predicate<ItemStack> inFilter,
                                 Predicate<ItemStack> outFilter) {
-        super(handlers.toArray(IItemHandlerModifiable[]::new));
+        super(handlers.toArray(ICustomItemStackHandler[]::new));
         this.io = io;
         this.inFilter = inFilter;
         this.outFilter = outFilter;

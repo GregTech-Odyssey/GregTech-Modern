@@ -7,7 +7,8 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfigurator;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.item.tool.IToolGridHighlight;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
+import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.client.renderer.cover.ICoverRenderer;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
@@ -31,7 +32,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.items.IItemHandlerModifiable;
 
 import lombok.Getter;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
@@ -220,12 +220,12 @@ public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighli
     // ******* Capabilities *******//
     //////////////////////////////////////
     @Nullable
-    public IItemHandlerModifiable getItemHandlerCap(IItemHandlerModifiable defaultValue) {
+    public ICustomItemStackHandler getItemHandlerCap(ICustomItemStackHandler defaultValue) {
         return defaultValue;
     }
 
     @Nullable
-    public IFluidHandlerModifiable getFluidHandlerCap(IFluidHandlerModifiable defaultValue) {
+    public ICustomFluidStackHandler getFluidHandlerCap(ICustomFluidStackHandler defaultValue) {
         return defaultValue;
     }
 

@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.gui.widget;
 
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
@@ -14,7 +15,6 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandlerModifiable;
 
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +29,7 @@ public class GhostCircuitSlotWidget extends SlotWidget {
     private static final int SET_TO_N = 3;
     private static final int NO_CONFIG = -1;
     @Getter
-    private IItemHandlerModifiable circuitInventory;
+    private ICustomItemStackHandler circuitInventory;
     @Nullable
     private Widget configurator;
 
@@ -37,7 +37,7 @@ public class GhostCircuitSlotWidget extends SlotWidget {
         super();
     }
 
-    public void setCircuitInventory(IItemHandlerModifiable circuitInventory) {
+    public void setCircuitInventory(ICustomItemStackHandler circuitInventory) {
         this.circuitInventory = circuitInventory;
         setHandlerSlot(circuitInventory, 0);
     }

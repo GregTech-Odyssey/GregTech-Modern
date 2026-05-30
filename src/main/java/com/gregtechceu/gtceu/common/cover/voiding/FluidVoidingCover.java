@@ -5,7 +5,7 @@ import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
+import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.common.cover.PumpCover;
 import com.gregtechceu.gtceu.utils.GTMath;
 
@@ -59,14 +59,14 @@ public class FluidVoidingCover extends PumpCover {
     }
 
     protected void doVoidFluids() {
-        IFluidHandlerModifiable fluidHandler = getOwnFluidHandler();
+        ICustomFluidStackHandler fluidHandler = getOwnFluidHandler();
         if (fluidHandler == null) {
             return;
         }
         voidAny(fluidHandler);
     }
 
-    void voidAny(IFluidHandlerModifiable fluidHandler) {
+    void voidAny(ICustomFluidStackHandler fluidHandler) {
         Object2LongMap<FluidStack> fluidAmounts = enumerateDistinctFluids(fluidHandler, TransferDirection.EXTRACT);
 
         for (var entry : Object2LongMaps.fastIterable(fluidAmounts)) {

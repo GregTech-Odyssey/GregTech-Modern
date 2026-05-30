@@ -16,8 +16,9 @@ import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
+import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.utils.*;
 
 import com.lowdragmc.lowdraglib.gui.editor.Icons;
@@ -42,7 +43,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 import com.fast.fastcollection.O2LOpenCacheHashMap;
@@ -163,7 +163,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     //////////////////////////////////////
     @Override
     @Nullable
-    public IItemHandlerModifiable getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
+    public ICustomItemStackHandler getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
         if (side == getFrontFacing()) {
             return null;
         }
@@ -172,7 +172,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
 
     @Override
     @Nullable
-    public IFluidHandlerModifiable getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
+    public ICustomFluidStackHandler getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
         if (side == getFrontFacing()) {
             return null;
         }
@@ -393,7 +393,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         return super.sideTips(player, pos, state, toolTypes, side);
     }
 
-    protected class ItemCache extends MachineTrait implements IItemHandlerModifiable {
+    protected class ItemCache extends MachineTrait implements ICustomItemStackHandler {
 
         private final Predicate<ItemStack> filter = i -> !isLocked() || ItemStack.isSameItemSameTags(i, getLockedItem());
 

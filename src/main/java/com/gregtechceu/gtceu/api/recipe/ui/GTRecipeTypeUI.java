@@ -341,7 +341,7 @@ public class GTRecipeTypeUI {
     public int getPropertyHeightShift(GTRecipeDefinition recipe) {
         int height = maxTooltips * 10;
         for (var info : recipe.recipeType.getDataInfos()) {
-            if (info.apply(recipe.data).isBlank()) continue;
+            if (info.apply(recipe).isBlank()) continue;
             height += 10;
         }
         for (var c : recipe.conditions) {
