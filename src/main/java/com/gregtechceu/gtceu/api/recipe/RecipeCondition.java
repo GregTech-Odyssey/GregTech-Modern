@@ -33,6 +33,10 @@ public abstract class RecipeCondition {
         group.addWidget(new LabelWidget(3 - xOffset, yOffset.addAndGet(10), getTooltips().getString()));
     }
 
+    public int getYOffset(GTRecipeDefinition recipe) {
+        return 10;
+    }
+
     public boolean check(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
         boolean test = testCondition(holder, unit, recipe);
         return test != isReverse;

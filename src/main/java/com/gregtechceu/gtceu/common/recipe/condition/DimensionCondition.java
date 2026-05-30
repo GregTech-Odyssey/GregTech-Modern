@@ -40,6 +40,11 @@ public class DimensionCondition extends RecipeCondition {
     }
 
     @Override
+    public int getYOffset(GTRecipeDefinition recipe) {
+        return 0;
+    }
+
+    @Override
     public boolean isOr() {
         return true;
     }

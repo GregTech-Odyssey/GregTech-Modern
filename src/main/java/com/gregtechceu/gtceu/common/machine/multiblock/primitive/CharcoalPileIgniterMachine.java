@@ -55,7 +55,7 @@ import static com.gregtechceu.gtceu.api.pattern.util.RelativeDirection.*;
 
 public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implements IInteractedMachine {
 
-    private static final DataComponentKey<Long2BooleanMap> LOG_POS = DataComponentKey.createLong2BooleanMap("logPos", null);
+    private static final DataComponentKey<Long2BooleanMap> LOG_POS = DataComponentKey.create("logPos", DataComponentKey.long2BooleanMapBuilder(Long2BooleanOpenHashMap::new));
 
     private static final int MIN_RADIUS = 1;
     private static final int MIN_DEPTH = 2;

@@ -36,6 +36,7 @@ import net.minecraft.world.level.material.Fluid;
 
 import com.gto.datasynclib.datasream.DataComponentKey;
 import com.gto.registrate.util.entry.RegistryEntry;
+import it.unimi.dsi.fastutil.longs.LongOpenHashBigSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.apache.commons.lang3.ArrayUtils;
@@ -287,10 +288,10 @@ public class Predicates {
 
     public static class DataKey {
 
-        public static final DataComponentKey<LongSet> ACTIVE_BLOCKS = DataComponentKey.createLongSet("ActiveBlocks", null);
-        public static final DataComponentKey<LongSet> RENDER_MASK = DataComponentKey.createLongSet("RenderMask", null);
-        public static final DataComponentKey<ICoilType> COIL_TYPE = DataComponentKey.create("CoilType", null);
-        public static final DataComponentKey<IFilterType> FILTER_TYPE = DataComponentKey.create("FilterType", null);
-        public static final DataComponentKey<Reference2IntOpenHashMap<IBatteryData>> BATTERY_DATA = DataComponentKey.createReference2IntMap("BatteryData", null);
+        public static final DataComponentKey<LongSet> ACTIVE_BLOCKS = DataComponentKey.create("ActiveBlocks", DataComponentKey.longSetBuilder(LongOpenHashBigSet::new));
+        public static final DataComponentKey<LongSet> RENDER_MASK = DataComponentKey.create("RenderMask", DataComponentKey.longSetBuilder(LongOpenHashBigSet::new));
+        public static final DataComponentKey<ICoilType> COIL_TYPE = DataComponentKey.createNoCodec("CoilType");
+        public static final DataComponentKey<IFilterType> FILTER_TYPE = DataComponentKey.createNoCodec("FilterType");
+        public static final DataComponentKey<Reference2IntOpenHashMap<IBatteryData>> BATTERY_DATA = DataComponentKey.create("BatteryData", DataComponentKey.reference2IntMapBuilder(Reference2IntOpenHashMap::new));
     }
 }

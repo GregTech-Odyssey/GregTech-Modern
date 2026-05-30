@@ -63,7 +63,7 @@ import static com.gregtechceu.gtceu.api.pattern.util.RelativeDirection.*;
 @MethodsReturnNonnullByDefault
 public class CleanroomMachine extends WorkableElectricMultiblockMachine implements ICleanroomProvider, IDataInfoProvider {
 
-    public static final DataComponentKey<ReferenceSet<ICleanroomReceiver>> CLEANROOM_RECEIVER = DataComponentKey.createCollection("cleanroomReceiver", null);
+    public static final DataComponentKey<ReferenceSet<ICleanroomReceiver>> CLEANROOM_RECEIVER = DataComponentKey.create("cleanroomReceiver", DataComponentKey.collectionBuilder(ReferenceOpenHashSet::new));
 
     private static final TraceabilityPredicate INNER_PREDICATE = new TraceabilityPredicate(blockWorldState -> {
         if (blockWorldState.getTileEntity() instanceof MetaMachineBlockEntity machineBlockEntity) {

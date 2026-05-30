@@ -121,16 +121,16 @@ public final class DataComponentMap extends AbstractDataComponentMap<DataCompone
             do if (curr == dataKey) {
                 final Object oldValue = value[pos];
                 if (oldValue != null) {
-                    value[pos] = ((DataComponentKey) dataKey).merge(oldValue, v);
+                    value[pos] = ((DataComponentKey) dataKey).mergeFunction.apply(oldValue, v);
                 } else {
-                    value[pos] = v;
+                    value[pos] = ((DataComponentKey) dataKey).createFunction.apply(v);
                 }
                 return oldValue;
             }
             while ((curr = key[pos = (pos + 1) & mask]) != null);
         }
         key[pos] = dataKey;
-        value[pos] = v;
+        value[pos] = ((DataComponentKey) dataKey).createFunction.apply(v);
         if (size++ >= maxFill) rehash(arraySize(size + 1, f));
         return null;
     }

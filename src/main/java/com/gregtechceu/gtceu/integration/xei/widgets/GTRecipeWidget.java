@@ -64,7 +64,7 @@ public class GTRecipeWidget extends WidgetGroup {
 
     public GTRecipeWidget(GTRecipeDefinition recipe) {
         super(getXOffset(recipe), 0, recipe.recipeType.getRecipeUI().getJEISize().width,
-                recipe.recipeType.getRecipeUI().getJEISize().height);
+                getYOffset(recipe));
         this.recipe = recipe;
         this.xOffset = getXOffset(recipe);
         this.minTier = recipe.tier;
@@ -74,12 +74,26 @@ public class GTRecipeWidget extends WidgetGroup {
         addButtons();
     }
 
-    private static int getXOffset(GTRecipeDefinition recipe) {
+    public static int getXOffset(GTRecipeDefinition recipe) {
         if (recipe.recipeType.getRecipeUI().getOriginalWidth() != recipe.recipeType.getRecipeUI().getJEISize().width) {
             return (recipe.recipeType.getRecipeUI().getJEISize().width -
                     recipe.recipeType.getRecipeUI().getOriginalWidth()) / 2;
         }
         return 0;
+    }
+
+    public static int getYOffset(GTRecipeDefinition recipe) {
+        var height = recipe.recipeType.getRecipeUI().getJEISize().height;
+        for (var c : recipe.conditions) {
+            height += c.getYOffset(recipe);
+        }
+        for (var c : recipe.contentExpanders) {
+            height += c.getYOffset(recipe);
+        }
+        for (var c : recipe.tickContentExpanders) {
+            height += c.getYOffset(recipe);
+        }
+        return height;
     }
 
     @SuppressWarnings("UnstableApiUsage")

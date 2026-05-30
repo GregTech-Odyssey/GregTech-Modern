@@ -16,8 +16,8 @@ import java.util.function.Supplier;
  */
 public class PatternMatchContext {
 
-    private static final DataComponentKey<Long2ObjectOpenHashMap<TraceabilityPredicate>> PREDICATES = DataComponentKey.createLong2ObjectMap("predicates", null);
-    private static final DataComponentKey<ReferenceOpenHashSet<IMultiPart>> PARTS = DataComponentKey.createCollection("parts", null);
+    private static final DataComponentKey<Long2ObjectOpenHashMap<TraceabilityPredicate>> PREDICATES = DataComponentKey.create("predicates", DataComponentKey.long2ObjectMapBuilder(Long2ObjectOpenHashMap::new));
+    private static final DataComponentKey<ReferenceOpenHashSet<IMultiPart>> PARTS = DataComponentKey.create("parts", DataComponentKey.collectionBuilder(ReferenceOpenHashSet::new));
 
     private final PatternMatchContext parents;
 

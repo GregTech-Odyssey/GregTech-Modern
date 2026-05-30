@@ -26,4 +26,6 @@ public interface ContentExpander {
     void setParallel(GTRecipe recipe, long parallel);
 
     void addXEIInfo(GTRecipeDefinition recipe, WidgetGroup group, int xOffset, MutableInt yOffset);
+
+    int getYOffset(GTRecipeDefinition recipe);
 }

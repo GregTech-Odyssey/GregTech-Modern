@@ -74,4 +74,9 @@ public final class CWUTExpander extends DataComponentKey<Long> implements Conten
                     LocalizationUtils.format("gtceu.recipe.total_computation", FormattingUtil.formatNumbers(recipe.duration))));
         }
     }
+
+    @Override
+    public int getYOffset(GTRecipeDefinition recipe) {
+        return 10;
+    }
 }

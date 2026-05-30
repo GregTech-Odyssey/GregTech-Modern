@@ -14,14 +14,20 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 public final class DataComponentRegistry extends Registry<String, DataComponentKey<?>> implements ByteStreamCodec<DataComponentMap>, DataCodec<DataComponentMap>, Codec<DataComponentMap> {
 
     public DataComponentRegistry(String name) {
         super(name + "_data_component");
     }
 
-    public <T> DataComponentKey<T> register(String key, CombinationCodec<T> codec) {
-        return register(new DataComponentKey<>(key, codec));
+    public <T> DataComponentKey<T> register(String name, CombinationCodec<T> codec) {
+        return register(new DataComponentKey<>(name, codec));
+    }
+
+    public <T> DataComponentKey<T> register(String name, Consumer<DataComponentKey.Builder<T>> builder) {
+        return register(DataComponentKey.create(name, builder));
     }
 
     public <T> DataComponentKey<T> register(DataComponentKey<T> key) {
