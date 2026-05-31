@@ -209,7 +209,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             if (pattern != null) {
                 checking = true;
                 state.clearCache();
-                state.removeShared();
                 result = pattern.checkPatternAt(state, false);
                 if (result) {
                     var subPattern = getSubPattern();

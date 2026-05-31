@@ -30,14 +30,12 @@ import java.util.function.IntFunction;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Predicate;
 
-public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait implements ICapabilityTrait, ICustomItemStackHandler {
+public class NotifiableItemStackHandler extends NotifiableContentHandler implements ICapabilityTrait, ICustomItemStackHandler {
 
     public static NotifiableItemStackHandler empty(MetaMachine machine) {
         return new NotifiableItemStackHandler(machine, 0, IO.NONE).setAvailable(false);
     }
 
-    @Getter
-    public final IO handlerIO;
     @Getter
     public final IO capabilityIO;
     @Setter
@@ -45,16 +43,9 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
     protected Predicate<@Nullable Direction> capabilityValidator = GTUtil.FAVORABLE;
     @Persisted
     public final CustomItemStackHandler storage;
-    protected Boolean isEmpty;
-    protected boolean changed = true;
-
-    protected boolean isAvailable = true;
-
-    protected final IntLongMap intIngredientMap = new IntLongMap();
 
     public NotifiableItemStackHandler(MetaMachine machine, int slots, @NotNull IO handlerIO, @NotNull IO capabilityIO, IntFunction<CustomItemStackHandler> storageFactory) {
-        super(machine);
-        this.handlerIO = handlerIO;
+        super(machine, handlerIO);
         this.storage = storageFactory.apply(slots);
         this.capabilityIO = capabilityIO;
         this.storage.setOnContentsChangedAndfreeze(this::onContentsChanged);
@@ -71,13 +62,6 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
     public NotifiableItemStackHandler setFilter(Predicate<ItemStack> filter) {
         this.storage.setFilter(filter);
         return this;
-    }
-
-    public void onContentsChanged() {
-        isEmpty = null;
-        changed = true;
-        machine.onChanged();
-        notifyListeners();
     }
 
     @Override
@@ -236,33 +220,24 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
     }
 
     @Override
-    public IntLongMap getSearchMap(@NotNull GTRecipeType type) {
-        if (changed) {
-            changed = false;
-            intIngredientMap.clear();
-            for (int i = 0; i < storage.size; ++i) {
-                var stack = storage.stacks[i];
-                var amount = stack.getCount();
-                if (amount > 0) {
-                    type.convertItem(stack, amount, intIngredientMap);
-                }
+    public void fillSearchMap(@NotNull GTRecipeType type, @NotNull IntLongMap map) {
+        for (int i = 0; i < storage.size; ++i) {
+            var stack = storage.stacks[i];
+            var amount = stack.getCount();
+            if (amount > 0) {
+                type.convertItem(stack, amount, map);
             }
         }
-        return intIngredientMap;
     }
 
     @Override
-    public boolean isEmpty() {
-        if (isEmpty == null) {
-            isEmpty = true;
-            for (int i = 0; i < storage.size; i++) {
-                if (!storage.stacks[i].isEmpty()) {
-                    isEmpty = false;
-                    break;
-                }
+    public boolean updateEmpty() {
+        for (int i = 0; i < storage.size; i++) {
+            if (!storage.stacks[i].isEmpty()) {
+                return false;
             }
         }
-        return isEmpty;
+        return true;
     }
 
     public void exportToNearby(@NotNull Direction... facings) {
@@ -331,11 +306,6 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait imp
     @Override
     public boolean isItemValid(int slot, @NotNull ItemStack stack) {
         return storage.isItemValid(slot, stack);
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return this.isAvailable;
     }
 
     public NotifiableItemStackHandler setAvailable(boolean available) {

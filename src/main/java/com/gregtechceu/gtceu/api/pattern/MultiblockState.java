@@ -99,6 +99,7 @@ public class MultiblockState {
     }
 
     public void clear() {
+        this.removeShared();
         this.matchContext.reset();
         this.globalCount.clear();
         this.layerCount.clear();

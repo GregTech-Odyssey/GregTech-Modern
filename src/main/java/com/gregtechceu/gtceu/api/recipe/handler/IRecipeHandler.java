@@ -44,10 +44,6 @@ public interface IRecipeHandler extends IFilteredHandler {
         return true;
     }
 
-    default boolean isEmpty() {
-        return true;
-    }
-
     default boolean isNotConsumable() {
         return false;
     }

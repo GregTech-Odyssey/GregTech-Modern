@@ -55,16 +55,40 @@ public class RecipeHelper {
     public static <T extends ContentInner> List<Content<T>> doTrim(List<Content<T>> contents,
                                                                    RecipeInfo capability, Reference2IntOpenHashMap<RecipeInfo> trimLimits) {
         if (contents.isEmpty()) return contents;
-        return doTrim(contents, trimLimits.getOrDefault(capability, -1));
+        return trimFirst(contents, trimLimits.getOrDefault(capability, -1));
     }
 
-    public static <T extends ContentInner> List<Content<T>> doTrim(List<Content<T>> contents, int trimLimit) {
+    public static <T extends ContentInner> List<Content<T>> trimFirst(List<Content<T>> contents, int trimLimit) {
         int N = Math.min(contents.size(), trimLimit);
         if (N == 0) return Collections.emptyList();
         if (N == -1) return contents;
         var array = new Content[N];
         for (var i = 0; i < N; i++) {
             array[i] = contents.get(i);
+        }
+        return Arrays.asList(array);
+    }
+
+    public static <T extends ContentInner> List<Content<T>> trimLast(List<Content<T>> contents, int trimLimit) {
+        int size = contents.size();
+        int N = Math.min(size, trimLimit);
+        if (N == 0) return Collections.emptyList();
+        if (N == -1) return contents;
+        var array = new Content[N];
+        for (int i = 0; i < N; i++) {
+            array[i] = contents.get(size - N + i);
+        }
+        return Arrays.asList(array);
+    }
+
+    public static <T extends ContentInner> List<Content<T>> trimRange(List<Content<T>> contents, int fromIndex, int toIndex) {
+        int size = contents.size();
+        if (fromIndex < 0) fromIndex = 0;
+        if (toIndex > size) toIndex = size;
+        if (fromIndex >= toIndex) return Collections.emptyList();
+        var array = new Content[toIndex - fromIndex];
+        for (int i = fromIndex; i < toIndex; i++) {
+            array[i - fromIndex] = contents.get(i);
         }
         return Arrays.asList(array);
     }

@@ -41,11 +41,8 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     }
 
     @Override
-    public boolean isEmpty() {
-        if (isEmpty == null) {
-            isEmpty = storage.stacks[0].isEmpty();
-        }
-        return isEmpty;
+    public boolean updateEmpty() {
+        return storage.stacks[0].isEmpty();
     }
 
     @Override
@@ -68,17 +65,12 @@ public class CircuitHandler extends NotifiableItemStackHandler {
     }
 
     @Override
-    public IntLongMap getSearchMap(@NotNull GTRecipeType type) {
-        if (changed) {
-            changed = false;
-            intIngredientMap.clear();
-            var stack = storage.stacks[0];
-            var amount = stack.getCount();
-            if (amount > 0) {
-                type.convertItem(stack, amount, intIngredientMap);
-            }
+    public void fillSearchMap(@NotNull GTRecipeType type, @NotNull IntLongMap map) {
+        var stack = storage.stacks[0];
+        var amount = stack.getCount();
+        if (amount > 0) {
+            type.convertItem(stack, amount, map);
         }
-        return intIngredientMap;
     }
 
     @NotNull

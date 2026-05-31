@@ -31,10 +31,8 @@ import java.util.List;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Predicate;
 
-public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements ICapabilityTrait, ICustomFluidStackHandler {
+public class NotifiableFluidTank extends NotifiableContentHandler implements ICapabilityTrait, ICustomFluidStackHandler {
 
-    @Getter
-    public final IO handlerIO;
     @Getter
     public final IO capabilityIO;
     @Setter
@@ -43,11 +41,8 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements
     @Getter
     @Persisted
     protected final CustomFluidTank[] storages;
-    protected boolean allowSameFluids = true; // Can different tanks be filled with the same fluid. It should be
-                                              // determined
-    // while creating tanks.
-    protected Boolean isEmpty;
-    protected boolean changed = true;
+    protected boolean allowSameFluids = true;
+
     @Getter
     @Persisted
     @DescSynced
@@ -57,25 +52,19 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements
     @Getter
     protected Predicate<FluidStack> filter = GTUtil.FAVORABLE;
 
-    protected boolean isAvailable = true;
-
-    protected final IntLongMap intIngredientMap = new IntLongMap();
-
-    public NotifiableFluidTank(MetaMachine machine, int slots, int capacity, IO io, IO capabilityIO) {
-        super(machine);
-        this.handlerIO = io;
+    public NotifiableFluidTank(MetaMachine machine, int slots, int capacity, IO handlerIO, IO capabilityIO) {
+        super(machine, handlerIO);
         this.storages = new CustomFluidTank[slots];
         this.capabilityIO = capabilityIO;
         for (int i = 0; i < this.storages.length; i++) {
             this.storages[i] = new CustomFluidTank(capacity);
             this.storages[i].setOnContentsChangedAndfreeze(this::onContentsChanged);
         }
-        if (slots > 1 && io == IO.IN) allowSameFluids = false;
+        if (slots > 1 && handlerIO == IO.IN) allowSameFluids = false;
     }
 
     public NotifiableFluidTank(MetaMachine machine, List<CustomFluidTank> storages, IO io, IO capabilityIO) {
-        super(machine);
-        this.handlerIO = io;
+        super(machine, io);
         this.storages = storages.toArray(CustomFluidTank[]::new);
         this.capabilityIO = capabilityIO;
         for (CustomFluidTank storage : this.storages) {
@@ -89,13 +78,6 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements
 
     public NotifiableFluidTank(MetaMachine machine, List<CustomFluidTank> storages, IO io) {
         this(machine, storages, io, io);
-    }
-
-    public void onContentsChanged() {
-        isEmpty = null;
-        changed = true;
-        machine.onChanged();
-        notifyListeners();
     }
 
     @Override
@@ -296,34 +278,25 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements
     }
 
     @Override
-    public IntLongMap getSearchMap(@NotNull GTRecipeType type) {
-        if (changed) {
-            changed = false;
-            intIngredientMap.clear();
-            var tanks = getTanks();
-            for (int i = 0; i < tanks; ++i) {
-                var stack = getFluidInTank(i);
-                var amount = stack.getAmount();
-                if (amount > 0) {
-                    type.convertFluid(stack, amount, intIngredientMap);
-                }
+    public void fillSearchMap(@NotNull GTRecipeType type, @NotNull IntLongMap map) {
+        var tanks = getTanks();
+        for (int i = 0; i < tanks; ++i) {
+            var stack = getFluidInTank(i);
+            var amount = stack.getAmount();
+            if (amount > 0) {
+                type.convertFluid(stack, amount, map);
             }
         }
-        return intIngredientMap;
     }
 
     @Override
-    public boolean isEmpty() {
-        if (isEmpty == null) {
-            isEmpty = true;
-            for (CustomFluidTank storage : storages) {
-                if (!storage.getFluid().isEmpty()) {
-                    isEmpty = false;
-                    break;
-                }
+    public boolean updateEmpty() {
+        for (CustomFluidTank storage : storages) {
+            if (!storage.getFluid().isEmpty()) {
+                return false;
             }
         }
-        return isEmpty;
+        return true;
     }
 
     public void exportToNearby(@NotNull Direction... facings) {
@@ -468,11 +441,6 @@ public class NotifiableFluidTank extends NotifiableRecipeHandlerTrait implements
         if (this.isLocked()) {
             setFilter(stack -> stack.isFluidEqual(this.lockedFluid.getFluid()));
         }
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return this.isAvailable;
     }
 
     public NotifiableFluidTank setAvailable(boolean available) {
