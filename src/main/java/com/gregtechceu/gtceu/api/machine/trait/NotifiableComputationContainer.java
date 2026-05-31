@@ -24,16 +24,12 @@ public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait
     @Getter
     protected Predicate<@Nullable Direction> capabilityValidator = GTUtil.FAVORABLE;
 
-    protected boolean transmitter;
-    protected long lastTimeStamp;
-    protected long currentOutputCwu = 0;
-    protected long lastOutputCwu = 0;
+    protected final boolean transmitter;
     protected boolean call;
 
     public NotifiableComputationContainer(MetaMachine machine, boolean transmitter) {
         super(machine);
         this.transmitter = transmitter;
-        this.lastTimeStamp = Long.MIN_VALUE;
     }
 
     @Override
@@ -41,12 +37,6 @@ public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait
         if (call) return 0;
         call = true;
         var result = 0L;
-        var latestTimeStamp = getMachine().getOffsetTimer();
-        if (lastTimeStamp < latestTimeStamp) {
-            lastOutputCwu = currentOutputCwu;
-            currentOutputCwu = 0;
-            lastTimeStamp = latestTimeStamp;
-        }
         if (transmitter) {
             if (machine instanceof IMultiPart part) {
                 for (IMultiController controller : part.getControllers()) {
@@ -63,39 +53,6 @@ public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait
             IOpticalComputationProvider provider = getOpticalNetProvider();
             if (provider != null) {
                 result = provider.requestCWU(cwu, simulate);
-            }
-        }
-        call = false;
-        return result;
-    }
-
-    @Override
-    public long getMaxCWU() {
-        if (call) return 0;
-        call = true;
-        var result = 0L;
-        var latestTimeStamp = getMachine().getOffsetTimer();
-        if (lastTimeStamp < latestTimeStamp) {
-            lastOutputCwu = currentOutputCwu;
-            currentOutputCwu = 0;
-            lastTimeStamp = latestTimeStamp;
-        }
-        if (transmitter) {
-            if (machine instanceof IMultiPart part) {
-                for (IMultiController controller : part.getControllers()) {
-                    if (!controller.isFormed()) {
-                        continue;
-                    }
-                    if (controller instanceof IOpticalComputationProvider provider) {
-                        result += provider.getMaxCWU();
-                    }
-                }
-            }
-        } else {
-            // Ask the attached Transmitter hatch, if it exists
-            IOpticalComputationProvider provider = getOpticalNetProvider();
-            if (provider != null) {
-                result = provider.getMaxCWU();
             }
         }
         call = false;

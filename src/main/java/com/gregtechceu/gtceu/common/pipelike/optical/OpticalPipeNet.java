@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class OpticalPipeNet extends PipeNet<OpticalPipeProperties> {
 
-    private final Long2ObjectOpenHashMap<OpticalRoutePath> NET_DATA = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectOpenHashMap<OpticalRoutePath> netData = new Long2ObjectOpenHashMap<>();
 
     public OpticalPipeNet(LevelPipeNet<OpticalPipeProperties, ? extends PipeNet<OpticalPipeProperties>> world) {
         super(world);
@@ -21,35 +21,30 @@ public class OpticalPipeNet extends PipeNet<OpticalPipeProperties> {
 
     @Nullable
     public OpticalRoutePath getNetData(long pipePos, BlockPos pos, Direction facing) {
-        if (NET_DATA.containsKey(pipePos)) {
-            return NET_DATA.get(pipePos);
-        }
-        OpticalRoutePath data = OpticalNetWalker.createNetData(this, pos, facing);
-        if (data == null) {
-            // walker failed, don't cache, so it tries again on next insertion
-            return null;
-        }
-
-        NET_DATA.put(pipePos, data);
-        return data;
+        var path = netData.get(pipePos);
+        if (path != null) return path;
+        path = OpticalNetWalker.createNetData(this, pos, facing);
+        if (path == null) return null;
+        netData.put(pipePos, path);
+        return path;
     }
 
     @Override
     public void onNeighbourUpdate(BlockPos fromPos) {
-        NET_DATA.clear();
+        netData.clear();
     }
 
     @Override
     public void onPipeConnectionsUpdate() {
-        NET_DATA.clear();
+        netData.clear();
     }
 
     @Override
     protected void transferNodeData(Long2ObjectOpenHashMap<Node<OpticalPipeProperties>> transferredNodes,
                                     PipeNet<OpticalPipeProperties> parentNet) {
         super.transferNodeData(transferredNodes, parentNet);
-        NET_DATA.clear();
-        ((OpticalPipeNet) parentNet).NET_DATA.clear();
+        netData.clear();
+        ((OpticalPipeNet) parentNet).netData.clear();
     }
 
     @Override

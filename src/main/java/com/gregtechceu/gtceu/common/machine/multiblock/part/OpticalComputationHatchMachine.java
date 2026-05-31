@@ -51,11 +51,6 @@ public class OpticalComputationHatchMachine extends WorkableMultiblockPartMachin
     }
 
     @Override
-    public long getMaxCWU() {
-        return computationContainer.getMaxCWU();
-    }
-
-    @Override
     public boolean canBridge() {
         return computationContainer.canBridge();
     }

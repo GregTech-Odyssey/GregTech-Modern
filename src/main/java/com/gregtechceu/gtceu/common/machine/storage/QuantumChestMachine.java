@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.api.machine.feature.IDropSaveMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
+import com.gregtechceu.gtceu.api.machine.trait.ICapabilityTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
@@ -173,10 +174,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     @Override
     @Nullable
     public ICustomFluidStackHandler getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
-        if (side == getFrontFacing()) {
-            return null;
-        }
-        return super.getFluidHandlerCap(side, useCoverCapability);
+        return null;
     }
 
     //////////////////////////////////////
@@ -393,7 +391,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         return super.sideTips(player, pos, state, toolTypes, side);
     }
 
-    protected class ItemCache extends MachineTrait implements ICustomItemStackHandler {
+    protected class ItemCache extends MachineTrait implements ICustomItemStackHandler, ICapabilityTrait {
 
         private final Predicate<ItemStack> filter = i -> !isLocked() || ItemStack.isSameItemSameTags(i, getLockedItem());
 

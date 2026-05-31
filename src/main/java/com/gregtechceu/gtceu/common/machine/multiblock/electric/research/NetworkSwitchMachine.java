@@ -43,7 +43,7 @@ public class NetworkSwitchMachine extends DataMachine implements IOpticalComputa
     @Override
     public void addDisplayText(List<Component> textList) {
         // transform into two-state system for display
-        MultiblockDisplayText.builder(textList, isFormed()).setWorkingStatus(true, isActive() && isWorkingEnabled()).setWorkingStatusKeys("gtceu.multiblock.idling", "gtceu.multiblock.idling", "gtceu.multiblock.data_bank.providing").addEnergyUsageExactLine(energyUsage).addComputationUsageLine(this.getMaxCWU()).addWorkingStatusLine();
+        MultiblockDisplayText.builder(textList, isFormed()).setWorkingStatus(true, isActive() && isWorkingEnabled()).setWorkingStatusKeys("gtceu.multiblock.idling", "gtceu.multiblock.idling", "gtceu.multiblock.data_bank.providing").addEnergyUsageExactLine(energyUsage).addComputationUsageLine(this.requestCWU(Long.MAX_VALUE, true)).addWorkingStatusLine();
     }
 
     @Override
@@ -55,20 +55,6 @@ public class NetworkSwitchMachine extends DataMachine implements IOpticalComputa
             if (provider.canBridge()) {
                 result += provider.requestCWU(cwu - result, simulate);
                 if (result >= cwu) break;
-            }
-        }
-        call = false;
-        return result;
-    }
-
-    @Override
-    public long getMaxCWU() {
-        if (call || !getRecipeLogic().isWorking()) return 0;
-        call = true;
-        long result = 0;
-        for (IOpticalComputationProvider provider : computationProviderList.providers) {
-            if (provider.canBridge()) {
-                result += provider.getMaxCWU();
             }
         }
         call = false;

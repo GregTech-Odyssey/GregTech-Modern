@@ -52,7 +52,7 @@ public final class CWUTExpander extends DataComponentKey<Long> implements Conten
         var cwu = recipe.getInputCWUt();
         if (cwu < 1) return parallel;
         if (holder instanceof IComputationContainerMachine machine) {
-            return Math.min(parallel, machine.getMaxCWU() / cwu);
+            return Math.min(parallel, machine.requestCWU(Long.MAX_VALUE, true) / cwu);
         } else {
             return 0;
         }

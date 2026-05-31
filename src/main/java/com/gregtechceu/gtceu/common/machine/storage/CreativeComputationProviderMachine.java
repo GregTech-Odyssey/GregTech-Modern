@@ -73,11 +73,6 @@ public class CreativeComputationProviderMachine extends MetaMachine implements I
         return requestedCWUt;
     }
 
-    @Override
-    public long getMaxCWU() {
-        return maxCWUt;
-    }
-
     public void setActive(boolean active) {
         this.active = active;
         updateComputationSubscription();

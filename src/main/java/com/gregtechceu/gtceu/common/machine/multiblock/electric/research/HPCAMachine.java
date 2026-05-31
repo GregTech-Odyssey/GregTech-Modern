@@ -150,15 +150,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     @Override
     public long requestCWU(long cwu, boolean simulate) {
         if (isWorkingEnabled() && getRecipeLogic().isWorking()) {
-            return hpcaHandler.allocateCWUt(cwu, simulate);
-        }
-        return 0;
-    }
-
-    @Override
-    public long getMaxCWU() {
-        if (isWorkingEnabled() && getRecipeLogic().isWorking()) {
-            return hpcaHandler.maxCWUt - hpcaHandler.cachedCWUt;
+            return hpcaHandler.allocateCWUt(getOffsetTimer(), cwu, simulate);
         }
         return 0;
     }
@@ -187,10 +179,8 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
             if (temperature >= DAMAGE_TEMPERATURE) {
                 hpcaHandler.attemptDamageHPCA();
             }
-            hpcaHandler.tick();
+            hpcaHandler.tick(getOffsetTimer());
         } else {
-            hpcaHandler.clearComputationCache();
-            // passively cool (slowly) if not active
             temperature = Math.max(IDLE_TEMPERATURE, temperature - 0.25);
         }
     }
@@ -246,6 +236,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         /**
          * How much CWU/t is currently allocated for this tick.
          */
+        private int lastTimeStamp;
         private long allocatedCWUt;
         private long maxCWUt;
         private long upkeepEUt;
@@ -279,7 +270,6 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         }
 
         private void reset() {
-            clearComputationCache();
             components.clear();
             coolantProviders.clear();
             computationProviders.clear();
@@ -291,16 +281,15 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
             maximumEUt = 0;
         }
 
-        private void clearComputationCache() {
-            allocatedCWUt = 0;
-        }
-
-        public void tick() {
+        public void tick(int timer) {
             if (cachedCWUt != allocatedCWUt) {
                 cachedCWUt = allocatedCWUt;
             }
             cachedEUt = getCurrentEUt();
-            allocatedCWUt = 0;
+            if (lastTimeStamp != timer) {
+                lastTimeStamp = timer;
+                allocatedCWUt = 0;
+            }
         }
 
         /**
@@ -404,7 +393,11 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         /**
          * Allocate computation on a given request. Allocates for one tick.
          */
-        public long allocateCWUt(long cwu, boolean simulate) {
+        public long allocateCWUt(int timer, long cwu, boolean simulate) {
+            if (lastTimeStamp != timer) {
+                lastTimeStamp = timer;
+                allocatedCWUt = 0;
+            }
             long toAllocate = Math.min(cwu, maxCWUt - allocatedCWUt);
             if (!simulate) {
                 this.allocatedCWUt += toAllocate;

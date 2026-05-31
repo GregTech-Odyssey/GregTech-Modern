@@ -15,6 +15,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
 import com.gregtechceu.gtceu.api.machine.feature.IDropSaveMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
+import com.gregtechceu.gtceu.api.machine.trait.ICapabilityTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
@@ -45,7 +46,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import com.gto.datasynclib.annotations.Strategy;
 import com.gto.datasynclib.annotations.SyncToClient;
@@ -159,10 +159,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     @Override
     @Nullable
     public ICustomItemStackHandler getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
-        if (side == getFrontFacing()) {
-            return null;
-        }
-        return super.getItemHandlerCap(side, useCoverCapability);
+        return null;
     }
 
     @Override
@@ -340,7 +337,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         return super.sideTips(player, pos, state, toolTypes, side);
     }
 
-    protected class FluidCache extends MachineTrait implements IFluidHandler {
+    protected class FluidCache extends MachineTrait implements ICustomFluidStackHandler, ICapabilityTrait {
 
         private final Predicate<FluidStack> filter = f -> !isLocked() || getLockedFluid().isFluidEqual(f);
 
@@ -411,6 +408,9 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
                 blockEntityDirectionCache.getAdjacentFluidHandler(level, pos, facing).ifPresent(adj -> GTTransferUtils.transferFluidsFiltered(this, adj, filter));
             }
         }
+
+        @Override
+        public void setFluidInTank(int tank, FluidStack stack) {}
     }
 
     public void setAllowInputFromOutputSideFluids(final boolean allowInputFromOutputSideFluids) {

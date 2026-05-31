@@ -142,7 +142,7 @@ public class MetaMachineBlockEntity extends TickBlockEntity implements IToolGrid
             if (machine instanceof IEnergyInfoProvider energyInfoProvider) {
                 return GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER.orEmpty(cap, LazyOptional.of(() -> energyInfoProvider));
             }
-            var list = getCapabilitiesFromTraits(machine.getTraits(), side, IEnergyInfoProvider.class);
+            var list = getInfoCapabilitiesFromTraits(machine.getTraits(), side, IEnergyInfoProvider.class);
             if (!list.isEmpty()) {
                 return GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER.orEmpty(cap, LazyOptional.of(() -> list.size() == 1 ? list.getFirst() : new EnergyInfoProviderList(list)));
             }
@@ -169,6 +169,17 @@ public class MetaMachineBlockEntity extends TickBlockEntity implements IToolGrid
             return LazyOptional.empty();
         }
         return machine.getCapability(cap, side);
+    }
+
+    public static <T> List<T> getInfoCapabilitiesFromTraits(List<MachineTrait> traits, Direction accessSide, Class<T> capability) {
+        if (traits.isEmpty()) return Collections.emptyList();
+        List<T> list = new ArrayList<>();
+        for (MachineTrait trait : traits) {
+            if (capability.isInstance(trait)) {
+                list.add(capability.cast(trait));
+            }
+        }
+        return list;
     }
 
     public static <T> List<T> getCapabilitiesFromTraits(List<MachineTrait> traits, Direction accessSide, Class<T> capability) {

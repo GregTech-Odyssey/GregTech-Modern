@@ -61,7 +61,7 @@ public class EnergyNetHandler implements IEnergyContainer {
             if (dest == null) continue;
 
             Direction facing = path.getTargetFacing().getOpposite();
-            if (!dest.inputsEnergy(facing) || dest.getEnergyCanBeInserted() <= 0) continue;
+            if (!dest.inputsEnergy(facing)) continue;
             transfer = true;
             long accept = dest.acceptEnergyFromNetwork(o, facing, voltage - loss, energy);
             transfer = false;

@@ -86,7 +86,7 @@ public class CreativeEnergyContainerMachine extends TieredMachine implements ILa
             if (container == null)
                 container = GTCapabilityHelper.getLaser(getNeighbor(facing), opposite);
 
-            if (container != null && container.inputsEnergy(opposite) && container.getEnergyCanBeInserted() > 0) {
+            if (container != null && container.inputsEnergy(opposite)) {
                 energyUsed += container.acceptEnergyFromNetwork(this, opposite, voltage, energy);
                 if (energyUsed >= energy) {
                     break;
