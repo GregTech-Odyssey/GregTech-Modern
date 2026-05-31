@@ -133,9 +133,8 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
     public void addDisplayText(List<Component> textList) {
         IDisplayUIMachine.super.addDisplayText(textList);
         if (isFormed()) {
-            if (energyContainer.getEnergyCapacity() > 0) {
-                long steamStored = energyContainer.getEnergyStored();
-                textList.add(Component.translatable("gtceu.multiblock.steam.steam_stored", steamStored / getConversionRate(), energyContainer.getEnergyCapacity() / getConversionRate()));
+            if (energyContainer instanceof SteamEnergyContainer container) {
+                textList.add(Component.translatable("gtceu.multiblock.steam.steam_stored", container.steamTank.getFluidInTank(0).getAmount(), container.steamTank.getTankCapacity(0)));
             }
             if (!isWorkingEnabled()) {
                 textList.add(Component.translatable("gtceu.multiblock.work_paused"));

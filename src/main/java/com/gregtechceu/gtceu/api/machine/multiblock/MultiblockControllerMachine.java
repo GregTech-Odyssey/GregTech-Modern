@@ -81,8 +81,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @SyncToClient
     protected boolean isFlipped;
 
-    protected volatile boolean simpleLock;
-
     protected volatile boolean checking;
 
     protected volatile int waitingTime;
@@ -207,7 +205,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             var state = getMultiblockState();
             boolean result = false;
             if (pattern != null) {
-                checking = true;
                 state.clearCache();
                 result = pattern.checkPatternAt(state, false);
                 if (result) {
@@ -238,7 +235,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                     if (subState == null) continue;
                     subState.clearCache();
                 }
-                checking = false;
             }
             if (result) {
                 state.addShared();
@@ -257,18 +253,18 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
 
     @Override
     public void asyncCheckPattern(MultiblockWorldData data) {
-        if (simpleLock) return;
+        if (checking) return;
         if (getMultiblockState().error == null && isFormed) {
             data.addMapping(getMultiblockState());
             data.removeAsyncLogic(this);
             return;
         }
         if (getLevel() instanceof ServerLevel serverLevel) {
-            simpleLock = true;
+            checking = true;
             if (checkPatternWithTryLock()) {
                 TaskHandler.enqueueTask(serverLevel, () -> {
                     if (requiresServerCheck() && !checkPatternWithLock()) {
-                        simpleLock = false;
+                        checking = false;
                         return;
                     }
                     isFlipped = getMultiblockState().isNeededFlip();
@@ -277,7 +273,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                     var mwsd = MultiblockWorldData.getOrCreate(serverLevel);
                     mwsd.addMapping(getMultiblockState());
                     mwsd.removeAsyncLogic(this);
-                    simpleLock = false;
+                    checking = false;
                 });
             } else {
                 if (sendMessage && getMultiblockState().error != MultiblockState.UNINIT_ERROR && !toldNotFormed && getOwner() != null) {
@@ -291,7 +287,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                     }));
                     toldNotFormed = true;
                 }
-                simpleLock = false;
+                checking = false;
             }
         }
     }
@@ -416,7 +412,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
 
     @Override
     public void requestCheck() {
-        if (!simpleLock && isFormed && getLevel() instanceof ServerLevel serverLevel) {
+        if (!checking && isFormed && getLevel() instanceof ServerLevel serverLevel) {
             patternLock.lock();
             try {
                 if (isFormed) {

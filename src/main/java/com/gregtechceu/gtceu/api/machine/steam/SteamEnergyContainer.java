@@ -12,11 +12,11 @@ public class SteamEnergyContainer extends IDummyEnergyMachine.DummyContainer {
 
     private static final FluidStack STEAM = GTMaterials.Steam.getFluid(1);
 
-    private final double conversionRate;
-    private final NotifiableFluidTank steamTank;
+    public final double conversionRate;
+    public final NotifiableFluidTank steamTank;
 
     public SteamEnergyContainer(double conversionRate, NotifiableFluidTank steamTank) {
-        super(Integer.MAX_VALUE);
+        super((long) (steamTank.getTankCapacity(0) / conversionRate));
         this.conversionRate = conversionRate;
         this.steamTank = steamTank;
     }

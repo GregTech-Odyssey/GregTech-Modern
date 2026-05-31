@@ -166,13 +166,23 @@ public class MultiblockState {
     }
 
     public void onBlockStateChanged(BlockPos pos, BlockState state) {
-        if (controller.isFormed() && !pos.equals(controllerPos)) {
-            if (state.getBlock() instanceof ActiveBlock) {
-                if (matchContext.getOrDefault(Predicates.DataKey.ACTIVE_BLOCKS, LongSets.EMPTY_SET).contains(pos.asLong())) {
-                    return;
+        if (world instanceof ServerLevel serverLevel) {
+            if (pos.equals(controllerPos)) {
+                if (!state.is(controller.self().getBlockState().getBlock())) {
+                    controller.onStructureInvalid();
+                    var mwsd = MultiblockWorldData.getOrCreate(serverLevel);
+                    mwsd.removeMapping(this);
+                }
+            } else {
+                if (controller.isFormed()) {
+                    if (state.getBlock() instanceof ActiveBlock) {
+                        if (matchContext.getOrDefault(Predicates.DataKey.ACTIVE_BLOCKS, LongSets.EMPTY_SET).contains(pos.asLong())) {
+                            return;
+                        }
+                    }
+                    controller.requestCheck();
                 }
             }
-            controller.requestCheck();
         }
     }
 }
