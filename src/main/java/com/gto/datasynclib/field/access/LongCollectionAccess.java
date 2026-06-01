@@ -9,7 +9,7 @@ import com.gto.datasynclib.datasream.data.LongArrayData;
 import it.unimi.dsi.fastutil.longs.LongCollection;
 import org.jetbrains.annotations.NotNull;
 
-public final class LongCollectionAccess extends AbstractMarkFieldAccess<LongCollection> {
+public final class LongCollectionAccess extends AbstractFieldAccess<LongCollection> {
 
     private int hashCode;
 
@@ -18,8 +18,8 @@ public final class LongCollectionAccess extends AbstractMarkFieldAccess<LongColl
     }
 
     @Override
-    public boolean hasChanges(@NotNull LogicalSide side, @NotNull Object source, boolean auto) {
-        var hashCode = getInstance(source).hashCode();
+    protected boolean hasChange(@NotNull LogicalSide side, @NotNull LongCollection instance, boolean auto) {
+        var hashCode = instance.hashCode();
         if (hashCode != this.hashCode) {
             this.hashCode = hashCode;
             return true;
@@ -28,7 +28,7 @@ public final class LongCollectionAccess extends AbstractMarkFieldAccess<LongColl
     }
 
     @Override
-    public void writeBuffer(@NotNull LogicalSide side, @NotNull LongCollection instance, @NotNull FriendlyByteBuf data, boolean force) {
+    protected void writeBuffer(@NotNull LogicalSide side, @NotNull LongCollection instance, @NotNull FriendlyByteBuf data, boolean force) {
         data.writeVarInt(instance.size());
         for (var element : instance) {
             data.writeLong(element);
@@ -36,7 +36,7 @@ public final class LongCollectionAccess extends AbstractMarkFieldAccess<LongColl
     }
 
     @Override
-    public void readBuffer(@NotNull LogicalSide side, @NotNull LongCollection instance, @NotNull FriendlyByteBuf data) {
+    protected void readBuffer(@NotNull LogicalSide side, @NotNull LongCollection instance, @NotNull FriendlyByteBuf data) {
         var length = data.readVarInt();
         instance.clear();
         for (int i = 0; i < length; i++) {
@@ -45,12 +45,12 @@ public final class LongCollectionAccess extends AbstractMarkFieldAccess<LongColl
     }
 
     @Override
-    public @NotNull Data writeData(@NotNull LongCollection instance) {
+    protected @NotNull Data writeData(@NotNull LongCollection instance) {
         return new LongArrayData(instance.toLongArray());
     }
 
     @Override
-    public void readData(@NotNull LongCollection instance, @NotNull Data data) {
+    protected void readData(@NotNull LongCollection instance, @NotNull Data data, int dataVersion) {
         instance.clear();
         var array = data.getLongArray();
         for (var element : array) {

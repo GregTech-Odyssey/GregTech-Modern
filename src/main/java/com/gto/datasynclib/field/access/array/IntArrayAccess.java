@@ -1,4 +1,4 @@
-package com.gto.datasynclib.field.access;
+package com.gto.datasynclib.field.access.array;
 
 import net.minecraft.network.FriendlyByteBuf;
 
@@ -6,11 +6,12 @@ import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.IntArrayData;
+import com.gto.datasynclib.field.access.AbstractFieldAccess;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
-public final class IntArrayAccess extends AbstractMarkFieldAccess<int[]> {
+public final class IntArrayAccess extends AbstractFieldAccess<int[]> {
 
     private int hashCode;
 
@@ -19,8 +20,8 @@ public final class IntArrayAccess extends AbstractMarkFieldAccess<int[]> {
     }
 
     @Override
-    public boolean hasChanges(@NotNull LogicalSide side, @NotNull Object source, boolean auto) {
-        var hashCode = Arrays.hashCode(getInstance(source));
+    protected boolean hasChange(@NotNull LogicalSide side, int @NotNull [] instance, boolean auto) {
+        var hashCode = Arrays.hashCode(instance);
         if (hashCode != this.hashCode) {
             this.hashCode = hashCode;
             return true;
@@ -29,14 +30,14 @@ public final class IntArrayAccess extends AbstractMarkFieldAccess<int[]> {
     }
 
     @Override
-    public void writeBuffer(@NotNull LogicalSide side, int @NotNull [] instance, @NotNull FriendlyByteBuf data, boolean force) {
+    protected void writeBuffer(@NotNull LogicalSide side, int @NotNull [] instance, @NotNull FriendlyByteBuf data, boolean force) {
         for (var element : instance) {
             data.writeInt(element);
         }
     }
 
     @Override
-    public void readBuffer(@NotNull LogicalSide side, int @NotNull [] instance, @NotNull FriendlyByteBuf data) {
+    protected void readBuffer(@NotNull LogicalSide side, int @NotNull [] instance, @NotNull FriendlyByteBuf data) {
         var length = instance.length;
         for (int i = 0; i < length; i++) {
             instance[i] = data.readInt();
@@ -44,12 +45,12 @@ public final class IntArrayAccess extends AbstractMarkFieldAccess<int[]> {
     }
 
     @Override
-    public @NotNull Data writeData(int @NotNull [] instance) {
+    protected @NotNull Data writeData(int @NotNull [] instance) {
         return IntArrayData.valueOf(instance);
     }
 
     @Override
-    public void readData(int @NotNull [] instance, @NotNull Data data) {
+    protected void readData(int @NotNull [] instance, @NotNull Data data, int dataVersion) {
         var list = data.getIntArray();
         var length = Math.min(list.length, instance.length);
         System.arraycopy(list, 0, instance, 0, length);

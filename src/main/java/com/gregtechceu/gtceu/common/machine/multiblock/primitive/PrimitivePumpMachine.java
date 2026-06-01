@@ -91,7 +91,7 @@ public class PrimitivePumpMachine extends MultiblockControllerMachine implements
             } else if (biomeModifier > 0) {
                 if (fluidTank == null) initializeTank();
                 if (fluidTank != null) {
-                    fluidTank.fill(GTMaterials.Water.getFluid(getFluidProduction()), IFluidHandler.FluidAction.EXECUTE);
+                    fluidTank.fillInternal(GTMaterials.Water.getFluid(getFluidProduction()), IFluidHandler.FluidAction.EXECUTE);
                 }
             }
         }

@@ -14,12 +14,12 @@ import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.TextBoxWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -38,14 +38,14 @@ public class AdvancedEnergyDetectorCover extends EnergyDetectorCover implements 
     private static final int DEFAULT_MAX_PERCENT = 66;
     @Getter
     @Setter
-    @Persisted
+    @SaveToDisk
     public long minValue;
     @Getter
     @Setter
-    @Persisted
+    @SaveToDisk
     public long maxValue;
     @Getter
-    @Persisted
+    @SaveToDisk
     private boolean usePercent;
     private LongInputWidget minValueInput;
     private LongInputWidget maxValueInput;

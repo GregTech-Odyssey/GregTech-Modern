@@ -17,7 +17,6 @@ import com.gregtechceu.gtceu.utils.TaskHandler;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.ComponentPanelWidget;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -29,6 +28,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,10 +49,10 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
     @Getter
     public final int heatSpeed;
     @Getter
-    @Persisted
+    @SaveToDisk
     private int currentTemperature;
     @Getter
-    @Persisted
+    @SaveToDisk
     private int throttle;
     @Nullable
     protected TickableSubscription temperatureSubs;

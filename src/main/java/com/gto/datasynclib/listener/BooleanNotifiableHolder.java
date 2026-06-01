@@ -4,7 +4,7 @@ import net.minecraft.network.FriendlyByteBuf;
 
 import com.gto.datasynclib.IDataSerializable;
 import com.gto.datasynclib.LogicalSide;
-import com.gto.datasynclib.datasream.data.BooleanData;
+import com.gto.datasynclib.datasream.data.ByteData;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.util.holder.BooleanHolder;
 import lombok.Setter;
@@ -38,22 +38,22 @@ public final class BooleanNotifiableHolder extends BooleanHolder implements IDat
     }
 
     @Override
-    public void markAsDirty() {
+    public void markAsChanged() {
         syncChange = true;
     }
 
     @Override
-    public void clearDirty() {
+    public void clearChanged() {
         syncChange = false;
     }
 
     @Override
-    public boolean isDirty() {
+    public boolean isChanged() {
         return syncChange;
     }
 
     @Override
-    public boolean hasChanges() {
+    public boolean detectChange() {
         return value != lastValue;
     }
 
@@ -73,11 +73,11 @@ public final class BooleanNotifiableHolder extends BooleanHolder implements IDat
 
     @Override
     public Data writeData() {
-        return BooleanData.valueOf(value);
+        return ByteData.valueOf(value);
     }
 
     @Override
-    public void readData(@NotNull Data data) {
+    public void readData(@NotNull Data data, int dataVersion) {
         value = data.getBoolean();
     }
 }

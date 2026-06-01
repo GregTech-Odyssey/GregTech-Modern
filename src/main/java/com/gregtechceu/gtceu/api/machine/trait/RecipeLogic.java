@@ -13,15 +13,14 @@ import com.gregtechceu.gtceu.api.sound.AutoReleasedSound;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.annotation.UpdateListener;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -45,24 +44,22 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     public final IRecipeLogicMachine machine;
 
     @Getter
-    @Persisted
-    @DescSynced
-    @UpdateListener(methodName = "onStatusSynced")
+    @SaveToDisk
+    @SyncToClient(listener = "onStatusSynced")
     protected int status = IDLE;
-    @Persisted
-    @DescSynced
-    @UpdateListener(methodName = "onActiveSynced")
+    @SaveToDisk
+    @SyncToClient(listener = "onActiveSynced")
     protected boolean isActive;
 
     @Nullable
-    @DescSynced
+    @SyncToClient
     protected Component idleReason = null;
 
     @Setter
     protected Supplier<Component> idleReasonSupplier = null;
 
     @Nullable
-    @Persisted
+    @SaveToDisk
     protected GTRecipe lastRecipe;
 
     @Getter
@@ -73,17 +70,17 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     protected RecipeHandlerUnit lastOriginUnit;
     @Getter
     @Setter
-    @Persisted
+    @SaveToDisk
     public int progress;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected int duration;
 
     @Getter
-    @Persisted
+    @SaveToDisk
     protected long totalContinuousRunningTime;
     @Setter
-    @Persisted
+    @SaveToDisk
     protected boolean suspendAfterFinish = false;
 
     public TickableSubscription subscription;

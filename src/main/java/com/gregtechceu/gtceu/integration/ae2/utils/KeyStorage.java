@@ -1,18 +1,23 @@
 package com.gregtechceu.gtceu.integration.ae2.utils;
 
-import com.lowdragmc.lowdraglib.syncdata.IContentChangeAware;
-import com.lowdragmc.lowdraglib.syncdata.ITagSerializable;
-
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
+import net.minecraft.network.FriendlyByteBuf;
 
 import appeng.api.config.Actionable;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEKey;
 import appeng.api.storage.MEStorage;
+import com.gto.datasynclib.AbstractDataSerializable;
+import com.gto.datasynclib.LogicalSide;
+import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.datasream.data.ListData;
+import com.gto.datasynclib.util.DataCodecs;
 import it.unimi.dsi.fastutil.objects.Reference2LongMap;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
+import lombok.Getter;
+import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
@@ -23,7 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Provides methods for serialization and deserialization.
  */
 @MethodsReturnNonnullByDefault
-public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAware, Iterable<Reference2LongMap.Entry<AEKey>> {
+public class KeyStorage extends AbstractDataSerializable implements Iterable<Reference2LongMap.Entry<AEKey>> {
 
     public final ReentrantLock lock = new ReentrantLock();
 
@@ -31,6 +36,8 @@ public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAwar
 
     // not
     @Nullable
+    @Setter
+    @Getter
     private Runnable onContentsChanged;
 
     /**
@@ -73,40 +80,7 @@ public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAwar
         if (onContentsChanged != null) {
             onContentsChanged.run();
         }
-    }
-
-    @Override
-    public ListTag serializeNBT() {
-        var list = new ListTag();
-        lock.lock();
-        try {
-            for (var entry : this) {
-                var tag = new CompoundTag();
-                if (entry == null) continue;
-                tag.put("key", entry.getKey().toTagGeneric());
-                tag.putLong("value", entry.getLongValue());
-                list.add(tag);
-            }
-        } finally {
-            lock.unlock();
-        }
-        return list;
-    }
-
-    @Override
-    public void deserializeNBT(ListTag tags) {
-        for (int i = 0; i < tags.size(); i++) {
-            var tag = tags.getCompound(i);
-            var key = AEKey.fromTagGeneric(tag.getCompound("key"));
-            if (key == null) continue;
-            long value = tag.getLong("value");
-            lock.lock();
-            try {
-                storage.put(key, value);
-            } finally {
-                lock.unlock();
-            }
-        }
+        syncChange = true;
     }
 
     @Override
@@ -118,12 +92,62 @@ public class KeyStorage implements ITagSerializable<ListTag>, IContentChangeAwar
         return storage.isEmpty();
     }
 
-    @Nullable
-    public Runnable getOnContentsChanged() {
-        return this.onContentsChanged;
+    @Override
+    public void writeBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
+        data.writeVarInt(storage.size());
+        for (var entry : this) {
+            if (entry == null || entry.getLongValue() < 1) {
+                data.writeVarLong(0);
+            } else {
+                data.writeVarLong(entry.getLongValue());
+                AEKey.writeKey(data, entry.getKey());
+            }
+        }
     }
 
-    public void setOnContentsChanged(@Nullable final Runnable onContentsChanged) {
-        this.onContentsChanged = onContentsChanged;
+    @Override
+    public void readBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
+        var size = data.readVarInt();
+        for (var i = 0; i < size; i++) {
+            var value = data.readVarLong();
+            if (value == 0) continue;
+            var key = AEKey.readKey(data);
+            storage.put(key, value);
+        }
+    }
+
+    @Override
+    public Data writeData() {
+        var list = new ListData();
+        lock.lock();
+        try {
+            for (var entry : this) {
+                var tag = new CompoundTag();
+                if (entry == null) continue;
+                tag.put("key", entry.getKey().toTagGeneric());
+                tag.putLong("value", entry.getLongValue());
+                list.add(DataCodecs.COMPOUND_TAG_CODEC.encode(tag));
+            }
+        } finally {
+            lock.unlock();
+        }
+        return list;
+    }
+
+    @Override
+    public void readData(@NotNull Data data, int dataVersion) {
+        var list = data.getList();
+        for (Data item : list) {
+            var tag = DataCodecs.COMPOUND_TAG_CODEC.decode(item, dataVersion);
+            var key = AEKey.fromTagGeneric(tag.getCompound("key"));
+            if (key == null) continue;
+            long value = tag.getLong("value");
+            lock.lock();
+            try {
+                storage.put(key, value);
+            } finally {
+                lock.unlock();
+            }
+        }
     }
 }

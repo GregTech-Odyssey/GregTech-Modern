@@ -2,32 +2,32 @@ package com.gto.datasynclib.field.access;
 
 import net.minecraft.network.FriendlyByteBuf;
 
-import com.gto.datasynclib.CombinationCodec;
 import com.gto.datasynclib.DataFieldDefinition;
+import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ListData;
-import com.gto.datasynclib.datasream.data.NullData;
+import com.gto.datasynclib.util.DataFixer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-public final class CollectionAccess<E> extends AbstractMarkFieldAccess<Collection> {
+public final class CollectionAccess<E> extends AbstractFieldAccess<Collection> {
 
-    private final CombinationCodec<E> elementCodec;
+    private final DataSyncCodec<E> elementCodec;
     private int hashCode;
 
     @SuppressWarnings("unchecked")
     public CollectionAccess(DataFieldDefinition<Collection> definition) {
         super(definition);
         if (definition.genericCodec.length == 0) throw new IllegalArgumentException("Collection type not found");
-        this.elementCodec = (CombinationCodec<E>) definition.genericCodec[0];
+        this.elementCodec = (DataSyncCodec<E>) definition.genericCodec[0];
         if (this.elementCodec == null) throw new IllegalArgumentException("Codec not found for type " + definition.genericType[0]);
     }
 
     @Override
-    public boolean hasChanges(@NotNull LogicalSide side, @NotNull Object source, boolean auto) {
-        var hashCode = getInstance(source).hashCode();
+    protected boolean hasChange(@NotNull LogicalSide side, @NotNull Collection instance, boolean auto) {
+        var hashCode = instance.hashCode();
         if (hashCode != this.hashCode) {
             this.hashCode = hashCode;
             return true;
@@ -36,24 +36,33 @@ public final class CollectionAccess<E> extends AbstractMarkFieldAccess<Collectio
     }
 
     @Override
-    public void writeBuffer(@NotNull LogicalSide side, @NotNull Collection instance, @NotNull FriendlyByteBuf data, boolean force) {
+    protected void writeBuffer(@NotNull LogicalSide side, @NotNull Collection instance, @NotNull FriendlyByteBuf data, boolean force) {
         data.writeVarInt(instance.size());
         for (var element : instance) {
-            elementCodec.streamWriter.encode((E) element, data);
+            if (element == null) {
+                data.writeBoolean(false);
+            } else {
+                data.writeBoolean(true);
+                elementCodec.streamWriter.encode((E) element, data);
+            }
         }
     }
 
     @Override
-    public void readBuffer(@NotNull LogicalSide side, @NotNull Collection instance, @NotNull FriendlyByteBuf data) {
+    protected void readBuffer(@NotNull LogicalSide side, @NotNull Collection instance, @NotNull FriendlyByteBuf data) {
         var length = data.readVarInt();
         instance.clear();
         for (int i = 0; i < length; i++) {
-            instance.add(elementCodec.streamReader.decode(data));
+            if (data.readBoolean()) {
+                instance.add(elementCodec.streamReader.decode(data));
+            } else {
+                instance.add(null);
+            }
         }
     }
 
     @Override
-    public @NotNull Data writeData(@NotNull Collection instance) {
+    protected @NotNull Data writeData(@NotNull Collection instance) {
         var list = new ListData();
         for (var element : instance) {
             if (element == null) {
@@ -66,15 +75,11 @@ public final class CollectionAccess<E> extends AbstractMarkFieldAccess<Collectio
     }
 
     @Override
-    public void readData(@NotNull Collection instance, @NotNull Data data) {
+    protected void readData(@NotNull Collection instance, @NotNull Data data, int dataVersion) {
         var list = data.getList();
         instance.clear();
         for (var value : list) {
-            if (value == NullData.INSTANCE) {
-                instance.add(null);
-            } else {
-                instance.add(elementCodec.dataReader.decode(value));
-            }
+            instance.add(DataFixer.decodearray(elementCodec.dataReader, value, dataVersion));
         }
     }
 }

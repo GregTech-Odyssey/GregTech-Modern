@@ -18,56 +18,40 @@ public final class LongField extends AbstractField<Long> {
 
     @Override
     public boolean hasChanges(Object source) {
-        try {
-            return lastValue != definition.field.getLong(source);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
+        return lastValue != definition.getLong(source);
     }
 
     @Override
     public void writeToBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data, boolean force) {
-        try {
-            var value = definition.field.getLong(source);
-            lastValue = value;
-            data.writeLong(value);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
+        var value = definition.getLong(source);
+        lastValue = value;
+        data.writeLong(value);
     }
 
     @Override
     public void readFromBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data) {
-        try {
-            var value = data.readLong();
-            definition.field.setLong(source, value);
-            var listener = definition.getListener(side);
-            if (listener != null) {
-                listener.invoke(source, value, lastValue);
-                lastValue = value;
+        var value = data.readLong();
+        definition.setLong(source, value);
+        var listener = definition.getListener(side);
+        if (listener != null) {
+            try {
+                listener.invokeExact(source, value, lastValue);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
             }
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
+            lastValue = value;
         }
     }
 
     @Override
     public @NotNull Data writeToData(@NotNull Object source) {
-        try {
-            var value = definition.field.getLong(source);
-            return LongData.valueOf(value);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
+        var value = definition.getLong(source);
+        return LongData.valueOf(value);
     }
 
     @Override
-    public void readFromData(@NotNull Object source, @NotNull Data data) {
-        try {
-            var value = data.getLong();
-            definition.field.setLong(source, value);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
+    public void readFromData(@NotNull Object source, @NotNull Data data, int dataVersion) {
+        var value = data.getLong();
+        definition.setLong(source, value);
     }
 }

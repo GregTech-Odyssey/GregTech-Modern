@@ -25,9 +25,6 @@ import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Direction;
@@ -35,6 +32,8 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.Contract;
@@ -49,27 +48,26 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
 
     public static final Pattern COLOR_INPUT_PATTERN = Pattern.compile("^[0-9a-fA-F]{0,8}$");
     protected final ConditionalSubscriptionHandler subscriptionHandler;
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     protected String colorStr = VirtualEntry.DEFAULT_COLOR;
     @Getter
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     protected Permissions permission = Permissions.PUBLIC;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected boolean isWorkingEnabled = true;
     @Getter
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     protected ManualIOMode manualIOMode = ManualIOMode.DISABLED;
     @Getter
-    @Persisted
-    @DescSynced
-    @RequireRerender
+    @SaveToDisk
+    @SyncToClient(notifyUpdate = true)
     protected IO io = IO.OUT;
     protected VirtualEntryWidget virtualEntryWidget;
-    @DescSynced
+    @SyncToClient
     boolean isAnyChanged = false;
 
     public AbstractEnderLinkCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {

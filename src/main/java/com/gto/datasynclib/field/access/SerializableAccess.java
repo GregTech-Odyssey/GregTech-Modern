@@ -15,42 +15,50 @@ public final class SerializableAccess extends AbstractFieldAccess<IDataSerializa
     }
 
     @Override
-    public void markAsDirty(@NotNull Object source) {
-        getInstance(source).markAsDirty();
+    public void markAsChanged(@NotNull Object source) {
+        syncChange = true;
+        var instance = getInstance(source);
+        if (instance == null) return;
+        instance.markAsChanged();
     }
 
     @Override
-    public void clearDirty(@NotNull Object source) {
-        getInstance(source).clearDirty();
+    public void clearChanged(@NotNull Object source) {
+        syncChange = false;
+        var instance = getInstance(source);
+        if (instance == null) return;
+        instance.clearChanged();
     }
 
     @Override
-    public boolean isDirty(@NotNull Object source) {
-        return getInstance(source).isDirty();
+    public boolean isChanged(@NotNull Object source) {
+        var instance = getInstance(source);
+        if (instance == null) return syncChange;
+        return syncChange || instance.isChanged();
     }
 
     @Override
-    public boolean hasChanges(@NotNull LogicalSide side, @NotNull Object source, boolean auto) {
-        return getInstance(source).hasChanges();
+    protected boolean hasChange(@NotNull LogicalSide side, @NotNull IDataSerializable instance, boolean auto) {
+        return instance.detectChange();
     }
 
     @Override
-    public void writeBuffer(@NotNull LogicalSide side, @NotNull IDataSerializable instance, @NotNull FriendlyByteBuf data, boolean force) {
+    protected void writeBuffer(@NotNull LogicalSide side, @NotNull IDataSerializable instance, @NotNull FriendlyByteBuf data, boolean force) {
         instance.writeBuf(side, data);
     }
 
     @Override
-    public void readBuffer(@NotNull LogicalSide side, @NotNull IDataSerializable instance, @NotNull FriendlyByteBuf data) {
+    protected void readBuffer(@NotNull LogicalSide side, @NotNull IDataSerializable instance, @NotNull FriendlyByteBuf data) {
         instance.readBuf(side, data);
     }
 
     @Override
-    public @NotNull Data writeData(@NotNull IDataSerializable instance) {
+    protected @NotNull Data writeData(@NotNull IDataSerializable instance) {
         return instance.writeData();
     }
 
     @Override
-    public void readData(@NotNull IDataSerializable instance, @NotNull Data data) {
-        instance.readData(data);
+    protected void readData(@NotNull IDataSerializable instance, @NotNull Data data, int dataVersion) {
+        instance.readData(data, dataVersion);
     }
 }

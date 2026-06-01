@@ -16,6 +16,9 @@ import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerators;
 import com.gregtechceu.gtceu.api.gui.factory.CoverUIFactory;
 import com.gregtechceu.gtceu.api.gui.factory.GTUIEditorFactory;
 import com.gregtechceu.gtceu.api.gui.factory.MachineUIFactory;
+import com.gregtechceu.gtceu.api.misc.virtualregistry.entries.VirtualItemStorage;
+import com.gregtechceu.gtceu.api.misc.virtualregistry.entries.VirtualRedstone;
+import com.gregtechceu.gtceu.api.misc.virtualregistry.entries.VirtualTank;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
@@ -43,9 +46,12 @@ import com.gregtechceu.gtceu.data.recipe.GTCraftingComponents;
 import com.gregtechceu.gtceu.forge.AlloyBlastPropertyAddition;
 import com.gregtechceu.gtceu.forge.ForgeCommonEventListener;
 import com.gregtechceu.gtceu.integration.map.WaypointManager;
+import com.gregtechceu.gtceu.syncdata.datasynclib.TagSerializableAccess;
+import com.gregtechceu.gtceu.syncdata.datasynclib.TagSerializableArrayAccess;
 import com.gregtechceu.gtceu.utils.input.KeyBind;
 
 import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
+import com.lowdragmc.lowdraglib.syncdata.ITagSerializable;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.packs.PackType;
@@ -59,8 +65,9 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegisterEvent;
 
-import com.gto.datasynclib.CombinationCodec;
+import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.DataSyncLib;
+import com.gto.datasynclib.FieldDefinitionStorage;
 
 public class CommonProxy {
 
@@ -199,9 +206,14 @@ public class CommonProxy {
     }
 
     private static void initDataSync() {
-        CombinationCodec.register(Material.class, Material.STREAM_CODEC, Material.DATA_CODEC);
-        CombinationCodec.register(GTRecipeType.class, GTRegistries.RECIPE_TYPES.streamCodec(), GTRegistries.RECIPE_TYPES.dataCodec());
-        CombinationCodec.register(GTRecipe.class, GTRecipe.STREAM_CODEC, GTRecipe.DATA_CODEC);
-        CombinationCodec.register(GTRecipeDefinition.class, GTRecipeDefinition.STREAM_CODEC, GTRecipeDefinition.DATA_CODEC);
+        DataSyncCodec.register(Material.class, Material.STREAM_CODEC, Material.DATA_CODEC);
+        DataSyncCodec.register(GTRecipeType.class, GTRegistries.RECIPE_TYPES.streamCodec(), GTRegistries.RECIPE_TYPES.dataCodec());
+        DataSyncCodec.register(GTRecipe.class, GTRecipe.STREAM_CODEC, GTRecipe.DATA_CODEC);
+        DataSyncCodec.register(GTRecipeDefinition.class, GTRecipeDefinition.STREAM_CODEC, GTRecipeDefinition.DATA_CODEC);
+        DataSyncCodec.register(VirtualItemStorage.class, VirtualItemStorage.DATA_CODEC);
+        DataSyncCodec.register(VirtualTank.class, VirtualTank.DATA_CODEC);
+        DataSyncCodec.register(VirtualRedstone.class, VirtualRedstone.DATA_CODEC);
+        FieldDefinitionStorage.registerAccessInterfaceFactory(ITagSerializable.class, k -> TagSerializableAccess::new, 1000);
+        FieldDefinitionStorage.registerAccessCustomFactory(c -> c.isArray() && !c.componentType().isPrimitive() && ITagSerializable.class.isAssignableFrom(c.componentType()), c -> TagSerializableArrayAccess::new, 2000);
     }
 }

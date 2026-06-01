@@ -21,13 +21,13 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraftforge.energy.IEnergyStorage;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import lombok.Setter;
@@ -52,10 +52,10 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
     }
 
     @Setter
-    @Persisted
+    @SaveToDisk
     private boolean isWorkingEnabled;
     private final int inventorySize;
-    @Persisted
+    @SaveToDisk
     protected final CustomItemStackHandler chargerInventory;
     @SyncToClient(notifyUpdate = true)
     private State state;

@@ -58,7 +58,7 @@ public final class DataOps implements DynamicOps<Data> {
         return input instanceof NumericData data ? DataResult.success(data.box()) : DataResult.error(() -> "Not a number");
     }
 
-    public Data createNumeric(Number n) {
+    public NumericData createNumeric(Number n) {
         return switch (n) {
             case Byte b -> ByteData.valueOf(b);
             case Short s -> ShortData.valueOf(s);
@@ -71,34 +71,34 @@ public final class DataOps implements DynamicOps<Data> {
     }
 
     public DataResult<Boolean> getBooleanValue(final Data input) {
-        return input instanceof BooleanData(boolean value) ? DataResult.success(value) : DataResult.error(() -> "Not a boolean");
+        return input instanceof ByteData(byte value) ? DataResult.success(value == 1) : DataResult.error(() -> "Not a boolean");
     }
 
-    public Data createBoolean(final boolean value) {
-        return BooleanData.valueOf(value);
-    }
-
-    public Data createByte(byte value) {
+    public ByteData createBoolean(final boolean value) {
         return ByteData.valueOf(value);
     }
 
-    public Data createShort(short value) {
+    public ByteData createByte(byte value) {
+        return ByteData.valueOf(value);
+    }
+
+    public ShortData createShort(short value) {
         return ShortData.valueOf(value);
     }
 
-    public Data createInt(int value) {
+    public IntData createInt(int value) {
         return IntData.valueOf(value);
     }
 
-    public Data createLong(long value) {
+    public LongData createLong(long value) {
         return LongData.valueOf(value);
     }
 
-    public Data createFloat(float value) {
+    public FloatData createFloat(float value) {
         return FloatData.valueOf(value);
     }
 
-    public Data createDouble(double value) {
+    public DoubleData createDouble(double value) {
         return DoubleData.valueOf(value);
     }
 
@@ -106,7 +106,7 @@ public final class DataOps implements DynamicOps<Data> {
         return input instanceof StringData(String var4) ? DataResult.success(var4) : DataResult.error(() -> "Not a string");
     }
 
-    public Data createString(String value) {
+    public StringData createString(String value) {
         return StringData.valueOf(value);
     }
 

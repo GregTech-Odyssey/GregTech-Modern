@@ -15,7 +15,6 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -31,6 +30,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
 import com.fast.fastcollection.O2OOpenCacheHashMap;
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import it.unimi.dsi.fastutil.objects.Object2BooleanFunction;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
@@ -58,15 +58,15 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
     private final int successLimit;
     private final int randRange;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient
     private boolean isWorkingEnabled = true;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient
     private boolean isRandomTickMode = true;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     private boolean active = false;
     private TickableSubscription tickSubs;

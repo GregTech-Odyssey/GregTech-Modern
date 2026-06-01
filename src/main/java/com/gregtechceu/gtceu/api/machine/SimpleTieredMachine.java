@@ -33,7 +33,6 @@ import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.Util;
@@ -47,6 +46,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.google.common.collect.Tables;
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.gto.datasynclib.datasream.DataComponentMap;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
@@ -70,31 +70,31 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoOutputBoth {
 
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected Direction outputFacingItems;
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected Direction outputFacingFluids;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputItems;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputFluids;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected boolean allowInputFromOutputSideItems;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected boolean allowInputFromOutputSideFluids;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected final CustomItemStackHandler chargerInventory;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected final NotifiableItemStackHandler circuitInventory;
     @Nullable
     protected TickableSubscription autoOutputSubs;
@@ -107,7 +107,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     @Nullable
     protected ISubscription energySubs;
 
-    @Persisted
+    @SaveToDisk
     @SyncToClient
     protected VoidingMode voidingMode = VoidingMode.VOID_NONE;
 

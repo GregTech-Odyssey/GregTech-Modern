@@ -12,23 +12,24 @@ import com.gregtechceu.gtceu.utils.TaskHandler;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
+
 public class ControlPartMachine extends MultiblockPartMachine implements IControllable {
 
-    @Persisted
+    @SaveToDisk
     private boolean isInverted = false;
-    @Persisted
+    @SaveToDisk
     private int minRedstoneStrength = 1;
-    @Persisted
+    @SaveToDisk
     private boolean isRed = false;
 
-    @Persisted
+    @SaveToDisk
     protected boolean enabled;
 
     public ControlPartMachine(MetaMachineBlockEntity holder) {

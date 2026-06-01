@@ -16,7 +16,6 @@ import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ProgressWidget;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.entity.player.Player;
@@ -24,6 +23,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidUtil;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -34,7 +34,7 @@ public class SteamSolidBoilerMachine extends SteamBoilerMachine {
 
     public static final ReferenceOpenHashSet<Item> FUEL_CACHE = new ReferenceOpenHashSet<>();
 
-    @Persisted
+    @SaveToDisk
     public final NotifiableItemStackHandler fuelHandler, ashHandler;
 
     public SteamSolidBoilerMachine(MetaMachineBlockEntity holder, boolean isHighPressure, Object... args) {

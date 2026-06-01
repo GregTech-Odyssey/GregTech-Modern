@@ -9,7 +9,21 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Codec {
 
-    String save();
+    // DataCodec的静态字段
+    String saveCodec() default "";
 
-    String sync() default "";
+    // ByteStreamCodec的静态字段
+    String syncCodec() default "";
+
+    // 对象方法，签名：T -> Data
+    String writeToData() default "";
+
+    // 对象方法，签名：Data -> T
+    String readFromData() default "";
+
+    // 对象方法，签名：FriendlyByteBuf, T -> void
+    String writeToBuffer() default "";
+
+    // 对象方法，签名：FriendlyByteBuf -> T
+    String readFromBuffer() default "";
 }

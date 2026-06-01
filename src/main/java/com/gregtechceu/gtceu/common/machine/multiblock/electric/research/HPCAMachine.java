@@ -34,7 +34,6 @@ import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -50,6 +49,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import com.gto.datasynclib.annotations.AdditionalHolder;
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
@@ -72,7 +72,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
 
     @AdditionalHolder
     private final HPCAGridHandler hpcaHandler;
-    @Persisted
+    @SaveToDisk
     private double temperature = IDLE_TEMPERATURE; // start at idle temperature
     private final TimedProgressSupplier progressSupplier;
     @Nullable
@@ -282,12 +282,10 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         }
 
         public void tick(int timer) {
-            if (cachedCWUt != allocatedCWUt) {
-                cachedCWUt = allocatedCWUt;
-            }
             cachedEUt = getCurrentEUt();
             if (lastTimeStamp != timer) {
                 lastTimeStamp = timer;
+                cachedCWUt = allocatedCWUt;
                 allocatedCWUt = 0;
             }
         }
@@ -396,6 +394,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         public long allocateCWUt(int timer, long cwu, boolean simulate) {
             if (lastTimeStamp != timer) {
                 lastTimeStamp = timer;
+                cachedCWUt = allocatedCWUt;
                 allocatedCWUt = 0;
             }
             long toAllocate = Math.min(cwu, maxCWUt - allocatedCWUt);

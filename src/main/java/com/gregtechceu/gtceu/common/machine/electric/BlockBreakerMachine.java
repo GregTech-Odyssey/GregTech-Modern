@@ -25,7 +25,6 @@ import com.gregtechceu.gtceu.utils.TaskHandler;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -44,6 +43,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -59,18 +59,18 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOutputItem, IFancyUIMachine, IMachineLife, IControllable {
 
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     @Nullable
     protected Direction outputFacingItems;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputItems;
-    @Persisted
+    @SaveToDisk
     protected final NotifiableItemStackHandler cache;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected final CustomItemStackHandler chargerInventory;
     @Nullable
     protected TickableSubscription autoOutputSubs;
@@ -89,7 +89,7 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
     private final long energyPerTick;
     public final float efficiencyMultiplier;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient
     private boolean isWorkingEnabled = true;
 

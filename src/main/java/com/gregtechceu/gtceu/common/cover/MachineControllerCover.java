@@ -19,8 +19,6 @@ import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -32,6 +30,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,13 +50,13 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
     private ButtonWidget modeButton;
 
     @Getter
-    @Persisted
+    @SaveToDisk
     private boolean isInverted = false;
     @Getter
-    @Persisted
+    @SaveToDisk
     private int minRedstoneStrength = 1;
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     @Nullable
     private ControllerMode controllerMode = ControllerMode.MACHINE;
 

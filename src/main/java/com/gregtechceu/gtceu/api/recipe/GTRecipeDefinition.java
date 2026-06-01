@@ -70,12 +70,12 @@ public final class GTRecipeDefinition {
         }
 
         @Override
-        public GTRecipeDefinition decode(Data data) {
+        public GTRecipeDefinition decode(Data data, int dataVersion) {
             var list = data.getList();
-            var type = GTRegistries.RECIPE_TYPES.dataCodec().decode(list.getFirst());
+            var type = GTRegistries.RECIPE_TYPES.dataCodec().decode(list.getFirst(), dataVersion);
             var idData = list.get(1);
             if (idData.isNull()) return type.defaultDefinition;
-            var id = DataCodecs.RESOURCE_LOCATION_CODEC.decode(idData);
+            var id = DataCodecs.RESOURCE_LOCATION_CODEC.decode(idData, dataVersion);
             var definition = type.recipes.get(id);
             return definition == null ? type.defaultDefinition : definition;
         }

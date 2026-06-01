@@ -2,7 +2,7 @@ package com.gto.datasynclib.listener;
 
 import net.minecraft.network.FriendlyByteBuf;
 
-import com.gto.datasynclib.CombinationCodec;
+import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.LogicalSide;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -12,22 +12,22 @@ import org.jetbrains.annotations.NotNull;
 @Accessors(chain = true)
 public final class ObjNotifiableHolder<T> extends ObjSerializableHolder<T> implements ISyncNotifiable<ObjNotifiableHolder, ObjSyncListener<T>> {
 
-    public static <T> ObjNotifiableHolder<T> create(CombinationCodec<T> codec) {
+    public static <T> ObjNotifiableHolder<T> create(DataSyncCodec<T> codec) {
         return new ObjNotifiableHolder<>(codec);
     }
 
-    public static <T> ObjNotifiableHolder<T> create(CombinationCodec<T> codec, T value) {
+    public static <T> ObjNotifiableHolder<T> create(DataSyncCodec<T> codec, T value) {
         return new ObjNotifiableHolder<>(codec, value);
     }
 
     private ObjSyncListener<T> receiverListener = ObjSyncListener.EMPTY;
     private ObjSyncListener<T> senderListener = ObjSyncListener.EMPTY;
 
-    private ObjNotifiableHolder(CombinationCodec<T> codec) {
+    private ObjNotifiableHolder(DataSyncCodec<T> codec) {
         super(codec);
     }
 
-    private ObjNotifiableHolder(CombinationCodec<T> codec, T value) {
+    private ObjNotifiableHolder(DataSyncCodec<T> codec, T value) {
         super(codec, value);
     }
 

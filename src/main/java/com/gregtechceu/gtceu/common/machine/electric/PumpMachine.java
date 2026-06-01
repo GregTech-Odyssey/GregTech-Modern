@@ -21,7 +21,6 @@ import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DropSaved;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.Util;
@@ -42,6 +41,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import net.minecraftforge.fluids.capability.wrappers.BucketPickupHandlerWrapper;
 
 import com.fast.fastcollection.OpenCacheHashSet;
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
@@ -62,14 +62,14 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
     private final Set<BlockPos> forbiddenBlocks = new OpenCacheHashSet<>();
     private PumpQueue pumpQueue = null;
     @Getter
-    @Persisted
+    @SaveToDisk
     private int pumpHeadY;
     @Getter
     @Setter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputFluids;
-    @Persisted
+    @SaveToDisk
     @DropSaved
     protected final NotifiableFluidTank cache;
 

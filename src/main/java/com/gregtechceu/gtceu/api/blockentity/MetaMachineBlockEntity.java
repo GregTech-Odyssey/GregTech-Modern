@@ -16,8 +16,6 @@ import com.gregtechceu.gtceu.client.renderer.GTRendererProvider;
 
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.syncdata.blockentity.IRPCBlockEntity;
-import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -47,7 +45,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class MetaMachineBlockEntity extends TickBlockEntity implements IToolGridHighlight, IRPCBlockEntity, IPaintable, IWailaDisplayProvider {
+public class MetaMachineBlockEntity extends TickBlockEntity implements IToolGridHighlight, IPaintable, IWailaDisplayProvider {
 
     @Getter
     public final MetaMachine metaMachine;
@@ -62,11 +60,6 @@ public class MetaMachineBlockEntity extends TickBlockEntity implements IToolGrid
 
     public static MetaMachineBlockEntity createBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         return new MetaMachineBlockEntity(type, pos, blockState);
-    }
-
-    @Override
-    public FieldManagedStorage getRootStorage() {
-        return metaMachine.getSyncStorage();
     }
 
     @Override
@@ -222,16 +215,24 @@ public class MetaMachineBlockEntity extends TickBlockEntity implements IToolGrid
         return worldPosition;
     }
 
-    @Override
     public void saveCustomPersistedData(CompoundTag tag, boolean forDrop) {
-        super.saveCustomPersistedData(tag, forDrop);
         metaMachine.saveCustomPersistedData(tag, forDrop);
     }
 
-    @Override
     public void loadCustomPersistedData(CompoundTag tag) {
-        super.loadCustomPersistedData(tag);
         metaMachine.loadCustomPersistedData(tag);
+    }
+
+    @Override
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        loadCustomPersistedData(tag);
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        saveCustomPersistedData(tag, false);
     }
 
     @Override

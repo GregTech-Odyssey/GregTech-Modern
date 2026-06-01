@@ -3,8 +3,6 @@ package com.gregtechceu.gtceu.api.pipenet;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.PosUtils;
 
-import com.lowdragmc.lowdraglib.syncdata.ITagSerializable;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -24,7 +22,7 @@ import lombok.Getter;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-public abstract class PipeNet<NodeDataType> implements ITagSerializable<CompoundTag> {
+public abstract class PipeNet<NodeDataType> {
 
     protected final LevelPipeNet<NodeDataType, PipeNet<NodeDataType>> worldData;
     private final Long2ObjectOpenHashMap<Node<NodeDataType>> nodeByBlockPos = new Long2ObjectOpenHashMap<>();
@@ -291,14 +289,12 @@ public abstract class PipeNet<NodeDataType> implements ITagSerializable<Compound
      */
     protected abstract NodeDataType readNodeData(CompoundTag tagCompound);
 
-    @Override
     public CompoundTag serializeNBT() {
         CompoundTag compound = new CompoundTag();
         compound.put("Nodes", serializeAllNodeList(nodeByBlockPos));
         return compound;
     }
 
-    @Override
     public void deserializeNBT(CompoundTag nbt) {
         this.nodeByBlockPos.clear();
         this.ownedChunks.clear();

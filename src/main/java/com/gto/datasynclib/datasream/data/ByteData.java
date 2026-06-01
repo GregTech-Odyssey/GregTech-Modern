@@ -5,11 +5,23 @@ import org.jetbrains.annotations.NotNull;
 
 public record ByteData(byte value) implements NumericData {
 
+    public static final ByteData TRUE = new ByteData((byte) 1);
+    public static final ByteData FALSE = new ByteData((byte) 0);
+
     @Deprecated(forRemoval = true)
     public ByteData {}
 
+    public static ByteData valueOf(boolean data) {
+        return data ? TRUE : FALSE;
+    }
+
     public static ByteData valueOf(byte data) {
         return Cache.cache[128 + data];
+    }
+
+    @Override
+    public boolean getBoolean() {
+        return value == 1;
     }
 
     @Override

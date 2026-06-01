@@ -29,7 +29,6 @@ import com.gregtechceu.gtceu.utils.TaskHandler;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -52,6 +51,7 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -70,19 +70,19 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     private static final double MOTION_MULTIPLIER = 0.04;
     private static final int BASE_EU_CONSUMPTION = 6;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected Direction outputFacingItems;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputItems;
-    @Persisted
+    @SaveToDisk
     protected final NotifiableItemStackHandler output;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected final CustomItemStackHandler chargerInventory;
-    @Persisted
+    @SaveToDisk
     protected final CustomItemStackHandler filterInventory;
     @Nullable
     protected TickableSubscription autoOutputSubs;
@@ -98,17 +98,17 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     private final int inventorySize;
     private AABB aabb;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient
     private int range;
     private boolean rangeDirty = false;
     private final int maxRange;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient
     private boolean isWorkingEnabled = true;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     private boolean active = false;
 

@@ -1,4 +1,4 @@
-package com.gto.datasynclib.field.access;
+package com.gto.datasynclib.field.access.array;
 
 import net.minecraft.network.FriendlyByteBuf;
 
@@ -6,11 +6,12 @@ import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.codec.DataCodec;
 import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.field.access.AbstractFieldAccess;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
-public final class BooleanArrayAccess extends AbstractMarkFieldAccess<boolean[]> {
+public final class BooleanArrayAccess extends AbstractFieldAccess<boolean[]> {
 
     private int hashCode;
 
@@ -19,8 +20,8 @@ public final class BooleanArrayAccess extends AbstractMarkFieldAccess<boolean[]>
     }
 
     @Override
-    public boolean hasChanges(@NotNull LogicalSide side, @NotNull Object source, boolean auto) {
-        var hashCode = Arrays.hashCode(getInstance(source));
+    protected boolean hasChange(@NotNull LogicalSide side, boolean @NotNull [] instance, boolean auto) {
+        var hashCode = Arrays.hashCode(instance);
         if (hashCode != this.hashCode) {
             this.hashCode = hashCode;
             return true;
@@ -29,14 +30,14 @@ public final class BooleanArrayAccess extends AbstractMarkFieldAccess<boolean[]>
     }
 
     @Override
-    public void writeBuffer(@NotNull LogicalSide side, boolean @NotNull [] instance, @NotNull FriendlyByteBuf data, boolean force) {
+    protected void writeBuffer(@NotNull LogicalSide side, boolean @NotNull [] instance, @NotNull FriendlyByteBuf data, boolean force) {
         for (var element : instance) {
             data.writeBoolean(element);
         }
     }
 
     @Override
-    public void readBuffer(@NotNull LogicalSide side, boolean @NotNull [] instance, @NotNull FriendlyByteBuf data) {
+    protected void readBuffer(@NotNull LogicalSide side, boolean @NotNull [] instance, @NotNull FriendlyByteBuf data) {
         var length = instance.length;
         for (int i = 0; i < length; i++) {
             instance[i] = data.readBoolean();
@@ -44,13 +45,13 @@ public final class BooleanArrayAccess extends AbstractMarkFieldAccess<boolean[]>
     }
 
     @Override
-    public @NotNull Data writeData(boolean @NotNull [] instance) {
+    protected @NotNull Data writeData(boolean @NotNull [] instance) {
         return DataCodec.BOOLEANS_CODEC.encode(instance);
     }
 
     @Override
-    public void readData(boolean @NotNull [] instance, @NotNull Data data) {
-        var list = DataCodec.BOOLEANS_CODEC.decode(data);
+    protected void readData(boolean @NotNull [] instance, @NotNull Data data, int dataVersion) {
+        var list = DataCodec.BOOLEANS_CODEC.decode(data, dataVersion);
         var length = Math.min(list.length, instance.length);
         System.arraycopy(list, 0, instance, 0, length);
     }

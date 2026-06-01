@@ -14,13 +14,13 @@ import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -33,13 +33,13 @@ public class FluidFilterCover extends CoverBehavior implements IUICover {
 
     protected FluidFilter fluidFilter;
     @Getter
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     protected FilterMode filterMode = FilterMode.FILTER_INSERT;
     private FilteredFluidHandlerWrapper fluidFilterWrapper;
     @Getter
     @Setter
-    @Persisted
+    @SaveToDisk
     protected ManualIOMode allowFlow = ManualIOMode.DISABLED;
 
     public FluidFilterCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {

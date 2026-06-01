@@ -8,10 +8,10 @@ import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraftforge.fluids.FluidType;
+
+import com.gto.datasynclib.annotations.SaveToDisk;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -19,13 +19,13 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class PrimitiveWorkableMachine extends WorkableMultiblockMachine {
 
-    @Persisted
+    @SaveToDisk
     public final NotifiableItemStackHandler importItems;
-    @Persisted
+    @SaveToDisk
     public final NotifiableItemStackHandler exportItems;
-    @Persisted
+    @SaveToDisk
     public final NotifiableFluidTank importFluids;
-    @Persisted
+    @SaveToDisk
     public final NotifiableFluidTank exportFluids;
 
     public PrimitiveWorkableMachine(MetaMachineBlockEntity holder, Object... args) {

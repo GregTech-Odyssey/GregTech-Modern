@@ -8,20 +8,21 @@ import com.gregtechceu.gtceu.api.misc.virtualregistry.entries.VirtualRedstone;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.core.Direction;
+
+import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 
 import java.util.UUID;
 
 public class EnderRedstoneLinkCover extends AbstractEnderLinkCover<VirtualRedstone> {
 
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     private VirtualRedstone storage;
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     private final UUID uuid;
 
     public EnderRedstoneLinkCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {

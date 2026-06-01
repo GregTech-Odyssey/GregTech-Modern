@@ -30,7 +30,6 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
 import net.minecraft.ChatFormatting;
@@ -45,6 +44,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.datasream.DataComponentKey;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceSet;
@@ -99,19 +99,19 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
     public static final int MIN_CLEAN_AMOUNT = 0;
     public static final int MIN_RADIUS = 2;
     public static final int MIN_DEPTH = 4;
-    @Persisted
+    @SaveToDisk
     private int lDist = 0;
-    @Persisted
+    @SaveToDisk
     private int rDist = 0;
-    @Persisted
+    @SaveToDisk
     private int bDist = 0;
-    @Persisted
+    @SaveToDisk
     private int fDist = 0;
-    @Persisted
+    @SaveToDisk
     private int hDist = 0;
     @Nullable
     private CleanroomType cleanroomType = null;
-    @Persisted
+    @SaveToDisk
     private int cleanAmount;
     // runtime
     @Nullable

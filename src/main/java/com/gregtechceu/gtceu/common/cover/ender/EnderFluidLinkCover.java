@@ -16,12 +16,12 @@ import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,12 +31,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class EnderFluidLinkCover extends AbstractEnderLinkCover<VirtualTank> {
 
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     protected VirtualTank visualTank;
     @Getter
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     protected final FilterHandler<FluidStack, FluidFilter> filterHandler;
 
     public EnderFluidLinkCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {

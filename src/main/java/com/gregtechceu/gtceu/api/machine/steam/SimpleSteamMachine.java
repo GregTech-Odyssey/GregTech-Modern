@@ -19,7 +19,6 @@ import com.gregtechceu.gtceu.common.recipe.condition.VentCondition;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -28,6 +27,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.fluids.FluidType;
 
 import com.google.common.collect.Tables;
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.datasream.DataComponentMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import lombok.Getter;
@@ -43,12 +43,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaustVentMachine, IUIMachine, IDummyEnergyMachine {
 
-    @Persisted
+    @SaveToDisk
     public final NotifiableItemStackHandler importItems;
-    @Persisted
+    @SaveToDisk
     public final NotifiableItemStackHandler exportItems;
     @Setter
-    @Persisted
+    @SaveToDisk
     private boolean needsVenting;
 
     @Getter

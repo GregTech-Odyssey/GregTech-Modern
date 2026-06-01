@@ -15,8 +15,6 @@ import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.TextBoxWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -25,6 +23,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -39,16 +39,16 @@ public class AdvancedItemDetectorCover extends ItemDetectorCover implements IUIC
 
     private static final int DEFAULT_MIN = 64;
     private static final int DEFAULT_MAX = 512;
-    @Persisted
+    @SaveToDisk
     private int minValue;
-    @Persisted
+    @SaveToDisk
     private int maxValue;
     @Setter
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     private boolean isLatched;
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     protected final FilterHandler<ItemStack, ItemFilter> filterHandler;
 
     public AdvancedItemDetectorCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {

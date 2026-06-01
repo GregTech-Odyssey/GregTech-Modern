@@ -27,8 +27,6 @@ import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -47,6 +45,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 import com.fast.fastcollection.O2LOpenCacheHashMap;
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.Strategy;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
@@ -76,21 +75,21 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
      */
     public static final Object2LongOpenHashMap<UUID> INTERACTION_LOGGER = new O2LOpenCacheHashMap<>();
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected Direction outputFacingItems;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputItems;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected boolean allowInputFromOutputSideItems;
-    @Persisted
+    @SaveToDisk
     private boolean isVoiding;
     private final long maxAmount;
     protected final ItemCache cache;
-    @DescSynced
+    @SyncToClient
     private final CustomItemStackHandler lockedItem;
     @Getter
     @SyncToClient
@@ -233,6 +232,16 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     //////////////////////////////////////
     // ******* Interaction *******//
     //////////////////////////////////////
+    @Override
+    public void saveToItem(CompoundTag tag) {
+        saveCustomPersistedData(tag, true);
+    }
+
+    @Override
+    public void loadFromItem(CompoundTag tag) {
+        loadCustomPersistedData(tag);
+    }
+
     @Override
     public boolean isFacingValid(Direction facing) {
         if (facing == outputFacingItems) return false;

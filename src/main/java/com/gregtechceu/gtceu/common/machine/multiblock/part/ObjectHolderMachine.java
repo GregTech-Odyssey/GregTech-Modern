@@ -18,13 +18,13 @@ import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,11 +36,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class ObjectHolderMachine extends MultiblockPartMachine implements IObjectHolder, IMachineLife {
 
     // purposefully not exposed to automation or capabilities
-    @Persisted
+    @SaveToDisk
     private final ObjectHolderHandler heldItems;
     @Getter
     @Setter
-    @Persisted
+    @SaveToDisk
     @SyncToClient
     private boolean isLocked;
 

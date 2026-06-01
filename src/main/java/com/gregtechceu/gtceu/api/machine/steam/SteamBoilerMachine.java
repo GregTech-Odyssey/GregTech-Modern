@@ -28,7 +28,6 @@ import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.ProgressWidget;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -54,6 +53,7 @@ import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -71,14 +71,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public abstract class SteamBoilerMachine extends SteamWorkableMachine implements IUIMachine, IExplosionMachine, IDataInfoProvider, IWailaDisplayProvider, IInteractedMachine {
 
-    @Persisted
+    @SaveToDisk
     public final NotifiableFluidTank waterTank;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient
     private int currentTemperature;
     @Getter
-    @Persisted
+    @SaveToDisk
     private int timeBeforeCoolingDown;
     @Getter
     private boolean hasNoWater;

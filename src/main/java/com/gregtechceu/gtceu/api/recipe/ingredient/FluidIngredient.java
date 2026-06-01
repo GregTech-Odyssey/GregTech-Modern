@@ -7,7 +7,6 @@ import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -22,6 +21,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.gto.datasynclib.datasream.data.*;
+import com.gto.datasynclib.util.DataCodecs;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import org.jetbrains.annotations.NotNull;
@@ -104,7 +104,7 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
             default -> throw new IllegalStateException("Unknown fluid ingredient type");
         }
         data.putLong("a", amount);
-        if (nbt != null) data.put("n", NbtOps.INSTANCE.convertTo(DataOps.INSTANCE, nbt));
+        if (nbt != null) data.put("n", DataCodecs.COMPOUND_TAG_CODEC.encode(nbt));
         return data;
     }
 
@@ -125,7 +125,7 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
         if (data.isNull()) return EMPTY;
         var map = data.getMap();
         var amount = map.get("a").getLong();
-        var nbt = map.get("n") instanceof MapData mapData ? (CompoundTag) DataOps.INSTANCE.convertTo(NbtOps.INSTANCE, mapData) : null;
+        var nbt = map.get("n") instanceof MapData mapData ? DataCodecs.COMPOUND_TAG_CODEC.decode(mapData) : null;
         var fluid = map.get("f");
         if (fluid != null) {
             return new FluidIngredient(GTUtil.FLUID_VALUE.apply(GTUtil.getResourceLocation(fluid.getString())), amount, nbt);

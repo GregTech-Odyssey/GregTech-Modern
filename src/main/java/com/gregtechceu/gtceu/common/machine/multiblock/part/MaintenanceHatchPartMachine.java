@@ -24,7 +24,6 @@ import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.*;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -43,6 +42,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import dev.gigaherz.toolbelt.BeltFinder;
 import dev.gigaherz.toolbelt.belt.ToolBeltInventory;
@@ -68,23 +68,23 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
     private static final float DURATION_ACTION_AMOUNT = 0.01F;
     @Getter
     private final boolean isConfigurable;
-    @Persisted
+    @SaveToDisk
     private final NotifiableItemStackHandler itemStackHandler;
     @Getter
     @Setter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     private boolean isTaped;
     @Getter
     @Setter
-    @Persisted
+    @SaveToDisk
     protected int timeActive;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient
     protected byte maintenanceProblems = startProblems();
     @Getter
-    @Persisted
+    @SaveToDisk
     private float durationMultiplier = 1.0F;
     @Nullable
     protected TickableSubscription maintenanceSubs;

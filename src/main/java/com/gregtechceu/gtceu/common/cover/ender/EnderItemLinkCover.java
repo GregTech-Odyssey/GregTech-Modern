@@ -14,13 +14,13 @@ import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,12 +28,12 @@ public class EnderItemLinkCover extends AbstractEnderLinkCover<VirtualItemStorag
 
     protected static final int TRANSFER_RATE = 8;
 
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     protected VirtualItemStorage storage;
     @Getter
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     protected FilterHandler<ItemStack, ItemFilter> filterHandler;
 
     public EnderItemLinkCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {

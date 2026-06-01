@@ -17,7 +17,6 @@ import com.gregtechceu.gtceu.utils.TaskHandler;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DropSaved;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -34,6 +33,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import lombok.Getter;
@@ -48,12 +48,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropSaveMachine, IInteractedMachine {
 
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputFluids;
     @Getter
     private final int maxStoredFluids;
-    @Persisted
+    @SaveToDisk
     protected final NotifiableFluidTank cache;
     @Nullable
     protected TickableSubscription autoOutputSubs;
@@ -61,7 +61,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     protected ISubscription exportFluidSubs;
     // rename "Fluid" for Item capability
     @Getter
-    @Persisted(key = "Fluid")
+    @SaveToDisk(key = "Fluid")
     @SyncToClient
     @DropSaved
     protected FluidStack stored = FluidStack.EMPTY;
@@ -118,10 +118,18 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     // ****** Fluid Logic *******//
     //////////////////////////////////////
     @Override
+    public void saveToItem(CompoundTag tag) {
+        if (!stored.isEmpty()) {
+            tag.put("Fluid", stored.writeToNBT(new CompoundTag()));
+        }
+    }
+
+    @Override
     public void loadFromItem(CompoundTag tag) {
-        IDropSaveMachine.super.loadFromItem(tag);
         if (!tag.contains("Fluid")) {
             stored = FluidStack.EMPTY;
+        } else {
+            stored = FluidStack.loadFluidStackFromNBT(tag.getCompound("Fluid"));
         }
         // "stored" may not be same as cache (due to item's fluid cap). we should update it.
         cache.getStorages()[0].setFluid(stored.copy());

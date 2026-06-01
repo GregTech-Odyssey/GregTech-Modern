@@ -28,7 +28,6 @@ import com.lowdragmc.lowdraglib.gui.widget.ComponentPanelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.DraggableScrollableWidgetGroup;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 
@@ -47,6 +46,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import lombok.Getter;
@@ -64,18 +64,18 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class MinerMachine extends WorkableTieredMachine implements IMiner, IDataInfoProvider, IAutoOutputItem {
 
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected Direction outputFacingItems;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputItems;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected boolean allowInputFromOutputSideItems;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected final CustomItemStackHandler chargerInventory;
     private final long energyPerTick;
     @Nullable

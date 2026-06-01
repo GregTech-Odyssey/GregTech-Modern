@@ -5,10 +5,12 @@ import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 
 import com.gto.datasynclib.datasream.DataComponentKey;
 import com.gto.datasynclib.datasream.DataComponentMap;
@@ -56,6 +58,30 @@ public interface ILevel {
             setCapability(level, HIGHLIGHTCACHEKEY, cache);
         }
         return cache;
+    }
+
+    @Nullable
+    static LevelChunk getCachedChunk(Level level, BlockPos pos) {
+        return level.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4);
+    }
+
+    @Nullable
+    static LevelChunk getCachedChunk(Level level, ChunkPos pos) {
+        return level.getChunkSource().getChunkNow(pos.x, pos.z);
+    }
+
+    @Nullable
+    static BlockEntity getCachedBlockEntity(Level level, BlockPos pos) {
+        var chunk = getCachedChunk(level, pos);
+        if (chunk != null) return chunk.getBlockEntities().get(pos);
+        return null;
+    }
+
+    @Nullable
+    static BlockState getCachedBlockState(Level level, BlockPos pos) {
+        var chunk = getCachedChunk(level, pos);
+        if (chunk != null) return chunk.getBlockState(pos);
+        return null;
     }
 
     @Nullable

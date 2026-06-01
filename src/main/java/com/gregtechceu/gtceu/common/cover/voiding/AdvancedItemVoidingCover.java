@@ -9,13 +9,14 @@ import com.gregtechceu.gtceu.api.gui.widget.IntInputWidget;
 import com.gregtechceu.gtceu.common.cover.data.VoidingMode;
 
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
+
+import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 
 import java.util.Map;
 
@@ -25,10 +26,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class AdvancedItemVoidingCover extends ItemVoidingCover {
 
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     private VoidingMode voidingMode = VoidingMode.VOID_ANY;
-    @Persisted
+    @SaveToDisk
     protected int globalVoidingLimit = 1;
     private IntInputWidget stackSizeInput;
 

@@ -16,7 +16,6 @@ import com.gregtechceu.gtceu.common.data.GTItems;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -30,6 +29,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -45,10 +45,10 @@ public class CrateMachine extends MetaMachine implements IUIMachine, IMachineLif
     @Getter
     private final int inventorySize;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     private boolean isTaped;
-    @Persisted
+    @SaveToDisk
     public final NotifiableItemStackHandler inventory;
 
     public CrateMachine(MetaMachineBlockEntity holder, Material material, int inventorySize) {
@@ -110,10 +110,15 @@ public class CrateMachine extends MetaMachine implements IUIMachine, IMachineLif
     @Override
     public void saveToItem(CompoundTag tag) {
         if (isTaped) {
-            IDropSaveMachine.super.saveToItem(tag);
             tag.putBoolean("taped", isTaped);
             tag.put("inventory", inventory.storage.serializeNBT());
         }
+    }
+
+    @Override
+    public void loadFromItem(CompoundTag tag) {
+        if (tag.getBoolean("taped")) isTaped = true;
+        if (tag.contains("inventory")) inventory.storage.deserializeNBT(tag.getCompound("inventory"));
     }
 
     @Override

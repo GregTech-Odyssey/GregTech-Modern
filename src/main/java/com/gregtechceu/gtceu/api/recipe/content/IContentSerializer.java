@@ -40,7 +40,7 @@ public interface IContentSerializer<T extends ContentInner> {
     }
 
     @Nullable
-    default Content<T> fromDataContent(Data data) {
+    default Content<T> fromDataContent(Data data, int dataVersion) {
         var list = data.getList();
         if (list.isEmpty()) return null;
         var amount = list.getFirst().getLong();

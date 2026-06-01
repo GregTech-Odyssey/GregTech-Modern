@@ -19,7 +19,6 @@ import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -36,6 +35,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -64,7 +64,7 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
     private LazyOptional<EnergyNetHandler> defaultHandler;
     private int heatQueue;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient
     private int temperature = getDefaultTemp();
     private TickableSubscription heatSubs;

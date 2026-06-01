@@ -26,14 +26,10 @@ public interface IDropSaveMachine extends IMachineFeature {
      *
      * @param tag The tag to save to.
      */
-    default void saveToItem(CompoundTag tag) {
-        self().holder.saveManagedPersistentData(tag, true);
-    }
+    default void saveToItem(CompoundTag tag) {}
 
     /**
      * Loads the contents of the block entity from a compound tag.
      */
-    default void loadFromItem(CompoundTag tag) {
-        self().holder.loadManagedPersistentData(tag);
-    }
+    default void loadFromItem(CompoundTag tag) {}
 }

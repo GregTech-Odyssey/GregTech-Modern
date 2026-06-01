@@ -14,9 +14,8 @@ import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
@@ -36,27 +35,27 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public abstract class WorkableTieredMachine extends TieredEnergyMachine implements IRecipeLogicMachine, IMachineLife, IMufflableMachine, IOverclockMachine, IInputLimitableMachine {
 
     @Getter
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     public final RecipeLogic recipeLogic;
     @Setter
     @Getter
     @Nullable
     protected GTRecipeType[] availableRecipeTypesCache;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected int activeRecipeType;
     @Getter
     protected final Int2IntFunction tankScalingFunction;
     @Nullable
     protected ICleanroomProvider cleanroom;
-    @Persisted
+    @SaveToDisk
     public final NotifiableItemStackHandler importItems;
-    @Persisted
+    @SaveToDisk
     public final NotifiableItemStackHandler exportItems;
-    @Persisted
+    @SaveToDisk
     public final NotifiableFluidTank importFluids;
-    @Persisted
+    @SaveToDisk
     public final NotifiableFluidTank exportFluids;
 
     @Getter
@@ -65,12 +64,12 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     protected final Map<IO, List<IRecipeHandler>> capabilitiesFlat;
 
     @Getter
-    @Persisted
+    @SaveToDisk
     protected int overclockTier;
     protected final List<ISubscription> traitSubscriptions;
     @Getter
     @Setter
-    @Persisted
+    @SaveToDisk
     @SyncToClient
     protected boolean isMuffled;
 

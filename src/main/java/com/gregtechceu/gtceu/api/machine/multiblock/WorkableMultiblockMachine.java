@@ -21,8 +21,6 @@ import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
@@ -51,8 +49,8 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Nullable
     protected ICleanroomProvider cleanroom;
     @Getter
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     public final RecipeLogic recipeLogic;
     @Setter
     @Getter
@@ -60,7 +58,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @SyncToClient
     protected GTRecipeType[] availableRecipeTypesCache;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected int activeRecipeType;
 
     protected boolean recipeLogicAvailable;

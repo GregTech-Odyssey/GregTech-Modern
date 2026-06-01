@@ -63,6 +63,6 @@ public interface ICustomFluidStackHandler extends IFluidHandler {
         if (amount < 1) return FluidStack.EMPTY;
         var copy = stack.copy();
         copy.setAmount(amount);
-        return stack;
+        return copy;
     }
 }

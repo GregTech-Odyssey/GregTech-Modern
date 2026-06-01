@@ -13,22 +13,22 @@ public class ObjCodecField<T> extends ObjField<T> {
     }
 
     @Override
-    protected final void write(@NotNull FriendlyByteBuf data, @NotNull T value) {
-        definition.codec.streamWriter.encode(value, data);
+    protected final void write(@NotNull Object source, @NotNull FriendlyByteBuf data, @NotNull T value) {
+        definition.encode(source, value, data);
     }
 
     @Override
-    protected final @NotNull T read(@NotNull FriendlyByteBuf data) {
-        return definition.codec.streamReader.decode(data);
+    protected final @NotNull T read(@NotNull Object source, @NotNull FriendlyByteBuf data) {
+        return definition.decode(source, data);
     }
 
     @Override
-    protected final @NotNull Data write(@NotNull T value) {
-        return definition.codec.dataWriter.encode(value);
+    protected final @NotNull Data write(@NotNull Object source, @NotNull T value) {
+        return definition.encode(source, value);
     }
 
     @Override
-    protected final @NotNull T read(@NotNull Data data) {
-        return definition.codec.dataReader.decode(data);
+    protected final @NotNull T read(@NotNull Object source, @NotNull Data data, int dataVersion) {
+        return definition.decode(source, data, dataVersion);
     }
 }

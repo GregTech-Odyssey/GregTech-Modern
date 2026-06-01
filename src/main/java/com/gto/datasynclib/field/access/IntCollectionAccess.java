@@ -9,7 +9,7 @@ import com.gto.datasynclib.datasream.data.IntArrayData;
 import it.unimi.dsi.fastutil.ints.IntCollection;
 import org.jetbrains.annotations.NotNull;
 
-public final class IntCollectionAccess extends AbstractMarkFieldAccess<IntCollection> {
+public final class IntCollectionAccess extends AbstractFieldAccess<IntCollection> {
 
     private int hashCode;
 
@@ -18,8 +18,8 @@ public final class IntCollectionAccess extends AbstractMarkFieldAccess<IntCollec
     }
 
     @Override
-    public boolean hasChanges(@NotNull LogicalSide side, @NotNull Object source, boolean auto) {
-        var hashCode = getInstance(source).hashCode();
+    protected boolean hasChange(@NotNull LogicalSide side, @NotNull IntCollection instance, boolean auto) {
+        var hashCode = instance.hashCode();
         if (hashCode != this.hashCode) {
             this.hashCode = hashCode;
             return true;
@@ -28,7 +28,7 @@ public final class IntCollectionAccess extends AbstractMarkFieldAccess<IntCollec
     }
 
     @Override
-    public void writeBuffer(@NotNull LogicalSide side, @NotNull IntCollection instance, @NotNull FriendlyByteBuf data, boolean force) {
+    protected void writeBuffer(@NotNull LogicalSide side, @NotNull IntCollection instance, @NotNull FriendlyByteBuf data, boolean force) {
         data.writeVarInt(instance.size());
         for (var element : instance) {
             data.writeInt(element);
@@ -36,7 +36,7 @@ public final class IntCollectionAccess extends AbstractMarkFieldAccess<IntCollec
     }
 
     @Override
-    public void readBuffer(@NotNull LogicalSide side, @NotNull IntCollection instance, @NotNull FriendlyByteBuf data) {
+    protected void readBuffer(@NotNull LogicalSide side, @NotNull IntCollection instance, @NotNull FriendlyByteBuf data) {
         var length = data.readVarInt();
         instance.clear();
         for (int i = 0; i < length; i++) {
@@ -45,12 +45,12 @@ public final class IntCollectionAccess extends AbstractMarkFieldAccess<IntCollec
     }
 
     @Override
-    public @NotNull Data writeData(@NotNull IntCollection instance) {
+    protected @NotNull Data writeData(@NotNull IntCollection instance) {
         return new IntArrayData(instance.toIntArray());
     }
 
     @Override
-    public void readData(@NotNull IntCollection instance, @NotNull Data data) {
+    protected void readData(@NotNull IntCollection instance, @NotNull Data data, int dataVersion) {
         instance.clear();
         var array = data.getIntArray();
         for (var element : array) {

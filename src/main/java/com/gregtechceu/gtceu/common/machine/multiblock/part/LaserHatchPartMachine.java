@@ -8,13 +8,12 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableLaserContainer;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -26,7 +25,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class LaserHatchPartMachine extends WorkableTieredIOPartMachine implements IDataInfoProvider {
 
-    @Persisted
+    @SaveToDisk
     private final NotifiableLaserContainer buffer;
 
     public LaserHatchPartMachine(MetaMachineBlockEntity holder, IO io, int tier, int amperage) {

@@ -306,9 +306,9 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
         private static final String NBT_SIZE = "Size";
         private static final String NBT_STORED = "Stored";
         private static final String NBT_MAX = "Max";
-        // @Persisted(key = NBT_STORED)
+        // @SaveToDisk(key = NBT_STORED)
         private long[] storage;
-        // @Persisted(key = NBT_MAX)
+        // @SaveToDisk(key = NBT_MAX)
         private long[] maximums;
         @Getter
         private BigInteger capacity;

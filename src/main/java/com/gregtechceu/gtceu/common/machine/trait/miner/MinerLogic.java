@@ -16,8 +16,6 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -34,6 +32,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.Tags;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import lombok.Getter;
 import lombok.Setter;
@@ -63,48 +62,48 @@ public class MinerLogic extends RecipeLogic {
     public ItemStack pickaxeTool;
     private final LinkedList<BlockPos> blocksToMine = new LinkedList<>();
     @Getter
-    @Persisted
+    @SaveToDisk
     protected int x = Integer.MAX_VALUE;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected int y = Integer.MAX_VALUE;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected int z = Integer.MAX_VALUE;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected int startX = Integer.MAX_VALUE;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected int startZ = Integer.MAX_VALUE;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected int startY = Integer.MAX_VALUE;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected int pipeY = Integer.MAX_VALUE;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected int mineX = Integer.MAX_VALUE;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected int mineZ = Integer.MAX_VALUE;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected int mineY = Integer.MAX_VALUE;
     @Getter
     private int minBuildHeight = Integer.MAX_VALUE;
     @Getter
     private int maxBuildHeight = Integer.MAX_VALUE;
     @Getter
-    @Persisted
+    @SaveToDisk
     private int pipeLength = 0;
     @Getter
     @Setter
-    @Persisted
+    @SaveToDisk
     private int currentRadius;
     @Getter
-    @Persisted
+    @SaveToDisk
     private boolean isDone;
     @Getter
     private boolean isInventoryFull;

@@ -20,7 +20,6 @@ import com.gregtechceu.gtceu.utils.ResearchManager;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
@@ -29,6 +28,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
@@ -42,7 +42,7 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
 
     private final Set<GTRecipeDefinition> recipes;
     private final boolean isCreative;
-    @Persisted
+    @SaveToDisk
     public final NotifiableItemStackHandler importItems;
 
     public DataAccessHatchMachine(MetaMachineBlockEntity holder, int tier, boolean isCreative) {

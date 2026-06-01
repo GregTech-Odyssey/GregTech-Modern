@@ -11,7 +11,6 @@ import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DropSaved;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -24,6 +23,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.ItemHandlerHelper;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -33,10 +33,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class CreativeChestMachine extends QuantumChestMachine {
 
-    @Persisted
+    @SaveToDisk
     @DropSaved
     private int itemsPerCycle = 1;
-    @Persisted
+    @SaveToDisk
     @DropSaved
     private int ticksPerCycle = 1;
 

@@ -9,10 +9,9 @@ import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.CleanroomMachine;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-
 import net.minecraft.util.Mth;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +34,7 @@ public class CleanroomLogic extends RecipeLogic {
      */
     @Getter
     @Setter
-    @Persisted
+    @SaveToDisk
     private boolean isActiveAndNeedsUpdate;
 
     private final CleanroomMachine machine;

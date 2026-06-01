@@ -24,7 +24,6 @@ import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -40,6 +39,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -53,7 +53,7 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     public static final int INITIAL_TANK_CAPACITY_1X = 8 * FluidType.BUCKET_VOLUME;
     public static final int INITIAL_TANK_CAPACITY_4X = 2 * FluidType.BUCKET_VOLUME;
     public static final int INITIAL_TANK_CAPACITY_9X = FluidType.BUCKET_VOLUME;
-    @Persisted
+    @SaveToDisk
     public final NotifiableFluidTank tank;
     private final int slots;
     @Nullable
@@ -61,10 +61,10 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     @Nullable
     protected ISubscription tankSubs;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected final NotifiableItemStackHandler circuitInventory;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient
     private boolean isDistinct = false;
 

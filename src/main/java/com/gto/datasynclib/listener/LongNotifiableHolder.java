@@ -38,22 +38,22 @@ public final class LongNotifiableHolder extends LongHolder implements IDataSeria
     }
 
     @Override
-    public void markAsDirty() {
+    public void markAsChanged() {
         syncChange = true;
     }
 
     @Override
-    public void clearDirty() {
+    public void clearChanged() {
         syncChange = false;
     }
 
     @Override
-    public boolean isDirty() {
+    public boolean isChanged() {
         return syncChange;
     }
 
     @Override
-    public boolean hasChanges() {
+    public boolean detectChange() {
         return value != lastValue;
     }
 
@@ -77,7 +77,7 @@ public final class LongNotifiableHolder extends LongHolder implements IDataSeria
     }
 
     @Override
-    public void readData(@NotNull Data data) {
+    public void readData(@NotNull Data data, int dataVersion) {
         value = data.getLong();
     }
 }

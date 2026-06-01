@@ -1,23 +1,29 @@
 package com.gregtechceu.gtceu.api.transfer.fluid;
 
-import com.gregtechceu.gtceu.api.misc.IContentChange;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import com.lowdragmc.lowdraglib.syncdata.ITagSerializable;
-
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 
+import com.gto.datasynclib.IDataSerializable;
+import com.gto.datasynclib.LogicalSide;
+import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.util.DataCodecs;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Predicate;
 
-public class CustomFluidTank extends FluidTank implements ICustomFluidStackHandler, ITagSerializable<CompoundTag>, IContentChange {
+public class CustomFluidTank extends FluidTank implements ICustomFluidStackHandler, IDataSerializable {
 
     @NotNull
+    @Getter
+    @Setter
     protected Runnable onContentsChanged = GTUtil.NOOP;
-    protected boolean freezeChanged = false;
+    protected boolean syncChange = true;
 
     public CustomFluidTank(int capacity) {
         super(capacity, GTUtil.FAVORABLE);
@@ -51,39 +57,65 @@ public class CustomFluidTank extends FluidTank implements ICustomFluidStackHandl
     }
 
     @Override
+    public void onContentsChanged() {
+        onContentsChanged.run();
+        syncChange = true;
+    }
+
+    @Override
+    public void markAsChanged() {
+        syncChange = true;
+    }
+
+    @Override
+    public void clearChanged() {
+        syncChange = false;
+    }
+
+    @Override
+    public boolean isChanged() {
+        return syncChange;
+    }
+
+    @Override
+    public void writeBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
+        if (fluid.isEmpty()) {
+            data.writeBoolean(false);
+        } else {
+            data.writeBoolean(true);
+            fluid.writeToPacket(data);
+        }
+    }
+
+    @Override
+    public void readBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
+        if (data.readBoolean()) {
+            setFluid(FluidStack.readFromPacket(data));
+        } else {
+            setFluid(FluidStack.EMPTY);
+        }
+    }
+
     public CompoundTag serializeNBT() {
         return writeToNBT(new CompoundTag());
     }
 
-    @Override
     public void deserializeNBT(CompoundTag nbt) {
         readFromNBT(nbt);
     }
 
     @Override
-    public void onContentsChanged() {
-        onContentsChanged.run();
-    }
-
-    @NotNull
-    @Override
-    public Runnable getOnContentsChanged() {
-        return this.onContentsChanged;
+    public Data writeData() {
+        return DataCodecs.COMPOUND_TAG_CODEC.encode(this.writeToNBT(new CompoundTag()));
     }
 
     @Override
-    public void setOnContentsChanged(@NotNull final Runnable onContentsChanged) {
-        if (freezeChanged) return;
-        this.onContentsChanged = onContentsChanged;
-    }
-
-    public void setOnContentsChangedAndfreeze(@NotNull final Runnable onContentsChanged) {
-        this.onContentsChanged = onContentsChanged;
-        freezeChanged = true;
+    public void readData(@NotNull Data data, int dataVersion) {
+        this.readFromNBT(DataCodecs.COMPOUND_TAG_CODEC.decode(data, dataVersion));
     }
 
     @Override
-    public boolean isFreezeChanged() {
-        return freezeChanged;
+    public boolean detectChange() {
+        return syncChange;
     }
 }

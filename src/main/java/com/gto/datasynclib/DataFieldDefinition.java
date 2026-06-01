@@ -1,9 +1,13 @@
 package com.gto.datasynclib;
 
+import net.minecraft.network.FriendlyByteBuf;
+
+import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.util.ReflectUtil;
 import it.unimi.dsi.fastutil.Hash;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.function.Function;
@@ -25,23 +29,18 @@ public final class DataFieldDefinition<T> {
     };
 
     static Function<Object, Object> SOURCE = Function.identity();
-
     static final Comparator<DataFieldDefinition<?>> COMPARATOR = Comparator.comparing(d -> d.key);
 
     public final Field field;
-    private final Method clientUpdateListener;
-    private final Method serverUpdateListener;
     public final boolean isFinal;
+    public final boolean createInstance;
     public final Hash.Strategy<T> strategy;
-    public final CombinationCodec<T> codec;
     public final Class<?>[] genericType;
-    public final CombinationCodec<?>[] genericCodec;
+    public final DataSyncCodec<?>[] genericCodec;
     public final DataField.Factory<T> factory;
     public final Function<Object, Object> source;
-
     public final boolean isSave;
     public final String key;
-
     public final boolean isSyncToClient;
     public final boolean isSyncToServer;
 
@@ -50,8 +49,18 @@ public final class DataFieldDefinition<T> {
     private final boolean autoServerUpdate;
     private final boolean autoClientUpdate;
 
+    private final DataSyncCodec<T> codec;
+    private final MethodHandle writeToData;
+    private final MethodHandle readFromData;
+    private final MethodHandle writeToBuffer;
+    private final MethodHandle readFromBuffer;
+    private final MethodHandle getter;
+    private final MethodHandle setter;
+    private final MethodHandle clientListenerHandle;
+    private final MethodHandle serverListenerHandle;
+
     @SuppressWarnings("unchecked")
-    DataFieldDefinition(Field field, DataField.Factory<T> factory, Function<Object, Object> source, FieldAnnotations fieldAnnotations, Class<?>[] genericType, boolean isFinal, boolean access, Map<Class<?>, Hash.Strategy<?>> strategys) {
+    DataFieldDefinition(Field field, DataField.Factory<T> factory, Function<Object, Object> source, FieldAnnotations fieldAnnotations, Class<?>[] genericType, boolean isFinal, boolean createInstance, Map<Class<?>, Hash.Strategy<?>> strategys) {
         this.field = field;
         this.factory = factory;
         this.source = source;
@@ -63,20 +72,176 @@ public final class DataFieldDefinition<T> {
         this.notifyServerUpdate = fieldAnnotations.notifyServerUpdate();
         this.autoServerUpdate = fieldAnnotations.autoServerUpdate();
         this.autoClientUpdate = fieldAnnotations.autoClientUpdate();
-        this.clientUpdateListener = fieldAnnotations.clientUpdateListener();
-        this.serverUpdateListener = fieldAnnotations.serverUpdateListener();
-        this.codec = fieldAnnotations.dataCodec() != null ? CombinationCodec.of(fieldAnnotations.streamCodec(), fieldAnnotations.dataCodec()) : access ? null : (CombinationCodec<T>) CombinationCodec.get(field.getType());
+        this.createInstance = createInstance;
+        this.codec = (isFinal || !createInstance) ? null : fieldAnnotations.dataCodec() != null ? DataSyncCodec.of(fieldAnnotations.streamCodec(), fieldAnnotations.dataCodec()) : (DataSyncCodec<T>) DataSyncCodec.get(field.getType());
         this.genericType = genericType;
-        this.genericCodec = new CombinationCodec[genericType.length];
+        this.genericCodec = new DataSyncCodec[genericType.length];
         this.isFinal = isFinal;
         this.strategy = fieldAnnotations.strategy() != null ? fieldAnnotations.strategy() : (Hash.Strategy<T>) strategys.getOrDefault(field.getType(), OBJECT_STRATEGY);
         for (int i = 0; i < genericType.length; i++) {
-            this.genericCodec[i] = CombinationCodec.get(genericType[i]);
+            this.genericCodec[i] = DataSyncCodec.get(genericType[i]);
+        }
+
+        this.getter = ReflectUtil.createAdaptedGetter(field);
+        this.setter = isFinal ? null : ReflectUtil.createAdaptedSetter(field);
+
+        this.writeToData = ReflectUtil.createAdaptedMethodHandle(fieldAnnotations.writeToData(), Data.class);
+        this.readFromData = ReflectUtil.createAdaptedMethodHandle(fieldAnnotations.readFromData());
+        this.writeToBuffer = ReflectUtil.createAdaptedMethodHandle(fieldAnnotations.writeToBuffer());
+        this.readFromBuffer = ReflectUtil.createAdaptedMethodHandle(fieldAnnotations.readFromBuffer());
+
+        this.clientListenerHandle = ReflectUtil.createAdaptedMethodHandle(fieldAnnotations.clientUpdateListener());
+        this.serverListenerHandle = ReflectUtil.createAdaptedMethodHandle(fieldAnnotations.serverUpdateListener());
+    }
+
+    @SuppressWarnings("unchecked")
+    public T get(Object source) {
+        try {
+            return (T) getter.invokeExact(source);
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to get field: " + field, e);
         }
     }
 
-    public Method getListener(LogicalSide side) {
-        return side == LogicalSide.CLIENT ? clientUpdateListener : serverUpdateListener;
+    public void set(Object source, T value) {
+        if (setter == null) return;
+        try {
+            setter.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to set field: " + field, e);
+        }
+    }
+
+    public int getInt(Object source) {
+        try {
+            return (int) getter.invokeExact(source);
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to get int field: " + field, e);
+        }
+    }
+
+    public void setInt(Object source, int value) {
+        try {
+            setter.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to set int field: " + field, e);
+        }
+    }
+
+    public long getLong(Object source) {
+        try {
+            return (long) getter.invokeExact(source);
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to get long field: " + field, e);
+        }
+    }
+
+    public void setLong(Object source, long value) {
+        try {
+            setter.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to set long field: " + field, e);
+        }
+    }
+
+    public float getFloat(Object source) {
+        try {
+            return (float) getter.invokeExact(source);
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to get float field: " + field, e);
+        }
+    }
+
+    public void setFloat(Object source, float value) {
+        try {
+            setter.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to set float field: " + field, e);
+        }
+    }
+
+    public double getDouble(Object source) {
+        try {
+            return (double) getter.invokeExact(source);
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to get double field: " + field, e);
+        }
+    }
+
+    public void setDouble(Object source, double value) {
+        try {
+            setter.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to set double field: " + field, e);
+        }
+    }
+
+    public boolean getBoolean(Object source) {
+        try {
+            return (boolean) getter.invokeExact(source);
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to get boolean field: " + field, e);
+        }
+    }
+
+    public void setBoolean(Object source, boolean value) {
+        try {
+            setter.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to set boolean field: " + field, e);
+        }
+    }
+
+    public short getShort(Object source) {
+        try {
+            return (short) getter.invokeExact(source);
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to get short field: " + field, e);
+        }
+    }
+
+    public void setShort(Object source, short value) {
+        try {
+            setter.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to set short field: " + field, e);
+        }
+    }
+
+    public byte getByte(Object source) {
+        try {
+            return (byte) getter.invokeExact(source);
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to get byte field: " + field, e);
+        }
+    }
+
+    public void setByte(Object source, byte value) {
+        try {
+            setter.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to set byte field: " + field, e);
+        }
+    }
+
+    public char getChar(Object source) {
+        try {
+            return (char) getter.invokeExact(source);
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to get char field: " + field, e);
+        }
+    }
+
+    public void setChar(Object source, char value) {
+        try {
+            setter.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to set char field: " + field, e);
+        }
+    }
+
+    public MethodHandle getListener(LogicalSide side) {
+        return side == LogicalSide.CLIENT ? clientListenerHandle : serverListenerHandle;
     }
 
     boolean notifyUpdate(LogicalSide side) {
@@ -85,5 +250,53 @@ public final class DataFieldDefinition<T> {
 
     boolean autoUpdate(LogicalSide side) {
         return side == LogicalSide.CLIENT ? autoClientUpdate : autoServerUpdate;
+    }
+
+    public Data encode(Object source, T obj) {
+        if (writeToData != null) {
+            try {
+                return (Data) writeToData.invokeExact(source, obj);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            return codec.dataWriter.encode(obj);
+        }
+    }
+
+    public T decode(Object source, Data data, int dataVersion) {
+        if (readFromData != null) {
+            try {
+                return (T) readFromData.invokeExact(source, (Object) data, dataVersion);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            return codec.dataReader.decode(data, dataVersion);
+        }
+    }
+
+    public void encode(Object source, T obj, FriendlyByteBuf data) {
+        if (writeToBuffer != null) {
+            try {
+                writeToBuffer.invokeExact(source, (Object) data, obj);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            codec.streamWriter.encode(data, obj);
+        }
+    }
+
+    public T decode(Object source, FriendlyByteBuf data) {
+        if (readFromBuffer != null) {
+            try {
+                return (T) readFromBuffer.invokeExact(source, (Object) data);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            return codec.streamReader.decode(data);
+        }
     }
 }

@@ -61,7 +61,7 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
         }
 
         @Override
-        public Data decode(@NotNull Data data) {
+        public Data decode(@NotNull Data data, int dataVersion) {
             return data;
         }
 
@@ -93,7 +93,7 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
     static Data readData(byte id, ByteBuf stream) {
         return switch (id) {
             case NULL -> NullData.INSTANCE;
-            case BOOLEAN -> BooleanData.valueOf(stream.readBoolean());
+            case BOOLEAN -> ByteData.valueOf(stream.readBoolean());
             case BYTE -> ByteData.valueOf(stream.readByte());
             case SHORT -> ShortData.valueOf(stream.readShort());
             case CHAR -> CharData.valueOf(stream.readChar());
@@ -284,8 +284,8 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
         return Collections.emptyMap();
     }
 
-    static BooleanData valueOf(boolean value) {
-        return BooleanData.valueOf(value);
+    static ByteData valueOf(boolean value) {
+        return ByteData.valueOf(value);
     }
 
     static ByteData valueOf(byte value) {
@@ -450,7 +450,6 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
     final class Type<T> {
 
         public static final Type<NullData> NULL = new Type<>(Data.NULL, NullData.class);
-        public static final Type<BooleanData> BOOLEAN = new Type<>(Data.BOOLEAN, BooleanData.class);
         public static final Type<ByteData> BYTE = new Type<>(Data.BYTE, ByteData.class);
         public static final Type<ShortData> SHORT = new Type<>(Data.SHORT, ShortData.class);
         public static final Type<CharData> CHAR = new Type<>(Data.CHAR, CharData.class);

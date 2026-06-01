@@ -10,19 +10,12 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.client.renderer.cover.ICoverRenderer;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -33,6 +26,12 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.gto.datasynclib.FieldDataManager;
+import com.gto.datasynclib.IFieldDataHolder;
+import com.gto.datasynclib.LazyFieldDataManager;
+import com.gto.datasynclib.LogicalSide;
+import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
@@ -49,47 +48,25 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighlight {
+public abstract class CoverBehavior implements IToolGridHighlight, IFieldDataHolder {
 
-    private final ManagedFieldHolder managedFieldHolder = MetaMachine.getManagedFieldHolder(getClass());
-    @Getter
-    private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
+    private final LazyFieldDataManager fieldDataManager = new LazyFieldDataManager(this);
+
     public final CoverDefinition coverDefinition;
     public final ICoverable coverHolder;
     public final Direction attachedSide;
     @Getter
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     protected ItemStack attachItem = ItemStack.EMPTY;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected int redstoneSignalOutput = 0;
 
     public CoverBehavior(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {
         this.coverDefinition = definition;
         this.coverHolder = coverHolder;
         this.attachedSide = attachedSide;
-    }
-
-    //////////////////////////////////////
-    // ***** Initialization ******//
-    //////////////////////////////////////
-    @Override
-    public void scheduleRenderUpdate() {
-        coverHolder.scheduleRenderUpdate();
-    }
-
-    @Override
-    public final ManagedFieldHolder getFieldHolder() {
-        return managedFieldHolder;
-    }
-
-    @Override
-    public void onChanged() {
-        var level = coverHolder.getLevel();
-        if (level instanceof ServerLevel serverLevel) {
-            TaskHandler.enqueueTask(serverLevel, coverHolder::onChanged);
-        }
     }
 
     /**
@@ -231,5 +208,15 @@ public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighli
 
     public BlockEntity getNeighbor() {
         return coverHolder.getNeighbor(attachedSide);
+    }
+
+    @Override
+    public FieldDataManager getFieldDataManager() {
+        return fieldDataManager.get();
+    }
+
+    @Override
+    public void scheduleUpdate(LogicalSide side) {
+        coverHolder.scheduleUpdate(side);
     }
 }

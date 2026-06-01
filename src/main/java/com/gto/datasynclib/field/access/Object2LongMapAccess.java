@@ -2,8 +2,8 @@ package com.gto.datasynclib.field.access;
 
 import net.minecraft.network.FriendlyByteBuf;
 
-import com.gto.datasynclib.CombinationCodec;
 import com.gto.datasynclib.DataFieldDefinition;
+import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ListData;
@@ -12,22 +12,22 @@ import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMaps;
 import org.jetbrains.annotations.NotNull;
 
-public class Object2LongMapAccess<K> extends AbstractMarkFieldAccess<Object2LongMap> {
+public class Object2LongMapAccess<K> extends AbstractFieldAccess<Object2LongMap> {
 
-    private final CombinationCodec<K> keyCodec;
+    private final DataSyncCodec<K> keyCodec;
     private int hashCode;
 
     @SuppressWarnings("unchecked")
     public Object2LongMapAccess(DataFieldDefinition<Object2LongMap> definition) {
         super(definition);
         if (definition.genericType.length < 1) throw new IllegalArgumentException("Map type parameters not found");
-        this.keyCodec = (CombinationCodec<K>) definition.genericCodec[0];
+        this.keyCodec = (DataSyncCodec<K>) definition.genericCodec[0];
         if (this.keyCodec == null) throw new IllegalArgumentException("Codec not found for key type " + definition.genericType[0]);
     }
 
     @Override
-    public boolean hasChanges(@NotNull LogicalSide side, @NotNull Object source, boolean auto) {
-        var hashCode = getInstance(source).hashCode();
+    protected boolean hasChange(@NotNull LogicalSide side, @NotNull Object2LongMap instance, boolean auto) {
+        var hashCode = instance.hashCode();
         if (hashCode != this.hashCode) {
             this.hashCode = hashCode;
             return true;
@@ -36,7 +36,7 @@ public class Object2LongMapAccess<K> extends AbstractMarkFieldAccess<Object2Long
     }
 
     @Override
-    public void writeBuffer(@NotNull LogicalSide side, @NotNull Object2LongMap instance, @NotNull FriendlyByteBuf data, boolean force) {
+    protected void writeBuffer(@NotNull LogicalSide side, @NotNull Object2LongMap instance, @NotNull FriendlyByteBuf data, boolean force) {
         data.writeVarInt(instance.size());
         Object2LongMaps.fastForEach(instance, e -> {
             keyCodec.streamWriter.encode((K) e.getKey(), data);
@@ -45,7 +45,7 @@ public class Object2LongMapAccess<K> extends AbstractMarkFieldAccess<Object2Long
     }
 
     @Override
-    public void readBuffer(@NotNull LogicalSide side, @NotNull Object2LongMap instance, @NotNull FriendlyByteBuf data) {
+    protected void readBuffer(@NotNull LogicalSide side, @NotNull Object2LongMap instance, @NotNull FriendlyByteBuf data) {
         var length = data.readVarInt();
         instance.clear();
         for (int i = 0; i < length; i++) {
@@ -56,7 +56,7 @@ public class Object2LongMapAccess<K> extends AbstractMarkFieldAccess<Object2Long
     }
 
     @Override
-    public @NotNull Data writeData(@NotNull Object2LongMap instance) {
+    protected @NotNull Data writeData(@NotNull Object2LongMap instance) {
         var list = new ListData();
         Object2LongMaps.fastForEach(instance, e -> {
             list.add(keyCodec.dataWriter.encode((K) e.getKey()));
@@ -66,12 +66,12 @@ public class Object2LongMapAccess<K> extends AbstractMarkFieldAccess<Object2Long
     }
 
     @Override
-    public void readData(@NotNull Object2LongMap instance, @NotNull Data data) {
+    protected void readData(@NotNull Object2LongMap instance, @NotNull Data data, int dataVersion) {
         var list = data.getList();
         var size = list.size();
         instance.clear();
         for (int i = 0; i < size; i++) {
-            instance.put(keyCodec.dataReader.decode(list.get(i++)), list.get(i).getLong());
+            instance.put(keyCodec.dataReader.decode(list.get(i++), dataVersion), list.get(i).getLong());
         }
     }
 }

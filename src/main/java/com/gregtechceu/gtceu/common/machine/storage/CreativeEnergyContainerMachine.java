@@ -16,13 +16,13 @@ import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.Arrays;
@@ -33,17 +33,17 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class CreativeEnergyContainerMachine extends TieredMachine implements ILaserContainer, IUIMachine {
 
-    @Persisted
+    @SaveToDisk
     private long voltage = 0;
-    @Persisted
+    @SaveToDisk
     private int amps = 1;
-    @Persisted
+    @SaveToDisk
     private int setTier = 0;
-    @Persisted
+    @SaveToDisk
     private boolean active = false;
-    @Persisted
+    @SaveToDisk
     private boolean source = true;
-    @Persisted
+    @SaveToDisk
     private long energyIOPerSec = 0;
     private long lastAverageEnergyIOPerTick = 0;
     private boolean doExplosion = false;

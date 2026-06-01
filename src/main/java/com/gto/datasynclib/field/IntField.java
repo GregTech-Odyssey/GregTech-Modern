@@ -18,56 +18,40 @@ public final class IntField extends AbstractField<Integer> {
 
     @Override
     public boolean hasChanges(Object source) {
-        try {
-            return lastValue != definition.field.getInt(source);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
+        return lastValue != definition.getInt(source);
     }
 
     @Override
     public void writeToBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data, boolean force) {
-        try {
-            var value = definition.field.getInt(source);
-            lastValue = value;
-            data.writeInt(value);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
+        var value = definition.getInt(source);
+        lastValue = value;
+        data.writeInt(value);
     }
 
     @Override
     public void readFromBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data) {
-        try {
-            var value = data.readInt();
-            definition.field.setInt(source, value);
-            var listener = definition.getListener(side);
-            if (listener != null) {
-                listener.invoke(source, value, lastValue);
-                lastValue = value;
+        var value = data.readInt();
+        definition.setInt(source, value);
+        var listener = definition.getListener(side);
+        if (listener != null) {
+            try {
+                listener.invokeExact(source, value, lastValue);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
             }
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
+            lastValue = value;
         }
     }
 
     @Override
     public @NotNull Data writeToData(@NotNull Object source) {
-        try {
-            var value = definition.field.getInt(source);
-            return IntData.valueOf(value);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
+        var value = definition.getInt(source);
+        return IntData.valueOf(value);
     }
 
     @Override
-    public void readFromData(@NotNull Object source, @NotNull Data data) {
-        try {
-            var value = data.getInt();
-            definition.field.setInt(source, value);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
+    public void readFromData(@NotNull Object source, @NotNull Data data, int dataVersion) {
+        var value = data.getInt();
+        definition.setInt(source, value);
     }
 }

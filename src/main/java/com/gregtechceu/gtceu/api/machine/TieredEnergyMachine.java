@@ -13,13 +13,12 @@ import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ProgressWidget;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -28,8 +27,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class TieredEnergyMachine extends TieredMachine implements IExplosionMachine, IElectricMachine {
 
-    @Persisted
-    @DescSynced
+    @SaveToDisk
     @Getter
     public final NotifiableEnergyContainer energyContainer;
     protected TickableSubscription explosionSubs;

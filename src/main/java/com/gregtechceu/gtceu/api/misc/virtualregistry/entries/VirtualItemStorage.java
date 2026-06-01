@@ -7,6 +7,9 @@ import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.nbt.CompoundTag;
 
+import com.gto.datasynclib.datasream.codec.DataCodec;
+import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.util.DataCodecs;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,6 +18,21 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class VirtualItemStorage extends VirtualEntry {
+
+    public static final DataCodec<VirtualItemStorage> DATA_CODEC = new DataCodec<>() {
+
+        @Override
+        public VirtualItemStorage decode(Data data, int dataVersion) {
+            var tank = new VirtualItemStorage();
+            tank.deserializeNBT(DataCodecs.COMPOUND_TAG_CODEC.decode(data, dataVersion));
+            return tank;
+        }
+
+        @Override
+        public Data encode(VirtualItemStorage obj) {
+            return DataCodecs.COMPOUND_TAG_CODEC.encode(obj.serializeNBT());
+        }
+    };
 
     protected static final int DEFAULT_SLOT_AMOUNT = 1;
 

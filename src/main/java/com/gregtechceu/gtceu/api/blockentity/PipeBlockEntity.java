@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.item.tool.IToolGridHighlight;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.pipenet.*;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
@@ -20,12 +19,6 @@ import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
-import com.lowdragmc.lowdraglib.syncdata.IManagedStorage;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -45,6 +38,7 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import com.gto.datasynclib.FieldDataManager;
 import com.gto.datasynclib.LazyFieldDataManager;
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.datafixers.util.Pair;
 import lombok.Getter;
@@ -58,39 +52,35 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDataType>, NodeDataType> extends TickBlockEntity implements IPaintable, IEnhancedManaged, IToolGridHighlight {
+public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDataType>, NodeDataType> extends TickBlockEntity implements IPaintable, IToolGridHighlight {
 
     private final LazyFieldDataManager fieldDataManager = new LazyFieldDataManager(this);
 
     @Getter
-    private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
-    private final ManagedFieldHolder managedFieldHolder = MetaMachine.getManagedFieldHolder(getClass());
-
-    @Getter
-    @DescSynced
-    @Persisted(key = "cover")
+    @SyncToClient
+    @SaveToDisk(key = "cover")
     protected final PipeCoverContainer coverContainer;
     @Getter
     @Setter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected int connections = Node.ALL_CLOSED;
 
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     private int blockedConnections = Node.ALL_CLOSED;
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     public Direction blockedSide;
     private NodeDataType cachedNodeData;
     @Getter
     @Setter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     private int paintingColor = -1;
 
     @SyncToClient(notifyUpdate = true)
-    @Persisted
+    @SaveToDisk
     @NotNull
     private Material frameMaterial = GTMaterials.NULL;
 
@@ -112,21 +102,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     //////////////////////////////////////
     // ***** Initialization ******//
     //////////////////////////////////////
-
-    @Override
-    public IManagedStorage getRootStorage() {
-        return syncStorage;
-    }
-
-    @Override
-    public final ManagedFieldHolder getFieldHolder() {
-        return managedFieldHolder;
-    }
-
-    @Override
-    public void onChanged() {
-        setChanged();
-    }
 
     @Override
     public void setRemoved() {

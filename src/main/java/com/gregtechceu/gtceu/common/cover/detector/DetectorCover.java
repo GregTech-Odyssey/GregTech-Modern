@@ -6,9 +6,6 @@ import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -17,6 +14,8 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,13 +27,13 @@ public abstract class DetectorCover extends CoverBehavior implements IControllab
 
     @Getter
     @Setter
-    @Persisted
+    @SaveToDisk
     protected boolean isWorkingEnabled = true;
     protected TickableSubscription subscription;
     @Getter
     @Setter
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     private boolean isInverted;
 
     public DetectorCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {

@@ -6,10 +6,9 @@ import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-
 import net.minecraft.MethodsReturnNonnullByDefault;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -20,7 +19,7 @@ public abstract class SteamMachine extends MetaMachine implements ITieredMachine
 
     @Getter
     public final boolean isHighPressure;
-    @Persisted
+    @SaveToDisk
     public final NotifiableFluidTank steamTank;
 
     public SteamMachine(MetaMachineBlockEntity holder, boolean isHighPressure, Object... args) {

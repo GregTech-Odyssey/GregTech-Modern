@@ -19,93 +19,74 @@ public abstract class ObjField<T> extends AbstractField<T> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public final boolean hasChanges(Object source) {
-        try {
-            var value = definition.field.get(source);
-            var hash = definition.strategy.hashCode((T) value);
-            if (hash != lastHash) {
-                lastHash = hash;
-                return true;
-            }
-            return !definition.strategy.equals((T) value, lastValue);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
+        var value = definition.get(source);
+        var hash = definition.strategy.hashCode(value);
+        if (hash != lastHash) {
+            lastHash = hash;
+            return true;
         }
+        return !definition.strategy.equals(value, lastValue);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public final void writeToBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data, boolean force) {
-        try {
-            T value = (T) definition.field.get(source);
-            lastValue = value;
-            if (value == null) {
-                data.writeBoolean(false);
-            } else {
-                data.writeBoolean(true);
-                write(data, value);
-            }
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
+        T value = definition.get(source);
+        lastValue = value;
+        if (value == null) {
+            data.writeBoolean(false);
+        } else {
+            data.writeBoolean(true);
+            write(source, data, value);
         }
     }
 
     @Override
     public void readFromBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data) {
-        try {
-            T value;
-            if (data.readBoolean()) {
-                value = read(data);
-            } else {
-                value = null;
+        T value;
+        if (data.readBoolean()) {
+            value = read(source, data);
+        } else {
+            value = null;
+        }
+        definition.set(source, value);
+        var listener = definition.getListener(side);
+        if (listener != null) {
+            try {
+                listener.invokeExact(source, value, lastValue);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
             }
-            definition.field.set(source, value);
-            var listener = definition.getListener(side);
-            if (listener != null) {
-                listener.invoke(source, value, lastValue);
-                lastValue = value;
-            }
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
+            lastValue = value;
         }
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public final @NotNull Data writeToData(@NotNull Object source) {
-        try {
-            T value = (T) definition.field.get(source);
-            if (value == null) {
-                return NullData.INSTANCE;
-            } else {
-                return write(value);
-            }
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
+        T value = definition.get(source);
+        if (value == null) {
+            return NullData.INSTANCE;
+        } else {
+            return write(source, value);
         }
     }
 
     @Override
-    public final void readFromData(@NotNull Object source, @NotNull Data data) {
-        try {
-            T value;
-            if (data == NullData.INSTANCE) {
-                value = null;
-            } else {
-                value = read(data);
-            }
-            definition.field.set(source, value);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
+    public final void readFromData(@NotNull Object source, @NotNull Data data, int dataVersion) {
+        T value;
+        if (data == NullData.INSTANCE) {
+            value = null;
+        } else {
+            value = read(source, data, dataVersion);
         }
+        definition.set(source, value);
     }
 
-    protected abstract void write(@NotNull FriendlyByteBuf data, @NotNull T value);
+    protected abstract void write(@NotNull Object source, @NotNull FriendlyByteBuf data, @NotNull T value);
 
-    protected abstract @NotNull T read(@NotNull FriendlyByteBuf data);
+    protected abstract @NotNull T read(@NotNull Object source, @NotNull FriendlyByteBuf data);
 
-    protected abstract @NotNull Data write(@NotNull T value);
+    protected abstract @NotNull Data write(@NotNull Object source, @NotNull T value);
 
-    protected abstract @NotNull T read(@NotNull Data data);
+    protected abstract @NotNull T read(@NotNull Object source, @NotNull Data data, int dataVersion);
 }

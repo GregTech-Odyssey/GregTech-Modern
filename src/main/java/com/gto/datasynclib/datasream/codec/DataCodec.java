@@ -3,6 +3,7 @@ package com.gto.datasynclib.datasream.codec;
 import net.minecraft.network.FriendlyByteBuf;
 
 import com.gto.datasynclib.datasream.data.*;
+import com.gto.datasynclib.util.DataFixer;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
@@ -19,7 +20,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         return new DataCodec<>() {
 
             @Override
-            public T decode(@NotNull Data data) {
+            public T decode(@NotNull Data data, int dataVersion) {
                 var buf = Unpooled.wrappedBuffer(data.getByteArray());
                 var wrapper = new FriendlyByteBuf(buf);
                 try {
@@ -50,7 +51,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         return new DataCodec<>() {
 
             @Override
-            public T decode(@NotNull Data data) {
+            public T decode(@NotNull Data data, int dataVersion) {
                 return codec.decode(DataOps.INSTANCE, data).result().orElseThrow().getFirst();
             }
 
@@ -65,8 +66,8 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         return new DataCodec<>() {
 
             @Override
-            public T decode(@NotNull Data data) {
-                return decoder.decode(data);
+            public T decode(@NotNull Data data, int dataVersion) {
+                return decoder.decode(data, dataVersion);
             }
 
             @Override
@@ -80,8 +81,8 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         return new DataCodec<>() {
 
             @Override
-            public V decode(@NotNull Data data) {
-                return decodeConverter.apply(codec.decode(data));
+            public V decode(@NotNull Data data, int dataVersion) {
+                return decodeConverter.apply(codec.decode(data, dataVersion));
             }
 
             @Override
@@ -105,11 +106,11 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
 
         @Override
         public @NotNull Data encode(Boolean obj) {
-            return BooleanData.valueOf(obj);
+            return ByteData.valueOf(obj);
         }
 
         @Override
-        public Boolean decode(@NotNull Data data) {
+        public Boolean decode(@NotNull Data data, int dataVersion) {
             return data.getBoolean();
         }
 
@@ -127,7 +128,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         }
 
         @Override
-        public Byte decode(@NotNull Data data) {
+        public Byte decode(@NotNull Data data, int dataVersion) {
             return data.getByte();
         }
 
@@ -145,7 +146,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         }
 
         @Override
-        public Short decode(@NotNull Data data) {
+        public Short decode(@NotNull Data data, int dataVersion) {
             return data.getShort();
         }
 
@@ -163,7 +164,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         }
 
         @Override
-        public Character decode(@NotNull Data data) {
+        public Character decode(@NotNull Data data, int dataVersion) {
             return data.getChar();
         }
 
@@ -181,7 +182,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         }
 
         @Override
-        public Integer decode(@NotNull Data data) {
+        public Integer decode(@NotNull Data data, int dataVersion) {
             return data.getInt();
         }
 
@@ -199,7 +200,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         }
 
         @Override
-        public Long decode(@NotNull Data data) {
+        public Long decode(@NotNull Data data, int dataVersion) {
             return data.getLong();
         }
 
@@ -217,7 +218,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         }
 
         @Override
-        public Float decode(@NotNull Data data) {
+        public Float decode(@NotNull Data data, int dataVersion) {
             return data.getFloat();
         }
 
@@ -235,7 +236,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         }
 
         @Override
-        public Double decode(@NotNull Data data) {
+        public Double decode(@NotNull Data data, int dataVersion) {
             return data.getDouble();
         }
 
@@ -253,7 +254,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         }
 
         @Override
-        public String decode(@NotNull Data data) {
+        public String decode(@NotNull Data data, int dataVersion) {
             return data.getString();
         }
 
@@ -270,7 +271,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         }
 
         @Override
-        public BigInteger decode(@NotNull Data data) {
+        public BigInteger decode(@NotNull Data data, int dataVersion) {
             return data.getBigInteger();
         }
 
@@ -287,7 +288,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         }
 
         @Override
-        public boolean[] decode(@NotNull Data data) {
+        public boolean[] decode(@NotNull Data data, int dataVersion) {
             return data.getBooleanArray();
         }
 
@@ -304,7 +305,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         }
 
         @Override
-        public byte[] decode(@NotNull Data data) {
+        public byte[] decode(@NotNull Data data, int dataVersion) {
             return data.getByteArray();
         }
 
@@ -321,7 +322,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         }
 
         @Override
-        public short[] decode(@NotNull Data data) {
+        public short[] decode(@NotNull Data data, int dataVersion) {
             return data.getShortArray();
         }
 
@@ -338,7 +339,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         }
 
         @Override
-        public char[] decode(@NotNull Data data) {
+        public char[] decode(@NotNull Data data, int dataVersion) {
             return data.getCharArray();
         }
 
@@ -355,7 +356,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         }
 
         @Override
-        public int[] decode(@NotNull Data data) {
+        public int[] decode(@NotNull Data data, int dataVersion) {
             return data.getIntArray();
         }
 
@@ -372,7 +373,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         }
 
         @Override
-        public long[] decode(@NotNull Data data) {
+        public long[] decode(@NotNull Data data, int dataVersion) {
             return data.getLongArray();
         }
 
@@ -389,7 +390,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         }
 
         @Override
-        public float[] decode(@NotNull Data data) {
+        public float[] decode(@NotNull Data data, int dataVersion) {
             return data.getFloatArray();
         }
 
@@ -406,7 +407,7 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         }
 
         @Override
-        public double[] decode(@NotNull Data data) {
+        public double[] decode(@NotNull Data data, int dataVersion) {
             return data.getDoubleArray();
         }
 
@@ -423,7 +424,8 @@ public interface DataCodec<T> extends DataEncoder<T>, DataDecoder<T> {
         }
 
         @Override
-        public UUID decode(@NotNull Data data) {
+        public UUID decode(@NotNull Data data, int dataVersion) {
+            if (dataVersion != 0) return DataFixer.decodeUUID(data, dataVersion);
             return data.getUUID();
         }
 

@@ -18,23 +18,23 @@ public abstract class AbstractField<T> implements DataField<T> {
     }
 
     @Override
-    public final void markAsDirty(@NotNull Object source) {
+    public final void markAsChanged(@NotNull Object source) {
         syncChange = true;
     }
 
     @Override
-    public void clearDirty(@NotNull Object source) {
+    public void clearChanged(@NotNull Object source) {
         syncChange = false;
     }
 
     @Override
-    public boolean isDirty(@NotNull Object source) {
+    public boolean isChanged(@NotNull Object source) {
         return syncChange;
     }
 
     @Override
-    public final boolean hasChanges(@NotNull LogicalSide side, @NotNull Object source, boolean auto) {
-        return hasChanges(source);
+    public final boolean detectChange(@NotNull LogicalSide side, @NotNull Object source, boolean auto) {
+        return syncChange = hasChanges(source);
     }
 
     protected abstract boolean hasChanges(Object source);

@@ -1,8 +1,7 @@
 package com.gto.datasynclib.datasream;
 
-import com.gto.datasynclib.CombinationCodec;
+import com.gto.datasynclib.DataSyncCodec;
 import it.unimi.dsi.fastutil.HashCommon;
-import it.unimi.dsi.fastutil.booleans.*;
 import it.unimi.dsi.fastutil.bytes.*;
 import it.unimi.dsi.fastutil.chars.*;
 import it.unimi.dsi.fastutil.doubles.*;
@@ -22,19 +21,19 @@ import java.util.function.Function;
 public class DataComponentKey<T> {
 
     public final String name;
-    public final CombinationCodec<T> codec;
+    public final DataSyncCodec<T> codec;
     public final int mixCode = HashCommon.mix(System.identityHashCode(this));
     public final BiFunction<T, T, T> mergeFunction;
     public final Function<T, T> createFunction;
 
-    protected DataComponentKey(String name, CombinationCodec<T> codec) {
+    protected DataComponentKey(String name, DataSyncCodec<T> codec) {
         this.name = name;
         this.codec = codec;
         this.mergeFunction = (o, n) -> n;
         this.createFunction = n -> n;
     }
 
-    protected DataComponentKey(String name, CombinationCodec<T> codec, BiFunction<T, T, T> mergeFunction, Function<T, T> createFunction) {
+    protected DataComponentKey(String name, DataSyncCodec<T> codec, BiFunction<T, T, T> mergeFunction, Function<T, T> createFunction) {
         this.name = name;
         this.codec = codec;
         this.mergeFunction = mergeFunction;
@@ -703,7 +702,7 @@ public class DataComponentKey<T> {
     public final static class Builder<T> {
 
         private final String name;
-        private CombinationCodec<T> codec;
+        private DataSyncCodec<T> codec;
         private BiFunction<T, T, T> mergeFunction;
         private Function<T, T> createFunction;
 
@@ -711,7 +710,7 @@ public class DataComponentKey<T> {
             this.name = name;
         }
 
-        public Builder<T> codec(CombinationCodec<T> codec) {
+        public Builder<T> codec(DataSyncCodec<T> codec) {
             this.codec = codec;
             return this;
         }

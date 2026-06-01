@@ -7,12 +7,6 @@ import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.SCPacketSBlockEntitySync;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
-import com.lowdragmc.lowdraglib.networking.LDLNetworking;
-import com.lowdragmc.lowdraglib.networking.s2c.SPacketManagedPayload;
-import com.lowdragmc.lowdraglib.syncdata.blockentity.IAsyncAutoSyncBlockEntity;
-import com.lowdragmc.lowdraglib.syncdata.blockentity.IAutoPersistBlockEntity;
-import com.lowdragmc.lowdraglib.syncdata.managed.IRef;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.CompoundTag;
@@ -27,12 +21,13 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.MapData;
+import com.gto.datasynclib.util.DataCodecs;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BooleanSupplier;
 
-public abstract class TickBlockEntity extends BlockEntity implements ISync, IAsyncAutoSyncBlockEntity, IAutoPersistBlockEntity, ITickSubscription {
+public abstract class TickBlockEntity extends BlockEntity implements ISync, ITickSubscription {
 
     public final int offset = GTValues.RNG.nextInt(20);
     public volatile boolean remove = false;
@@ -61,6 +56,7 @@ public abstract class TickBlockEntity extends BlockEntity implements ISync, IAsy
     public void observe() {
         observe = true;
         sync = true;
+        setChanged();
     }
 
     public boolean needSync() {
@@ -139,6 +135,7 @@ public abstract class TickBlockEntity extends BlockEntity implements ISync, IAsy
     @Override
     public void setRemoved() {
         this.remove = true;
+        autoSyncSubscription = ITickSubscription.unsubscribe(autoSyncSubscription);
         super.setRemoved();
         chunk = null;
     }
@@ -151,20 +148,9 @@ public abstract class TickBlockEntity extends BlockEntity implements ISync, IAsy
         super.clearRemoved();
         if (level instanceof ServerLevel serverLevel) {
             tickDelay = offset;
+            autoSyncSubscription = subscribeAsyncTick(autoSyncSubscription, this::autoSync, 5);
             TaskHandler.enqueueTask(serverLevel, () -> tickDelay = 0, 1);
         }
-    }
-
-    @Override
-    public void onValid() {
-        if (level instanceof ServerLevel) {
-            autoSyncSubscription = subscribeAsyncTick(autoSyncSubscription, this::autoSync, 5);
-        }
-    }
-
-    @Override
-    public void onInValid() {
-        autoSyncSubscription = ITickSubscription.unsubscribe(autoSyncSubscription);
     }
 
     protected int periodID = offset;
@@ -176,8 +162,8 @@ public abstract class TickBlockEntity extends BlockEntity implements ISync, IAsy
     @Override
     public CompoundTag getUpdateTag() {
         var tag = super.getUpdateTag();
-        if (getFieldDataManager().hasSyncToClientField()) {
-            tag.putByteArray("fdms", getFieldDataManager().writeToNetworkBuffer(LogicalSide.SERVER, true));
+        if (getFieldDataManager().hasSyncField(LogicalSide.SERVER)) {
+            tag.putByteArray("field_sync", getFieldDataManager().writeToNetworkBuffer(LogicalSide.SERVER, true));
         }
         return tag;
     }
@@ -185,21 +171,23 @@ public abstract class TickBlockEntity extends BlockEntity implements ISync, IAsy
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
-        if (tag.get("fdm") instanceof ByteArrayTag byteArrayTag) {
-            getFieldDataManager().readFromData((MapData) Data.readData(byteArrayTag.getAsByteArray()));
-        }
-        if (tag.get("fdms") instanceof ByteArrayTag byteArrayTag) {
+        if (tag.get("field_sync") instanceof ByteArrayTag byteArrayTag) {
             getFieldDataManager().readFromNetworkBuffer(LogicalSide.CLIENT, byteArrayTag.getAsByteArray());
+        }
+        if (tag.get("field_save") instanceof ByteArrayTag byteArrayTag) {
+            getFieldDataManager().readFromData((MapData) Data.readData(byteArrayTag.getAsByteArray()), tag.getInt("field_data_dataVersion"));
+        } else {
+            getFieldDataManager().readFromData((MapData) DataCodecs.COMPOUND_TAG_CODEC.encode(tag), -1);
         }
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
-        tag.putByteArray("fdm", getFieldDataManager().writeToData().writeToBytes());
+        tag.putInt("field_data_dataVersion", 0);
+        tag.putByteArray("field_save", getFieldDataManager().writeToData().writeToBytes());
     }
 
-    @Override
     public void asyncTick(long periodID) {
         if (remove) return;
         if (needSync() || periodID % 40 == 0) {
@@ -213,30 +201,12 @@ public abstract class TickBlockEntity extends BlockEntity implements ISync, IAsy
                         GTNetwork.NETWORK.sendToTrackingChunk(p, getChunk());
                     });
                 }
-                for (IRef field : getNonLazyFields()) {
-                    if (remove) return;
-                    field.update();
-                }
-                if (getRootStorage().hasDirtySyncFields()) {
-                    if (remove) return;
-                    server.execute(() -> {
-                        if (remove) return;
-                        var packet = SPacketManagedPayload.of(this, false);
-                        if (remove) return;
-                        LDLNetworking.NETWORK.sendToTrackingChunk(packet, getChunk());
-                    });
-                }
             }
         }
     }
 
     @Override
     public void scheduleUpdate(LogicalSide side) {
-        scheduleRenderUpdate();
-    }
-
-    @Override
-    public TickBlockEntity getSelf() {
-        return this;
+        if (side.isClient()) scheduleRenderUpdate();
     }
 }

@@ -15,6 +15,7 @@ public final class FieldDataManager {
     private final DataField<?>[] syncToClientFields;
     private final DataField<?>[] syncToServerFields;
     private final DataField<?>[] saveFields;
+    private boolean syncChange = true;
 
     public FieldDataManager(IFieldDataHolder holder) {
         this.holder = holder;
@@ -42,18 +43,15 @@ public final class FieldDataManager {
     public DataFieldDefinition<?> getFieldDefinition(Class<?> type, Object fieldObject) {
         for (var definition : storage.typeDefinition.get(type)) {
             try {
-                if (definition.field.get(definition.source.apply(holder)) == fieldObject) return definition;
+                if (definition.get(definition.source.apply(holder)) == fieldObject) return definition;
             } catch (Throwable ignored) {}
         }
         return null;
     }
 
-    public boolean hasSyncToClientField() {
-        return syncToClientFields.length > 0;
-    }
-
-    public boolean hasSyncToServerField() {
-        return syncToServerFields.length > 0;
+    public boolean hasSyncField(LogicalSide side) {
+        var fields = side.isServer() ? syncToClientFields : syncToServerFields;
+        return fields.length > 0;
     }
 
     public boolean hasSaveField() {
@@ -67,7 +65,7 @@ public final class FieldDataManager {
      */
     public void markFieldForSync(@NotNull DataFieldDefinition<?> field) {
         var f = allField.get(field);
-        if (f != null) f.markAsDirty(field.source.apply(holder));
+        if (f != null) f.markAsChanged(field.source.apply(holder));
     }
 
     /**
@@ -80,13 +78,25 @@ public final class FieldDataManager {
             var d = storage.allDefinition.get(field);
             if (d != null) {
                 var f = allField.get(d);
-                if (f != null) f.markAsDirty(d.source.apply(holder));
+                if (f != null) f.markAsChanged(d.source.apply(holder));
             }
         }
     }
 
     public void clearAllFieldMark() {
-        allField.values().forEach(f -> f.clearDirty(f.getDefinition().source.apply(holder)));
+        allField.values().forEach(f -> f.clearChanged(f.getDefinition().source.apply(holder)));
+    }
+
+    public void markAsChanged() {
+        syncChange = true;
+    }
+
+    public void clearChanged() {
+        syncChange = false;
+    }
+
+    public boolean isChanged() {
+        return syncChange;
     }
 
     /**
@@ -102,16 +112,15 @@ public final class FieldDataManager {
         for (DataField<?> field : fields) {
             var d = field.getDefinition();
             var source = d.source.apply(holder);
-            if (field.isDirty(source)) {
+            if (!field.mustDetected() && field.isChanged(source)) {
                 hasChanges = true;
             } else {
-                if ((!auto || d.autoUpdate(side)) && field.hasChanges(side, d.source.apply(holder), auto)) {
-                    field.markAsDirty(source);
+                if ((!auto || d.autoUpdate(side)) && field.detectChange(side, d.source.apply(holder), auto)) {
                     hasChanges = true;
                 }
             }
         }
-        return hasChanges;
+        return syncChange = hasChanges || syncChange;
     }
 
     /**
@@ -122,6 +131,7 @@ public final class FieldDataManager {
      * @return byte array containing the serialized data
      */
     public byte @NotNull [] writeToNetworkBuffer(LogicalSide side, boolean force) {
+        syncChange = false;
         var buf = Unpooled.buffer();
         var wrapper = new FriendlyByteBuf(buf);
         try {
@@ -131,10 +141,10 @@ public final class FieldDataManager {
                 var field = fields[i];
                 var d = field.getDefinition();
                 var source = d.source.apply(holder);
-                if (force || field.isDirty(source)) {
+                if (force || field.isChanged(source)) {
                     wrapper.writeVarInt(i);
                     field.writeToBuffer(side, source, wrapper, force);
-                    field.clearDirty(source);
+                    field.clearChanged(source);
                 }
             }
             buf.readerIndex(0);
@@ -193,15 +203,15 @@ public final class FieldDataManager {
 
     /**
      * Reads field data from MapData
-     * 
+     *
      * @param data the MapData to read from
      */
-    public void readFromData(@NotNull MapData data) {
-        holder.readCustomSaveData(data);
+    public void readFromData(@NotNull MapData data, int dataVersion) {
+        holder.readCustomSaveData(data, dataVersion);
         for (var field : saveFields) {
             var d = field.getDefinition();
             var tag = data.get(d.key);
-            if (tag != null) field.readFromData(d.source.apply(holder), tag);
+            if (tag != null) field.readFromData(d.source.apply(holder), tag, dataVersion);
         }
     }
 }

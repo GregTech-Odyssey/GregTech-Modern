@@ -5,7 +5,7 @@ import com.gto.datasynclib.datasream.codec.DataCodec;
 import com.gto.datasynclib.util.holder.IntObjectHolder;
 import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.HashCommon;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +19,7 @@ public class Registry<K extends Comparable<K>, V> implements Iterable<V> {
 
     @Getter
     protected final String name;
-    protected final HashMap<K, V> keyValues = new HashMap<>();
+    protected final LinkedHashMap<K, V> keyValues = new LinkedHashMap<>();
     protected final IdMap<V, K> valueKeys = new IdMap<>();
     protected final ReferenceArrayList<V> idValues = new ReferenceArrayList<>();
     @Getter
@@ -148,7 +148,7 @@ public class Registry<K extends Comparable<K>, V> implements Iterable<V> {
     }
 
     public DataCodec<V> dataCodec(DataCodec<K> keyCodec) {
-        return DataCodec.of(obj -> keyCodec.encode(getKey(obj)), data -> keyValues.get(keyCodec.decode(data)));
+        return DataCodec.of(obj -> keyCodec.encode(getKey(obj)), (data, dataVersion) -> keyValues.get(keyCodec.decode(data, dataVersion)));
     }
 
     public ByteStreamCodec<V> streamCodec(ByteStreamCodec<K> keyCodec) {
@@ -170,7 +170,7 @@ public class Registry<K extends Comparable<K>, V> implements Iterable<V> {
         FROZEN
     }
 
-    protected static final class IdMap<K, V> extends Reference2ReferenceOpenHashMap<K, IntObjectHolder<V>> {
+    protected static final class IdMap<K, V> extends Reference2ReferenceLinkedOpenHashMap<K, IntObjectHolder<V>> {
 
         protected void size(final int size) {
             final int needed = (int) Math.min(1 << 30, Math.max(2, HashCommon.nextPowerOfTwo((long) Math.ceil(size / f))));

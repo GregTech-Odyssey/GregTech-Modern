@@ -4,25 +4,25 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.gto.datasynclib.datasream.codec.DataCodec;
-import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.data.DataOps;
-import com.gto.datasynclib.datasream.data.MapData;
-import com.gto.datasynclib.datasream.data.StringData;
+import com.gto.datasynclib.datasream.data.*;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
 
 @UtilityClass
 public class DataCodecs {
 
-    public final DataCodec<ResourceLocation> RESOURCE_LOCATION_CODEC = DataCodec.of(obj -> StringData.valueOf(obj.toString()), data -> GTUtil.getResourceLocation(data.getString()));
+    public final DataCodec<ResourceLocation> RESOURCE_LOCATION_CODEC = DataCodec.of(obj -> StringData.valueOf(obj.toString()), (data, dataVersion) -> GTUtil.getResourceLocation(data.getString()));
 
     static {
         DataCodec.registerCodec(ResourceLocation.class, RESOURCE_LOCATION_CODEC);
@@ -31,18 +31,13 @@ public class DataCodecs {
     public static final DataCodec<BlockPos> BLOCK_POS_CODEC = new DataCodec<>() {
 
         @Override
-        public BlockPos decode(@NotNull Data data) {
-            var map = (MapData) data;
-            return new BlockPos(map.getInt("X"), map.getInt("Y"), map.getInt("Z"));
+        public BlockPos decode(@NotNull Data data, int dataVersion) {
+            return DataFixer.decodeBlockPos(data);
         }
 
         @Override
         public @NotNull Data encode(BlockPos obj) {
-            var mapData = new MapData();
-            mapData.putInt("X", obj.getX());
-            mapData.putInt("Y", obj.getY());
-            mapData.putInt("Z", obj.getZ());
-            return mapData;
+            return new IntArrayData(obj.getX(), obj.getY(), obj.getZ());
         }
 
         static {
@@ -50,16 +45,49 @@ public class DataCodecs {
         }
     };
 
-    public static final DataCodec<CompoundTag> COMPOUND_TAG_CODEC = new DataCodec<>() {
+    public static final DataCodec<ListTag> LIST_TAG_CODEC = new DataCodec<>() {
 
         @Override
-        public CompoundTag decode(@NotNull Data data) {
-            return (CompoundTag) DataOps.INSTANCE.convertTo(NbtOps.INSTANCE, data);
+        public ListTag decode(@NotNull Data data, int dataVersion) {
+            var dataList = data.getList();
+            var size = dataList.size();
+            if (size == 0) return new ListTag();
+            var tagList = new ObjectArrayList<Tag>(size);
+            dataList.forEach(d -> tagList.add(TAG_CODEC.decode(d, dataVersion)));
+            return new ListTag(tagList, tagList.getFirst().getId());
         }
 
         @Override
-        public @NotNull Data encode(CompoundTag obj) {
-            return NbtOps.INSTANCE.convertTo(DataOps.INSTANCE, obj);
+        public @NotNull Data encode(ListTag listTag) {
+            var dataList = new ArrayList<Data>(listTag.size());
+            for (var tag : listTag) {
+                dataList.add(TAG_CODEC.encode(tag));
+            }
+            return new ListData(dataList);
+        }
+
+        static {
+            DataCodec.registerCodec(ListTag.class, LIST_TAG_CODEC);
+        }
+    };
+
+    public static final DataCodec<CompoundTag> COMPOUND_TAG_CODEC = new DataCodec<>() {
+
+        @Override
+        public CompoundTag decode(@NotNull Data data, int dataVersion) {
+            var dataMap = data.getMap();
+            var size = dataMap.size();
+            if (size == 0) return new CompoundTag();
+            var tagMap = new O2OOpenCacheHashMap<String, Tag>(size);
+            dataMap.forEach((k, v) -> tagMap.put(k, TAG_CODEC.decode(v, dataVersion)));
+            return new CompoundTag(tagMap);
+        }
+
+        @Override
+        public @NotNull Data encode(CompoundTag compoundTag) {
+            var dataMap = new O2OOpenCacheHashMap<String, Data>(compoundTag.tags.size());
+            compoundTag.tags.forEach((key, tag) -> dataMap.put(key, TAG_CODEC.encode(tag)));
+            return new MapData(dataMap);
         }
 
         static {
@@ -67,11 +95,58 @@ public class DataCodecs {
         }
     };
 
+    public static final DataCodec<Tag> TAG_CODEC = new DataCodec<>() {
+
+        @Override
+        public Tag decode(@NotNull Data data, int dataVersion) {
+            return switch (data.getId()) {
+                case Data.NULL -> EndTag.INSTANCE;
+                case Data.BYTE -> ByteTag.valueOf(data.getByte());
+                case Data.SHORT -> ShortTag.valueOf(data.getShort());
+                case Data.INT -> IntTag.valueOf(data.getInt());
+                case Data.LONG -> LongTag.valueOf(data.getLong());
+                case Data.FLOAT -> FloatTag.valueOf(data.getFloat());
+                case Data.DOUBLE -> DoubleTag.valueOf(data.getDouble());
+                case Data.STRING -> StringTag.valueOf(data.getString());
+                case Data.LIST -> LIST_TAG_CODEC.decode(data, dataVersion);
+                case Data.MAP -> COMPOUND_TAG_CODEC.decode(data, dataVersion);
+                case Data.BYTE_ARRAY -> new ByteArrayTag(data.getByteArray());
+                case Data.INT_ARRAY -> new IntArrayTag(data.getIntArray());
+                case Data.LONG_ARRAY -> new LongArrayTag(data.getLongArray());
+                default -> throw new MatchException(null, null);
+            };
+        }
+
+        @Override
+        public @NotNull Data encode(Tag obj) {
+            return switch (obj.getId()) {
+                case Tag.TAG_END -> NullData.INSTANCE;
+                case Tag.TAG_BYTE -> ByteData.valueOf(((ByteTag) obj).getAsByte());
+                case Tag.TAG_SHORT -> ShortData.valueOf(((ShortTag) obj).getAsShort());
+                case Tag.TAG_INT -> IntData.valueOf(((IntTag) obj).getAsInt());
+                case Tag.TAG_LONG -> LongData.valueOf(((LongTag) obj).getAsLong());
+                case Tag.TAG_FLOAT -> FloatData.valueOf(((FloatTag) obj).getAsFloat());
+                case Tag.TAG_DOUBLE -> DoubleData.valueOf(((DoubleTag) obj).getAsDouble());
+                case Tag.TAG_STRING -> StringData.valueOf(obj.getAsString());
+                case Tag.TAG_LIST -> LIST_TAG_CODEC.encode((ListTag) obj);
+                case Tag.TAG_COMPOUND -> COMPOUND_TAG_CODEC.encode((CompoundTag) obj);
+                case Tag.TAG_BYTE_ARRAY -> ByteArrayData.valueOf(((ByteArrayTag) obj).getAsByteArray());
+                case Tag.TAG_INT_ARRAY -> IntArrayData.valueOf(((IntArrayTag) obj).getAsIntArray());
+                case Tag.TAG_LONG_ARRAY -> LongArrayData.valueOf(((LongArrayTag) obj).getAsLongArray());
+                default -> throw new IllegalArgumentException("Unknown tag id: " + obj.getId());
+            };
+        }
+
+        static {
+            DataCodec.registerCodec(Tag.class, TAG_CODEC);
+        }
+    };
+
     public static final DataCodec<ItemStack> ITEM_STACK_CODEC = new DataCodec<>() {
 
         @Override
-        public ItemStack decode(@NotNull Data data) {
-            return ItemStack.of(COMPOUND_TAG_CODEC.decode(data));
+        public ItemStack decode(@NotNull Data data, int dataVersion) {
+            return ItemStack.of(COMPOUND_TAG_CODEC.decode(data, dataVersion));
         }
 
         @Override
@@ -87,8 +162,8 @@ public class DataCodecs {
     public static final DataCodec<FluidStack> FLUID_STACK_CODEC = new DataCodec<>() {
 
         @Override
-        public FluidStack decode(@NotNull Data data) {
-            return FluidStack.loadFluidStackFromNBT(COMPOUND_TAG_CODEC.decode(data));
+        public FluidStack decode(@NotNull Data data, int dataVersion) {
+            return FluidStack.loadFluidStackFromNBT(COMPOUND_TAG_CODEC.decode(data, dataVersion));
         }
 
         @Override
@@ -104,7 +179,7 @@ public class DataCodecs {
     public static final DataCodec<Component> COMPONENT_CODEC = new DataCodec<>() {
 
         @Override
-        public Component decode(@NotNull Data data) {
+        public Component decode(@NotNull Data data, int dataVersion) {
             return Component.Serializer.fromJson(data.getString());
         }
 
@@ -119,6 +194,6 @@ public class DataCodecs {
     };
 
     public static <T> DataCodec<T> of(Registry<T> registry) {
-        return DataCodec.of(obj -> RESOURCE_LOCATION_CODEC.encode(registry.getKey(obj)), data -> registry.get(RESOURCE_LOCATION_CODEC.decode(data)));
+        return DataCodec.of(obj -> RESOURCE_LOCATION_CODEC.encode(registry.getKey(obj)), (data, dataVersion) -> registry.get(RESOURCE_LOCATION_CODEC.decode(data, dataVersion)));
     }
 }

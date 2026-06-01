@@ -41,6 +41,7 @@ public abstract class NotifiableRecipeHandlerTrait extends MachineTrait implemen
     protected void runNotify() {
         if (machine.holder.isRemoved()) return;
         listeners.forEach(Runnable::run);
+        machine.onChanged();
         isDirty = true;
     }
 

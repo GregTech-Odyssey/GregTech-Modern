@@ -2,7 +2,7 @@ package com.gto.datasynclib.listener;
 
 import net.minecraft.network.FriendlyByteBuf;
 
-import com.gto.datasynclib.CombinationCodec;
+import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.IDataSerializable;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
@@ -14,11 +14,11 @@ import java.util.Objects;
 
 public class ObjSerializableHolder<T> extends ObjHolder<T> implements IDataSerializable {
 
-    public static <T> ObjSerializableHolder<T> create(CombinationCodec<T> codec) {
+    public static <T> ObjSerializableHolder<T> create(DataSyncCodec<T> codec) {
         return new ObjSerializableHolder<>(codec);
     }
 
-    public static <T> ObjSerializableHolder<T> create(CombinationCodec<T> codec, T value) {
+    public static <T> ObjSerializableHolder<T> create(DataSyncCodec<T> codec, T value) {
         return new ObjSerializableHolder<>(codec, value);
     }
 
@@ -26,34 +26,34 @@ public class ObjSerializableHolder<T> extends ObjHolder<T> implements IDataSeria
     protected int lastHash;
     private boolean syncChange = true;
 
-    protected final CombinationCodec<T> codec;
+    protected final DataSyncCodec<T> codec;
 
-    protected ObjSerializableHolder(CombinationCodec<T> codec) {
+    protected ObjSerializableHolder(DataSyncCodec<T> codec) {
         this.codec = codec;
     }
 
-    protected ObjSerializableHolder(CombinationCodec<T> codec, T value) {
+    protected ObjSerializableHolder(DataSyncCodec<T> codec, T value) {
         super(value);
         this.codec = codec;
     }
 
     @Override
-    public void markAsDirty() {
+    public void markAsChanged() {
         syncChange = true;
     }
 
     @Override
-    public void clearDirty() {
+    public void clearChanged() {
         syncChange = false;
     }
 
     @Override
-    public boolean isDirty() {
+    public boolean isChanged() {
         return syncChange;
     }
 
     @Override
-    public boolean hasChanges() {
+    public boolean detectChange() {
         var hash = Objects.hashCode(value);
         if (hash != lastHash) {
             lastHash = hash;
@@ -92,11 +92,11 @@ public class ObjSerializableHolder<T> extends ObjHolder<T> implements IDataSeria
     }
 
     @Override
-    public void readData(@NotNull Data data) {
+    public void readData(@NotNull Data data, int dataVersion) {
         if (data == NullData.INSTANCE) {
             value = null;
         } else {
-            value = codec.dataReader.decode(data);
+            value = codec.dataReader.decode(data, dataVersion);
         }
     }
 }

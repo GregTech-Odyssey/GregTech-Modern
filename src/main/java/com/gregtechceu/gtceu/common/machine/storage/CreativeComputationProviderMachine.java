@@ -14,11 +14,11 @@ import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.SwitchWidget;
 import com.lowdragmc.lowdraglib.gui.widget.TextFieldWidget;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.entity.player.Player;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,12 +28,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class CreativeComputationProviderMachine extends MetaMachine implements IUIMachine, IOpticalComputationHatch {
 
-    @Persisted
+    @SaveToDisk
     private long maxCWUt;
     private long lastRequestedCWUt;
     private long requestedCWUPerSec;
     @Getter
-    @Persisted
+    @SaveToDisk
     private boolean active;
     @Nullable
     private TickableSubscription computationSubs;

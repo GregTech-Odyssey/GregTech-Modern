@@ -5,13 +5,32 @@ import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEntry;
 
 import net.minecraft.nbt.CompoundTag;
 
+import com.gto.datasynclib.datasream.codec.DataCodec;
+import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.util.DataCodecs;
 import it.unimi.dsi.fastutil.objects.Object2ShortMap;
 import it.unimi.dsi.fastutil.objects.Object2ShortOpenHashMap;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
 public class VirtualRedstone extends VirtualEntry {
+
+    public static final DataCodec<VirtualRedstone> DATA_CODEC = new DataCodec<>() {
+
+        @Override
+        public VirtualRedstone decode(@NotNull Data data, int dataVersion) {
+            var tank = new VirtualRedstone();
+            tank.deserializeNBT(DataCodecs.COMPOUND_TAG_CODEC.decode(data, dataVersion));
+            return tank;
+        }
+
+        @Override
+        public @NotNull Data encode(VirtualRedstone obj) {
+            return DataCodecs.COMPOUND_TAG_CODEC.encode(obj.serializeNBT());
+        }
+    };
 
     private static final String MEMBERS_KEY = "members";
 

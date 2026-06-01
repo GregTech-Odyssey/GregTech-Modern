@@ -14,13 +14,13 @@ public interface DataField<T> {
 
     DataFieldDefinition<T> getDefinition();
 
-    void markAsDirty(@NotNull Object source);
+    void markAsChanged(@NotNull Object source);
 
-    boolean isDirty(@NotNull Object source);
+    boolean isChanged(@NotNull Object source);
 
-    void clearDirty(@NotNull Object source);
+    void clearChanged(@NotNull Object source);
 
-    boolean hasChanges(@NotNull LogicalSide side, @NotNull Object source, boolean auto);
+    boolean detectChange(@NotNull LogicalSide side, @NotNull Object source, boolean auto);
 
     void writeToBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data, boolean force);
 
@@ -29,7 +29,11 @@ public interface DataField<T> {
     @NotNull
     Data writeToData(@NotNull Object source);
 
-    void readFromData(@NotNull Object source, @NotNull Data data);
+    void readFromData(@NotNull Object source, @NotNull Data data, int dataVersion);
+
+    default boolean mustDetected() {
+        return false;
+    }
 
     interface Factory<T> {
 

@@ -13,13 +13,12 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.SimpleStack;
 import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
 
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import com.fast.recipesearch.IntLongMap;
+import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -41,14 +40,14 @@ public class NotifiableItemStackHandler extends NotifiableContentHandler impleme
     @Setter
     @Getter
     protected Predicate<@Nullable Direction> capabilityValidator = GTUtil.FAVORABLE;
-    @Persisted
+    @SaveToDisk
     public final CustomItemStackHandler storage;
 
     public NotifiableItemStackHandler(MetaMachine machine, int slots, @NotNull IO handlerIO, @NotNull IO capabilityIO, IntFunction<CustomItemStackHandler> storageFactory) {
         super(machine, handlerIO);
         this.storage = storageFactory.apply(slots);
         this.capabilityIO = capabilityIO;
-        this.storage.setOnContentsChangedAndfreeze(this::onContentsChanged);
+        this.storage.setOnContentsChanged(this::onContentsChanged);
     }
 
     public NotifiableItemStackHandler(MetaMachine machine, int slots, @NotNull IO handlerIO, @NotNull IO capabilityIO) {
@@ -81,7 +80,7 @@ public class NotifiableItemStackHandler extends NotifiableContentHandler impleme
 
     public static boolean handleRecipe(IO io, List<Content<ItemIngredient>> items, CustomItemStackHandler storage) {
         Runnable listener = storage.getOnContentsChanged();
-        storage.setOnContentsChangedAndfreeze(GTUtil.NOOP);
+        storage.setOnContentsChanged(GTUtil.NOOP);
         boolean changed = false;
         var size = storage.size;
         for (var it = items.iterator(); it.hasNext();) {
@@ -131,7 +130,7 @@ public class NotifiableItemStackHandler extends NotifiableContentHandler impleme
                 }
             }
         }
-        storage.setOnContentsChangedAndfreeze(listener);
+        storage.setOnContentsChanged(listener);
         if (changed) listener.run();
         return items.isEmpty();
     }

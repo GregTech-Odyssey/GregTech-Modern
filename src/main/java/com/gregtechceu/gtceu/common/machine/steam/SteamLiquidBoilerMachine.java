@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -26,6 +25,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.FluidUtil;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -36,7 +36,7 @@ public class SteamLiquidBoilerMachine extends SteamBoilerMachine {
 
     public static final ReferenceOpenHashSet<Fluid> FUEL_CACHE = new ReferenceOpenHashSet<>();
 
-    @Persisted
+    @SaveToDisk
     public final NotifiableFluidTank fuelTank;
 
     public SteamLiquidBoilerMachine(MetaMachineBlockEntity holder, boolean isHighPressure, Object... args) {

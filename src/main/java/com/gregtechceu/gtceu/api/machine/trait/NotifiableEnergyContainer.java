@@ -14,13 +14,11 @@ import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.energy.IEnergyStorage;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -37,8 +35,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait impl
     @Getter
     protected IO handlerIO;
     @Getter
-    @Persisted
-    @DescSynced
+    @SaveToDisk
     public long energyStored;
     @Getter
     public long energyCapacity;

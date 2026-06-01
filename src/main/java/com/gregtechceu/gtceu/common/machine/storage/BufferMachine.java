@@ -21,7 +21,6 @@ import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -31,6 +30,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -44,34 +44,34 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class BufferMachine extends TieredMachine implements IMachineLife, IAutoOutputBoth, IFancyUIMachine {
 
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     @Nullable
     protected Direction outputFacingItems;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     @Nullable
     protected Direction outputFacingFluids;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputItems;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputFluids;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected boolean allowInputFromOutputSideItems;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected boolean allowInputFromOutputSideFluids;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected final NotifiableItemStackHandler inventory;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected final NotifiableFluidTank tank;
     @Nullable
     protected TickableSubscription autoOutputSubs;

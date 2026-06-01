@@ -11,14 +11,14 @@ import com.gregtechceu.gtceu.common.cover.data.TransferMode;
 import com.gregtechceu.gtceu.common.pipelike.item.ItemNetHandler;
 
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -28,11 +28,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class RobotArmCover extends ConveyorCover {
 
     @Getter
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     protected TransferMode transferMode;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected int globalTransferLimit;
     protected int itemsTransferBuffered;
     private IntInputWidget stackSizeInput;

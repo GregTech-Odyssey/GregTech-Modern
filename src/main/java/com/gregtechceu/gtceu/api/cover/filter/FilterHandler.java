@@ -12,15 +12,16 @@ import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.item.ItemStack;
 
+import com.gto.datasynclib.FieldDataManager;
+import com.gto.datasynclib.IFieldDataHolder;
+import com.gto.datasynclib.LazyFieldDataManager;
+import com.gto.datasynclib.LogicalSide;
+import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,13 +32,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhancedManaged {
+public abstract class FilterHandler<T, F extends Filter<T, F>> implements IFieldDataHolder {
 
-    private final IEnhancedManaged container;
-    private final ManagedFieldHolder managedFieldHolder = MetaMachine.getManagedFieldHolder(getClass());
+    private final LazyFieldDataManager fieldDataManager = new LazyFieldDataManager(this);
+    private final CoverBehavior container;
+
     @Getter
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     @NotNull
     private ItemStack filterItem = ItemStack.EMPTY;
     @Nullable
@@ -53,13 +55,8 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhan
     @NotNull
     private Consumer<F> onFilterUpdated = filter -> {};
 
-    public FilterHandler(IEnhancedManaged container) {
+    public FilterHandler(CoverBehavior container) {
         this.container = container;
-    }
-
-    @Override
-    public final ManagedFieldHolder getFieldHolder() {
-        return managedFieldHolder;
     }
 
     protected abstract F loadFilter(ItemStack filterItem);
@@ -166,19 +163,13 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IEnhan
         }
     }
 
-    //////////////////////////////////////
-    // ***** LDLib SyncData ******//
-    //////////////////////////////////////
-    @Getter
-    private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
-
     @Override
-    public void onChanged() {
-        this.container.onChanged();
+    public FieldDataManager getFieldDataManager() {
+        return fieldDataManager.get();
     }
 
     @Override
-    public void scheduleRenderUpdate() {
-        this.container.scheduleRenderUpdate();
+    public void scheduleUpdate(LogicalSide side) {
+        container.scheduleUpdate(side);
     }
 }

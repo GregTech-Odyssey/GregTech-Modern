@@ -37,12 +37,6 @@ import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
-import com.lowdragmc.lowdraglib.syncdata.IManaged;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -74,6 +68,7 @@ import net.minecraftforge.items.IItemHandler;
 import com.gto.datasynclib.FieldDataManager;
 import com.gto.datasynclib.LazyFieldDataManager;
 import com.gto.datasynclib.LogicalSide;
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.datafixers.util.Pair;
 import lombok.Getter;
@@ -82,7 +77,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -97,48 +91,24 @@ import static com.gregtechceu.gtceu.api.item.tool.ToolHelper.getBehaviorsTag;
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class MetaMachine implements ISync, IEnhancedManaged, ITickSubscription, IFancyTooltip, IPaintable, IRedstoneSignalMachine {
-
-    private static final Map<Class<?>, ManagedFieldHolder> MANAGED_FIELD_MAP = new ConcurrentHashMap<>();
-
-    public static ManagedFieldHolder getManagedFieldHolder(Class<? extends IManaged> clazz) {
-        var holder = MANAGED_FIELD_MAP.get(clazz);
-        if (holder == null) {
-            Class sc = clazz.getSuperclass();
-            if (sc != null && sc != Object.class) {
-                var sh = getManagedFieldHolder(sc);
-                holder = new ManagedFieldHolder(clazz, sh);
-                if (holder.getFields().length == sh.getFields().length) {
-                    holder = sh;
-                }
-            }
-            if (holder == null) {
-                holder = new ManagedFieldHolder(clazz);
-            }
-            MANAGED_FIELD_MAP.put(clazz, holder);
-        }
-        return holder;
-    }
+public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPaintable, IRedstoneSignalMachine {
 
     private final LazyFieldDataManager fieldDataManager = new LazyFieldDataManager(this);
 
     @Getter
-    private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
-    private final ManagedFieldHolder managedFieldHolder = getManagedFieldHolder(getClass());
-    @Getter
     protected final MachineDefinition definition;
-    @Persisted
+    @SaveToDisk
     @SyncToClient
     @Nullable
     private UUID ownerUUID;
     @Getter
     public final MetaMachineBlockEntity holder;
     @Getter
-    @DescSynced
-    @Persisted(key = "cover")
+    @SyncToClient
+    @SaveToDisk(key = "cover")
     protected final MachineCoverContainer coverContainer;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     private int paintingColor = -1;
     @Getter
@@ -172,17 +142,12 @@ public class MetaMachine implements ISync, IEnhancedManaged, ITickSubscription, 
     //////////////////////////////////////
     // ***** Initialization ******//
     //////////////////////////////////////
-    @Override
-    public final ManagedFieldHolder getFieldHolder() {
-        return managedFieldHolder;
-    }
 
     @Override
     public FieldDataManager getFieldDataManager() {
         return fieldDataManager.get();
     }
 
-    @Override
     public void onChanged() {
         holder.setChanged();
     }
@@ -804,15 +769,12 @@ public class MetaMachine implements ISync, IEnhancedManaged, ITickSubscription, 
         return getDefinition().getDefaultPaintingColor();
     }
 
-    public void syncNow() {
-        holder.defaultServerTick();
-    }
-
     public void requestSync() {
         holder.sync = true;
     }
 
     public void onCoverUpdate(@Nullable CoverBehavior coverBehavior, Direction side) {
+        requestSync();
         itemHandlerModifiableCache.remove(side);
         itemHandlerModifiableCoverCache.remove(side);
         fluidHandlerModifiableCache.remove(side);
@@ -838,6 +800,6 @@ public class MetaMachine implements ISync, IEnhancedManaged, ITickSubscription, 
 
     @Override
     public void scheduleUpdate(LogicalSide side) {
-        holder.scheduleRenderUpdate();
+        holder.scheduleUpdate(side);
     }
 }

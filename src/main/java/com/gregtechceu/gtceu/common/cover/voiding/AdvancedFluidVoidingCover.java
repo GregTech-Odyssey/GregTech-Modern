@@ -13,14 +13,14 @@ import com.gregtechceu.gtceu.common.cover.data.VoidingMode;
 import com.gregtechceu.gtceu.utils.GTMath;
 
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 import it.unimi.dsi.fastutil.objects.Object2LongMaps;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -29,14 +29,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class AdvancedFluidVoidingCover extends FluidVoidingCover {
 
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     private VoidingMode voidingMode = VoidingMode.VOID_ANY;
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     protected int globalTransferSizeMillibuckets = 1;
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     private BucketMode transferBucketMode = BucketMode.MILLI_BUCKET;
     private NumberInputWidget<Integer> stackSizeInput;
     private EnumSelectorWidget<BucketMode> stackSizeBucketModeInput;

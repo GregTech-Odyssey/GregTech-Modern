@@ -5,16 +5,17 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.integration.ae2.machine.feature.IGridConnectedMachine;
 import com.gregtechceu.gtceu.integration.ae2.utils.SerializableManagedGridNode;
 
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.annotation.ReadOnlyManaged;
-
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 
 import appeng.api.networking.GridFlags;
 import appeng.api.networking.GridHelper;
 import appeng.me.helpers.BlockEntityNodeListener;
 import appeng.me.helpers.IGridConnectedBlockEntity;
+import com.gto.datasynclib.annotations.Access;
+import com.gto.datasynclib.annotations.Codec;
+import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.util.DataCodecs;
 import lombok.Getter;
 
 import java.util.EnumSet;
@@ -26,8 +27,9 @@ import java.util.EnumSet;
 @Getter
 public class GridNodeHolder extends MachineTrait {
 
-    @Persisted
-    @ReadOnlyManaged(onDirtyMethod = "onGridNodeDirty", serializeMethod = "serializeGridNode", deserializeMethod = "deserializeGridNode")
+    @SaveToDisk
+    @Access(createInstance = true)
+    @Codec(writeToData = "serializeGridNode", readFromData = "deserializeGridNode")
     protected final SerializableManagedGridNode mainNode;
 
     public GridNodeHolder(IGridConnectedMachine machine) {
@@ -66,13 +68,13 @@ public class GridNodeHolder extends MachineTrait {
     }
 
     @SuppressWarnings("unused")
-    public CompoundTag serializeGridNode(SerializableManagedGridNode node) {
-        return node.serializeNBT();
+    public Data serializeGridNode(SerializableManagedGridNode node) {
+        return DataCodecs.COMPOUND_TAG_CODEC.encode(node.serializeNBT());
     }
 
     @SuppressWarnings("unused")
-    public SerializableManagedGridNode deserializeGridNode(CompoundTag tag) {
-        this.mainNode.deserializeNBT(tag);
+    public SerializableManagedGridNode deserializeGridNode(Data data, int v) {
+        this.mainNode.deserializeNBT(DataCodecs.COMPOUND_TAG_CODEC.decode(data, v));
         return this.mainNode;
     }
 }

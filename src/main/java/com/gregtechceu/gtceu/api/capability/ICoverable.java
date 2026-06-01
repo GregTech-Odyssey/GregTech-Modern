@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.block.IAppearance;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -12,6 +13,7 @@ import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -27,12 +29,16 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import com.google.common.collect.ImmutableList;
+import com.gto.datasynclib.IFieldDataHolder;
+import com.gto.datasynclib.datasream.data.ByteData;
+import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.datasream.data.ListData;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public interface ICoverable extends ITickSubscription, IAppearance {
+public interface ICoverable extends ITickSubscription, IAppearance, IFieldDataHolder {
 
     BlockEntityDirectionCache getBlockEntityDirectionCache();
 
@@ -49,8 +55,6 @@ public interface ICoverable extends ITickSubscription, IAppearance {
     boolean isInValid();
 
     void notifyBlockUpdate();
-
-    void scheduleRenderUpdate();
 
     void scheduleNeighborShapeUpdate();
 
@@ -76,6 +80,8 @@ public interface ICoverable extends ITickSubscription, IAppearance {
      * @param side
      */
     void setCoverAtSide(@Nullable CoverBehavior coverBehavior, Direction side);
+
+    void setCoverAtSideinternal(@Nullable CoverBehavior coverBehavior, Direction side);
 
     @Nullable
     CoverBehavior getCoverAtSide(Direction side);
@@ -276,5 +282,45 @@ public interface ICoverable extends ITickSubscription, IAppearance {
             return getCoverAtSide(side).getAppearance(sourceState, sourcePos);
         }
         return null;
+    }
+
+    @SuppressWarnings("unused")
+    default Data serializeCoverData(CoverBehavior coverBehavior) {
+        var uid = new ListData();
+        uid.add(GTRegistries.COVERS.dataCodec().encode(coverBehavior.coverDefinition));
+        uid.add(ByteData.valueOf((byte) coverBehavior.attachedSide.ordinal()));
+        return uid;
+    }
+
+    @SuppressWarnings("unused")
+    default CoverBehavior deserializeCoverData(Data uid, int dataVersion) {
+        if (dataVersion == -1) {
+            var map = uid.getMap();
+            var definitionId = GTUtil.getResourceLocation(map.get("id").getString());
+            var definition = GTRegistries.COVERS.get(definitionId);
+            if (definition != null) {
+                return definition.createCoverBehavior(this, GTUtil.DIRECTIONS[map.get("side").getInt()]);
+            }
+        } else {
+            var list = uid.getList();
+            var definition = GTRegistries.COVERS.dataCodec().decode(list.getFirst(), dataVersion);
+            if (definition != null) {
+                return definition.createCoverBehavior(this, GTUtil.DIRECTIONS[list.get(1).getByte()]);
+            }
+        }
+        GTCEu.LOGGER.error("couldn't find cover definition {}", uid);
+        throw new RuntimeException();
+    }
+
+    @SuppressWarnings("unused")
+    default void serializeCoverBuffer(FriendlyByteBuf buf, CoverBehavior coverBehavior) {
+        GTRegistries.COVERS.streamCodec().encode(buf, coverBehavior.coverDefinition);
+        buf.writeEnum(coverBehavior.attachedSide);
+    }
+
+    @SuppressWarnings("unused")
+    default CoverBehavior deserializeCoverBuffer(FriendlyByteBuf buf) {
+        var definition = GTRegistries.COVERS.streamCodec().decode(buf);
+        return definition.createCoverBehavior(this, buf.readEnum(Direction.class));
     }
 }

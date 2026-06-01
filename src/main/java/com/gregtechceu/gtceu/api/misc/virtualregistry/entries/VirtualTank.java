@@ -7,9 +7,27 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 
+import com.gto.datasynclib.datasream.codec.DataCodec;
+import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.util.DataCodecs;
 import org.jetbrains.annotations.NotNull;
 
 public class VirtualTank extends VirtualEntry {
+
+    public static final DataCodec<VirtualTank> DATA_CODEC = new DataCodec<>() {
+
+        @Override
+        public VirtualTank decode(@NotNull Data data, int dataVersion) {
+            var tank = new VirtualTank();
+            tank.deserializeNBT(DataCodecs.COMPOUND_TAG_CODEC.decode(data, dataVersion));
+            return tank;
+        }
+
+        @Override
+        public @NotNull Data encode(VirtualTank obj) {
+            return DataCodecs.COMPOUND_TAG_CODEC.encode(obj.serializeNBT());
+        }
+    };
 
     public static final int DEFAULT_CAPACITY = 640000; // 160B for per second transfer
     protected static final String CAPACITY_KEY = "capacity";

@@ -2,6 +2,9 @@ package com.gregtechceu.gtceu.api.recipe;
 
 import com.gregtechceu.gtceu.api.recipe.content.*;
 import com.gregtechceu.gtceu.api.recipe.expand.ContentExpander;
+import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
@@ -17,10 +20,8 @@ import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datasream.codec.DataCodec;
 import com.gto.datasynclib.datasream.codec.DataDecoder;
 import com.gto.datasynclib.datasream.codec.DataEncoder;
-import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.data.IntData;
-import com.gto.datasynclib.datasream.data.ListData;
-import com.gto.datasynclib.datasream.data.LongData;
+import com.gto.datasynclib.datasream.data.*;
+import com.gto.datasynclib.util.DataCodecs;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
@@ -82,10 +83,25 @@ public final class GTRecipe {
         }
 
         @Override
-        public GTRecipe decode(Data data) {
+        public GTRecipe decode(Data data, int dataVersion) {
+            if (dataVersion == -1 && data instanceof MapData mapData) {
+                var compoundTag = DataCodecs.COMPOUND_TAG_CODEC.decode(mapData, dataVersion);
+                var definition = GTRecipe.EMPTY.definition;
+                var duration = compoundTag.getInt("duration");
+                var tier = compoundTag.getInt("tier");
+                var eu = compoundTag.getLong("eu");
+                List<Content<ItemIngredient>> itemInput = compoundTag.get("inputs") instanceof CompoundTag i ? fromNbt(ItemRecipeInfo.INSTANCE, i) : Collections.emptyList();
+                List<Content<ItemIngredient>> itemOutput = compoundTag.get("outputs") instanceof CompoundTag i ? fromNbt(ItemRecipeInfo.INSTANCE, i) : Collections.emptyList();
+                List<Content<FluidIngredient>> fluidInput = compoundTag.get("inputs") instanceof CompoundTag i ? fromNbt(FluidRecipeInfo.INSTANCE, i) : Collections.emptyList();
+                List<Content<FluidIngredient>> fluidOutput = compoundTag.get("outputs") instanceof CompoundTag i ? fromNbt(FluidRecipeInfo.INSTANCE, i) : Collections.emptyList();
+                return new GTRecipe(definition, itemInput, itemOutput, fluidInput, fluidOutput, new DataComponentMap(), eu, tier, duration);
+            }
+            if (data instanceof ByteArrayData arrayData) {
+                data = Data.readData(arrayData.getByteArray());
+            }
             var list = data.getList();
-            var definition = GTRecipeDefinition.DATA_CODEC.decode(list.getFirst());
-            var recipeData = GTRecipeDataKeys.REGISTRY.decode(list.get(5));
+            var definition = GTRecipeDefinition.DATA_CODEC.decode(list.getFirst(), dataVersion);
+            var recipeData = GTRecipeDataKeys.REGISTRY.decode(list.get(5), dataVersion);
             if (definition == definition.recipeType.defaultDefinition && !recipeData.isEmpty()) {
                 List<ContentExpander> expanders = null;
                 List<ContentExpander> tickExpanders = null;
@@ -107,12 +123,49 @@ public final class GTRecipe {
                     definition = b.build();
                 }
             }
-            var recipe = new GTRecipe(definition, DataDecoder.notNullCollection(ArrayList::new, SerializerItemIngredient.INSTANCE::fromDataContent).decode(list.get(1)), DataDecoder.notNullCollection(ArrayList::new, SerializerItemIngredient.INSTANCE::fromDataContent).decode(list.get(2)), DataDecoder.notNullCollection(ArrayList::new, SerializerFluidIngredient.INSTANCE::fromDataContent).decode(list.get(3)), DataDecoder.notNullCollection(ArrayList::new, SerializerFluidIngredient.INSTANCE::fromDataContent).decode(list.get(4)), recipeData, list.get(6).getLong(), list.get(7).getInt(), list.get(8).getInt());
+            var recipe = new GTRecipe(definition, DataDecoder.notNullCollection(ArrayList::new, SerializerItemIngredient.INSTANCE::fromDataContent).decode(list.get(1), dataVersion), DataDecoder.notNullCollection(ArrayList::new, SerializerItemIngredient.INSTANCE::fromDataContent).decode(list.get(2), dataVersion), DataDecoder.notNullCollection(ArrayList::new, SerializerFluidIngredient.INSTANCE::fromDataContent).decode(list.get(3), dataVersion), DataDecoder.notNullCollection(ArrayList::new, SerializerFluidIngredient.INSTANCE::fromDataContent).decode(list.get(4), dataVersion), recipeData, list.get(6).getLong(), list.get(7).getInt(), list.get(8).getInt());
             recipe.parallels = list.get(9).getLong();
             recipe.batchParallels = list.get(10).getLong();
             recipe.ocLevel = list.get(11).getInt();
             recipe.outputColor = list.get(12).getInt();
             return recipe;
+        }
+
+        private static <T extends ContentInner> List<Content<T>> fromNbt(RecipeInfo capability, CompoundTag tag) {
+            if (tag.tags.get(capability.name) instanceof ListTag listTag) {
+                var list = new ArrayList<Content<T>>();
+                for (var t : listTag) {
+                    var content = fromNbtContent(capability, t);
+                    if (content != null) {
+                        list.add((Content<T>) content);
+                    }
+                }
+                if (!list.isEmpty()) return list;
+            }
+            return Collections.emptyList();
+        }
+
+        @Nullable
+        private static <T extends ContentInner> Content<T> fromNbtContent(RecipeInfo capability, @Nullable Tag tag) {
+            if (tag instanceof CompoundTag compoundTag && compoundTag.tags.get("content") instanceof CompoundTag content) {
+                var ingredient = capability == ItemRecipeInfo.INSTANCE ? ItemIngredient.fromNbt(content) : FluidIngredient.fromNbt(content);
+                if (ingredient instanceof ContentInner inner && !inner.isEmpty()) return new Content(ingredient, getChance(compoundTag), getTierChanceBoost(compoundTag));
+            }
+            return null;
+        }
+
+        private static int getChance(CompoundTag tag) {
+            if (tag.tags.get("chance") instanceof IntTag chance) {
+                return chance.getAsInt();
+            }
+            return Content.MAX_CHANCE;
+        }
+
+        private static int getTierChanceBoost(CompoundTag tag) {
+            if (tag.tags.get("tierChanceBoost") instanceof IntTag tierChanceBoost) {
+                return tierChanceBoost.getAsInt();
+            }
+            return 0;
         }
     };
 
@@ -227,8 +280,56 @@ public final class GTRecipe {
     public static GTRecipe fromNbt(@Nullable Tag t) {
         if (t instanceof ByteArrayTag tag) {
             return DATA_CODEC.decode(Data.readData(tag.getAsByteArray()));
+        } else if (t instanceof CompoundTag compoundTag) {
+            var definition = GTRecipe.EMPTY.definition;
+            var data = new DataComponentMap();
+            var duration = compoundTag.getInt("duration");
+            var tier = compoundTag.getInt("tier");
+            var eu = compoundTag.getLong("eu");
+            List<Content<ItemIngredient>> itemInput = compoundTag.get("inputs") instanceof CompoundTag i ? fromNbt(ItemRecipeInfo.INSTANCE, i) : Collections.emptyList();
+            List<Content<ItemIngredient>> itemOutput = compoundTag.get("outputs") instanceof CompoundTag i ? fromNbt(ItemRecipeInfo.INSTANCE, i) : Collections.emptyList();
+            List<Content<FluidIngredient>> fluidInput = compoundTag.get("inputs") instanceof CompoundTag i ? fromNbt(FluidRecipeInfo.INSTANCE, i) : Collections.emptyList();
+            List<Content<FluidIngredient>> fluidOutput = compoundTag.get("outputs") instanceof CompoundTag i ? fromNbt(FluidRecipeInfo.INSTANCE, i) : Collections.emptyList();
+            return new GTRecipe(definition, itemInput, itemOutput, fluidInput, fluidOutput, data, eu, tier, duration);
         }
         return null;
+    }
+
+    private static <T extends ContentInner> List<Content<T>> fromNbt(RecipeInfo capability, CompoundTag tag) {
+        if (tag.tags.get(capability.name) instanceof ListTag listTag) {
+            var list = new ArrayList<Content<T>>();
+            for (var t : listTag) {
+                var content = fromNbtContent(capability, t);
+                if (content != null) {
+                    list.add((Content<T>) content);
+                }
+            }
+            if (!list.isEmpty()) return list;
+        }
+        return Collections.emptyList();
+    }
+
+    @Nullable
+    private static <T extends ContentInner> Content<T> fromNbtContent(RecipeInfo capability, @Nullable Tag tag) {
+        if (tag instanceof CompoundTag compoundTag && compoundTag.tags.get("content") instanceof CompoundTag content) {
+            var ingredient = capability == ItemRecipeInfo.INSTANCE ? ItemIngredient.fromNbt(content) : FluidIngredient.fromNbt(content);
+            if (ingredient instanceof ContentInner inner && !inner.isEmpty()) return new Content(ingredient, getChance(compoundTag), getTierChanceBoost(compoundTag));
+        }
+        return null;
+    }
+
+    private static int getChance(CompoundTag tag) {
+        if (tag.tags.get("chance") instanceof IntTag chance) {
+            return chance.getAsInt();
+        }
+        return Content.MAX_CHANCE;
+    }
+
+    private static int getTierChanceBoost(CompoundTag tag) {
+        if (tag.tags.get("tierChanceBoost") instanceof IntTag tierChanceBoost) {
+            return tierChanceBoost.getAsInt();
+        }
+        return 0;
     }
 
     public static ByteArrayTag toNbt(GTRecipe recipe) {

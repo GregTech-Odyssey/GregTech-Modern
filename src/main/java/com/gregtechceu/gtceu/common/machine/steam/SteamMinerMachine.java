@@ -24,7 +24,6 @@ import com.lowdragmc.lowdraglib.gui.widget.ComponentPanelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -37,6 +36,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import lombok.Setter;
@@ -54,12 +54,12 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
 
     @Getter
     @Setter
-    @Persisted
+    @SaveToDisk
     @SyncToClient
     private boolean needsVenting;
-    @Persisted
+    @SaveToDisk
     public final NotifiableItemStackHandler importItems;
-    @Persisted
+    @SaveToDisk
     public final NotifiableItemStackHandler exportItems;
     private final int inventorySize;
     private final int energyPerTick;

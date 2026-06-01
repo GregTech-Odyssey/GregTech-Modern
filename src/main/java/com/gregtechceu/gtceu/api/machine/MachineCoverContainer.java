@@ -1,89 +1,83 @@
 package com.gregtechceu.gtceu.api.machine;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.blockentity.TickBlockEntity;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
-import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
-import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
-
-import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.annotation.ReadOnlyManaged;
-import com.lowdragmc.lowdraglib.syncdata.annotation.UpdateListener;
-import com.lowdragmc.lowdraglib.syncdata.field.FieldManagedStorage;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
-import com.lowdragmc.lowdraglib.syncdata.managed.IRef;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import com.gto.datasynclib.FieldDataManager;
+import com.gto.datasynclib.LazyFieldDataManager;
+import com.gto.datasynclib.LogicalSide;
+import com.gto.datasynclib.annotations.Access;
+import com.gto.datasynclib.annotations.Codec;
+import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
+public class MachineCoverContainer implements ICoverable {
+
+    private final LazyFieldDataManager fieldDataManager = new LazyFieldDataManager(this);
 
     @Getter
-    private final FieldManagedStorage syncStorage = new FieldManagedStorage(this);
-    private final ManagedFieldHolder managedFieldHolder = MetaMachine.getManagedFieldHolder(getClass());
-    @Getter
     private final MetaMachine machine;
-    @DescSynced
-    @Persisted
-    @UpdateListener(methodName = "onCoverSet")
-    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty", serializeMethod = "serializeCoverUid", deserializeMethod = "deserializeCoverUid")
+
+    @SaveToDisk
+    @SyncToClient(listener = "onCoverSet")
+    @Access(createInstance = true)
+    @Codec(writeToData = "serializeCoverData", readFromData = "deserializeCoverData", writeToBuffer = "serializeCoverBuffer", readFromBuffer = "deserializeCoverBuffer")
     private CoverBehavior up;
-    @DescSynced
-    @Persisted
-    @UpdateListener(methodName = "onCoverSet")
-    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty", serializeMethod = "serializeCoverUid", deserializeMethod = "deserializeCoverUid")
+
+    @SaveToDisk
+    @SyncToClient(listener = "onCoverSet")
+    @Access(createInstance = true)
+    @Codec(writeToData = "serializeCoverData", readFromData = "deserializeCoverData", writeToBuffer = "serializeCoverBuffer", readFromBuffer = "deserializeCoverBuffer")
     private CoverBehavior down;
-    @DescSynced
-    @Persisted
-    @UpdateListener(methodName = "onCoverSet")
-    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty", serializeMethod = "serializeCoverUid", deserializeMethod = "deserializeCoverUid")
+
+    @SaveToDisk
+    @SyncToClient(listener = "onCoverSet")
+    @Access(createInstance = true)
+    @Codec(writeToData = "serializeCoverData", readFromData = "deserializeCoverData", writeToBuffer = "serializeCoverBuffer", readFromBuffer = "deserializeCoverBuffer")
     private CoverBehavior north;
-    @DescSynced
-    @Persisted
-    @UpdateListener(methodName = "onCoverSet")
-    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty", serializeMethod = "serializeCoverUid", deserializeMethod = "deserializeCoverUid")
+
+    @SaveToDisk
+    @SyncToClient(listener = "onCoverSet")
+    @Access(createInstance = true)
+    @Codec(writeToData = "serializeCoverData", readFromData = "deserializeCoverData", writeToBuffer = "serializeCoverBuffer", readFromBuffer = "deserializeCoverBuffer")
     private CoverBehavior south;
-    @DescSynced
-    @Persisted
-    @UpdateListener(methodName = "onCoverSet")
-    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty", serializeMethod = "serializeCoverUid", deserializeMethod = "deserializeCoverUid")
+
+    @SaveToDisk
+    @SyncToClient(listener = "onCoverSet")
+    @Access(createInstance = true)
+    @Codec(writeToData = "serializeCoverData", readFromData = "deserializeCoverData", writeToBuffer = "serializeCoverBuffer", readFromBuffer = "deserializeCoverBuffer")
     private CoverBehavior west;
-    @DescSynced
-    @Persisted
-    @UpdateListener(methodName = "onCoverSet")
-    @ReadOnlyManaged(onDirtyMethod = "onCoverDirty", serializeMethod = "serializeCoverUid", deserializeMethod = "deserializeCoverUid")
+
+    @SaveToDisk
+    @SyncToClient(listener = "onCoverSet")
+    @Access(createInstance = true)
+    @Codec(writeToData = "serializeCoverData", readFromData = "deserializeCoverData", writeToBuffer = "serializeCoverBuffer", readFromBuffer = "deserializeCoverBuffer")
     private CoverBehavior east;
 
     public MachineCoverContainer(MetaMachine machine) {
         this.machine = machine;
     }
 
-    @Override
-    public final ManagedFieldHolder getFieldHolder() {
-        return managedFieldHolder;
-    }
-
     @SuppressWarnings("unused")
     private void onCoverSet(CoverBehavior newValue, CoverBehavior oldValue) {
         if (newValue != oldValue && (newValue == null || oldValue == null)) {
-            scheduleRenderUpdate();
+            scheduleUpdate(LogicalSide.CLIENT);
         }
     }
 
@@ -120,11 +114,6 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
     @Override
     public void notifyBlockUpdate() {
         machine.notifyBlockUpdate();
-    }
-
-    @Override
-    public void scheduleRenderUpdate() {
-        machine.scheduleRenderUpdate();
     }
 
     @Override
@@ -182,7 +171,7 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
     }
 
     @Override
-    public void setCoverAtSide(@Nullable CoverBehavior coverBehavior, Direction side) {
+    public void setCoverAtSideinternal(@Nullable CoverBehavior coverBehavior, Direction side) {
         switch (side) {
             case UP -> up = coverBehavior;
             case SOUTH -> south = coverBehavior;
@@ -191,10 +180,13 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
             case EAST -> east = coverBehavior;
             case NORTH -> north = coverBehavior;
         }
+    }
+
+    @Override
+    public void setCoverAtSide(@Nullable CoverBehavior coverBehavior, Direction side) {
+        setCoverAtSideinternal(coverBehavior, side);
         machine.onCoverUpdate(coverBehavior, side);
-        if (coverBehavior != null) {
-            coverBehavior.getSyncStorage().markAllDirty();
-        }
+        getFieldDataManager().markAsChanged();
     }
 
     @Override
@@ -207,34 +199,13 @@ public class MachineCoverContainer implements ICoverable, IEnhancedManaged {
         return machine.getFluidHandlerCap(side, useCoverCapability);
     }
 
-    @SuppressWarnings("unused")
-    private boolean onCoverDirty(CoverBehavior coverBehavior) {
-        if (coverBehavior != null) {
-            for (IRef ref : coverBehavior.getSyncStorage().getNonLazyFields()) {
-                ref.update();
-            }
-            return coverBehavior.getSyncStorage().hasDirtySyncFields() || coverBehavior.getSyncStorage().hasDirtyPersistedFields();
-        }
-        return false;
+    @Override
+    public FieldDataManager getFieldDataManager() {
+        return fieldDataManager.get();
     }
 
-    @SuppressWarnings("unused")
-    private CompoundTag serializeCoverUid(CoverBehavior coverBehavior) {
-        var uid = new CompoundTag();
-        uid.putString("id", GTRegistries.COVERS.getKey(coverBehavior.coverDefinition).toString());
-        uid.putInt("side", coverBehavior.attachedSide.ordinal());
-        return uid;
-    }
-
-    @SuppressWarnings("unused")
-    private CoverBehavior deserializeCoverUid(CompoundTag uid) {
-        var definitionId = GTUtil.getResourceLocation(uid.getString("id"));
-        var side = GTUtil.DIRECTIONS[uid.getInt("side")];
-        var definition = GTRegistries.COVERS.get(definitionId);
-        if (definition != null) {
-            return definition.createCoverBehavior(this, side);
-        }
-        GTCEu.LOGGER.error("couldn't find cover definition {}", definitionId);
-        throw new RuntimeException();
+    @Override
+    public void scheduleUpdate(LogicalSide side) {
+        machine.scheduleUpdate(side);
     }
 }

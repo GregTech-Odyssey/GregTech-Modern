@@ -27,7 +27,6 @@ import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -56,6 +55,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import lombok.Setter;
@@ -71,23 +71,23 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class FisherMachine extends TieredEnergyMachine implements IAutoOutputItem, IFancyUIMachine, IMachineLife, IWorkable {
 
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     @Nullable
     protected Direction outputFacingItems;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputItems;
-    @Persisted
+    @SaveToDisk
     protected final NotifiableItemStackHandler cache;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected boolean allowInputFromOutputSideItems;
-    @Persisted
+    @SaveToDisk
     protected final NotifiableItemStackHandler baitHandler;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected final CustomItemStackHandler chargerInventory;
     @Nullable
     protected TickableSubscription autoOutputSubs;
@@ -106,22 +106,22 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
     @Getter
     public final int maxProgress;
     @Getter
-    @Persisted
+    @SaveToDisk
     private int progress = 0;
     @Getter
     @Setter
-    @Persisted
+    @SaveToDisk
     @SyncToClient
     private boolean isWorkingEnabled = true;
     @Getter
-    @Persisted
+    @SaveToDisk
     private boolean active = false;
     public static final int WATER_CHECK_SIZE = 5;
     private static final ItemStack fishingRod = new ItemStack(Items.FISHING_ROD);
     private boolean hasWater = false;
     @Getter
     @Setter
-    @Persisted
+    @SaveToDisk
     @SyncToClient
     protected boolean junkEnabled = true;
 

@@ -7,8 +7,6 @@ import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -17,6 +15,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 
@@ -27,11 +26,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class DiodePartMachine extends TieredIOPartMachine {
 
     public static int MAX_AMPS = 16;
-    @Persisted
+    @SaveToDisk
     protected NotifiableEnergyContainer energyContainer;
     @Getter
     @SyncToClient
-    @Persisted(key = "amp_mode")
+    @SaveToDisk(key = "amp_mode")
     private int amps;
 
     public DiodePartMachine(MetaMachineBlockEntity holder, int tier) {

@@ -11,6 +11,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.datasream.data.NullData;
+
 import java.util.Collections;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -99,12 +102,11 @@ public class ReservoirHatchPartMachine extends FluidHatchPartMachine {
         }
 
         @Override
-        public CompoundTag serializeNBT() {
-            // serialization is unnecessary here, we can always recreate it completely full since it would refill anyway
-            return EMPTY;
+        public Data writeData() {
+            return NullData.INSTANCE;
         }
 
         @Override
-        public void deserializeNBT(CompoundTag nbt) {}
+        public void readData(Data data, int dataVersion) {}
     }
 }

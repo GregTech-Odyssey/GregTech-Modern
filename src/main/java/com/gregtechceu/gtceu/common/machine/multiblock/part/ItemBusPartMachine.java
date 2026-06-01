@@ -21,7 +21,6 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.jei.IngredientIO;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -34,6 +33,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +45,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements IDistinctPart, IMachineLife, IInputLimitableMachine {
 
     @Getter
-    @Persisted
+    @SaveToDisk
     private final NotifiableItemStackHandler inventory;
     @Nullable
     protected TickableSubscription autoIOSubs;
@@ -53,10 +53,10 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
     protected ISubscription inventorySubs;
 
     @Getter
-    @Persisted
+    @SaveToDisk
     protected final NotifiableItemStackHandler circuitInventory;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient
     private boolean isDistinct = false;
 

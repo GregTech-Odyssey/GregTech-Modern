@@ -43,7 +43,7 @@ public record MapData(Map<String, Data> value) implements Data {
         }
 
         @Override
-        public MapData decode(@NotNull Data data) {
+        public MapData decode(@NotNull Data data, int dataVersion) {
             return (MapData) data;
         }
 
@@ -106,7 +106,7 @@ public record MapData(Map<String, Data> value) implements Data {
     }
 
     public void putBoolean(String key, boolean data) {
-        this.value.put(key, BooleanData.valueOf(data));
+        this.value.put(key, ByteData.valueOf(data));
     }
 
     public void putByte(String key, byte data) {
@@ -202,6 +202,22 @@ public record MapData(Map<String, Data> value) implements Data {
         return this.value.get(key);
     }
 
+    @NotNull
+    public ListData getList(String key) {
+        if (this.value.get(key) instanceof ListData listData) {
+            return listData;
+        }
+        return ListData.EMPTY;
+    }
+
+    @NotNull
+    public MapData getMap(String key) {
+        if (this.value.get(key) instanceof MapData mapData) {
+            return mapData;
+        }
+        return MapData.EMPTY;
+    }
+
     @Nullable
     public String getString(String key) {
         var data = this.value.get(key);
@@ -231,10 +247,10 @@ public record MapData(Map<String, Data> value) implements Data {
     }
 
     @Nullable
-    public <T> T get(String key, DataCodec<T> codec) {
+    public <T> T get(String key, DataCodec<T> codec, int dataVersion) {
         var data = this.value.get(key);
         if (data == null) return null;
-        return codec.decode(data);
+        return codec.decode(data, dataVersion);
     }
 
     @NotNull
@@ -265,10 +281,10 @@ public record MapData(Map<String, Data> value) implements Data {
     }
 
     @NotNull
-    public <T> Optional<T> getOptional(String key, DataCodec<T> codec) {
+    public <T> Optional<T> getOptional(String key, DataCodec<T> codec, int dataVersion) {
         var data = this.value.get(key);
         if (data == null) return Optional.empty();
-        return Optional.ofNullable(codec.decode(data));
+        return Optional.ofNullable(codec.decode(data, dataVersion));
     }
 
     public Set<Map.Entry<String, Data>> entrySet() {

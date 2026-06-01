@@ -29,8 +29,6 @@ import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -47,6 +45,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.Strategy;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
@@ -69,22 +68,22 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
 
     public static Reference2LongOpenHashMap<MachineDefinition> TANK_CAPACITY = new Reference2LongOpenHashMap<>();
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected Direction outputFacingFluids;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputFluids;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected boolean allowInputFromOutputSideFluids;
-    @Persisted
+    @SaveToDisk
     private boolean isVoiding;
     @Getter
     private final long maxAmount;
     protected final FluidCache cache;
-    @DescSynced
+    @SyncToClient
     private final CustomFluidTank lockedFluid;
     @Getter
     @SyncToClient
@@ -227,6 +226,16 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     //////////////////////////////////////
     // ******* Interaction *******//
     //////////////////////////////////////
+    @Override
+    public void saveToItem(CompoundTag tag) {
+        saveCustomPersistedData(tag, true);
+    }
+
+    @Override
+    public void loadFromItem(CompoundTag tag) {
+        loadCustomPersistedData(tag);
+    }
+
     @Override
     public boolean isFacingValid(Direction facing) {
         if (facing == outputFacingFluids) return false;

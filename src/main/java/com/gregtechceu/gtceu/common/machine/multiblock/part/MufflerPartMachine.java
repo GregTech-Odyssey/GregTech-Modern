@@ -15,7 +15,6 @@ import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.entity.player.Player;
@@ -24,6 +23,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.ItemHandlerHelper;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +35,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class MufflerPartMachine extends WorkableTieredPartMachine implements IMufflerMachine {
 
     private final int recoveryChance;
-    @Persisted
+    @SaveToDisk
     private final CustomItemStackHandler inventory;
     @Nullable
     protected TickableSubscription particleSubs;

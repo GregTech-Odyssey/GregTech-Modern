@@ -14,7 +14,7 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
 import com.fast.recipesearch.IntLongMap;
-import com.gto.datasynclib.CombinationCodec;
+import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.datasream.DataComponentKey;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +25,7 @@ public final class CWUTExpander extends DataComponentKey<Long> implements Conten
     public static final CWUTExpander INSTANCE = new CWUTExpander();
 
     private CWUTExpander() {
-        super("cwut", CombinationCodec.LONG_CODEC);
+        super("cwut", DataSyncCodec.LONG_CODEC);
     }
 
     @Override

@@ -7,13 +7,13 @@ import org.jetbrains.annotations.NotNull;
 
 public interface IDataSerializable {
 
-    boolean hasChanges();
+    boolean detectChange();
 
-    void markAsDirty();
+    void markAsChanged();
 
-    void clearDirty();
+    void clearChanged();
 
-    boolean isDirty();
+    boolean isChanged();
 
     void writeBuf(LogicalSide side, @NotNull FriendlyByteBuf data);
 
@@ -21,5 +21,5 @@ public interface IDataSerializable {
 
     Data writeData();
 
-    void readData(@NotNull Data tag);
+    void readData(@NotNull Data data, int dataVersion);
 }

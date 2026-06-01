@@ -22,7 +22,6 @@ import com.gregtechceu.gtceu.common.item.TurbineRotorBehaviour;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -34,6 +33,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import lombok.Setter;
@@ -46,16 +46,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class RotorHolderPartMachine extends WorkableTieredPartMachine implements IMachineLife, IRotorHolderMachine, IInteractedMachine {
 
-    @Persisted
+    @SaveToDisk
     public final NotifiableItemStackHandler inventory;
     @Getter
     public final int maxRotorHolderSpeed;
     @Getter
-    @Persisted
+    @SaveToDisk
     @SyncToClient
     public int rotorSpeed;
     @Setter
-    @Persisted
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     @NotNull
     public Material rotorMaterial = GTMaterials.NULL; // 0 - no rotor

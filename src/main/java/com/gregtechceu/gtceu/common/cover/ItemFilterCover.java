@@ -17,14 +17,14 @@ import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -37,13 +37,13 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
 
     protected ItemFilter itemFilter;
     @Getter
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     protected FilterMode filterMode = FilterMode.FILTER_INSERT;
     private FilteredItemHandlerWrapper itemFilterWrapper;
     @Getter
     @Setter
-    @Persisted
+    @SaveToDisk
     protected ManualIOMode allowFlow = ManualIOMode.DISABLED;
 
     public ItemFilterCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {

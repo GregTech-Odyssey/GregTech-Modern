@@ -1,7 +1,14 @@
 package com.gto.datasynclib;
 
+import com.gregtechceu.gtceu.utils.FluidStackHashStrategy;
+import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
+
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fluids.FluidStack;
+
 import com.gto.datasynclib.field.*;
 import com.gto.datasynclib.field.access.*;
+import com.gto.datasynclib.field.access.array.*;
 import com.gto.datasynclib.field.object.CustomObjCodecField;
 import com.gto.datasynclib.field.object.ObjCodecField;
 import it.unimi.dsi.fastutil.ints.IntCollection;
@@ -20,7 +27,7 @@ import static com.gto.datasynclib.FieldDefinitionStorage.*;
 public final class DataSyncLib {
 
     public static void init() {
-        CombinationCodec.init();
+        DataSyncCodec.init();
         registerFactory(boolean.class, BooleanField::new);
         registerFactory(byte.class, ByteField::new);
         registerFactory(char.class, CharField::new);
@@ -29,10 +36,10 @@ public final class DataSyncLib {
         registerFactory(int.class, IntField::new);
         registerFactory(long.class, LongField::new);
         registerFactory(short.class, ShortField::new);
-        registerCustomFactory(CombinationCodec::contains, k -> ObjCodecField::new, 100);
+        registerCustomFactory(DataSyncCodec::contains, k -> ObjCodecField::new, 100);
 
-        registerCustomGenericFactory(CombinationCodec::contains, (t, gt) -> {
-            var codec = CombinationCodec.get(t, gt);
+        registerCustomGenericFactory(DataSyncCodec::contains, (t, gt) -> {
+            var codec = DataSyncCodec.get(t, gt);
             if (codec == null) throw new IllegalArgumentException("No codec for " + t + " " + Arrays.toString(gt));
             return d -> new CustomObjCodecField<>(d, codec);
         }, 100);
@@ -42,7 +49,7 @@ public final class DataSyncLib {
         registerAccessFactory(int[].class, IntArrayAccess::new);
         registerAccessFactory(long[].class, LongArrayAccess::new);
 
-        registerAccessInterfaceFactory(IFieldDataHolder.class, k -> DataFieldHolderAccess::new, 1000);
+        registerAccessInterfaceFactory(IFieldDataHolder.class, k -> FieldDataHolderAccess::new, 1000);
         registerAccessInterfaceFactory(IDataSerializable.class, k -> SerializableAccess::new, 1000);
 
         registerAccessInterfaceFactory(IntCollection.class, k -> IntCollectionAccess::new, 1000);
@@ -55,10 +62,15 @@ public final class DataSyncLib {
         registerAccessInterfaceFactory(Object2IntMap.class, k -> Object2IntMapAccess::new, 1000);
         registerAccessInterfaceFactory(Map.class, k -> MapAccess::new, 100);
 
+        registerAccessCustomFactory(c -> c.isArray() && !c.componentType().isPrimitive() && IDataSerializable.class.isAssignableFrom(c.componentType()), c -> SerializableArrayAccess::new, 2000);
+
         registerAccessCustomFactory(c -> c.isArray() && !c.componentType().isPrimitive(), c -> {
-            var codec = CombinationCodec.get(c.componentType());
+            var codec = DataSyncCodec.get(c.componentType());
             if (codec == null) throw new IllegalArgumentException("No codec for " + c);
             return d -> new ArrayAccess<>(d, codec);
-        }, 2000);
+        }, 200);
+
+        registerStrategy(ItemStack.class, ItemStackHashStrategy.ALL);
+        registerStrategy(FluidStack.class, FluidStackHashStrategy.ALL);
     }
 }

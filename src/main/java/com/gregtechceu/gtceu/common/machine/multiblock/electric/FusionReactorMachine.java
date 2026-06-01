@@ -16,12 +16,11 @@ import com.gregtechceu.gtceu.common.block.FusionCasingBlock;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -53,9 +52,9 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     private final int tier;
     @Nullable
     protected EnergyContainerList inputEnergyContainers;
-    @Persisted
+    @SaveToDisk
     protected long heat = 0;
-    @Persisted
+    @SaveToDisk
     protected final NotifiableEnergyContainer energyContainer;
     @Getter
     @SyncToClient

@@ -13,15 +13,14 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.SimpleStack;
 import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
 
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-
 import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import com.fast.recipesearch.IntLongMap;
+import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -39,15 +38,15 @@ public class NotifiableFluidTank extends NotifiableContentHandler implements ICa
     @Getter
     protected Predicate<@Nullable Direction> capabilityValidator = GTUtil.FAVORABLE;
     @Getter
-    @Persisted
+    @SaveToDisk
     protected final CustomFluidTank[] storages;
     protected boolean allowSameFluids = true;
 
     @Getter
-    @Persisted
-    @DescSynced
+    @SaveToDisk
+    @SyncToClient
     protected final CustomFluidTank lockedFluid = new CustomFluidTank(FluidType.BUCKET_VOLUME);
-    @Persisted
+    @SaveToDisk
     public boolean isVoiding;
     @Getter
     protected Predicate<FluidStack> filter = GTUtil.FAVORABLE;
@@ -58,7 +57,7 @@ public class NotifiableFluidTank extends NotifiableContentHandler implements ICa
         this.capabilityIO = capabilityIO;
         for (int i = 0; i < this.storages.length; i++) {
             this.storages[i] = new CustomFluidTank(capacity);
-            this.storages[i].setOnContentsChangedAndfreeze(this::onContentsChanged);
+            this.storages[i].setOnContentsChanged(this::onContentsChanged);
         }
         if (slots > 1 && handlerIO == IO.IN) allowSameFluids = false;
     }
@@ -68,7 +67,7 @@ public class NotifiableFluidTank extends NotifiableContentHandler implements ICa
         this.storages = storages.toArray(CustomFluidTank[]::new);
         this.capabilityIO = capabilityIO;
         for (CustomFluidTank storage : this.storages) {
-            storage.setOnContentsChangedAndfreeze(this::onContentsChanged);
+            storage.setOnContentsChanged(this::onContentsChanged);
         }
     }
 
@@ -100,7 +99,7 @@ public class NotifiableFluidTank extends NotifiableContentHandler implements ICa
         Runnable[] listeners = new Runnable[length];
         for (int i = 0; i < length; i++) {
             listeners[i] = storages[i].getOnContentsChanged();
-            storages[i].setOnContentsChangedAndfreeze(GTUtil.NOOP);
+            storages[i].setOnContentsChanged(GTUtil.NOOP);
         }
         boolean changed = false;
         for (var it = fluids.iterator(); it.hasNext();) {
@@ -151,7 +150,7 @@ public class NotifiableFluidTank extends NotifiableContentHandler implements ICa
             }
         }
         for (int i = 0; i < length; i++) {
-            storages[i].setOnContentsChangedAndfreeze(listeners[i]);
+            storages[i].setOnContentsChanged(listeners[i]);
             if (changed) listeners[i].run();
         }
         return fluids.isEmpty();

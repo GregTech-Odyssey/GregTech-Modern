@@ -7,83 +7,101 @@ import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ListData;
+import com.gto.datasynclib.datasream.data.MapData;
 import com.gto.datasynclib.datasream.data.NullData;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
-
-import java.lang.reflect.InvocationTargetException;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractFieldAccess<T> implements DataField<T> {
 
     @Getter
     protected final DataFieldDefinition<T> definition;
 
-    private T instance;
+    protected T instance;
+
+    protected boolean syncChange = true;
 
     protected AbstractFieldAccess(DataFieldDefinition<T> definition) {
         this.definition = definition;
     }
 
+    @Nullable
     protected T getInstance(Object source) {
         if (definition.isFinal) {
             if (instance != null) return instance;
-            return instance = get(source);
+            return instance = definition.get(source);
         }
-        return get(source);
+        return definition.get(source);
     }
 
-    private T get(Object source) {
-        try {
-            return (T) definition.field.get(source);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
+    @Override
+    public void markAsChanged(@NotNull Object source) {
+        syncChange = true;
+    }
+
+    @Override
+    public void clearChanged(@NotNull Object source) {
+        syncChange = false;
+    }
+
+    @Override
+    public boolean isChanged(@NotNull Object source) {
+        return syncChange;
+    }
+
+    @Override
+    public boolean detectChange(@NotNull LogicalSide side, @NotNull Object source, boolean auto) {
+        var instance = getInstance(source);
+        if (this.instance != instance) {
+            this.instance = instance;
+            markAsChanged(source);
+            if (instance != null && mustDetected()) hasChange(side, instance, auto);
+            return true;
         }
+        if (instance == null) return syncChange;
+        if (hasChange(side, instance, auto)) {
+            markAsChanged(source);
+            return true;
+        }
+        return syncChange;
     }
 
     @Override
     public final void writeToBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data, boolean force) {
         var value = getInstance(source);
-        if (definition.codec != null) {
-            try {
-                if (value == null) {
-                    data.writeBoolean(false);
-                } else {
-                    data.writeBoolean(true);
-                    definition.codec.streamWriter.encode(data, value);
-                    writeBuffer(side, value, data, force);
-                }
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
+        if (definition.createInstance) {
+            if (value == null) {
+                data.writeBoolean(false);
+            } else {
+                data.writeBoolean(true);
+                definition.encode(source, value, data);
             }
-        } else {
-            writeBuffer(side, value, data, force);
         }
+        if (value == null) return;
+        writeBuffer(side, value, data, force);
     }
 
     @Override
     public final void readFromBuffer(@NotNull LogicalSide side, @NotNull Object source, @NotNull FriendlyByteBuf data) {
         T value;
-        if (definition.codec != null) {
-            try {
-                if (data.readBoolean()) {
-                    value = definition.codec.streamReader.decode(data);
-                    readBuffer(side, value, data);
-                } else {
-                    value = null;
-                }
-                definition.field.set(source, value);
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
+        if (definition.createInstance) {
+            if (data.readBoolean()) {
+                value = definition.decode(source, data);
+            } else {
+                value = null;
             }
+            definition.set(source, value);
         } else {
             value = getInstance(source);
-            readBuffer(side, value, data);
         }
+        if (value != null) readBuffer(side, value, data);
         var listener = definition.getListener(side);
         if (listener != null) {
             try {
-                listener.invoke(source, value, null);
-            } catch (IllegalAccessException | InvocationTargetException e) {
+                listener.invokeExact(source, value, instance);
+                instance = value;
+            } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
         }
@@ -92,50 +110,56 @@ public abstract class AbstractFieldAccess<T> implements DataField<T> {
     @Override
     public final @NotNull Data writeToData(@NotNull Object source) {
         var value = getInstance(source);
-        if (definition.codec != null) {
-            try {
-                if (value == null) {
-                    return NullData.INSTANCE;
-                } else {
-                    var list = new ListData(2);
-                    list.add(definition.codec.dataWriter.encode(value));
-                    list.add(writeData(value));
-                    return list;
-                }
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
+        if (definition.createInstance) {
+            if (value == null) {
+                return NullData.INSTANCE;
+            } else {
+                var list = new ListData(2);
+                list.add(definition.encode(source, value));
+                list.add(writeData(value));
+                return list;
             }
         } else {
+            if (value == null) return NullData.INSTANCE;
             return writeData(value);
         }
     }
 
     @Override
-    public final void readFromData(@NotNull Object source, @NotNull Data data) {
-        if (definition.codec != null) {
-            try {
+    public final void readFromData(@NotNull Object source, @NotNull Data data, int dataVersion) {
+        if (definition.createInstance) {
+            if (dataVersion == -1) {
+                if (data instanceof MapData mapData && !mapData.isEmpty()) {
+                    var uid = mapData.get("uid");
+                    var value = definition.decode(source, uid, dataVersion);
+                    readData(value, mapData.get("payload").getMap().get("d"), dataVersion);
+                    definition.set(source, value);
+                }
+            } else {
                 T value;
                 if (data == NullData.INSTANCE) {
                     value = null;
                 } else {
-                    var list = (ListData) data;
-                    value = definition.codec.dataReader.decode(list.get(0));
-                    readData(value, list.get(1));
+                    var list = data.getList();
+                    value = definition.decode(source, list.getFirst(), dataVersion);
+                    readData(value, list.get(1), dataVersion);
                 }
-                definition.field.set(source, value);
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
+                definition.set(source, value);
             }
         } else {
-            readData(getInstance(source), data);
+            var value = getInstance(source);
+            if (value == null) return;
+            readData(value, data, dataVersion);
         }
     }
 
-    public abstract void writeBuffer(@NotNull LogicalSide side, @NotNull T instance, @NotNull FriendlyByteBuf data, boolean force);
+    protected abstract boolean hasChange(@NotNull LogicalSide side, @NotNull T instance, boolean auto);
 
-    public abstract void readBuffer(@NotNull LogicalSide side, @NotNull T instance, @NotNull FriendlyByteBuf data);
+    protected abstract void writeBuffer(@NotNull LogicalSide side, @NotNull T instance, @NotNull FriendlyByteBuf data, boolean force);
 
-    public abstract @NotNull Data writeData(@NotNull T instance);
+    protected abstract void readBuffer(@NotNull LogicalSide side, @NotNull T instance, @NotNull FriendlyByteBuf data);
 
-    public abstract void readData(@NotNull T instance, @NotNull Data data);
+    protected abstract @NotNull Data writeData(@NotNull T instance);
+
+    protected abstract void readData(@NotNull T instance, @NotNull Data data, int dataVersion);
 }

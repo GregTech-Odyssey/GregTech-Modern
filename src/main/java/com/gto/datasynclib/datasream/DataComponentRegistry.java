@@ -2,7 +2,7 @@ package com.gto.datasynclib.datasream;
 
 import net.minecraft.network.FriendlyByteBuf;
 
-import com.gto.datasynclib.CombinationCodec;
+import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datasream.codec.DataCodec;
 import com.gto.datasynclib.datasream.data.Data;
@@ -22,7 +22,7 @@ public final class DataComponentRegistry extends Registry<String, DataComponentK
         super(name + "_data_component");
     }
 
-    public <T> DataComponentKey<T> register(String name, CombinationCodec<T> codec) {
+    public <T> DataComponentKey<T> register(String name, DataSyncCodec<T> codec) {
         return register(new DataComponentKey<>(name, codec));
     }
 
@@ -75,13 +75,13 @@ public final class DataComponentRegistry extends Registry<String, DataComponentK
     }
 
     @Override
-    public DataComponentMap decode(@NotNull Data d) {
+    public DataComponentMap decode(@NotNull Data d, int dataVersion) {
         var data = d.getMap();
         var map = new DataComponentMap(data.size());
         data.forEach((k, v) -> {
             var key = get(k);
             if (key == null) return;
-            var value = key.codec.dataReader.decode(v);
+            var value = key.codec.dataReader.decode(v, dataVersion);
             if (value != null) map.put(key, value);
         });
         return map;

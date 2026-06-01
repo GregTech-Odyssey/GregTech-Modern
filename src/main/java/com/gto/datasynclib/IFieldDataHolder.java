@@ -61,5 +61,5 @@ public interface IFieldDataHolder {
      * 
      * @param data 数据映射对象，包含持久化数据
      */
-    default void readCustomSaveData(MapData data) {}
+    default void readCustomSaveData(MapData data, int dataVersion) {}
 }
