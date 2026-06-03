@@ -69,7 +69,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         if (blockWorldState.getTileEntity() instanceof MetaMachineBlockEntity machineBlockEntity) {
             var machine = machineBlockEntity.getMetaMachine();
             if (isMachineBanned(machine)) {
-                blockWorldState.setError(MultiblockState.BANNED_ERROR);
+                blockWorldState.setError(MultiblockState.BANNED_ERROR.copy());
                 return false;
             }
             if (machine instanceof ICleanroomReceiver cleanroomReceiver) {

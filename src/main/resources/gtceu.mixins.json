@@ -47,8 +47,7 @@
     "emi.FillRecipePacketMixin",
     "emi.FluidEmiStackMixin",
     "ldlib.ModularWrapperWidgetMixin",
-    "ldlib.SlotWidgetMixin",
-    "ldlib.SyncUtilsMixin"
+    "ldlib.SlotWidgetMixin"
   ],
   "injectors": {
     "defaultRequire": 1,

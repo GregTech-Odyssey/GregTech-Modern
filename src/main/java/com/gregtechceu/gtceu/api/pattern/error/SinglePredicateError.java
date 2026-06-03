@@ -19,6 +19,11 @@ public class SinglePredicateError extends PatternError {
     }
 
     @Override
+    public SinglePredicateError copy() {
+        return new SinglePredicateError(predicate, type);
+    }
+
+    @Override
     public List<List<ItemStack>> getCandidates() {
         return Collections.singletonList(predicate.getCandidates());
     }

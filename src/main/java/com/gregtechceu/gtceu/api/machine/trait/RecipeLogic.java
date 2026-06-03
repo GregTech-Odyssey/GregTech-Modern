@@ -45,10 +45,10 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
 
     @Getter
     @SaveToDisk
-    @SyncToClient(listener = "onStatusSynced")
+    @SyncToClient(listener = "onStatusSynced", notifyUpdate = true)
     protected int status = IDLE;
     @SaveToDisk
-    @SyncToClient(listener = "onActiveSynced")
+    @SyncToClient(notifyUpdate = true)
     protected boolean isActive;
 
     @Nullable
@@ -93,17 +93,9 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
         this.machine = machine;
     }
 
-    @OnlyIn(Dist.CLIENT)
     @SuppressWarnings("unused")
     protected void onStatusSynced(int newValue, int oldValue) {
-        super.machine.scheduleRenderUpdate();
         updateSound();
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    @SuppressWarnings("unused")
-    protected void onActiveSynced(boolean newActive, boolean oldActive) {
-        super.machine.scheduleRenderUpdate();
     }
 
     /**

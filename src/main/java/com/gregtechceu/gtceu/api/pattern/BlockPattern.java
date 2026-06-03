@@ -151,7 +151,7 @@ public class BlockPattern {
                             if (data != null && !((Iblock) block).gtceu$canMultiShared()) {
                                 if (data.hasShared(posLong)) {
                                     success = false;
-                                    worldState.setError(MultiblockState.SHARE_ERROR);
+                                    worldState.setError(MultiblockState.SHARE_ERROR.copy());
                                 } else {
                                     worldState.sharedCache.add(posLong);
                                 }
@@ -166,7 +166,7 @@ public class BlockPattern {
                                         if (blockentity instanceof MetaMachineBlockEntity machineBlockEntity) {
                                             if (machineBlockEntity.metaMachine instanceof IMultiPart part && part != worldState.controller) {
                                                 if (!worldState.world.isLoaded(pos)) {
-                                                    worldState.setError(MultiblockState.UNLOAD_ERROR);
+                                                    worldState.setError(MultiblockState.UNLOAD_ERROR.copy());
                                                     return false;
                                                 }
                                                 matchContext.getParts().add(part);
@@ -182,7 +182,7 @@ public class BlockPattern {
                             if (!savePredicate) worldState.cache.add(posLong);
                         } else {
                             if (worldState.blockState == ILevel.OUTSIDE_WORLD_BLOCK) {
-                                worldState.setError(MultiblockState.UNLOAD_ERROR);
+                                worldState.setError(MultiblockState.UNLOAD_ERROR.copy());
                             }
                             // matching failed
                             if (findFirstAisle) {

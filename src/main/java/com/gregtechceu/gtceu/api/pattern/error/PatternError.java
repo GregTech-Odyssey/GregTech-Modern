@@ -20,6 +20,10 @@ public class PatternError {
     public BlockPos pos;
     public TraceabilityPredicate predicate;
 
+    public PatternError copy() {
+        return new PatternError();
+    }
+
     public void setWorldState(MultiblockState worldState) {
         pos = worldState.pos;
         predicate = worldState.predicate;
