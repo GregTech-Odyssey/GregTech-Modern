@@ -178,8 +178,6 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
      */
     default void afterWorking() {}
 
-    default void onRecipeFinish() {}
-
     default void regressRecipe(RecipeLogic logic) {
         if (logic.progress > 0 && regressWhenWaiting()) {
             if (ConfigHolder.INSTANCE.machines.recipeProgressLowEnergy) {

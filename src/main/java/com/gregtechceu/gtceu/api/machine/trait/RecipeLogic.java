@@ -158,7 +158,6 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
                 handleRecipeWorking();
             }
             if (progress >= duration) {
-                machine.onRecipeFinish();
                 onRecipeFinish();
             }
         } else {

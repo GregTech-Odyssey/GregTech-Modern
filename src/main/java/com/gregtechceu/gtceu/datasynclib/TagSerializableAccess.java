@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.syncdata.datasynclib;
+package com.gregtechceu.gtceu.datasynclib;
 
 import com.gregtechceu.gtceu.api.misc.IContentChange;
 
