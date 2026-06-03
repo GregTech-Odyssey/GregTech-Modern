@@ -85,38 +85,39 @@ public final class ParallelLogic {
     }
 
     public static long getMaxContentParallelAmount(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe, long maxParallel) {
+        var parallel = MAX_PARALLEL;
         var items = recipe.itemInputs;
         if (!items.isEmpty()) {
-            maxParallel = unit.getInputItemParallelAmount(items, maxParallel);
-            if (maxParallel == 0) return 0;
+            parallel = unit.getInputItemParallelAmount(items, parallel);
+            if (parallel == 0) return 0;
         }
         var fluids = recipe.fluidInputs;
         if (!fluids.isEmpty()) {
-            maxParallel = unit.getInputFluidParallelAmount(fluids, maxParallel);
-            if (maxParallel == 0) return 0;
+            parallel = unit.getInputFluidParallelAmount(fluids, parallel);
+            if (parallel == 0) return 0;
         }
         for (var expand : recipe.definition.contentExpanders) {
-            maxParallel = expand.getParallel(holder, unit, recipe, maxParallel);
-            if (maxParallel == 0) return 0;
+            parallel = expand.getParallel(holder, unit, recipe, parallel);
+            if (parallel == 0) return 0;
         }
         items = recipe.itemOutputs;
         if (!(items.isEmpty() || (holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(ItemRecipeInfo.INSTANCE)))) {
-            maxParallel = getOutputItemParallelAmount(holder.getOutputUnits(recipe), recipe, items, maxParallel);
-            if (maxParallel == 0) {
+            parallel = getOutputItemParallelAmount(holder.getOutputUnits(recipe), recipe, items, parallel);
+            if (parallel == 0) {
                 holder.setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
                 return 0;
             }
         }
         fluids = recipe.fluidOutputs;
         if (!(fluids.isEmpty() || (holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(FluidRecipeInfo.INSTANCE)))) {
-            maxParallel = getOutputFluidParallelAmount(holder.getOutputUnits(recipe), recipe, fluids, maxParallel);
-            if (maxParallel == 0) {
+            parallel = getOutputFluidParallelAmount(holder.getOutputUnits(recipe), recipe, fluids, parallel);
+            if (parallel == 0) {
                 holder.setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
                 return 0;
             }
         }
-        recipe.contentParallel = maxParallel;
-        return maxParallel;
+        recipe.contentParallel = parallel;
+        return Math.min(maxParallel, parallel);
     }
 
     public static long getOutputItemParallelAmount(List<RecipeHandlerUnit> list, GTRecipe recipe, List<Content<ItemIngredient>> contents, long multiplier) {

@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.machine.feature;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
@@ -28,7 +29,7 @@ public interface IExplosionMachine extends IMachineFeature {
             var pos = self().getPos();
             if (GTValues.RNG.nextInt(10) == 0) {
                 for (Direction side : GTUtil.DIRECTIONS) {
-                    var fluidState = level.getBlockState(pos.relative(side)).getFluidState();
+                    var fluidState = ILevel.asyncGetBlockState(level, pos.relative(side)).getFluidState();
                     if (!fluidState.isEmpty()) {
                         executeExplosion(level, explosionPower);
                         return;

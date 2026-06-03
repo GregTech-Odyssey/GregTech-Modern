@@ -149,7 +149,7 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
             }
         }
         if (sections == null) {
-            if (async && currentThread instanceof GTUtil.AsyncExecutorThread) return OUTSIDE_WORLD_BLOCK;
+            if (async && !this.isClientSide && currentThread instanceof GTUtil.AsyncExecutorThread) return OUTSIDE_WORLD_BLOCK;
             sections = this.getChunk(chunkX, chunkZ).getSections();
         }
         int x = pos.getX();

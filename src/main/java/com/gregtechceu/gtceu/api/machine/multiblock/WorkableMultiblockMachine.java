@@ -19,6 +19,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.core.ILevel;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
@@ -134,7 +135,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
                     List<Runnable> runnables = new ArrayList<>();
                     for (long pos : activeBlocks) {
                         var blockPos = BlockPos.of(pos);
-                        var blockState = getLevel().getBlockState(blockPos);
+                        var blockState = ILevel.asyncGetBlockState(getLevel(), blockPos);
                         if (blockState.hasProperty(ActiveBlock.ACTIVE)) {
                             var newState = blockState.setValue(ActiveBlock.ACTIVE, shouldActive);
                             if (newState != blockState) {
