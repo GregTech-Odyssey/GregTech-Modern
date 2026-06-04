@@ -30,9 +30,7 @@ public final class LongCollectionAccess extends AbstractFieldAccess<LongCollecti
     @Override
     protected void writeBuffer(@NotNull LogicalSide side, @NotNull LongCollection instance, @NotNull FriendlyByteBuf data, boolean force) {
         data.writeVarInt(instance.size());
-        for (var element : instance) {
-            data.writeLong(element);
-        }
+        instance.forEach(data::writeLong);
     }
 
     @Override

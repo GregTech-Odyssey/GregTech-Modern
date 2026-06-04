@@ -205,10 +205,6 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
         lastRecipe = null;
         markLastRecipeDirty();
         machine.findRecipe(machine.getRecipeType(), this);
-        if (idleReasonSupplier != null) {
-            idleReason = idleReasonSupplier.get();
-            idleReasonSupplier = null;
-        }
     }
 
     @Override
@@ -392,10 +388,14 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
 
     @Override
     public boolean showFancyTooltip() {
-        return status != WORKING && (status == IDLE || idleReason != null);
+        return status != WORKING && (status == IDLE || (idleReason != null || idleReasonSupplier != null));
     }
 
     public Component getIdleReason() {
+        if (idleReasonSupplier != null) {
+            idleReason = idleReasonSupplier.get();
+            idleReasonSupplier = null;
+        }
         if (idleReason == null) return ActionResult.FAIL_NO_RECIPE_FOUND.reason();
         return idleReason;
     }

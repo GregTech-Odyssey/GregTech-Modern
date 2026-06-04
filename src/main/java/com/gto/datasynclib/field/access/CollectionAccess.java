@@ -38,14 +38,14 @@ public final class CollectionAccess<E> extends AbstractFieldAccess<Collection> {
     @Override
     protected void writeBuffer(@NotNull LogicalSide side, @NotNull Collection instance, @NotNull FriendlyByteBuf data, boolean force) {
         data.writeVarInt(instance.size());
-        for (var element : instance) {
+        instance.forEach(element -> {
             if (element == null) {
                 data.writeBoolean(false);
             } else {
                 data.writeBoolean(true);
                 elementCodec.streamWriter.encode((E) element, data);
             }
-        }
+        });
     }
 
     @Override
@@ -64,13 +64,13 @@ public final class CollectionAccess<E> extends AbstractFieldAccess<Collection> {
     @Override
     protected @NotNull Data writeData(@NotNull Collection instance) {
         var list = new ListData();
-        for (var element : instance) {
+        instance.forEach(element -> {
             if (element == null) {
                 list.addNull();
             } else {
                 list.add(elementCodec.dataWriter.encode((E) element));
             }
-        }
+        });
         return list;
     }
 

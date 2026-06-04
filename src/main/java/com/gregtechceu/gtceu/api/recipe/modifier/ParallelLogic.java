@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
@@ -74,6 +75,9 @@ public final class ParallelLogic {
                         eu = -eu;
                     }
                     maxParallel = Math.min(maxParallel, overclockMachine.getOverclockVoltage() / eu);
+                    if (maxParallel == 0) {
+                        holder.setIdleReason(() -> ActionResult.failInsufficientIn(EURecipeInfo.INSTANCE.getName()).reason());
+                    }
                 }
             }
             for (var expand : recipe.definition.tickContentExpanders) {

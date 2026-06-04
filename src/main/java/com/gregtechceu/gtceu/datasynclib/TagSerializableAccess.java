@@ -1,7 +1,5 @@
 package com.gregtechceu.gtceu.datasynclib;
 
-import com.gregtechceu.gtceu.api.misc.IContentChange;
-
 import com.lowdragmc.lowdraglib.syncdata.IContentChangeAware;
 import com.lowdragmc.lowdraglib.syncdata.ITagSerializable;
 
@@ -34,24 +32,13 @@ public final class TagSerializableAccess extends AbstractFieldAccess<ITagSeriali
         if (definition.isSyncToClient || definition.isSyncToServer) {
             if (getInstance(source) instanceof IContentChangeAware changeAware) {
                 var run = changeAware.getOnContentsChanged();
-                if (changeAware instanceof IContentChange change && change.isFreezeChanged()) {
-                    if (run == null) {
-                        change.setOnContentsChangedAndfreeze(() -> syncChange = true);
-                    } else {
-                        change.setOnContentsChangedAndfreeze(() -> {
-                            run.run();
-                            syncChange = true;
-                        });
-                    }
+                if (run == null) {
+                    changeAware.setOnContentsChanged(() -> syncChange = true);
                 } else {
-                    if (run == null) {
-                        changeAware.setOnContentsChanged(() -> syncChange = true);
-                    } else {
-                        changeAware.setOnContentsChanged(() -> {
-                            run.run();
-                            syncChange = true;
-                        });
-                    }
+                    changeAware.setOnContentsChanged(() -> {
+                        run.run();
+                        syncChange = true;
+                    });
                 }
             }
         }

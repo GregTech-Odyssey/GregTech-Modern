@@ -30,9 +30,7 @@ public final class IntCollectionAccess extends AbstractFieldAccess<IntCollection
     @Override
     protected void writeBuffer(@NotNull LogicalSide side, @NotNull IntCollection instance, @NotNull FriendlyByteBuf data, boolean force) {
         data.writeVarInt(instance.size());
-        for (var element : instance) {
-            data.writeInt(element);
-        }
+        instance.forEach(data::writeInt);
     }
 
     @Override

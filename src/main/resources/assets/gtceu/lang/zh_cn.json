@@ -5468,7 +5468,7 @@
     "gtceu.button.bedrock_ore_veins": "显示基岩矿脉",
     "gtceu.minimap.bedrock_ore.title": "基岩矿脉",
     "gtceu.minimap.bedrock_ore.unknown": "未知矿脉",
-    "gtceu.recipe_logic.amount_not_enough": "%s需要%s，但是只有%s可用",
+    "gtceu.recipe_logic.amount_not_enough": "%s，需要%s，但是只有%s可用",
     "gtceu.recipe_logic.insufficient_tier": "等级不够",
     "gtceu.recipe_logic.no_recipe_found": "没有找到配方",
     "gtceu.recipe_logic.ordered_fluid": "流体需要有序",
