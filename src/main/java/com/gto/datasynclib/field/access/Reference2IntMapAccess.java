@@ -39,7 +39,7 @@ public class Reference2IntMapAccess<K> extends AbstractFieldAccess<Reference2Int
     protected void writeBuffer(@NotNull LogicalSide side, @NotNull Reference2IntMap instance, @NotNull FriendlyByteBuf data, boolean force) {
         data.writeVarInt(instance.size());
         Reference2IntMaps.fastForEach(instance, e -> {
-            keyCodec.streamWriter.encode((K) e.getKey(), data);
+            keyCodec.streamWriter.encode(data, (K) e.getKey());
             data.writeLong(e.getIntValue());
         });
     }

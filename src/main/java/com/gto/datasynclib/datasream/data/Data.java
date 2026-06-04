@@ -447,6 +447,14 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
         return new BigInteger(array);
     }
 
+    default ListData asListData() {
+        return (ListData) this;
+    }
+
+    default MapData asMapData() {
+        return (MapData) this;
+    }
+
     final class Type<T> {
 
         public static final Type<NullData> NULL = new Type<>(Data.NULL, NullData.class);

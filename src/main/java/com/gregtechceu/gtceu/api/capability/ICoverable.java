@@ -30,7 +30,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import com.google.common.collect.ImmutableList;
 import com.gto.datasynclib.IFieldDataHolder;
-import com.gto.datasynclib.datasream.data.ByteData;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ListData;
 import org.jetbrains.annotations.Nullable;
@@ -287,8 +286,8 @@ public interface ICoverable extends ITickSubscription, IAppearance, IFieldDataHo
     @SuppressWarnings("unused")
     default Data serializeCoverData(CoverBehavior coverBehavior) {
         var uid = new ListData();
-        uid.add(GTRegistries.COVERS.dataCodec().encode(coverBehavior.coverDefinition));
-        uid.add(ByteData.valueOf((byte) coverBehavior.attachedSide.ordinal()));
+        uid.add(GTRegistries.COVERS.dataCodec(), coverBehavior.coverDefinition);
+        uid.addByte((byte) coverBehavior.attachedSide.ordinal());
         return uid;
     }
 

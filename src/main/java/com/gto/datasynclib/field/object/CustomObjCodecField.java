@@ -18,7 +18,7 @@ public class CustomObjCodecField<T> extends ObjField<T> {
 
     @Override
     protected final void write(@NotNull Object source, @NotNull FriendlyByteBuf data, @NotNull T value) {
-        codec.streamWriter.encode(value, data);
+        codec.streamWriter.encode(data, value);
     }
 
     @Override

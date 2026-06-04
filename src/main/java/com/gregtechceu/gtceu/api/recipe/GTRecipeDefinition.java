@@ -45,10 +45,10 @@ public final class GTRecipeDefinition {
 
         @Override
         public void encode(FriendlyByteBuf buf, GTRecipeDefinition recipe) {
-            GTRegistries.RECIPE_TYPES.streamCodec().encode(recipe.recipeType, buf);
+            GTRegistries.RECIPE_TYPES.streamCodec().encode(buf, recipe.recipeType);
             if (recipe.registered) {
                 buf.writeBoolean(true);
-                StreamCodecs.RESOURCE_LOCATION_CODEC.encode(recipe.id, buf);
+                StreamCodecs.RESOURCE_LOCATION_CODEC.encode(buf, recipe.id);
             } else {
                 buf.writeBoolean(false);
             }

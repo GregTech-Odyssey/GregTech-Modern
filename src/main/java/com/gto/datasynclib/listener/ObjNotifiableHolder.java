@@ -37,7 +37,7 @@ public final class ObjNotifiableHolder<T> extends ObjSerializableHolder<T> imple
             data.writeBoolean(false);
         } else {
             data.writeBoolean(true);
-            codec.streamWriter.encode(value, data);
+            codec.streamWriter.encode(data, value);
         }
         senderListener.onSync(side, lastValue, value);
         lastValue = value;

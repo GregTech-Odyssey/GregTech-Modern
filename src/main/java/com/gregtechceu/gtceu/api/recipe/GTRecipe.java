@@ -46,7 +46,7 @@ public final class GTRecipe {
 
         @Override
         public void encode(FriendlyByteBuf buf, GTRecipe recipe) {
-            GTRecipeDefinition.STREAM_CODEC.encode(recipe.definition, buf);
+            GTRecipeDefinition.STREAM_CODEC.encode(buf, recipe.definition);
             buf.writeCollection(recipe.itemInputs, SerializerItemIngredient.INSTANCE::toNetworkContent);
             buf.writeCollection(recipe.itemOutputs, SerializerItemIngredient.INSTANCE::toNetworkContent);
             buf.writeCollection(recipe.fluidInputs, SerializerFluidIngredient.INSTANCE::toNetworkContent);
@@ -66,19 +66,19 @@ public final class GTRecipe {
         @Override
         public Data encode(GTRecipe recipe) {
             var list = new ListData(13);
-            list.add(GTRecipeDefinition.DATA_CODEC.encode(recipe.definition));
-            list.add(DataEncoder.collection(SerializerItemIngredient.INSTANCE::toDataContent).encode(recipe.itemInputs));
-            list.add(DataEncoder.collection(SerializerItemIngredient.INSTANCE::toDataContent).encode(recipe.itemOutputs));
-            list.add(DataEncoder.collection(SerializerFluidIngredient.INSTANCE::toDataContent).encode(recipe.fluidInputs));
-            list.add(DataEncoder.collection(SerializerFluidIngredient.INSTANCE::toDataContent).encode(recipe.fluidOutputs));
+            list.add(GTRecipeDefinition.DATA_CODEC, recipe.definition);
+            list.add(DataEncoder.collection(SerializerItemIngredient.INSTANCE::toDataContent), recipe.itemInputs);
+            list.add(DataEncoder.collection(SerializerItemIngredient.INSTANCE::toDataContent), recipe.itemOutputs);
+            list.add(DataEncoder.collection(SerializerFluidIngredient.INSTANCE::toDataContent), recipe.fluidInputs);
+            list.add(DataEncoder.collection(SerializerFluidIngredient.INSTANCE::toDataContent), recipe.fluidOutputs);
             list.add(GTRecipeDataKeys.REGISTRY.encode(recipe.data));
-            list.add(LongData.valueOf(recipe.eut));
-            list.add(IntData.valueOf(recipe.tier));
-            list.add(IntData.valueOf(recipe.duration));
-            list.add(LongData.valueOf(recipe.parallels));
-            list.add(LongData.valueOf(recipe.batchParallels));
-            list.add(IntData.valueOf(recipe.ocLevel));
-            list.add(IntData.valueOf(recipe.outputColor));
+            list.addLong(recipe.eut);
+            list.addInt(recipe.tier);
+            list.addInt(recipe.duration);
+            list.addLong(recipe.parallels);
+            list.addLong(recipe.batchParallels);
+            list.addInt(recipe.ocLevel);
+            list.addInt(recipe.outputColor);
             return list;
         }
 

@@ -9,10 +9,6 @@ import java.util.function.Function;
 @FunctionalInterface
 public interface ByteStreamEncoder<T> {
 
-    default void encode(T obj, FriendlyByteBuf buf) {
-        encode(buf, obj);
-    }
-
     void encode(FriendlyByteBuf buf, T obj);
 
     static <K, V> ByteStreamEncoder<V> convert(ByteStreamEncoder<K> serializer, Function<V, K> converter) {
@@ -23,8 +19,8 @@ public interface ByteStreamEncoder<T> {
         return (dos, map) -> {
             dos.writeVarInt(map.size());
             map.forEach((k, v) -> {
-                keySerializer.encode(k, dos);
-                valueSerializer.encode(v, dos);
+                keySerializer.encode(dos, k);
+                valueSerializer.encode(dos, v);
 
             });
         };
@@ -33,7 +29,7 @@ public interface ByteStreamEncoder<T> {
     static <E> ByteStreamEncoder<Collection<E>> collection(ByteStreamEncoder<E> serializer) {
         return (dos, list) -> {
             dos.writeVarInt(list.size());
-            list.forEach(o -> serializer.encode(o, dos));
+            list.forEach(o -> serializer.encode(dos, o));
         };
     }
 
@@ -41,7 +37,7 @@ public interface ByteStreamEncoder<T> {
         return (dos, list) -> {
             dos.writeVarInt(list.length);
             for (E o : list) {
-                serializer.encode(o, dos);
+                serializer.encode(dos, o);
             }
         };
     }

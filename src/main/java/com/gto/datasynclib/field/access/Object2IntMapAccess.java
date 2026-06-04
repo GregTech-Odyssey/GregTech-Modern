@@ -39,7 +39,7 @@ public class Object2IntMapAccess<K> extends AbstractFieldAccess<Object2IntMap> {
     protected void writeBuffer(@NotNull LogicalSide side, @NotNull Object2IntMap instance, @NotNull FriendlyByteBuf data, boolean force) {
         data.writeVarInt(instance.size());
         Object2IntMaps.fastForEach(instance, e -> {
-            keyCodec.streamWriter.encode((K) e.getKey(), data);
+            keyCodec.streamWriter.encode(data, (K) e.getKey());
             data.writeLong(e.getIntValue());
         });
     }

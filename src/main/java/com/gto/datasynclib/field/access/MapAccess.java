@@ -41,8 +41,8 @@ public final class MapAccess<K, V> extends AbstractFieldAccess<Map> {
     protected void writeBuffer(@NotNull LogicalSide side, @NotNull Map instance, @NotNull FriendlyByteBuf data, boolean force) {
         data.writeVarInt(instance.size());
         instance.forEach((k, v) -> {
-            keyCodec.streamWriter.encode((K) k, data);
-            valueCodec.streamWriter.encode((V) v, data);
+            keyCodec.streamWriter.encode(data, (K) k);
+            valueCodec.streamWriter.encode(data, (V) v);
         });
     }
 

@@ -5,8 +5,11 @@ import net.minecraft.network.FriendlyByteBuf;
 import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datasream.codec.DataCodec;
+import com.gto.datasynclib.datasream.codec.DataDecoder;
+import com.gto.datasynclib.datasream.codec.DataEncoder;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.Decoder;
+import com.mojang.serialization.Encoder;
 import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -93,11 +96,11 @@ public record MapData(Map<String, Data> value) implements Data {
         return this.value.remove(key);
     }
 
-    public <T> Data put(String key, Codec<T> codec, T data) {
+    public <T> Data put(String key, Encoder<? super T> codec, T data) {
         return this.value.put(key, codec.encodeStart(DataOps.INSTANCE, data).result().orElseThrow());
     }
 
-    public <T> Data put(String key, DataCodec<T> codec, T data) {
+    public <T> Data put(String key, DataEncoder<? super T> codec, T data) {
         return this.value.put(key, codec.encode(data));
     }
 
@@ -240,14 +243,14 @@ public record MapData(Map<String, Data> value) implements Data {
     }
 
     @Nullable
-    public <T> T get(String key, Codec<T> codec) {
+    public <T> T get(String key, Decoder<? extends T> codec) {
         var data = this.value.get(key);
         if (data == null) return null;
         return codec.decode(DataOps.INSTANCE, data).result().orElseThrow().getFirst();
     }
 
     @Nullable
-    public <T> T get(String key, DataCodec<T> codec, int dataVersion) {
+    public <T> T get(String key, DataDecoder<? extends T> codec, int dataVersion) {
         var data = this.value.get(key);
         if (data == null) return null;
         return codec.decode(data, dataVersion);
@@ -274,14 +277,14 @@ public record MapData(Map<String, Data> value) implements Data {
     }
 
     @NotNull
-    public <T> Optional<T> getOptional(String key, Codec<T> codec) {
+    public <T> Optional<T> getOptional(String key, Decoder<? extends T> codec) {
         var data = this.value.get(key);
         if (data == null) return Optional.empty();
         return codec.decode(DataOps.INSTANCE, data).result().map(Pair::getFirst);
     }
 
     @NotNull
-    public <T> Optional<T> getOptional(String key, DataCodec<T> codec, int dataVersion) {
+    public <T> Optional<T> getOptional(String key, DataDecoder<? extends T> codec, int dataVersion) {
         var data = this.value.get(key);
         if (data == null) return Optional.empty();
         return Optional.ofNullable(codec.decode(data, dataVersion));

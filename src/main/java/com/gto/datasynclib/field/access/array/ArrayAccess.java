@@ -40,7 +40,7 @@ public final class ArrayAccess<T> extends AbstractFieldAccess<T[]> {
                 data.writeBoolean(false);
             } else {
                 data.writeBoolean(true);
-                elementCodec.streamWriter.encode(element, data);
+                elementCodec.streamWriter.encode(data, element);
             }
         }
     }

@@ -39,7 +39,7 @@ public class Reference2LongMapAccess<K> extends AbstractFieldAccess<Reference2Lo
     protected void writeBuffer(@NotNull LogicalSide side, @NotNull Reference2LongMap instance, @NotNull FriendlyByteBuf data, boolean force) {
         data.writeVarInt(instance.size());
         Reference2LongMaps.fastForEach(instance, e -> {
-            keyCodec.streamWriter.encode((K) e.getKey(), data);
+            keyCodec.streamWriter.encode(data, (K) e.getKey());
             data.writeLong(e.getLongValue());
         });
     }

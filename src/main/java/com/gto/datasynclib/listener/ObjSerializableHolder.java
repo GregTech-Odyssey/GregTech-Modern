@@ -68,7 +68,7 @@ public class ObjSerializableHolder<T> extends ObjHolder<T> implements IDataSeria
             data.writeBoolean(false);
         } else {
             data.writeBoolean(true);
-            codec.streamWriter.encode(value, data);
+            codec.streamWriter.encode(data, value);
         }
         lastValue = value;
     }

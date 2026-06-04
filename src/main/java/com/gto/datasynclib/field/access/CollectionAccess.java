@@ -43,7 +43,7 @@ public final class CollectionAccess<E> extends AbstractFieldAccess<Collection> {
                 data.writeBoolean(false);
             } else {
                 data.writeBoolean(true);
-                elementCodec.streamWriter.encode((E) element, data);
+                elementCodec.streamWriter.encode(data, (E) element);
             }
         });
     }
