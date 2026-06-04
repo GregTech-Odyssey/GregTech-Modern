@@ -7,7 +7,6 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 public class MaterialFlags {
 
@@ -22,7 +21,7 @@ public class MaterialFlags {
         flags.addAll(flags.stream()
                 .map(f -> f.verifyFlag(material))
                 .flatMap(Collection::stream)
-                .collect(Collectors.toSet()));
+                .toList());
     }
 
     public boolean hasFlag(MaterialFlag flag) {

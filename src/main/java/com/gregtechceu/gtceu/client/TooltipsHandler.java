@@ -50,8 +50,8 @@ public class TooltipsHandler {
         var materialEntry = ChemicalHelper.getMaterialEntry(stack.getItem());
         if (!materialEntry.isEmpty()) {
             var formula = materialEntry.material().getChemicalFormula();
-            if (formula != null && !formula.isEmpty()) {
-                tooltips.add(1, Component.literal(formula).withStyle(ChatFormatting.YELLOW));
+            if (formula != null) {
+                tooltips.add(1, Component.empty().append(formula).withStyle(ChatFormatting.YELLOW));
             }
         }
         if (stack.getItem() instanceof BucketItem bucket) {
@@ -100,8 +100,8 @@ public class TooltipsHandler {
         var material = ChemicalHelper.getMaterial(fluid);
         if (!material.isNull()) {
             var formula = material.getChemicalFormula();
-            if (formula != null && !formula.isEmpty()) {
-                tooltips.accept(Component.literal(formula).withStyle(ChatFormatting.YELLOW));
+            if (formula != null) {
+                tooltips.accept(Component.empty().append(formula).withStyle(ChatFormatting.YELLOW));
             }
 
             if (material.hasProperty(PropertyKey.INGOT)) {

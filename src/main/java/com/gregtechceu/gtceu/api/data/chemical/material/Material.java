@@ -95,26 +95,22 @@ public class Material implements Comparable<Material> {
     /**
      * Chemical formula of this material
      */
-    @Getter
-    private String chemicalFormula;
+    private Supplier<MutableComponent> chemicalFormula;
 
-    private String calculateChemicalFormula() {
-        if (chemicalFormula != null) return this.chemicalFormula;
-        if (materialInfo.element != null) {
-            String[] split = materialInfo.element.symbol().split("-");
-            String result;
-            if (split.length > 1) {
-                split[1] = FormattingUtil.toSmallUpNumbers(split[1]);
-                result = split[0] + split[1];
-            } else result = materialInfo.element.symbol();
-            return result;
-        }
+    @Nullable
+    public MutableComponent getChemicalFormula() {
+        if (chemicalFormula != null) return this.chemicalFormula.get();
+        if (materialInfo.element != null) return materialInfo.element.symbol();
+        MutableComponent components = null;
         if (!materialInfo.componentList.isEmpty()) {
-            StringBuilder components = new StringBuilder();
-            for (MaterialStack component : materialInfo.componentList) components.append(component.toString());
-            return components.toString();
+            for (MaterialStack component : materialInfo.componentList) {
+                var chemicalFormula = component.getChemicalFormula();
+                if (chemicalFormula == null) continue;
+                if (components == null) components = Component.empty();
+                components.append(chemicalFormula);
+            }
         }
-        return "";
+        return components;
     }
 
     public Material setFormula(String formula) {
@@ -122,17 +118,21 @@ public class Material implements Comparable<Material> {
     }
 
     public Material setFormula(String formula, boolean withFormatting) {
-        this.chemicalFormula = withFormatting ? FormattingUtil.toSmallDownNumbers(formula) : formula;
+        return setFormula(() -> Component.literal(withFormatting ? FormattingUtil.toSmallDownNumbers(formula) : formula));
+    }
+
+    public Material setFormula(Supplier<MutableComponent> formula) {
+        this.chemicalFormula = formula;
         return this;
     }
 
+    @NotNull
     public ImmutableList<MaterialStack> getMaterialComponents() {
         return materialInfo.componentList;
     }
 
     public Material setComponents(MaterialStack... components) {
         this.materialInfo.setComponents(components);
-        this.chemicalFormula = this.calculateChemicalFormula();
         return this;
     }
 
@@ -148,6 +148,7 @@ public class Material implements Comparable<Material> {
     protected Material(ResourceLocation resourceLocation) {
         materialInfo = new MaterialInfo(resourceLocation);
         materialInfo.iconSet = MaterialIconSet.DULL;
+        materialInfo.componentList = ImmutableList.of();
         properties = new MaterialProperties();
         flags = new MaterialFlags();
         MaterialRegistryManager.getInstance().addNonRegistered(this);
@@ -445,7 +446,7 @@ public class Material implements Comparable<Material> {
 
     public long getMass() {
         if (materialInfo.element != null) return materialInfo.element.mass();
-        if (materialInfo.componentList == null || materialInfo.componentList.isEmpty()) return 98;
+        if (materialInfo.componentList.isEmpty()) return 98;
         if (mass < 0) {
             long totalMass = 0;
             long totalAmount = 0;
@@ -527,7 +528,6 @@ public class Material implements Comparable<Material> {
     public void verifyMaterial() {
         properties.verify();
         flags.verify(this);
-        this.chemicalFormula = calculateChemicalFormula();
         calculateDecompositionType();
     }
 
@@ -1347,7 +1347,7 @@ public class Material implements Comparable<Material> {
         }
 
         public MaterialInfo setComponents(MaterialStack... components) {
-            this.componentList = ImmutableList.copyOf(Arrays.stream(components).toList());
+            this.componentList = ImmutableList.copyOf(Arrays.asList(components));
             return this;
         }
 

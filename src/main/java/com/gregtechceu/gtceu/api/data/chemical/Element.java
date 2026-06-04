@@ -1,6 +1,9 @@
 package com.gregtechceu.gtceu.api.data.chemical;
 
-import lombok.Getter;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+
+import java.util.function.Supplier;
 
 /**
  * This is some kind of Periodic Table, which can be used to determine "Properties" of the Materials.
@@ -19,10 +22,7 @@ public class Element {
      * Amount of Half Life this Material has in Seconds. -1 for stable Materials
      */
     private long halfLifeSeconds;
-    /**
-     * String representing the Elements this element decays to. Separated by an '&' Character
-     */
-    private String decayTo;
+
     /**
      * Name of the Element
      */
@@ -30,28 +30,22 @@ public class Element {
     /**
      * Symbol of the Element
      */
-    private String symbol;
-    /**
-     * Is this element an isotope?
-     * -- GETTER --
-     * Is this element an isotope?
-     * 
-     */
-    @Getter
-    private boolean isIsotope;
+    private Supplier<MutableComponent> symbol;
 
     public long mass() {
         return protons + neutrons;
     }
 
-    public Element(long protons, long neutrons, long halfLifeSeconds, String decayTo, String name, String symbol, boolean isIsotope) {
+    public Element(long protons, long neutrons, long halfLifeSeconds, String name, String symbol) {
+        this(protons, neutrons, halfLifeSeconds, name, () -> Component.literal(symbol));
+    }
+
+    public Element(long protons, long neutrons, long halfLifeSeconds, String name, Supplier<MutableComponent> symbol) {
         this.protons = protons;
         this.neutrons = neutrons;
         this.halfLifeSeconds = halfLifeSeconds;
-        this.decayTo = decayTo;
         this.name = name;
         this.symbol = symbol;
-        this.isIsotope = isIsotope;
     }
 
     /**
@@ -97,20 +91,6 @@ public class Element {
     }
 
     /**
-     * String representing the Elements this element decays to. Separated by an '&' Character
-     */
-    public String decayTo() {
-        return this.decayTo;
-    }
-
-    /**
-     * String representing the Elements this element decays to. Separated by an '&' Character
-     */
-    public void decayTo(final String decayTo) {
-        this.decayTo = decayTo;
-    }
-
-    /**
      * Name of the Element
      */
     public String name() {
@@ -127,21 +107,14 @@ public class Element {
     /**
      * Symbol of the Element
      */
-    public String symbol() {
-        return this.symbol;
+    public MutableComponent symbol() {
+        return this.symbol.get();
     }
 
     /**
      * Symbol of the Element
      */
-    public void symbol(final String symbol) {
+    public void symbol(final Supplier<MutableComponent> symbol) {
         this.symbol = symbol;
-    }
-
-    /**
-     * Is this element an isotope?
-     */
-    public void isIsotope(final boolean isIsotope) {
-        this.isIsotope = isIsotope;
     }
 }
