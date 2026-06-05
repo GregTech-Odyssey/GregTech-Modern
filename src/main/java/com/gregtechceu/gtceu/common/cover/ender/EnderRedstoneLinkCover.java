@@ -45,6 +45,7 @@ public class EnderRedstoneLinkCover extends AbstractEnderLinkCover<VirtualRedsto
 
     @Override
     protected VirtualRedstone getEntry() {
+        if (storage == null) return new VirtualRedstone();
         return storage;
     }
 
