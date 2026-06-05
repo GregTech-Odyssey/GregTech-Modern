@@ -40,7 +40,7 @@ public final class FieldDataHolderAccess extends AbstractFieldAccess<IFieldDataH
     public boolean isChanged(@NotNull Object source) {
         var instance = getInstance(source);
         if (instance == null) return syncChange;
-        return instance.getFieldDataManager().isChanged();
+        return syncChange || instance.getFieldDataManager().isChanged();
     }
 
     @Override

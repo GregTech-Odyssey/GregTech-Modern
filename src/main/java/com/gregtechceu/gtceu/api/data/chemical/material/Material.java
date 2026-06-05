@@ -33,7 +33,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datasream.codec.DataCodec;
@@ -952,7 +951,6 @@ public class Material implements Comparable<Material> {
         }
 
         public Builder components(Object... components) {
-            Preconditions.checkArgument(components.length % 2 == 0, "Material Components list malformed!");
             for (int i = 0; i < components.length; i += 2) {
                 if (components[i] == null) {
                     throw new IllegalArgumentException("Material in Components List is null for Material " + this.materialInfo.resourceLocation);

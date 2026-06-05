@@ -101,7 +101,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Nullable
     protected TickableSubscription activeBlocksSubs;
 
-    @SyncToClient(autoUpdate = false)
+    @SyncToClient(autoUpdate = false, listener = "onActiveBlocksUpdate")
     @Access
     protected LongSet activeBlocks = new LongOpenHashSet();
 
@@ -122,10 +122,20 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     }
 
     @Override
-    public void onLoad() {
-        super.onLoad();
-        if (isRemote()) {
-            activeState = ActiveBlock.State.UNKNOWN;
+    public void onUnload() {
+        super.onUnload();
+        activeState = ActiveBlock.State.UNKNOWN;
+        activeBlocksSubs = ITickSubscription.unsubscribe(activeBlocksSubs);
+        traitSubscriptions.forEach(ISubscription::unsubscribe);
+        traitSubscriptions.clear();
+    }
+
+    @SuppressWarnings("unused")
+    protected void onActiveBlocksUpdate(LongSet newValue, LongSet oldValue) {
+        activeState = ActiveBlock.State.UNKNOWN;
+        if (newValue.isEmpty()) {
+            activeBlocksSubs = ITickSubscription.unsubscribe(activeBlocksSubs);
+        } else {
             activeBlocksSubs = subscribeAsyncTick(activeBlocksSubs, () -> {
                 if (getLevel() == null) return;
                 var shouldActive = isFormed && (activated || getRecipeLogic().isWorking());
@@ -150,12 +160,8 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     }
 
     @Override
-    public void onUnload() {
-        super.onUnload();
+    public void onStructureFormedClient() {
         activeState = ActiveBlock.State.UNKNOWN;
-        activeBlocksSubs = ITickSubscription.unsubscribe(activeBlocksSubs);
-        traitSubscriptions.forEach(ISubscription::unsubscribe);
-        traitSubscriptions.clear();
     }
 
     //////////////////////////////////////
