@@ -7,11 +7,13 @@ import com.gto.datasynclib.IDataSerializable;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ListData;
+import com.gto.datasynclib.datasream.data.MapData;
 import com.gto.datasynclib.datasream.data.NullData;
 import com.gto.datasynclib.field.access.AbstractFieldAccess;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.Map;
 
 public final class SerializableArrayAccess extends AbstractFieldAccess<IDataSerializable[]> {
 
@@ -79,11 +81,20 @@ public final class SerializableArrayAccess extends AbstractFieldAccess<IDataSeri
     protected void readData(IDataSerializable @NotNull [] instance, @NotNull Data data, int dataVersion) {
         var list = data.getList();
         var length = Math.min(list.size(), instance.length);
-        for (int i = 0; i < length; i++) {
-            var d = list.get(i);
-            if (d != NullData.INSTANCE) {
-                var element = instance[i];
-                if (element != null) element.readData(d, dataVersion);
+        if (dataVersion == -1) {
+            for (int i = 0; i < length; i++) {
+                if (list.get(i) instanceof MapData(Map<String, Data> map) && !map.isEmpty()) {
+                    var element = instance[i];
+                    if (element != null) element.readData(map.get("p"), dataVersion);
+                }
+            }
+        } else {
+            for (int i = 0; i < length; i++) {
+                var d = list.get(i);
+                if (d != NullData.INSTANCE) {
+                    var element = instance[i];
+                    if (element != null) element.readData(d, dataVersion);
+                }
             }
         }
     }

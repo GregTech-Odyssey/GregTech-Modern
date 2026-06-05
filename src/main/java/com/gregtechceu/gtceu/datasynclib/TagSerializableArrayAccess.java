@@ -65,9 +65,9 @@ public final class TagSerializableArrayAccess extends AbstractFieldAccess<ITagSe
     }
 
     @Override
-    protected void writeBuffer(@NotNull LogicalSide side, @NotNull ITagSerializable @NotNull [] instance, @NotNull FriendlyByteBuf data, boolean force) {
+    protected void writeBuffer(@NotNull LogicalSide side, ITagSerializable @NotNull [] instance, @NotNull FriendlyByteBuf data, boolean force) {
         for (var element : instance) {
-            var nbt = element.serializeNBT();
+            var nbt = element == null ? null : element.serializeNBT();
             if (nbt == null) {
                 data.writeByte(0);
             } else {
@@ -82,13 +82,13 @@ public final class TagSerializableArrayAccess extends AbstractFieldAccess<ITagSe
     }
 
     @Override
-    protected void readBuffer(@NotNull LogicalSide side, @NotNull ITagSerializable @NotNull [] instance, @NotNull FriendlyByteBuf data) {
+    protected void readBuffer(@NotNull LogicalSide side, ITagSerializable @NotNull [] instance, @NotNull FriendlyByteBuf data) {
         for (var element : instance) {
             var type = TagTypes.getType(data.readByte());
             if (type == EndTag.TYPE) return;
             try {
                 var nbt = type.load(new ByteBufInputStream(data), 0, NbtAccounter.UNLIMITED);
-                element.deserializeNBT(nbt);
+                if (element != null) element.deserializeNBT(nbt);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -96,10 +96,10 @@ public final class TagSerializableArrayAccess extends AbstractFieldAccess<ITagSe
     }
 
     @Override
-    protected @NotNull Data writeData(@NotNull ITagSerializable @NotNull [] instance) {
+    protected @NotNull Data writeData(ITagSerializable @NotNull [] instance) {
         var list = new ListData();
         for (var element : instance) {
-            var nbt = element.serializeNBT();
+            var nbt = element == null ? null : element.serializeNBT();
             if (nbt == null) {
                 list.addNull();
             } else {
@@ -110,22 +110,28 @@ public final class TagSerializableArrayAccess extends AbstractFieldAccess<ITagSe
     }
 
     @Override
-    protected void readData(@NotNull ITagSerializable @NotNull [] instance, @NotNull Data data, int dataVersion) {
+    protected void readData(ITagSerializable @NotNull [] instance, @NotNull Data data, int dataVersion) {
         var list = data.getList();
         var length = Math.min(list.size(), instance.length);
         if (dataVersion == -1) {
             for (int i = 0; i < length; i++) {
                 if (list.get(i) instanceof MapData(Map<String, Data> map) && !map.isEmpty()) {
-                    var nbt = DataCodecs.TAG_CODEC.decode(map.get("p"), dataVersion);
-                    instance[i].deserializeNBT(nbt);
+                    var element = instance[i];
+                    if (element != null) {
+                        var nbt = DataCodecs.TAG_CODEC.decode(map.get("p"), dataVersion);
+                        element.deserializeNBT(nbt);
+                    }
                 }
             }
         } else {
             for (int i = 0; i < length; i++) {
                 var d = list.get(i);
                 if (d != NullData.INSTANCE) {
-                    var nbt = DataCodecs.TAG_CODEC.decode(d, dataVersion);
-                    instance[i].deserializeNBT(nbt);
+                    var element = instance[i];
+                    if (element != null) {
+                        var nbt = DataCodecs.TAG_CODEC.decode(d, dataVersion);
+                        element.deserializeNBT(nbt);
+                    }
                 }
             }
         }
