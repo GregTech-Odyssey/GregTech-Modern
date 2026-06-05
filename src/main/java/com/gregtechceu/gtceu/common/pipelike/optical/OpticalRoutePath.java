@@ -18,7 +18,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OpticalRoutePath implements IRoutePath<IOpticalComputationProvider> {
+public final class OpticalRoutePath implements IRoutePath<IOpticalComputationProvider> {
 
     private final OpticalPipeBlockEntity targetPipe;
     private final Direction targetFacing;

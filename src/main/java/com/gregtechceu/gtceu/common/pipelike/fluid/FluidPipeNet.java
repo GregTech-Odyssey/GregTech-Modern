@@ -15,16 +15,16 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class FluidPipeNet extends PipeNet<FluidPipeProperties> {
+public final class FluidPipeNet extends PipeNet<FluidPipeProperties> {
 
-    private final Long2ObjectOpenHashMap<List<FluidRoutePath>> NET_DATA = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectOpenHashMap<List<FluidRoutePath>> netData = new Long2ObjectOpenHashMap<>();
 
     public FluidPipeNet(LevelPipeNet<FluidPipeProperties, ? extends PipeNet<FluidPipeProperties>> world) {
         super(world);
     }
 
     public List<FluidRoutePath> getNetData(long pipePos, BlockPos pos, Direction facing) {
-        List<FluidRoutePath> data = NET_DATA.get(pipePos);
+        List<FluidRoutePath> data = netData.get(pipePos);
         if (data == null) {
             data = FluidNetWalker.createNetData(this, pos, facing);
             if (data == null) {
@@ -32,27 +32,27 @@ public class FluidPipeNet extends PipeNet<FluidPipeProperties> {
                 return Collections.emptyList();
             }
             data.sort(Comparator.comparingInt(inv -> inv.getTargetPipe().isBlocked(inv.getTargetFacing()) ? 0 : 1));
-            NET_DATA.put(pipePos, data);
+            netData.put(pipePos, data);
         }
         return data;
     }
 
     @Override
     public void onNeighbourUpdate(BlockPos fromPos) {
-        NET_DATA.clear();
+        netData.clear();
     }
 
     @Override
     public void onPipeConnectionsUpdate() {
-        NET_DATA.clear();
+        netData.clear();
     }
 
     @Override
     protected void transferNodeData(Long2ObjectOpenHashMap<Node<FluidPipeProperties>> transferredNodes,
                                     PipeNet<FluidPipeProperties> parentNet) {
         super.transferNodeData(transferredNodes, parentNet);
-        NET_DATA.clear();
-        ((FluidPipeNet) parentNet).NET_DATA.clear();
+        netData.clear();
+        ((FluidPipeNet) parentNet).netData.clear();
     }
 
     @Override

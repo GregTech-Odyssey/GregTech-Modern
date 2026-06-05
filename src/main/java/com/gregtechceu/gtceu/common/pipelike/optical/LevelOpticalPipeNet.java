@@ -5,7 +5,7 @@ import com.gregtechceu.gtceu.api.pipenet.LevelPipeNet;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 
-public class LevelOpticalPipeNet extends LevelPipeNet<OpticalPipeProperties, OpticalPipeNet> {
+public final class LevelOpticalPipeNet extends LevelPipeNet<OpticalPipeProperties, OpticalPipeNet> {
 
     private static final String DATA_ID = "gtceu_optical_pipe_net";
 

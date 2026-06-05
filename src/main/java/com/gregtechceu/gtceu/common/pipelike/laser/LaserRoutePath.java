@@ -13,7 +13,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class LaserRoutePath implements IRoutePath<ILaserContainer> {
+public final class LaserRoutePath implements IRoutePath<ILaserContainer> {
 
     private final LaserPipeBlockEntity targetPipe;
     private final BlockPos targetPipePos;

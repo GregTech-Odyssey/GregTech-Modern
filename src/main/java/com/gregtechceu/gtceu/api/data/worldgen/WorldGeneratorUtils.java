@@ -21,12 +21,14 @@ import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
 
+import com.fast.fastcollection.O2OOpenCacheHashMap;
+import com.fast.fastcollection.OpenCacheHashSet;
 import com.google.common.collect.HashBiMap;
 import com.gto.datasynclib.datasream.DataComponentKey;
 import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 
 import java.util.*;
@@ -34,7 +36,6 @@ import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public class WorldGeneratorUtils {
 
@@ -42,16 +43,13 @@ public class WorldGeneratorUtils {
 
     public static final RuleTest END_ORE_REPLACEABLES = new TagMatchTest(CustomTags.ENDSTONE_ORE_REPLACEABLES);
 
-    public static final SortedMap<String, IWorldGenLayer> WORLD_GEN_LAYERS = new Object2ObjectLinkedOpenHashMap<>();
+    public static final LinkedHashMap<String, IWorldGenLayer> WORLD_GEN_LAYERS = new LinkedHashMap<>();
 
     public static final HashBiMap<ResourceLocation, Codec<? extends VeinGenerator>> VEIN_GENERATORS = HashBiMap
             .create();
-    public static final HashBiMap<ResourceLocation, Function<GTOreDefinition, ? extends VeinGenerator>> VEIN_GENERATOR_FUNCTIONS = HashBiMap
-            .create();
+    public static final Map<ResourceLocation, Function<GTOreDefinition, ? extends VeinGenerator>> VEIN_GENERATOR_FUNCTIONS = new O2OOpenCacheHashMap<>();
 
     public static final HashBiMap<ResourceLocation, Codec<? extends IndicatorGenerator>> INDICATOR_GENERATORS = HashBiMap
-            .create();
-    public static final HashBiMap<ResourceLocation, Function<GTOreDefinition, ? extends IndicatorGenerator>> INDICATOR_GENERATOR_FUNCTIONS = HashBiMap
             .create();
 
     public record WeightedVein(GTOreDefinition vein, int weight) implements WeightedEntry {}
@@ -62,21 +60,34 @@ public class WorldGeneratorUtils {
         private final Map<Holder<Biome>, List<WeightedVein>> biomeVeins = new Reference2ObjectOpenHashMap<>();
 
         public WorldOreVeinCache(ServerLevel level) {
-            this.worldVeins = GTRegistries.ORE_VEINS.values().stream()
-                    .filter(entry -> entry.dimensionFilter().stream()
-                            .anyMatch(dim -> WorldGeneratorUtils.isSameDimension(dim, level.dimension())))
-                    .collect(Collectors.toList());
+            List<GTOreDefinition> veinsList = new ArrayList<>();
+            for (var entry : GTRegistries.ORE_VEINS.values()) {
+                boolean match = false;
+                for (var dim : entry.dimensionFilter()) {
+                    if (WorldGeneratorUtils.isSameDimension(dim, level.dimension())) {
+                        match = true;
+                        break;
+                    }
+                }
+                if (match) {
+                    veinsList.add(entry);
+                }
+            }
+            this.worldVeins = veinsList;
         }
 
         private List<WeightedVein> getEntry(Holder<Biome> biome) {
-            if (biomeVeins.containsKey(biome)) return biomeVeins.get(biome);
-            var biomeVeins = worldVeins.stream()
-                    .filter(vein -> vein.isForBiome(biome))
-                    .map(vein -> new WeightedVein(vein, vein.weightForBiome(biome)))
-                    .filter(vein -> vein.weight > 0)
-                    .toList();
-            this.biomeVeins.put(biome, biomeVeins);
-            return biomeVeins;
+            List<WeightedVein> biomeList = new ArrayList<>();
+            for (GTOreDefinition vein : worldVeins) {
+                if (vein.isForBiome(biome)) {
+                    int weight = vein.weightForBiome(biome);
+                    if (weight > 0) {
+                        biomeList.add(new WeightedVein(vein, weight));
+                    }
+                }
+            }
+            this.biomeVeins.put(biome, biomeList);
+            return biomeList;
         }
     }
 
@@ -90,10 +101,12 @@ public class WorldGeneratorUtils {
     }
 
     public static Optional<String> getWorldGenLayerKey(IWorldGenLayer layer) {
-        return WORLD_GEN_LAYERS.entrySet().stream()
-                .filter(entry -> entry.getValue().equals(layer))
-                .map(Entry::getKey)
-                .findFirst();
+        for (Map.Entry<String, IWorldGenLayer> entry : WORLD_GEN_LAYERS.entrySet()) {
+            if (entry.getValue().equals(layer)) {
+                return Optional.of(entry.getKey());
+            }
+        }
+        return Optional.empty();
     }
 
     public static boolean isSameDimension(ResourceKey<Level> first, ResourceKey<Level> second) {
@@ -101,20 +114,29 @@ public class WorldGeneratorUtils {
     }
 
     public static <T> Long2ObjectOpenHashMap<Long2ObjectMap<T>> groupByChunks(Long2ObjectMap<T> input) {
-        return input.long2ObjectEntrySet().stream().collect(Collectors.groupingBy(
-                entry -> PosUtils.getChunkLong(entry.getLongKey()),
-                Long2ObjectOpenHashMap::new,
-                Collectors.toMap(Long2ObjectMap.Entry::getLongKey, Long2ObjectMap.Entry::getValue, (a, b) -> a, Long2ObjectOpenHashMap::new)));
+        Long2ObjectOpenHashMap<Long2ObjectMap<T>> result = new Long2ObjectOpenHashMap<>();
+        for (Long2ObjectMap.Entry<T> entry : Long2ObjectMaps.fastIterable(input)) {
+            long chunkLong = PosUtils.getChunkLong(entry.getLongKey());
+            result.computeIfAbsent(chunkLong, k -> new Long2ObjectOpenHashMap<>()).putIfAbsent(entry.getLongKey(), entry.getValue());
+        }
+        return result;
     }
 
-    public static <T> Map<ChunkPos, List<BlockPos>> groupByChunks(Collection<BlockPos> positions) {
-        return positions.stream().collect(Collectors.groupingBy(ChunkPos::new));
+    public static Map<ChunkPos, List<BlockPos>> groupByChunks(Collection<BlockPos> positions) {
+        var map = new O2OOpenCacheHashMap<ChunkPos, List<BlockPos>>();
+        for (BlockPos pos : positions) {
+            ChunkPos chunkPos = new ChunkPos(pos);
+            map.computeIfAbsent(chunkPos, k -> new ArrayList<>()).add(pos);
+        }
+        return map;
     }
 
     public static Collection<ChunkPos> getChunks(Collection<BlockPos> positions) {
-        return positions.stream()
-                .collect(Collectors.groupingBy(ChunkPos::new))
-                .keySet();
+        Set<ChunkPos> chunkSet = new OpenCacheHashSet<>();
+        for (BlockPos pos : positions) {
+            chunkSet.add(new ChunkPos(pos));
+        }
+        return chunkSet;
     }
 
     public static void generateChunks(WorldGenLevel level, ChunkStatus requiredStatus, Collection<ChunkPos> chunks) {

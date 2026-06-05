@@ -28,6 +28,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntIntPair;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.DecimalFormat;
@@ -165,7 +166,7 @@ public class ArmorUtils {
      * @return Formated list
      */
     public static List<ItemStack> format(List<ItemStack> input) {
-        Object2IntMap<ItemStack> items = new O2IOpenCustomCacheHashMap<>(
+        var items = new O2IOpenCustomCacheHashMap<ItemStack>(
                 ItemStackHashStrategy.ITEM_AND_TAG);
         List<ItemStack> output = new ArrayList<>();
         for (ItemStack itemStack : input) {
@@ -176,7 +177,8 @@ public class ArmorUtils {
                 items.put(itemStack, 1);
             }
         }
-        for (Object2IntMap.Entry<ItemStack> entry : items.object2IntEntrySet()) {
+        for (ObjectIterator<Object2IntMap.Entry<ItemStack>> it = items.object2IntEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
             ItemStack stack = entry.getKey().copy();
             stack.setCount(entry.getIntValue());
             output.add(stack);

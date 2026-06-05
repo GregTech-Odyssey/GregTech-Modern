@@ -55,7 +55,7 @@ public class PartAbility {
     private final Int2ObjectOpenHashMap<Set<Block>> registry = new Int2ObjectOpenHashMap<>();
     private final Supplier<Collection<Block>> allBlocks = GTMemoizer.memoize(() -> {
         List<Block> result = new ArrayList<>();
-        List<Int2ObjectMap.Entry<Set<Block>>> entries = new ArrayList<>(registry.int2ObjectEntrySet());
+        var entries = new ArrayList<>(registry.int2ObjectEntrySet());
         entries.sort(Comparator.comparingInt(Int2ObjectMap.Entry::getIntKey));
         for (var entry : entries) {
             result.addAll(entry.getValue());

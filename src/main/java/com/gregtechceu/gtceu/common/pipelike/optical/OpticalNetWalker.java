@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OpticalNetWalker extends PipeNetWalker<OpticalPipeBlockEntity, OpticalPipeProperties, OpticalPipeNet> {
+public final class OpticalNetWalker extends PipeNetWalker<OpticalPipeBlockEntity, OpticalPipeProperties, OpticalPipeNet> {
 
     @Nullable
     public static OpticalRoutePath createNetData(OpticalPipeNet world, BlockPos sourcePipe,
@@ -27,7 +27,7 @@ public class OpticalNetWalker extends PipeNetWalker<OpticalPipeBlockEntity, Opti
     private BlockPos sourcePipe;
     private Direction facingToHandler;
 
-    protected OpticalNetWalker(OpticalPipeNet world, BlockPos sourcePipe, int distance) {
+    private OpticalNetWalker(OpticalPipeNet world, BlockPos sourcePipe, int distance) {
         super(world, sourcePipe, distance);
     }
 

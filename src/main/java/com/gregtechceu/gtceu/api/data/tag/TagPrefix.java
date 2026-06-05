@@ -48,15 +48,11 @@ import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.MapColor;
 
 import com.fast.fastcollection.O2OOpenCacheHashMap;
-import com.fast.fastcollection.OpenCacheHashSet;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Table;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
-import it.unimi.dsi.fastutil.objects.Reference2FloatMap;
-import it.unimi.dsi.fastutil.objects.Reference2FloatOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.*;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -293,13 +289,13 @@ public class TagPrefix {
     private Supplier<Table<TagPrefix, Material, ? extends Supplier<? extends ItemLike>>> itemTable;
     @Nullable
     private BiConsumer<Material, List<Component>> tooltip;
-    private final Map<Material, Supplier<? extends ItemLike>[]> ignoredMaterials = new Reference2ObjectOpenHashMap<>();
+    private final Reference2ObjectOpenHashMap<Material, Supplier<? extends ItemLike>[]> ignoredMaterials = new Reference2ObjectOpenHashMap<>();
     private final Reference2FloatMap<Material> materialAmounts = new Reference2FloatOpenHashMap<>();
     private int maxStackSize = 64;
     @Getter
     private ToIntFunction<Material> maxDamageProvider;
     private final List<MaterialStack> secondaryMaterials = new ArrayList<>();
-    protected final Set<TagKey<Block>> miningToolTag = new OpenCacheHashSet<>();
+    protected final Set<TagKey<Block>> miningToolTag = new ReferenceOpenHashSet<>();
 
     protected TagPrefix(String name) {
         this(name, false);

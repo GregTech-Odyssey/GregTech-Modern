@@ -11,7 +11,7 @@ import net.minecraft.nbt.CompoundTag;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
-public class OpticalPipeNet extends PipeNet<OpticalPipeProperties> {
+public final class OpticalPipeNet extends PipeNet<OpticalPipeProperties> {
 
     private final Long2ObjectOpenHashMap<OpticalRoutePath> netData = new Long2ObjectOpenHashMap<>();
 

@@ -22,6 +22,7 @@ import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.level.levelgen.placement.PlacementContext;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,15 +67,15 @@ public class OreGenerator {
         return metadata.stream()
                 .map(data -> new VeinConfiguration(data,
                         new XoroshiroRandomSource(level.getSeed() ^ chunkPos.toLong())))
-                .map(config -> generateIndicators(config, level, chunkPos))
+                .map(config -> generateIndicators(config, chunkPos))
                 .toList();
     }
 
-    private GeneratedIndicators generateIndicators(VeinConfiguration config, WorldGenLevel level, ChunkPos chunkPos) {
+    private GeneratedIndicators generateIndicators(VeinConfiguration config, ChunkPos chunkPos) {
         GTOreDefinition definition = config.data.definition();
-        Long2ObjectOpenHashMap<List<OreIndicatorPlacer>> generatedIndicators = new Long2ObjectOpenHashMap<>();
+        var generatedIndicators = new Long2ObjectOpenHashMap<List<OreIndicatorPlacer>>();
         for (IndicatorGenerator gen : definition.indicatorGenerators()) {
-            for (var entry : gen.generate(level, config.newRandom(), config.data).long2ObjectEntrySet()) {
+            for (var entry : Long2ObjectMaps.fastIterable(gen.generate(config.newRandom(), config.data))) {
                 generatedIndicators.computeIfAbsent(entry.getLongKey(), k -> new ArrayList<>()).add(entry.getValue());
             }
         }

@@ -30,7 +30,7 @@ public class MaterialFlag {
             }
         });
 
-        Set<MaterialFlag> thisAndDependencies = new ReferenceOpenHashSet<>(requiredFlags);
+        var thisAndDependencies = new ReferenceOpenHashSet<>(requiredFlags);
         requiredFlags.stream()
                 .map(f -> f.verifyFlag(material))
                 .forEach(thisAndDependencies::addAll);

@@ -25,7 +25,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class ItemNetWalker extends PipeNetWalker<ItemPipeBlockEntity, ItemPipeProperties, ItemPipeNet> {
+public final class ItemNetWalker extends PipeNetWalker<ItemPipeBlockEntity, ItemPipeProperties, ItemPipeNet> {
 
     public static List<ItemRoutePath> createNetData(ItemPipeNet pipeNet, BlockPos sourcePipe, Direction sourceFacing) {
         if (!(pipeNet.getLevel().getBlockEntity(sourcePipe) instanceof ItemPipeBlockEntity)) {
@@ -50,8 +50,8 @@ public class ItemNetWalker extends PipeNetWalker<ItemPipeBlockEntity, ItemPipePr
     private BlockPos sourcePipe;
     private Direction facingToHandler;
 
-    protected ItemNetWalker(ItemPipeNet world, BlockPos sourcePipe, int distance, List<ItemRoutePath> inventories,
-                            ItemPipeProperties properties) {
+    private ItemNetWalker(ItemPipeNet world, BlockPos sourcePipe, int distance, List<ItemRoutePath> inventories,
+                          ItemPipeProperties properties) {
         super(world, sourcePipe, distance);
         this.inventories = inventories;
         this.minProperties = properties;

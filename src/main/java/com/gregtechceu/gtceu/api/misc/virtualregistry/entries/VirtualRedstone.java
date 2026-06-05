@@ -10,6 +10,7 @@ import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.util.DataCodecs;
 import it.unimi.dsi.fastutil.objects.Object2ShortMap;
 import it.unimi.dsi.fastutil.objects.Object2ShortOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,7 +36,7 @@ public class VirtualRedstone extends VirtualEntry {
     private static final String MEMBERS_KEY = "members";
 
     @Getter
-    private final Object2ShortMap<UUID> members = new Object2ShortOpenHashMap<>();
+    private final Object2ShortOpenHashMap<UUID> members = new Object2ShortOpenHashMap<>();
 
     public VirtualRedstone() {}
 
@@ -65,8 +66,10 @@ public class VirtualRedstone extends VirtualEntry {
     public CompoundTag serializeNBT() {
         CompoundTag tag = super.serializeNBT();
         CompoundTag tag2 = new CompoundTag();
-        for (var entry : members.object2ShortEntrySet())
+        for (ObjectIterator<Object2ShortMap.Entry<UUID>> it = members.object2ShortEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
             tag2.putShort(entry.getKey().toString(), entry.getShortValue());
+        }
         tag.put(MEMBERS_KEY, tag2);
         return tag;
     }

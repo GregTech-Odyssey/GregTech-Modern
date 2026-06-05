@@ -9,7 +9,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import com.fast.fastcollection.OpenCacheHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -128,7 +128,7 @@ public abstract class PipeNetWalker<T extends PipeBlockEntity<?, ?>, NodeDataTyp
     public void traversePipeNet(int maxWalks) {
         if (invalid) throw new IllegalStateException("This walker already walked. Create a new one if you want to walk again");
         root = this;
-        walked = new OpenCacheHashSet<>();
+        walked = new ReferenceOpenHashSet<>();
         int i = 0;
         running = true;
         while (running && !walk() && i++ < maxWalks);

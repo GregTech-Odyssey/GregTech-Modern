@@ -71,6 +71,7 @@ public abstract class ObjField<T> extends AbstractField<T> {
         }
     }
 
+    @SuppressWarnings("ConstantValue")
     @Override
     public final void readFromData(@NotNull Object source, @NotNull Data data, int dataVersion) {
         T value;
@@ -78,6 +79,7 @@ public abstract class ObjField<T> extends AbstractField<T> {
             value = null;
         } else {
             value = read(source, data, dataVersion);
+            if (value == null) return;
         }
         definition.set(source, value);
     }

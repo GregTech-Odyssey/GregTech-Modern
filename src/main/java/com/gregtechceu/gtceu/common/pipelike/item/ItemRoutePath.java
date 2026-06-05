@@ -18,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class ItemRoutePath implements IRoutePath<IItemHandler> {
+public final class ItemRoutePath implements IRoutePath<IItemHandler> {
 
     @Getter
     private final ItemPipeBlockEntity targetPipe;

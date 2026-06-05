@@ -18,7 +18,9 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.saveddata.SavedData;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,7 +60,8 @@ public class BedrockFluidVeinSavedData extends SavedData {
     @Override
     public CompoundTag save(CompoundTag nbt) {
         var oilList = new ListTag();
-        for (var entry : veinFluids.long2ObjectEntrySet()) {
+        for (ObjectIterator<Long2ObjectMap.Entry<FluidVeinWorldEntry>> it = veinFluids.long2ObjectEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
             var tag = new CompoundTag();
             tag.putLong("p", entry.getLongKey());
             tag.put("d", entry.getValue().writeToNBT());

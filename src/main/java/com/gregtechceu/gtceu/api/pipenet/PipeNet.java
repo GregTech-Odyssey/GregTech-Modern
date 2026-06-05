@@ -14,9 +14,11 @@ import com.fast.fastcollection.O2IOpenCacheHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.Getter;
 
 import java.util.ArrayDeque;
@@ -332,7 +334,8 @@ public abstract class PipeNet<NodeDataType> {
         Object2IntMap<NodeDataType> alreadyWritten = new O2IOpenCacheHashMap<>();
         int currentIndex = 0;
 
-        for (var entry : allNodes.long2ObjectEntrySet()) {
+        for (ObjectIterator<Long2ObjectMap.Entry<Node<NodeDataType>>> it = allNodes.long2ObjectEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
             long nodePos = entry.getLongKey();
             Node<NodeDataType> node = entry.getValue();
             CompoundTag nodeTag = new CompoundTag();

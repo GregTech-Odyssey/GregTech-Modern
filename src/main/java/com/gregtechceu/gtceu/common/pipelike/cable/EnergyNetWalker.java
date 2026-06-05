@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EnergyNetWalker extends PipeNetWalker<CableBlockEntity, WireProperties, EnergyNet> {
+public final class EnergyNetWalker extends PipeNetWalker<CableBlockEntity, WireProperties, EnergyNet> {
 
     @Nullable
     public static List<EnergyRoutePath> createNetData(EnergyNet pipeNet, BlockPos sourcePipe) {

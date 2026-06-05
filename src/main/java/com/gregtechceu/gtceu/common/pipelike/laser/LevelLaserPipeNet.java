@@ -5,7 +5,7 @@ import com.gregtechceu.gtceu.api.pipenet.LevelPipeNet;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 
-public class LevelLaserPipeNet extends LevelPipeNet<LaserPipeProperties, LaserPipeNet> {
+public final class LevelLaserPipeNet extends LevelPipeNet<LaserPipeProperties, LaserPipeNet> {
 
     private static final String DATA_ID = "gtceu_laser_pipe_net";
 

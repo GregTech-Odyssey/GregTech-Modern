@@ -9,7 +9,7 @@ import net.minecraft.nbt.CompoundTag;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
-public class LaserPipeNet extends PipeNet<LaserPipeProperties> {
+public final class LaserPipeNet extends PipeNet<LaserPipeProperties> {
 
     private final Long2ObjectOpenHashMap<LaserRoutePath> netData = new Long2ObjectOpenHashMap<>();
 

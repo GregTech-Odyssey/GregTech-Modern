@@ -14,7 +14,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class EnergyRoutePath implements IRoutePath<IEnergyContainer> {
+public final class EnergyRoutePath implements IRoutePath<IEnergyContainer> {
 
     private PipeBlockEntity<?, ?> pipeBlockEntity;
     private final BlockPos targetPipePos;

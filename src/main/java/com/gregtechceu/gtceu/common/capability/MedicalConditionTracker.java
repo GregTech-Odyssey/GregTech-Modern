@@ -20,16 +20,15 @@ import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
-import java.util.Set;
 
 public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSerializable<CompoundTag> {
 
     @Getter
-    private final Reference2FloatMap<MedicalCondition> medicalConditions = new Reference2FloatOpenHashMap<>();
-    private final Set<MedicalCondition> permanentConditions = new ReferenceOpenHashSet<>();
+    private final Reference2FloatOpenHashMap<MedicalCondition> medicalConditions = new Reference2FloatOpenHashMap<>();
+    private final ReferenceOpenHashSet<MedicalCondition> permanentConditions = new ReferenceOpenHashSet<>();
     private final Reference2IntMap<Symptom.ConfiguredSymptom> activeSymptoms = new Reference2IntOpenHashMap<>();
-    private final Object2IntMap<MobEffect> activeMobEffects = new O2IOpenCacheHashMap<>();
-    private final Set<MedicalCondition> flaggedForRemoval = new ReferenceOpenHashSet<>();
+    private final O2IOpenCacheHashMap<MobEffect> activeMobEffects = new O2IOpenCacheHashMap<>();
+    private final ReferenceOpenHashSet<MedicalCondition> flaggedForRemoval = new ReferenceOpenHashSet<>();
     @Setter
     private int maxAirSupply = -1;
     @Getter
@@ -42,7 +41,8 @@ public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSe
     @Override
     public void tick() {
         if (player.isCreative()) return;
-        for (var entry : activeMobEffects.object2IntEntrySet()) {
+        for (ObjectIterator<Object2IntMap.Entry<MobEffect>> it = activeMobEffects.object2IntEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
             player.addEffect(new MobEffectInstance(entry.getKey(), 100, entry.getIntValue()));
         }
         if (player.level().getGameTime() % 20 == 0) {

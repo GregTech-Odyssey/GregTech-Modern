@@ -14,7 +14,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OpticalNetHandler implements IDataAccessHatch, IOpticalComputationProvider {
+public final class OpticalNetHandler implements IDataAccessHatch, IOpticalComputationProvider {
 
     private final OpticalPipeBlockEntity pipe;
     private final Level world;

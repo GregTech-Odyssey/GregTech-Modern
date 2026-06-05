@@ -14,16 +14,16 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class EnergyNet extends PipeNet<WireProperties> {
+public final class EnergyNet extends PipeNet<WireProperties> {
 
-    private final Long2ObjectOpenHashMap<List<EnergyRoutePath>> NET_DATA = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectOpenHashMap<List<EnergyRoutePath>> netData = new Long2ObjectOpenHashMap<>();
 
-    protected EnergyNet(LevelPipeNet<WireProperties, ? extends EnergyNet> world) {
+    EnergyNet(LevelPipeNet<WireProperties, ? extends EnergyNet> world) {
         super(world);
     }
 
     public List<EnergyRoutePath> getNetData(long pipePos, BlockPos pos) {
-        List<EnergyRoutePath> data = NET_DATA.get(pipePos);
+        List<EnergyRoutePath> data = netData.get(pipePos);
         if (data == null) {
             data = EnergyNetWalker.createNetData(this, pos);
             if (data == null) {
@@ -31,27 +31,27 @@ public class EnergyNet extends PipeNet<WireProperties> {
                 return Collections.emptyList();
             }
             data.sort(Comparator.comparingInt(EnergyRoutePath::getDistance));
-            NET_DATA.put(pipePos, data);
+            netData.put(pipePos, data);
         }
         return data;
     }
 
     @Override
     public void onNeighbourUpdate(BlockPos fromPos) {
-        NET_DATA.clear();
+        netData.clear();
     }
 
     @Override
     public void onPipeConnectionsUpdate() {
-        NET_DATA.clear();
+        netData.clear();
     }
 
     @Override
     protected void transferNodeData(Long2ObjectOpenHashMap<Node<WireProperties>> transferredNodes,
                                     PipeNet<WireProperties> parentNet) {
         super.transferNodeData(transferredNodes, parentNet);
-        NET_DATA.clear();
-        ((EnergyNet) parentNet).NET_DATA.clear();
+        netData.clear();
+        ((EnergyNet) parentNet).netData.clear();
     }
 
     @Override

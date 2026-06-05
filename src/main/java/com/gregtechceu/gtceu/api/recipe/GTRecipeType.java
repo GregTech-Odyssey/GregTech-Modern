@@ -36,7 +36,6 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.fast.fastcollection.O2OOpenCacheHashMap;
-import com.fast.fastcollection.OpenCacheHashSet;
 import com.fast.recipesearch.IntLongMap;
 import com.fast.recipesearch.RecipeSearcher;
 import com.gto.datasynclib.datasream.DataComponentMap;
@@ -276,7 +275,7 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
     }
 
     public void addDataStickEntry(@NotNull String researchId, @NotNull GTRecipeDefinition recipe) {
-        Collection<GTRecipeDefinition> collection = researchEntries.computeIfAbsent(researchId, k -> new OpenCacheHashSet<>());
+        Collection<GTRecipeDefinition> collection = researchEntries.computeIfAbsent(researchId, k -> new ReferenceOpenHashSet<>());
         collection.add(recipe);
     }
 

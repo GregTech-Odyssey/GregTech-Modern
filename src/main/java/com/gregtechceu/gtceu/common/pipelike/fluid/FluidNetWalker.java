@@ -25,7 +25,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class FluidNetWalker extends PipeNetWalker<FluidPipeBlockEntity, FluidPipeProperties, FluidPipeNet> {
+public final class FluidNetWalker extends PipeNetWalker<FluidPipeBlockEntity, FluidPipeProperties, FluidPipeNet> {
 
     public static List<FluidRoutePath> createNetData(FluidPipeNet pipeNet, BlockPos sourcePipe, Direction sourceFacing) {
         if (!(pipeNet.getLevel().getBlockEntity(sourcePipe) instanceof FluidPipeBlockEntity)) {
@@ -50,8 +50,8 @@ public class FluidNetWalker extends PipeNetWalker<FluidPipeBlockEntity, FluidPip
     private BlockPos sourcePipe;
     private Direction facingToHandler;
 
-    protected FluidNetWalker(FluidPipeNet world, BlockPos sourcePipe, int distance, List<FluidRoutePath> inventories,
-                             FluidPipeProperties properties) {
+    private FluidNetWalker(FluidPipeNet world, BlockPos sourcePipe, int distance, List<FluidRoutePath> inventories,
+                           FluidPipeProperties properties) {
         super(world, sourcePipe, distance);
         this.inventories = inventories;
         this.minProperties = properties;

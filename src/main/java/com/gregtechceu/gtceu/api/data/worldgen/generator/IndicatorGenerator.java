@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.api.data.worldgen.ores.OreIndicatorPlacer;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.mojang.datafixers.util.Either;
@@ -54,7 +53,7 @@ public abstract class IndicatorGenerator {
      * their respective ore placers are invoked at a later time, when the chunk containing them is actually generated.
      */
 
-    public abstract Long2ObjectMap<OreIndicatorPlacer> generate(WorldGenLevel level, RandomSource random,
+    public abstract Long2ObjectMap<OreIndicatorPlacer> generate(RandomSource random,
                                                                 GeneratedVeinMetadata metadata);
 
     public GTOreDefinition parent() {

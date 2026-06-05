@@ -6,7 +6,7 @@ import com.gregtechceu.gtceu.api.pipenet.LevelPipeNet;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 
-public class LevelFluidPipeNet extends LevelPipeNet<FluidPipeProperties, FluidPipeNet> {
+public final class LevelFluidPipeNet extends LevelPipeNet<FluidPipeProperties, FluidPipeNet> {
 
     public static LevelFluidPipeNet getOrCreate(ServerLevel serverLevel) {
         return serverLevel.getDataStorage().computeIfAbsent(tag -> new LevelFluidPipeNet(serverLevel, tag),

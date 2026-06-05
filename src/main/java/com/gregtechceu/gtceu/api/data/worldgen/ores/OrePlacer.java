@@ -16,7 +16,10 @@ import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 
 import com.fast.fastcollection.O2OOpenCacheHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.Getter;
 
 import javax.annotation.Nullable;
@@ -51,7 +54,7 @@ public class OrePlacer {
         var generatedIndicators = oreGenCache.consumeChunkIndicators(level, chunkGenerator, chunk);
         try (BulkSectionAccess access = new BulkSectionAccess(level)) {
             generatedVeins.forEach(generatedVein -> placeVein(posLong, random, access, generatedVein, null));
-            generatedIndicators.forEach(generatedIndicator -> placeIndicators(chunk, access, generatedIndicator));
+            generatedIndicators.forEach(generatedIndicator -> placeIndicators(level, chunk, access, generatedIndicator));
         }
     }
 
@@ -60,7 +63,8 @@ public class OrePlacer {
         resolvePlacerLists(chunk, generatedVein).forEach(((sectionPos, placers) -> {
             LevelChunkSection section = access.getSection(sectionPos.origin());
             if (section == null) return;
-            for (var entry : placers.long2ObjectEntrySet()) {
+            for (ObjectIterator<Long2ObjectMap.Entry<OreBlockPlacer>> it = placers.long2ObjectEntrySet().fastIterator(); it.hasNext();) {
+                var entry = it.next();
                 var pos = entry.getLongKey();
                 var blockState = section.getBlockState(SectionPos.sectionRelative(BlockPos.getX(pos)), SectionPos.sectionRelative(BlockPos.getY(pos)), SectionPos.sectionRelative(BlockPos.getZ(pos)));
                 if (layerTarget.test(blockState, random)) entry.getValue().placeBlock(access, section);
@@ -70,15 +74,15 @@ public class OrePlacer {
 
     private O2OOpenCacheHashMap<SectionPos, Long2ObjectOpenHashMap<OreBlockPlacer>> resolvePlacerLists(long chunk, GeneratedVein vein) {
         O2OOpenCacheHashMap<SectionPos, Long2ObjectOpenHashMap<OreBlockPlacer>> groupedMap = new O2OOpenCacheHashMap<>();
-        for (var entry : vein.consumeOres(chunk).long2ObjectEntrySet()) {
+        for (var entry : Long2ObjectMaps.fastIterable(vein.consumeOres(chunk))) {
             var pos = entry.getLongKey();
             groupedMap.computeIfAbsent(SectionPos.of(BlockPos.getX(pos) >> 4, BlockPos.getY(pos) >> 4, BlockPos.getZ(pos) >> 4), k -> new Long2ObjectOpenHashMap<>()).put(pos, entry.getValue());
         }
         return groupedMap;
     }
 
-    private void placeIndicators(ChunkAccess chunk, BulkSectionAccess access, GeneratedIndicators generatedVein) {
+    private void placeIndicators(WorldGenLevel level, ChunkAccess chunk, BulkSectionAccess access, GeneratedIndicators generatedVein) {
         if (!ConfigHolder.INSTANCE.worldgen.oreVeins.oreIndicators) return;
-        generatedVein.consumeIndicators(chunk.getPos()).forEach(placer -> placer.placeIndicators(access));
+        generatedVein.consumeIndicators(chunk.getPos()).forEach(placer -> placer.placeIndicators(access, level));
     }
 }

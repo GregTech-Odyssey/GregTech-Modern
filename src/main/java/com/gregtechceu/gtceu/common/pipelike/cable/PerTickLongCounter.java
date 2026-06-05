@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.common.pipelike.cable;
 
-public class PerTickLongCounter {
+public final class PerTickLongCounter {
 
     private final long defaultValue;
     private final boolean override;

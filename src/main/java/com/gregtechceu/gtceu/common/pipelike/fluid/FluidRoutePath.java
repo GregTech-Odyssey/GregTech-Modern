@@ -18,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class FluidRoutePath implements IRoutePath<IFluidHandler> {
+public final class FluidRoutePath implements IRoutePath<IFluidHandler> {
 
     @Getter
     private final FluidPipeBlockEntity targetPipe;

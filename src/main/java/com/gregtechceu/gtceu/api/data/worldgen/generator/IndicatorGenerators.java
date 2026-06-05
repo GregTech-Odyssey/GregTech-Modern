@@ -25,7 +25,6 @@ public class IndicatorGenerators {
     public static <T extends IndicatorGenerator> Codec<T> register(ResourceLocation id, Codec<T> codec,
                                                                    Function<GTOreDefinition, T> function) {
         WorldGeneratorUtils.INDICATOR_GENERATORS.put(id, codec);
-        WorldGeneratorUtils.INDICATOR_GENERATOR_FUNCTIONS.put(id, function);
         return codec;
     }
 

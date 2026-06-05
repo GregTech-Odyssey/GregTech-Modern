@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.data.worldgen.ores.OreIndicatorPlacer;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.mojang.datafixers.util.Either;
@@ -26,7 +25,7 @@ public class NoopIndicatorGenerator extends IndicatorGenerator {
     public static final Codec<NoopIndicatorGenerator> CODEC = Codec.unit(() -> INSTANCE);
 
     @Override
-    public Long2ObjectMap<OreIndicatorPlacer> generate(WorldGenLevel level, RandomSource random,
+    public Long2ObjectMap<OreIndicatorPlacer> generate(RandomSource random,
                                                        GeneratedVeinMetadata metadata) {
         // Nothing to do here
         return Long2ObjectMaps.emptyMap();

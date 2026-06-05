@@ -6,7 +6,7 @@ import com.gregtechceu.gtceu.api.pipenet.LevelPipeNet;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 
-public class LevelEnergyNet extends LevelPipeNet<WireProperties, EnergyNet> {
+public final class LevelEnergyNet extends LevelPipeNet<WireProperties, EnergyNet> {
 
     public static LevelEnergyNet getOrCreate(ServerLevel serverLevel) {
         return serverLevel.getDataStorage().computeIfAbsent(tag -> new LevelEnergyNet(serverLevel, tag),

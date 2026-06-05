@@ -11,7 +11,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class LaserNetHandler implements ILaserContainer {
+public final class LaserNetHandler implements ILaserContainer {
 
     @Getter
     private LaserPipeNet net;

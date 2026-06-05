@@ -18,7 +18,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
-public class FluidNetHandler implements ICustomFluidStackHandler {
+public final class FluidNetHandler implements ICustomFluidStackHandler {
 
     @Getter
     private FluidPipeNet net;

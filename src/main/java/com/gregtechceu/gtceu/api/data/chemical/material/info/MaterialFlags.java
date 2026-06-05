@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import java.util.Arrays;
-import java.util.Collection;
 
 public class MaterialFlags {
 
@@ -18,10 +17,7 @@ public class MaterialFlags {
     }
 
     public void verify(Material material) {
-        flags.addAll(flags.stream()
-                .map(f -> f.verifyFlag(material))
-                .flatMap(Collection::stream)
-                .toList());
+        flags.stream().map(f -> f.verifyFlag(material)).forEach(flags::addAll);
     }
 
     public boolean hasFlag(MaterialFlag flag) {

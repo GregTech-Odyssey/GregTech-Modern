@@ -109,7 +109,7 @@ public class SurfaceIndicatorGenerator extends IndicatorGenerator {
     }
 
     @Override
-    public Long2ObjectMap<OreIndicatorPlacer> generate(WorldGenLevel level, RandomSource random, GeneratedVeinMetadata metadata) {
+    public Long2ObjectMap<OreIndicatorPlacer> generate(RandomSource random, GeneratedVeinMetadata metadata) {
         BlockState blockState = placement.stateTransformer.apply(block);
         int radius = this.radius.sample(random);
         float density = this.density.sample(random);
@@ -117,17 +117,17 @@ public class SurfaceIndicatorGenerator extends IndicatorGenerator {
         Stream<BlockPos> positionStream = BlockPos.betweenClosedStream(center.getX() - radius, center.getY(), center.getZ() - radius, center.getX() + radius, center.getY(), center.getZ() + radius).map(BlockPos::immutable);
         var positions = positionStream.filter(pos -> pos.equals(center) || random.nextFloat() <= density).filter(pos -> Math.sqrt(pos.distSqr(center)) <= radius).toList();
         var groupedPositions = WorldGeneratorUtils.groupByChunks(positions);
-        Long2ObjectOpenHashMap<OreIndicatorPlacer> result = new Long2ObjectOpenHashMap<>(groupedPositions.size());
+        var result = new Long2ObjectOpenHashMap<OreIndicatorPlacer>(groupedPositions.size());
         for (Map.Entry<ChunkPos, List<BlockPos>> entry : groupedPositions.entrySet()) {
             List<BlockPos> blockPositions = entry.getValue();
-            OreIndicatorPlacer placer = createPlacer(level, blockPositions, blockState);
+            OreIndicatorPlacer placer = createPlacer(blockPositions, blockState);
             result.put(entry.getKey().toLong(), placer);
         }
         return result;
     }
 
-    private OreIndicatorPlacer createPlacer(WorldGenLevel level, List<BlockPos> positionsWithoutY, BlockState blockState) {
-        return access -> {
+    private OreIndicatorPlacer createPlacer(List<BlockPos> positionsWithoutY, BlockState blockState) {
+        return (access, level) -> {
             var positions = positionsWithoutY.stream().map(pos -> placement.resolver.apply(level, access, pos)).filter(pos -> !level.isOutsideBuildHeight(pos)).toList();
             for (BlockPos pos : positions) {
                 // This is necessary because the heightmap can't be determined at the time of creating the placers

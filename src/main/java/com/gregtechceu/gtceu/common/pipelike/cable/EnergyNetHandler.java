@@ -9,7 +9,7 @@ import lombok.Getter;
 
 import java.util.Objects;
 
-public class EnergyNetHandler implements IEnergyContainer {
+public final class EnergyNetHandler implements IEnergyContainer {
 
     @Getter
     private EnergyNet net;
@@ -52,15 +52,15 @@ public class EnergyNetHandler implements IEnergyContainer {
                 continue;
             }
 
-            if (pos.equals(path.getTargetPipePos()) && side == path.getTargetFacing()) {
+            if (side == path.getTargetFacing() && pos.equals(path.getTargetPipePos())) {
                 // Do not insert into source handler
                 continue;
             }
 
-            IEnergyContainer dest = path.getHandler(getNet().getLevel());
+            var dest = path.getHandler(getNet().getLevel());
             if (dest == null) continue;
 
-            Direction facing = path.getTargetFacing().getOpposite();
+            var facing = path.getTargetFacing().getOpposite();
             if (!dest.inputsEnergy(facing)) continue;
             transfer = true;
             long accept = dest.acceptEnergyFromNetwork(o, facing, voltage - loss, energy);

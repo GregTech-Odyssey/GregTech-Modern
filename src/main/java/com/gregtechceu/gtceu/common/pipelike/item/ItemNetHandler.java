@@ -24,7 +24,9 @@ import net.minecraftforge.items.ItemHandlerHelper;
 import com.fast.fastcollection.O2IOpenCacheHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +35,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-public class ItemNetHandler implements ICustomItemStackHandler {
+public final class ItemNetHandler implements ICustomItemStackHandler {
 
     @Getter
     private ItemPipeNet net;
@@ -388,7 +390,7 @@ public class ItemNetHandler implements ICustomItemStackHandler {
         if (simulate) {
             simulatedTransfersGlobalRoundRobin.addTo(handler.toFacingPos(), amount);
         } else {
-            pipe.getTransferred().mergeInt(handler.toFacingPos(), amount, Integer::sum);
+            pipe.getTransferred().addTo(handler.toFacingPos(), amount);
         }
     }
 
@@ -401,7 +403,8 @@ public class ItemNetHandler implements ICustomItemStackHandler {
     }
 
     private void decrementBy(int amount) {
-        for (var entry : pipe.getTransferred().object2IntEntrySet()) {
+        for (ObjectIterator<Object2IntMap.Entry<FacingPos>> it = pipe.getTransferred().object2IntEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
             entry.setValue(entry.getIntValue() - amount);
         }
     }

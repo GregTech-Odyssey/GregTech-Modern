@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class LaserNetWalker extends PipeNetWalker<LaserPipeBlockEntity, LaserPipeProperties, LaserPipeNet> {
+public final class LaserNetWalker extends PipeNetWalker<LaserPipeBlockEntity, LaserPipeProperties, LaserPipeNet> {
 
     @Nullable
     public static LaserRoutePath createNetData(LaserPipeNet world, BlockPos sourcePipe, Direction faceToSourceHandler) {
@@ -37,7 +37,7 @@ public class LaserNetWalker extends PipeNetWalker<LaserPipeBlockEntity, LaserPip
     private Direction facingToHandler;
     private Direction.Axis axis;
 
-    protected LaserNetWalker(LaserPipeNet world, BlockPos sourcePipe, int distance) {
+    private LaserNetWalker(LaserPipeNet world, BlockPos sourcePipe, int distance) {
         super(world, sourcePipe, distance);
     }
 

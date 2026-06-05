@@ -23,7 +23,7 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 
-import com.fast.fastcollection.OpenCacheHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -121,7 +121,7 @@ public class MachineUIProject extends UIProject {
                 }
             }
             categories.forEach((groupName, definitions) -> menu.branch(groupName, m -> {
-                Set<EditableMachineUI> addedSet = new OpenCacheHashSet<>();
+                Set<EditableMachineUI> addedSet = new ReferenceOpenHashSet<>();
                 for (var definition : definitions) {
                     var editableUI = definition.getEditableUI();
                     if (editableUI != null && addedSet.add(editableUI)) {

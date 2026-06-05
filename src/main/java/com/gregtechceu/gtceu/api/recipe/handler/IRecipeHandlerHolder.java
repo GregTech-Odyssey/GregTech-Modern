@@ -352,6 +352,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         for (var handler : getOutputUnits()) {
             if (handler.handleItem(IO.OUT, contentList, true)) return true;
         }
+        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
         return false;
     }
 
@@ -360,6 +361,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         for (var handler : getOutputUnits()) {
             if (handler.handleItem(IO.OUT, contentList, true)) return true;
         }
+        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
         return false;
     }
 
@@ -369,6 +371,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         for (var handler : getOutputUnits()) {
             if (handler.handleItem(IO.OUT, contentList, false)) return true;
         }
+        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
         return false;
     }
 
@@ -377,6 +380,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         for (var handler : getOutputUnits()) {
             if (handler.handleItem(IO.OUT, contentList, false)) return true;
         }
+        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
         return false;
     }
 
@@ -425,6 +429,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         for (var handler : getOutputUnits()) {
             if (handler.handleFluid(IO.OUT, contentList, true)) return true;
         }
+        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
         return false;
     }
 
@@ -433,6 +438,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         for (var handler : getOutputUnits()) {
             if (handler.handleFluid(IO.OUT, contentList, true)) return true;
         }
+        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
         return false;
     }
 
@@ -442,6 +448,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         for (var handler : getOutputUnits()) {
             if (handler.handleFluid(IO.OUT, contentList, false)) return true;
         }
+        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
         return false;
     }
 
@@ -450,6 +457,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         for (var handler : getOutputUnits()) {
             if (handler.handleFluid(IO.OUT, contentList, false)) return true;
         }
+        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
         return false;
     }
 
