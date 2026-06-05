@@ -95,7 +95,7 @@ public class PipeCoverContainer implements ICoverable {
     }
 
     @Override
-    public BlockEntity holder() {
+    public TickBlockEntity holder() {
         return pipeTile;
     }
 

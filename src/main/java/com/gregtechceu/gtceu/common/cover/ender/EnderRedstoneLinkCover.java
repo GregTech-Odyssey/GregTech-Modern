@@ -34,17 +34,13 @@ public class EnderRedstoneLinkCover extends AbstractEnderLinkCover<VirtualRedsto
     }
 
     @Override
-    public boolean canAttach() {
-        return true;
-    }
-
-    @Override
     protected String identifier() {
         return "ERLink#";
     }
 
     @Override
     protected VirtualRedstone getEntry() {
+        var storage = this.storage;
         if (storage == null) return new VirtualRedstone();
         return storage;
     }

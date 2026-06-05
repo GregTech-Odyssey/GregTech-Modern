@@ -5,6 +5,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import com.gto.datasynclib.datasream.data.MapData;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
 public final class FieldDataManager {
@@ -16,6 +17,8 @@ public final class FieldDataManager {
     private final DataField<?>[] syncToServerFields;
     private final DataField<?>[] saveFields;
     private boolean syncChange = true;
+    private volatile boolean updateing;
+    private volatile boolean writeing;
 
     public FieldDataManager(IFieldDataHolder holder) {
         this.holder = holder;
@@ -107,20 +110,26 @@ public final class FieldDataManager {
      * @return true if any changes were detected
      */
     public boolean updateFieldDirtyFlags(LogicalSide side, boolean auto) {
-        final var fields = side.isServer() ? syncToClientFields : syncToServerFields;
-        boolean hasChanges = false;
-        for (DataField<?> field : fields) {
-            var d = field.getDefinition();
-            var source = d.source.apply(holder);
-            if (!field.mustDetected() && field.isChanged(source)) {
-                hasChanges = true;
-            } else {
-                if ((!auto || d.autoUpdate(side)) && field.detectChange(side, d.source.apply(holder), auto)) {
+        if (updateing) return false;
+        updateing = true;
+        try {
+            final var fields = side.isServer() ? syncToClientFields : syncToServerFields;
+            boolean hasChanges = false;
+            for (DataField<?> field : fields) {
+                var d = field.getDefinition();
+                var source = d.source.apply(holder);
+                if (!field.mustDetected() && field.isChanged(source)) {
                     hasChanges = true;
+                } else {
+                    if ((!auto || d.autoUpdate(side)) && field.detectChange(side, d.source.apply(holder), auto)) {
+                        hasChanges = true;
+                    }
                 }
             }
+            return syncChange = hasChanges || syncChange;
+        } finally {
+            updateing = false;
         }
-        return syncChange = hasChanges || syncChange;
     }
 
     /**
@@ -131,6 +140,8 @@ public final class FieldDataManager {
      * @return byte array containing the serialized data
      */
     public byte @NotNull [] writeToNetworkBuffer(LogicalSide side, boolean force) {
+        if (writeing) return ArrayUtils.EMPTY_BYTE_ARRAY;
+        writeing = true;
         syncChange = false;
         var buf = Unpooled.buffer();
         var wrapper = new FriendlyByteBuf(buf);
@@ -153,6 +164,7 @@ public final class FieldDataManager {
             return data;
         } finally {
             buf.release();
+            writeing = false;
         }
     }
 

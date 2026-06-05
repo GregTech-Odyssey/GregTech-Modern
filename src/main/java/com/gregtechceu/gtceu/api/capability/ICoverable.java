@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.capability;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.block.IAppearance;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
+import com.gregtechceu.gtceu.api.blockentity.TickBlockEntity;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
@@ -43,7 +44,7 @@ public interface ICoverable extends ITickSubscription, IAppearance, IFieldDataHo
 
     BlockEntity getNeighbor(Direction facing);
 
-    BlockEntity holder();
+    TickBlockEntity holder();
 
     Level getLevel();
 

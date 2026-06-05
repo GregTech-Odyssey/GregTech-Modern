@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
 import com.gregtechceu.gtceu.api.machine.MachineCoverContainer;
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.EntryTypes;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEnderRegistry;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEntry;
@@ -32,6 +33,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
+import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -82,7 +84,9 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
     }
 
     @Override
-    public abstract boolean canAttach();
+    public boolean canAttach() {
+        return super.canAttach() && MetaMachine.getMachine(coverHolder.holder()) != null;
+    }
 
     @Override
     public void onAttached(@NotNull ItemStack itemStack, @NotNull ServerPlayer player) {
@@ -255,6 +259,10 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
             channelsGroup = new DraggableScrollableWidgetGroup(0, 20, 170, 110).setYScrollBarWidth(2).setYBarStyle(null, ColorPattern.T_WHITE.rectTexture().setRadius(1));
             mainChannelGroup = new WidgetGroup(10, 20, 156, 20);
             initWidgets();
+            if (isRemote()) return;
+            if (cover.coverHolder.holder().getFieldDataManager().updateFieldDirtyFlags(LogicalSide.SERVER, true)) {
+                cover.coverHolder.holder().syncToClient();
+            }
         }
 
         public void update() {
@@ -265,6 +273,9 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
             mainChannelGroup.widgets.clear();
             initWidgets();
             this.detectAndSendChanges();
+            if (cover.coverHolder.holder().getFieldDataManager().updateFieldDirtyFlags(LogicalSide.SERVER, true)) {
+                cover.coverHolder.holder().syncToClient();
+            }
         }
 
         private void initWidgets() {

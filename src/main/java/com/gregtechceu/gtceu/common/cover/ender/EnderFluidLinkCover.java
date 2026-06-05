@@ -57,7 +57,7 @@ public class EnderFluidLinkCover extends AbstractEnderLinkCover<VirtualTank> {
 
     @Override
     public boolean canAttach() {
-        return GTCapabilityHelper.getFluidHandler(coverHolder.holder(), attachedSide) != null;
+        return super.canAttach() && GTCapabilityHelper.getFluidHandler(coverHolder.holder(), attachedSide) != null;
     }
 
     @Override

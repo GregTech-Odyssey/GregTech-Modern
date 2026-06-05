@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.common.cover.ender;
 
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.cover.filter.FilterHandler;
@@ -45,7 +46,7 @@ public class EnderItemLinkCover extends AbstractEnderLinkCover<VirtualItemStorag
 
     @Override
     public boolean canAttach() {
-        return true;
+        return super.canAttach() && GTCapabilityHelper.getItemHandler(coverHolder.holder(), attachedSide) != null;
     }
 
     @Override

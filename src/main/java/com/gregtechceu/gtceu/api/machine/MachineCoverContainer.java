@@ -97,7 +97,7 @@ public class MachineCoverContainer implements ICoverable {
     }
 
     @Override
-    public BlockEntity holder() {
+    public TickBlockEntity holder() {
         return machine.holder;
     }
 
