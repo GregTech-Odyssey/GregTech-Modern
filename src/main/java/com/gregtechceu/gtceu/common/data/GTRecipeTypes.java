@@ -693,8 +693,4 @@ public class GTRecipeTypes {
         GTRegistries.register(BuiltInRegistries.RECIPE_SERIALIZER, GTCEu.id("crafting_shaped_fluid_container"),
                 ShapedFluidContainerRecipe.SERIALIZER);
     }
-
-    public static GTRecipeType get(String name) {
-        return GTRegistries.RECIPE_TYPES.get(GTCEu.id(name));
-    }
 }

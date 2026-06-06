@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.common.data;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
@@ -39,9 +38,5 @@ public class GTRecipeCategories {
     public static void init() {
         AddonFinder.getAddons().forEach(IGTAddon::registerRecipeCategories);
         GTRegistries.RECIPE_CATEGORIES.freeze();
-    }
-
-    public static GTRecipeCategory get(String name) {
-        return GTRegistries.RECIPE_CATEGORIES.get(GTCEu.id(name));
     }
 }

@@ -5,11 +5,9 @@ import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModLoadingContext;
 
 import com.fast.fastcollection.O2OOpenCacheHashMap;
-import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datasream.codec.DataCodec;
 import com.gto.datasynclib.util.DataCodecs;
 import com.gto.datasynclib.util.Registry;
-import com.gto.datasynclib.util.StreamCodecs;
 import com.mojang.serialization.Codec;
 import lombok.Getter;
 
@@ -44,15 +42,12 @@ public abstract class GTRegistry<K extends Comparable<K>, V> extends Registry<K,
 
     public abstract DataCodec<V> dataCodec();
 
-    public abstract ByteStreamCodec<V> streamCodec();
-
     public abstract Codec<V> codec();
 
     // ************************ Built-in Registry ************************//
     public static class Str<V> extends GTRegistry<String, V> {
 
         private final DataCodec<V> dataCodec = super.dataCodec(DataCodec.STRING_CODEC);
-        private final ByteStreamCodec<V> streamCodec = super.streamCodec(ByteStreamCodec.STRING_CODEC);
 
         public Str(ResourceLocation registryName) {
             super(registryName);
@@ -61,11 +56,6 @@ public abstract class GTRegistry<K extends Comparable<K>, V> extends Registry<K,
         @Override
         public DataCodec<V> dataCodec() {
             return dataCodec;
-        }
-
-        @Override
-        public ByteStreamCodec<V> streamCodec() {
-            return streamCodec;
         }
 
         public Str(ResourceLocation registryName, boolean checkContext) {
@@ -81,7 +71,6 @@ public abstract class GTRegistry<K extends Comparable<K>, V> extends Registry<K,
     public static class RL<V> extends GTRegistry<ResourceLocation, V> {
 
         private final DataCodec<V> dataCodec = super.dataCodec(DataCodecs.RESOURCE_LOCATION_CODEC);
-        private final ByteStreamCodec<V> streamCodec = super.streamCodec(StreamCodecs.RESOURCE_LOCATION_CODEC);
 
         public RL(ResourceLocation registryName) {
             super(registryName);
@@ -94,11 +83,6 @@ public abstract class GTRegistry<K extends Comparable<K>, V> extends Registry<K,
         @Override
         public DataCodec<V> dataCodec() {
             return dataCodec;
-        }
-
-        @Override
-        public ByteStreamCodec<V> streamCodec() {
-            return streamCodec;
         }
 
         @Override

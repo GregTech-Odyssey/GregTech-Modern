@@ -332,7 +332,7 @@ public abstract class ProspectorMode<T> {
 
         @Override
         public void serialize(OreInfo item, FriendlyByteBuf buf) {
-            buf.writeResourceLocation(item.material.getResourceLocation());
+            GTCEuAPI.materialManager.streamCodec().encode(buf, item.material);
             buf.writeVarInt(item.weight);
             buf.writeVarInt(item.left);
             buf.writeVarInt(item.yield);
@@ -340,7 +340,7 @@ public abstract class ProspectorMode<T> {
 
         @Override
         public OreInfo deserialize(FriendlyByteBuf buf) {
-            return new OreInfo(GTCEuAPI.materialManager.get(buf.readResourceLocation()), buf.readVarInt(), buf.readVarInt(), buf.readVarInt());
+            return new OreInfo(GTCEuAPI.materialManager.streamCodec().decode(buf), buf.readVarInt(), buf.readVarInt(), buf.readVarInt());
         }
 
         @Override

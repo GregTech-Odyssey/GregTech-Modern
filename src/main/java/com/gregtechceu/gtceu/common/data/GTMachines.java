@@ -931,8 +931,4 @@ public class GTMachines {
         AddonFinder.getAddons().forEach(IGTAddon::registerMachiness);
         GTRegistries.MACHINES.freeze();
     }
-
-    public static MachineDefinition get(String name) {
-        return GTRegistries.MACHINES.get(GTCEu.id(name));
-    }
 }

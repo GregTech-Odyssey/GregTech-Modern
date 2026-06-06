@@ -22,6 +22,8 @@ public class Registry<K extends Comparable<K>, V> implements Iterable<V> {
     protected final LinkedHashMap<K, V> keyValues = new LinkedHashMap<>();
     protected final IdMap<V, K> valueKeys = new IdMap<>();
     protected final ReferenceArrayList<V> idValues = new ReferenceArrayList<>();
+    protected final ByteStreamCodec<V> streamCodec = ByteStreamCodec.of((buf, obj) -> buf.writeVarInt(valueKeys.get(obj).number), buf -> idValues.get(buf.readVarInt()));;
+
     @Getter
     protected volatile boolean frozen = true;
 
@@ -151,8 +153,8 @@ public class Registry<K extends Comparable<K>, V> implements Iterable<V> {
         return DataCodec.of(obj -> keyCodec.encode(getKey(obj)), (data, dataVersion) -> keyValues.get(keyCodec.decode(data, dataVersion)));
     }
 
-    public ByteStreamCodec<V> streamCodec(ByteStreamCodec<K> keyCodec) {
-        return ByteStreamCodec.of((buf, obj) -> keyCodec.encode(buf, getKey(obj)), buf -> keyValues.get(keyCodec.decode(buf)));
+    public final ByteStreamCodec<V> streamCodec() {
+        return streamCodec;
     }
 
     public Codec<V> codec(Codec<K> keyCodec) {

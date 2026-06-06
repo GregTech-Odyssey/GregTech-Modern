@@ -47,7 +47,7 @@ public final class GeneratedVeinMetadata {
         ResourceLocation id = buf.readResourceLocation();
         ChunkPos origin = new ChunkPos(buf.readVarLong());
         BlockPos center = BlockPos.of(buf.readVarLong());
-        GTOreDefinition def = GTRegistries.ORE_VEINS.get(buf.readResourceLocation());
+        GTOreDefinition def = GTRegistries.ORE_VEINS.streamCodec().decode(buf);
         return new GeneratedVeinMetadata(id, origin, center, def, false);
     }
 
@@ -55,7 +55,7 @@ public final class GeneratedVeinMetadata {
         buf.writeResourceLocation(this.id);
         buf.writeVarLong(this.originChunk.toLong());
         buf.writeVarLong(this.center.asLong());
-        buf.writeResourceLocation(GTRegistries.ORE_VEINS.getKey(this.definition));
+        GTRegistries.ORE_VEINS.streamCodec().encode(buf, this.definition);
     }
 
     @Override
