@@ -11,7 +11,6 @@ import com.gregtechceu.gtceu.common.registry.GTRegistration;
 import net.minecraft.resources.ResourceLocation;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,6 +26,7 @@ public final class MaterialRegistryManager extends GTRegistry.RL<Material> {
 
     private final HashMap<String, MaterialRegistry> registries = new HashMap<>();
 
+    private final ReferenceOpenHashSet<Material> registeredMaterials = new ReferenceOpenHashSet<>();
     private final ReferenceOpenHashSet<Material> nonRegisteredMaterials = new ReferenceOpenHashSet<>();
 
     private Phase registrationPhase = Phase.PRE;
@@ -44,7 +44,7 @@ public final class MaterialRegistryManager extends GTRegistry.RL<Material> {
     }
 
     public Collection<Material> getAll() {
-        return ImmutableList.<Material>builder().addAll(values()).addAll(nonRegisteredMaterials).build();
+        return values();
     }
 
     @NotNull
@@ -78,7 +78,7 @@ public final class MaterialRegistryManager extends GTRegistry.RL<Material> {
         if (registrationPhase != Phase.CLOSED && registrationPhase != Phase.FROZEN) {
             throw new IllegalStateException("Cannot retrieve all materials before registration");
         }
-        return values();
+        return registeredMaterials;
     }
 
     public Material getMaterial(@NotNull String name) {
@@ -110,7 +110,9 @@ public final class MaterialRegistryManager extends GTRegistry.RL<Material> {
     public void closeRegistries() {
         registrationPhase = Phase.CLOSED;
         super.unfreeze();
-        registries.values().forEach(r -> r.getMaterials().forEach(m -> super.register(m.getResourceLocation(), m)));
+        registries.values().forEach(r -> registeredMaterials.addAll(r.getMaterials()));
+        registeredMaterials.forEach(m -> super.register(m.getResourceLocation(), m));
+        nonRegisteredMaterials.forEach(m -> super.register(m.getResourceLocation(), m));
         super.freeze();
     }
 
@@ -123,11 +125,6 @@ public final class MaterialRegistryManager extends GTRegistry.RL<Material> {
         MaterialRegistry registry = new MaterialRegistry(GTRegistration.REGISTRATE);
         INSTANCE.registries.put(GTCEu.MOD_ID, registry);
         return registry;
-    }
-
-    @NotNull
-    public Material getDefaultFallback() {
-        return GREGTECH_REGISTRY.getFallbackMaterial();
     }
 
     public boolean canModifyMaterials() {

@@ -151,7 +151,6 @@ public class CommonProxy {
         GTCEu.LOGGER.info("Registering material registries");
         managerInternal.unfreezeRegistries();
         GTMaterials.init();
-        MaterialRegistryManager.getInstance().getRegistry(GTCEu.MOD_ID).setFallbackMaterial(GTMaterials.Aluminium);
         AddonFinder.getAddons().forEach(IGTAddon::registerMaterials);
         managerInternal.closeRegistries();
         AlloyBlastPropertyAddition.addAlloyBlastProperties();

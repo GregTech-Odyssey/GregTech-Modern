@@ -74,18 +74,18 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
     @Getter
     protected boolean hasResearchSlot;
     @Getter
-    protected final Set<RecipeType<?>> proxyRecipes;
+    protected final ReferenceOpenHashSet<RecipeType<?>> proxyRecipes;
     @Getter
     protected final GTRecipeCategory category;
     @Getter
-    protected final Map<GTRecipeCategory, Set<GTRecipeDefinition>> categoryMap = new O2OOpenCacheHashMap<>();
+    protected final O2OOpenCacheHashMap<GTRecipeCategory, Set<GTRecipeDefinition>> categoryMap = new O2OOpenCacheHashMap<>();
     @Getter
     protected boolean offsetVoltageText = false;
     @Getter
     protected int voltageTextOffset = 20;
-    protected final Map<String, Collection<GTRecipeDefinition>> researchEntries = new O2OOpenCacheHashMap<>();
+    protected final O2OOpenCacheHashMap<String, Collection<GTRecipeDefinition>> researchEntries = new O2OOpenCacheHashMap<>();
     @Getter
-    protected final List<ICustomRecipeLogic> customRecipeLogicRunners = new ArrayList<>();
+    protected final ArrayList<ICustomRecipeLogic> customRecipeLogicRunners = new ArrayList<>();
 
     @Getter
     protected boolean noSearch;
@@ -104,7 +104,7 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
         this.defaultDefinition = new GTRecipeDefinition(false, this, category, GTCEu.id("default"), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), new DataComponentMap(), ChanceBoostFunction.OVERCLOCK, 0, 0, 100, 0);
     }
 
-    public static boolean available(GTRecipeType recipeType, GTRecipeType... types) {
+    public static boolean available(@Nullable GTRecipeType recipeType, GTRecipeType... types) {
         if (recipeType == null || recipeType == GTRecipeTypes.DUMMY_RECIPES) return true;
         for (var type : types) {
             if (recipeType == type || type.proxyRecipes.contains(recipeType)) return true;
