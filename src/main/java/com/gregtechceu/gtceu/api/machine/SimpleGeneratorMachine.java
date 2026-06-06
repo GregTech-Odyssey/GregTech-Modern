@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.machine;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
@@ -89,6 +90,11 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine {
             return recipe;
         }
         return null;
+    }
+
+    @Override
+    protected NotifiableFluidTank createExportFluidHandler(Object... args) {
+        return new NotifiableFluidTank(this, 1, 0, IO.OUT).setAvailable(false);
     }
 
     //////////////////////////////////////
