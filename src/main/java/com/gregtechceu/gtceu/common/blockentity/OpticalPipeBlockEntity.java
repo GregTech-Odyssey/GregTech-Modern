@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.common.blockentity;
 
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
+import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.IDataAccessHatch;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.misc.ComputationProviderList;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
@@ -16,8 +16,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
@@ -28,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.EnumMap;
 
-public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, OpticalPipeProperties> {
+public final class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, OpticalPipeProperties> {
 
     private final EnumMap<Direction, OpticalNetHandler> handlers = new EnumMap<>(Direction.class);
     // the OpticalNetHandler can only be created on the server, so we have an empty placeholder for the client
@@ -59,31 +57,23 @@ public class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeType, Opt
     }
 
     @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable Direction facing) {
-        if (capability == GTCapability.CAPABILITY_DATA_ACCESS) {
-            if (level.isClientSide) {
-                return GTCapability.CAPABILITY_DATA_ACCESS.orEmpty(capability, LazyOptional.of(() -> defaultDataHandler));
-            }
-            if (facing != null && !isConnected(facing)) return LazyOptional.empty();
+    public @Nullable <T> T getGTCapability(@NotNull Class<T> cap, @Nullable Direction side) {
+        if (cap == GTCapability.DATA_ACCESS) {
+            if (level.isClientSide) return cap.cast(defaultDataHandler);
+            if (side != null && !isConnected(side)) return null;
             if (handlers.isEmpty()) initHandlers();
             checkNetwork();
-            var handler = handlers.getOrDefault(facing, defaultHandler);
-            return GTCapability.CAPABILITY_DATA_ACCESS.orEmpty(capability, LazyOptional.of(() -> handler == null ? defaultDataHandler : handler));
-        }
-        if (capability == GTCapability.CAPABILITY_COMPUTATION_PROVIDER) {
-            if (level.isClientSide) {
-                return GTCapability.CAPABILITY_COMPUTATION_PROVIDER.orEmpty(capability, LazyOptional.of(() -> ComputationProviderList.EMPTY));
-            }
-            if (facing != null && !isConnected(facing)) return LazyOptional.empty();
+            var handler = handlers.getOrDefault(side, defaultHandler);
+            return cap.cast(handler == null ? defaultDataHandler : handler);
+        } else if (cap == GTCapability.COMPUTATION_PROVIDER) {
+            if (level.isClientSide) return cap.cast(ComputationProviderList.EMPTY);
+            if (side != null && !isConnected(side)) return null;
             if (handlers.isEmpty()) initHandlers();
             checkNetwork();
-            var handler = handlers.getOrDefault(facing, defaultHandler);
-            return GTCapability.CAPABILITY_COMPUTATION_PROVIDER.orEmpty(capability, LazyOptional.of(() -> handler == null ? defaultHandler : handler));
+            var handler = handlers.getOrDefault(side, defaultHandler);
+            return cap.cast(handler == null ? defaultHandler : handler);
         }
-        if (capability == GTCapability.CAPABILITY_COVERABLE) {
-            return GTCapability.CAPABILITY_COVERABLE.orEmpty(capability, LazyOptional.of(this::getCoverContainer));
-        }
-        return super.getCapability(capability, facing);
+        return super.getGTCapability(cap, side);
     }
 
     public void checkNetwork() {

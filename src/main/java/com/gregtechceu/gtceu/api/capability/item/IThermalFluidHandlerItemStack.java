@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.api.capability;
+package com.gregtechceu.gtceu.api.capability.item;
 
 import com.gregtechceu.gtceu.api.fluids.FluidState;
 import com.gregtechceu.gtceu.api.fluids.GTFluid;

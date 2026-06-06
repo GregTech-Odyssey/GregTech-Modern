@@ -6,11 +6,13 @@ import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableMultiblockPartM
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableComputationContainer;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
 import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -53,5 +55,10 @@ public class OpticalComputationHatchMachine extends WorkableMultiblockPartMachin
     @Override
     public boolean canBridge() {
         return computationContainer.canBridge();
+    }
+
+    @Override
+    public boolean testCapability(@Nullable Direction side) {
+        return side == null || side == getFrontFacing();
     }
 }

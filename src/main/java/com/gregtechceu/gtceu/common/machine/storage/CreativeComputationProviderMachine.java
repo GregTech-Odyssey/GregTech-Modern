@@ -16,6 +16,7 @@ import com.lowdragmc.lowdraglib.gui.widget.SwitchWidget;
 import com.lowdragmc.lowdraglib.gui.widget.TextFieldWidget;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
@@ -85,6 +86,11 @@ public class CreativeComputationProviderMachine extends MetaMachine implements I
 
     @Override
     public boolean isTransmitter() {
+        return true;
+    }
+
+    @Override
+    public boolean testCapability(@Nullable Direction side) {
         return true;
     }
 }

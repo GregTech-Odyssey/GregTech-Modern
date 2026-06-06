@@ -2,16 +2,10 @@ package com.gregtechceu.gtceu.api.blockentity;
 
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.capability.*;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.item.tool.IToolGridHighlight;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.trait.ICapabilityTrait;
-import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
-import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
-import com.gregtechceu.gtceu.api.misc.EnergyInfoProviderList;
-import com.gregtechceu.gtceu.api.misc.LaserContainerList;
 import com.gregtechceu.gtceu.client.renderer.GTRendererProvider;
 
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
@@ -40,12 +34,9 @@ import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
-public class MetaMachineBlockEntity extends TickBlockEntity implements IToolGridHighlight, IPaintable, IWailaDisplayProvider {
+public class MetaMachineBlockEntity extends GTBlockEntity implements IToolGridHighlight, IPaintable, IWailaDisplayProvider {
 
     @Getter
     public final MetaMachine metaMachine;
@@ -56,6 +47,11 @@ public class MetaMachineBlockEntity extends TickBlockEntity implements IToolGrid
         this.definition = blockState.getBlock() instanceof MetaMachineBlock machineBlock ? machineBlock.definition : null;
         assert definition != null : "MetaMachineBlockEntity is created for an un available block: +" + blockState.getBlock();
         this.metaMachine = definition.createMetaMachine(this);
+    }
+
+    @Override
+    public ICoverable getCoverContainer() {
+        return metaMachine.coverContainer;
     }
 
     public static MetaMachineBlockEntity createBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
@@ -84,6 +80,11 @@ public class MetaMachineBlockEntity extends TickBlockEntity implements IToolGrid
         return metaMachine.sideTips(player, pos, state, toolTypes, side);
     }
 
+    @Nullable
+    public final <T> T getGTCapability(@NotNull Class<T> cap, @Nullable Direction side) {
+        return metaMachine.getGTCapability(cap, side);
+    }
+
     @Override
     @NotNull
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
@@ -109,81 +110,8 @@ public class MetaMachineBlockEntity extends TickBlockEntity implements IToolGrid
                 }
                 return LazyOptional.empty();
             }).cast();
-        } else if (cap == GTCapability.CAPABILITY_COVERABLE) {
-            return GTCapability.CAPABILITY_COVERABLE.orEmpty(cap, LazyOptional.of(machine::getCoverContainer));
-        } else if (cap == GTCapability.CAPABILITY_ENERGY_CONTAINER) {
-            return machine.energyDirectionCache.getOrSet(side, () -> {
-                if (machine instanceof IEnergyContainer energyContainer) {
-                    return LazyOptional.of(() -> energyContainer);
-                }
-                var list = getCapabilitiesFromTraits(machine.getTraits(), side, IEnergyContainer.class);
-                if (!list.isEmpty()) {
-                    return LazyOptional.of(() -> list.size() == 1 ? list.getFirst() : new EnergyContainerList(list));
-                }
-                return LazyOptional.empty();
-            }).cast();
-        } else if (cap == GTCapability.CAPABILITY_LASER) {
-            if (machine instanceof ILaserContainer energyContainer) {
-                return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> energyContainer));
-            }
-            var list = getCapabilitiesFromTraits(machine.getTraits(), side, ILaserContainer.class);
-            if (!list.isEmpty()) {
-                return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> list.size() == 1 ? list.getFirst() : new LaserContainerList(list)));
-            }
-            return LazyOptional.empty();
-        } else if (cap == GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER) {
-            if (machine instanceof IEnergyInfoProvider energyInfoProvider) {
-                return GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER.orEmpty(cap, LazyOptional.of(() -> energyInfoProvider));
-            }
-            var list = getInfoCapabilitiesFromTraits(machine.getTraits(), side, IEnergyInfoProvider.class);
-            if (!list.isEmpty()) {
-                return GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER.orEmpty(cap, LazyOptional.of(() -> list.size() == 1 ? list.getFirst() : new EnergyInfoProviderList(list)));
-            }
-            return LazyOptional.empty();
-        } else if (cap == GTCapability.CAPABILITY_WORKABLE) {
-            if (machine instanceof IWorkable workable) {
-                return GTCapability.CAPABILITY_WORKABLE.orEmpty(cap, LazyOptional.of(() -> workable));
-            }
-            for (MachineTrait trait : machine.getTraits()) {
-                if (trait instanceof IWorkable workable) {
-                    return GTCapability.CAPABILITY_WORKABLE.orEmpty(cap, LazyOptional.of(() -> workable));
-                }
-            }
-            return LazyOptional.empty();
-        } else if (cap == GTCapability.CAPABILITY_CONTROLLABLE) {
-            if (machine instanceof IControllable controllable) {
-                return GTCapability.CAPABILITY_CONTROLLABLE.orEmpty(cap, LazyOptional.of(() -> controllable));
-            }
-            for (MachineTrait trait : machine.getTraits()) {
-                if (trait instanceof IControllable controllable) {
-                    return GTCapability.CAPABILITY_CONTROLLABLE.orEmpty(cap, LazyOptional.of(() -> controllable));
-                }
-            }
-            return LazyOptional.empty();
         }
         return machine.getCapability(cap, side);
-    }
-
-    public static <T> List<T> getInfoCapabilitiesFromTraits(List<MachineTrait> traits, Direction accessSide, Class<T> capability) {
-        if (traits.isEmpty()) return Collections.emptyList();
-        List<T> list = new ArrayList<>();
-        for (MachineTrait trait : traits) {
-            if (capability.isInstance(trait)) {
-                list.add(capability.cast(trait));
-            }
-        }
-        return list;
-    }
-
-    public static <T> List<T> getCapabilitiesFromTraits(List<MachineTrait> traits, Direction accessSide, Class<T> capability) {
-        if (traits.isEmpty()) return Collections.emptyList();
-        List<T> list = new ArrayList<>();
-        for (MachineTrait trait : traits) {
-            if (trait instanceof ICapabilityTrait capabilityTrait && capabilityTrait.hasCapability(accessSide) && capability.isInstance(trait)) {
-                list.add(capability.cast(trait));
-            }
-        }
-        return list;
     }
 
     /**
@@ -215,24 +143,14 @@ public class MetaMachineBlockEntity extends TickBlockEntity implements IToolGrid
         return worldPosition;
     }
 
+    @Override
     public void saveCustomPersistedData(CompoundTag tag, boolean forDrop) {
         metaMachine.saveCustomPersistedData(tag, forDrop);
     }
 
+    @Override
     public void loadCustomPersistedData(CompoundTag tag) {
         metaMachine.loadCustomPersistedData(tag);
-    }
-
-    @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        loadCustomPersistedData(tag);
-    }
-
-    @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
-        saveCustomPersistedData(tag, false);
     }
 
     @Override

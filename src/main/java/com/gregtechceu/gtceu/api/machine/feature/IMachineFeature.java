@@ -16,4 +16,9 @@ public interface IMachineFeature {
     default @Nullable <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         return null;
     }
+
+    @Nullable
+    default <T> T getGTCapability(@NotNull Class<T> cap, @Nullable Direction side) {
+        return null;
+    }
 }

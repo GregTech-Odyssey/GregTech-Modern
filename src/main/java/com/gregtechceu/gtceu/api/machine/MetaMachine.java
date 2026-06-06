@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
-import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.data.RotationState;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
@@ -17,7 +16,6 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.feature.*;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
-import com.gregtechceu.gtceu.api.machine.trait.ICapabilityTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.misc.IOFilteredInvWrapper;
 import com.gregtechceu.gtceu.api.misc.IOFluidHandlerList;
@@ -96,7 +94,7 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     private final LazyFieldDataManager fieldDataManager = new LazyFieldDataManager(this);
 
     @Getter
-    protected final MachineDefinition definition;
+    public final MachineDefinition definition;
     @SaveToDisk
     @SyncToClient
     @Nullable
@@ -106,7 +104,7 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     @Getter
     @SyncToClient
     @SaveToDisk(key = "cover")
-    protected final MachineCoverContainer coverContainer;
+    public final MachineCoverContainer coverContainer;
     @Getter
     @SaveToDisk
     @SyncToClient(notifyUpdate = true)
@@ -121,7 +119,6 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
 
     public final DirectionCache<LazyOptional<IItemHandler>> itemCapDirectionCache = DirectionCache.create();
     public final DirectionCache<LazyOptional<IFluidHandler>> fluidCapDirectionCache = DirectionCache.create();
-    public final DirectionCache<LazyOptional<IEnergyContainer>> energyDirectionCache = DirectionCache.create();
 
     protected final DirectionCache<BlockState> blockStateDirectionCache = DirectionCache.create();
     protected final DirectionCache<FluidState> fluidStateDirectionCache = DirectionCache.create();
@@ -422,7 +419,6 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
         fluidHandlerModifiableCoverCache.clearCache();
         itemCapDirectionCache.clearCache();
         fluidCapDirectionCache.clearCache();
-        energyDirectionCache.clearCache();
     }
 
     public void clearInventory(ICustomItemStackHandler inventory) {
@@ -681,16 +677,8 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     public @Nullable ICustomItemStackHandler getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
         var cache = useCoverCapability ? itemHandlerModifiableCoverCache : itemHandlerModifiableCache;
         return cache.getOrSet(side, () -> {
-            var ts = getTraits();
-            List<ICustomItemStackHandler> filteredTraits = new ArrayList<>(ts.size());
-            for (var t : ts) {
-                if (t instanceof ICustomItemStackHandler && t instanceof ICapabilityTrait capabilityTrait && capabilityTrait.hasCapability(side)) {
-                    filteredTraits.add((ICustomItemStackHandler) t);
-                }
-            }
-            if (filteredTraits.isEmpty()) {
-                return null;
-            }
+            var filteredTraits = GTCapabilityHelper.getCapabilitiesFromTraits(traits, side, ICustomItemStackHandler.class);
+            if (filteredTraits.isEmpty()) return null;
             ICustomItemStackHandler handlerList = null;
             IO io = IO.BOTH;
             var inf = getItemCapFilter(side, IO.IN);
@@ -710,16 +698,8 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     public @Nullable ICustomFluidStackHandler getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
         var cache = useCoverCapability ? fluidHandlerModifiableCoverCache : fluidHandlerModifiableCache;
         return cache.getOrSet(side, () -> {
-            var ts = getTraits();
-            List<ICustomFluidStackHandler> filteredTraits = new ArrayList<>(ts.size());
-            for (var t : ts) {
-                if (t instanceof ICustomFluidStackHandler && t instanceof ICapabilityTrait capabilityTrait && capabilityTrait.hasCapability(side)) {
-                    filteredTraits.add((ICustomFluidStackHandler) t);
-                }
-            }
-            if (filteredTraits.isEmpty()) {
-                return null;
-            }
+            var filteredTraits = GTCapabilityHelper.getCapabilitiesFromTraits(traits, side, ICustomFluidStackHandler.class);
+            if (filteredTraits.isEmpty()) return null;
             ICustomFluidStackHandler handlerList = null;
             var inf = getFluidCapFilter(side, IO.IN);
             var outf = getFluidCapFilter(side, IO.OUT);
@@ -781,7 +761,6 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
         fluidHandlerModifiableCoverCache.remove(side);
         itemCapDirectionCache.remove(side);
         fluidCapDirectionCache.remove(side);
-        energyDirectionCache.remove(side);
     }
 
     public void setOwnerUUID(@Nullable final UUID ownerUUID) {

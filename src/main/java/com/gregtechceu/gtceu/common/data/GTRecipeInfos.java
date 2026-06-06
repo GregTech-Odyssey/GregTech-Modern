@@ -10,7 +10,6 @@ public class GTRecipeInfos {
     public final static RecipeInfo ITEM = ItemRecipeInfo.INSTANCE;
     public final static RecipeInfo FLUID = FluidRecipeInfo.INSTANCE;
     public final static RecipeInfo EU = EURecipeInfo.INSTANCE;
-    public final static RecipeInfo CWU = CWURecipeInfo.INSTANCE;
 
     public static void init() {
         GTRegistries.RECIPE_INFOS.unfreeze();
@@ -18,7 +17,6 @@ public class GTRecipeInfos {
         GTRegistries.RECIPE_INFOS.register(ITEM.name, ITEM);
         GTRegistries.RECIPE_INFOS.register(FLUID.name, FLUID);
         GTRegistries.RECIPE_INFOS.register(EU.name, EU);
-        GTRegistries.RECIPE_INFOS.register(CWU.name, CWU);
 
         AddonFinder.getAddons().forEach(IGTAddon::registerRecipeCapabilities);
         GTRegistries.RECIPE_INFOS.freeze();

@@ -3,9 +3,9 @@ package com.gregtechceu.gtceu.common.blockentity;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
+import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.IWailaDisplayProvider;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.WireProperties;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
@@ -32,8 +32,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
@@ -54,19 +52,20 @@ import static com.gregtechceu.gtceu.utils.FormattingUtil.DECIMAL_FORMAT_1F;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties> implements IDataInfoProvider, IWailaDisplayProvider {
+public final class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties> implements IDataInfoProvider, IWailaDisplayProvider {
 
-    protected WeakReference<EnergyNet> currentEnergyNet = new WeakReference<>(null);
+    private WeakReference<EnergyNet> currentEnergyNet = new WeakReference<>(null);
     private static final int meltTemp = 3000;
-    private final EnumMap<Direction, LazyOptional<EnergyNetHandler>> handlers = new EnumMap<>(Direction.class);
+    private static final int defaultTemp = 298;
+    private final EnumMap<Direction, EnergyNetHandler> handlers = new EnumMap<>(Direction.class);
     private final PerTickLongCounter voltageCounter = new PerTickLongCounter(true);
     private final PerTickLongCounter amperageCounter = new PerTickLongCounter(false);
-    private LazyOptional<EnergyNetHandler> defaultHandler;
+    private EnergyNetHandler defaultHandler;
     private int heatQueue;
     @Getter
     @SaveToDisk
     @SyncToClient
-    private int temperature = getDefaultTemp();
+    private int temperature = defaultTemp;
     private TickableSubscription heatSubs;
 
     public CableBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
@@ -78,17 +77,16 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
     }
 
     @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
-        if (cap == GTCapability.CAPABILITY_ENERGY_CONTAINER) {
+    @Nullable
+    public <T> T getGTCapability(Class<T> cap, @Nullable Direction side) {
+        if (cap == GTCapability.ENERGY_CONTAINER) {
             var container = getEnergyContainer(side);
             if (container != null) {
-                return container;
+                return cap.cast(container);
             }
-            return LazyOptional.empty();
-        } else if (cap == GTCapability.CAPABILITY_COVERABLE) {
-            return GTCapability.CAPABILITY_COVERABLE.orEmpty(cap, LazyOptional.of(this::getCoverContainer));
+            return null;
         }
-        return super.getCapability(cap, side);
+        return super.getGTCapability(cap, side);
     }
 
     @Nullable
@@ -107,24 +105,24 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
     public void checkNetwork() {
         if (defaultHandler != null) {
             EnergyNet current = getEnergyNet();
-            if (defaultHandler.orElse(null).getNet() != current) {
-                defaultHandler.orElse(null).updateNetwork(current);
+            if (defaultHandler.getNet() != current) {
+                defaultHandler.updateNetwork(current);
                 for (var handler : handlers.values()) {
-                    handler.orElse(null).updateNetwork(current);
+                    handler.updateNetwork(current);
                 }
             }
         }
     }
 
     @Nullable
-    public LazyOptional getEnergyContainer(@Nullable Direction side) {
+    public IEnergyContainer getEnergyContainer(@Nullable Direction side) {
         if (side != null && !isConnected(side)) return null;
         // the EnergyNetHandler can only be created on the server, so we have an empty placeholder for the client
-        if (isRemote()) return LazyOptional.of(() -> IEnergyContainer.DEFAULT);
+        if (isRemote()) return IEnergyContainer.DEFAULT;
         if (handlers.isEmpty()) initHandlers();
         checkNetwork();
         var container = handlers.getOrDefault(side, defaultHandler);
-        if (container == null) return LazyOptional.of(() -> IEnergyContainer.DEFAULT);
+        if (container == null) return IEnergyContainer.DEFAULT;
         return container;
     }
 
@@ -139,9 +137,9 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
             return;
         }
         for (Direction facing : GTUtil.DIRECTIONS) {
-            handlers.put(facing, LazyOptional.of(() -> new EnergyNetHandler(net, this, facing)));
+            handlers.put(facing, new EnergyNetHandler(net, this, facing));
         }
-        defaultHandler = LazyOptional.of(() -> new EnergyNetHandler(net, this, null));
+        defaultHandler = new EnergyNetHandler(net, this, null);
     }
 
     @Override
@@ -149,7 +147,7 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
         super.clearRemoved();
         if (!level.isClientSide) {
             setTemperature(temperature);
-            if (temperature > getDefaultTemp()) {
+            if (temperature > defaultTemp) {
                 subscribeHeat();
             }
         }
@@ -189,10 +187,6 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
         return getNodeData().getVoltage();
     }
 
-    public int getDefaultTemp() {
-        return 293;
-    }
-
     /**
      * Should only be called internally
      */
@@ -207,7 +201,7 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
 
     private void applyHeat(int amount) {
         heatQueue += amount;
-        if (!level.isClientSide && heatSubs == null && temperature + heatQueue > getDefaultTemp()) {
+        if (!level.isClientSide && heatSubs == null && temperature + heatQueue > defaultTemp) {
             subscribeHeat();
         }
     }
@@ -222,7 +216,7 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
             level.setBlockAndUpdate(worldPosition, Blocks.FIRE.defaultBlockState());
             return;
         }
-        if (temperature <= getDefaultTemp()) {
+        if (temperature <= defaultTemp) {
             unsubscribeHeat();
             return;
         }
@@ -233,7 +227,7 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
         }
         if (heatQueue == 0) {
             // otherwise cool down
-            setTemperature((int) (temperature - Math.pow(temperature - getDefaultTemp(), 0.35)));
+            setTemperature((int) (temperature - Math.pow(temperature - defaultTemp, 0.35)));
         } else {
             heatQueue = 0;
         }
@@ -241,7 +235,7 @@ public class CableBlockEntity extends PipeBlockEntity<Insulation, WireProperties
 
     private void uninsulate() {
         int temp = temperature;
-        setTemperature(getDefaultTemp());
+        setTemperature(defaultTemp);
         int index = getPipeType().insulationLevel;
         CableBlock newBlock = GTMaterialBlocks.CABLE_BLOCKS.get(Insulation.values()[index].tagPrefix, getPipeBlock().material).get();
         level.setBlockAndUpdate(getBlockPos(), newBlock.defaultBlockState());

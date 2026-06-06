@@ -14,8 +14,8 @@ import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.api.recipe.expand.CWUTExpander;
-import com.gregtechceu.gtceu.api.recipe.expand.ContentExpander;
+import com.gregtechceu.gtceu.api.recipe.extension.CWUTRecipeExtension;
+import com.gregtechceu.gtceu.api.recipe.extension.RecipeExtension;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
@@ -83,9 +83,9 @@ public class GTRecipeBuilder {
     @Nullable
     protected Set<RecipeCondition> conditions;
     @Nullable
-    protected Set<ContentExpander> contentExpanders;
+    protected Set<RecipeExtension> recipeExtensions;
     @Nullable
-    protected Set<ContentExpander> tickContentExpanders;
+    protected Set<RecipeExtension> tickRecipeExtensions;
     @Nullable
     protected DataComponentMap data;
 
@@ -160,8 +160,8 @@ public class GTRecipeBuilder {
         if (this.fluidInputs != null) copy.fluidInputs = new ArrayList<>(this.fluidInputs);
         if (this.fluidOutputs != null) copy.fluidOutputs = new ArrayList<>(this.fluidOutputs);
         if (this.conditions != null) copy.conditions = new ReferenceOpenHashSet<>(this.conditions);
-        if (this.contentExpanders != null) copy.contentExpanders = new ReferenceOpenHashSet<>(this.contentExpanders);
-        if (this.tickContentExpanders != null) copy.tickContentExpanders = new ReferenceOpenHashSet<>(this.tickContentExpanders);
+        if (this.recipeExtensions != null) copy.recipeExtensions = new ReferenceOpenHashSet<>(this.recipeExtensions);
+        if (this.tickRecipeExtensions != null) copy.tickRecipeExtensions = new ReferenceOpenHashSet<>(this.tickRecipeExtensions);
         if (this.data != null) copy.data = this.data.clone();
         copy.duration = this.duration;
         copy.tier = this.tier;
@@ -195,12 +195,12 @@ public class GTRecipeBuilder {
         return conditions == null ? Collections.emptySet() : conditions;
     }
 
-    public final Set<ContentExpander> getContentExpanders() {
-        return contentExpanders == null ? Collections.emptySet() : contentExpanders;
+    public final Set<RecipeExtension> getRecipeExtensions() {
+        return recipeExtensions == null ? Collections.emptySet() : recipeExtensions;
     }
 
-    public final Set<ContentExpander> getTickContentExpanders() {
-        return tickContentExpanders == null ? Collections.emptySet() : tickContentExpanders;
+    public final Set<RecipeExtension> getTickRecipeExtensions() {
+        return tickRecipeExtensions == null ? Collections.emptySet() : tickRecipeExtensions;
     }
 
     public final DataComponentMap getData() {
@@ -219,15 +219,15 @@ public class GTRecipeBuilder {
         return this;
     }
 
-    public GTRecipeBuilder addContentExpand(ContentExpander expand) {
-        if (contentExpanders == null) contentExpanders = new ReferenceOpenHashSet<>();
-        contentExpanders.add(expand);
+    public GTRecipeBuilder addExtension(RecipeExtension extension) {
+        if (recipeExtensions == null) recipeExtensions = new ReferenceOpenHashSet<>();
+        recipeExtensions.add(extension);
         return this;
     }
 
-    public GTRecipeBuilder addTickContentExpand(ContentExpander expand) {
-        if (tickContentExpanders == null) tickContentExpanders = new ReferenceOpenHashSet<>();
-        tickContentExpanders.add(expand);
+    public GTRecipeBuilder addTickExtension(RecipeExtension extension) {
+        if (tickRecipeExtensions == null) tickRecipeExtensions = new ReferenceOpenHashSet<>();
+        tickRecipeExtensions.add(extension);
         return this;
     }
 
@@ -244,7 +244,7 @@ public class GTRecipeBuilder {
         }
         if (cwu > 0) {
             addData(GTRecipeDataKeys.CWUT, cwu);
-            addTickContentExpand(CWUTExpander.INSTANCE);
+            addTickExtension(CWUTRecipeExtension.INSTANCE);
         } else if (cwu < 0) {
             throw new IllegalArgumentException("CWUt can't be negative");
         }
@@ -1028,7 +1028,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeDefinition build(boolean registered) {
-        return new GTRecipeDefinition(registered, recipeType, recipeCategory, id.withPrefix(recipeType.registryName.getPath() + "/"), getItemInputs(), getItemOutputs(), getFluidInputs(), getFluidOutputs(), ImmutableList.copyOf(getConditions()), ImmutableList.copyOf(getContentExpanders()), ImmutableList.copyOf(getTickContentExpanders()), getData(), chanceFunction, eut, tier, duration, priority);
+        return new GTRecipeDefinition(registered, recipeType, recipeCategory, id.withPrefix(recipeType.registryName.getPath() + "/"), getItemInputs(), getItemOutputs(), getFluidInputs(), getFluidOutputs(), ImmutableList.copyOf(getConditions()), ImmutableList.copyOf(getRecipeExtensions()), ImmutableList.copyOf(getTickRecipeExtensions()), getData(), chanceFunction, eut, tier, duration, priority);
     }
 
     protected boolean checkChanceAndPrintError(int chance) {

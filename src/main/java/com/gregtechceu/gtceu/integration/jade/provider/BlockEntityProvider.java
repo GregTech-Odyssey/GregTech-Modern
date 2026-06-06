@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.integration.jade.provider;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.blockentity.TickBlockEntity;
+import com.gregtechceu.gtceu.api.blockentity.GTBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IWailaDisplayProvider;
 
 import net.minecraft.nbt.CompoundTag;
@@ -32,7 +32,7 @@ public enum BlockEntityProvider implements IBlockComponentProvider, IServerDataP
     @Override
     public void appendServerData(CompoundTag compoundTag, BlockAccessor blockAccessor) {
         var be = blockAccessor.getBlockEntity();
-        if (be instanceof TickBlockEntity blockEntity) {
+        if (be instanceof GTBlockEntity blockEntity) {
             blockEntity.observe();
         }
         if (be instanceof IWailaDisplayProvider display) {

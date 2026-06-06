@@ -1,16 +1,16 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IDataAccessHatch;
 import com.gregtechceu.gtceu.api.capability.IOpticalDataAccessHatch;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
-import com.gregtechceu.gtceu.common.blockentity.OpticalPipeBlockEntity;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.research.DataBankMachine;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
@@ -92,9 +92,11 @@ public class OpticalDataHatchMachine extends MultiblockPartMachine implements IO
     }
 
     protected @Nullable IDataAccessHatch getAccessHatch() {
-        if (getNeighbor(getFrontFacing()) instanceof OpticalPipeBlockEntity blockEntity) {
-            return blockEntity.getCapability(GTCapability.CAPABILITY_DATA_ACCESS, getFrontFacing().getOpposite()).orElse(null);
-        }
-        return null;
+        return GTCapabilityHelper.getDataAccess(getNeighbor(getFrontFacing()), getFrontFacing().getOpposite());
+    }
+
+    @Override
+    public boolean testCapability(@Nullable Direction side) {
+        return side == null || side == getFrontFacing();
     }
 }

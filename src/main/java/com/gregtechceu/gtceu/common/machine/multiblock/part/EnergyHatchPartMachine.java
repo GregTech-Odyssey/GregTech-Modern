@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredIOPartMachine;
@@ -12,6 +13,7 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -57,6 +59,14 @@ public class EnergyHatchPartMachine extends WorkableTieredIOPartMachine implemen
             container.setCapabilityValidator(s -> s == null || s == getFrontFacing());
         }
         return container;
+    }
+
+    @Override
+    public @Nullable <T> T getGTCapability(Class<T> cap, @Nullable Direction side) {
+        if (cap == GTCapability.ENERGY_CONTAINER && side == null || side == getFrontFacing()) {
+            return cap.cast(energyContainer);
+        }
+        return super.getGTCapability(cap, side);
     }
 
     @Override

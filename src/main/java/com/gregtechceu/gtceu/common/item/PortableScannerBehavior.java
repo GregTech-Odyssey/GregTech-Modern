@@ -5,10 +5,8 @@ import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
-import com.gregtechceu.gtceu.api.capability.IElectricItem;
-import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.IWorkable;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
+import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.BedrockFluidVeinSavedData;
 import com.gregtechceu.gtceu.api.gui.misc.ProspectorMode;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
@@ -204,9 +202,8 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
                 // Energy related information
                 if (mode == DisplayMode.SHOW_ALL || mode == DisplayMode.SHOW_ELECTRICAL_INFO) {
                     // Energy container
-                    Optional<IEnergyContainer> energyCap = tileEntity.getCapability(GTCapability.CAPABILITY_ENERGY_CONTAINER).resolve();
-                    if (energyCap.isPresent()) {
-                        IEnergyContainer energyContainer = energyCap.get();
+                    var energyContainer = GTCapabilityHelper.getEnergyContainer(tileEntity, null);
+                    if (energyContainer != null) {
                         if (energyContainer.getInputVoltage() > 0) {
                             list.add(Component.translatable("behavior.portable_scanner.divider"));
                             list.add(Component.translatable("behavior.portable_scanner.energy_container_in", Component.translatable(FormattingUtil.formatNumbers(energyContainer.getInputVoltage())).withStyle(ChatFormatting.RED), Component.translatable(GTValues.VN[GTUtil.getTierByVoltage(energyContainer.getInputVoltage())]).withStyle(ChatFormatting.RED), Component.translatable(FormattingUtil.formatNumbers(energyContainer.getInputAmperage())).withStyle(ChatFormatting.RED)));

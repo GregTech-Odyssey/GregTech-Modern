@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.IMiner;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
@@ -121,7 +122,7 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
         List<ICustomFluidStackHandler> fluidTanks = new ArrayList<>();
         for (var part : getWorkableParts()) {
             for (var handlerList : part.getRecipeHandlers()) {
-                energyContainers.addAll(handlerList.getCapabilities(IEnergyContainer.class));
+                energyContainers.addAll(handlerList.getCapabilities(GTCapability.ENERGY_CONTAINER));
                 fluidTanks.addAll(handlerList.getCapabilities(ICustomFluidStackHandler.class));
             }
         }

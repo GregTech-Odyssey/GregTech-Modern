@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.ICleanroomReceiver;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
@@ -193,7 +194,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         for (var part : getWorkableParts()) {
             if (isPartIgnored(part)) continue;
             for (var handlerList : part.getRecipeHandlers()) {
-                energyContainers.addAll(handlerList.getCapabilities(IEnergyContainer.class));
+                energyContainers.addAll(handlerList.getCapabilities(GTCapability.ENERGY_CONTAINER));
             }
             if (part instanceof IMaintenanceMachine maintenanceMachine) {
                 getRecipeLogic().setMaintenanceMachine(maintenanceMachine);

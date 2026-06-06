@@ -2,12 +2,14 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableLaserContainer;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -15,6 +17,7 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,6 +41,14 @@ public class LaserHatchPartMachine extends WorkableTieredIOPartMachine implement
                     GTValues.V[tier], amperage);
             this.buffer.setSideInputCondition(s -> s == getFrontFacing());
         }
+    }
+
+    @Override
+    public @Nullable <T> T getGTCapability(Class<T> cap, @Nullable Direction side) {
+        if (cap == GTCapability.LASER && buffer.hasCapability(side)) {
+            return cap.cast(buffer);
+        }
+        return super.getGTCapability(cap, side);
     }
 
     @Override

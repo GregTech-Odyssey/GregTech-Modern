@@ -52,7 +52,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDataType>, NodeDataType> extends TickBlockEntity implements IPaintable, IToolGridHighlight {
+public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDataType>, NodeDataType> extends GTBlockEntity implements IPaintable, IToolGridHighlight {
 
     private final LazyFieldDataManager fieldDataManager = new LazyFieldDataManager(this);
 

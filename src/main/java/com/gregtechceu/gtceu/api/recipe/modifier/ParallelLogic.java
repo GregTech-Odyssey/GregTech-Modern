@@ -80,8 +80,8 @@ public final class ParallelLogic {
                     }
                 }
             }
-            for (var expand : recipe.definition.tickContentExpanders) {
-                maxParallel = expand.getParallel(holder, unit, recipe, maxParallel);
+            for (var extension : recipe.definition.tickRecipeExtensions) {
+                maxParallel = extension.getParallel(holder, unit, recipe, maxParallel);
                 if (maxParallel == 0) return 0;
             }
         }
@@ -100,8 +100,8 @@ public final class ParallelLogic {
             parallel = unit.getInputFluidParallelAmount(fluids, parallel);
             if (parallel == 0) return 0;
         }
-        for (var expand : recipe.definition.contentExpanders) {
-            parallel = expand.getParallel(holder, unit, recipe, parallel);
+        for (var extension : recipe.definition.recipeExtensions) {
+            parallel = extension.getParallel(holder, unit, recipe, parallel);
             if (parallel == 0) return 0;
         }
         items = recipe.itemOutputs;

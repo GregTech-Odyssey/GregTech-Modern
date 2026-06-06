@@ -1,28 +1,16 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationHatch;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.utils.GTUtil;
 
-import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.entity.BlockEntity;
-
-import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Predicate;
-
 public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait implements ICapabilityTrait, IOpticalComputationProvider {
-
-    @Setter
-    @Getter
-    protected Predicate<@Nullable Direction> capabilityValidator = GTUtil.FAVORABLE;
 
     protected final boolean transmitter;
     protected boolean call;
@@ -82,24 +70,21 @@ public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait
     @Nullable
     protected IOpticalComputationProvider getOpticalNetProvider() {
         var direction = machine.getFrontFacing();
-        BlockEntity blockEntity = machine.getNeighbor(direction);
-        if (blockEntity != null) {
-            var cap = blockEntity.getCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER, direction.getOpposite()).orElse(null);
-            if (cap instanceof IOpticalComputationHatch hatch) {
-                return hatch.isTransmitter() ? cap : null;
-            } else {
-                return cap;
-            }
+        var cap = GTCapabilityHelper.getComputation(machine.getNeighbor(direction), direction.getOpposite());
+        if (cap instanceof IOpticalComputationHatch hatch) {
+            return hatch.isTransmitter() ? cap : null;
+        } else {
+            return cap;
         }
-        return null;
     }
 
+    @Override
     public IO getHandlerIO() {
         return transmitter ? IO.NONE : IO.IN;
     }
 
     @Override
     public IO getCapabilityIO() {
-        return getHandlerIO();
+        return transmitter ? IO.OUT : IO.IN;
     }
 }

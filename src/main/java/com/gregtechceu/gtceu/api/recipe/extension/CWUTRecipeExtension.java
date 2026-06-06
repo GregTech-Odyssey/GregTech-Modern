@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.api.recipe.expand;
+package com.gregtechceu.gtceu.api.recipe.extension;
 
 import com.gregtechceu.gtceu.api.machine.feature.IComputationContainerMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -13,24 +13,20 @@ import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
+import net.minecraft.network.chat.Component;
+
 import com.fast.recipesearch.IntLongMap;
 import com.gto.datasynclib.DataSyncCodec;
-import com.gto.datasynclib.datasream.DataComponentKey;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class CWUTExpander extends DataComponentKey<Long> implements ContentExpander {
+public final class CWUTRecipeExtension extends RecipeExtension<Long> {
 
-    public static final CWUTExpander INSTANCE = new CWUTExpander();
+    public static final CWUTRecipeExtension INSTANCE = new CWUTRecipeExtension();
 
-    private CWUTExpander() {
-        super("cwut", DataSyncCodec.LONG_CODEC);
-    }
-
-    @Override
-    public boolean isTick() {
-        return true;
+    private CWUTRecipeExtension() {
+        super("cwut", DataSyncCodec.LONG_CODEC, true);
     }
 
     @Override
@@ -40,6 +36,7 @@ public final class CWUTExpander extends DataComponentKey<Long> implements Conten
         if (holder instanceof IComputationContainerMachine machine) {
             return machine.requestCWU(cwu, simulate) >= cwu;
         } else {
+            holder.setIdleReason(() -> Component.translatable("gtceu.multiblock.computation.not_enough_computation"));
             return false;
         }
     }

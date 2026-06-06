@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
@@ -84,7 +85,7 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
         List<IEnergyContainer> powerOutput = new ArrayList<>();
         for (var part : getPrioritySortedParts()) {
             for (var handlerList : part.getRecipeHandlers()) {
-                var containers = handlerList.getCapabilities(IEnergyContainer.class);
+                var containers = handlerList.getCapabilities(GTCapability.ENERGY_CONTAINER);
 
                 if (handlerList.handlerIO == IO.IN) {
                     powerInput.addAll(containers);
@@ -93,7 +94,7 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
                 }
 
                 traitSubscriptions
-                        .add(handlerList.subscribe(converterSubscription::updateSubscription, IEnergyContainer.class));
+                        .add(handlerList.subscribe(converterSubscription::updateSubscription, GTCapability.ENERGY_CONTAINER));
             }
         }
 

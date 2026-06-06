@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.common.machine.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.integration.ae2.machine.trait.GridNodeHostTrait;
@@ -37,6 +38,14 @@ public class HullMachine extends TieredPartMachine {
     protected void reinitializeEnergyContainer() {
         long tierVoltage = GTValues.V[getTier()];
         this.energyContainer = new NotifiableEnergyContainer(this, tierVoltage * 16L, tierVoltage, 1L, tierVoltage, 1L);
+    }
+
+    @Override
+    public @Nullable <T> T getGTCapability(Class<T> cap, @Nullable Direction side) {
+        if (cap == GTCapability.ENERGY_CONTAINER && side == null || side != getFrontFacing()) {
+            return cap.cast(energyContainer);
+        }
+        return super.getGTCapability(cap, side);
     }
 
     @Override

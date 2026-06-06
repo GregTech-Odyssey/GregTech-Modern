@@ -8,7 +8,7 @@ import com.gto.datasynclib.IFieldDataHolder;
 
 public interface ISync extends IFieldDataHolder {
 
-    TickBlockEntity getHolder();
+    GTBlockEntity getHolder();
 
     default void syncToServer() {
         GTNetwork.NETWORK.sendToServer(CSPacketSBlockEntitySync.of(getHolder(), false));

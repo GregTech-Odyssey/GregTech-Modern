@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.common.machine.storage;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.ILaserContainer;
@@ -24,6 +25,7 @@ import net.minecraft.world.level.Level;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import org.apache.commons.lang3.ArrayUtils;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
@@ -55,6 +57,16 @@ public class CreativeEnergyContainerMachine extends TieredMachine implements ILa
     //////////////////////////////////////
     // ***** Initialization ******//
     //////////////////////////////////////
+
+    @Override
+    public @Nullable <T> T getGTCapability(Class<T> cap, @Nullable Direction side) {
+        if (cap == GTCapability.ENERGY_CONTAINER) {
+            return cap.cast(this);
+        } else if (cap == GTCapability.LASER) {
+            return cap.cast(this);
+        }
+        return super.getGTCapability(cap, side);
+    }
 
     @Override
     public void onLoad() {

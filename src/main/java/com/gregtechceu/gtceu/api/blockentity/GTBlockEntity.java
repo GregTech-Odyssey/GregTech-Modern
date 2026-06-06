@@ -2,12 +2,14 @@ package com.gregtechceu.gtceu.api.blockentity;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.SCPacketSBlockEntitySync;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -27,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BooleanSupplier;
 
-public abstract class TickBlockEntity extends BlockEntity implements ISync, ITickSubscription {
+public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickSubscription {
 
     public final int offset = GTValues.RNG.nextInt(20);
     public volatile boolean remove = false;
@@ -44,13 +46,20 @@ public abstract class TickBlockEntity extends BlockEntity implements ISync, ITic
 
     private boolean changed;
 
-    public TickBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
+    public GTBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
     }
+
+    public abstract ICoverable getCoverContainer();
 
     @Override
     public boolean isRemoved() {
         return this.remove;
+    }
+
+    @Nullable
+    public <T> T getGTCapability(@NotNull Class<T> cap, @Nullable Direction side) {
+        return null;
     }
 
     public void observe() {
@@ -99,7 +108,7 @@ public abstract class TickBlockEntity extends BlockEntity implements ISync, ITic
     }
 
     @Override
-    public TickBlockEntity getHolder() {
+    public GTBlockEntity getHolder() {
         return this;
     }
 
@@ -169,10 +178,12 @@ public abstract class TickBlockEntity extends BlockEntity implements ISync, ITic
     }
 
     @Override
-    public void load(CompoundTag tag) {
+    public final void load(@NotNull CompoundTag tag) {
         super.load(tag);
         if (tag.get("field_sync") instanceof ByteArrayTag byteArrayTag) {
             getFieldDataManager().readFromNetworkBuffer(LogicalSide.CLIENT, byteArrayTag.getAsByteArray());
+        } else {
+            loadCustomPersistedData(tag);
         }
         if (tag.get("field_save") instanceof ByteArrayTag byteArrayTag) {
             getFieldDataManager().readFromData((MapData) Data.readData(byteArrayTag.getAsByteArray()), tag.getInt("field_data_dataVersion"));
@@ -182,11 +193,16 @@ public abstract class TickBlockEntity extends BlockEntity implements ISync, ITic
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
+    protected final void saveAdditional(@NotNull CompoundTag tag) {
         super.saveAdditional(tag);
         tag.putInt("field_data_dataVersion", 0);
         tag.putByteArray("field_save", getFieldDataManager().writeToData().writeToBytes());
+        saveCustomPersistedData(tag, false);
     }
+
+    public void loadCustomPersistedData(CompoundTag tag) {}
+
+    public void saveCustomPersistedData(CompoundTag tag, boolean forDrop) {}
 
     public void asyncTick(long periodID) {
         if (remove) return;

@@ -42,11 +42,11 @@ public final class RecipeDB extends AbstractRecipeDB<GTRecipeDefinition> {
         var intMap = new IntLongMap();
         recipe.itemInputs.forEach(content -> recipe.recipeType.convertItem(content.inner, intMap));
         recipe.fluidInputs.forEach(content -> recipe.recipeType.convertFluid(content.inner, intMap));
-        for (var expand : recipe.contentExpanders) {
-            expand.extractInput(recipe, intMap);
+        for (var extension : recipe.recipeExtensions) {
+            extension.extractInput(recipe, intMap);
         }
-        for (var expand : recipe.tickContentExpanders) {
-            expand.extractInput(recipe, intMap);
+        for (var extension : recipe.tickRecipeExtensions) {
+            extension.extractInput(recipe, intMap);
         }
         return intMap;
     }

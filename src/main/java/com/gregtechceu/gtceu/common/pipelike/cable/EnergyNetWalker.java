@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.common.pipelike.cable;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.WireProperties;
 import com.gregtechceu.gtceu.api.pipenet.PipeNetWalker;
 import com.gregtechceu.gtceu.common.blockentity.CableBlockEntity;
@@ -65,8 +65,8 @@ public final class EnergyNetWalker extends PipeNetWalker<CableBlockEntity, WireP
         if (pipeTile != pipes[pipes.length - 1])
             throw new IllegalStateException(
                     "The current pipe is not the last added pipe. Something went seriously wrong!");
-        if (neighbourTile != null) {
-            neighbourTile.getCapability(GTCapability.CAPABILITY_ENERGY_CONTAINER, faceToNeighbour.getOpposite()).resolve().ifPresent(container -> routes.add(new EnergyRoutePath(pipePos.immutable(), faceToNeighbour, pipes, getWalkedBlocks(), loss)));
+        if (GTCapabilityHelper.getEnergyContainer(neighbourTile, faceToNeighbour.getOpposite()) != null) {
+            routes.add(new EnergyRoutePath(pipePos.immutable(), faceToNeighbour, pipes, getWalkedBlocks(), loss));
         }
     }
 

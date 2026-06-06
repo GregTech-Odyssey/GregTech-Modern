@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.api.pipenet;
 
+import com.gregtechceu.gtceu.api.blockentity.GTBlockEntity;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
-import com.gregtechceu.gtceu.api.blockentity.TickBlockEntity;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
@@ -95,7 +95,7 @@ public class PipeCoverContainer implements ICoverable {
     }
 
     @Override
-    public TickBlockEntity holder() {
+    public GTBlockEntity holder() {
         return pipeTile;
     }
 
@@ -150,7 +150,7 @@ public class PipeCoverContainer implements ICoverable {
     }
 
     @Override
-    public TickBlockEntity getHolder() {
+    public GTBlockEntity getHolder() {
         return pipeTile;
     }
 

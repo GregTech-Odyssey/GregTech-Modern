@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.api.machine;
 
-import com.gregtechceu.gtceu.api.blockentity.TickBlockEntity;
+import com.gregtechceu.gtceu.api.blockentity.GTBlockEntity;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
@@ -97,7 +97,7 @@ public class MachineCoverContainer implements ICoverable {
     }
 
     @Override
-    public TickBlockEntity holder() {
+    public GTBlockEntity holder() {
         return machine.holder;
     }
 
@@ -154,7 +154,7 @@ public class MachineCoverContainer implements ICoverable {
     }
 
     @Override
-    public TickBlockEntity getHolder() {
+    public GTBlockEntity getHolder() {
         return machine.holder;
     }
 

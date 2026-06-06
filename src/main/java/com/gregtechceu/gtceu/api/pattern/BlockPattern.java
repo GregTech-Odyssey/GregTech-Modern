@@ -2,8 +2,8 @@ package com.gregtechceu.gtceu.api.pattern;
 
 import com.gregtechceu.gtceu.api.block.ActiveBlock;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
+import com.gregtechceu.gtceu.api.blockentity.GTBlockEntity;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.blockentity.TickBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
@@ -171,7 +171,7 @@ public class BlockPattern {
                                                 }
                                                 matchContext.getParts().add(part);
                                             }
-                                        } else if (!(blockentity instanceof TickBlockEntity) && !WHITELIST.contains(blockentity.getClass())) {
+                                        } else if (!(blockentity instanceof GTBlockEntity) && !WHITELIST.contains(blockentity.getClass())) {
                                             worldState.blockEntityCache.add(posLong);
                                         }
                                     }

@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.IEnergyInfoProvider;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
@@ -87,13 +88,13 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
                 this.maintenance = maintenanceMachine;
             } else {
                 for (var handlerList : part.getRecipeHandlers()) {
-                    var containers = handlerList.getCapabilities(IEnergyContainer.class);
+                    var containers = handlerList.getCapabilities(GTCapability.ENERGY_CONTAINER);
                     if (handlerList.handlerIO == IO.IN) {
                         inputs.addAll(containers);
                     } else if (handlerList.handlerIO == IO.OUT) {
                         outputs.addAll(containers);
                     }
-                    traitSubscriptions.add(handlerList.subscribe(tickSubscription::updateSubscription, IEnergyContainer.class));
+                    traitSubscriptions.add(handlerList.subscribe(tickSubscription::updateSubscription, GTCapability.ENERGY_CONTAINER));
                 }
             }
         }

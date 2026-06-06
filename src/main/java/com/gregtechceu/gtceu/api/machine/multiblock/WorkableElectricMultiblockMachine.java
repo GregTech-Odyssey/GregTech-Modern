@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
+import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
@@ -67,9 +67,9 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        var containers = getCapabilitiesFlat(IO.IN, IEnergyContainer.class);
-        if (containers.isEmpty()) containers = getCapabilitiesFlat(IO.OUT, IEnergyContainer.class);
-        List<IOpticalComputationProvider> providers = getCapabilitiesFlat(IO.IN, IOpticalComputationProvider.class);
+        var containers = getCapabilitiesFlat(IO.IN, GTCapability.ENERGY_CONTAINER);
+        if (containers.isEmpty()) containers = getCapabilitiesFlat(IO.OUT, GTCapability.ENERGY_CONTAINER);
+        List<IOpticalComputationProvider> providers = getCapabilitiesFlat(IO.IN, GTCapability.COMPUTATION_PROVIDER);
         if (!containers.isEmpty()) energyContainer = new EnergyContainerList(containers);
         if (!providers.isEmpty()) computationProviderList = new ComputationProviderList(providers);
         this.tier = GTUtil.getFloorTierByVoltage(getMaxVoltage());

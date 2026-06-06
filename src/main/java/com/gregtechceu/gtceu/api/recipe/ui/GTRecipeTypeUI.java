@@ -347,11 +347,11 @@ public class GTRecipeTypeUI {
         for (var c : recipe.conditions) {
             height += c.getInfoHeight(recipe);
         }
-        for (var c : recipe.contentExpanders) {
-            height += c.getInfoHeight(recipe);
+        for (var e : recipe.recipeExtensions) {
+            height += e.getInfoHeight(recipe);
         }
-        for (var c : recipe.tickContentExpanders) {
-            height += c.getInfoHeight(recipe);
+        for (var e : recipe.tickRecipeExtensions) {
+            height += e.getInfoHeight(recipe);
         }
         return height;
     }

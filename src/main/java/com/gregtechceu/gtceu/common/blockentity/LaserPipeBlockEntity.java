@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.common.blockentity;
 
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
+import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.ILaserContainer;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.common.pipelike.laser.*;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -14,8 +14,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
@@ -26,12 +24,12 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.EnumMap;
 
-public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPipeProperties> {
+public final class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPipeProperties> {
 
     @Getter
-    protected final EnumMap<Direction, LaserNetHandler> handlers = new EnumMap<>(Direction.class);
+    private final EnumMap<Direction, LaserNetHandler> handlers = new EnumMap<>(Direction.class);
     private WeakReference<LaserPipeNet> currentPipeNet = new WeakReference<>(null);
-    protected LaserNetHandler defaultHandler;
+    private LaserNetHandler defaultHandler;
     private int ticksActive = 0;
     private int activeDuration = 0;
     @Getter
@@ -39,7 +37,7 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
     @SyncToClient
     private boolean active = false;
 
-    protected LaserPipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
+    private LaserPipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
     }
 
@@ -48,21 +46,18 @@ public class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, LaserPi
     }
 
     @Override
-    @NotNull
-    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (cap == GTCapability.CAPABILITY_LASER) {
-            if (getLevel().isClientSide()) return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> ILaserContainer.DEFAULT));
-            if (side != null && !isConnected(side)) return LazyOptional.empty();
+    public @Nullable <T> T getGTCapability(@NotNull Class<T> cap, @Nullable Direction side) {
+        if (cap == GTCapability.LASER) {
+            if (level.isClientSide) return cap.cast(ILaserContainer.DEFAULT);
+            if (side != null && !isConnected(side)) return null;
             if (handlers.isEmpty()) {
                 initHandlers();
             }
             checkNetwork();
             var handler = handlers.getOrDefault(side, defaultHandler);
-            return GTCapability.CAPABILITY_LASER.orEmpty(cap, LazyOptional.of(() -> handler == null ? ILaserContainer.DEFAULT : handler));
-        } else if (cap == GTCapability.CAPABILITY_COVERABLE) {
-            return GTCapability.CAPABILITY_COVERABLE.orEmpty(cap, LazyOptional.of(this::getCoverContainer));
+            return cap.cast(handler == null ? ILaserContainer.DEFAULT : handler);
         }
-        return super.getCapability(cap, side);
+        return super.getGTCapability(cap, side);
     }
 
     @Override

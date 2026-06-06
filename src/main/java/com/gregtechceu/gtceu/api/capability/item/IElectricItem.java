@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.api.capability;
+package com.gregtechceu.gtceu.api.capability.item;
 
 public interface IElectricItem {
 

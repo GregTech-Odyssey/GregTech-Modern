@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.machine;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.editor.EditableUI;
 import com.gregtechceu.gtceu.api.machine.feature.IElectricMachine;
@@ -15,11 +16,13 @@ import com.lowdragmc.lowdraglib.gui.widget.ProgressWidget;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -45,6 +48,14 @@ public class TieredEnergyMachine extends TieredMachine implements IExplosionMach
                     tierVoltage * 64L, tierVoltage, getMaxInputOutputAmperage());
         } else return NotifiableEnergyContainer.receiverContainer(this,
                 tierVoltage * 64L, tierVoltage, getMaxInputOutputAmperage());
+    }
+
+    @Override
+    public @Nullable <T> T getGTCapability(Class<T> cap, @Nullable Direction side) {
+        if (cap == GTCapability.ENERGY_CONTAINER && energyContainer.hasCapability(side)) {
+            return cap.cast(energyContainer);
+        }
+        return super.getGTCapability(cap, side);
     }
 
     @Override

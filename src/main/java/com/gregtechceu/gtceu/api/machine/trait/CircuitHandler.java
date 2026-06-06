@@ -85,7 +85,8 @@ public class CircuitHandler extends NotifiableItemStackHandler {
             ItemStack stored = storage.stacks[0];
             if (stored.getCount() > 0) {
                 for (var it = items.iterator(); it.hasNext();) {
-                    if (it.next().inner.test(stored)) {
+                    var content = it.next();
+                    if (content.chance == 0 && content.inner.test(stored)) {
                         it.remove();
                         break;
                     }

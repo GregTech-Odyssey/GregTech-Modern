@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.api.recipe;
 
 import com.gregtechceu.gtceu.api.recipe.content.*;
-import com.gregtechceu.gtceu.api.recipe.expand.ContentExpander;
+import com.gregtechceu.gtceu.api.recipe.extension.RecipeExtension;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
@@ -103,23 +103,23 @@ public final class GTRecipe {
             var definition = GTRecipeDefinition.DATA_CODEC.decode(list.getFirst(), dataVersion);
             var recipeData = GTRecipeDataKeys.REGISTRY.decode(list.get(5), dataVersion);
             if (definition == definition.recipeType.defaultDefinition && !recipeData.isEmpty()) {
-                List<ContentExpander> expanders = null;
-                List<ContentExpander> tickExpanders = null;
+                List<RecipeExtension> extensions = null;
+                List<RecipeExtension> tickExtensions = null;
                 for (var k : recipeData.keySet()) {
-                    if (k instanceof ContentExpander expander) {
-                        if (expander.isTick()) {
-                            if (tickExpanders == null) tickExpanders = new ArrayList<>();
-                            tickExpanders.add(expander);
+                    if (k instanceof RecipeExtension extension) {
+                        if (extension.isTick) {
+                            if (tickExtensions == null) tickExtensions = new ArrayList<>();
+                            tickExtensions.add(extension);
                         } else {
-                            if (expanders == null) expanders = new ArrayList<>();
-                            expanders.add(expander);
+                            if (extensions == null) extensions = new ArrayList<>();
+                            extensions.add(extension);
                         }
                     }
                 }
-                if (expanders != null || tickExpanders != null) {
+                if (extensions != null || tickExtensions != null) {
                     var b = definition.recipeType.recipeBuilder(definition.id);
-                    if (expanders != null) expanders.forEach(b::addContentExpand);
-                    if (tickExpanders != null) tickExpanders.forEach(b::addTickContentExpand);
+                    if (extensions != null) extensions.forEach(b::addExtension);
+                    if (tickExtensions != null) tickExtensions.forEach(b::addTickExtension);
                     definition = b.build();
                 }
             }
@@ -220,13 +220,13 @@ public final class GTRecipe {
         itemOutputs = RecipeHelper.modifierContents(itemOutputs, multiplier);
         fluidInputs = RecipeHelper.modifierContents(fluidInputs, multiplier);
         fluidOutputs = RecipeHelper.modifierContents(fluidOutputs, multiplier);
-        for (var expand : definition.contentExpanders) {
-            expand.setParallel(this, multiplier);
+        for (var extension : definition.recipeExtensions) {
+            extension.setParallel(this, multiplier);
         }
         if (tick) {
             eut *= multiplier;
-            for (var expand : definition.tickContentExpanders) {
-                expand.setParallel(this, multiplier);
+            for (var extension : definition.tickRecipeExtensions) {
+                extension.setParallel(this, multiplier);
             }
         }
     }

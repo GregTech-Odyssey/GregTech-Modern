@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.common.pipelike.optical;
 
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.pipenet.PipeNetWalker;
 import com.gregtechceu.gtceu.common.blockentity.OpticalPipeBlockEntity;
 
@@ -54,10 +54,9 @@ public final class OpticalNetWalker extends PipeNetWalker<OpticalPipeBlockEntity
         }
 
         if (((OpticalNetWalker) root).routePath == null) {
-            if (neighbourTile.getCapability(GTCapability.CAPABILITY_DATA_ACCESS,
-                    faceToNeighbour.getOpposite()).isPresent() ||
-                    neighbourTile.getCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER,
-                            faceToNeighbour.getOpposite()).isPresent()) {
+            var opposite = faceToNeighbour.getOpposite();
+            if (GTCapabilityHelper.getComputation(neighbourTile, opposite) != null ||
+                    GTCapabilityHelper.getDataAccess(neighbourTile, opposite) != null) {
                 ((OpticalNetWalker) root).routePath = new OpticalRoutePath(pipeTile, faceToNeighbour,
                         getWalkedBlocks());
                 stop();

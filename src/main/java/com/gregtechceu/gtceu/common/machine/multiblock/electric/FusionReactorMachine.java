@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.IFusionCasingType;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
@@ -96,10 +97,10 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
         List<IEnergyContainer> energyContainers = new ArrayList<>();
         for (var part : getWorkableParts()) {
             for (var handlerList : part.getRecipeHandlers()) {
-                var containers = handlerList.getCapabilities(IEnergyContainer.class);
+                var containers = handlerList.getCapabilities(GTCapability.ENERGY_CONTAINER);
                 if (!containers.isEmpty()) {
                     energyContainers.addAll(containers);
-                    traitSubscriptions.add(handlerList.subscribe(this::updatePreHeatSubscription, IEnergyContainer.class));
+                    traitSubscriptions.add(handlerList.subscribe(this::updatePreHeatSubscription, GTCapability.ENERGY_CONTAINER));
                 }
             }
         }

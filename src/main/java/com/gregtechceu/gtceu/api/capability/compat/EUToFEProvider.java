@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.api.capability.compat;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTMath;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -10,26 +9,17 @@ import com.gregtechceu.gtceu.utils.LazyOptionalUtil;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.IEnergyStorage;
 
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class EUToFEProvider extends CapabilityCompatProvider {
+public class EUToFEProvider {
 
-    public EUToFEProvider(BlockEntity tileEntity) {
-        super(tileEntity);
-    }
-
-    @Override
-    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> capability, Direction facing) {
-        if (!ConfigHolder.INSTANCE.compat.energy.nativeEUToFE || capability != GTCapability.CAPABILITY_ENERGY_CONTAINER)
-            return LazyOptional.empty();
-
-        IEnergyStorage energyStorage = LazyOptionalUtil.get(getUpvalueCapability(ForgeCapabilities.ENERGY, facing));
-        return energyStorage != null ? GTCapability.CAPABILITY_ENERGY_CONTAINER.orEmpty(capability, LazyOptional.of(() -> new GTEnergyWrapper(energyStorage))) : LazyOptional.empty();
+    public static IEnergyContainer getCapability(@Nullable BlockEntity blockEntity, Direction facing) {
+        if (blockEntity == null || !ConfigHolder.INSTANCE.compat.energy.nativeEUToFE) return null;
+        IEnergyStorage energyStorage = LazyOptionalUtil.get(blockEntity.getCapability(ForgeCapabilities.ENERGY, facing));
+        return energyStorage != null ? new GTEnergyWrapper(energyStorage) : null;
     }
 
     public static class GTEnergyWrapper implements IEnergyContainer {

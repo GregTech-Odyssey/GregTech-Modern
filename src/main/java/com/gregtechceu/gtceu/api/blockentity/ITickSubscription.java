@@ -19,7 +19,7 @@ public interface ITickSubscription {
         return null;
     }
 
-    TickBlockEntity getHolder();
+    GTBlockEntity getHolder();
 
     /**
      * For initialization. To get level and property fields after auto sync, you can subscribe it in

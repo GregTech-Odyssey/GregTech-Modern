@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
@@ -18,6 +19,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -61,6 +63,14 @@ public class DiodePartMachine extends TieredIOPartMachine {
     public void onLoad() {
         super.onLoad();
         if (!GTCEu.isClientThread()) reinitializeEnergyContainer();
+    }
+
+    @Override
+    public @Nullable <T> T getGTCapability(Class<T> cap, @Nullable Direction side) {
+        if (cap == GTCapability.ENERGY_CONTAINER) {
+            return cap.cast(energyContainer);
+        }
+        return super.getGTCapability(cap, side);
     }
 
     protected void reinitializeEnergyContainer() {

@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.common.pipelike.laser;
 
-import com.gregtechceu.gtceu.api.capability.ILaserContainer;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.pipenet.PipeNetWalker;
 import com.gregtechceu.gtceu.common.blockentity.LaserPipeBlockEntity;
 
@@ -79,9 +78,7 @@ public final class LaserNetWalker extends PipeNetWalker<LaserPipeBlockEntity, La
         }
 
         if (((LaserNetWalker) root).routePath == null) {
-            ILaserContainer handler = neighbourTile
-                    .getCapability(GTCapability.CAPABILITY_LASER, faceToNeighbour.getOpposite()).orElse(null);
-            if (handler != null) {
+            if (GTCapabilityHelper.getLaser(neighbourTile, faceToNeighbour.getOpposite()) != null) {
                 ((LaserNetWalker) root).routePath = new LaserRoutePath(pipeNode, pipePos.immutable(), faceToNeighbour,
                         getWalkedBlocks());
                 stop();

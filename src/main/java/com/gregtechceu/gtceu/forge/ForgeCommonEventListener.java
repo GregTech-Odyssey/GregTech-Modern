@@ -4,9 +4,8 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
-import com.gregtechceu.gtceu.api.capability.IElectricItem;
-import com.gregtechceu.gtceu.api.capability.compat.EUToFEProvider;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
+import com.gregtechceu.gtceu.api.capability.forge.GTForgeCapability;
+import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
@@ -46,7 +45,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.PotionItem;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
@@ -116,16 +114,11 @@ public class ForgeCommonEventListener {
                 @Override
                 public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> capability,
                                                                   @Nullable Direction arg) {
-                    return GTCapability.CAPABILITY_MEDICAL_CONDITION_TRACKER.orEmpty(capability,
+                    return GTForgeCapability.CAPABILITY_MEDICAL_CONDITION_TRACKER.orEmpty(capability,
                             LazyOptional.of(() -> tracker));
                 }
             });
         }
-    }
-
-    @SubscribeEvent
-    public static void registerBlockEntityCapabilities(AttachCapabilitiesEvent<BlockEntity> event) {
-        event.addCapability(GTCEu.id("fe_capability"), new EUToFEProvider(event.getObject()));
     }
 
     @SubscribeEvent

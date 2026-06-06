@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.api.item.capability;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.capability.IElectricItem;
+import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;

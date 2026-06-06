@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.common.blockentity;
 
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidPipeProperties;
 import com.gregtechceu.gtceu.common.block.FluidPipeBlock;
@@ -30,9 +29,9 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.EnumMap;
 
-public class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, FluidPipeProperties> {
+public final class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, FluidPipeProperties> {
 
-    protected WeakReference<FluidPipeNet> currentFluidPipeNet = new WeakReference<>(null);
+    private WeakReference<FluidPipeNet> currentFluidPipeNet = new WeakReference<>(null);
     private final EnumMap<Direction, FluidNetHandler> handlers = new EnumMap<>(Direction.class);
     private FluidNetHandler defaultHandler;
     private int transferredFluids = 0;
@@ -58,8 +57,6 @@ public class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, FluidPi
                 return ForgeCapabilities.FLUID_HANDLER.orEmpty(cap, LazyOptional.of(() -> getHandler(side, true)));
             }
             return LazyOptional.empty();
-        } else if (cap == GTCapability.CAPABILITY_COVERABLE) {
-            return GTCapability.CAPABILITY_COVERABLE.orEmpty(cap, LazyOptional.of(this::getCoverContainer));
         }
         return super.getCapability(cap, side);
     }
