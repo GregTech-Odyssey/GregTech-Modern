@@ -12,7 +12,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 
 import xaero.common.minimap.highlight.ChunkHighlighter;
-import xaero.common.minimap.info.render.compile.InfoDisplayCompiler;
+import xaero.hud.minimap.info.render.compile.InfoDisplayCompiler;
 
 public class FluidChunkHighlighter extends ChunkHighlighter {
 

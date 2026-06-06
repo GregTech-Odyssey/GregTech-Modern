@@ -9,6 +9,9 @@ curios = "5.9.1+1.20.1"
 ftblibrary = "2001.2.4"
 ftbteams = "2001.3.0"
 ftbquests= "2001.4.11"
+xaerosLib = "1.1.15"
+xaerosWorldMap = "1.40.16"
+xaerosMinimap = "25.3.13"
 
 ## modrinth maven ##
 jade = "11.6.3"
@@ -17,8 +20,6 @@ embeddium = "0.3.31+mc1.20.1"
 ## cursemaven ##
 configuration = "5840405"
 shimmer = "5685940"
-xaerosWorldMap = "5658224"
-xaerosMinimap = "5773012"
 ae2wtlib = "5217955"
 
 [libraries]
@@ -39,6 +40,7 @@ ftbquests           = { module = "dev.ftb.mods:ftb-quests-forge", version.ref = 
 jade                = { module = "maven.modrinth:jade", version.ref = "jade" }
 embeddium           = { module = "maven.modrinth:embeddium", version.ref = "embeddium" }
 
-xaerosworldmap      = { module = "curse.maven:xaeros-world-map-317780", version.ref = "xaerosWorldMap" }
-xaerosminimap       = { module = "curse.maven:xaeros-minimap-263420", version.ref = "xaerosMinimap" }
+xaeroslib           = { module = "xaero.lib:xaerolib-forge-1.20.1", version.ref = "xaerosLib" }
+xaerosworldmap      = { module = "xaero.map:xaeroworldmap-forge-1.20.1", version.ref = "xaerosWorldMap" }
+xaerosminimap       = { module = "xaero.minimap:xaerominimap-forge-1.20.1", version.ref = "xaerosMinimap" }
 ae2wtlib            = { module = "curse.maven:ae2wtlib-459929", version.ref = "ae2wtlib" }

@@ -10,7 +10,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
 import xaero.common.minimap.highlight.ChunkHighlighter;
-import xaero.common.minimap.info.render.compile.InfoDisplayCompiler;
+import xaero.hud.minimap.info.render.compile.InfoDisplayCompiler;
 
 public class BedrockOreChunkHighlighter extends ChunkHighlighter {
 
