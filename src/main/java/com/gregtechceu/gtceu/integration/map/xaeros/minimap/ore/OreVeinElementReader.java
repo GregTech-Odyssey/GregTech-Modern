@@ -6,10 +6,10 @@ import com.gregtechceu.gtceu.integration.map.GroupingMapRenderer;
 import net.minecraft.client.Minecraft;
 
 import xaero.hud.minimap.element.render.MinimapElementReader;
-import xaero.map.WorldMap;
-import xaero.map.common.config.option.WorldMapProfiledConfigOptions;
 
 public class OreVeinElementReader extends MinimapElementReader<OreVeinElement, OreVeinElementContext> {
+
+    private static final int HITBOX_PADDING = 2;
 
     @Override
     public boolean isHidden(OreVeinElement element, OreVeinElementContext context) {
@@ -33,26 +33,26 @@ public class OreVeinElementReader extends MinimapElementReader<OreVeinElement, O
 
     @Override
     public int getInteractionBoxLeft(OreVeinElement element, OreVeinElementContext context, float partialTicks) {
-        return -this.getInteractionBoxRight(element, context, partialTicks);
+        return -this.getInteractionBoxHalfSize();
     }
 
     @Override
     public int getInteractionBoxRight(OreVeinElement element, OreVeinElementContext context, float partialTicks) {
-        return ConfigHolder.INSTANCE.compat.minimap.oreIconSize;
+        return this.getInteractionBoxHalfSize();
     }
 
     @Override
     public int getInteractionBoxTop(OreVeinElement element, OreVeinElementContext context, float partialTicks) {
-        boolean hasBackground = WorldMap.INSTANCE.getConfigs().getClientConfigManager()
-                .getEffective(WorldMapProfiledConfigOptions.WAYPOINT_BACKGROUNDS);
-        return hasBackground ? -41 : -12;
+        return -this.getInteractionBoxHalfSize();
     }
 
     @Override
     public int getInteractionBoxBottom(OreVeinElement element, OreVeinElementContext context, float partialTicks) {
-        boolean hasBackground = WorldMap.INSTANCE.getConfigs().getClientConfigManager()
-                .getEffective(WorldMapProfiledConfigOptions.WAYPOINT_BACKGROUNDS);
-        return hasBackground ? 0 : 12;
+        return this.getInteractionBoxHalfSize();
+    }
+
+    private int getInteractionBoxHalfSize() {
+        return ConfigHolder.INSTANCE.compat.minimap.oreIconSize / 2 + HITBOX_PADDING;
     }
 
     @Override

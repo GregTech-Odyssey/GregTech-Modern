@@ -9,8 +9,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
 import xaero.lib.client.gui.widget.Tooltip;
-import xaero.map.WorldMap;
-import xaero.map.common.config.option.WorldMapProfiledConfigOptions;
 import xaero.map.element.MapElementReader;
 import xaero.map.gui.IRightClickableElement;
 import xaero.map.gui.dropdown.rightclick.RightClickOption;
@@ -21,6 +19,8 @@ import java.util.stream.Collectors;
 
 public class OreVeinElementReader extends
                                   MapElementReader<OreVeinElement, OreVeinElementContext, OreVeinElementRenderer> {
+
+    private static final int HITBOX_PADDING = 2;
 
     @Override
     public boolean isHidden(OreVeinElement element, OreVeinElementContext context) {
@@ -49,26 +49,26 @@ public class OreVeinElementReader extends
 
     @Override
     public int getInteractionBoxLeft(OreVeinElement element, OreVeinElementContext context, float partialTicks) {
-        return -this.getInteractionBoxRight(element, context, partialTicks);
+        return -this.getInteractionBoxHalfSize();
     }
 
     @Override
     public int getInteractionBoxRight(OreVeinElement element, OreVeinElementContext context, float partialTicks) {
-        return ConfigHolder.INSTANCE.compat.minimap.oreIconSize;
+        return this.getInteractionBoxHalfSize();
     }
 
     @Override
     public int getInteractionBoxTop(OreVeinElement element, OreVeinElementContext context, float partialTicks) {
-        boolean hasBackground = WorldMap.INSTANCE.getConfigs().getClientConfigManager()
-                .getEffective(WorldMapProfiledConfigOptions.WAYPOINT_BACKGROUNDS);
-        return hasBackground ? -41 : -12;
+        return -this.getInteractionBoxHalfSize();
     }
 
     @Override
     public int getInteractionBoxBottom(OreVeinElement element, OreVeinElementContext context, float partialTicks) {
-        boolean hasBackground = WorldMap.INSTANCE.getConfigs().getClientConfigManager()
-                .getEffective(WorldMapProfiledConfigOptions.WAYPOINT_BACKGROUNDS);
-        return hasBackground ? 0 : 12;
+        return this.getInteractionBoxHalfSize();
+    }
+
+    private int getInteractionBoxHalfSize() {
+        return ConfigHolder.INSTANCE.compat.minimap.oreIconSize / 2 + HITBOX_PADDING;
     }
 
     @Override
