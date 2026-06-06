@@ -94,7 +94,7 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine {
 
     @Override
     protected NotifiableFluidTank createExportFluidHandler(Object... args) {
-        return new NotifiableFluidTank(this, 1, 0, IO.OUT).setAvailable(false);
+        return new NotifiableFluidTank(this, 0, 0, IO.OUT).setAvailable(false);
     }
 
     //////////////////////////////////////
