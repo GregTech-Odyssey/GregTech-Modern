@@ -86,6 +86,23 @@ public interface ICoverable extends ITickSubscription, IAppearance, IFieldDataHo
     @Nullable
     CoverBehavior getCoverAtSide(Direction side);
 
+    @Nullable
+    default <T> T getGTCapability(Class<T> cap, @Nullable Direction side) {
+        if (side != null) {
+            var cover = getCoverAtSide(side);
+            if (cover != null) return cover.getGTCapability(cap);
+        } else {
+            for (var s : GTUtil.DIRECTIONS) {
+                var cover = getCoverAtSide(s);
+                if (cover != null) {
+                    var result = cover.getGTCapability(cap);
+                    if (result != null) return result;
+                }
+            }
+        }
+        return null;
+    }
+
     default boolean placeCoverOnSide(Direction side, ItemStack itemStack, CoverDefinition coverDefinition,
                                      ServerPlayer player) {
         CoverBehavior coverBehavior = coverDefinition.createCoverBehavior(this, side);

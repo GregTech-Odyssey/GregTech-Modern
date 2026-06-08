@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MachineCoverContainer implements ICoverable {
+public final class MachineCoverContainer implements ICoverable {
 
     private final LazyFieldDataManager fieldDataManager = new LazyFieldDataManager(this);
 

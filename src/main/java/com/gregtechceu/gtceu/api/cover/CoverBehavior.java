@@ -197,6 +197,11 @@ public abstract class CoverBehavior implements IToolGridHighlight, IFieldDataHol
     // ******* Capabilities *******//
     //////////////////////////////////////
     @Nullable
+    public <T> T getGTCapability(Class<T> cap) {
+        return null;
+    }
+
+    @Nullable
     public ICustomItemStackHandler getItemHandlerCap(ICustomItemStackHandler defaultValue) {
         return defaultValue;
     }

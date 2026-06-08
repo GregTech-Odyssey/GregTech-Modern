@@ -59,7 +59,7 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
 
     @Nullable
     public <T> T getGTCapability(@NotNull Class<T> cap, @Nullable Direction side) {
-        return null;
+        return getCoverContainer().getGTCapability(cap, side);
     }
 
     public void observe() {

@@ -26,7 +26,7 @@ import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import org.jetbrains.annotations.Nullable;
 
-public class PipeCoverContainer implements ICoverable {
+public final class PipeCoverContainer implements ICoverable {
 
     private final LazyFieldDataManager fieldDataManager = new LazyFieldDataManager(this);
 
