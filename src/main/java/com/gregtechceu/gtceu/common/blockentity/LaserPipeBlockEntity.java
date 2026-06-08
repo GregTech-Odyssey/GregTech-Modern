@@ -91,11 +91,11 @@ public final class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, L
             return null;
         }
         LaserPipeNet currentPipeNet = this.currentPipeNet.get();
-        if (currentPipeNet != null && currentPipeNet.isValid() && currentPipeNet.containsNode(getPipePosLong())) {
+        if (currentPipeNet != null && currentPipeNet.isValid() && currentPipeNet.containsNode(getPipeLongPos())) {
             return currentPipeNet;
         }
         LevelLaserPipeNet worldNet = (LevelLaserPipeNet) getPipeBlock().getWorldPipeNet((ServerLevel) getLevel());
-        currentPipeNet = worldNet.getNetFromPos(getPipePos(), getPipePosLong());
+        currentPipeNet = worldNet.getNetFromPos(getPipePos(), getPipeLongPos());
         if (currentPipeNet != null) {
             this.currentPipeNet = new WeakReference<>(currentPipeNet);
         }
@@ -139,7 +139,7 @@ public final class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, L
             connections &= ~(1 << side.getOpposite().ordinal());
             if (connections != 0) return;
             // check the same for the targeted pipe
-            BlockEntity tile = getNeighbor(side);
+            BlockEntity tile = getNeighborBlockEntity(side);
             if (tile instanceof PipeBlockEntity<?, ?> pipeTile && pipeTile.getPipeType().getClass() == this.getPipeType().getClass()) {
                 connections = pipeTile.getConnections();
                 connections &= ~(1 << side.ordinal());

@@ -52,7 +52,7 @@ public final class FluidNetHandler implements ICustomFluidStackHandler {
     public int fillFirst(FluidStack stack, boolean simulate) {
         int amount = stack.getAmount();
         int total = 0;
-        for (FluidRoutePath inv : net.getNetData(pipe.getPipePosLong(), pipe.getPipePos(), facing)) {
+        for (FluidRoutePath inv : net.getNetData(pipe.getPipeLongPos(), pipe.getPipePos(), facing)) {
             if (pipe.autoTransfer && inv.getTargetPipe() == pipe && inv.getTargetFacing() != pipe.blockedSide) continue;
             int fill = fill(inv, stack, amount, simulate, false);
             amount -= fill;
@@ -97,13 +97,13 @@ public final class FluidNetHandler implements ICustomFluidStackHandler {
     }
 
     public CoverBehavior getCoverOnNeighbour(Direction handlerFacing) {
-        ICoverable coverable = GTCapabilityHelper.getCoverable(pipe.getNeighbor(handlerFacing), handlerFacing.getOpposite());
+        ICoverable coverable = GTCapabilityHelper.getCoverable(pipe.getNeighborBlockEntity(handlerFacing), handlerFacing.getOpposite());
         if (coverable == null) return null;
         return coverable.getCoverAtSide(handlerFacing.getOpposite());
     }
 
     private CoverBehavior getCoverOnPipeNeighbour(FluidPipeBlockEntity targetPipe, Direction targetFacing) {
-        ICoverable coverable = GTCapabilityHelper.getCoverable(targetPipe.getNeighbor(targetFacing), targetFacing.getOpposite());
+        ICoverable coverable = GTCapabilityHelper.getCoverable(targetPipe.getNeighborBlockEntity(targetFacing), targetFacing.getOpposite());
         if (coverable == null) return null;
         return coverable.getCoverAtSide(targetFacing.getOpposite());
     }

@@ -44,7 +44,7 @@ public final class LaserNetHandler implements ILaserContainer {
             return null;
         }
 
-        LaserRoutePath data = net.getNetData(pipe.getPipePosLong(), pipe.getPipePos(), facing);
+        LaserRoutePath data = net.getNetData(pipe.getPipeLongPos(), pipe.getPipePos(), facing);
         if (data == null) {
             return null;
         }

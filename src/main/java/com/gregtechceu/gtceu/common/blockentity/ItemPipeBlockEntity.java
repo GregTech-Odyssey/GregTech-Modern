@@ -97,8 +97,8 @@ public final class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, Ite
     public ItemPipeNet getItemPipeNet() {
         if (level instanceof ServerLevel serverLevel && getBlockState().getBlock() instanceof ItemPipeBlock itemPipeBlock) {
             ItemPipeNet currentItemPipeNet = this.currentItemPipeNet.get();
-            if (currentItemPipeNet != null && currentItemPipeNet.isValid() && currentItemPipeNet.containsNode(getPipePosLong())) return currentItemPipeNet;
-            currentItemPipeNet = itemPipeBlock.getWorldPipeNet(serverLevel).getNetFromPos(getBlockPos(), getPipePosLong());
+            if (currentItemPipeNet != null && currentItemPipeNet.isValid() && currentItemPipeNet.containsNode(getPipeLongPos())) return currentItemPipeNet;
+            currentItemPipeNet = itemPipeBlock.getWorldPipeNet(serverLevel).getNetFromPos(getBlockPos(), getPipeLongPos());
             if (currentItemPipeNet != null) {
                 this.currentItemPipeNet = new WeakReference<>(currentItemPipeNet);
             }
@@ -172,7 +172,7 @@ public final class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, Ite
         autoTransfer = true;
         for (Direction facing : GTUtil.DIRECTIONS) {
             if (facing != blockedSide && isConnected(facing)) {
-                var be = getNeighbor(facing);
+                var be = getNeighborBlockEntity(facing);
                 if (be == null || be instanceof PipeBlockEntity<?, ?>) continue;
                 var handler = LazyOptionalUtil.get(be.getCapability(ForgeCapabilities.ITEM_HANDLER, facing.getOpposite()));
                 if (handler != null) {

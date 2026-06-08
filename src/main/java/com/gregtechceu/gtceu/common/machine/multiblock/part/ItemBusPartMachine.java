@@ -160,7 +160,7 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
     }
 
     protected void updateInventorySubscription(Direction newFacing) {
-        if (isWorkingEnabled() && ((io == IO.OUT && !getInventory().isEmpty()) || io == IO.IN) && blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), newFacing)) {
+        if (isWorkingEnabled() && ((io == IO.OUT && !getInventory().isEmpty()) || io == IO.IN) && holder.blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), newFacing)) {
             autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO, 20);
         } else if (autoIOSubs != null) {
             autoIOSubs.unsubscribe();

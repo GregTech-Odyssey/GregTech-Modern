@@ -95,7 +95,7 @@ public final class ItemNetHandler implements ICustomItemStackHandler {
     }
 
     public ItemStack insertFirst(ItemStack stack, boolean simulate) {
-        for (ItemRoutePath inv : net.getNetData(pipe.getPipePosLong(), pipe.getPipePos(), facing)) {
+        for (ItemRoutePath inv : net.getNetData(pipe.getPipeLongPos(), pipe.getPipePos(), facing)) {
             if (pipe.autoTransfer && inv.getTargetPipe() == pipe && inv.getTargetFacing() != pipe.blockedSide) continue;
             stack = insert(inv, stack, simulate);
             if (stack.isEmpty()) return ItemStack.EMPTY;
@@ -104,7 +104,7 @@ public final class ItemNetHandler implements ICustomItemStackHandler {
     }
 
     public ItemStack insertRoundRobin(ItemStack stack, boolean simulate, boolean global) {
-        List<ItemRoutePath> routePaths = net.getNetData(pipe.getPipePosLong(), pipe.getPipePos(), facing);
+        List<ItemRoutePath> routePaths = net.getNetData(pipe.getPipeLongPos(), pipe.getPipePos(), facing);
         if (routePaths.isEmpty()) return stack;
         if (routePaths.size() == 1) return insert(routePaths.getFirst(), stack, simulate);
         List<ItemRoutePath> routePathsCopy = new ArrayList<>(routePaths);
@@ -294,7 +294,7 @@ public final class ItemNetHandler implements ICustomItemStackHandler {
     }
 
     public CoverBehavior getCoverOnNeighbour(Direction handlerFacing) {
-        ICoverable coverable = GTCapabilityHelper.getCoverable(pipe.getNeighbor(handlerFacing), handlerFacing.getOpposite());
+        ICoverable coverable = GTCapabilityHelper.getCoverable(pipe.getNeighborBlockEntity(handlerFacing), handlerFacing.getOpposite());
         if (coverable == null) return null;
         return coverable.getCoverAtSide(handlerFacing.getOpposite());
     }

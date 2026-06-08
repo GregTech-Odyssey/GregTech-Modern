@@ -33,12 +33,15 @@ public final class CWUTRecipeExtension extends RecipeExtension<Long> {
     public boolean handle(IO io, @NotNull IRecipeHandlerHolder holder, @Nullable RecipeHandlerUnit unit, @NotNull GTRecipe recipe, boolean simulate) {
         var cwu = recipe.getInputCWUt();
         if (cwu < 1) return true;
+        boolean result;
         if (holder instanceof IComputationContainerMachine machine) {
-            return machine.requestCWU(cwu, simulate) >= cwu;
+            result = machine.requestCWU(cwu, simulate) >= cwu;
         } else {
-            holder.setIdleReason(() -> Component.translatable("gtceu.multiblock.computation.not_enough_computation"));
-            return false;
+            result = false;
         }
+        if (result) return true;
+        holder.setIdleReason(() -> Component.translatable("gtceu.multiblock.computation.not_enough_computation"));
+        return false;
     }
 
     @Override
@@ -49,10 +52,13 @@ public final class CWUTRecipeExtension extends RecipeExtension<Long> {
         var cwu = recipe.getInputCWUt();
         if (cwu < 1) return parallel;
         if (holder instanceof IComputationContainerMachine machine) {
-            return Math.min(parallel, machine.requestCWU(Long.MAX_VALUE, true) / cwu);
+            parallel = Math.min(parallel, machine.requestCWU(Long.MAX_VALUE, true) / cwu);
         } else {
-            return 0;
+            parallel = 0;
         }
+        if (parallel > 0) return parallel;
+        holder.setIdleReason(() -> Component.translatable("gtceu.multiblock.computation.not_enough_computation"));
+        return 0;
     }
 
     @Override

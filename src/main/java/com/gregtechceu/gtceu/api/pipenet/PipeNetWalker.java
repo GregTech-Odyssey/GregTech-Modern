@@ -194,7 +194,7 @@ public abstract class PipeNetWalker<T extends PipeBlockEntity<?, ?>, NodeDataTyp
         for (Direction accessSide : getSurroundingPipeSides()) {
             // skip sides reported as blocked by pipe network
             if (accessSide == from || !pipeTile.isConnected(accessSide)) continue;
-            BlockEntity tile = pipeTile.getNeighbor(accessSide);
+            BlockEntity tile = pipeTile.getNeighborBlockEntity(accessSide);
             if (tile != null && getBasePipeClass().isAssignableFrom(tile.getClass())) {
                 T otherPipe = (T) tile;
                 var side = accessSide.getOpposite();

@@ -92,8 +92,8 @@ public final class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, F
     public FluidPipeNet getFluidPipeNet() {
         if (level instanceof ServerLevel serverLevel && getBlockState().getBlock() instanceof FluidPipeBlock fluidPipeBlock) {
             FluidPipeNet currentFluidPipeNet = this.currentFluidPipeNet.get();
-            if (currentFluidPipeNet != null && currentFluidPipeNet.isValid() && currentFluidPipeNet.containsNode(getPipePosLong())) return currentFluidPipeNet;
-            currentFluidPipeNet = fluidPipeBlock.getWorldPipeNet(serverLevel).getNetFromPos(getBlockPos(), getPipePosLong());
+            if (currentFluidPipeNet != null && currentFluidPipeNet.isValid() && currentFluidPipeNet.containsNode(getPipeLongPos())) return currentFluidPipeNet;
+            currentFluidPipeNet = fluidPipeBlock.getWorldPipeNet(serverLevel).getNetFromPos(getBlockPos(), getPipeLongPos());
             if (currentFluidPipeNet != null) {
                 this.currentFluidPipeNet = new WeakReference<>(currentFluidPipeNet);
             }
@@ -167,7 +167,7 @@ public final class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, F
         autoTransfer = true;
         for (Direction facing : GTUtil.DIRECTIONS) {
             if (facing != blockedSide && isConnected(facing)) {
-                var be = getNeighbor(facing);
+                var be = getNeighborBlockEntity(facing);
                 if (be == null || be instanceof PipeBlockEntity<?, ?>) continue;
                 var handler = LazyOptionalUtil.get(be.getCapability(ForgeCapabilities.FLUID_HANDLER, facing.getOpposite()));
                 if (handler != null) {

@@ -171,7 +171,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
     //////////////////////////////////////
     protected void updateAutoOutputSubscription() {
         var outputFace = getOutputFacingItems();
-        if (isAutoOutputItems() && outputFace != null && !exportItems.isEmpty() && blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFace)) {
+        if (isAutoOutputItems() && outputFace != null && !exportItems.isEmpty() && holder.blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFace)) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput, 20);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();

@@ -145,7 +145,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait impl
             for (Direction side : sideSupplier.get()) {
                 if (!outputsEnergy(side)) continue;
                 var oppositeSide = side.getOpposite();
-                var energyContainer = GTCapabilityHelper.getEnergyContainer(machine.getNeighbor(side), oppositeSide);
+                var energyContainer = GTCapabilityHelper.getEnergyContainer(machine.holder.getNeighborBlockEntity(side), oppositeSide);
                 if (energyContainer != null && energyContainer.inputsEnergy(oppositeSide)) {
                     energyUsed += energyContainer.acceptEnergyFromNetwork(this, oppositeSide, voltage, canOutput - energyUsed);
                     if (energyUsed == canOutput) break;

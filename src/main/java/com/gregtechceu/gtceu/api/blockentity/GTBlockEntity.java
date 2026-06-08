@@ -7,6 +7,8 @@ import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.SCPacketSBlockEntitySync;
 import com.gregtechceu.gtceu.utils.TaskHandler;
+import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
+import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -46,11 +48,30 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
 
     private boolean changed;
 
+    public final long longPos;
+
+    public final BlockEntityDirectionCache blockEntityDirectionCache = BlockEntityDirectionCache.create();
+    public final DirectionCache<BlockState> blockStateDirectionCache = DirectionCache.create();
+
     public GTBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
+        longPos = worldPosition.asLong();
     }
 
     public abstract ICoverable getCoverContainer();
+
+    public void onNeighborChanged() {
+        blockEntityDirectionCache.clearCache();
+        blockStateDirectionCache.clearCache();
+    }
+
+    public @Nullable BlockEntity getNeighborBlockEntity(Direction facing) {
+        return blockEntityDirectionCache.getAdjacentBlockEntity(level, worldPosition, facing);
+    }
+
+    public BlockState getNeighborBlockState(Direction facing) {
+        return blockStateDirectionCache.getOrSet(facing, () -> level.getBlockState(worldPosition.relative(facing)));
+    }
 
     @Override
     public boolean isRemoved() {
@@ -143,6 +164,7 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
 
     @Override
     public void setRemoved() {
+        blockEntityDirectionCache.clearCache();
         this.remove = true;
         autoSyncSubscription = ITickSubscription.unsubscribe(autoSyncSubscription);
         super.setRemoved();
@@ -151,6 +173,7 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
 
     @Override
     public void clearRemoved() {
+        blockEntityDirectionCache.clearCache();
         changed = false;
         this.remove = false;
         chunk = null;

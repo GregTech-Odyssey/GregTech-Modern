@@ -30,7 +30,6 @@ import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 import com.gregtechceu.gtceu.common.machine.owner.PlayerOwner;
 import com.gregtechceu.gtceu.core.Iblock;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -120,10 +119,7 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     public final DirectionCache<LazyOptional<IItemHandler>> itemCapDirectionCache = DirectionCache.create();
     public final DirectionCache<LazyOptional<IFluidHandler>> fluidCapDirectionCache = DirectionCache.create();
 
-    protected final DirectionCache<BlockState> blockStateDirectionCache = DirectionCache.create();
     protected final DirectionCache<FluidState> fluidStateDirectionCache = DirectionCache.create();
-
-    public final BlockEntityDirectionCache blockEntityDirectionCache = BlockEntityDirectionCache.create();
 
     protected Direction frontFacing;
 
@@ -201,13 +197,11 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     public void onUnload() {
         traits.forEach(MachineTrait::onMachineUnLoad);
         coverContainer.onUnload();
-        blockEntityDirectionCache.clearCache();
         clearDirectionCache();
     }
 
     @MustBeInvokedByOverriders
     public void onLoad() {
-        blockEntityDirectionCache.clearCache();
         clearDirectionCache();
         traits.forEach(MachineTrait::onMachineLoad);
         coverContainer.onLoad();
@@ -585,7 +579,7 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     }
 
     public BlockState getNeighborBlockState(Direction facing) {
-        return blockStateDirectionCache.getOrSet(facing, () -> getLevel().getBlockState(getPos().relative(facing)));
+        return holder.blockStateDirectionCache.getOrSet(facing, () -> getLevel().getBlockState(getPos().relative(facing)));
     }
 
     public FluidState getNeighborFluidState(Direction facing) {
@@ -593,20 +587,15 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     }
 
     public @Nullable MetaMachine getNeighborMachine(Direction facing) {
-        if (blockEntityDirectionCache.getAdjacentBlockEntity(getLevel(), getPos(), facing) instanceof MetaMachineBlockEntity entity) {
+        if (holder.getNeighborBlockEntity(facing) instanceof MetaMachineBlockEntity entity) {
             return entity.metaMachine;
         }
         return null;
     }
 
-    public @Nullable BlockEntity getNeighbor(Direction facing) {
-        return blockEntityDirectionCache.getAdjacentBlockEntity(getLevel(), getPos(), facing);
-    }
-
     public void onNeighborChanged(Block block, BlockPos fromPos, boolean isMoving) {
+        holder.onNeighborChanged();
         coverContainer.onNeighborChanged(block, fromPos, isMoving);
-        blockEntityDirectionCache.clearCache();
-        blockStateDirectionCache.clearCache();
         fluidStateDirectionCache.clearCache();
     }
 

@@ -39,7 +39,7 @@ public final class EnergyRoutePath implements IRoutePath<IEnergyContainer> {
         if (pipeBlockEntity == null) {
             pipeBlockEntity = world.getBlockEntity(getTargetPipePos()) instanceof PipeBlockEntity<?, ?> entity ? entity : null;
         } else {
-            return GTCapabilityHelper.getEnergyContainer(pipeBlockEntity.getNeighbor(targetFacing), targetFacing.getOpposite());
+            return GTCapabilityHelper.getEnergyContainer(pipeBlockEntity.getNeighborBlockEntity(targetFacing), targetFacing.getOpposite());
         }
         return GTCapabilityHelper.getEnergyContainer(world.getBlockEntity(getTargetPipePos().relative(targetFacing)), targetFacing.getOpposite());
     }

@@ -155,7 +155,7 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     }
 
     protected void updateTankSubscription(Direction newFacing) {
-        if (isWorkingEnabled() && ((io == IO.OUT && !tank.isEmpty()) || io == IO.IN) && blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), newFacing)) {
+        if (isWorkingEnabled() && ((io == IO.OUT && !tank.isEmpty()) || io == IO.IN) && holder.blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), newFacing)) {
             autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO, 20);
         } else if (autoIOSubs != null) {
             autoIOSubs.unsubscribe();

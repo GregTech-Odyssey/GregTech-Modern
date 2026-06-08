@@ -31,7 +31,7 @@ public class NotifiableLaserContainer extends NotifiableEnergyContainer implemen
             long energyUsed = 0;
             var side = machine.getFrontFacing();
             var oppositeSide = side.getOpposite();
-            var energyContainer = GTCapabilityHelper.getLaser(machine.getNeighbor(side), oppositeSide);
+            var energyContainer = GTCapabilityHelper.getLaser(machine.holder.getNeighborBlockEntity(side), oppositeSide);
             if (energyContainer != null && canOutput >= energyContainer.getInputVoltage() && energyContainer.inputsEnergy(oppositeSide)) {
                 energyUsed += energyContainer.acceptEnergyFromNetwork(this, oppositeSide, voltage, canOutput - energyUsed);
             }

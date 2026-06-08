@@ -70,7 +70,7 @@ public class NotifiableComputationContainer extends NotifiableRecipeHandlerTrait
     @Nullable
     protected IOpticalComputationProvider getOpticalNetProvider() {
         var direction = machine.getFrontFacing();
-        var cap = GTCapabilityHelper.getComputation(machine.getNeighbor(direction), direction.getOpposite());
+        var cap = GTCapabilityHelper.getComputation(machine.holder.getNeighborBlockEntity(direction), direction.getOpposite());
         if (cap instanceof IOpticalComputationHatch hatch) {
             return hatch.isTransmitter() ? cap : null;
         } else {

@@ -119,8 +119,8 @@ public class CokeOvenHatch extends MultiblockPartMachine {
 
     protected void updateAutoIOSubscription() {
         if ((!outputInventory.isEmpty() &&
-                blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), getFrontFacing())) ||
-                (!tank.isEmpty() && blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), getFrontFacing()))) {
+                holder.blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), getFrontFacing())) ||
+                (!tank.isEmpty() && holder.blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), getFrontFacing()))) {
             autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO, 20);
         } else if (autoIOSubs != null) {
             autoIOSubs.unsubscribe();

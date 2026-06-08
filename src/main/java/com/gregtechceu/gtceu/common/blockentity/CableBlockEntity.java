@@ -93,9 +93,9 @@ public final class CableBlockEntity extends PipeBlockEntity<Insulation, WireProp
     private EnergyNet getEnergyNet() {
         if (!(level instanceof ServerLevel serverLevel)) return null;
         EnergyNet currentEnergyNet = this.currentEnergyNet.get();
-        if (currentEnergyNet != null && currentEnergyNet.isValid() && currentEnergyNet.containsNode(getPipePosLong())) return currentEnergyNet;
+        if (currentEnergyNet != null && currentEnergyNet.isValid() && currentEnergyNet.containsNode(getPipeLongPos())) return currentEnergyNet;
         LevelEnergyNet worldENet = LevelEnergyNet.getOrCreate(serverLevel);
-        currentEnergyNet = worldENet.getNetFromPos(getBlockPos(), getPipePosLong());
+        currentEnergyNet = worldENet.getNetFromPos(getBlockPos(), getPipeLongPos());
         if (currentEnergyNet != null) {
             this.currentEnergyNet = new WeakReference<>(currentEnergyNet);
         }

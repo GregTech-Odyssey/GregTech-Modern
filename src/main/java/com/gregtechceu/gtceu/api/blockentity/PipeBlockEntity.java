@@ -15,8 +15,6 @@ import com.gregtechceu.gtceu.api.pipenet.*;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
-import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 
@@ -84,11 +82,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     @NotNull
     private Material frameMaterial = GTMaterials.NULL;
 
-    private final long posLong;
-
-    public final BlockEntityDirectionCache blockEntityDirectionCache = BlockEntityDirectionCache.create();
-    public final DirectionCache<BlockState> blockStateDirectionCache = DirectionCache.create();
-
     protected TickableSubscription transferSubs;
 
     public boolean autoTransfer;
@@ -96,7 +89,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     public PipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
         this.coverContainer = new PipeCoverContainer(this);
-        posLong = worldPosition.asLong();
     }
 
     //////////////////////////////////////
@@ -107,7 +99,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     public void setRemoved() {
         super.setRemoved();
         coverContainer.onUnload();
-        blockEntityDirectionCache.clearCache();
         if (transferSubs != null) {
             transferSubs.unsubscribe();
             transferSubs = null;
@@ -116,7 +107,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
 
     @Override
     public void clearRemoved() {
-        blockEntityDirectionCache.clearCache();
         super.clearRemoved();
         coverContainer.onLoad();
     }
@@ -145,20 +135,16 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     }
 
     public void onNeighborChanged() {
-        blockEntityDirectionCache.clearCache();
+        super.onNeighborChanged();
         sync = true;
-    }
-
-    public @Nullable BlockEntity getNeighbor(Direction facing) {
-        return blockEntityDirectionCache.getAdjacentBlockEntity(getLevel(), getBlockPos(), facing);
     }
 
     public BlockPos getPipePos() {
         return worldPosition;
     }
 
-    public long getPipePosLong() {
-        return posLong;
+    public long getPipeLongPos() {
+        return longPos;
     }
 
     public NodeDataType getNodeData() {
@@ -197,7 +183,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
             }
             blockedChanged(isBlocked);
             LevelPipeNet<?, ?> worldPipeNet = getPipeBlock().getWorldPipeNet(serverLevel);
-            PipeNet<?> net = worldPipeNet.getNetFromPos(getBlockPos(), posLong);
+            PipeNet<?> net = worldPipeNet.getNetFromPos(getBlockPos(), longPos);
             if (net != null) {
                 net.onPipeConnectionsUpdate();
             }
@@ -223,7 +209,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
             if (isConnected(side) == connected) {
                 return;
             }
-            BlockEntity tile = getNeighbor(side);
+            BlockEntity tile = getNeighborBlockEntity(side);
             // block connections if Pipe Types do not match
             if (connected && tile instanceof PipeBlockEntity<?, ?> pipeTile && pipeTile.getPipeType().getClass() != this.getPipeType().getClass()) {
                 return;
@@ -256,7 +242,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
 
     private void updateNetworkConnection(Direction side, boolean connected) {
         LevelPipeNet<?, ?> worldPipeNet = getPipeBlock().getWorldPipeNet((ServerLevel) getLevel());
-        worldPipeNet.updateBlockedConnections(worldPosition, posLong, side, !connected);
+        worldPipeNet.updateBlockedConnections(worldPosition, longPos, side, !connected);
     }
 
     protected int withSideConnection(int blockedConnections, Direction side, boolean connected) {
@@ -430,7 +416,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     @Nullable
     public PipeNet<NodeDataType> getPipeNet() {
         if (level instanceof ServerLevel serverLevel) {
-            return getPipeBlock().getWorldPipeNet(serverLevel).getNetFromPos(worldPosition, posLong);
+            return getPipeBlock().getWorldPipeNet(serverLevel).getNetFromPos(worldPosition, longPos);
         }
         return null;
     }

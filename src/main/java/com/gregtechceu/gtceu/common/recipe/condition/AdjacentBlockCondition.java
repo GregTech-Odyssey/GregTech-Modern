@@ -32,7 +32,7 @@ public class AdjacentBlockCondition extends RecipeCondition {
         boolean hasBlockB = false;
         for (Direction side : GTUtil.DIRECTIONS) {
             if (side.getAxis() != Direction.Axis.Y) {
-                var block = holder.self().getNeighborBlockState(side).getBlock();
+                var block = holder.self().holder.getNeighborBlockState(side).getBlock();
                 if (block == A) {
                     hasBlockA = true;
                 } else if (block == B) {

@@ -88,12 +88,12 @@ public final class MachineCoverContainer implements ICoverable {
 
     @Override
     public BlockEntityDirectionCache getBlockEntityDirectionCache() {
-        return machine.blockEntityDirectionCache;
+        return machine.holder.blockEntityDirectionCache;
     }
 
     @Override
     public BlockEntity getNeighbor(Direction facing) {
-        return machine.getNeighbor(facing);
+        return machine.holder.getNeighborBlockEntity(facing);
     }
 
     @Override

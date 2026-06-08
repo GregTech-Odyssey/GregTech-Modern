@@ -276,7 +276,11 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         var eu = recipe.eut;
         if (eu != 0) {
             if (!(this instanceof IElectricMachine electricMachine && electricMachine.useEnergy(eu, false))) {
-                setIdleReason(() -> ActionResult.failInsufficientIn(EURecipeInfo.INSTANCE.getName()).reason());
+                if (eu > 0) {
+                    setIdleReason(() -> ActionResult.failInsufficientIn(EURecipeInfo.INSTANCE.getName()).reason());
+                } else {
+                    setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
+                }
                 return false;
             }
         }

@@ -91,7 +91,7 @@ public final class PipeCoverContainer implements ICoverable {
 
     @Override
     public BlockEntity getNeighbor(Direction facing) {
-        return pipeTile.getNeighbor(facing);
+        return pipeTile.getNeighborBlockEntity(facing);
     }
 
     @Override

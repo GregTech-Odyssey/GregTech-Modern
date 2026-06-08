@@ -82,7 +82,7 @@ public class PipeBlockItem extends BlockItem {
                 selfTile.setConnection(side.getOpposite(), true, false);
             }
             for (Direction facing : GTUtil.DIRECTIONS) {
-                BlockEntity te = selfTile.getNeighbor(facing);
+                BlockEntity te = selfTile.getNeighborBlockEntity(facing);
                 if (te instanceof PipeBlockEntity otherPipe) {
                     if (otherPipe.isConnected(facing.getOpposite())) {
                         if (otherPipe.getPipeBlock().canPipesConnect(otherPipe, facing.getOpposite(), selfTile)) {

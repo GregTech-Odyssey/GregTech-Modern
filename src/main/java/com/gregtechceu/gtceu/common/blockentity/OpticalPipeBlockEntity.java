@@ -91,9 +91,9 @@ public final class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeTyp
     public OpticalPipeNet getOpticalPipeNet() {
         if (level == null || level.isClientSide) return null;
         OpticalPipeNet currentPipeNet = this.currentPipeNet.get();
-        if (currentPipeNet != null && currentPipeNet.isValid() && currentPipeNet.containsNode(getPipePosLong())) return currentPipeNet;
+        if (currentPipeNet != null && currentPipeNet.isValid() && currentPipeNet.containsNode(getPipeLongPos())) return currentPipeNet;
         LevelOpticalPipeNet worldNet = (LevelOpticalPipeNet) getPipeBlock().getWorldPipeNet((ServerLevel) getLevel());
-        currentPipeNet = worldNet.getNetFromPos(getPipePos(), getPipePosLong());
+        currentPipeNet = worldNet.getNetFromPos(getPipePos(), getPipeLongPos());
         if (currentPipeNet != null) {
             this.currentPipeNet = new WeakReference<>(currentPipeNet);
         }

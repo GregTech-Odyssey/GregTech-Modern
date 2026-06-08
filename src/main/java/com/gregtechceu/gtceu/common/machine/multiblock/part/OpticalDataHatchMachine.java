@@ -92,7 +92,7 @@ public class OpticalDataHatchMachine extends MultiblockPartMachine implements IO
     }
 
     protected @Nullable IDataAccessHatch getAccessHatch() {
-        return GTCapabilityHelper.getDataAccess(getNeighbor(getFrontFacing()), getFrontFacing().getOpposite());
+        return GTCapabilityHelper.getDataAccess(holder.getNeighborBlockEntity(getFrontFacing()), getFrontFacing().getOpposite());
     }
 
     @Override

@@ -93,10 +93,10 @@ public class CreativeEnergyContainerMachine extends TieredMachine implements ILa
         long energy = voltage * amps;
         for (var facing : GTUtil.DIRECTIONS) {
             var opposite = facing.getOpposite();
-            IEnergyContainer container = GTCapabilityHelper.getEnergyContainer(getNeighbor(facing), opposite);
+            IEnergyContainer container = GTCapabilityHelper.getEnergyContainer(holder.getNeighborBlockEntity(facing), opposite);
             // Try to get laser capability
             if (container == null)
-                container = GTCapabilityHelper.getLaser(getNeighbor(facing), opposite);
+                container = GTCapabilityHelper.getLaser(holder.getNeighborBlockEntity(facing), opposite);
 
             if (container != null && container.inputsEnergy(opposite)) {
                 energyUsed += container.acceptEnergyFromNetwork(this, opposite, voltage, energy);

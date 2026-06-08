@@ -231,7 +231,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
             if (!batteries.isEmpty() && outputSubs != null) {
                 boolean changed = false;
                 var outFacing = getFrontFacing();
-                var energyContainer = GTCapabilityHelper.getEnergyContainer(getNeighbor(outFacing), outFacing.getOpposite());
+                var energyContainer = GTCapabilityHelper.getEnergyContainer(holder.getNeighborBlockEntity(outFacing), outFacing.getOpposite());
                 if (energyContainer != null) {
                     var voltage = getOutputVoltage();
                     var stored = 0L;

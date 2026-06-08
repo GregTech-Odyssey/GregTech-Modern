@@ -87,8 +87,8 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
         var level = getLevel();
         boolean canIO = isWorkingEnabled() && (io == IO.OUT && (!tank.isEmpty() || !getInventory().isEmpty()) || io == IO.IN);
         if (canIO && level != null) {
-            this.hasItemHandler = blockEntityDirectionCache.hasAdjacentItemHandler(level, getPos(), getFrontFacing());
-            this.hasFluidHandler = blockEntityDirectionCache.hasAdjacentFluidHandler(level, getPos(), getFrontFacing());
+            this.hasItemHandler = holder.blockEntityDirectionCache.hasAdjacentItemHandler(level, getPos(), getFrontFacing());
+            this.hasFluidHandler = holder.blockEntityDirectionCache.hasAdjacentFluidHandler(level, getPos(), getFrontFacing());
         } else {
             this.hasItemHandler = false;
             this.hasFluidHandler = false;

@@ -81,7 +81,7 @@ public final class OpticalNetHandler implements IDataAccessHatch, IOpticalComput
     @Nullable
     private IOpticalDataAccessHatch getDataProvider() {
         if (isNetInvalidForTraversal()) return null;
-        OpticalRoutePath inv = net.getNetData(pipe.getPipePosLong(), pipe.getPipePos(), facing);
+        OpticalRoutePath inv = net.getNetData(pipe.getPipeLongPos(), pipe.getPipePos(), facing);
         if (inv == null) return null;
         IOpticalDataAccessHatch hatch = inv.getDataHatch();
         if (hatch == null || !hatch.isTransmitter()) return null;
@@ -91,7 +91,7 @@ public final class OpticalNetHandler implements IDataAccessHatch, IOpticalComput
     @Nullable
     private IOpticalComputationProvider getComputationProvider() {
         if (isNetInvalidForTraversal()) return null;
-        OpticalRoutePath inv = net.getNetData(pipe.getPipePosLong(), pipe.getPipePos(), facing);
+        OpticalRoutePath inv = net.getNetData(pipe.getPipeLongPos(), pipe.getPipePos(), facing);
         if (inv == null) return null;
         var hatch = inv.getComputationHatch();
         if (hatch == null || !hatch.isTransmitter()) return null;

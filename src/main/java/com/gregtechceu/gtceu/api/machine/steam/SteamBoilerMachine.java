@@ -140,7 +140,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     }
 
     protected void updateAutoOutputSubscription() {
-        if (Direction.stream().filter(direction -> direction != getFrontFacing() && direction != Direction.DOWN).anyMatch(direction -> blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), direction))) {
+        if (Direction.stream().filter(direction -> direction != getFrontFacing() && direction != Direction.DOWN).anyMatch(direction -> holder.blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), direction))) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput, 20);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
@@ -149,7 +149,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     }
 
     protected void autoOutput() {
-        steamTank.exportToNearby(Direction.stream().filter(direction -> direction != getFrontFacing() && direction != Direction.DOWN).filter(direction -> blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), direction)).toArray(Direction[]::new));
+        steamTank.exportToNearby(Direction.stream().filter(direction -> direction != getFrontFacing() && direction != Direction.DOWN).filter(direction -> holder.blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), direction)).toArray(Direction[]::new));
         updateAutoOutputSubscription();
     }
 
