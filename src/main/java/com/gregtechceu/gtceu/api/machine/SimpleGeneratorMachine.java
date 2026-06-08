@@ -102,7 +102,7 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine {
     //////////////////////////////////////
     @SuppressWarnings("UnstableApiUsage")
     public static BiFunction<ResourceLocation, GTRecipeType, EditableMachineUI> EDITABLE_UI_CREATOR = Util.memoize((path, recipeType) -> new EditableMachineUI("generator", path, () -> {
-        WidgetGroup template = recipeType.getRecipeUI().createEditableUITemplate(false, false).createDefault();
+        WidgetGroup template = recipeType.getRecipeUI().createEditableUITemplate(false, false, (output, key) -> !output).createDefault();
         WidgetGroup group = new WidgetGroup(0, 0, template.getSize().width + 4 + 8, template.getSize().height + 8);
         Size size = group.getSize();
         template.setSelfPosition(new Position((size.width - 4 - template.getSize().width) / 2 + 4, (size.height - template.getSize().height) / 2));
@@ -115,7 +115,7 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine {
             storages.put(IO.OUT, ItemRecipeInfo.INSTANCE, generatorMachine.exportItems.storage);
             storages.put(IO.IN, FluidRecipeInfo.INSTANCE, generatorMachine.importFluids);
             storages.put(IO.OUT, FluidRecipeInfo.INSTANCE, generatorMachine.exportFluids);
-            generatorMachine.getRecipeType().getRecipeUI().createEditableUITemplate(false, false).setupUI(template, new GTRecipeTypeUI.RecipeHolder(generatorMachine.recipeLogic::getProgressPercent, storages, new DataComponentMap(), Collections.emptyList(), false, false));
+            generatorMachine.getRecipeType().getRecipeUI().createEditableUITemplate(false, false, (output, key) -> !output).setupUI(template, new GTRecipeTypeUI.RecipeHolder(generatorMachine.recipeLogic::getProgressPercent, storages, new DataComponentMap(), Collections.emptyList(), false, false));
             createEnergyBar().setupUI(template, generatorMachine);
         }
     }));

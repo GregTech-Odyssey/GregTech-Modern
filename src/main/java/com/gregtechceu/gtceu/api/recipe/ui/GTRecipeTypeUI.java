@@ -55,6 +55,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import java.util.function.DoubleSupplier;
 
 @SuppressWarnings("UnusedReturnValue")
@@ -158,6 +159,13 @@ public class GTRecipeTypeUI {
      * Auto layout UI template for recipes.
      */
     public IEditableUI<WidgetGroup, RecipeHolder> createEditableUITemplate(final boolean isSteam, final boolean isHighPressure) {
+        return createEditableUITemplate(isSteam, isHighPressure, (a, b) -> true);
+    }
+
+    /**
+     * Auto layout UI template for recipes.
+     */
+    public IEditableUI<WidgetGroup, RecipeHolder> createEditableUITemplate(final boolean isSteam, final boolean isHighPressure, final BiPredicate<Boolean, RecipeInfo> doRenderSlot) {
         return new IEditableUI.Normal<>(() -> {
             var isCustomUI = !isSteam && hasCustomUI();
             if (isCustomUI) {
@@ -167,8 +175,8 @@ public class GTRecipeTypeUI {
                 group.setSelfPosition(new Position(0, 0));
                 return group;
             }
-            var inputs = addInventorySlotGroup(false, isSteam, isHighPressure);
-            var outputs = addInventorySlotGroup(true, isSteam, isHighPressure);
+            var inputs = addInventorySlotGroup(false, isSteam, isHighPressure, doRenderSlot);
+            var outputs = addInventorySlotGroup(true, isSteam, isHighPressure, doRenderSlot);
             var maxWidth = Math.max(inputs.getSize().width, outputs.getSize().width);
             var group = new WidgetGroup(0, 0, 2 * maxWidth + 40, Math.max(inputs.getSize().height, outputs.getSize().height));
             var size = group.getSize();
@@ -228,13 +236,13 @@ public class GTRecipeTypeUI {
         });
     }
 
-    protected WidgetGroup addInventorySlotGroup(boolean isOutputs, boolean isSteam, boolean isHighPressure) {
+    protected WidgetGroup addInventorySlotGroup(boolean isOutputs, boolean isSteam, boolean isHighPressure, final BiPredicate<Boolean, RecipeInfo> doRenderSlot) {
         int maxCount = 0;
         int totalR = 0;
         Object2IntSortedMap<RecipeInfo> map = new Object2IntAVLTreeMap<>(RecipeInfo.COMPARATOR);
         if (isOutputs) {
             for (var value : recipeType.maxOutputs.object2IntEntrySet()) {
-                if (value.getKey().doRenderSlot) {
+                if (value.getKey().doRenderSlot && doRenderSlot.test(true, value.getKey())) {
                     int val = value.getIntValue();
                     if (val > maxCount) {
                         maxCount = Math.min(val, 3);
@@ -245,7 +253,7 @@ public class GTRecipeTypeUI {
             }
         } else {
             for (var value : recipeType.maxInputs.object2IntEntrySet()) {
-                if (value.getKey().doRenderSlot) {
+                if (value.getKey().doRenderSlot && doRenderSlot.test(false, value.getKey())) {
                     int val = value.getIntValue();
                     if (val > maxCount) {
                         maxCount = Math.min(val, 3);
