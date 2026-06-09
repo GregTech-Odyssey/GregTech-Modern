@@ -31,7 +31,13 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
         long cwu = super.requestCWU(cwut, simulate);
         if (!simulate && cwu >= cwut) {
             var progress = getRecipeLogic().getProgress();
-            getRecipeLogic().setProgress(progress + (int) Math.min(getRecipeLogic().getMaxProgress() - progress, cwu));
+            long remainingProgressAfterBaseTick = (long) getRecipeLogic().getMaxProgress() - progress - 1;
+            if (remainingProgressAfterBaseTick > 0) {
+                long extraProgress = Math.min(remainingProgressAfterBaseTick, cwu - 1);
+                if (extraProgress > 0) {
+                    getRecipeLogic().setProgress(progress + (int) extraProgress);
+                }
+            }
         }
         return cwu;
     }
