@@ -42,7 +42,7 @@ public class HullMachine extends TieredPartMachine {
 
     @Override
     public @Nullable <T> T getGTCapability(Class<T> cap, @Nullable Direction side) {
-        if (cap == GTCapability.ENERGY_CONTAINER && side == null || side != getFrontFacing()) {
+        if (cap == GTCapability.ENERGY_CONTAINER && (side == null || side != getFrontFacing())) {
             return cap.cast(energyContainer);
         }
         return super.getGTCapability(cap, side);
