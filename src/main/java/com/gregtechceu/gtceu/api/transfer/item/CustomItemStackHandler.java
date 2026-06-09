@@ -253,6 +253,7 @@ public class CustomItemStackHandler extends AbstractDataSerializable implements 
 
     public void deserializeNBT(CompoundTag nbt) {
         setSize(Math.max(size, nbt.getInt("Size")));
+        Arrays.fill(stacks, ItemStack.EMPTY);
         ListTag tagList = nbt.getList("Items", Tag.TAG_COMPOUND);
         for (int i = 0; i < tagList.size(); i++) {
             CompoundTag itemTags = tagList.getCompound(i);
@@ -283,6 +284,7 @@ public class CustomItemStackHandler extends AbstractDataSerializable implements 
     @Override
     public void readBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
         setSize(Math.max(size, data.readVarInt()));
+        Arrays.fill(stacks, ItemStack.EMPTY);
         while (data.getByte(data.readerIndex()) != -1) {
             var item = data.readItem();
             var slot = data.readVarInt();
