@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
+import com.gregtechceu.gtceu.utils.GTMath;
 
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
@@ -65,7 +66,7 @@ public final class CWUTRecipeExtension extends RecipeExtension<Long> {
     public void setParallel(GTRecipe recipe, long parallel) {
         var cwu = recipe.getInputCWUt();
         if (cwu < 1) return;
-        recipe.setCWUt(cwu * parallel);
+        recipe.setCWUt(GTMath.saturatedMultiply(cwu, parallel));
     }
 
     @Override

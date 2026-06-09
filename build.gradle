@@ -22,6 +22,10 @@ sourceSets {
     }
 }
 
+test {
+    useJUnitPlatform()
+}
+
 apply from: "$rootDir/gradle/scripts/jars.gradle"
 apply from: "$rootDir/gradle/scripts/moddevgradle.gradle"
 apply from: "$rootDir/gradle/scripts/repositories.gradle"

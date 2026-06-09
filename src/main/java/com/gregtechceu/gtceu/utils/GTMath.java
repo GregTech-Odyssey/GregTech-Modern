@@ -51,6 +51,14 @@ public class GTMath {
         }
     }
 
+    public static long saturatedMultiply(long left, long right) {
+        try {
+            return Math.multiplyExact(left, right);
+        } catch (ArithmeticException ignored) {
+            return (left < 0) == (right < 0) ? Long.MAX_VALUE : Long.MIN_VALUE;
+        }
+    }
+
     public static int hashInts(int... vals) {
         return Arrays.hashCode(vals);
     }
