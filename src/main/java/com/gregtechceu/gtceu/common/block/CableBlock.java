@@ -87,7 +87,7 @@ public class CableBlock extends MaterialPipeBlock<Insulation, WireProperties, Le
     @Override
     public boolean canPipeConnectToBlock(PipeBlockEntity<Insulation, WireProperties> selfTile, Direction side,
                                          @Nullable BlockEntity tile) {
-        return GTCapabilityHelper.getEnergyContainer(tile, side) != null;
+        return GTCapabilityHelper.getEnergyContainer(tile, side.getOpposite()) != null;
     }
 
     @Override

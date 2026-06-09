@@ -104,6 +104,7 @@ public class OpticalPipeBlock extends PipeBlock<OpticalPipeType, OpticalPipeProp
 
     @Override
     public boolean canPipeConnectToBlock(PipeBlockEntity<OpticalPipeType, OpticalPipeProperties> selfTile, Direction side, @Nullable BlockEntity tile) {
-        return GTCapabilityHelper.getComputation(tile, side) != null || GTCapabilityHelper.getDataAccess(tile, side) != null;
+        var opposite = side.getOpposite();
+        return GTCapabilityHelper.getComputation(tile, opposite) != null || GTCapabilityHelper.getDataAccess(tile, opposite) != null;
     }
 }
