@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.ItemPipePrope
 import com.gregtechceu.gtceu.api.pipenet.LevelPipeNet;
 import com.gregtechceu.gtceu.api.pipenet.Node;
 import com.gregtechceu.gtceu.api.pipenet.PipeNet;
+import com.gregtechceu.gtceu.utils.collection.LoopIterator;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -11,27 +12,26 @@ import net.minecraft.nbt.CompoundTag;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 
 public final class ItemPipeNet extends PipeNet<ItemPipeProperties> {
 
-    private final Long2ObjectOpenHashMap<List<ItemRoutePath>> netData = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectOpenHashMap<LoopIterator<ItemRoutePath>> netData = new Long2ObjectOpenHashMap<>();
 
     public ItemPipeNet(LevelPipeNet<ItemPipeProperties, ? extends PipeNet<ItemPipeProperties>> world) {
         super(world);
     }
 
-    public List<ItemRoutePath> getNetData(long pipePos, BlockPos pos, Direction facing) {
-        List<ItemRoutePath> data = netData.get(pipePos);
+    public LoopIterator<ItemRoutePath> getNetData(long pipePos, BlockPos pos, Direction facing) {
+        var data = netData.get(pipePos);
         if (data == null) {
-            data = ItemNetWalker.createNetData(this, pos, facing);
-            if (data == null) {
+            var datas = ItemNetWalker.createNetData(this, pos, facing);
+            if (datas == null) {
                 // walker failed, don't cache so it tries again on next insertion
-                return Collections.emptyList();
+                return LoopIterator.EMPTY;
             }
-            data.sort(Comparator.comparingInt(inv -> inv.getTargetPipe().isBlocked(inv.getTargetFacing()) ? 0 : inv.getProperties().getPriority()));
+            datas.sort(Comparator.comparingInt(inv -> inv.getTargetPipe().isBlocked(inv.getTargetFacing()) ? 0 : inv.getProperties().getPriority()));
+            data = new LoopIterator<>(datas.toArray(new ItemRoutePath[0]));
             netData.put(pipePos, data);
         }
         return data;

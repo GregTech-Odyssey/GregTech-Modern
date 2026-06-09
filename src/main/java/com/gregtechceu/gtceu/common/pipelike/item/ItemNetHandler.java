@@ -26,6 +26,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -95,7 +96,7 @@ public final class ItemNetHandler implements ICustomItemStackHandler {
     }
 
     public ItemStack insertFirst(ItemStack stack, boolean simulate) {
-        for (ItemRoutePath inv : net.getNetData(pipe.getPipeLongPos(), pipe.getPipePos(), facing)) {
+        for (var inv : net.getNetData(pipe.getPipeLongPos(), pipe.getPipePos(), facing).array) {
             if (pipe.autoTransfer && inv.getTargetPipe() == pipe && inv.getTargetFacing() != pipe.blockedSide) continue;
             stack = insert(inv, stack, simulate);
             if (stack.isEmpty()) return ItemStack.EMPTY;
@@ -104,13 +105,13 @@ public final class ItemNetHandler implements ICustomItemStackHandler {
     }
 
     public ItemStack insertRoundRobin(ItemStack stack, boolean simulate, boolean global) {
-        List<ItemRoutePath> routePaths = net.getNetData(pipe.getPipeLongPos(), pipe.getPipePos(), facing);
-        if (routePaths.isEmpty()) return stack;
-        if (routePaths.size() == 1) return insert(routePaths.getFirst(), stack, simulate);
-        List<ItemRoutePath> routePathsCopy = new ArrayList<>(routePaths);
+        var routePaths = net.getNetData(pipe.getPipeLongPos(), pipe.getPipePos(), facing);
+        if (routePaths.size == 0) return stack;
+        if (routePaths.size == 1) return insert(routePaths.array[0], stack, simulate);
         if (global) {
-            stack = insertToHandlersEnhanced(routePathsCopy, stack, simulate);
+            stack = insertToHandlersEnhanced(routePaths.array, stack, simulate);
         } else {
+            var routePathsCopy = new ObjectArrayList<>(routePaths.array);
             stack = insertToHandlers(routePathsCopy, stack, simulate);
             if (!stack.isEmpty() && !routePathsCopy.isEmpty()) stack = insertToHandlers(routePathsCopy, stack, simulate);
         }
@@ -157,13 +158,13 @@ public final class ItemNetHandler implements ICustomItemStackHandler {
         return remainder;
     }
 
-    private ItemStack insertToHandlersEnhanced(List<ItemRoutePath> copy, ItemStack stack, boolean simulate) {
+    private ItemStack insertToHandlersEnhanced(ItemRoutePath[] array, ItemStack stack, boolean simulate) {
         List<EnhancedRoundRobinData> transferred = new ArrayList<>();
         IntList steps = new IntArrayList();
         int min = Integer.MAX_VALUE;
         ItemStack simStack;
         // find inventories that are not full and get the amount that was inserted in total
-        for (ItemRoutePath inv : copy) {
+        for (var inv : array) {
             simStack = stack.copy();
             int ins = stack.getCount() - insert(inv, simStack, true, true).getCount();
             if (ins <= 0) continue;

@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidPipeProp
 import com.gregtechceu.gtceu.api.pipenet.LevelPipeNet;
 import com.gregtechceu.gtceu.api.pipenet.Node;
 import com.gregtechceu.gtceu.api.pipenet.PipeNet;
+import com.gregtechceu.gtceu.utils.collection.LoopIterator;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -11,27 +12,23 @@ import net.minecraft.nbt.CompoundTag;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 public final class FluidPipeNet extends PipeNet<FluidPipeProperties> {
 
-    private final Long2ObjectOpenHashMap<List<FluidRoutePath>> netData = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectOpenHashMap<LoopIterator<FluidRoutePath>> netData = new Long2ObjectOpenHashMap<>();
 
     public FluidPipeNet(LevelPipeNet<FluidPipeProperties, ? extends PipeNet<FluidPipeProperties>> world) {
         super(world);
     }
 
-    public List<FluidRoutePath> getNetData(long pipePos, BlockPos pos, Direction facing) {
-        List<FluidRoutePath> data = netData.get(pipePos);
+    public LoopIterator<FluidRoutePath> getNetData(long pipePos, BlockPos pos, Direction facing) {
+        var data = netData.get(pipePos);
         if (data == null) {
-            data = FluidNetWalker.createNetData(this, pos, facing);
-            if (data == null) {
+            var datas = FluidNetWalker.createNetData(this, pos, facing);
+            if (datas == null) {
                 // walker failed, don't cache so it tries again on next insertion
-                return Collections.emptyList();
+                return LoopIterator.EMPTY;
             }
-            data.sort(Comparator.comparingInt(inv -> inv.getTargetPipe().isBlocked(inv.getTargetFacing()) ? 0 : 1));
+            data = new LoopIterator<>(datas.toArray(new FluidRoutePath[0]));
             netData.put(pipePos, data);
         }
         return data;

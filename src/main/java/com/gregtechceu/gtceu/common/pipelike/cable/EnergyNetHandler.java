@@ -42,7 +42,7 @@ public final class EnergyNetHandler implements IEnergyContainer {
         energyToAdd = Math.min(energyToAdd, getEnergyCapacity());
         long energyUsed = 0;
         var pos = cable.getPipePos();
-        for (EnergyRoutePath path : net.getNetData(cable.getPipeLongPos(), pos)) {
+        for (var path : net.getNetData(cable.getPipeLongPos(), pos)) {
             long add = energyToAdd - energyUsed;
             if (add <= 0) break;
             long loss = path.getMaxLoss();
