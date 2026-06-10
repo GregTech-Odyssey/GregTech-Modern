@@ -242,7 +242,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     default boolean handleRecipeOutput(GTRecipe recipe) {
         var extension = true;
         for (var e : recipe.definition.recipeExtensions) {
-            if (!e.handle(IO.OUT, this, null, recipe, true)) extension = false;
+            if (!e.handle(IO.OUT, this, null, recipe, false)) extension = false;
         }
         var items = RecipeHelper.copyAndRoll(recipe, recipe.itemOutputs);
         var fluids = RecipeHelper.copyAndRoll(recipe, recipe.fluidOutputs);
