@@ -508,7 +508,6 @@ public class GTMultiMachines {
             .appearanceBlock(CASING_BRONZE_BRICKS)
             .recipeType(GTRecipeTypes.FURNACE_RECIPES)
             .recipeModifier(SteamParallelMultiblockMachine::recipeModifier)
-            .addOutputLimit(ItemRecipeInfo.INSTANCE, 1)
             .pattern(definition -> FactoryBlockPattern.start(definition)
                     .aisle("FFF", "XXX", " X ")
                     .aisle("FFF", "X#X", " X ")
