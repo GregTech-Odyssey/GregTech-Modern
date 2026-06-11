@@ -120,7 +120,9 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     public void onUnload() {
         super.onUnload();
         if (getLevel() instanceof ServerLevel serverLevel) {
+            getMultiblockState().removeShared();
             MultiblockWorldData.getOrCreate(serverLevel).removeAsyncLogic(this);
+            MultiblockWorldData.getOrCreate(serverLevel).removeMapping(getMultiblockState());
         } else {
             ILevel.getHighlightCache(getLevel()).remove(getPos().asLong());
             onStructureInvalidClient();
@@ -254,11 +256,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @Override
     public void asyncCheckPattern(MultiblockWorldData data) {
         if (checking) return;
-        if (getMultiblockState().error == null && isFormed) {
-            data.addMapping(getMultiblockState());
-            data.removeAsyncLogic(this);
-            return;
-        }
         if (getLevel() instanceof ServerLevel serverLevel) {
             checking = true;
             if (checkPatternWithTryLock()) {
