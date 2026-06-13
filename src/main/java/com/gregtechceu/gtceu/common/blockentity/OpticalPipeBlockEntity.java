@@ -57,21 +57,19 @@ public final class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeTyp
     }
 
     @Override
-    public @Nullable <T> T getGTCapability(@NotNull Class<T> cap, @Nullable Direction side) {
+    public @Nullable <T> Object getGTCapability(@NotNull Class<T> cap, @Nullable Direction side) {
         if (cap == GTCapability.DATA_ACCESS) {
-            if (level.isClientSide) return cap.cast(defaultDataHandler);
-            if (side != null && !isConnected(side)) return null;
+            if (level.isClientSide) return defaultDataHandler;
+            if (side != null && !isConnected(side)) return GTCapability.EMPTY;
             if (handlers.isEmpty()) initHandlers();
             checkNetwork();
-            var handler = handlers.getOrDefault(side, defaultHandler);
-            return cap.cast(handler == null ? defaultDataHandler : handler);
+            return handlers.getOrDefault(side, defaultHandler);
         } else if (cap == GTCapability.COMPUTATION_PROVIDER) {
-            if (level.isClientSide) return cap.cast(ComputationProviderList.EMPTY);
-            if (side != null && !isConnected(side)) return null;
+            if (level.isClientSide) return ComputationProviderList.EMPTY;
+            if (side != null && !isConnected(side)) return GTCapability.EMPTY;
             if (handlers.isEmpty()) initHandlers();
             checkNetwork();
-            var handler = handlers.getOrDefault(side, defaultHandler);
-            return cap.cast(handler == null ? defaultHandler : handler);
+            return handlers.getOrDefault(side, defaultHandler);
         }
         return super.getGTCapability(cap, side);
     }

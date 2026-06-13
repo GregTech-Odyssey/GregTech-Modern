@@ -51,9 +51,10 @@ public class TieredEnergyMachine extends TieredMachine implements IExplosionMach
     }
 
     @Override
-    public @Nullable <T> T getGTCapability(Class<T> cap, @Nullable Direction side) {
-        if (cap == GTCapability.ENERGY_CONTAINER && energyContainer.hasCapability(side)) {
-            return cap.cast(energyContainer);
+    public @Nullable <T> Object getGTCapability(Class<T> cap, @Nullable Direction side) {
+        if (cap == GTCapability.ENERGY_CONTAINER) {
+            if (energyContainer.hasCapability(side)) return energyContainer;
+            return GTCapability.EMPTY;
         }
         return super.getGTCapability(cap, side);
     }

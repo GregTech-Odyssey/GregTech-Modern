@@ -59,11 +59,11 @@ public class CreativeEnergyContainerMachine extends TieredMachine implements ILa
     //////////////////////////////////////
 
     @Override
-    public @Nullable <T> T getGTCapability(Class<T> cap, @Nullable Direction side) {
+    public @Nullable <T> Object getGTCapability(Class<T> cap, @Nullable Direction side) {
         if (cap == GTCapability.ENERGY_CONTAINER) {
-            return cap.cast(this);
+            return this;
         } else if (cap == GTCapability.LASER) {
-            return cap.cast(this);
+            return this;
         }
         return super.getGTCapability(cap, side);
     }

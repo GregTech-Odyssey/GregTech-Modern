@@ -18,7 +18,7 @@ public interface IMachineFeature {
     }
 
     @Nullable
-    default <T> T getGTCapability(@NotNull Class<T> cap, @Nullable Direction side) {
+    default <T> Object getGTCapability(@NotNull Class<T> cap, @Nullable Direction side) {
         return null;
     }
 }

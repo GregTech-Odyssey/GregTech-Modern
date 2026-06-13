@@ -78,13 +78,11 @@ public final class CableBlockEntity extends PipeBlockEntity<Insulation, WireProp
 
     @Override
     @Nullable
-    public <T> T getGTCapability(Class<T> cap, @Nullable Direction side) {
+    public <T> Object getGTCapability(Class<T> cap, @Nullable Direction side) {
         if (cap == GTCapability.ENERGY_CONTAINER) {
             var container = getEnergyContainer(side);
-            if (container != null) {
-                return cap.cast(container);
-            }
-            return null;
+            if (container != null) return container;
+            return GTCapability.EMPTY;
         }
         return super.getGTCapability(cap, side);
     }

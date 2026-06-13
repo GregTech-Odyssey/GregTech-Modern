@@ -112,7 +112,7 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
 
     @Override
     public List<IFancyUIProvider> getSubTabs() {
-        return Arrays.stream(getParts()).filter(Objects::nonNull).map(IFancyUIProvider.class::cast).toList();
+        return Arrays.stream(getParts()).map(IFancyUIProvider.class::cast).toList();
     }
 
     @Override

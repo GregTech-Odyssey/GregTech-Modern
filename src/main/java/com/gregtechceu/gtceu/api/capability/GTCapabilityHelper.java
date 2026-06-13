@@ -77,7 +77,7 @@ public class GTCapabilityHelper {
     @Nullable
     public static IEnergyContainer getEnergyContainer(BlockEntity blockEntity, @Nullable Direction side) {
         if (blockEntity instanceof GTBlockEntity gtBlockEntity) {
-            return gtBlockEntity.getGTCapability(GTCapability.ENERGY_CONTAINER, side);
+            return getBlockEntityGTCapability(GTCapability.ENERGY_CONTAINER, gtBlockEntity, side);
         } else {
             return EUToFEProvider.getCapability(blockEntity, side);
         }
@@ -178,17 +178,18 @@ public class GTCapabilityHelper {
     @Nullable
     public static <T> T getBlockEntityGTCapability(Class<T> capability, @Nullable BlockEntity blockEntity, @Nullable Direction side) {
         if (blockEntity instanceof GTBlockEntity gtBlockEntity) {
-            return gtBlockEntity.getGTCapability(capability, side);
+            var result = gtBlockEntity.getGTCapability(capability, side);
+            if (result != null && result != GTCapability.EMPTY) return (T) result;
         }
         return null;
     }
 
     public static <T> List<T> forceGetCapabilitiesFromTraits(List<MachineTrait> traits, Class<T> capability) {
         if (traits.isEmpty()) return Collections.emptyList();
-        List<T> list = new ArrayList<>();
+        var list = new ArrayList<T>();
         for (MachineTrait trait : traits) {
             if (capability.isInstance(trait)) {
-                list.add(capability.cast(trait));
+                list.add((T) trait);
             }
         }
         return list;
@@ -196,10 +197,10 @@ public class GTCapabilityHelper {
 
     public static <T> List<T> getCapabilitiesFromTraits(List<MachineTrait> traits, Direction accessSide, Class<T> capability) {
         if (traits.isEmpty()) return Collections.emptyList();
-        List<T> list = new ArrayList<>();
+        var list = new ArrayList<T>();
         for (MachineTrait trait : traits) {
             if (trait instanceof ICapabilityTrait capabilityTrait && capability.isInstance(trait) && capabilityTrait.hasCapability(accessSide)) {
-                list.add(capability.cast(trait));
+                list.add((T) trait);
             }
         }
         return list;

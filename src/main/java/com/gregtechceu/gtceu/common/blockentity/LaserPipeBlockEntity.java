@@ -46,16 +46,13 @@ public final class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, L
     }
 
     @Override
-    public @Nullable <T> T getGTCapability(@NotNull Class<T> cap, @Nullable Direction side) {
+    public @Nullable <T> Object getGTCapability(@NotNull Class<T> cap, @Nullable Direction side) {
         if (cap == GTCapability.LASER) {
-            if (level.isClientSide) return cap.cast(ILaserContainer.DEFAULT);
-            if (side != null && !isConnected(side)) return null;
-            if (handlers.isEmpty()) {
-                initHandlers();
-            }
+            if (level.isClientSide) return ILaserContainer.DEFAULT;
+            if (side != null && !isConnected(side)) return GTCapability.EMPTY;
+            if (handlers.isEmpty()) initHandlers();
             checkNetwork();
-            var handler = handlers.getOrDefault(side, defaultHandler);
-            return cap.cast(handler == null ? ILaserContainer.DEFAULT : handler);
+            return handlers.getOrDefault(side, defaultHandler);
         }
         return super.getGTCapability(cap, side);
     }

@@ -66,9 +66,9 @@ public class DiodePartMachine extends TieredIOPartMachine {
     }
 
     @Override
-    public @Nullable <T> T getGTCapability(Class<T> cap, @Nullable Direction side) {
+    public @Nullable <T> Object getGTCapability(Class<T> cap, @Nullable Direction side) {
         if (cap == GTCapability.ENERGY_CONTAINER) {
-            return cap.cast(energyContainer);
+            return energyContainer;
         }
         return super.getGTCapability(cap, side);
     }

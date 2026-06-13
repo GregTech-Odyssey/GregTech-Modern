@@ -17,10 +17,10 @@ public interface IOpticalDataAccessHatch extends IDataAccessHatch, IMachineFeatu
     boolean testCapability(@Nullable Direction side);
 
     @Override
-    default @Nullable <T> T getGTCapability(@NotNull Class<T> cap, @Nullable Direction side) {
-        if (cap == GTCapability.DATA_ACCESS && testCapability(side)) {
-            return cap.cast(this);
-
+    default @Nullable <T> Object getGTCapability(@NotNull Class<T> cap, @Nullable Direction side) {
+        if (cap == GTCapability.DATA_ACCESS) {
+            if (testCapability(side)) return this;
+            return GTCapability.EMPTY;
         }
         return null;
     }

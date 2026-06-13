@@ -9,14 +9,12 @@ import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.IBatteryData;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
-import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
@@ -59,6 +57,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
     public static final String PMC_BATTERY_HEADER = "PSSBattery_";
     private static final BigInteger BIG_INTEGER_MAX_LONG = BigInteger.valueOf(Long.MAX_VALUE);
     private IMaintenanceMachine maintenance;
+    @NotNull
     private PowerStationEnergyBank energyBank;
     private EnergyContainerList inputHatches;
     private EnergyContainerList outputHatches;
@@ -75,7 +74,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
     public PowerSubstationMachine(MetaMachineBlockEntity holder) {
         super(holder);
         this.tickSubscription = new ConditionalSubscriptionHandler(this, this::transferEnergyTick, 20, this::isFormed);
-        this.energyBank = new PowerStationEnergyBank(this, Collections.emptyList());
+        this.energyBank = PowerStationEnergyBank.empty();
     }
 
     @Override
@@ -110,12 +109,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
             });
         }
         if (batteries.isEmpty()) {
-            // only empty batteries found in the structure
-            onStructureInvalid();
-            return;
-        }
-        if (this.energyBank == null) {
-            this.energyBank = new PowerStationEnergyBank(this, batteries);
+            this.energyBank = PowerStationEnergyBank.empty();
         } else {
             this.energyBank = energyBank.rebuild(batteries);
         }
@@ -144,7 +138,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
         outputPerSec = netOutLastSec;
         netInLastSec = 0;
         netOutLastSec = 0;
-        if (isWorkingEnabled() && isFormed()) {
+        if (isWorkingEnabled() && isFormed() && !energyBank.isEmpty()) {
             // Bank from Energy Input Hatches
             long energyBanked = energyBank.fill(inputHatches.getEnergyStored());
             inputHatches.changeEnergy(-energyBanked);
@@ -177,18 +171,16 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
             if (recipeLogic.isWaiting()) {
                 textList.add(Component.translatable("gtceu.multiblock.waiting").setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
             }
-            if (energyBank != null) {
-                BigInteger energyStored = energyBank.getStored();
-                BigInteger energyCapacity = energyBank.getCapacity();
-                var STYLE_GOLD = Style.EMPTY.withColor(ChatFormatting.GOLD);
-                var STYLE_DARK_RED = Style.EMPTY.withColor(ChatFormatting.DARK_RED);
-                var storedComponent = Component.literal(FormattingUtil.formatNumbers(energyStored));
-                textList.add(Component.translatable("gtceu.multiblock.power_substation.stored", storedComponent.setStyle(STYLE_GOLD)));
-                var capacityComponent = Component.literal(FormattingUtil.formatNumbers(energyCapacity));
-                textList.add(Component.translatable("gtceu.multiblock.power_substation.capacity", capacityComponent.setStyle(STYLE_GOLD)));
-                var passiveDrainComponent = Component.literal(FormattingUtil.formatNumbers(getPassiveDrain()));
-                textList.add(Component.translatable("gtceu.multiblock.power_substation.passive_drain", passiveDrainComponent.setStyle(STYLE_DARK_RED)));
-            }
+            BigInteger energyStored = energyBank.getStored();
+            BigInteger energyCapacity = energyBank.getCapacity();
+            var STYLE_GOLD = Style.EMPTY.withColor(ChatFormatting.GOLD);
+            var STYLE_DARK_RED = Style.EMPTY.withColor(ChatFormatting.DARK_RED);
+            var storedComponent = Component.literal(FormattingUtil.formatNumbers(energyStored));
+            textList.add(Component.translatable("gtceu.multiblock.power_substation.stored", storedComponent.setStyle(STYLE_GOLD)));
+            var capacityComponent = Component.literal(FormattingUtil.formatNumbers(energyCapacity));
+            textList.add(Component.translatable("gtceu.multiblock.power_substation.capacity", capacityComponent.setStyle(STYLE_GOLD)));
+            var passiveDrainComponent = Component.literal(FormattingUtil.formatNumbers(getPassiveDrain()));
+            textList.add(Component.translatable("gtceu.multiblock.power_substation.passive_drain", passiveDrainComponent.setStyle(STYLE_DARK_RED)));
         }
         getDefinition().getAdditionalDisplay().accept(this, textList);
     }
@@ -241,14 +233,14 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
     }
 
     public String getStored() {
-        if (energyBank == null) {
+        if (energyBank.isEmpty()) {
             return "0";
         }
         return FormattingUtil.formatNumbers(energyBank.getStored());
     }
 
     public String getCapacity() {
-        if (energyBank == null) {
+        if (energyBank.isEmpty()) {
             return "0";
         }
         return FormattingUtil.formatNumbers(energyBank.getCapacity());
@@ -279,7 +271,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
 
     @Override
     public List<IFancyUIProvider> getSubTabs() {
-        return Arrays.stream(getParts()).filter(IFancyUIProvider.class::isInstance).map(IFancyUIProvider.class::cast).toList();
+        return Arrays.stream(getParts()).map(IFancyUIProvider.class::cast).toList();
     }
 
     @Override
@@ -292,6 +284,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
     @Override
     public void saveCustomPersistedData(@NotNull CompoundTag tag, boolean forDrop) {
         super.saveCustomPersistedData(tag, forDrop);
+        if (energyBank.isEmpty()) return;
         CompoundTag bankTag = energyBank.writeToNBT(new CompoundTag());
         tag.put("energyBank", bankTag);
     }
@@ -302,7 +295,11 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
         energyBank.readFromNBT(tag.getCompound("energyBank"));
     }
 
-    public static class PowerStationEnergyBank extends MachineTrait {
+    private final static class PowerStationEnergyBank {
+
+        private static PowerStationEnergyBank empty() {
+            return new PowerStationEnergyBank(Collections.emptyList());
+        }
 
         private static final String NBT_SIZE = "Size";
         private static final String NBT_STORED = "Stored";
@@ -315,14 +312,17 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
         private BigInteger capacity;
         private int index;
 
-        public PowerStationEnergyBank(MetaMachine machine, List<IBatteryData> batteries) {
-            super(machine);
+        public PowerStationEnergyBank(List<IBatteryData> batteries) {
             storage = new long[batteries.size()];
             maximums = new long[batteries.size()];
             for (int i = 0; i < batteries.size(); i++) {
                 maximums[i] = batteries.get(i).getCapacity();
             }
             capacity = summarize(maximums);
+        }
+
+        public boolean isEmpty() {
+            return storage.length == 0;
         }
 
         public void readFromNBT(CompoundTag storageTag) {
@@ -358,10 +358,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
          * If there was more power before the rebuild operation, it will be lost.
          */
         public PowerStationEnergyBank rebuild(@NotNull List<IBatteryData> batteries) {
-            if (batteries.isEmpty()) {
-                throw new IllegalArgumentException("Cannot rebuild Power Substation power bank with no batteries!");
-            }
-            PowerStationEnergyBank newStorage = new PowerStationEnergyBank(this.machine, batteries);
+            PowerStationEnergyBank newStorage = new PowerStationEnergyBank(batteries);
             for (long stored : storage) {
                 newStorage.fill(stored);
             }

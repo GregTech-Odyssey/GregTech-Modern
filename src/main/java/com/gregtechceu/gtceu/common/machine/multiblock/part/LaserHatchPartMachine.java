@@ -44,9 +44,10 @@ public class LaserHatchPartMachine extends WorkableTieredIOPartMachine implement
     }
 
     @Override
-    public @Nullable <T> T getGTCapability(Class<T> cap, @Nullable Direction side) {
-        if (cap == GTCapability.LASER && buffer.hasCapability(side)) {
-            return cap.cast(buffer);
+    public @Nullable <T> Object getGTCapability(Class<T> cap, @Nullable Direction side) {
+        if (cap == GTCapability.LASER) {
+            if (buffer.hasCapability(side)) return buffer;
+            return GTCapability.EMPTY;
         }
         return super.getGTCapability(cap, side);
     }

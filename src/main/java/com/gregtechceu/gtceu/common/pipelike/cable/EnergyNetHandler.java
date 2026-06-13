@@ -39,7 +39,6 @@ public final class EnergyNetHandler implements IEnergyContainer {
             if (facing == null) return 0;
             side = facing;
         }
-        energyToAdd = Math.min(energyToAdd, getEnergyCapacity());
         long energyUsed = 0;
         var pos = cable.getPipePos();
         for (var path : net.getNetData(cable.getPipeLongPos(), pos)) {

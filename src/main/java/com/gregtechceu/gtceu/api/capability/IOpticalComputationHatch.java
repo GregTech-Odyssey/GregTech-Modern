@@ -14,9 +14,10 @@ public interface IOpticalComputationHatch extends IOpticalComputationProvider, I
     boolean testCapability(@Nullable Direction side);
 
     @Override
-    default @Nullable <T> T getGTCapability(@NotNull Class<T> cap, @Nullable Direction side) {
-        if (cap == GTCapability.COMPUTATION_PROVIDER && testCapability(side)) {
-            return cap.cast(this);
+    default @Nullable <T> Object getGTCapability(@NotNull Class<T> cap, @Nullable Direction side) {
+        if (cap == GTCapability.COMPUTATION_PROVIDER) {
+            if (testCapability(side)) return this;
+            return GTCapability.EMPTY;
         }
         return null;
     }

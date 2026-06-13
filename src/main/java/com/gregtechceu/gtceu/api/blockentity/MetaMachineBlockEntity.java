@@ -81,7 +81,7 @@ public class MetaMachineBlockEntity extends GTBlockEntity implements IToolGridHi
     }
 
     @Nullable
-    public final <T> T getGTCapability(@NotNull Class<T> cap, @Nullable Direction side) {
+    public final <T> Object getGTCapability(@NotNull Class<T> cap, @Nullable Direction side) {
         var result = metaMachine.getGTCapability(cap, side);
         return result == null ? super.getGTCapability(cap, side) : result;
     }
