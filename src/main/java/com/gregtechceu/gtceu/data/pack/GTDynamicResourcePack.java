@@ -24,9 +24,9 @@ import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
 import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraftforge.fml.ModLoader;
 
-import com.fast.fastcollection.OpenCacheHashSet;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
+import com.gto.fastcollection.OpenCacheHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import org.jetbrains.annotations.Nullable;
 

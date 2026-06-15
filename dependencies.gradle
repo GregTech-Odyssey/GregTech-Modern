@@ -9,7 +9,7 @@ dependencies {
     compileOnly('org.projectlombok:lombok:1.18.42')
     annotationProcessor('org.projectlombok:lombok:1.18.42')
 
-    implementation("dev:fastcollection-1.0")
+    implementation("dev:fastcollection-1.1")
     implementation("dev:RecipeSearch-1.3")
     modCompileOnly("curse.maven:tool-belt-260262:5929061")
 

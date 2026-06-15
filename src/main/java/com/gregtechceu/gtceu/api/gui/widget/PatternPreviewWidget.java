@@ -44,8 +44,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import com.fast.fastcollection.O2OOpenCacheHashMap;
-import com.fast.fastcollection.OpenCacheHashSet;
+import com.gto.fastcollection.O2OOpenCacheHashMap;
+import com.gto.fastcollection.OpenCacheHashSet;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.emi.emi.screen.RecipeScreen;

@@ -26,7 +26,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 
-import com.fast.fastcollection.O2OOpenCacheHashMap;
+import com.gto.fastcollection.O2OOpenCacheHashMap;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import org.jetbrains.annotations.NotNull;

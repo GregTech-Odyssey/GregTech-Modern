@@ -14,7 +14,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.material.Fluid;
 
-import com.fast.fastcollection.OpenCacheHashSet;
+import com.gto.fastcollection.OpenCacheHashSet;
 import lombok.Getter;
 import lombok.Setter;
 

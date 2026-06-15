@@ -4,10 +4,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModLoadingContext;
 
-import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.gto.datasynclib.datasream.codec.DataCodec;
 import com.gto.datasynclib.util.DataCodecs;
 import com.gto.datasynclib.util.Registry;
+import com.gto.fastcollection.O2OOpenCacheHashMap;
 import com.mojang.serialization.Codec;
 import lombok.Getter;
 

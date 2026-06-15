@@ -43,7 +43,7 @@ import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.player.PlayerXpEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
-import com.fast.fastcollection.OpenCacheHashSet;
+import com.gto.fastcollection.OpenCacheHashSet;
 import com.gto.registrate.util.entry.ItemEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

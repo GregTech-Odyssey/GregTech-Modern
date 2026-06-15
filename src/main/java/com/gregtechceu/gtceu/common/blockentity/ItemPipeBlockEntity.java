@@ -24,7 +24,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.EmptyHandler;
 
-import com.fast.fastcollection.O2IOpenCacheHashMap;
+import com.gto.fastcollection.O2IOpenCacheHashMap;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

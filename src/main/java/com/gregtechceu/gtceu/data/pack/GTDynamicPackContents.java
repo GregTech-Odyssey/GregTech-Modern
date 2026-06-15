@@ -7,7 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.resources.IoSupplier;
 
-import com.fast.fastcollection.O2OOpenCacheHashMap;
+import com.gto.fastcollection.O2OOpenCacheHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;

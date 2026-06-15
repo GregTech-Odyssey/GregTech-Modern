@@ -35,10 +35,10 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
-import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.fast.recipesearch.IntLongMap;
 import com.fast.recipesearch.RecipeSearcher;
 import com.gto.datasynclib.datasream.DataComponentMap;
+import com.gto.fastcollection.O2OOpenCacheHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntAVLTreeMap;
 import it.unimi.dsi.fastutil.objects.Object2IntSortedMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;

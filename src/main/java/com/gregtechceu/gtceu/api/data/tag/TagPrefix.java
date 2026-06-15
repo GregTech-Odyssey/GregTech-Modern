@@ -47,9 +47,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.MapColor;
 
-import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Table;
+import com.gto.fastcollection.O2OOpenCacheHashMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import it.unimi.dsi.fastutil.objects.*;

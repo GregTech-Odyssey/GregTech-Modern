@@ -19,7 +19,7 @@ import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
-import com.fast.fastcollection.O2OOpenCacheHashMap;
+import com.gto.fastcollection.O2OOpenCacheHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;

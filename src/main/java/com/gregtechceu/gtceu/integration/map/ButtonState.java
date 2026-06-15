@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.integration.map;
 
-import com.fast.fastcollection.O2OOpenCacheHashMap;
+import com.gto.fastcollection.O2OOpenCacheHashMap;
 
 import java.util.ArrayList;
 import java.util.List;

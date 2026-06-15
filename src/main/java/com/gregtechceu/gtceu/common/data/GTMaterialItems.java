@@ -15,10 +15,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 
-import com.fast.fastcollection.O2OOpenCacheHashMap;
 import com.google.common.collect.ArrayTable;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
+import com.gto.fastcollection.O2OOpenCacheHashMap;
 import com.gto.registrate.providers.ProviderType;
 import com.gto.registrate.util.entry.ItemEntry;
 import com.gto.registrate.util.entry.ItemProviderEntry;

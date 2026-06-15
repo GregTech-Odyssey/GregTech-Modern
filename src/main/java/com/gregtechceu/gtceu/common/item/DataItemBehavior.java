@@ -18,7 +18,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 
-import com.fast.fastcollection.OpenCacheHashSet;
+import com.gto.fastcollection.OpenCacheHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;

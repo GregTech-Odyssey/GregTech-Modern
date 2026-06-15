@@ -40,9 +40,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import com.fast.fastcollection.OpenCacheHashSet;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.gto.datasynclib.datasream.DataComponentKey;
+import com.gto.fastcollection.OpenCacheHashSet;
 import it.unimi.dsi.fastutil.longs.Long2BooleanMap;
 import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
 import org.jetbrains.annotations.NotNull;

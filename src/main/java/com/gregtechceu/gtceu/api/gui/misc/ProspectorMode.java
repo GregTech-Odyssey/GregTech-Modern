@@ -36,7 +36,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
 
-import com.fast.fastcollection.O2IOpenCacheHashMap;
+import com.gto.fastcollection.O2IOpenCacheHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.apache.commons.lang3.ArrayUtils;

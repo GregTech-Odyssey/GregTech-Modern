@@ -13,8 +13,8 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
-import com.fast.fastcollection.O2IOpenCustomCacheHashMap;
 import com.fast.recipesearch.IntLongMap;
+import com.gto.fastcollection.O2IOpenCustomCacheHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenCustomHashMap;
 
 import java.util.concurrent.atomic.AtomicInteger;

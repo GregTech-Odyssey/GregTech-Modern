@@ -15,8 +15,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.block.ComposterBlock;
 
-import com.fast.fastcollection.O2OOpenCacheHashMap;
-import com.fast.fastcollection.OpenCacheHashSet;
+import com.gto.fastcollection.O2OOpenCacheHashMap;
+import com.gto.fastcollection.OpenCacheHashSet;
 
 import java.util.Map;
 import java.util.Set;

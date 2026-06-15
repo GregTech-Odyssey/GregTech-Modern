@@ -21,10 +21,10 @@ import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
 
-import com.fast.fastcollection.O2OOpenCacheHashMap;
-import com.fast.fastcollection.OpenCacheHashSet;
 import com.google.common.collect.HashBiMap;
 import com.gto.datasynclib.datasream.DataComponentKey;
+import com.gto.fastcollection.O2OOpenCacheHashMap;
+import com.gto.fastcollection.OpenCacheHashSet;
 import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
