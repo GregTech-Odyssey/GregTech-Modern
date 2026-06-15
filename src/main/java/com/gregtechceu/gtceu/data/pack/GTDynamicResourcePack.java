@@ -100,6 +100,14 @@ public class GTDynamicResourcePack implements PackResources {
         CONTENTS.addToData(getBlockStateLocation(loc), () -> obj.get().toString().getBytes(StandardCharsets.UTF_8));
     }
 
+    public static void addJsonResource(ResourceLocation location, Supplier<String> json) {
+        CONTENTS.addToData(location, () -> json.get().getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static void addResource(ResourceLocation location, Supplier<byte[]> resource) {
+        CONTENTS.addToData(location, resource);
+    }
+
     @Nullable
     @Override
     public IoSupplier<InputStream> getRootResource(String... elements) {

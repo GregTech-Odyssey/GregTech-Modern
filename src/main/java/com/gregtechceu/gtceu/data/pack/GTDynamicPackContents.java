@@ -13,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Map;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 
@@ -91,7 +90,7 @@ public class GTDynamicPackContents {
     }
 
     private final Node root = new Node();
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     public void addToData(ResourceLocation location, byte[] bytes) {
         addToData(location, () -> new ByteArrayInputStream(bytes));

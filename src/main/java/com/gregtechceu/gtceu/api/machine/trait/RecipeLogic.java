@@ -39,7 +39,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     public static final int WAITING = 2;
     public static final int SUSPEND = 3;
 
-    public final static int SEARCH_MAX_INTERVAL = 80;
+    public static int SEARCH_MAX_INTERVAL = 80;
 
     public final IRecipeLogicMachine machine;
 

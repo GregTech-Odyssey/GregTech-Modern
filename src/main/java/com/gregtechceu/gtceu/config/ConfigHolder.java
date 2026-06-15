@@ -13,6 +13,8 @@ import dev.toma.configuration.config.format.ConfigFormats;
 @Config(id = GTCEu.MOD_ID)
 public class ConfigHolder {
 
+    public static boolean GENERATE_ENERGY_NO_MATCH = false;
+
     public static ConfigHolder INSTANCE;
     private static final Object LOCK = new Object();
 

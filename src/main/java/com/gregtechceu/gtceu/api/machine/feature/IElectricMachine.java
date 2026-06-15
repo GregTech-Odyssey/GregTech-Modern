@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.machine.feature;
 
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
+import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,10 @@ public interface IElectricMachine extends ITieredMachine {
 
     default boolean generateEnergy(long eu, boolean simulate) {
         var container = getEnergyContainer();
+        if (ConfigHolder.GENERATE_ENERGY_NO_MATCH) {
+            if (!simulate) container.changeEnergy(eu);
+            return true;
+        }
         if (container.getEnergyCapacity() - container.getEnergyStored() >= eu) {
             if (!simulate) container.changeEnergy(eu);
             return true;

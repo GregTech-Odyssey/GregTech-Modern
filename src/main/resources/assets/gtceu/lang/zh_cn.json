@@ -3070,7 +3070,7 @@
     "gtceu.multiblock.active_transformer.max_output": "§c最大输出：§f%s EU/t",
     "gtceu.multiblock.assembly_line.description": "装配线是由5到16“片”组成的大型多方块结构。理论上，它是一个大型组装机，用于生产高级元件。",
     "gtceu.multiblock.batch_enabled": "批处理模式：已启用（%sx）",
-    "gtceu.multiblock.blast_furnace.max_temperature": "热容：%s",
+    "gtceu.multiblock.blast_furnace.max_temperature": "最高温度：%s",
     "gtceu.multiblock.central_monitor.height": "屏幕高度：%d",
     "gtceu.multiblock.central_monitor.height_modify": "调整高度：%d",
     "gtceu.multiblock.central_monitor.low_power": "供能不足",

@@ -73,6 +73,18 @@ public class GTDynamicDataPack implements PackResources {
         CONTENTS.addToData(getRecipeLocation(recipe.getId()), bytes);
     }
 
+    public static void addJsonRecipe(ResourceLocation id, String json) {
+        CONTENTS.addToData(getRecipeLocation(id), json.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static void addJsonData(ResourceLocation location, String json) {
+        CONTENTS.addToData(location, json.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static void addData(ResourceLocation location, byte[] data) {
+        CONTENTS.addToData(location, data);
+    }
+
     /**
      * if subdir is null, no file ending is appended.
      * 
@@ -165,10 +177,5 @@ public class GTDynamicDataPack implements PackResources {
 
     public static ResourceLocation getRecipeLocation(ResourceLocation recipeId) {
         return GTUtil.getResourceLocation(recipeId.getNamespace(), String.join("", "recipes/", recipeId.getPath(), ".json"));
-    }
-
-    public static ResourceLocation getTagLocation(String identifier, ResourceLocation tagId) {
-        return GTUtil.getResourceLocation(tagId.getNamespace(),
-                String.join("", "tags/", identifier, "/", tagId.getPath(), ".json"));
     }
 }

@@ -1,5 +1,8 @@
 package com.gregtechceu.gtceu.api.recipe.handler;
 
+import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.content.ContentInner;
+
 import net.minecraft.network.chat.Component;
 
 import org.jetbrains.annotations.Nullable;
@@ -56,6 +59,10 @@ public record ActionResult(boolean isSuccess, @Nullable Component reason) {
 
     public static ActionResult failInsufficientIn(Component key) {
         return new ActionResult(false, Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(key));
+    }
+
+    public static <T extends ContentInner> ActionResult failInsufficientIn(Content<T> content) {
+        return new ActionResult(false, Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(content.getName()));
     }
 
     public Component reason() {
