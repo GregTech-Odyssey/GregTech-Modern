@@ -168,7 +168,6 @@ public class ColorSprayBehaviour implements IDurabilityBar, IInteractionItem, IA
     public InteractionResult onItemUseFirst(ItemStack itemStack, UseOnContext context) {
         var player = context.getPlayer();
         var level = context.getLevel();
-        var pos = context.getClickedPos();
 
         if (player == null) {
             return InteractionResult.PASS;
@@ -176,12 +175,44 @@ public class ColorSprayBehaviour implements IDurabilityBar, IInteractionItem, IA
 
         int maxBlocksToRecolor = player.isShiftKeyDown() ? ConfigHolder.INSTANCE.tools.sprayCanChainLength : 1;
 
-        var first = level.getBlockEntity(pos);
-        if (first == null || !handleSpecialBlockEntities(first, maxBlocksToRecolor, context)) {
-            handleBlocks(pos, maxBlocksToRecolor, context);
-        }
+        paintArea(context, this.color, maxBlocksToRecolor,
+                () -> useItemDurability(player, context.getHand(), itemStack, empty.get()));
         GTSoundEntries.SPRAY_CAN_TOOL.play(level, null, player.position(), 1.0f, 1.0f);
         return InteractionResult.SUCCESS;
+    }
+
+    /**
+     * Invoked once after each successfully painted block or block entity.
+     * Implementations should deduct a charge if applicable.
+     *
+     * @return {@code true} if painting may continue, {@code false} to stop the chain
+     */
+    @FunctionalInterface
+    public interface ChargeConsumer {
+
+        boolean consume();
+    }
+
+    /**
+     * Paints the area starting at the clicked block, reusing the same chain/special-block logic
+     * the dyed spray cans use. The color and charge handling are supplied by the caller so that
+     * this can back both the per-color cans and the reusable infinite can.
+     *
+     * @param color  the dye color to apply, or {@code null} to strip color (solvent behaviour)
+     * @param charge invoked after each painted target; return {@code false} to stop
+     */
+    public static void paintArea(UseOnContext context, @Nullable DyeColor color, int maxBlocks,
+                                 ChargeConsumer charge) {
+        var player = context.getPlayer();
+        var level = context.getLevel();
+        var pos = context.getClickedPos();
+        if (player == null) {
+            return;
+        }
+        var first = level.getBlockEntity(pos);
+        if (first == null || !handleSpecialBlockEntities(first, maxBlocks, context, color, charge)) {
+            handleBlocks(pos, maxBlocks, context, color, charge);
+        }
     }
 
     private static boolean paintPaintable(IPaintable paintable, DyeColor color) {
@@ -199,7 +230,8 @@ public class ColorSprayBehaviour implements IDurabilityBar, IInteractionItem, IA
     }
 
     @SuppressWarnings({ "rawtypes", "DataFlowIssue" })
-    private boolean handleSpecialBlockEntities(BlockEntity first, int limit, UseOnContext context) {
+    private static boolean handleSpecialBlockEntities(BlockEntity first, int limit, UseOnContext context,
+                                                      @Nullable DyeColor color, ChargeConsumer charge) {
         var player = context.getPlayer();
         if (player == null) {
             return false;
@@ -212,7 +244,7 @@ public class ColorSprayBehaviour implements IDurabilityBar, IInteractionItem, IA
                     continue;
                 }
                 c.recolourBlock(context.getClickedFace(), ae2Color, player);
-                if (!useItemDurability(player, context.getHand(), context.getItemInHand(), ItemStack.EMPTY)) {
+                if (!charge.consume()) {
                     break;
                 }
             }
@@ -220,12 +252,12 @@ public class ColorSprayBehaviour implements IDurabilityBar, IInteractionItem, IA
             var collected = BreadthFirstBlockSearch.conditionalSearch(PipeBlockEntity.class, pipe,
                     first.getLevel(), PipeBlockEntity::getPipePos,
                     gtPipePredicate, limit, limit * 6);
-            paintPaintables(collected, context);
+            paintPaintables(collected, color, charge);
         } else if (first instanceof IPaintable paintable) {
             var collected = BreadthFirstBlockSearch.conditionalSearch(IPaintable.class, paintable,
                     first.getLevel(), p -> ((BlockEntity) p).getBlockPos(),
                     paintablePredicate, limit, limit * 6);
-            paintPaintables(collected, context);
+            paintPaintables(collected, color, charge);
         } else if (first instanceof ShulkerBoxBlockEntity shulkerBox) {
             var tag = shulkerBox.saveWithoutMetadata();
             var level = first.getLevel();
@@ -240,48 +272,48 @@ public class ColorSprayBehaviour implements IDurabilityBar, IInteractionItem, IA
         return true;
     }
 
-    private void handleBlocks(BlockPos start, int limit, UseOnContext context) {
+    private static void handleBlocks(BlockPos start, int limit, UseOnContext context,
+                                     @Nullable DyeColor color, ChargeConsumer charge) {
         final var level = context.getLevel();
         var player = context.getPlayer();
         if (player == null) {
             return;
         }
-        var stack = context.getItemInHand();
         var collected = BreadthFirstBlockSearch
                 .conditionalBlockPosSearch(start,
                         (parent, child) -> parent == null ||
                                 level.getBlockState(child).is(level.getBlockState(parent).getBlock()),
                         limit, limit * 6);
         for (var pos : collected) {
-            if (!tryPaintBlock(level, pos)) {
+            if (!tryPaintBlock(level, pos, color)) {
                 break;
             }
 
-            if (!useItemDurability(player, context.getHand(), stack, empty.get())) {
+            if (!charge.consume()) {
                 break;
             }
         }
     }
 
-    private <T extends IPaintable> void paintPaintables(Set<T> paintables, UseOnContext context) {
+    private static <T extends IPaintable> void paintPaintables(Set<T> paintables, @Nullable DyeColor color,
+                                                               ChargeConsumer charge) {
         for (var c : paintables) {
             if (!paintPaintable(c, color)) {
                 continue;
             }
-            // noinspection DataFlowIssue
-            if (!useItemDurability(context.getPlayer(), context.getHand(), context.getItemInHand(), ItemStack.EMPTY)) {
+            if (!charge.consume()) {
                 break;
             }
         }
     }
 
-    private boolean tryPaintBlock(Level level, BlockPos pos) {
+    private static boolean tryPaintBlock(Level level, BlockPos pos, @Nullable DyeColor color) {
         var blockState = level.getBlockState(pos);
         var block = blockState.getBlock();
         if (color == null) {
             return tryStripBlockColor(level, pos, block);
         }
-        return recolorBlockState(level, pos, color) || tryPaintSpecialBlock(level, pos, block);
+        return recolorBlockState(level, pos, color) || tryPaintSpecialBlock(level, pos, block, color);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -297,44 +329,44 @@ public class ColorSprayBehaviour implements IDurabilityBar, IInteractionItem, IA
     }
 
     @SuppressWarnings("RedundantIfStatement")
-    private boolean tryPaintSpecialBlock(Level world, BlockPos pos, Block block) {
+    private static boolean tryPaintSpecialBlock(Level world, BlockPos pos, Block block, @Nullable DyeColor color) {
         if (block.defaultBlockState().is(Tags.Blocks.GLASS)) {
-            if (recolorBlockNoState(GLASS_MAP, this.color, world, pos, Blocks.GLASS)) {
+            if (recolorBlockNoState(GLASS_MAP, color, world, pos, Blocks.GLASS)) {
                 return true;
             }
         }
         if (block.defaultBlockState().is(Tags.Blocks.GLASS_PANES)) {
-            if (recolorBlockNoState(GLASS_PANE_MAP, this.color, world, pos, Blocks.GLASS_PANE)) {
+            if (recolorBlockNoState(GLASS_PANE_MAP, color, world, pos, Blocks.GLASS_PANE)) {
                 return true;
             }
         }
         if (block.defaultBlockState().is(BlockTags.TERRACOTTA)) {
-            if (recolorBlockNoState(TERRACOTTA_MAP, this.color, world, pos, Blocks.TERRACOTTA)) {
+            if (recolorBlockNoState(TERRACOTTA_MAP, color, world, pos, Blocks.TERRACOTTA)) {
                 return true;
             }
         }
         if (block.defaultBlockState().is(BlockTags.WOOL)) {
-            if (recolorBlockNoState(WOOL_MAP, this.color, world, pos)) {
+            if (recolorBlockNoState(WOOL_MAP, color, world, pos)) {
                 return true;
             }
         }
         if (block.defaultBlockState().is(BlockTags.WOOL_CARPETS)) {
-            if (recolorBlockNoState(CARPET_MAP, this.color, world, pos)) {
+            if (recolorBlockNoState(CARPET_MAP, color, world, pos)) {
                 return true;
             }
         }
         if (block.defaultBlockState().is(CustomTags.CONCRETE_BLOCK)) {
-            if (recolorBlockNoState(CONCRETE_MAP, this.color, world, pos)) {
+            if (recolorBlockNoState(CONCRETE_MAP, color, world, pos)) {
                 return true;
             }
         }
         if (block.defaultBlockState().is(CustomTags.CONCRETE_POWDER_BLOCK)) {
-            if (recolorBlockNoState(CONCRETE_POWDER_MAP, this.color, world, pos)) {
+            if (recolorBlockNoState(CONCRETE_POWDER_MAP, color, world, pos)) {
                 return true;
             }
         }
         if (block.defaultBlockState().is(BlockTags.CANDLES)) {
-            if (recolorBlockNoState(CANDLE_MAP, this.color, world, pos)) {
+            if (recolorBlockNoState(CANDLE_MAP, color, world, pos)) {
                 return true;
             }
         }
