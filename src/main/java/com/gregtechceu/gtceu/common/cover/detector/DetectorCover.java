@@ -59,7 +59,7 @@ public abstract class DetectorCover extends CoverBehavior implements IControllab
     private void toggleInvertedWithNotification() {
         setInverted(!isInverted());
         if (!this.coverHolder.isRemote()) {
-            this.coverHolder.notifyBlockUpdate();
+            this.coverHolder.notifyNeighborsUpdate();
             this.coverHolder.onChanged();
         }
     }

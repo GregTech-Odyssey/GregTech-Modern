@@ -54,7 +54,7 @@ public interface ICoverable extends ITickSubscription, IAppearance, IFieldDataHo
 
     boolean isInValid();
 
-    void notifyBlockUpdate();
+    void notifyNeighborsUpdate();
 
     void scheduleNeighborShapeUpdate();
 
@@ -115,7 +115,7 @@ public interface ICoverable extends ITickSubscription, IAppearance, IFieldDataHo
         coverBehavior.onAttached(itemStack, player);
         coverBehavior.onLoad();
         setCoverAtSide(coverBehavior, side);
-        notifyBlockUpdate();
+        notifyNeighborsUpdate();
         onChanged();
         scheduleNeighborShapeUpdate();
         // TODO achievement
@@ -141,7 +141,7 @@ public interface ICoverable extends ITickSubscription, IAppearance, IFieldDataHo
             Block.popResource(getLevel(), getPos(), dropStack);
 
         }
-        notifyBlockUpdate();
+        notifyNeighborsUpdate();
         onChanged();
         scheduleNeighborShapeUpdate();
         return true;

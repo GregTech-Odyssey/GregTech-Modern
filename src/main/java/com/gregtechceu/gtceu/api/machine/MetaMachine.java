@@ -167,8 +167,8 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
         return level == null ? GTCEu.isClientThread() : level.isClientSide;
     }
 
-    public void notifyBlockUpdate() {
-        holder.notifyBlockUpdate();
+    public void notifyNeighborsUpdate() {
+        holder.notifyNeighborsUpdate();
     }
 
     public void scheduleRenderUpdate() {
@@ -198,11 +198,13 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
         traits.forEach(MachineTrait::onMachineUnLoad);
         coverContainer.onUnload();
         clearDirectionCache();
+        fluidStateDirectionCache.clearCache();
     }
 
     @MustBeInvokedByOverriders
     public void onLoad() {
         clearDirectionCache();
+        fluidStateDirectionCache.clearCache();
         traits.forEach(MachineTrait::onMachineLoad);
         coverContainer.onLoad();
     }
@@ -527,7 +529,7 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
             getLevel().setBlockAndUpdate(getPos(), blockState.setValue(metaMachineBlock.rotationState.property, facing));
         }
         if (getLevel() != null && !getLevel().isClientSide) {
-            notifyBlockUpdate();
+            notifyNeighborsUpdate();
             onChanged();
         }
     }
@@ -552,7 +554,7 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
         if (blockState.getBlock() instanceof MetaMachineBlock && blockState.getValue(MetaMachineBlock.UPWARDS_FACING_PROPERTY) != upwardsFacing) {
             getLevel().setBlockAndUpdate(getPos(), blockState.setValue(MetaMachineBlock.UPWARDS_FACING_PROPERTY, upwardsFacing));
             if (getLevel() != null && !getLevel().isClientSide) {
-                notifyBlockUpdate();
+                notifyNeighborsUpdate();
                 onChanged();
             }
         }

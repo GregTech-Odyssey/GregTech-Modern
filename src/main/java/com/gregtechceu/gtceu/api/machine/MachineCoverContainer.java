@@ -112,8 +112,8 @@ public final class MachineCoverContainer implements ICoverable {
     }
 
     @Override
-    public void notifyBlockUpdate() {
-        machine.notifyBlockUpdate();
+    public void notifyNeighborsUpdate() {
+        machine.notifyNeighborsUpdate();
     }
 
     @Override

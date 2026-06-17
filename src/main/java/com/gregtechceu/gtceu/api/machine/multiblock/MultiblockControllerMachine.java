@@ -374,7 +374,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         if (blockState.getBlock() instanceof MetaMachineBlock && blockState.getValue(MetaMachineBlock.UPWARDS_FACING_PROPERTY) != upwardsFacing) {
             getLevel().setBlockAndUpdate(getPos(), blockState.setValue(MetaMachineBlock.UPWARDS_FACING_PROPERTY, upwardsFacing));
             if (getLevel() != null && !getLevel().isClientSide) {
-                notifyBlockUpdate();
+                notifyNeighborsUpdate();
                 onChanged();
                 requestCheck();
             }

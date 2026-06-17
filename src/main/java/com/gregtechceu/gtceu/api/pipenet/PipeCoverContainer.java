@@ -110,8 +110,8 @@ public final class PipeCoverContainer implements ICoverable {
     }
 
     @Override
-    public void notifyBlockUpdate() {
-        pipeTile.notifyBlockUpdate();
+    public void notifyNeighborsUpdate() {
+        pipeTile.notifyNeighborsUpdate();
     }
 
     @Override

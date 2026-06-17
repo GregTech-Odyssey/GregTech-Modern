@@ -106,8 +106,8 @@ public final class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, L
     public void setActive(boolean active, int duration) {
         if (this.active != active) {
             this.active = active;
-            notifyBlockUpdate();
             setChanged();
+            this.sync = true;
             if (active && duration != this.activeDuration) {
                 TaskHandler.enqueueTask(getLevel(), this::queueDisconnect, 0);
             }

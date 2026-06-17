@@ -124,11 +124,11 @@ public final class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeTyp
         } else if (!this.isActive && active) {
             this.isActive = true;
             stateChanged = true;
-            TaskHandler.enqueueTask((ServerLevel) getLevel(), () -> setActive(false, 0), duration);
+            TaskHandler.enqueueTask(getLevel(), () -> setActive(false, 0), duration);
         }
         if (stateChanged) {
-            notifyBlockUpdate();
             setChanged();
+            this.sync = true;
         }
     }
 

@@ -56,7 +56,7 @@ public class TankValvePartMachine extends MultiblockPartMachine {
 
         if (controller instanceof MultiblockTankMachine multiblockTank) {
             tankProxy.setProxy(multiblockTank.getTank());
-            notifyBlockUpdate();
+            notifyNeighborsUpdate();
             unsubscribeChanges();
             tankChangeListener = multiblockTank.getTank().addChangedListener(autoIOSubscription::updateSubscription);
         }

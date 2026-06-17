@@ -47,6 +47,7 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
     public boolean observe;
 
     private boolean changed;
+    private boolean neighborChanged;
 
     public final long longPos;
 
@@ -111,9 +112,14 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
         return null;
     }
 
-    public void notifyBlockUpdate() {
+    public void notifyNeighborsUpdate() {
+        if (neighborChanged) return;
         if (level != null) {
-            level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
+            neighborChanged = true;
+            TaskHandler.enqueueTask(level, () -> {
+                level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
+                neighborChanged = false;
+            }, 0);
         }
     }
 
@@ -160,11 +166,16 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
     public void setLevel(@NotNull Level level) {
         super.setLevel(level);
         chunk = null;
+        changed = false;
+        neighborChanged = false;
+        blockEntityDirectionCache.clearCache();
+        blockStateDirectionCache.clearCache();
     }
 
     @Override
     public void setRemoved() {
         blockEntityDirectionCache.clearCache();
+        blockStateDirectionCache.clearCache();
         this.remove = true;
         autoSyncSubscription = ITickSubscription.unsubscribe(autoSyncSubscription);
         super.setRemoved();
@@ -174,15 +185,21 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
     @Override
     public void clearRemoved() {
         blockEntityDirectionCache.clearCache();
+        blockStateDirectionCache.clearCache();
         changed = false;
+        neighborChanged = false;
         this.remove = false;
         chunk = null;
         super.clearRemoved();
         if (level instanceof ServerLevel serverLevel) {
             tickDelay = offset;
             autoSyncSubscription = subscribeAsyncTick(autoSyncSubscription, this::autoSync, 5);
-            TaskHandler.enqueueTask(serverLevel, () -> tickDelay = 0, 1);
+            TaskHandler.enqueueTask(serverLevel, this::onServerDelayLoad, 1);
         }
+    }
+
+    protected void onServerDelayLoad() {
+        tickDelay = 0;
     }
 
     protected int periodID = offset;

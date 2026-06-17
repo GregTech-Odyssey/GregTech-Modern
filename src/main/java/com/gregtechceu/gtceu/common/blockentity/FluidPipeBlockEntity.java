@@ -153,6 +153,12 @@ public final class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, F
     }
 
     @Override
+    protected void updateNetworkConnection(Direction side, boolean connected) {
+        super.updateNetworkConnection(side, connected);
+        updateTransferTick(blockedSide != null && isBlocked(blockedSide), this::autoTransfer);
+    }
+
+    @Override
     public void onNeighborChanged() {
         super.onNeighborChanged();
         updateTransferTick(blockedSide != null && isBlocked(blockedSide), this::autoTransfer);

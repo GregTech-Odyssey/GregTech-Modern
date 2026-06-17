@@ -47,7 +47,7 @@ public class DiodePartMachine extends TieredIOPartMachine {
         amps = amps == getMaxAmperage() ? 1 : amps << 1;
         if (!getLevel().isClientSide) {
             reinitializeEnergyContainer();
-            notifyBlockUpdate();
+            notifyNeighborsUpdate();
             onChanged();
         }
     }

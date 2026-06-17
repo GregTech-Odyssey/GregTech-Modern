@@ -121,7 +121,7 @@ public abstract class CoverBehavior implements IToolGridHighlight, IFieldDataHol
     public void setRedstoneSignalOutput(int redstoneSignalOutput) {
         if (this.redstoneSignalOutput == redstoneSignalOutput) return;
         this.redstoneSignalOutput = redstoneSignalOutput;
-        coverHolder.notifyBlockUpdate();
+        coverHolder.notifyNeighborsUpdate();
         coverHolder.onChanged();
     }
 

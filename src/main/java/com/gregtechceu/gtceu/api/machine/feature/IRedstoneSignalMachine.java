@@ -30,7 +30,7 @@ public interface IRedstoneSignalMachine extends IMachineFeature {
     default void updateSignal() {
         var level = self().getLevel();
         if (!level.isClientSide) {
-            self().notifyBlockUpdate();
+            self().notifyNeighborsUpdate();
         }
     }
 }
