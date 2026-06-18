@@ -111,13 +111,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
         coverContainer.onLoad();
     }
 
-    @Override
-    protected void onServerDelayLoad() {
-        super.onServerDelayLoad();
-        var net = getPipeNet();
-        if (net != null) net.onPipeConnectionsUpdate();
-    }
-
     public int getNumConnections() {
         int count = 0;
         int connections = this.connections;
