@@ -107,6 +107,10 @@ public class StaticFaceBakery {
             blockfaceuv = recomputeUVs(face.uv, facing, transform.getRotation());
         }
 
+        if (blockfaceuv.uvs.length < 4) {
+            blockfaceuv = new BlockFaceUV(new float[] { 0.0F, 0.0F, 16.0F, 16.0F }, blockfaceuv.rotation);
+        }
+
         float[] afloat = new float[blockfaceuv.uvs.length];
         System.arraycopy(blockfaceuv.uvs, 0, afloat, 0, afloat.length);
         float f = sprite.uvShrinkRatio();
