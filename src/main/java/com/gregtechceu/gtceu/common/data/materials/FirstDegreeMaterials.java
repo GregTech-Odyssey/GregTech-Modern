@@ -713,7 +713,7 @@ public class FirstDegreeMaterials {
         WroughtIron = GTMaterials.builder("wrought_iron")
                 .ingot()
                 .liquid(new FluidBuilder().temperature(2011))
-                .color(0xae9890).iconSet(METALLIC)
+                .color(0xbcbcbc).secondaryColor(0x521c0b).iconSet(METALLIC)
                 .appendFlags(EXT_METAL, GENERATE_GEAR, GENERATE_FOIL, MORTAR_GRINDABLE, GENERATE_RING,
                         GENERATE_LONG_ROD, GENERATE_BOLT_SCREW, DISABLE_DECOMPOSITION, BLAST_FURNACE_CALCITE_TRIPLE)
                 .components(Iron, 1)
