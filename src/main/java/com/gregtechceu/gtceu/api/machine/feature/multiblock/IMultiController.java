@@ -99,8 +99,8 @@ public interface IMultiController extends IMachineFeature {
      * Get structure pattern.
      * You can override it to create dynamic patterns.
      */
-    default BlockPattern getPattern() {
-        return self().getDefinition().getPatternFactory().get();
+    default Supplier<BlockPattern>[] getPattern() {
+        return self().getDefinition().getPatternFactory();
     }
 
     default Supplier<BlockPattern>[] getSubPattern() {

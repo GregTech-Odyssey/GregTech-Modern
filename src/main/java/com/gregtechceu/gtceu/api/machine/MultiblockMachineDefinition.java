@@ -32,7 +32,7 @@ public class MultiblockMachineDefinition extends MachineDefinition {
     protected boolean generator;
 
     @Getter
-    protected Supplier<BlockPattern> patternFactory;
+    protected Supplier<BlockPattern>[] patternFactory;
     @Getter
     protected Supplier<BlockPattern>[] subPatternFactory;
     @Getter
@@ -73,9 +73,13 @@ public class MultiblockMachineDefinition extends MachineDefinition {
     public List<MultiblockShapeInfo> getMatchingShapes() {
         var designs = shapes.get();
         if (!designs.isEmpty()) return designs;
-        var structurePattern = patternFactory.get();
-        int[][] aisleRepetitions = structurePattern.aisleRepetitions;
-        return repetitionDFS(structurePattern, new ArrayList<>(), aisleRepetitions, new IntArrayList());
+        var list = new ArrayList<MultiblockShapeInfo>();
+        for (var factory : patternFactory) {
+            var structurePattern = factory.get();
+            int[][] aisleRepetitions = structurePattern.aisleRepetitions;
+            list.addAll(repetitionDFS(structurePattern, new ArrayList<>(), aisleRepetitions, new IntArrayList()));
+        }
+        return list;
     }
 
     private List<MultiblockShapeInfo> repetitionDFS(BlockPattern pattern, List<MultiblockShapeInfo> pages, int[][] aisleRepetitions, IntArrayList repetitionStack) {
@@ -105,8 +109,8 @@ public class MultiblockMachineDefinition extends MachineDefinition {
         }
     }
 
-    public void setPatternFactory(final Function<MultiblockMachineDefinition, BlockPattern> patternFactory) {
-        this.patternFactory = GTMemoizer.memoize(() -> patternFactory.apply(this));
+    public void setPatternFactory(final List<Function<MultiblockMachineDefinition, BlockPattern>> patternFactory) {
+        this.patternFactory = patternFactory.stream().map(p -> GTMemoizer.memoize(() -> p.apply(this))).toArray(Supplier[]::new);
     }
 
     public void setSubPatternFactory(final List<Function<MultiblockMachineDefinition, BlockPattern>> subPatternFactory) {

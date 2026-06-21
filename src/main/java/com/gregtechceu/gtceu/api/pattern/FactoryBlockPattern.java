@@ -3,6 +3,8 @@ package com.gregtechceu.gtceu.api.pattern;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 
+import net.minecraft.network.chat.Component;
+
 import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -19,6 +21,7 @@ public class FactoryBlockPattern {
     private final Char2ObjectOpenHashMap<TraceabilityPredicate> symbolMap;
     private final RelativeDirection[] structureDir;
     private PatternCondition condition;
+    private Component info;
     private int aisleHeight;
     private int rowWidth;
 
@@ -120,11 +123,16 @@ public class FactoryBlockPattern {
     }
 
     public FactoryBlockPattern condition(Predicate<MultiblockState> condition) {
-        return condition(condition, "gtceu.recipe_logic.condition_fails");
+        return condition(condition, Component.translatable("gtceu.recipe_logic.condition_fails"));
     }
 
-    public FactoryBlockPattern condition(Predicate<MultiblockState> condition, String translateKey) {
+    public FactoryBlockPattern condition(Predicate<MultiblockState> condition, Component translateKey) {
         this.condition = new PatternCondition(condition, translateKey);
+        return this;
+    }
+
+    public FactoryBlockPattern info(Component info) {
+        this.info = info;
         return this;
     }
 
@@ -156,6 +164,7 @@ public class FactoryBlockPattern {
 
         var pattern = new BlockPattern(predicate, structureDir, aisleRepetitions, centerOffset, size, this.aisleHeight, this.rowWidth);
         if (condition != null) pattern.condition = condition;
+        if (info != null) pattern.info = info;
         if (definition != null) {
             pattern.predicates = symbolMap.values();
             definition.setCheckPriority(-(pattern.fingerLength * pattern.thumbLength * pattern.palmLength));

@@ -50,6 +50,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static com.gregtechceu.gtceu.api.pattern.util.RelativeDirection.*;
 
@@ -132,7 +133,7 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
     public void setWorkingEnabled(boolean isWorkingAllowed) {}
 
     @Override
-    public BlockPattern getPattern() {
+    public Supplier<BlockPattern>[] getPattern() {
         updateDimensions();
 
         if (lDist < MIN_RADIUS) lDist = MIN_RADIUS;
@@ -203,7 +204,7 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
             c[i] = ceilingLayer[i].toString();
         }
 
-        return FactoryBlockPattern.start(LEFT, FRONT, UP)
+        return new Supplier[] { () -> FactoryBlockPattern.start(LEFT, FRONT, UP)
                 .aisle(f)
                 .aisle(m).setRepeatable(wallLayers.size())
                 .aisle(c)
@@ -212,7 +213,7 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
                 .where('W', Predicates.blockTag(CustomTags.CHARCOAL_PILE_IGNITER_WALLS))
                 .where('L', logPredicate())
                 .where('A', Predicates.any())
-                .build();
+                .build() };
     }
 
     protected static TraceabilityPredicate logPredicate() {

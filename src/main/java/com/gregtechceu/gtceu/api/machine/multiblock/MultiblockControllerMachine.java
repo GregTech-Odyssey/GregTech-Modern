@@ -61,6 +61,10 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     protected MultiblockState[] subMultiblockState = new MultiblockState[subPatternAmount];
     @SyncToClient
     protected final boolean[] formeds = new boolean[subPatternAmount];
+
+    @Getter
+    protected final BlockPattern[] matchedSubPattern = new BlockPattern[subPatternAmount];
+
     @SyncToClient
     protected int formedAmount;
     protected IMultiPart[] parts = new IMultiPart[0];
@@ -72,6 +76,9 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @Getter
     @SyncToClient(listener = "onFormedUpdated", notifyUpdate = true)
     protected boolean isFormed;
+
+    @Getter
+    protected BlockPattern matchedPattern;
 
     @Getter
     @SyncToClient
@@ -147,6 +154,16 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         return subMultiblockState;
     }
 
+    public void addPatternText(List<Component> textList) {
+        if (!isFormed) return;
+        if (matchedPattern != null && matchedPattern.info != null) textList.add(matchedPattern.info);
+        for (var pattern : matchedSubPattern) {
+            if (pattern != null && pattern.info != null) {
+                textList.add(pattern.info);
+            }
+        }
+    }
+
     @SuppressWarnings("unused")
     protected void onPartsUpdated(BlockPos[] newValue, BlockPos[] oldValue) {
         var list = new ArrayList<IMultiPart>();
@@ -192,10 +209,12 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @Getter
     private final Lock patternLock = new ReentrantLock();
 
+    @Override
     public boolean @NotNull [] getSubFormed() {
         return formeds;
     }
 
+    @Override
     public int getSubFormedAmount() {
         return formedAmount;
     }
@@ -203,39 +222,51 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @Override
     public boolean checkPattern() {
         if (waitingTime < 1) {
-            BlockPattern pattern = getPattern();
+            var patterns = getPattern();
             var state = getMultiblockState();
+            state.clearCache();
             boolean result = false;
-            if (pattern != null) {
+            matchedPattern = null;
+            for (var p : patterns) {
+                var pattern = p.get();
                 state.clearCache();
-                result = pattern.checkPatternAt(state, false);
-                if (result) {
-                    var subPattern = getSubPattern();
-                    if (subPattern != null) {
-                        formedAmount = 0;
-                        Arrays.fill(formeds, false);
-                        Arrays.fill(isFormedsFlipped, false);
-                        Arrays.fill(subMultiblockState, null);
-                        for (int i = 0; i < subPattern.length; i++) {
-                            var subState = MultiblockState.copy(state);
-                            if (subPattern[i].get().checkPatternAt(subState, false)) {
-                                state.merge(subState);
-                                formeds[i] = true;
-                                formedAmount++;
-                                isFormedsFlipped[i] = subState.isNeededFlip();
+                if (pattern != null) {
+                    result = pattern.checkPatternAt(state, false);
+                    if (result) {
+                        var subPatterns = getSubPattern();
+                        if (subPatterns != null) {
+                            formedAmount = 0;
+                            Arrays.fill(formeds, false);
+                            Arrays.fill(matchedSubPattern, null);
+                            Arrays.fill(isFormedsFlipped, false);
+                            Arrays.fill(subMultiblockState, null);
+                            for (int i = 0; i < subPatterns.length; i++) {
+                                var subState = MultiblockState.copy(state);
+                                var subPattern = subPatterns[i].get();
+                                if (subPattern.checkPatternAt(subState, false)) {
+                                    state.merge(subState);
+                                    formeds[i] = true;
+                                    formedAmount++;
+                                    isFormedsFlipped[i] = subState.isNeededFlip();
+                                    matchedSubPattern[i] = subPattern;
+                                }
+                                subMultiblockState[i] = subState;
                             }
-                            subMultiblockState[i] = subState;
+                        }
+                        if (getLevel() instanceof ServerLevel serverLevel) {
+                            var c = state.blockEntityCache.longStream().mapToObj(BlockPos::of).toList();
+                            TaskHandler.enqueueTask(serverLevel, () -> c.forEach(pos -> serverLevel.getChunkAt(pos).removeBlockEntityTicker(pos)));
                         }
                     }
-                    if (getLevel() instanceof ServerLevel serverLevel) {
-                        var c = state.blockEntityCache.longStream().mapToObj(BlockPos::of).toList();
-                        TaskHandler.enqueueTask(serverLevel, () -> c.forEach(pos -> serverLevel.getChunkAt(pos).removeBlockEntityTicker(pos)));
+                    state.clearCache();
+                    for (var subState : subMultiblockState) {
+                        if (subState == null) continue;
+                        subState.clearCache();
                     }
-                }
-                state.clearCache();
-                for (var subState : subMultiblockState) {
-                    if (subState == null) continue;
-                    subState.clearCache();
+                    if (result) {
+                        matchedPattern = pattern;
+                        break;
+                    }
                 }
             }
             if (result) {

@@ -209,7 +209,7 @@ public class MetaMachineBlock extends AppearanceBlock implements IBlockRendererP
         String mainKey = String.format("%s.machine.%s.tooltip", definition.getId().getNamespace(), definition.getId().getPath());
         if (GTUtil.isShiftDown()) {
             if (definition instanceof MultiblockMachineDefinition multiblockDefinition) {
-                var pattern = multiblockDefinition.getPatternFactory().get();
+                var pattern = multiblockDefinition.getPatternFactory()[0].get();
                 var SubPatter = multiblockDefinition.getSubPatternFactory();
                 if (pattern != null) {
                     tooltip.add(Component.translatable("gtceu.multiblock.dimension", pattern.fingerLength, pattern.thumbLength, pattern.palmLength));

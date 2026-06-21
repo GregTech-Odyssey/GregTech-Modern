@@ -28,7 +28,7 @@ public class TerminalBehavior implements IInteractionItem {
                     if (!level.isClientSide) {
                         controller.requestCheck();
                         controller.setWaitingTime(10);
-                        controller.getPattern().autoBuild(context.getPlayer(), controller.getMultiblockState());
+                        controller.getPattern()[0].get().autoBuild(context.getPlayer(), controller.getMultiblockState());
                         controller.getMultiblockState().clearCache();
                         controller.setWaitingTime(0);
                     }

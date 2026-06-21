@@ -57,7 +57,7 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
 
     private int checkPriority;
     private boolean generator;
-    private Function<MultiblockMachineDefinition, BlockPattern> pattern;
+    private List<Function<MultiblockMachineDefinition, BlockPattern>> pattern;
     private List<Function<MultiblockMachineDefinition, BlockPattern>> subPattern;
     private final List<Function<MultiblockMachineDefinition, List<MultiblockShapeInfo>>> shapeInfos = new ArrayList<>();
     /**
@@ -376,7 +376,18 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
      * @return {@code this}.
      */
     public MultiblockMachineBuilder pattern(Function<MultiblockMachineDefinition, BlockPattern> pattern) {
-        this.pattern = pattern;
+        if (this.pattern == null) this.pattern = new ArrayList<>();
+        if (!this.pattern.isEmpty()) throw new IllegalStateException("pattern has already been set");
+        this.pattern.add(pattern);
+        return this;
+    }
+
+    /**
+     * @return {@code this}.
+     */
+    public MultiblockMachineBuilder addAlternativePattern(Function<MultiblockMachineDefinition, BlockPattern> pattern) {
+        if (this.pattern == null) throw new IllegalStateException("no main pattern has been set");
+        this.pattern.add(pattern);
         return this;
     }
 

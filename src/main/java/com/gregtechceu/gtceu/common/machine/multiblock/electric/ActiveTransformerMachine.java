@@ -169,7 +169,7 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
     }
 
     @Override
-    public void addDisplayText(List<Component> textList) {
+    public void addDisplayText(@NotNull List<Component> textList) {
         // super.addDisplayText(textList); idek what it does stop doing what you do for a minute pls
         // Assume That the Structure is ALWAYS formed, and has at least 1 In and 1 Out, there is never a case where this
         // does not occur.

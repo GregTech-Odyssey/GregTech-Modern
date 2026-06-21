@@ -20,6 +20,7 @@ import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -75,6 +76,7 @@ public class BlockPattern {
     public final int[] formedRepetitionCount;
     public Collection<TraceabilityPredicate> predicates;
     public PatternCondition condition;
+    public Component info;
 
     public BlockPattern(TraceabilityPredicate[][][] predicatesIn, RelativeDirection[] structureDir, int[][] aisleRepetitions, int[] centerOffset, int fingerLength, int thumbLength, int palmLength) {
         this.blockMatches = predicatesIn;
@@ -89,7 +91,7 @@ public class BlockPattern {
 
     public boolean checkPatternAt(MultiblockState worldState, boolean savePredicate) {
         if (condition != null && !condition.condition().test(worldState)) {
-            worldState.setError(new PatternStringError(condition.translateKey()));
+            worldState.setError(new PatternStringError(condition.reason()));
             return false;
         }
         IMultiController controller = worldState.controller;

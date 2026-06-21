@@ -405,7 +405,7 @@ public class PatternPreviewWidget extends WidgetGroup {
     }
 
     private void loadControllerFormed(Collection<BlockPos> poses, IMultiController controllerBase) {
-        BlockPattern pattern = controllerBase.getPattern();
+        BlockPattern pattern = controllerBase.getPattern()[0].get();
         boolean result = false;
         if (pattern != null) {
             var state = controllerBase.getMultiblockState();

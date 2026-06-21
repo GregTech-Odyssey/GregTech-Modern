@@ -53,6 +53,7 @@ import it.unimi.dsi.fastutil.objects.ReferenceSets;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -298,7 +299,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
     }
 
     @Override
-    public BlockPattern getPattern() {
+    public Supplier<BlockPattern>[] getPattern() {
         // return the default structure, even if there is no valid size found
         // this means auto-build will still work, and prevents terminal crashes.
         if (getLevel() != null) updateStructureDimensions();
@@ -378,7 +379,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         // very center floor, needed for height check
         // walls
         // floor edges
-        FactoryBlockPattern.start(LEFT, FRONT, UP).aisle(f).aisle(m).setRepeatable(wallLayers.size()).aisle(c).where('C', Predicates.controller(getDefinition())).where('F', Predicates.cleanroomFilters()).where('D', blocks(getCasingState())).where(' ', INNER_PREDICATE).where('E', wallPredicate.or(basePredicate).or(getValidFloorBlocks().setMaxGlobalLimited(4))).where('K', wallPredicate.or(getValidFloorBlocks())).where('W', wallPredicate.or(basePredicate).or(doorPredicate().setMaxGlobalLimited(8))).where('A', wallPredicate.or(basePredicate)).build();
+        new Supplier[] { () -> FactoryBlockPattern.start(LEFT, FRONT, UP).aisle(f).aisle(m).setRepeatable(wallLayers.size()).aisle(c).where('C', Predicates.controller(getDefinition())).where('F', Predicates.cleanroomFilters()).where('D', blocks(getCasingState())).where(' ', INNER_PREDICATE).where('E', wallPredicate.or(basePredicate).or(getValidFloorBlocks().setMaxGlobalLimited(4))).where('K', wallPredicate.or(getValidFloorBlocks())).where('W', wallPredicate.or(basePredicate).or(doorPredicate().setMaxGlobalLimited(8))).where('A', wallPredicate.or(basePredicate)).build() };
     }
 
     // protected to allow easy addition of addon "cleanrooms"

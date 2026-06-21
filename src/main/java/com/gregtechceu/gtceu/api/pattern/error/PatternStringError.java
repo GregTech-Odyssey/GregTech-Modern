@@ -4,27 +4,31 @@ import net.minecraft.network.chat.Component;
 
 public class PatternStringError extends PatternError {
 
-    public final String translateKey;
+    public final Component info;
 
     public PatternStringError(String translateKey) {
-        this.translateKey = translateKey;
+        this.info = Component.translatable(translateKey);
+    }
+
+    public PatternStringError(Component info) {
+        this.info = info;
     }
 
     @Override
     public boolean equals(Object o) {
         if (o instanceof PatternStringError error) {
-            return error.translateKey.equals(translateKey);
+            return error.info.equals(info);
         }
         return false;
     }
 
     @Override
     public PatternStringError copy() {
-        return new PatternStringError(translateKey);
+        return new PatternStringError(info);
     }
 
     @Override
     public Component getErrorInfo() {
-        return Component.translatable(translateKey).append("-").append(pos.toShortString());
+        return info.copy().append("-").append(pos.toShortString());
     }
 }
