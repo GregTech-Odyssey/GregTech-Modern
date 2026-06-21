@@ -1,14 +1,13 @@
 package com.gregtechceu.gtceu.core.mixins;
 
+import com.gregtechceu.gtceu.common.data.GTTags;
 import com.gregtechceu.gtceu.core.IGTTagLoader;
-import com.gregtechceu.gtceu.core.MixinHelpers;
 
-import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.tags.TagLoader;
 
-import it.unimi.dsi.fastutil.Pair;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -24,22 +23,22 @@ public class TagLoaderMixin implements IGTTagLoader {
 
     @Nullable
     @Unique
-    private Registry<?> gtceu$storedRegistry;
+    private ResourceKey<?> gtceu$storedRegistry;
 
     @Inject(method = "load", at = @At(value = "RETURN"))
     public void gtceu$load(ResourceManager resourceManager,
                            CallbackInfoReturnable<Map<ResourceLocation, List<TagLoader.EntryWithSource>>> cir) {
         if (gtceu$storedRegistry == null) return;
-        MixinHelpers.TAG_LOAD_EVENT.call(Pair.of(cir.getReturnValue(), gtceu$storedRegistry));
+        GTTags.generateGTDynamicTags(cir.getReturnValue(), gtceu$storedRegistry);
     }
 
     @Override
-    public void gtceu$setRegistry(Registry<?> registry) {
+    public void gtceu$setRegistry(ResourceKey<?> registry) {
         this.gtceu$storedRegistry = registry;
     }
 
     @Override
-    public Registry<?> gtceu$getRegistry() {
+    public ResourceKey<?> gtceu$getRegistry() {
         return gtceu$storedRegistry;
     }
 }

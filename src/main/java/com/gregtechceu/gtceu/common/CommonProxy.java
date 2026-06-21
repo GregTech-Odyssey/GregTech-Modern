@@ -35,7 +35,6 @@ import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.registry.GTRegistration;
 import com.gregtechceu.gtceu.common.unification.material.MaterialRegistryManager;
 import com.gregtechceu.gtceu.config.ConfigHolder;
-import com.gregtechceu.gtceu.core.MixinHelpers;
 import com.gregtechceu.gtceu.data.GregTechDatagen;
 import com.gregtechceu.gtceu.data.loot.ChestGenHooks;
 import com.gregtechceu.gtceu.data.loot.DungeonLootLoader;
@@ -194,7 +193,7 @@ public class CommonProxy {
             GTRecipes.recipeRemoval();
             // Initialize dungeon loot additions
             DungeonLootLoader.init();
-            MixinHelpers.registryGTDynamicTags();
+            GTTags.registryGTDynamicTags();
             GTCEu.LOGGER.info("GregTech Data loading took {}ms", System.currentTimeMillis() - startTime);
 
             event.addRepositorySource(new GTPackSource("gtceu:dynamic_data",
