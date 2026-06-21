@@ -74,6 +74,7 @@ public class BlockPattern {
     public final int palmLength; // x size
     public final int[] centerOffset; // x, y, z, minZ, maxZ
     public final int[] formedRepetitionCount;
+    public boolean isSubPattern;
     public Collection<TraceabilityPredicate> predicates;
     public PatternCondition condition;
     public Component info;

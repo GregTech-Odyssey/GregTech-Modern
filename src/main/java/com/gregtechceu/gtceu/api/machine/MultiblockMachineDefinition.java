@@ -114,7 +114,11 @@ public class MultiblockMachineDefinition extends MachineDefinition {
     }
 
     public void setSubPatternFactory(final List<Function<MultiblockMachineDefinition, BlockPattern>> subPatternFactory) {
-        this.subPatternFactory = subPatternFactory.stream().map(p -> GTMemoizer.memoize(() -> p.apply(this))).toArray(Supplier[]::new);
+        this.subPatternFactory = subPatternFactory.stream().map(p -> GTMemoizer.memoize(() -> {
+            var pattern = p.apply(this);
+            pattern.isSubPattern = true;
+            return pattern;
+        })).toArray(Supplier[]::new);
     }
 
     public void setRecoveryItems(@Nullable final MultiblockMachineBuilder.MufflerProductionGenerator recoveryItems) {
