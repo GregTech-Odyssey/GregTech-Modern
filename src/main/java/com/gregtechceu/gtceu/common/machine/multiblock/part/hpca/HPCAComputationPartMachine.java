@@ -35,11 +35,13 @@ public class HPCAComputationPartMachine extends HPCAComponentPartMachine impleme
 
     @Override
     public int getUpkeepEUt() {
+        if (isDamaged()) return 0;
         return GTValues.VA[advanced ? GTValues.IV : GTValues.EV];
     }
 
     @Override
     public int getMaxEUt() {
+        if (isDamaged()) return 0;
         return GTValues.VA[advanced ? GTValues.ZPM : GTValues.LuV];
     }
 
@@ -51,6 +53,7 @@ public class HPCAComputationPartMachine extends HPCAComponentPartMachine impleme
 
     @Override
     public int getCoolingPerTick() {
+        if (isDamaged()) return 0;
         return advanced ? 4 : 2;
     }
 

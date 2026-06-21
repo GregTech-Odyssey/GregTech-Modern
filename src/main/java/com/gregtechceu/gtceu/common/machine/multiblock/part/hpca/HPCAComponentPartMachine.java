@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.capability.IHPCAComponentHatch;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineModifyDrops;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
+import com.gregtechceu.gtceu.common.machine.multiblock.electric.research.HPCAMachine;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.InteractionHand;
@@ -76,6 +77,16 @@ public abstract class HPCAComponentPartMachine extends MultiblockPartMachine
         if (this.damaged != damaged) {
             this.damaged = damaged;
             onChanged();
+            refreshHPCAControllers();
+        }
+    }
+
+    private void refreshHPCAControllers() {
+        if (getLevel() == null || getLevel().isClientSide) return;
+        for (var controller : getControllers()) {
+            if (controller.isFormed() && controller instanceof HPCAMachine hpcaMachine) {
+                hpcaMachine.refreshHPCAComponents();
+            }
         }
     }
 
