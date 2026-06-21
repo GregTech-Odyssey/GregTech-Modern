@@ -68,12 +68,15 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
 
     private static final double IDLE_TEMPERATURE = 200;
     private static final double DAMAGE_TEMPERATURE = 1000;
+    private static final double SAFE_TEMPERATURE = (IDLE_TEMPERATURE + DAMAGE_TEMPERATURE) / 2;
     private IFluidHandler coolantHandler;
 
     @AdditionalHolder
     private final HPCAGridHandler hpcaHandler;
     @SaveToDisk
     private double temperature = IDLE_TEMPERATURE; // start at idle temperature
+    @SaveToDisk
+    private boolean overheated;
     private final TimedProgressSupplier progressSupplier;
     @Nullable
     protected TickableSubscription tickSubs;
@@ -156,7 +159,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
 
     @Override
     public long requestCWU(long cwu, boolean simulate) {
-        if (isWorkingEnabled() && getRecipeLogic().isWorking()) {
+        if (!isOverheated() && isWorkingEnabled() && getRecipeLogic().isWorking()) {
             return hpcaHandler.allocateCWUt(getOffsetTimer(), cwu, simulate);
         }
         return 0;
@@ -175,20 +178,36 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
             } else {
                 getRecipeLogic().setWaiting(ActionResult.failInsufficientIn(EURecipeInfo.INSTANCE.getName()).reason());
             }
+            updateOverheatState();
             // forcibly use active coolers at full rate if temperature is half-way to damaging temperature
-            double midpoint = (DAMAGE_TEMPERATURE - IDLE_TEMPERATURE) / 2;
-            double temperatureChange = hpcaHandler.calculateTemperatureChange(coolantHandler, temperature >= midpoint) / 2.0;
+            double temperatureChange = hpcaHandler.calculateTemperatureChange(coolantHandler, overheated || temperature >= SAFE_TEMPERATURE) / 2.0;
             if (temperature + temperatureChange <= IDLE_TEMPERATURE) {
                 temperature = IDLE_TEMPERATURE;
             } else {
                 temperature += temperatureChange;
             }
-            if (temperature >= DAMAGE_TEMPERATURE) {
-                hpcaHandler.attemptDamageHPCA();
-            }
+            updateOverheatState();
             hpcaHandler.tick(getOffsetTimer());
         } else {
             temperature = Math.max(IDLE_TEMPERATURE, temperature - 0.25);
+            updateOverheatState();
+        }
+    }
+
+    private boolean isOverheated() {
+        return overheated || temperature >= DAMAGE_TEMPERATURE;
+    }
+
+    private void updateOverheatState() {
+        if (overheated) {
+            if (temperature <= SAFE_TEMPERATURE) {
+                overheated = false;
+            }
+            return;
+        }
+        if (temperature >= DAMAGE_TEMPERATURE) {
+            overheated = true;
+            hpcaHandler.damageHPCAComponent();
         }
     }
 
@@ -376,22 +395,17 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         }
 
         /**
-         * Roll a 1/200 chance to damage a HPCA component marked as damageable. Randomly selects the component.
-         * If called every tick, this succeeds on average once every 10 seconds.
+         * Randomly damages one currently functional HPCA component.
          */
-        public void attemptDamageHPCA() {
-            // 1% chance each tick to damage a component if running too hot
-            if (GTValues.RNG.nextInt(200) == 0) {
-                // randomize which component is actually damaged
-                List<IHPCAComponentHatch> candidates = new ArrayList<>();
-                for (var component : components) {
-                    if (component.canBeDamaged()) {
-                        candidates.add(component);
-                    }
+        public void damageHPCAComponent() {
+            List<IHPCAComponentHatch> candidates = new ArrayList<>();
+            for (var component : components) {
+                if (component.canBeDamaged() && !component.isDamaged()) {
+                    candidates.add(component);
                 }
-                if (!candidates.isEmpty()) {
-                    candidates.get(GTValues.RNG.nextInt(candidates.size())).setDamaged(true);
-                }
+            }
+            if (!candidates.isEmpty()) {
+                candidates.get(GTValues.RNG.nextInt(candidates.size())).setDamaged(true);
             }
         }
 
