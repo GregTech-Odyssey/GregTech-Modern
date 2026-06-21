@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.pattern;
 
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.data.RotationState;
+import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 import com.lowdragmc.lowdraglib.utils.Builder;
@@ -16,11 +17,13 @@ import java.util.function.Supplier;
 
 public class MultiblockShapeInfo {
 
+    public final Supplier<BlockPattern> pattern;
     @Getter
     private final BlockInfo[][][] blocks; // [z][y][x]
 
-    public MultiblockShapeInfo(BlockInfo[][][] blocks) {
+    public MultiblockShapeInfo(Supplier<BlockPattern> pattern, BlockInfo[][][] blocks) {
         this.blocks = blocks;
+        this.pattern = pattern;
     }
 
     public static ShapeInfoBuilder builder() {
@@ -55,8 +58,16 @@ public class MultiblockShapeInfo {
             return this.bakeArray(BlockInfo.class, BlockInfo.EMPTY);
         }
 
-        public MultiblockShapeInfo build() {
-            return new MultiblockShapeInfo(bake());
+        public MultiblockShapeInfo build(Supplier<BlockPattern> pattern) {
+            return new MultiblockShapeInfo(pattern, bake());
+        }
+
+        public MultiblockShapeInfo build(MultiblockMachineDefinition definition, int index) {
+            return build(definition.getPatternFactory()[index]);
+        }
+
+        public MultiblockShapeInfo build(MultiblockMachineDefinition definition) {
+            return build(definition.getPatternFactory()[0]);
         }
     }
 }

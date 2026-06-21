@@ -197,27 +197,27 @@ public class GTMultiMachines {
                         .aisle("IXO", "FSH", "XMX")
                         .aisle("XXX", "XPX", "XXX")
                         .aisle("XEX", "XCX", "XXX")
-                        .build());
+                        .build(definition));
                 shapeInfo.add(baseBuilder.shallowCopy()
                         .aisle("IXO", "FSH", "XMX")
                         .aisle("XXX", "XPX", "XCX")
                         .aisle("XEX", "XXX", "XXX")
-                        .build());
+                        .build(definition));
                 shapeInfo.add(baseBuilder.shallowCopy()
                         .aisle("IXO", "FSH", "XMX")
                         .aisle("XCX", "XPX", "XXX")
                         .aisle("XEX", "XXX", "XXX")
-                        .build());
+                        .build(definition));
                 shapeInfo.add(baseBuilder.shallowCopy()
                         .aisle("IXO", "FSH", "XMX")
                         .aisle("XXX", "CPX", "XXX")
                         .aisle("XEX", "XXX", "XXX")
-                        .build());
+                        .build(definition));
                 shapeInfo.add(baseBuilder.shallowCopy()
                         .aisle("IXO", "FSH", "XMX")
                         .aisle("XXX", "XPC", "XXX")
                         .aisle("XEX", "XXX", "XXX")
-                        .build());
+                        .build(definition));
                 return shapeInfo;
             })
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_inert_ptfe"),
@@ -395,7 +395,7 @@ public class GTMultiMachines {
                             .aisle(front.toArray(String[]::new))
                             .aisle(middle.toArray(String[]::new))
                             .aisle(back.toArray(String[]::new));
-                    shapeInfos.add(copy.build());
+                    shapeInfos.add(copy.build(definition));
                 }
                 return shapeInfos;
             })
@@ -571,7 +571,7 @@ public class GTMultiMachines {
                                 .where('#', any())
                                 .build();
                     })
-                    .shapeInfos((controller) -> {
+                    .shapeInfos(definition -> {
                         List<MultiblockShapeInfo> shapeInfos = new ArrayList<>();
 
                         MultiblockShapeInfo.ShapeInfoBuilder baseBuilder = MultiblockShapeInfo.builder()
@@ -590,7 +590,7 @@ public class GTMultiMachines {
                                 .aisle("####CC###CC####", "###w##NGN##e###", "####CC###CC####")
                                 .aisle("######DCD######", "####GG###GG####", "######UCU######")
                                 .aisle("###############", "######SGS######", "###############")
-                                .where('M', controller, Direction.NORTH)
+                                .where('M', definition, Direction.NORTH)
                                 .where('C', FusionReactorMachine.getCasingState(tier))
                                 .where('G', FUSION_GLASS.get())
                                 .where('K', FusionReactorMachine.getCoilState(tier))
@@ -608,8 +608,8 @@ public class GTMultiMachines {
 
                         shapeInfos.add(baseBuilder.shallowCopy()
                                 .where('G', FusionReactorMachine.getCasingState(tier))
-                                .build());
-                        shapeInfos.add(baseBuilder.build());
+                                .build(definition));
+                        shapeInfos.add(baseBuilder.build(definition));
                         return shapeInfos;
                     })
                     .renderer(() -> new FusionReactorRenderer(FusionReactorMachine.getCasingType(tier).getTexture(),
@@ -736,7 +736,7 @@ public class GTMultiMachines {
                     .where('F', cleanroomFilters())
                     .where('I', abilities(PartAbility.PASSTHROUGH_HATCH))
                     .build())
-            .shapeInfos((controller) -> {
+            .shapeInfos(definition -> {
                 List<MultiblockShapeInfo> shapeInfo = new ArrayList<>();
                 MultiblockShapeInfo.ShapeInfoBuilder builder = MultiblockShapeInfo.builder()
                         .aisle("XXXXX", "XXHXX", "XXDXX", "XXXXX", "XXXXX")
@@ -762,7 +762,7 @@ public class GTMultiMachines {
                     builder.where('M', GTBlocks.PLASTCRETE.get());
                 }
                 GTCEuAPI.CLEANROOM_FILTERS.values()
-                        .forEach(block -> shapeInfo.add(builder.where('F', block.get()).build()));
+                        .forEach(block -> shapeInfo.add(builder.where('F', block.get()).build(definition)));
                 return shapeInfo;
             })
             .workableCasingRenderer(GTCEu.id("block/casings/cleanroom/plascrete"),
@@ -893,7 +893,7 @@ public class GTMultiMachines {
                         // allowed in the predicate (so you can see them on right-click)
                         .filter(entry -> entry.getKey().getCapacity() > 0)
                         .sorted(Comparator.comparingInt(entry -> entry.getKey().getTier()))
-                        .forEach(entry -> shapeInfo.add(builder.where('B', entry.getValue().get()).build()));
+                        .forEach(entry -> shapeInfo.add(builder.where('B', entry.getValue().get()).build(definition)));
 
                 return shapeInfo;
             })

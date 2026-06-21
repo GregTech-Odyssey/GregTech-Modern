@@ -105,7 +105,7 @@ public class GTResearchMachines {
                                     GTMachines.MAINTENANCE_HATCH.get().getRotationState().property, Direction.SOUTH) :
                             COMPUTER_CASING.getDefaultState())
                     .where('H', GTResearchMachines.OBJECT_HOLDER, Direction.SOUTH)
-                    .build())
+                    .build(definition))
             .sidedWorkableCasingRenderer("block/casings/hpca/advanced_computer_casing",
                     GTCEu.id("block/multiblock/research_station"))
             .register();
@@ -185,7 +185,7 @@ public class GTResearchMachines {
                     .where('T', GTResearchMachines.COMPUTATION_HATCH_TRANSMITTER, Direction.SOUTH)
                     .where('M', GTMachines.MAINTENANCE_HATCH, Direction.NORTH)
                     .where('E', GTMachines.ENERGY_INPUT_HATCH[LuV], Direction.NORTH)
-                    .build())
+                    .build(definition))
             .sidedWorkableCasingRenderer("block/casings/hpca/computer_casing",
                     GTCEu.id("block/multiblock/network_switch"))
             .register();
@@ -249,7 +249,7 @@ public class GTResearchMachines {
                         .where('6', GTResearchMachines.HPCA_EMPTY_COMPONENT, Direction.WEST)
                         .where('7', GTResearchMachines.HPCA_HEAT_SINK_COMPONENT, Direction.WEST)
                         .where('8', GTResearchMachines.HPCA_EMPTY_COMPONENT, Direction.WEST)
-                        .build());
+                        .build(definition));
 
                 shapeInfo.add(builder.shallowCopy()
                         .where('0', GTResearchMachines.HPCA_HEAT_SINK_COMPONENT, Direction.WEST)
@@ -261,7 +261,7 @@ public class GTResearchMachines {
                         .where('6', GTResearchMachines.HPCA_HEAT_SINK_COMPONENT, Direction.WEST)
                         .where('7', GTResearchMachines.HPCA_COMPUTATION_COMPONENT, Direction.WEST)
                         .where('8', GTResearchMachines.HPCA_HEAT_SINK_COMPONENT, Direction.WEST)
-                        .build());
+                        .build(definition));
 
                 shapeInfo.add(builder.shallowCopy()
                         .where('0', GTResearchMachines.HPCA_HEAT_SINK_COMPONENT, Direction.WEST)
@@ -273,7 +273,7 @@ public class GTResearchMachines {
                         .where('6', GTResearchMachines.HPCA_HEAT_SINK_COMPONENT, Direction.WEST)
                         .where('7', GTResearchMachines.HPCA_BRIDGE_COMPONENT, Direction.WEST)
                         .where('8', GTResearchMachines.HPCA_HEAT_SINK_COMPONENT, Direction.WEST)
-                        .build());
+                        .build(definition));
 
                 shapeInfo.add(builder.shallowCopy()
                         .where('0', GTResearchMachines.HPCA_HEAT_SINK_COMPONENT, Direction.WEST)
@@ -285,7 +285,7 @@ public class GTResearchMachines {
                         .where('6', GTResearchMachines.HPCA_HEAT_SINK_COMPONENT, Direction.WEST)
                         .where('7', GTResearchMachines.HPCA_ADVANCED_COMPUTATION_COMPONENT, Direction.WEST)
                         .where('8', GTResearchMachines.HPCA_HEAT_SINK_COMPONENT, Direction.WEST)
-                        .build());
+                        .build(definition));
 
                 return shapeInfo;
             })
