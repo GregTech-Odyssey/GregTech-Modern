@@ -100,17 +100,24 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     public void onStructureFormed() {
         super.onStructureFormed();
         List<ICustomFluidStackHandler> coolantContainers = new ArrayList<>();
-        List<IHPCAComponentHatch> componentHatches = new ArrayList<>();
         for (IMultiPart part : getParts()) {
-            if (part instanceof IHPCAComponentHatch componentHatch) {
-                componentHatches.add(componentHatch);
-            } else if (part instanceof IWorkableMultiPart workableMultiPart) {
+            if (part instanceof IWorkableMultiPart workableMultiPart) {
                 for (var handlerList : workableMultiPart.getRecipeHandlers()) {
                     coolantContainers.addAll(handlerList.getCapabilities(ICustomFluidStackHandler.class));
                 }
             }
         }
         this.coolantHandler = new FluidHandlerList(coolantContainers);
+        refreshHPCAComponents();
+    }
+
+    public void refreshHPCAComponents() {
+        List<IHPCAComponentHatch> componentHatches = new ArrayList<>();
+        for (IMultiPart part : getParts()) {
+            if (part instanceof IHPCAComponentHatch componentHatch) {
+                componentHatches.add(componentHatch);
+            }
+        }
         this.hpcaHandler.onStructureForm(componentHatches);
     }
 
