@@ -291,6 +291,8 @@ public class LangHandler {
         provider.add("metaarmor.jetpack.flight.disable", "Jetpack: Flight Disabled");
         provider.add("metaarmor.jetpack.hover.enable", "Jetpack: Hover Mode Enabled");
         provider.add("metaarmor.jetpack.hover.disable", "Jetpack: Hover Mode Disabled");
+        provider.add("metaarmor.jetpack.emergency_hover.enable", "Jetpack: Emergency Hover Enabled");
+        provider.add("metaarmor.jetpack.emergency_hover.disable", "Jetpack: Emergency Hover Disabled");
         provider.add("metaarmor.jetpack.emergency_hover_mode", "Emergency Hover Mode Enabled!");
         provider.add("metaarmor.nms.share.enable", "NanoMuscle™ Suite: Charging Enabled");
         provider.add("metaarmor.nms.share.disable", "NanoMuscle™ Suite: Charging Disabled");
@@ -316,6 +318,7 @@ public class LangHandler {
         provider.add("metaarmor.hud.engine_enabled", "Engine Enabled: %s");
         provider.add("metaarmor.hud.fuel_lvl", "Fuel Level: %s");
         provider.add("metaarmor.hud.hover_mode", "Hover Mode: %s");
+        provider.add("metaarmor.hud.emergency_hover_mode", "Emergency Hover: %s");
         provider.add("mataarmor.hud.supply_mode", "Supply Mode: %s");
         provider.add("metaarmor.hud.gravi_engine", "GraviEngine: %s");
         provider.add("metaarmor.energy_share.error", "Energy Supply: §cNot enough power for gadgets charging!");
@@ -1268,6 +1271,7 @@ public class LangHandler {
         provider.add("fluid.tile.water", "Water");
         provider.add("gtceu.key.armor_mode_switch", "Armor Mode Switch");
         provider.add("gtceu.key.armor_hover", "Armor Hover Toggle");
+        provider.add("gtceu.key.armor_emergency_hover", "Armor Emergency Hover Toggle");
         provider.add("gtceu.key.enable_jetpack", "Enable Jetpack");
         provider.add("gtceu.key.enable_boots", "Enable Boosted Jump");
         provider.add("gtceu.key.armor_charging", "Armor Charging to Inventory Toggle");

@@ -53,12 +53,14 @@ public class AdvancedNanoMuscleSuite extends NanoMuscleSuite implements IJetpack
         if (!data.contains("enabled")) {
             data.putBoolean("enabled", true);
             data.putBoolean("hover", false);
+            data.putBoolean("emergencyHover", true);
             data.putByte("toggleTimer", (byte) 0);
             data.putBoolean("canShare", false);
         }
 
         boolean jetpackEnabled = data.getBoolean("enabled");
         boolean hoverMode = data.getBoolean("hover");
+        boolean emergencyHover = data.getBoolean("emergencyHover");
         byte toggleTimer = data.getByte("toggleTimer");
         boolean canShare = data.getBoolean("canShare");
 
@@ -72,6 +74,10 @@ public class AdvancedNanoMuscleSuite extends NanoMuscleSuite implements IJetpack
                 hoverMode = !hoverMode;
                 messageKey = "metaarmor.jetpack.hover." + (hoverMode ? "enable" : "disable");
                 data.putBoolean("hover", hoverMode);
+            } else if (KeyBind.ARMOR_EMERGENCY_HOVER.isKeyDown(player)) {
+                emergencyHover = !emergencyHover;
+                messageKey = "metaarmor.jetpack.emergency_hover." + (emergencyHover ? "enable" : "disable");
+                data.putBoolean("emergencyHover", emergencyHover);
             } else if (KeyBind.ARMOR_CHARGING.isKeyDown(player)) {
                 canShare = !canShare;
                 if (canShare && cont.getCharge() == 0) { // Only allow for charging to be enabled if charge is nonzero
@@ -161,6 +167,11 @@ public class AdvancedNanoMuscleSuite extends NanoMuscleSuite implements IJetpack
         state = hover ? Component.translatable("metaarmor.hud.status.enabled") :
                 Component.translatable("metaarmor.hud.status.disabled");
         lines.add(Component.translatable("metaarmor.hud.hover_mode", state));
+
+        boolean emergencyHover = data.getBoolean("emergencyHover");
+        state = emergencyHover ? Component.translatable("metaarmor.hud.status.enabled") :
+                Component.translatable("metaarmor.hud.status.disabled");
+        lines.add(Component.translatable("metaarmor.hud.emergency_hover_mode", state));
     }
 
     @Override
@@ -221,6 +232,10 @@ public class AdvancedNanoMuscleSuite extends NanoMuscleSuite implements IJetpack
                         "metaarmor.hud.status.disabled";
                 this.HUD.newString(Component.translatable("metaarmor.hud.hover_mode", Component.translatable(status)));
             }
+            String status = data.getBoolean("emergencyHover") ?
+                    "metaarmor.hud.status.enabled" : "metaarmor.hud.status.disabled";
+            this.HUD.newString(
+                    Component.translatable("metaarmor.hud.emergency_hover_mode", Component.translatable(status)));
         }
         this.HUD.draw(guiGraphics);
         this.HUD.reset();

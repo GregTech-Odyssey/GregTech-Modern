@@ -230,6 +230,8 @@ public class ForgeCommonEventListener {
 
             ItemStack boots = player.getItemBySlot(EquipmentSlot.FEET);
             ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
+            CompoundTag chestData = chest.getTag();
+            boolean emergencyHover = chestData != null && chestData.getBoolean("emergencyHover");
 
             if (boots.is(CustomTags.STEP_BOOTS) && boots.getItem() instanceof ArmorComponentItem armor) {
                 armor.getArmorLogic().damageArmor(player, boots, player.damageSources().fall(),
@@ -238,6 +240,7 @@ public class ForgeCommonEventListener {
                 event.setCanceled(true);
             } else if (chest.getItem() instanceof ArmorComponentItem armor &&
                     armor.getArmorLogic() instanceof IJetpack jetpack &&
+                    emergencyHover &&
                     jetpack.canUseEnergy(chest, jetpack.getEnergyPerUse()) &&
                     player.fallDistance >= player.getHealth() + 3.2f) {
                         IJetpack.performEHover(chest, player);

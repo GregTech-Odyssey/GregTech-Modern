@@ -52,11 +52,13 @@ public class Jetpack extends ArmorLogicSuite implements IJetpack {
         if (!data.contains("enabled")) {
             data.putBoolean("enabled", true);
             data.putBoolean("hover", false);
+            data.putBoolean("emergencyHover", true);
             data.putByte("toggleTimer", (byte) 0);
         }
 
         boolean jetpackEnabled = data.getBoolean("enabled");
         boolean hoverMode = data.getBoolean("hover");
+        boolean emergencyHover = data.getBoolean("emergencyHover");
         byte toggleTimer = data.getByte("toggleTimer");
 
         String messageKey = null;
@@ -69,6 +71,10 @@ public class Jetpack extends ArmorLogicSuite implements IJetpack {
                 hoverMode = !hoverMode;
                 messageKey = "metaarmor.jetpack.hover." + (hoverMode ? "enable" : "disable");
                 data.putBoolean("hover", hoverMode);
+            } else if (KeyBind.ARMOR_EMERGENCY_HOVER.isKeyDown(player)) {
+                emergencyHover = !emergencyHover;
+                messageKey = "metaarmor.jetpack.emergency_hover." + (emergencyHover ? "enable" : "disable");
+                data.putBoolean("emergencyHover", emergencyHover);
             }
 
             if (messageKey != null) {
@@ -144,6 +150,11 @@ public class Jetpack extends ArmorLogicSuite implements IJetpack {
                 Component result = Component.translatable("metaarmor.hud.hover_mode", status);
                 this.HUD.newString(result);
             }
+            Component status = (data.getBoolean("emergencyHover") ?
+                    Component.translatable("metaarmor.hud.status.enabled") :
+                    Component.translatable("metaarmor.hud.status.disabled"));
+            Component result = Component.translatable("metaarmor.hud.emergency_hover_mode", status);
+            this.HUD.newString(result);
         }
         this.HUD.draw(guiGraphics);
         this.HUD.reset();
@@ -164,6 +175,11 @@ public class Jetpack extends ArmorLogicSuite implements IJetpack {
         state = hover ? Component.translatable("metaarmor.hud.status.enabled") :
                 Component.translatable("metaarmor.hud.status.disabled");
         lines.add(Component.translatable("metaarmor.hud.hover_mode", state));
+
+        boolean emergencyHover = data.getBoolean("emergencyHover");
+        state = emergencyHover ? Component.translatable("metaarmor.hud.status.enabled") :
+                Component.translatable("metaarmor.hud.status.disabled");
+        lines.add(Component.translatable("metaarmor.hud.emergency_hover_mode", state));
     }
 
     @Override
