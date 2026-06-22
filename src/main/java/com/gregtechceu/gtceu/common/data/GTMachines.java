@@ -219,7 +219,7 @@ public class GTMachines {
             GTRecipeTypes.CIRCUIT_ASSEMBLER_RECIPES, hvCappedTankSizeFunction, true);
     public static final MachineDefinition[] MACERATOR = registerTieredMachines("macerator",
             (holder, tier) -> new SimpleTieredMachine(holder, tier, defaultTankSizeFunction), (tier, builder) -> builder
-                    .langValue("%s Macerator %s".formatted(VLVH[tier], VLVT[tier]))
+                    .langValue("%s Macerator%s".formatted(VLVH[tier], VLVT[tier]))
                     .editableUI(SimpleTieredMachine.EDITABLE_UI_CREATOR.apply(GTCEu.id("macerator"),
                             GTRecipeTypes.MACERATOR_RECIPES))
                     .nonYAxisRotation()
@@ -239,7 +239,7 @@ public class GTMachines {
             GTRecipeTypes.GAS_COLLECTOR_RECIPES, largeTankSizeFunction, true);
     public static final MachineDefinition[] ROCK_CRUSHER = registerTieredMachines("rock_crusher",
             RockCrusherMachine::new, (tier, builder) -> builder
-                    .langValue("%s Rock Crusher %s".formatted(VLVH[tier], VLVT[tier]))
+                    .langValue("%s Rock Crusher%s".formatted(VLVH[tier], VLVT[tier]))
                     .editableUI(SimpleTieredMachine.EDITABLE_UI_CREATOR.apply(GTCEu.id("rock_crusher"),
                             GTRecipeTypes.ROCK_BREAKER_RECIPES))
                     .nonYAxisRotation()
@@ -253,7 +253,7 @@ public class GTMachines {
             ELECTRIC_TIERS);
     public static final MachineDefinition[] AIR_SCRUBBER = registerTieredMachines("air_scrubber",
             AirScrubberMachine::new, (tier, builder) -> builder
-                    .langValue("%s Air Scrubber %s".formatted(VLVH[tier], VLVT[tier]))
+                    .langValue("%s Air Scrubber%s".formatted(VLVH[tier], VLVT[tier]))
                     .editableUI(SimpleTieredMachine.EDITABLE_UI_CREATOR.apply(GTCEu.id("air_scrubber"),
                             GTRecipeTypes.AIR_SCRUBBER_RECIPES))
                     .nonYAxisRotation()
@@ -299,7 +299,7 @@ public class GTMachines {
             (tier, builder) -> builder
                     .allRotation()
                     .tieredHullRenderer(GTCEu.id("block/machine/pump_machine"))
-                    .langValue("%s Pump %s".formatted(VLVH[tier], VLVT[tier]))
+                    .langValue("%s Pump%s".formatted(VLVH[tier], VLVT[tier]))
                     .tooltips(Component.translatable("gtceu.machine.pump.tooltip"),
                             Component.translatable("gtceu.universal.tooltip.voltage_in",
                                     FormattingUtil.formatNumbers(GTValues.V[tier]),
@@ -319,7 +319,7 @@ public class GTMachines {
                     .allRotation()
                     .editableUI(FisherMachine.EDITABLE_UI_CREATOR.apply(GTCEu.id("fisher"), (tier + 1) * (tier + 1)))
                     .tieredHullRenderer(GTCEu.id("block/machine/fisher_machine"))
-                    .langValue("%s Fisher %s".formatted(VLVH[tier], VLVT[tier]))
+                    .langValue("%s Fisher%s".formatted(VLVH[tier], VLVT[tier]))
                     .tooltips(Component.translatable("gtceu.machine.fisher.tooltip"),
                             Component.translatable("gtceu.machine.fisher.speed", FisherMachine.calcMaxProgress(tier)),
                             Component.translatable("gtceu.machine.fisher.requirement", FisherMachine.WATER_CHECK_SIZE,
@@ -339,7 +339,7 @@ public class GTMachines {
                     .editableUI(BlockBreakerMachine.EDITABLE_UI_CREATOR.apply(GTCEu.id("block_breaker"),
                             (tier + 1) * (tier + 1)))
                     .tieredHullRenderer(GTCEu.id("block/machine/block_breaker_machine"))
-                    .langValue("%s Block Breaker %s".formatted(VLVH[tier], VLVT[tier]))
+                    .langValue("%s Block Breaker%s".formatted(VLVH[tier], VLVT[tier]))
                     .tooltips(Component.translatable("gtceu.machine.block_breaker.tooltip"),
                             Component.translatable("gtceu.machine.block_breaker.speed_bonus",
                                     (int) (BlockBreakerMachine.getEfficiencyMultiplier(tier) * 100)),
@@ -356,7 +356,7 @@ public class GTMachines {
                     tier * 8, tier),
             (tier, builder) -> builder
                     .nonYAxisRotation()
-                    .langValue("%s Miner %s".formatted(VLVH[tier], VLVT[tier]))
+                    .langValue("%s Miner%s".formatted(VLVH[tier], VLVT[tier]))
                     .recipeType(DUMMY_RECIPES)
                     .editableUI(MinerMachine.EDITABLE_UI_CREATOR.apply(GTCEu.id("miner"), (tier + 1) * (tier + 1)))
                     .renderer(() -> new MinerRenderer(tier, GTCEu.id("block/machines/miner")))
@@ -384,7 +384,7 @@ public class GTMachines {
             WorldAcceleratorMachine::new,
             (tier, builder) -> builder
                     .noneRotation()
-                    .langValue("%s World Accelerator %s".formatted(VLVH[tier], VLVT[tier]))
+                    .langValue("%s World Accelerator%s".formatted(VLVH[tier], VLVT[tier]))
                     .recipeType(DUMMY_RECIPES)
                     .renderer(() -> new WorldAcceleratorRenderer(tier, GTCEu.id("block/machines/world_accelerator_te"),
                             GTCEu.id("block/machines/world_accelerator")))
@@ -410,7 +410,7 @@ public class GTMachines {
             ItemCollectorMachine::new,
             (tier, builder) -> builder
                     .noneRotation()
-                    .langValue("%s Item Collector %s".formatted(VLVH[tier], VLVT[tier]))
+                    .langValue("%s Item Collector%s".formatted(VLVH[tier], VLVT[tier]))
                     .recipeType(DUMMY_RECIPES)
                     .editableUI(ItemCollectorMachine.EDITABLE_UI_CREATOR.apply(GTCEu.id("item_collector"),
                             ItemCollectorMachine.getINVENTORY_SIZES()[tier]))
@@ -435,7 +435,7 @@ public class GTMachines {
     public static final MachineDefinition[] BUFFER = registerTieredMachines("buffer",
             BufferMachine::new,
             (tier, builder) -> builder
-                    .langValue("%s Buffer %s".formatted(VLVH[tier], VLVT[tier]))
+                    .langValue("%s Buffer%s".formatted(VLVH[tier], VLVT[tier]))
                     .noneRotation()
                     .tieredHullRenderer(GTCEu.id("block/machine/buffer"))
                     .tooltips(Component.translatable("gtceu.machine.buffer.tooltip"), Component.translatable("gtceu.universal.tooltip.item_storage_capacity", BufferMachine.getInventorySize(tier)),

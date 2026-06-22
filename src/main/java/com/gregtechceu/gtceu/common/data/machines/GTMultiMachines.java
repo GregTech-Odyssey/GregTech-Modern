@@ -621,7 +621,7 @@ public class GTMultiMachines {
     public static final MultiblockMachineDefinition[] FLUID_DRILLING_RIG = registerTieredMultis(
             "fluid_drilling_rig", FluidDrillMachine::new, (tier, builder) -> builder
                     .nonYAxisRotation()
-                    .langValue("%s Fluid Drilling Rig %s".formatted(VLVH[tier], VLVT[tier]))
+                    .langValue("%s Fluid Drilling Rig%s".formatted(VLVH[tier], VLVT[tier]))
                     .recipeType(DUMMY_RECIPES)
                     .tooltips(
                             Component.translatable("gtceu.machine.fluid_drilling_rig.description"),
@@ -655,7 +655,7 @@ public class GTMultiMachines {
             (holder, tier) -> new LargeMinerMachine(holder, tier, 64 / tier, 2 * tier - 5, tier, 8 - (tier - 5)),
             (tier, builder) -> builder
                     .nonYAxisRotation()
-                    .langValue("%s Large Miner %s".formatted(VLVH[tier], VLVT[tier]))
+                    .langValue("%s Large Miner%s".formatted(VLVH[tier], VLVT[tier]))
                     .recipeType(DUMMY_RECIPES)
                     .appearanceBlock(() -> LargeMinerMachine.getCasingState(tier))
                     .pattern((definition) -> FactoryBlockPattern.start(definition)
@@ -925,7 +925,7 @@ public class GTMultiMachines {
     public static MultiblockMachineDefinition[] BEDROCK_ORE_MINER = registerTieredMultis(
             "bedrock_ore_miner", BedrockOreMinerMachine::new, (tier, builder) -> builder
                     .nonYAxisRotation()
-                    .langValue("%s Bedrock Ore Miner %s".formatted(VLVH[tier], VLVT[tier]))
+                    .langValue("%s Bedrock Ore Miner%s".formatted(VLVH[tier], VLVT[tier]))
                     .recipeType(DUMMY_RECIPES)
                     .tooltips(
                             Component.translatable("gtceu.machine.bedrock_ore_miner.description"),

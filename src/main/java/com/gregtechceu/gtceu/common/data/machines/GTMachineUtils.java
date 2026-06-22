@@ -127,7 +127,7 @@ public class GTMachineUtils {
                 (holder, tier) -> new SimpleTieredMachine(holder, tier, tankScalingFunction), (tier, builder) -> {
                     builder.recipeModifier(RecipeModifier.OVERCLOCKING);
                     return builder
-                            .langValue("%s %s %s".formatted(VLVH[tier], toEnglishName(name), VLVT[tier]))
+                            .langValue("%s %s%s".formatted(VLVH[tier], toEnglishName(name), VLVT[tier]))
                             .editableUI(SimpleTieredMachine.EDITABLE_UI_CREATOR.apply(GTCEu.id(name), recipeType))
                             .nonYAxisRotation()
                             .recipeType(recipeType)
@@ -232,7 +232,7 @@ public class GTMachineUtils {
                 (holder, tier) -> new SimpleGeneratorMachine(holder, tier, hazardStrengthPerOperation * tier,
                         tankScalingFunction),
                 (tier, builder) -> builder
-                        .langValue("%s %s Generator %s".formatted(VLVH[tier], toEnglishName(name), VLVT[tier]))
+                        .langValue("%s %s Generator%s".formatted(VLVH[tier], toEnglishName(name), VLVT[tier]))
                         .editableUI(SimpleGeneratorMachine.EDITABLE_UI_CREATOR.apply(GTCEu.id(name), recipeType))
                         .allRotation()
                         .recipeType(recipeType)
