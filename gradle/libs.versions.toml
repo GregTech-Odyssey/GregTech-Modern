@@ -8,6 +8,7 @@ modDevGradle = "2.0.141"
 jetbrains-annotations = "26.0.1"
 mixin = "0.8.7"
 lombok = "8.11"
+"gtopublishgradleplugin" = "1.0.22"
 
 [libraries]
 minecraft               = { module = "com.mojang:minecraft", version.ref = "minecraft" }
@@ -18,4 +19,5 @@ mixin                   = { module = "org.spongepowered:mixin", version.ref = "m
 [plugins]
 modDevGradle            = { id = "net.neoforged.moddev.legacyforge", version.ref = "modDevGradle" }
 spotless                = { id = "com.diffplug.spotless", version.ref = "spotless" }
-lombok                = { id = "io.freefair.lombok", version.ref = "lombok" }
+lombok                  = { id = "io.freefair.lombok", version.ref = "lombok" }
+gtopublishgradleplugin  = { id = "com.gto.gtopublishgradleplugin", version.ref = "gtopublishgradleplugin" }
