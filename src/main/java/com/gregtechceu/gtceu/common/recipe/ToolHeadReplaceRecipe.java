@@ -22,11 +22,13 @@ import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.world.level.Level;
 
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ToolHeadReplaceRecipe extends CustomRecipe {
 
@@ -34,10 +36,12 @@ public class ToolHeadReplaceRecipe extends CustomRecipe {
             ToolHeadReplaceRecipe::new);
 
     private static final Map<TagPrefix, GTToolType[]> TOOL_HEAD_TO_TOOL_MAP = new Reference2ObjectOpenHashMap<>();
+    private static final Set<GTToolType> REPLACEABLE_TOOLS = new ReferenceOpenHashSet<>();
 
     public static void setToolHeadForTool(TagPrefix toolHead, GTToolType tool) {
         if (!(tool.electricTier > -1)) return;
         TOOL_HEAD_TO_TOOL_MAP.computeIfAbsent(toolHead, p -> new GTToolType[GTValues.MAX])[tool.electricTier] = tool;
+        REPLACEABLE_TOOLS.add(tool);
     }
 
     public ToolHeadReplaceRecipe(ResourceLocation id, CraftingBookCategory category) {
@@ -73,6 +77,7 @@ public class ToolHeadReplaceRecipe extends CustomRecipe {
             } else return false;
 
             if (!tool.isElectric()) return false;
+            if (!REPLACEABLE_TOOLS.contains(tool.getToolType())) return false;
             if (toolHead.isEmpty()) return false;
             GTToolType[] output = TOOL_HEAD_TO_TOOL_MAP.get(toolHead.tagPrefix());
             return output != null && output[tool.getElectricTier()] != null;
@@ -108,6 +113,7 @@ public class ToolHeadReplaceRecipe extends CustomRecipe {
                 realTool = second;
             } else return ItemStack.EMPTY;
             if (!tool.isElectric()) return ItemStack.EMPTY;
+            if (!REPLACEABLE_TOOLS.contains(tool.getToolType())) return ItemStack.EMPTY;
             IElectricItem powerUnit = GTCapabilityHelper.getElectricItem(realTool);
             if (toolHead.isEmpty() || powerUnit == null) return ItemStack.EMPTY;
             GTToolType[] toolArray = TOOL_HEAD_TO_TOOL_MAP.get(toolHead.tagPrefix());
