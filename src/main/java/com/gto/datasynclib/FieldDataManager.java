@@ -2,7 +2,9 @@ package com.gto.datasynclib;
 
 import net.minecraft.network.FriendlyByteBuf;
 
+import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.MapData;
+import com.gto.datasynclib.util.ReflectUtil;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.apache.commons.lang3.ArrayUtils;
@@ -64,11 +66,17 @@ public final class FieldDataManager {
     /**
      * Marks specified fields as dirty for synchronization
      *
-     * @param field the field definition to mark for sync
+     * @param fields the field definition to mark for sync
      */
-    public void markFieldForSync(@NotNull DataFieldDefinition<?> field) {
-        var f = allField.get(field);
-        if (f != null) f.markAsChanged(field.source.apply(holder));
+    public void markFieldsForSync(@NotNull DataFieldDefinition<?>... fields) {
+        for (var field : fields) {
+            var f = allField.get(field);
+            if (f != null) {
+                f.markAsChanged(field.source.apply(holder));
+            } else {
+                throw ReflectUtil.fieldNotFoundException(field.field.getName());
+            }
+        }
     }
 
     /**
@@ -81,7 +89,13 @@ public final class FieldDataManager {
             var d = storage.allDefinition.get(field);
             if (d != null) {
                 var f = allField.get(d);
-                if (f != null) f.markAsChanged(d.source.apply(holder));
+                if (f != null) {
+                    f.markAsChanged(d.source.apply(holder));
+                } else {
+                    throw ReflectUtil.fieldNotFoundException(field);
+                }
+            } else {
+                throw ReflectUtil.fieldNotFoundException(field);
             }
         }
     }
@@ -193,6 +207,66 @@ public final class FieldDataManager {
                 if (update) holder.scheduleUpdate(side);
             } finally {
                 buf.release();
+            }
+        }
+    }
+
+    @NotNull
+    public Data writeFieldToData(String field) {
+        var d = storage.allDefinition.get(field);
+        if (d != null) {
+            var f = allField.get(d);
+            if (f != null) return f.writeToData(d.source.apply(holder));
+        }
+        throw ReflectUtil.fieldNotFoundException(field);
+    }
+
+    public void readFieldFromData(@NotNull Data data, int dataVersion, String field) {
+        var d = storage.allDefinition.get(field);
+        if (d != null) {
+            var f = allField.get(d);
+            if (f != null) {
+                f.readFromData(d.source.apply(holder), data, dataVersion);
+                return;
+            }
+        }
+        throw ReflectUtil.fieldNotFoundException(field);
+    }
+
+    @NotNull
+    public MapData writeFieldsToData(String... fields) {
+        MapData data = new MapData();
+        for (var field : fields) {
+            var d = storage.allDefinition.get(field);
+            if (d != null) {
+                var f = allField.get(d);
+                if (f != null) {
+                    data.put(d.key, f.writeToData(d.source.apply(holder)));
+                } else {
+                    throw ReflectUtil.fieldNotFoundException(field);
+                }
+            } else {
+                throw ReflectUtil.fieldNotFoundException(field);
+            }
+        }
+        return data;
+    }
+
+    public void readFieldsFromData(@NotNull MapData data, int dataVersion, String... fields) {
+        for (var field : fields) {
+            var d = storage.allDefinition.get(field);
+            if (d != null) {
+                var tag = data.get(d.key);
+                if (tag != null) {
+                    var f = allField.get(d);
+                    if (f != null) {
+                        f.readFromData(d.source.apply(holder), tag, dataVersion);
+                    } else {
+                        throw ReflectUtil.fieldNotFoundException(field);
+                    }
+                }
+            } else {
+                throw ReflectUtil.fieldNotFoundException(field);
             }
         }
     }

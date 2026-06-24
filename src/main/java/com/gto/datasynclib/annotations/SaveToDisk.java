@@ -6,6 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Extended from {@link AddToManager}
  * Marks a field to be SaveToDisk to disk.
  * Annotated fields will be automatically saved and loaded.
  */

@@ -18,7 +18,7 @@ import java.lang.reflect.Method;
 @Accessors(fluent = true)
 final class FieldAnnotations {
 
-    private final SaveToDisk saveToNBT;
+    private final SaveToDisk saveToDisk;
     private final SyncToClient syncToClient;
     private final SyncToServer syncToServer;
 
@@ -40,21 +40,23 @@ final class FieldAnnotations {
     private final boolean access;
     private final boolean createAccessInstance;
 
-    FieldAnnotations(Class<?> clazz, Field field) {
+    FieldAnnotations(Class<?> clazz, Field field, SaveToDisk saveToDisk, SyncToClient syncToClient, SyncToServer syncToServer) {
         this.generic = field.getAnnotation(Generic.class) != null;
         this.access = field.getAnnotation(Access.class) != null;
-        this.saveToNBT = field.getAnnotation(SaveToDisk.class);
-        this.syncToClient = field.getAnnotation(SyncToClient.class);
-        this.syncToServer = field.getAnnotation(SyncToServer.class);
-        this.key = saveToNBT == null || saveToNBT.key().isEmpty() ? field.getName() : saveToNBT.key();
+        this.saveToDisk = saveToDisk;
+        this.syncToClient = syncToClient;
+        this.syncToServer = syncToServer;
+        this.key = saveToDisk == null || saveToDisk.key().isEmpty() ? field.getName() : saveToDisk.key();
         this.notifyClientUpdate = syncToClient != null && syncToClient.notifyUpdate();
         this.notifyServerUpdate = syncToServer != null && syncToServer.notifyUpdate();
         this.autoServerUpdate = syncToClient != null && syncToClient.autoUpdate();
         this.autoClientUpdate = syncToServer != null && syncToServer.autoUpdate();
         this.createAccessInstance = access && field.getAnnotation(Access.class).createInstance();
 
+        var type = field.getType();
+
         if (syncToClient != null && !syncToClient.listener().isEmpty()) {
-            var method = ReflectUtil.getAccessibleMethod(clazz, syncToClient.listener(), field.getType(), field.getType());
+            var method = ReflectUtil.getAccessibleMethod(clazz, syncToClient.listener(), type, type);
             method.setAccessible(true);
             this.clientUpdateListener = method;
         } else {
@@ -62,7 +64,7 @@ final class FieldAnnotations {
         }
 
         if (syncToServer != null && !syncToServer.listener().isEmpty()) {
-            var method = ReflectUtil.getAccessibleMethod(clazz, syncToServer.listener(), field.getType(), field.getType());
+            var method = ReflectUtil.getAccessibleMethod(clazz, syncToServer.listener(), type, type);
             method.setAccessible(true);
             this.serverUpdateListener = method;
         } else {
@@ -93,7 +95,7 @@ final class FieldAnnotations {
         } else {
             if (codec.saveCodec().isEmpty()) {
                 if (!codec.writeToData().isEmpty()) {
-                    var m = ReflectUtil.getAccessibleMethod(clazz, codec.writeToData(), field.getType());
+                    var m = ReflectUtil.getAccessibleMethod(clazz, codec.writeToData(), type);
                     m.setAccessible(true);
                     this.writeToData = m;
                     m = ReflectUtil.getAccessibleMethod(clazz, codec.readFromData(), Data.class, int.class);
@@ -104,7 +106,7 @@ final class FieldAnnotations {
                     this.readFromData = null;
                 }
                 if (!codec.writeToBuffer().isEmpty()) {
-                    var m = ReflectUtil.getAccessibleMethod(clazz, codec.writeToBuffer(), FriendlyByteBuf.class, field.getType());
+                    var m = ReflectUtil.getAccessibleMethod(clazz, codec.writeToBuffer(), FriendlyByteBuf.class, type);
                     m.setAccessible(true);
                     this.writeToBuffer = m;
                     m = ReflectUtil.getAccessibleMethod(clazz, codec.readFromBuffer(), FriendlyByteBuf.class);
@@ -139,12 +141,8 @@ final class FieldAnnotations {
         }
     }
 
-    boolean isEmpty() {
-        return saveToNBT == null && syncToClient == null && syncToServer == null;
-    }
-
     boolean isSave() {
-        return saveToNBT != null;
+        return saveToDisk != null;
     }
 
     boolean isSyncToClient() {

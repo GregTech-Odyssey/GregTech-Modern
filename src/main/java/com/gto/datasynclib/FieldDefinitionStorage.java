@@ -2,7 +2,7 @@ package com.gto.datasynclib;
 
 import com.gregtechceu.gtceu.utils.collection.MultiMap;
 
-import com.gto.datasynclib.annotations.AdditionalHolder;
+import com.gto.datasynclib.annotations.*;
 import com.gto.datasynclib.util.HashUtil;
 import com.gto.datasynclib.util.ReflectUtil;
 import com.gto.datasynclib.util.cache.HashMapCache;
@@ -141,7 +141,7 @@ public final class FieldDefinitionStorage {
     }
 
     private FieldDefinitionStorage() {
-        allDefinition = new LinkedHashMap<>(1);
+        allDefinition = new LinkedHashMap<>(0);
         saveDefinitions = new DataFieldDefinition[0];
         syncToClientDefinitions = new DataFieldDefinition[0];
         syncToServerDefinitions = new DataFieldDefinition[0];
@@ -200,9 +200,11 @@ public final class FieldDefinitionStorage {
                 scanFields(field.getType(), definitions, createNestedSourceFunction(field, source));
                 continue;
             }
-            var annotations = new FieldAnnotations(clazz, field);
-            if (annotations.isEmpty()) continue;
-            var definition = createFieldDefinition(field, source, annotations);
+            var savetoDisk = field.getAnnotation(SaveToDisk.class);
+            var syncToClient = field.getAnnotation(SyncToClient.class);
+            var syncToServer = field.getAnnotation(SyncToServer.class);
+            if (savetoDisk == null && syncToClient == null && syncToServer == null && field.getAnnotation(AddToManager.class) == null) continue;
+            var definition = createFieldDefinition(field, source, new FieldAnnotations(clazz, field, savetoDisk, syncToClient, syncToServer));
             if (definition != null) definitions.add(definition);
         }
     }

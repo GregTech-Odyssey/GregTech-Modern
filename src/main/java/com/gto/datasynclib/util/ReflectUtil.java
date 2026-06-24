@@ -9,6 +9,10 @@ import java.lang.reflect.*;
 @UtilityClass
 public final class ReflectUtil {
 
+    public IllegalArgumentException fieldNotFoundException(String fieldName) {
+        return new IllegalArgumentException("Field[" + fieldName + "] not found");
+    }
+
     public Class<?>[] getFieldGenericTypeClasses(Type genericType) {
         if (!(genericType instanceof ParameterizedType pType))
             throw new IllegalArgumentException("Field is not a parameterized type");

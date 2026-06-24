@@ -6,6 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Extended from {@link AddToManager}
  * Marks a field to be synchronized to the client.
  * Fields annotated with this annotation will have their values sent from the server to the client.
  * This is typically used for displaying data on the client side, such as GUI elements or rendering states.
