@@ -18,8 +18,7 @@ import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagEntry;
@@ -48,21 +47,20 @@ import java.util.stream.Collectors;
 @SuppressWarnings("deprecation")
 public class GTTags {
 
-    private final Reference2ReferenceFunction<ResourceKey<?>, O2OOpenCacheHashMap<ResourceLocation, List<TagLoader.EntryWithSource>>> REGISTRY_MAP = k -> new O2OOpenCacheHashMap<>();
+    private final Reference2ReferenceFunction<Registry<?>, O2OOpenCacheHashMap<ResourceLocation, List<TagLoader.EntryWithSource>>> REGISTRY_MAP = k -> new O2OOpenCacheHashMap<>();
     private final Object2ObjectFunction<ResourceLocation, List<TagLoader.EntryWithSource>> ENTRY_MAP = k -> new ArrayList<>();
 
-    private final Reference2ReferenceOpenHashMap<ResourceKey<?>, O2OOpenCacheHashMap<ResourceLocation, List<TagLoader.EntryWithSource>>> DYNAMIC_TAG_CACHE = new Reference2ReferenceOpenHashMap<>();
+    private final Reference2ReferenceOpenHashMap<Registry<?>, O2OOpenCacheHashMap<ResourceLocation, List<TagLoader.EntryWithSource>>> DYNAMIC_TAG_CACHE = new Reference2ReferenceOpenHashMap<>();
 
-    public <T> void generateGTDynamicTags(Map<ResourceLocation, List<TagLoader.EntryWithSource>> tagMap, ResourceKey<T> registry) {
+    public <T> void generateGTDynamicTags(Map<ResourceLocation, List<TagLoader.EntryWithSource>> tagMap, Registry<T> registry) {
         if (tagMap == GTUtil.EMPTY_MAP) return;
         var tags = DYNAMIC_TAG_CACHE.get(registry);
         if (tags == null) return;
         tags.object2ObjectEntrySet().fastForEach(entry -> tagMap.computeIfAbsent(entry.getKey(), path -> new ArrayList<>()).addAll(entry.getValue()));
-        DYNAMIC_TAG_CACHE.remove(registry);
     }
 
     public void registryGTDynamicTags() {
-        var itemTags = DYNAMIC_TAG_CACHE.computeIfAbsent(Registries.ITEM, path -> new O2OOpenCacheHashMap<>());
+        var itemTags = DYNAMIC_TAG_CACHE.computeIfAbsent(BuiltInRegistries.ITEM, path -> new O2OOpenCacheHashMap<>());
         MaterialRegistryManager.getInstance().getAll().forEach(material -> {
             if (material.isNull()) return;
             material.MATERIAL_ENTRY_ITEM_MAP.forEach((tagPrefix, itemLikes) -> {
@@ -111,7 +109,7 @@ public class GTTags {
                 itemTags.computeIfAbsent(p2pFluidAttunements, path -> new ArrayList<>()).add(entry);
             }
         }
-        var blockTags = DYNAMIC_TAG_CACHE.computeIfAbsent(Registries.BLOCK, path -> new O2OOpenCacheHashMap<>());
+        var blockTags = DYNAMIC_TAG_CACHE.computeIfAbsent(BuiltInRegistries.BLOCK, path -> new O2OOpenCacheHashMap<>());
         MaterialRegistryManager.getInstance().getAll().forEach(material -> {
             if (material.isNull()) return;
             material.MATERIAL_ENTRY_BLOCK_MAP.forEach((tagPrefix, blocks) -> {
@@ -148,7 +146,7 @@ public class GTTags {
             tagList.add(makeTagEntry(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WRENCH));
             tagList.add(makeTagEntry(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WIRE_CUTTER));
         }
-        var fluidTags = DYNAMIC_TAG_CACHE.computeIfAbsent(Registries.FLUID, path -> new O2OOpenCacheHashMap<>());
+        var fluidTags = DYNAMIC_TAG_CACHE.computeIfAbsent(BuiltInRegistries.FLUID, path -> new O2OOpenCacheHashMap<>());
         for (Material material : GTCEuAPI.materialManager.getRegisteredMaterials()) {
             FluidProperty property = material.getProperty(PropertyKey.FLUID);
             if (property == null) continue;
@@ -172,22 +170,18 @@ public class GTTags {
     }
 
     public void addItemEntry(ItemLike item, ResourceLocation tagLocation) {
-        DYNAMIC_TAG_CACHE.computeIfAbsent(Registries.ITEM, REGISTRY_MAP).computeIfAbsent(tagLocation, ENTRY_MAP).add(GTTags.makeItemEntry(item));
+        DYNAMIC_TAG_CACHE.computeIfAbsent(BuiltInRegistries.ITEM, REGISTRY_MAP).computeIfAbsent(tagLocation, ENTRY_MAP).add(GTTags.makeItemEntry(item));
     }
 
     public void addBlockEntry(Block block, ResourceLocation tagLocation) {
-        DYNAMIC_TAG_CACHE.computeIfAbsent(Registries.BLOCK, REGISTRY_MAP).computeIfAbsent(tagLocation, ENTRY_MAP).add(GTTags.makeBlockEntry(block));
+        DYNAMIC_TAG_CACHE.computeIfAbsent(BuiltInRegistries.BLOCK, REGISTRY_MAP).computeIfAbsent(tagLocation, ENTRY_MAP).add(GTTags.makeBlockEntry(block));
     }
 
     public void addFluidEntry(Fluid fluid, ResourceLocation tagLocation) {
-        DYNAMIC_TAG_CACHE.computeIfAbsent(Registries.FLUID, REGISTRY_MAP).computeIfAbsent(tagLocation, ENTRY_MAP).add(GTTags.makeFluidEntry(fluid));
+        DYNAMIC_TAG_CACHE.computeIfAbsent(BuiltInRegistries.FLUID, REGISTRY_MAP).computeIfAbsent(tagLocation, ENTRY_MAP).add(GTTags.makeFluidEntry(fluid));
     }
 
-    public void addEntry(ResourceLocation id, TagKey<? extends Registry<?>> tag) {
-        DYNAMIC_TAG_CACHE.computeIfAbsent(tag.registry(), REGISTRY_MAP).computeIfAbsent(tag.location(), ENTRY_MAP).add(GTTags.makeElementEntry(id));
-    }
-
-    public void addEntry(ResourceLocation id, ResourceKey<?> registry, ResourceLocation tagLocation) {
+    public void addEntry(ResourceLocation id, Registry<?> registry, ResourceLocation tagLocation) {
         DYNAMIC_TAG_CACHE.computeIfAbsent(registry, REGISTRY_MAP).computeIfAbsent(tagLocation, ENTRY_MAP).add(GTTags.makeElementEntry(id));
     }
 

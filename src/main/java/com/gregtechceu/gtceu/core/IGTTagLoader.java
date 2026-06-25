@@ -1,10 +1,10 @@
 package com.gregtechceu.gtceu.core;
 
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.Registry;
 
 public interface IGTTagLoader {
 
-    void gtceu$setRegistry(ResourceKey<?> registry);
+    void gtceu$setRegistry(Registry<?> registry);
 
-    ResourceKey<?> gtceu$getRegistry();
+    Registry<?> gtceu$getRegistry();
 }

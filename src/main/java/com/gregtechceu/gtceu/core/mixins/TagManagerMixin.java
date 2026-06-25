@@ -19,7 +19,7 @@ public class TagManagerMixin {
 
     @ModifyExpressionValue(method = "createLoader", at = @At(value = "NEW", target = "net/minecraft/tags/TagLoader"))
     private <T> TagLoader<Holder<T>> gtceu$saveTagLoaderRegistry(TagLoader<Holder<T>> loader, ResourceManager rm, Executor executor, RegistryAccess.RegistryEntry<T> entry) {
-        ((IGTTagLoader) loader).gtceu$setRegistry(entry.value().key());
+        ((IGTTagLoader) loader).gtceu$setRegistry(entry.value());
         return loader;
     }
 }

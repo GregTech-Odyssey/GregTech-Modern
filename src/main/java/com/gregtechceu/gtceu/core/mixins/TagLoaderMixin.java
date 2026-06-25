@@ -3,7 +3,7 @@ package com.gregtechceu.gtceu.core.mixins;
 import com.gregtechceu.gtceu.common.data.GTTags;
 import com.gregtechceu.gtceu.core.IGTTagLoader;
 
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.tags.TagLoader;
@@ -23,7 +23,7 @@ public class TagLoaderMixin implements IGTTagLoader {
 
     @Nullable
     @Unique
-    private ResourceKey<?> gtceu$storedRegistry;
+    private Registry<?> gtceu$storedRegistry;
 
     @Inject(method = "load", at = @At(value = "RETURN"))
     public void gtceu$load(ResourceManager resourceManager,
@@ -33,12 +33,12 @@ public class TagLoaderMixin implements IGTTagLoader {
     }
 
     @Override
-    public void gtceu$setRegistry(ResourceKey<?> registry) {
+    public void gtceu$setRegistry(Registry<?> registry) {
         this.gtceu$storedRegistry = registry;
     }
 
     @Override
-    public ResourceKey<?> gtceu$getRegistry() {
+    public Registry<?> gtceu$getRegistry() {
         return gtceu$storedRegistry;
     }
 }
