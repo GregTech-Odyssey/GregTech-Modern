@@ -116,8 +116,8 @@ public interface RecipeModifier {
         return null;
     };
 
-    static RecipeModifier overclocking(double durationFactor, double reductionEUt, double reductionDuration) {
-        return (holder, unit, recipe) -> overclocking(holder, unit, recipe, false, reductionEUt, reductionDuration, durationFactor);
+    static RecipeModifier overclocking(double durationFactor, double euMultiplier, double durationMultiplier) {
+        return (holder, unit, recipe) -> overclocking(holder, unit, recipe, false, euMultiplier, durationMultiplier, durationFactor);
     }
 
     static RecipeModifier accurateParallel(long parallel) {
@@ -130,10 +130,10 @@ public interface RecipeModifier {
 
     static GTRecipe multiplier(GTRecipe recipe, double euMultiplier, double durationMultiplier) {
         if (euMultiplier != 1) {
-            recipe.eut = (long) (recipe.eut * euMultiplier);
+            recipe.euMultiplier(euMultiplier);
         }
         if (durationMultiplier != 1) {
-            recipe.duration = Math.max(1, (int) (recipe.duration * durationMultiplier));
+            recipe.durationMultiplier(durationMultiplier);
         }
         return recipe;
     }
@@ -154,17 +154,21 @@ public interface RecipeModifier {
         return overclocking(holder, unit, recipe, false, 1, 1, 0.5);
     }
 
-    static @Nullable GTRecipe overclocking(final IRecipeHandlerHolder holder, RecipeHandlerUnit unit, final GTRecipe recipe, boolean generator, double reductionEUt, double reductionDuration, double durationFactor) {
+    static @Nullable GTRecipe overclocking(final IRecipeHandlerHolder holder, RecipeHandlerUnit unit, final GTRecipe recipe, boolean generator, double euMultiplier, double durationMultiplier, double durationFactor) {
         if (holder instanceof IOverclockMachine overclockMachine) {
-            return overclocking(holder, unit, recipe, holder instanceof IWorkableMultiController controller && controller.isBatchEnabled(), overclockMachine.getOverclockLimit(), (long) ((generator ? recipe.getOutputEUt() : recipe.getInputEUt()) * reductionEUt), overclockMachine.getOverclockVoltage(), generator, reductionDuration, durationFactor);
+            var recipeVoltage = generator ? recipe.getOutputEUt() : recipe.getInputEUt();
+            if (recipeVoltage != 0 && euMultiplier != 1) {
+                recipeVoltage = Math.max(1, (long) (recipeVoltage * euMultiplier));
+            }
+            return overclocking(holder, unit, recipe, holder instanceof IWorkableMultiController controller && controller.isBatchEnabled(), overclockMachine.getOverclockLimit(), recipeVoltage, overclockMachine.getOverclockVoltage(), generator, durationMultiplier, durationFactor);
         }
         return recipe;
     }
 
-    static @Nullable GTRecipe overclocking(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe, boolean batchEnabled, int limitDuration, long recipeVoltage, long maxVoltage, boolean generator, double reductionDuration, double durationFactor) {
+    static @Nullable GTRecipe overclocking(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe, boolean batchEnabled, int limitDuration, long recipeVoltage, long maxVoltage, boolean generator, double durationMultiplier, double durationFactor) {
         long maxContentMultiplier = 0;
         long contentMultiplier = 1;
-        double duration = recipe.duration * reductionDuration;
+        double duration = recipe.duration * durationMultiplier;
         if (duration > 0) {
             durationFactor = recipe.perfect ? 0.25 : durationFactor;
             final int parallelFactor = generator ? 5 : 2;
