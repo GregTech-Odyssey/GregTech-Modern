@@ -2548,7 +2548,7 @@
   "gtceu.machine.fluid_tank.max_multiblock": "Max Multiblock Size: %dx%dx%d",
   "gtceu.machine.fusion_reactor.capacity": "§7Maximum Energy Storage: §e%sM EU",
   "gtceu.machine.fusion_reactor.luv.tooltip": "Atomic Alloy Smelter",
-  "gtceu.machine.fusion_reactor.overclocking": "Overclocks quadruple EU/t and halve duration.",
+  "gtceu.machine.fusion_reactor.overclocking": "Overclocks double energy and halve duration.",
   "gtceu.machine.fusion_reactor.uv.tooltip": "A WHITE DWARF DOWN ON YOUR BASE",
   "gtceu.machine.fusion_reactor.zpm.tooltip": "A SUN DOWN ON EARTH",
   "gtceu.machine.gas_turbine.tooltip": "§7Requires flammable Gases",

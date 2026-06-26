@@ -466,7 +466,7 @@ public class MachineLang {
 
         provider.add("gtceu.machine.fusion_reactor.capacity", "§7Maximum Energy Storage: §e%sM EU");
         provider.add("gtceu.machine.fusion_reactor.overclocking",
-                "Overclocks quadruple EU/t and halve duration.");
+                "Overclocks double energy and halve duration.");
         // Miner
         provider.add("gtceu.machine.miner.tooltip", "§7Mines ores below the Miner! Starts as §f%sx%s §7area");
         provider.add("gtceu.machine.miner.per_block", "§7takes §f%ds §7per Block");

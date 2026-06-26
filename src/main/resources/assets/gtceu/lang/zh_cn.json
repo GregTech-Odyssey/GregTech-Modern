@@ -2551,7 +2551,7 @@
     "gtceu.machine.fluid_tank.max_multiblock": "多方块结构最大尺寸：%dx%dx%d",
     "gtceu.machine.fusion_reactor.capacity": "§7储能上限：§e%sM EU",
     "gtceu.machine.fusion_reactor.luv.tooltip": "原子级合金熔炼机",
-    "gtceu.machine.fusion_reactor.overclocking": "超频时消耗四倍功率，工作时间减半",
+    "gtceu.machine.fusion_reactor.overclocking": "超频时消耗两倍能量，工作时间减半",
     "gtceu.machine.fusion_reactor.uv.tooltip": "化 作 白 矮 星 砸 向 你",
     "gtceu.machine.fusion_reactor.zpm.tooltip": "一 轮 红 日 落 大 地",
     "gtceu.machine.gas_turbine.tooltip": "§7需要气体燃料",

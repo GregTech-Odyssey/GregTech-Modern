@@ -2588,7 +2588,7 @@
   "gtceu.machine.fluid_tank.max_multiblock": "最大サイズ: %dx%dx%d",
   "gtceu.machine.fusion_reactor.capacity": "§7最大蓄電量: §e%sM EU",
   "gtceu.machine.fusion_reactor.luv.tooltip": "アトミックアロイスメルター",
-  "gtceu.machine.fusion_reactor.overclocking": "オーバークロックすると消費電力は4倍、所要時間は半分になる。",
+  "gtceu.machine.fusion_reactor.overclocking": "オーバークロックするとエネルギーは2倍、所要時間は半分になる。",
   "gtceu.machine.fusion_reactor.uv.tooltip": "宇宙の秩序をおひとついかが?",
   "gtceu.machine.fusion_reactor.zpm.tooltip": "太陽はいくつあっても足りない",
   "gtceu.machine.gas_turbine.tooltip": "§7可燃性ガスが必要",
