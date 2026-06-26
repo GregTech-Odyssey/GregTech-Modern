@@ -210,7 +210,12 @@ public final class GTRecipe {
     }
 
     public void euMultiplier(double multiplier) {
-        this.eut = (long) (eut * multiplier);
+        var eu = this.eut;
+        if (eu > 0) {
+            this.eut = Math.max(1, (long) (eu * multiplier));
+        } else if (eu < 0) {
+            this.eut = (long) (eu * multiplier);
+        }
     }
 
     public void modifier(@Range(from = 1, to = ParallelLogic.MAX_PARALLEL) long multiplier, boolean tick) {

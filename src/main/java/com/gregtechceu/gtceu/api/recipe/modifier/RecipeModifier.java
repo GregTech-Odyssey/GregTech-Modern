@@ -33,8 +33,6 @@ public interface RecipeModifier {
     RecipeModifier OVERCLOCKING = RecipeModifier::overclocking;
     RecipeModifier BATCH_PROCESSING = RecipeModifier::batchProcessing;
 
-    RecipeModifier HATCH_PARALLEL = RecipeModifier::hatchParallel;
-
     RecipeModifier CRACKER_OVERCLOCK = (holder, unit, recipe) -> {
         if (holder instanceof ICoilMachine coilMachine) {
             return overclocking(holder, unit, recipe, false, Math.max(0.2, 1.0 - (coilMachine.getCoilTier() * 0.1)), 1, 0.5);
@@ -128,21 +126,6 @@ public interface RecipeModifier {
 
     static RecipeModifier multiplier(double euMultiplier, double durationMultiplier) {
         return (holder, unit, recipe) -> multiplier(recipe, euMultiplier, durationMultiplier);
-    }
-
-    static RecipeModifier coilReductionOverclock(double durationFactor) {
-        return (holder, unit, recipe) -> {
-            if (holder instanceof ICoilMachine coilMachine) {
-                var r = hatchParallel(holder, unit, recipe);
-                if (r == null) return null;
-                return overclocking(holder, unit, r, false, (1.0 - coilMachine.getCoilTier() * 0.05), (1.0 - coilMachine.getCoilTier() * 0.05), durationFactor);
-            }
-            return null;
-        };
-    }
-
-    static @Nullable GTRecipe hatchParallel(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe) {
-        return ParallelLogic.accurateParallel(holder, unit, recipe, holder instanceof IWorkableMultiController controller ? controller.getParallelHatch() != null ? controller.getParallelHatch().getCurrentParallel() : 1 : 1);
     }
 
     static GTRecipe multiplier(GTRecipe recipe, double euMultiplier, double durationMultiplier) {
