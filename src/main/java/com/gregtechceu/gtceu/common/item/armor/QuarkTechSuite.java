@@ -112,8 +112,6 @@ public class QuarkTechSuite extends ArmorLogicSuite implements IStepAssist {
                                     false));
                     item.discharge((4), this.tier, true, false, false);
                 }
-            } else {
-                player.removeEffect(MobEffects.NIGHT_VISION);
             }
             data.putBoolean("nightVision", nightVision);
 

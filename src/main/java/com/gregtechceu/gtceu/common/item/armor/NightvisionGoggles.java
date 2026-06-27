@@ -62,8 +62,6 @@ public class NightvisionGoggles extends ArmorLogicSuite {
                                     false));
                     item.discharge((energyPerUse), this.tier, true, false, false);
                 }
-            } else {
-                player.removeEffect(MobEffects.NIGHT_VISION);
             }
             data.putBoolean("nightVision", nightVision);
 
