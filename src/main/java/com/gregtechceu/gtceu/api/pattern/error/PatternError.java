@@ -55,6 +55,9 @@ public class PatternError {
                 if (count > 5) break;
             }
         }
+        if (count == 0 && predicate != null && predicate.hasAir()) {
+            builder.append(Component.translatable("material.gtceu.air"));
+        }
         return Component.translatable("gtceu.multiblock.pattern.error", builder, pos.toShortString());
     }
 }
