@@ -73,9 +73,6 @@ public class QuarkTechSuite extends ArmorLogicSuite implements IStepAssist {
             return;
 
         CompoundTag data = itemStack.getOrCreateTag();
-        byte toggleTimer = data.contains("toggleTimer") ? data.getByte("toggleTimer") : 0;
-        int nightVisionTimer = data.contains("nightVisionTimer") ? data.getInt("nightVisionTimer") :
-                ArmorUtils.NIGHTVISION_DURATION;
         byte runningTimer = data.contains("runningTimer") ? data.getByte("runningTimer") : RUNNING_TIMER;
         byte boostedJumpTimer = data.contains("boostedJumpTimer") ? data.getByte("boostedJumpTimer") : JUMPING_TIMER;
 
@@ -89,37 +86,6 @@ public class QuarkTechSuite extends ArmorLogicSuite implements IStepAssist {
             ret = supplyAir(item, player) || supplyFood(item, player);
 
             removeNegativeEffects(item, player);
-
-            boolean nightVision = data.contains("nightVision") && data.getBoolean("nightVision");
-            if (toggleTimer == 0 && KeyBind.ARMOR_MODE_SWITCH.isKeyDown(player)) {
-                nightVision = !nightVision;
-                toggleTimer = 5;
-                if (item.getCharge() < ArmorUtils.MIN_NIGHTVISION_CHARGE) {
-                    nightVision = false;
-                    player.displayClientMessage(Component.translatable("metaarmor.nms.nightvision.error"), true);
-                } else {
-                    player.displayClientMessage(Component
-                            .translatable("metaarmor.nms.nightvision." + (nightVision ? "enabled" : "disabled")), true);
-                }
-            }
-
-            if (nightVision) {
-                player.removeEffect(MobEffects.BLINDNESS);
-                if (nightVisionTimer <= ArmorUtils.NIGHT_VISION_RESET) {
-                    nightVisionTimer = ArmorUtils.NIGHTVISION_DURATION;
-                    player.addEffect(
-                            new MobEffectInstance(MobEffects.NIGHT_VISION, ArmorUtils.NIGHTVISION_DURATION, 0, true,
-                                    false));
-                    item.discharge((4), this.tier, true, false, false);
-                }
-            }
-            data.putBoolean("nightVision", nightVision);
-
-            if (nightVisionTimer > 0) nightVisionTimer--;
-            if (toggleTimer > 0) toggleTimer--;
-
-            data.putInt("nightVisionTimer", nightVisionTimer);
-            data.putByte("toggleTimer", toggleTimer);
         } else if (type == ArmorItem.Type.CHESTPLATE && !player.fireImmune()) {
             ((IFireImmuneEntity) player).gtceu$setFireImmune(true);
             if (player.isOnFire()) player.extinguishFire();
@@ -337,13 +303,7 @@ public class QuarkTechSuite extends ArmorLogicSuite implements IStepAssist {
     public void addInfo(ItemStack itemStack, List<Component> lines) {
         super.addInfo(itemStack, lines);
         if (type == ArmorItem.Type.HELMET) {
-            CompoundTag nbtData = itemStack.getOrCreateTag();
-            boolean nv = nbtData.getBoolean("nightVision");
-            if (nv) {
-                lines.add(Component.translatable("metaarmor.message.nightvision.enabled"));
-            } else {
-                lines.add(Component.translatable("metaarmor.message.nightvision.disabled"));
-            }
+            lines.add(Component.translatable("metaarmor.tooltip.gto_no_nightvision"));
             lines.add(Component.translatable("metaarmor.tooltip.potions"));
             lines.add(Component.translatable("metaarmor.tooltip.breath"));
             lines.add(Component.translatable("metaarmor.tooltip.autoeat"));

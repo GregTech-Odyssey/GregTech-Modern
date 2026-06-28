@@ -279,14 +279,8 @@ public class LangHandler {
         provider.add("item.gtceu.opv_voltage_coil.tooltip", "Legendary Coil");
         provider.add("item.gtceu.max_voltage_coil.tooltip", "Maximum Coil");
         provider.add("metaitem.liquid_fuel_jetpack.tooltip", "Uses Combustion Generator Fuels for Thrust");
-        provider.add("metaarmor.nms.nightvision.enabled", "NanoMuscle™ Suite: NightVision Enabled");
-        provider.add("metaarmor.nms.nightvision.disabled", "NanoMuscle™ Suite: NightVision Disabled");
         provider.add("metaarmor.nms.boosted_jump.enabled", "NanoMuscle™ Suite: Jump Boost Enabled");
         provider.add("metaarmor.nms.boosted_jump.disabled", "NanoMuscle™ Suite: Jump Boost Disabled");
-        provider.add("metaarmor.nms.nightvision.error", "NanoMuscle™ Suite: §cNot enough power!");
-        provider.add("metaarmor.qts.nightvision.enabled", "QuarkTech™ Suite: NightVision Enabled");
-        provider.add("metaarmor.qts.nightvision.disabled", "QuarkTech™ Suite: NightVision Disabled");
-        provider.add("metaarmor.qts.nightvision.error", "QuarkTech™ Suite: §cNot enough power!");
         provider.add("metaarmor.jetpack.flight.enable", "Jetpack: Flight Enabled");
         provider.add("metaarmor.jetpack.flight.disable", "Jetpack: Flight Disabled");
         provider.add("metaarmor.jetpack.hover.enable", "Jetpack: Hover Mode Enabled");
@@ -302,7 +296,6 @@ public class LangHandler {
         provider.add("metaarmor.qts.share.error", "QuarkTech™ Suite: §cNot enough power for charging!");
         provider.add("metaarmor.message.nightvision.enabled", "§bNightVision: §aOn");
         provider.add("metaarmor.message.nightvision.disabled", "§bNightVision: §cOff");
-        provider.add("metaarmor.message.nightvision.error", "§cNot enough power!");
         provider.add("metaarmor.tooltip.stepassist", "Provides Step-Assist");
         provider.add("metaarmor.tooltip.speed", "Increases Running Speed");
         provider.add("metaarmor.tooltip.jump", "Increases Jump Height and Distance");
@@ -312,6 +305,7 @@ public class LangHandler {
         provider.add("metaarmor.tooltip.freezing", "Prevents Freezing");
         provider.add("metaarmor.tooltip.breath", "Replenishes Underwater Breath Bar");
         provider.add("metaarmor.tooltip.autoeat", "Replenishes Food Bar by Using Food from Inventory");
+        provider.add("metaarmor.tooltip.gto_no_nightvision", "Modified by GTO: Does not provide Night Vision");
         provider.add("metaarmor.hud.status.enabled", "§aON");
         provider.add("metaarmor.hud.status.disabled", "§cOFF");
         provider.add("metaarmor.hud.energy_lvl", "Energy Level: %s");
@@ -1269,7 +1263,6 @@ public class LangHandler {
         provider.add("monitor.gui.title.config", "Config");
         provider.add("fluid.tile.lava", "Lava");
         provider.add("fluid.tile.water", "Water");
-        provider.add("gtceu.key.armor_mode_switch", "Armor Mode Switch");
         provider.add("gtceu.key.armor_hover", "Armor Hover Toggle");
         provider.add("gtceu.key.armor_emergency_hover", "Armor Emergency Hover Toggle");
         provider.add("gtceu.key.enable_jetpack", "Enable Jetpack");
