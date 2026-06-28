@@ -69,12 +69,14 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     private static final double IDLE_TEMPERATURE = 200;
     private static final double DAMAGE_TEMPERATURE = 1000;
     private static final double SAFE_TEMPERATURE = (IDLE_TEMPERATURE + DAMAGE_TEMPERATURE) / 2;
+    private static final int TEMPERATURE_DISPLAY_UPDATE_INTERVAL = 20;
     private IFluidHandler coolantHandler;
 
     @AdditionalHolder
     private final HPCAGridHandler hpcaHandler;
     @SaveToDisk
     private double temperature = IDLE_TEMPERATURE; // start at idle temperature
+    private double displayedTemperature = IDLE_TEMPERATURE;
     @SaveToDisk
     private boolean overheated;
     private final TimedProgressSupplier progressSupplier;
@@ -180,7 +182,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
             }
             // forcibly use active coolers at full rate if temperature is half-way to damaging temperature
             double temperatureChange = hpcaHandler.calculateTemperatureChange(coolantHandler, overheated || temperature >= SAFE_TEMPERATURE);
-            temperatureChange = (overheated && temperatureChange < 0) ? 8.0 : 2.0;
+            temperatureChange /= (overheated && temperatureChange < 0) ? 8.0 : 2.0;
             if (temperature + temperatureChange <= IDLE_TEMPERATURE) {
                 temperature = IDLE_TEMPERATURE;
             } else {
@@ -191,6 +193,13 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         } else {
             temperature = Math.max(IDLE_TEMPERATURE, temperature - 0.25);
             updateOverheatState();
+        }
+        updateDisplayedTemperature();
+    }
+
+    private void updateDisplayedTemperature() {
+        if (getOffsetTimer() % TEMPERATURE_DISPLAY_UPDATE_INTERVAL == 0) {
+            displayedTemperature = temperature;
         }
     }
 
@@ -207,9 +216,10 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
 
     @Override
     public Widget createUIWidget() {
+        displayedTemperature = temperature;
         WidgetGroup builder = (WidgetGroup) super.createUIWidget();
         // Create the hover grid
-        builder.addWidget(new ExtendedProgressWidget(() -> hpcaHandler.cachedCWUt > 0 ? progressSupplier.getAsDouble() : 0, 74, 57, 47, 47, GuiTextures.HPCA_COMPONENT_OUTLINE).setServerTooltipSupplier(hpcaHandler::addInfo).setFillDirection(ProgressTexture.FillDirection.LEFT_TO_RIGHT));
+        builder.addWidget(new ExtendedProgressWidget(() -> hpcaHandler.cachedCWUt > 0 ? progressSupplier.getAsDouble() : 0, 74, 57, 47, 47, GuiTextures.HPCA_COMPONENT_OUTLINE).setServerTooltipSupplier(this::addHPCAInfo).setFillDirection(ProgressTexture.FillDirection.LEFT_TO_RIGHT));
         int startX = 76;
         int startY = 59;
         // we need to know what components we have on the client
@@ -241,8 +251,20 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
                 tl.add(Component.translatable("gtceu.multiblock.hpca.energy", FormattingUtil.formatNumbers(hpcaHandler.cachedEUt), FormattingUtil.formatNumbers(hpcaHandler.maximumEUt), GTValues.VNF[GTUtil.getTierByVoltage(hpcaHandler.maximumEUt)]).withStyle(ChatFormatting.GRAY));
                 Component cwutInfo = Component.literal(hpcaHandler.cachedCWUt + " / " + hpcaHandler.maxCWUt + " CWU/t").withStyle(ChatFormatting.AQUA);
                 tl.add(Component.translatable("gtceu.multiblock.hpca.computation", cwutInfo).withStyle(ChatFormatting.GRAY));
+                Component temperatureInfo = Component.literal(FormattingUtil.formatNumbers(displayedTemperature))
+                        .withStyle(overheated ? ChatFormatting.RED :
+                                displayedTemperature >= SAFE_TEMPERATURE ? ChatFormatting.YELLOW : ChatFormatting.GREEN);
+                tl.add(Component.translatable("gtceu.multiblock.hpca.temperature", temperatureInfo).withStyle(ChatFormatting.GRAY));
             }
         }).addWorkingStatusLine();
+    }
+
+    private void addHPCAInfo(List<Component> textList) {
+        hpcaHandler.addInfo(textList);
+        if (overheated) {
+            textList.add(Component.translatable("gtceu.multiblock.hpca.info_overheated",
+                    FormattingUtil.formatNumbers(SAFE_TEMPERATURE)).withStyle(ChatFormatting.RED));
+        }
     }
 
     public static class HPCAGridHandler {
@@ -502,23 +524,22 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         }
 
         public void tryGatherClientComponents(Level world, BlockPos pos, Direction frontFacing, Direction upwardsFacing, boolean flip) {
+            components.clear();
             Direction relativeUp = RelativeDirection.UP.getRelative(frontFacing, upwardsFacing, flip);
-            if (components.isEmpty()) {
-                BlockPos testPos = pos.relative(frontFacing.getOpposite(), 3).relative(relativeUp, 3);
-                for (int i = 0; i < 3; i++) {
-                    for (int j = 0; j < 3; j++) {
-                        BlockPos tempPos = testPos.relative(frontFacing, j).relative(relativeUp.getOpposite(), i);
-                        BlockEntity be = world.getBlockEntity(tempPos);
-                        if (be instanceof IHPCAComponentHatch hatch) {
+            BlockPos testPos = pos.relative(frontFacing.getOpposite(), 3).relative(relativeUp, 3);
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    BlockPos tempPos = testPos.relative(frontFacing, j).relative(relativeUp.getOpposite(), i);
+                    BlockEntity be = world.getBlockEntity(tempPos);
+                    if (be instanceof IHPCAComponentHatch hatch) {
+                        components.add(hatch);
+                    } else if (be instanceof MetaMachineBlockEntity machineBE) {
+                        MetaMachine machine = machineBE.getMetaMachine();
+                        if (machine instanceof IHPCAComponentHatch hatch) {
                             components.add(hatch);
-                        } else if (be instanceof MetaMachineBlockEntity machineBE) {
-                            MetaMachine machine = machineBE.getMetaMachine();
-                            if (machine instanceof IHPCAComponentHatch hatch) {
-                                components.add(hatch);
-                            }
                         }
-                        // if here without a hatch, something went wrong, better to skip than add a null into the mix.
                     }
+                    // if here without a hatch, something went wrong, better to skip than add a null into the mix.
                 }
             }
         }

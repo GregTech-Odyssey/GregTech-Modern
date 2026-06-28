@@ -701,9 +701,10 @@ public class MachineLang {
         multiLang(provider, "gtceu.machine.high_performance_computation_array.tooltip",
                 "Just your average Supercomputer",
                 "Used to generate §fComputation§7 (and heat).",
-                "Requires HPCA components to generate §fCWU/t§7 (Compute Work Units).");
+                "Requires HPCA components to generate §fCWU/t§7 (Compute Work Units).",
+                "Overheating damages one computation component and stops computation until the HPCA cools down.");
         provider.add("gtceu.multiblock.hpca.description",
-                "The High Performance Computing Array (HPCA) is a multiblock structure used for creating Compute Work Units (CWU/t) for more complex Assembly Line Research Data. The structure has a flexible 3x3 area which can be filled in any way with HPCA components. Different components can provide different amounts of Computation, Cooling, as well as Energy Cost, Coolant Cost, and Heat Production. When used with a Bridge Component, the HPCA can connect to Network Switches for combining and routing Computation from multiple sources to one or more destinations.");
+                "The High Performance Computing Array (HPCA) is a multiblock structure used for creating Compute Work Units (CWU/t) for more complex Assembly Line Research Data. The structure has a flexible 3x3 area which can be filled in any way with HPCA components. Different components can provide different amounts of Computation, Cooling, as well as Energy Cost, Coolant Cost, and Heat Production. At 1,000 temperature, the HPCA overheats, damages one computation component, and stops providing CWU/t until cooled below 600. When used with a Bridge Component, the HPCA can connect to Network Switches for combining and routing Computation from multiple sources to one or more destinations.");
 
         multiLang(provider, "gtceu.machine.laser_source_hatch.tooltip",
                 "Transmitting power at distance",
@@ -944,9 +945,9 @@ public class MachineLang {
         provider.add("gtceu.multiblock.hpca.hover_for_info", "Hover for details");
         provider.add("gtceu.multiblock.hpca.error_damaged", "Damaged component in structure!");
         provider.add("gtceu.multiblock.hpca.error_temperature",
-                "Temperature above 100C, components may be damaged!");
+                "Temperature above 1,000, components may be damaged!");
         provider.add("gtceu.multiblock.hpca.warning_temperature",
-                "Temperature above 50C, components may be damaged at 100C!");
+                "Temperature above 600, active coolers will be fully utilized!");
         provider.add("gtceu.multiblock.hpca.warning_temperature_active_cool", "Fully utilizing active coolers");
         provider.add("gtceu.multiblock.hpca.warning_structure_header", "Structure Warnings:");
         provider.add("gtceu.multiblock.hpca.warning_multiple_bridges",
@@ -958,6 +959,8 @@ public class MachineLang {
         provider.add("gtceu.multiblock.hpca.info_max_cooling_available", "Cooling Available: %s");
         provider.add("gtceu.multiblock.hpca.info_max_coolant_required", "Coolant Needed: %s");
         provider.add("gtceu.multiblock.hpca.info_coolant_name", "PCB Coolant");
+        provider.add("gtceu.multiblock.hpca.info_overheated",
+                "No CWU/t is provided while overheated. Cool below %s to recover");
         provider.add("gtceu.multiblock.hpca.info_bridging_enabled", "Bridging Enabled");
         provider.add("gtceu.multiblock.hpca.info_bridging_disabled", "Bridging Disabled");
 
