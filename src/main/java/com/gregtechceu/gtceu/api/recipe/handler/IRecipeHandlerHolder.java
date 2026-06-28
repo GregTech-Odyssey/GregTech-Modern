@@ -113,7 +113,6 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         return false;
     }
 
-    @SuppressWarnings("UnusedReturnValue")
     default boolean findRecipe(GTRecipeType type, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
         if (usePrioritySearch()) return prioritySearch(type, this, canHandle);
         var customRecipeLogic = type.getCustomRecipeLogicRunners();

@@ -39,24 +39,24 @@ public class BedrockOreMinerLogic extends RecipeLogic {
     }
 
     @Override
-    public void findAndHandleRecipe() {
+    public boolean findAndHandleRecipe() {
         if (getMachine().getLevel() instanceof ServerLevel serverLevel && getMachine().getEnergyTier() >= getMachine().getTier()) {
             lastRecipe = null;
             var data = BedrockOreVeinSavedData.getOrCreate(serverLevel);
             if (veinMaterials == null) {
                 this.veinMaterials = data.getOreInChunk(getChunkX(), getChunkZ());
                 if (this.veinMaterials == null) {
-                    unsubscribe();
-                    return;
+                    return false;
                 }
             }
             var match = getOreMinerRecipe();
             if (match != null) {
                 if (machine.matchTickRecipe(match) && machine.matchRecipeOutput(match)) {
-                    setupRecipe(RecipeHandlerUnit.NO_DATA, match);
+                    return setupRecipe(RecipeHandlerUnit.NO_DATA, match);
                 }
             }
         }
+        return false;
     }
 
     @Nullable
@@ -120,28 +120,26 @@ public class BedrockOreMinerLogic extends RecipeLogic {
     }
 
     @Override
-    public void onRecipeFinish() {
+    public boolean onRecipeFinish() {
         machine.afterWorking();
         if (lastRecipe != null) {
             machine.handleRecipeOutput(lastRecipe);
         }
         depleteVein();
-        // try it again
-        var match = getOreMinerRecipe();
-        if (match != null) {
-            if (machine.matchTickRecipe(match) && machine.matchRecipeOutput(match)) {
-                setupRecipe(RecipeHandlerUnit.NO_DATA, match);
-                return;
-            }
-        }
         if (suspendAfterFinish) {
             setStatus(SUSPEND);
             suspendAfterFinish = false;
         } else {
+            // try it again
+            var match = getOreMinerRecipe();
+            if (match != null) {
+                if (machine.matchTickRecipe(match) && machine.matchRecipeOutput(match)) {
+                    return setupRecipe(RecipeHandlerUnit.NO_DATA, match);
+                }
+            }
             setStatus(IDLE);
         }
-        progress = 0;
-        duration = 0;
+        return false;
     }
 
     protected void depleteVein() {

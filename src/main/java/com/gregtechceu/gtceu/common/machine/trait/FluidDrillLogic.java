@@ -32,24 +32,24 @@ public class FluidDrillLogic extends RecipeLogic {
     }
 
     @Override
-    public void findAndHandleRecipe() {
+    public boolean findAndHandleRecipe() {
         if (getMachine().getLevel() instanceof ServerLevel serverLevel && getMachine().getEnergyTier() >= getMachine().getTier()) {
             lastRecipe = null;
             var data = BedrockFluidVeinSavedData.getOrCreate(serverLevel);
             if (veinFluid == null) {
                 this.veinFluid = data.getFluidInChunk(getChunkX(), getChunkZ());
                 if (this.veinFluid == null) {
-                    unsubscribe();
-                    return;
+                    return false;
                 }
             }
             var match = getFluidDrillRecipe();
             if (match != null) {
                 if (machine.matchTickRecipe(match) && machine.matchRecipeOutput(match)) {
-                    setupRecipe(RecipeHandlerUnit.NO_DATA, match);
+                    return setupRecipe(RecipeHandlerUnit.NO_DATA, match);
                 }
             }
         }
+        return false;
     }
 
     @Nullable
@@ -87,28 +87,26 @@ public class FluidDrillLogic extends RecipeLogic {
     }
 
     @Override
-    public void onRecipeFinish() {
+    public boolean onRecipeFinish() {
         machine.afterWorking();
         if (lastRecipe != null) {
             machine.handleRecipeOutput(lastRecipe);
         }
         depleteVein();
-        // try it again
-        var match = getFluidDrillRecipe();
-        if (match != null) {
-            if (machine.matchTickRecipe(match) && machine.matchRecipeOutput(match)) {
-                setupRecipe(RecipeHandlerUnit.NO_DATA, match);
-                return;
-            }
-        }
         if (suspendAfterFinish) {
             setStatus(SUSPEND);
             suspendAfterFinish = false;
         } else {
+            // try it again
+            var match = getFluidDrillRecipe();
+            if (match != null) {
+                if (machine.matchTickRecipe(match) && machine.matchRecipeOutput(match)) {
+                    return setupRecipe(RecipeHandlerUnit.NO_DATA, match);
+                }
+            }
             setStatus(IDLE);
         }
-        progress = 0;
-        duration = 0;
+        return false;
     }
 
     protected void depleteVein() {

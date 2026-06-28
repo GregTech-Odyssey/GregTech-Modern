@@ -101,8 +101,9 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
         return new RecipeLogic(this);
     }
 
-    default GTRecipe fullModifyRecipe(RecipeHandlerUnit unit, GTRecipe recipe) {
-        if (!GTRecipeType.available(recipe.definition.recipeType, getAvailableRecipeTypes())) return null;
+    default GTRecipe fullModifyRecipe(RecipeHandlerUnit unit, GTRecipeDefinition definition) {
+        if (!GTRecipeType.available(definition.recipeType, getAvailableRecipeTypes())) return null;
+        var recipe = definition.toRuntime();
         if (unit.color != -1) recipe.outputColor = unit.color;
         RecipeHelper.trimRecipeOutputs(recipe, getOutputLimits());
         return doModifyRecipe(unit, recipe);
