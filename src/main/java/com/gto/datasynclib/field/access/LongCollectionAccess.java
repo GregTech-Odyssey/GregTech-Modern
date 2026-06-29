@@ -6,6 +6,7 @@ import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.LongArrayData;
+import com.gto.datasynclib.datasream.data.NullData;
 import it.unimi.dsi.fastutil.longs.LongCollection;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,6 +45,7 @@ public final class LongCollectionAccess extends AbstractFieldAccess<LongCollecti
 
     @Override
     protected @NotNull Data writeData(@NotNull LongCollection instance) {
+        if (instance.isEmpty()) return NullData.INSTANCE;
         return new LongArrayData(instance.toLongArray());
     }
 

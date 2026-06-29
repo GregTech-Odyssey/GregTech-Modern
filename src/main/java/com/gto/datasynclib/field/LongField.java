@@ -6,6 +6,7 @@ import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.LongData;
+import com.gto.datasynclib.datasream.data.NullData;
 import org.jetbrains.annotations.NotNull;
 
 public final class LongField extends AbstractField<Long> {
@@ -46,6 +47,7 @@ public final class LongField extends AbstractField<Long> {
     @Override
     public @NotNull Data writeToData(@NotNull Object source) {
         var value = definition.getLong(source);
+        if (definition.hasDefaultValue() && definition.getDefaultLongValue(source) == value) return NullData.NONE;
         return LongData.valueOf(value);
     }
 

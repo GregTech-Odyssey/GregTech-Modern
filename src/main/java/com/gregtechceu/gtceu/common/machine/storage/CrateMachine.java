@@ -45,7 +45,7 @@ public class CrateMachine extends MetaMachine implements IUIMachine, IMachineLif
     @Getter
     private final int inventorySize;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     @SyncToClient(notifyUpdate = true)
     private boolean isTaped;
     @SaveToDisk

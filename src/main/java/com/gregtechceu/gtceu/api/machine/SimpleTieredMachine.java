@@ -77,18 +77,18 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     @SyncToClient(notifyUpdate = true)
     protected Direction outputFacingFluids;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputItems;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputFluids;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     protected boolean allowInputFromOutputSideItems;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     protected boolean allowInputFromOutputSideFluids;
     @Getter
     @SaveToDisk
@@ -107,7 +107,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     @Nullable
     protected ISubscription energySubs;
 
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "VOID_NONE")
     @SyncToClient
     protected VoidingMode voidingMode = VoidingMode.VOID_NONE;
 

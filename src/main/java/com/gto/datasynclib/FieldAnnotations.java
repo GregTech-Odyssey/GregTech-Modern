@@ -23,6 +23,9 @@ final class FieldAnnotations {
     private final SyncToServer syncToServer;
 
     private final String key;
+    private final boolean saveNull;
+    private final Object defaultValue;
+    private final Method defaultValueGetter;
     private final Method clientUpdateListener;
     private final Method serverUpdateListener;
     private final Hash.Strategy strategy;
@@ -41,19 +44,28 @@ final class FieldAnnotations {
     private final boolean createAccessInstance;
 
     FieldAnnotations(Class<?> clazz, Field field, SaveToDisk saveToDisk, SyncToClient syncToClient, SyncToServer syncToServer) {
+        var type = field.getType();
         this.generic = field.getAnnotation(Generic.class) != null;
         this.access = field.getAnnotation(Access.class) != null;
         this.saveToDisk = saveToDisk;
         this.syncToClient = syncToClient;
         this.syncToServer = syncToServer;
         this.key = saveToDisk == null || saveToDisk.key().isEmpty() ? field.getName() : saveToDisk.key();
+        this.saveNull = saveToDisk == null || saveToDisk.saveNull();
+        this.defaultValue = saveToDisk == null ? null : ReflectUtil.parse(type, saveToDisk.defaultValue());
         this.notifyClientUpdate = syncToClient != null && syncToClient.notifyUpdate();
         this.notifyServerUpdate = syncToServer != null && syncToServer.notifyUpdate();
         this.autoServerUpdate = syncToClient != null && syncToClient.autoUpdate();
         this.autoClientUpdate = syncToServer != null && syncToServer.autoUpdate();
         this.createAccessInstance = access && field.getAnnotation(Access.class).createInstance();
 
-        var type = field.getType();
+        if (saveToDisk != null && !saveToDisk.defaultValueGetter().isEmpty()) {
+            var method = ReflectUtil.getAccessibleMethod(clazz, saveToDisk.defaultValueGetter());
+            method.setAccessible(true);
+            this.defaultValueGetter = method;
+        } else {
+            this.defaultValueGetter = null;
+        }
 
         if (syncToClient != null && !syncToClient.listener().isEmpty()) {
             var method = ReflectUtil.getAccessibleMethod(clazz, syncToClient.listener(), type, type);

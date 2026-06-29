@@ -6,7 +6,6 @@ import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.IFieldDataHolder;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.data.MapData;
 import org.jetbrains.annotations.NotNull;
 
 public final class FieldDataHolderAccess extends AbstractFieldAccess<IFieldDataHolder> {
@@ -65,6 +64,6 @@ public final class FieldDataHolderAccess extends AbstractFieldAccess<IFieldDataH
 
     @Override
     protected void readData(@NotNull IFieldDataHolder instance, @NotNull Data data, int dataVersion) {
-        instance.getFieldDataManager().readFromData((MapData) data, dataVersion);
+        instance.getFieldDataManager().readFromData(data, dataVersion);
     }
 }

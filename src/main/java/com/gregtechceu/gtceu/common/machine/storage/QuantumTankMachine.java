@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.machine.storage;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
+import com.gregtechceu.gtceu.api.gui.widget.LongInputWidget;
 import com.gregtechceu.gtceu.api.gui.widget.PhantomFluidWidget;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
@@ -45,6 +46,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 
+import com.gto.datasynclib.annotations.AdditionalHolder;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.Strategy;
 import com.gto.datasynclib.annotations.SyncToClient;
@@ -52,6 +54,7 @@ import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
@@ -72,16 +75,23 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     @SyncToClient(notifyUpdate = true)
     protected Direction outputFacingFluids;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputFluids;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     protected boolean allowInputFromOutputSideFluids;
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     private boolean isVoiding;
+
     @Getter
-    private final long maxAmount;
+    private final long max;
+
+    @SaveToDisk(defaultValueGetter = "getMax")
+    @Getter
+    @Setter
+    private long maxAmount;
+    @AdditionalHolder
     protected final FluidCache cache;
     @SyncToClient
     private final CustomFluidTank lockedFluid;
@@ -99,6 +109,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         super(holder, tier);
         this.outputFacingFluids = getFrontFacing().getOpposite();
         this.maxAmount = maxAmount;
+        this.max = maxAmount;
         this.cache = createCacheFluidHandler(args);
         this.lockedFluid = new CustomFluidTank(1000);
     }
@@ -117,6 +128,8 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
 
     protected void onFluidChanged() {
         if (!isRemote()) {
+            cache.stack = null;
+            onChanged();
             updateAutoOutputSubscription();
             requestSync();
         }
@@ -312,15 +325,16 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     // *********** GUI ***********//
     //////////////////////////////////////
     public Widget createUIWidget() {
-        var group = new WidgetGroup(0, 0, 90, 63);
-        group.addWidget(new ImageWidget(4, 4, 82, 55, GuiTextures.DISPLAY))
+        var group = new WidgetGroup(0, 0, 109, 87);
+        group.addWidget(new ImageWidget(4, 4, 101, 55, GuiTextures.DISPLAY))
                 .addWidget(new LabelWidget(8, 8, "gtceu.gui.fluid_amount"))
                 .addWidget(new LabelWidget(8, 18, () -> FormattingUtil.formatBuckets(storedAmount)).setTextColor(-1).setDropShadow(false))
-                .addWidget(new TankWidget(cache, 0, 68, 23, true, true).setShowAmount(false).setBackground(GuiTextures.FLUID_SLOT))
-                .addWidget(new PhantomFluidWidget(lockedFluid, 0, 68, 41, 18, 18, this::getLockedFluid, this::setLocked).setShowAmount(false).setBackground(ColorPattern.T_GRAY.rectTexture()))
+                .addWidget(new TankWidget(cache, 0, 87, 23, true, true).setShowAmount(false).setBackground(GuiTextures.FLUID_SLOT))
+                .addWidget(new PhantomFluidWidget(lockedFluid, 0, 87, 41, 18, 18, this::getLockedFluid, this::setLocked).setShowAmount(false).setBackground(ColorPattern.T_GRAY.rectTexture()))
                 .addWidget(new ToggleButtonWidget(4, 41, 18, 18, GuiTextures.BUTTON_FLUID_OUTPUT, this::isAutoOutputFluids, this::setAutoOutputFluids).setShouldUseBaseBackground().setTooltipText("gtceu.gui.fluid_auto_output.tooltip"))
                 .addWidget(new ToggleButtonWidget(22, 41, 18, 18, GuiTextures.BUTTON_LOCK, this::isLocked, this::setLocked).setShouldUseBaseBackground().setTooltipText("gtceu.gui.fluid_lock.tooltip"))
                 .addWidget(new ToggleButtonWidget(40, 41, 18, 18, GuiTextures.BUTTON_VOID, () -> isVoiding, b -> isVoiding = b).setShouldUseBaseBackground().setTooltipText("gtceu.gui.fluid_voiding_partial.tooltip"));
+        group.addWidget(new LongInputWidget(4, 62, 101, 20, this::getMaxAmount, this::setMaxAmount).setMax(max).setMin(1L).setHoverTooltips(Component.translatable("ldlib.gui.editor.name.maxCount")));
         group.setBackground(GuiTextures.BACKGROUND_INVERSE);
         return group;
     }
@@ -348,25 +362,46 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
 
     protected class FluidCache extends MachineTrait implements ICustomFluidStackHandler, ICapabilityTrait {
 
+        @SuppressWarnings("unused")
+        private static final Hash.Strategy<FluidStack> FLUID_STRATEGY = FluidStackHashStrategy.FLUID;
+
         private final Predicate<FluidStack> filter = f -> !isLocked() || getLockedFluid().isFluidEqual(f);
+
+        @Nullable
+        @SyncToClient
+        @Strategy("FLUID_STRATEGY")
+        private FluidStack stack = null;
 
         public FluidCache(MetaMachine holder) {
             super(holder);
         }
 
         @Override
+        public void setFluidInTank(int tank, FluidStack stack) {
+            stored = ICustomFluidStackHandler.copy(stack, 1);
+            storedAmount = stack.getAmount();
+            onFluidChanged();
+        }
+
+        @Override
         public FluidStack getFluidInTank(int tank) {
-            return new FluidStack(stored, GTMath.saturatedCast(storedAmount));
+            var stack = this.stack;
+            if (stack == null) {
+                this.stack = stack = storedAmount > 0 ? new FluidStack(stored, GTMath.saturatedCast(storedAmount)) : FluidStack.EMPTY;
+            }
+            return stack;
         }
 
         @Override
         public int fill(FluidStack resource, FluidAction action) {
             long free = isVoiding ? Long.MAX_VALUE : maxAmount - storedAmount;
+            if (free < 1) return 0;
             long canFill = 0;
             if ((stored.isEmpty() || stored.isFluidEqual(resource)) && filter.test(resource)) {
                 canFill = Math.min(resource.getAmount(), free);
             }
-            if (action.execute() && canFill > 0) {
+            if (canFill < 1) return 0;
+            if (action.execute()) {
                 if (stored.isEmpty()) stored = new FluidStack(resource, 1000);
                 storedAmount = Math.min(maxAmount, storedAmount + canFill);
                 onFluidChanged();
@@ -378,19 +413,29 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         public FluidStack drain(int maxDrain, FluidAction action) {
             if (stored.isEmpty()) return FluidStack.EMPTY;
             long toDrain = Math.min(storedAmount, maxDrain);
+            if (toDrain < 1) return FluidStack.EMPTY;
             var copy = new FluidStack(stored, (int) toDrain);
-            if (action.execute() && toDrain > 0) {
+            if (action.execute()) {
                 storedAmount -= toDrain;
                 if (storedAmount == 0) stored = FluidStack.EMPTY;
                 onFluidChanged();
             }
-            return copy.isEmpty() ? FluidStack.EMPTY : copy;
+            return copy;
         }
 
         @Override
         public FluidStack drain(FluidStack resource, FluidAction action) {
+            if (stored.isEmpty()) return FluidStack.EMPTY;
+            long toDrain = Math.min(storedAmount, resource.getAmount());
+            if (toDrain < 1) return FluidStack.EMPTY;
             if (!resource.isFluidEqual(stored)) return FluidStack.EMPTY;
-            return drain(resource.getAmount(), action);
+            var copy = new FluidStack(stored, (int) toDrain);
+            if (action.execute()) {
+                storedAmount -= toDrain;
+                if (storedAmount == 0) stored = FluidStack.EMPTY;
+                onFluidChanged();
+            }
+            return copy;
         }
 
         @Override
@@ -417,9 +462,6 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
                 holder.blockEntityDirectionCache.getAdjacentFluidHandler(level, pos, facing).ifPresent(adj -> GTTransferUtils.transferFluidsFiltered(this, adj, filter));
             }
         }
-
-        @Override
-        public void setFluidInTank(int tank, FluidStack stack) {}
     }
 
     public void setAllowInputFromOutputSideFluids(final boolean allowInputFromOutputSideFluids) {

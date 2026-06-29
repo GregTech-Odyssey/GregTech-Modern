@@ -4,7 +4,18 @@ import io.netty.buffer.ByteBuf;
 
 public enum NullData implements ImmutableData {
 
-    INSTANCE;
+    INSTANCE,
+
+    /**
+     * Do not save, runtime check
+     * Generally used to prevent it from being saved
+     */
+    NONE;
+
+    @Override
+    public byte[] writeToBytes() {
+        return NULL_BYTES;
+    }
 
     @Override
     public boolean isNull() {

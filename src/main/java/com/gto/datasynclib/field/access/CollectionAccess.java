@@ -7,6 +7,7 @@ import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ListData;
+import com.gto.datasynclib.datasream.data.NullData;
 import com.gto.datasynclib.util.DataFixer;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,6 +64,7 @@ public final class CollectionAccess<E> extends AbstractFieldAccess<Collection> {
 
     @Override
     protected @NotNull Data writeData(@NotNull Collection instance) {
+        if (instance.isEmpty()) return NullData.INSTANCE;
         var list = new ListData();
         instance.forEach(element -> {
             if (element == null) {

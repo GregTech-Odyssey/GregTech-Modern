@@ -105,7 +105,7 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     @SaveToDisk(key = "cover")
     public final MachineCoverContainer coverContainer;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "-1")
     @SyncToClient(notifyUpdate = true)
     private int paintingColor = -1;
     @Getter

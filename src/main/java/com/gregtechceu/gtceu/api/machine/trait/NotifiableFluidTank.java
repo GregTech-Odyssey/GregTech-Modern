@@ -46,7 +46,7 @@ public class NotifiableFluidTank extends NotifiableContentHandler implements ICa
     @SaveToDisk
     @SyncToClient
     protected final CustomFluidTank lockedFluid = new CustomFluidTank(FluidType.BUCKET_VOLUME);
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     public boolean isVoiding;
     @Getter
     protected Predicate<FluidStack> filter = GTUtil.FAVORABLE;

@@ -4,11 +4,14 @@ import net.minecraft.network.FriendlyByteBuf;
 
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.MapData;
+import com.gto.datasynclib.datasream.data.NullData;
 import com.gto.datasynclib.util.ReflectUtil;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
 
 public final class FieldDataManager {
 
@@ -234,14 +237,16 @@ public final class FieldDataManager {
     }
 
     @NotNull
-    public MapData writeFieldsToData(String... fields) {
+    public Data writeFieldsToData(String... fields) {
         MapData data = new MapData();
         for (var field : fields) {
             var d = storage.allDefinition.get(field);
             if (d != null) {
                 var f = allField.get(d);
                 if (f != null) {
-                    data.put(d.key, f.writeToData(d.source.apply(holder)));
+                    var result = f.writeToData(d.source.apply(holder));
+                    if (result == NullData.NONE) continue;
+                    if (result != NullData.INSTANCE || d.saveNull) data.put(d.key, result);
                 } else {
                     throw ReflectUtil.fieldNotFoundException(field);
                 }
@@ -249,24 +254,26 @@ public final class FieldDataManager {
                 throw ReflectUtil.fieldNotFoundException(field);
             }
         }
-        return data;
+        return data.isEmpty() ? NullData.INSTANCE : data;
     }
 
-    public void readFieldsFromData(@NotNull MapData data, int dataVersion, String... fields) {
-        for (var field : fields) {
-            var d = storage.allDefinition.get(field);
-            if (d != null) {
-                var tag = data.get(d.key);
-                if (tag != null) {
-                    var f = allField.get(d);
-                    if (f != null) {
-                        f.readFromData(d.source.apply(holder), tag, dataVersion);
-                    } else {
-                        throw ReflectUtil.fieldNotFoundException(field);
+    public void readFieldsFromData(@NotNull Data data, int dataVersion, String... fields) {
+        if (data instanceof MapData(Map<String, Data> map)) {
+            for (var field : fields) {
+                var d = storage.allDefinition.get(field);
+                if (d != null) {
+                    var tag = map.get(d.key);
+                    if (tag != null) {
+                        var f = allField.get(d);
+                        if (f != null) {
+                            f.readFromData(d.source.apply(holder), tag, dataVersion);
+                        } else {
+                            throw ReflectUtil.fieldNotFoundException(field);
+                        }
                     }
+                } else {
+                    throw ReflectUtil.fieldNotFoundException(field);
                 }
-            } else {
-                throw ReflectUtil.fieldNotFoundException(field);
             }
         }
     }
@@ -277,14 +284,16 @@ public final class FieldDataManager {
      * @return MapData containing all saveable field data
      */
     @NotNull
-    public MapData writeToData() {
+    public Data writeToData() {
         MapData data = new MapData();
         holder.writeCustomSaveData(data);
         for (var field : saveFields) {
             var d = field.getDefinition();
-            data.put(d.key, field.writeToData(d.source.apply(holder)));
+            var result = field.writeToData(d.source.apply(holder));
+            if (result == NullData.NONE) continue;
+            if (result != NullData.INSTANCE || d.saveNull) data.put(d.key, result);
         }
-        return data;
+        return data.isEmpty() ? NullData.INSTANCE : data;
     }
 
     /**
@@ -292,12 +301,15 @@ public final class FieldDataManager {
      *
      * @param data the MapData to read from
      */
-    public void readFromData(@NotNull MapData data, int dataVersion) {
-        holder.readCustomSaveData(data, dataVersion);
-        for (var field : saveFields) {
-            var d = field.getDefinition();
-            var tag = data.get(d.key);
-            if (tag != null) field.readFromData(d.source.apply(holder), tag, dataVersion);
+    public void readFromData(@NotNull Data data, int dataVersion) {
+        if (data instanceof MapData mapData) {
+            holder.readCustomSaveData(mapData, dataVersion);
+            var map = mapData.value();
+            for (var field : saveFields) {
+                var d = field.getDefinition();
+                var tag = map.get(d.key);
+                if (tag != null) field.readFromData(d.source.apply(holder), tag, dataVersion);
+            }
         }
     }
 }

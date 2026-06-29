@@ -120,7 +120,7 @@ public abstract class AbstractFieldAccess<T> implements DataField<T> {
                 return list;
             }
         } else {
-            if (value == null) return NullData.INSTANCE;
+            if (value == null) return NullData.NONE;
             return writeData(value);
         }
     }

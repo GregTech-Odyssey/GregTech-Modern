@@ -21,4 +21,10 @@ public @interface SaveToDisk {
      * @return custom storage key name
      */
     String key() default "";
+
+    boolean saveNull() default false;
+
+    String defaultValue() default "";
+
+    String defaultValueGetter() default "";
 }

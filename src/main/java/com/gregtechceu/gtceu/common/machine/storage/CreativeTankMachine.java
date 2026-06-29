@@ -32,10 +32,10 @@ import org.jetbrains.annotations.NotNull;
 @Getter
 public class CreativeTankMachine extends QuantumTankMachine {
 
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "1000")
     @DropSaved
     private int mBPerCycle = 1000;
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "1")
     @DropSaved
     private int ticksPerCycle = 1;
 

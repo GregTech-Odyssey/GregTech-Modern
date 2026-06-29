@@ -67,6 +67,7 @@ public abstract class ObjField<T> extends AbstractField<T> {
         if (value == null) {
             return NullData.INSTANCE;
         } else {
+            if (definition.hasDefaultValue() && definition.strategy.equals(value, definition.getDefaultValue(source))) return NullData.NONE;
             return write(source, value);
         }
     }

@@ -6,6 +6,7 @@ import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.FloatData;
+import com.gto.datasynclib.datasream.data.NullData;
 import org.jetbrains.annotations.NotNull;
 
 public final class FloatField extends AbstractField<Float> {
@@ -46,6 +47,7 @@ public final class FloatField extends AbstractField<Float> {
     @Override
     public @NotNull Data writeToData(@NotNull Object source) {
         var value = definition.getFloat(source);
+        if (definition.hasDefaultValue() && definition.getDefaultFloatValue(source) == value) return NullData.NONE;
         return FloatData.valueOf(value);
     }
 

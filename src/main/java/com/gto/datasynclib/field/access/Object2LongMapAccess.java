@@ -8,6 +8,7 @@ import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ListData;
 import com.gto.datasynclib.datasream.data.LongData;
+import com.gto.datasynclib.datasream.data.NullData;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMaps;
 import org.jetbrains.annotations.NotNull;
@@ -57,6 +58,7 @@ public class Object2LongMapAccess<K> extends AbstractFieldAccess<Object2LongMap>
 
     @Override
     protected @NotNull Data writeData(@NotNull Object2LongMap instance) {
+        if (instance.isEmpty()) return NullData.INSTANCE;
         var list = new ListData();
         Object2LongMaps.fastForEach(instance, e -> {
             list.add(keyCodec.dataWriter.encode((K) e.getKey()));

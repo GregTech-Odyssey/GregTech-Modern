@@ -12,6 +12,7 @@ import com.gto.datasynclib.AbstractDataSerializable;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ListData;
+import com.gto.datasynclib.datasream.data.NullData;
 import com.gto.datasynclib.util.DataCodecs;
 import it.unimi.dsi.fastutil.objects.Reference2LongMap;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
@@ -131,7 +132,7 @@ public class KeyStorage extends AbstractDataSerializable implements Iterable<Ref
         } finally {
             lock.unlock();
         }
-        return list;
+        return list.isEmpty() ? NullData.NONE : list;
     }
 
     @Override

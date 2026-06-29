@@ -6,6 +6,7 @@ import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.ByteData;
 import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.datasream.data.NullData;
 import org.jetbrains.annotations.NotNull;
 
 public final class BooleanField extends AbstractField<Boolean> {
@@ -46,6 +47,7 @@ public final class BooleanField extends AbstractField<Boolean> {
     @Override
     public @NotNull Data writeToData(@NotNull Object source) {
         var value = definition.getBoolean(source);
+        if (definition.hasDefaultValue() && definition.getDefaultBooleanValue(source) == value) return NullData.NONE;
         return ByteData.valueOf(value);
     }
 

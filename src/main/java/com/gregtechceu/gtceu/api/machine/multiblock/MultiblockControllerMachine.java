@@ -129,7 +129,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         if (getLevel() instanceof ServerLevel serverLevel) {
             getMultiblockState().removeShared();
             MultiblockWorldData.getOrCreate(serverLevel).removeAsyncLogic(this);
-            MultiblockWorldData.getOrCreate(serverLevel).removeMapping(getMultiblockState());
+            TaskHandler.enqueueTask(serverLevel, () -> MultiblockWorldData.getOrCreate(serverLevel).removeMapping(getMultiblockState()));
         } else {
             ILevel.getHighlightCache(getLevel()).remove(getPos().asLong());
             onStructureInvalidClient();

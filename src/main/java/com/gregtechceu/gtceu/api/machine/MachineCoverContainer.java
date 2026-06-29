@@ -38,37 +38,7 @@ public final class MachineCoverContainer implements ICoverable {
     @SyncToClient(listener = "onCoverSet")
     @Access(createInstance = true)
     @Codec(writeToData = "serializeCoverData", readFromData = "deserializeCoverData", writeToBuffer = "serializeCoverBuffer", readFromBuffer = "deserializeCoverBuffer")
-    private CoverBehavior up;
-
-    @SaveToDisk
-    @SyncToClient(listener = "onCoverSet")
-    @Access(createInstance = true)
-    @Codec(writeToData = "serializeCoverData", readFromData = "deserializeCoverData", writeToBuffer = "serializeCoverBuffer", readFromBuffer = "deserializeCoverBuffer")
-    private CoverBehavior down;
-
-    @SaveToDisk
-    @SyncToClient(listener = "onCoverSet")
-    @Access(createInstance = true)
-    @Codec(writeToData = "serializeCoverData", readFromData = "deserializeCoverData", writeToBuffer = "serializeCoverBuffer", readFromBuffer = "deserializeCoverBuffer")
-    private CoverBehavior north;
-
-    @SaveToDisk
-    @SyncToClient(listener = "onCoverSet")
-    @Access(createInstance = true)
-    @Codec(writeToData = "serializeCoverData", readFromData = "deserializeCoverData", writeToBuffer = "serializeCoverBuffer", readFromBuffer = "deserializeCoverBuffer")
-    private CoverBehavior south;
-
-    @SaveToDisk
-    @SyncToClient(listener = "onCoverSet")
-    @Access(createInstance = true)
-    @Codec(writeToData = "serializeCoverData", readFromData = "deserializeCoverData", writeToBuffer = "serializeCoverBuffer", readFromBuffer = "deserializeCoverBuffer")
-    private CoverBehavior west;
-
-    @SaveToDisk
-    @SyncToClient(listener = "onCoverSet")
-    @Access(createInstance = true)
-    @Codec(writeToData = "serializeCoverData", readFromData = "deserializeCoverData", writeToBuffer = "serializeCoverBuffer", readFromBuffer = "deserializeCoverBuffer")
-    private CoverBehavior east;
+    private CoverBehavior up, down, north, south, west, east;
 
     public MachineCoverContainer(MetaMachine machine) {
         this.machine = machine;

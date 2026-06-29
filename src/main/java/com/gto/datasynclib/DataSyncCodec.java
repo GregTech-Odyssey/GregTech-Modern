@@ -35,10 +35,21 @@ public final class DataSyncCodec<T> {
     private static final MapCache<Class<?>, DataSyncCodec<?>> ENUM_CACHE = new ConcurrentHashMapCache<>(t -> {
         if (t.isEnum()) {
             var constants = t.getEnumConstants();
+            var len = constants.length;
+            var isFixed = EnumUtil.isFixed(t);
             return new DataSyncCodec<>((buf, obj) -> buf.writeVarInt(obj.ordinal()),
                     buf -> (Enum<?>) constants[buf.readVarInt()],
-                    obj -> StringData.valueOf(EnumMaps.getName(obj)),
-                    (data, dataVersion) -> EnumMaps.getEnum((Class) t, data.getString()));
+                    obj -> {
+                        if (isFixed) return IntData.valueOf(obj.ordinal());
+                        return StringData.valueOf(EnumUtil.getSerializedName(obj));
+                    },
+                    (data, dataVersion) -> {
+                        if (data instanceof IntData(int value)) {
+                            if (value < len) return (Enum<?>) constants[value];
+                            return null;
+                        }
+                        return EnumUtil.getSerializedEnum((Class) t, data.getString());
+                    });
         }
         throw new RuntimeException("No codec registered for type " + t);
     });
@@ -68,6 +79,7 @@ public final class DataSyncCodec<T> {
                         return array;
                     },
                     obj -> {
+                        if (obj.length == 0) return NullData.INSTANCE;
                         var list = new ListData();
                         for (Object element : obj) {
                             if (element != null) {

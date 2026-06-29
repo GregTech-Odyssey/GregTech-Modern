@@ -35,17 +35,17 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class CreativeEnergyContainerMachine extends TieredMachine implements ILaserContainer, IUIMachine {
 
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "0")
     private long voltage = 0;
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "1")
     private int amps = 1;
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "0")
     private int setTier = 0;
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     private boolean active = false;
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "true")
     private boolean source = true;
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "0")
     private long energyIOPerSec = 0;
     private long lastAverageEnergyIOPerTick = 0;
     private boolean doExplosion = false;

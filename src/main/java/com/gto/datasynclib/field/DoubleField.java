@@ -6,6 +6,7 @@ import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.DoubleData;
+import com.gto.datasynclib.datasream.data.NullData;
 import org.jetbrains.annotations.NotNull;
 
 public final class DoubleField extends AbstractField<Double> {
@@ -46,6 +47,7 @@ public final class DoubleField extends AbstractField<Double> {
     @Override
     public @NotNull Data writeToData(@NotNull Object source) {
         var value = definition.getDouble(source);
+        if (definition.hasDefaultValue() && definition.getDefaultDoubleValue(source) == value) return NullData.NONE;
         return DoubleData.valueOf(value);
     }
 

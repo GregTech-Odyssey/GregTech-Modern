@@ -7,6 +7,7 @@ import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ListData;
+import com.gto.datasynclib.datasream.data.NullData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -59,6 +60,7 @@ public final class MapAccess<K, V> extends AbstractFieldAccess<Map> {
 
     @Override
     protected @NotNull Data writeData(@NotNull Map instance) {
+        if (instance.isEmpty()) return NullData.INSTANCE;
         var list = new ListData();
         instance.forEach((k, v) -> {
             list.add(keyCodec.dataWriter.encode((K) k));

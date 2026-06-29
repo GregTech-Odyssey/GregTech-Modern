@@ -11,6 +11,7 @@ import com.gto.datasynclib.field.access.*;
 import com.gto.datasynclib.field.access.array.*;
 import com.gto.datasynclib.field.object.CustomObjCodecField;
 import com.gto.datasynclib.field.object.ObjCodecField;
+import com.gto.datasynclib.util.EnumUtil;
 import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.longs.LongCollection;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -23,6 +24,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import static com.gto.datasynclib.FieldDefinitionStorage.*;
+import static com.gto.datasynclib.FieldDefinitionStorage.registerCustomFactory;
 
 public final class DataSyncLib {
 
@@ -72,5 +74,7 @@ public final class DataSyncLib {
 
         registerStrategy(ItemStack.class, ItemStackHashStrategy.ALL);
         registerStrategy(FluidStack.class, FluidStackHashStrategy.ALL);
+
+        EnumUtil.addFixedEnum(LogicalSide.class);
     }
 }

@@ -35,7 +35,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait impl
     @Getter
     protected IO handlerIO;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "0")
     public long energyStored;
     @Getter
     public long energyCapacity;

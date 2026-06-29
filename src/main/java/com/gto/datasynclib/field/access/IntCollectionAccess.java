@@ -6,6 +6,7 @@ import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.IntArrayData;
+import com.gto.datasynclib.datasream.data.NullData;
 import it.unimi.dsi.fastutil.ints.IntCollection;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,6 +45,7 @@ public final class IntCollectionAccess extends AbstractFieldAccess<IntCollection
 
     @Override
     protected @NotNull Data writeData(@NotNull IntCollection instance) {
+        if (instance.isEmpty()) return NullData.INSTANCE;
         return new IntArrayData(instance.toIntArray());
     }
 

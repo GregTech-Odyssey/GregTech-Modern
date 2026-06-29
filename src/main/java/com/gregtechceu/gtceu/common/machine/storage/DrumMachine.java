@@ -48,7 +48,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropSaveMachine, IInteractedMachine {
 
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputFluids;
     @Getter
@@ -61,7 +61,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     protected ISubscription exportFluidSubs;
     // rename "Fluid" for Item capability
     @Getter
-    @SaveToDisk(key = "Fluid")
+    @SaveToDisk(key = "Fluid", defaultValueGetter = "getDefaultStored")
     @SyncToClient
     @DropSaved
     protected FluidStack stored = FluidStack.EMPTY;
@@ -73,6 +73,10 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
         this.material = material;
         this.maxStoredFluids = maxStoredFluids;
         this.cache = createCacheFluidHandler(args);
+    }
+
+    private FluidStack getDefaultStored() {
+        return FluidStack.EMPTY;
     }
 
     //////////////////////////////////////

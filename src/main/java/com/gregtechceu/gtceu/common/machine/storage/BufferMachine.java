@@ -54,18 +54,18 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
     @Nullable
     protected Direction outputFacingFluids;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputItems;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     @SyncToClient(notifyUpdate = true)
     protected boolean autoOutputFluids;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     protected boolean allowInputFromOutputSideItems;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     protected boolean allowInputFromOutputSideFluids;
     @Getter
     @SaveToDisk

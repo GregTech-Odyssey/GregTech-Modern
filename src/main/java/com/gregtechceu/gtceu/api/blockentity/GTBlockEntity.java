@@ -24,7 +24,6 @@ import net.minecraft.world.level.chunk.LevelChunk;
 
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.data.MapData;
 import com.gto.datasynclib.util.DataCodecs;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -226,9 +225,9 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
             loadCustomPersistedData(tag);
         }
         if (tag.get("field_save") instanceof ByteArrayTag byteArrayTag) {
-            getFieldDataManager().readFromData((MapData) Data.readData(byteArrayTag.getAsByteArray()), tag.getInt("field_data_dataVersion"));
+            getFieldDataManager().readFromData(Data.readData(byteArrayTag.getAsByteArray()), tag.getInt("field_data_dataVersion"));
         } else {
-            getFieldDataManager().readFromData((MapData) DataCodecs.COMPOUND_TAG_CODEC.encode(tag), -1);
+            getFieldDataManager().readFromData(DataCodecs.COMPOUND_TAG_CODEC.encode(tag), -1);
         }
     }
 

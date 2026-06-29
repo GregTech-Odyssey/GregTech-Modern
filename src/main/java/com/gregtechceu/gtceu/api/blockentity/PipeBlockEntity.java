@@ -41,7 +41,6 @@ import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.datafixers.util.Pair;
 import lombok.Getter;
 import lombok.Setter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
@@ -67,6 +66,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     private int blockedConnections = Node.ALL_CLOSED;
+    @Nullable
     @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     public Direction blockedSide;
@@ -79,8 +79,8 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
 
     @SyncToClient(notifyUpdate = true)
     @SaveToDisk
-    @NotNull
-    private Material frameMaterial = GTMaterials.NULL;
+    @Nullable
+    private Material frameMaterial;
 
     protected TickableSubscription transferSubs;
 
@@ -109,6 +109,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     public void clearRemoved() {
         super.clearRemoved();
         coverContainer.onLoad();
+        if (frameMaterial == GTMaterials.NULL) frameMaterial = null;
     }
 
     public int getNumConnections() {
@@ -122,12 +123,9 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     }
 
     public Material getFrameMaterial() {
-        // backwards compat
-        // noinspection ConstantValue
-        if (frameMaterial == null) {
-            frameMaterial = GTMaterials.NULL;
-        }
-        return frameMaterial;
+        var material = this.frameMaterial;
+        if (material == null) return GTMaterials.NULL;
+        return material;
     }
 
     public int getBlockedConnections() {
@@ -329,10 +327,10 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
                     return Pair.of(GTToolType.CROWBAR, InteractionResult.sidedSuccess(playerIn.level().isClientSide));
                 }
             } else {
-                if (!frameMaterial.isNull()) {
-                    Block.popResource(getLevel(), worldPosition, GTMaterialBlocks.MATERIAL_BLOCKS.get(TagPrefix.frameGt, frameMaterial).asStack());
-                    frameMaterial = GTMaterials.NULL;
-                    sync = true;
+                var material = getFrameMaterial();
+                if (!material.isNull()) {
+                    Block.popResource(getLevel(), worldPosition, GTMaterialBlocks.MATERIAL_BLOCKS.get(TagPrefix.frameGt, material).asStack());
+                    setFrameMaterial(null);
                     return Pair.of(GTToolType.CROWBAR, InteractionResult.sidedSuccess(playerIn.level().isClientSide));
                 }
             }
@@ -365,10 +363,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
         return (connections & (1 << side.ordinal())) > 0;
     }
 
-    public void setFrameMaterial(final Material frameMaterial) {
-        if (frameMaterial == null) {
-            throw new NullPointerException("frameMaterial is marked non-null but is null");
-        }
+    public void setFrameMaterial(@Nullable final Material frameMaterial) {
         this.frameMaterial = frameMaterial;
         sync = true;
     }

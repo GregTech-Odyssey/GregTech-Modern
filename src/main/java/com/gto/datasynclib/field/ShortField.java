@@ -5,6 +5,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.datasream.data.NullData;
 import com.gto.datasynclib.datasream.data.ShortData;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,6 +47,7 @@ public final class ShortField extends AbstractField<Short> {
     @Override
     public @NotNull Data writeToData(@NotNull Object source) {
         var value = definition.getShort(source);
+        if (definition.hasDefaultValue() & definition.getDefaultShortValue(source) == value) return NullData.NONE;
         return ShortData.valueOf(value);
     }
 

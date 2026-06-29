@@ -67,6 +67,7 @@ import net.minecraftforge.registries.RegisterEvent;
 import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.DataSyncLib;
 import com.gto.datasynclib.FieldDefinitionStorage;
+import com.gto.datasynclib.util.EnumUtil;
 
 public class CommonProxy {
 
@@ -213,5 +214,6 @@ public class CommonProxy {
         DataSyncCodec.register(VirtualRedstone.class, VirtualRedstone.DATA_CODEC);
         FieldDefinitionStorage.registerAccessInterfaceFactory(ITagSerializable.class, k -> TagSerializableAccess::new, 1000);
         FieldDefinitionStorage.registerAccessCustomFactory(c -> c.isArray() && !c.componentType().isPrimitive() && ITagSerializable.class.isAssignableFrom(c.componentType()), c -> TagSerializableArrayAccess::new, 2000);
+        EnumUtil.addFixedEnum(t -> true);
     }
 }

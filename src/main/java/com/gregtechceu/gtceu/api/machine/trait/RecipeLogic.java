@@ -44,10 +44,10 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     public final IRecipeLogicMachine machine;
 
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "0")
     @SyncToClient(listener = "onStatusSynced", notifyUpdate = true)
     protected int status = IDLE;
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     @SyncToClient(notifyUpdate = true)
     protected boolean isActive;
 
@@ -71,17 +71,17 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     protected RecipeHandlerUnit lastOriginUnit;
     @Getter
     @Setter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "0")
     public int progress;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "0")
     protected int duration;
 
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "0")
     protected long totalContinuousRunningTime;
     @Setter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     protected boolean suspendAfterFinish = false;
 
     public TickableSubscription subscription;

@@ -41,8 +41,12 @@ public final class DataFieldDefinition<T> {
     public final Function<Object, Object> source;
     public final boolean isSave;
     public final String key;
+    public final boolean saveNull;
     public final boolean isSyncToClient;
     public final boolean isSyncToServer;
+
+    private final Object defaultValue;
+    private final MethodHandle defaultValueHandle;
 
     private final boolean notifyClientUpdate;
     private final boolean notifyServerUpdate;
@@ -65,6 +69,8 @@ public final class DataFieldDefinition<T> {
         this.factory = factory;
         this.source = source;
         this.key = fieldAnnotations.key();
+        this.saveNull = fieldAnnotations.saveNull();
+        this.defaultValue = fieldAnnotations.defaultValue();
         this.isSave = fieldAnnotations.isSave();
         this.isSyncToClient = fieldAnnotations.isSyncToClient();
         this.isSyncToServer = fieldAnnotations.isSyncToServer();
@@ -82,6 +88,8 @@ public final class DataFieldDefinition<T> {
             this.genericCodec[i] = DataSyncCodec.get(genericType[i]);
         }
 
+        this.defaultValueHandle = ReflectUtil.createAdaptedMethodHandle(fieldAnnotations.defaultValueGetter());
+
         this.getter = ReflectUtil.createAdaptedGetter(field);
         this.setter = isFinal ? null : ReflectUtil.createAdaptedSetter(field);
 
@@ -92,6 +100,109 @@ public final class DataFieldDefinition<T> {
 
         this.clientListenerHandle = ReflectUtil.createAdaptedMethodHandle(fieldAnnotations.clientUpdateListener());
         this.serverListenerHandle = ReflectUtil.createAdaptedMethodHandle(fieldAnnotations.serverUpdateListener());
+    }
+
+    public boolean hasDefaultValue() {
+        return defaultValue != null || defaultValueHandle != null;
+    }
+
+    public boolean getDefaultBooleanValue(Object source) {
+        if (defaultValueHandle != null) {
+            try {
+                return (boolean) defaultValueHandle.invokeExact(source);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return (Boolean) defaultValue;
+    }
+
+    public byte getDefaultByteValue(Object source) {
+        if (defaultValueHandle != null) {
+            try {
+                return (Byte) defaultValueHandle.invokeExact(source);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return (Byte) defaultValue;
+    }
+
+    public short getDefaultShortValue(Object source) {
+        if (defaultValueHandle != null) {
+            try {
+                return (Short) defaultValueHandle.invokeExact(source);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return (Short) defaultValue;
+    }
+
+    public int getDefaultIntValue(Object source) {
+        if (defaultValueHandle != null) {
+            try {
+                return (int) defaultValueHandle.invokeExact(source);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return (Integer) defaultValue;
+    }
+
+    public long getDefaultLongValue(Object source) {
+        if (defaultValueHandle != null) {
+            try {
+                return (long) defaultValueHandle.invokeExact(source);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return (Long) defaultValue;
+    }
+
+    public float getDefaultFloatValue(Object source) {
+        if (defaultValueHandle != null) {
+            try {
+                return (float) defaultValueHandle.invokeExact(source);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return (Float) defaultValue;
+    }
+
+    public double getDefaultDoubleValue(Object source) {
+        if (defaultValueHandle != null) {
+            try {
+                return (double) defaultValueHandle.invokeExact(source);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return (Double) defaultValue;
+    }
+
+    public char getDefaultCharValue(Object source) {
+        if (defaultValueHandle != null) {
+            try {
+                return (char) defaultValueHandle.invokeExact(source);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return (Character) defaultValue;
+    }
+
+    public T getDefaultValue(Object source) {
+        if (defaultValueHandle != null) {
+            try {
+                return (T) defaultValueHandle.invokeExact(source);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return (T) defaultValue;
     }
 
     @SuppressWarnings("unchecked")

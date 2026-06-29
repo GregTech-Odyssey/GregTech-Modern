@@ -6,6 +6,7 @@ import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.ByteData;
 import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.datasream.data.NullData;
 import org.jetbrains.annotations.NotNull;
 
 public final class ByteField extends AbstractField<Byte> {
@@ -46,6 +47,7 @@ public final class ByteField extends AbstractField<Byte> {
     @Override
     public @NotNull Data writeToData(@NotNull Object source) {
         var value = definition.getByte(source);
+        if (definition.hasDefaultValue() && definition.getDefaultByteValue(source) == value) return NullData.NONE;
         return ByteData.valueOf(value);
     }
 

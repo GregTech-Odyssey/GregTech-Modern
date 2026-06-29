@@ -111,7 +111,7 @@ public final class DataOps implements DynamicOps<Data> {
     }
 
     public DataResult<Data> mergeToList(Data list, Data value) {
-        if (list == NullData.INSTANCE) return DataResult.success(ListData.of(value));
+        if (list.isNull()) return DataResult.success(ListData.of(value));
         if (list instanceof ListData listData) {
             listData = listData.shallowCopy();
             listData.add(value);
@@ -121,7 +121,7 @@ public final class DataOps implements DynamicOps<Data> {
     }
 
     public DataResult<Data> mergeToList(Data list, List<Data> values) {
-        if (list == NullData.INSTANCE) return DataResult.success(ListData.of(values));
+        if (list.isNull()) return DataResult.success(ListData.of(values));
         if (list instanceof ListData listData) {
             listData = listData.shallowCopy();
             listData.addAll(values);
@@ -131,7 +131,7 @@ public final class DataOps implements DynamicOps<Data> {
     }
 
     public DataResult<Data> mergeToMap(Data map, Data key, Data value) {
-        if (!(map instanceof MapData) && !(map instanceof NullData)) {
+        if (!(map instanceof MapData) && !map.isNull()) {
             return DataResult.error(() -> "mergeToMap called with not a value: " + map, map);
         } else if (key instanceof StringData(String Data)) {
             MapData output = map instanceof MapData Datax ? Datax.shallowCopy() : new MapData();
@@ -143,12 +143,12 @@ public final class DataOps implements DynamicOps<Data> {
     }
 
     public DataResult<Data> mergeToMap(Data map, MapLike<Data> values) {
-        if (!(map instanceof MapData) && !(map instanceof NullData)) {
+        if (!(map instanceof MapData) && !map.isNull()) {
             return DataResult.error(() -> "mergeToMap called with not a value: " + map, map);
         } else {
             Iterator<Pair<Data, Data>> valuesIterator = values.entries().iterator();
             if (!valuesIterator.hasNext()) {
-                return map == NullData.INSTANCE ? DataResult.success(MapData.EMPTY) : DataResult.success(map);
+                return map.isNull() ? DataResult.success(MapData.EMPTY) : DataResult.success(map);
             } else {
                 MapData output = map instanceof MapData Data ? Data.shallowCopy() : new MapData();
                 List<Data> missed = new ArrayList<>();
@@ -166,10 +166,10 @@ public final class DataOps implements DynamicOps<Data> {
     }
 
     public DataResult<Data> mergeToMap(Data map, Map<Data, Data> values) {
-        if (!(map instanceof MapData) && !(map instanceof NullData)) {
+        if (!(map instanceof MapData) && !map.isNull()) {
             return DataResult.error(() -> "mergeToMap called with not a value: " + map, map);
         } else if (values.isEmpty()) {
-            return map == NullData.INSTANCE ? DataResult.success(MapData.EMPTY) : DataResult.success(map);
+            return map.isNull() ? DataResult.success(MapData.EMPTY) : DataResult.success(map);
         } else {
             MapData output = map instanceof MapData Data ? Data.shallowCopy() : new MapData();
             List<Data> missed = new ArrayList<>();
@@ -308,7 +308,7 @@ public final class DataOps implements DynamicOps<Data> {
         }
 
         protected DataResult<Data> build(MapData builder, Data prefix) {
-            if (prefix == null || prefix == NullData.INSTANCE) {
+            if (prefix == null || prefix.isNull()) {
                 return DataResult.success(builder);
             } else if (!(prefix instanceof MapData compound)) {
                 return DataResult.error(() -> "mergeToMap called with not a value: " + prefix, prefix);

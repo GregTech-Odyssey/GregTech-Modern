@@ -43,7 +43,7 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     @Nullable
     protected GTRecipeType[] availableRecipeTypesCache;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "0")
     protected int activeRecipeType;
     @Getter
     protected final Int2IntFunction tankScalingFunction;
@@ -64,19 +64,18 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     protected final Map<IO, List<IRecipeHandler>> capabilitiesFlat;
 
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValueGetter = "getMaxOverclockTier")
     protected int overclockTier;
     protected final List<ISubscription> traitSubscriptions;
     @Getter
     @Setter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     @SyncToClient
     protected boolean isMuffled;
 
     public WorkableTieredMachine(MetaMachineBlockEntity holder, int tier, Int2IntFunction tankScalingFunction, Object... args) {
         super(holder, tier, args);
         this.overclockTier = getMaxOverclockTier();
-        this.activeRecipeType = 0;
         this.tankScalingFunction = tankScalingFunction;
         this.capabilitiesProxy = new EnumMap<>(IO.class);
         this.capabilitiesFlat = new EnumMap<>(IO.class);

@@ -37,6 +37,31 @@ public final class ReflectUtil {
         return field.getDeclaringClass().getName() + "." + field.getName();
     }
 
+    public Object parse(Class<?> type, String value) {
+        if (type == String.class) return value;
+        if (value.isEmpty()) return null;
+        if (type.isEnum()) return EnumUtil.getEnum((Class) type, value);
+        if (type == int.class || type == Integer.class) {
+            return Integer.parseInt(value);
+        } else if (type == long.class || type == Long.class) {
+            return Long.parseLong(value);
+        } else if (type == boolean.class || type == Boolean.class) {
+            return Boolean.parseBoolean(value);
+        } else if (type == double.class || type == Double.class) {
+            return Double.parseDouble(value);
+        } else if (type == float.class || type == Float.class) {
+            return Float.parseFloat(value);
+        } else if (type == byte.class || type == Byte.class) {
+            return Byte.parseByte(value);
+        } else if (type == short.class || type == Short.class) {
+            return Short.parseShort(value);
+        } else if (type == char.class || type == Character.class) {
+            return value.charAt(0);
+        } else {
+            throw new IllegalArgumentException("Unsupported type: " + type.getName());
+        }
+    }
+
     public Method getAccessibleMethod(Class<?> clazz, String name, Class<?>... parameterTypes) {
         try {
             return clazz.getDeclaredMethod(name, parameterTypes);

@@ -95,7 +95,8 @@ public record ByteData(byte value) implements NumericData {
 
         static {
             for (int i = 0; i < cache.length; i++) {
-                cache[i] = new ByteData((byte) (i - 128));
+                var value = (byte) (i - 128);
+                cache[i] = new ByteData(value);
             }
         }
     }

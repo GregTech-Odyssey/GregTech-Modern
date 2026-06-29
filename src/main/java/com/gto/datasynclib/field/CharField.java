@@ -6,6 +6,7 @@ import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.CharData;
 import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.datasream.data.NullData;
 import org.jetbrains.annotations.NotNull;
 
 public final class CharField extends AbstractField<Character> {
@@ -46,6 +47,7 @@ public final class CharField extends AbstractField<Character> {
     @Override
     public @NotNull Data writeToData(@NotNull Object source) {
         var value = definition.getChar(source);
+        if (definition.hasDefaultValue() && definition.getDefaultCharValue(source) == value) return NullData.NONE;
         return CharData.valueOf(value);
     }
 
