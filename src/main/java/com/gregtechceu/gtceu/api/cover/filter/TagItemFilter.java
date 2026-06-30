@@ -10,8 +10,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
-import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -19,7 +18,7 @@ import java.util.stream.Stream;
 
 public class TagItemFilter extends TagFilter<ItemStack, ItemFilter> implements ItemFilter {
 
-    private final Object2BooleanMap<Item> cache = new Object2BooleanOpenHashMap<>();
+    private final Reference2BooleanOpenHashMap<Item> cache = new Reference2BooleanOpenHashMap<>();
 
     protected TagItemFilter() {}
 
@@ -46,13 +45,7 @@ public class TagItemFilter extends TagFilter<ItemStack, ItemFilter> implements I
     @Override
     public boolean test(ItemStack itemStack) {
         if (oreDictFilterExpression.isEmpty()) return false;
-        if (cache.containsKey(itemStack.getItem())) return cache.getOrDefault(itemStack.getItem(), false);
-        if (TagExprFilter.tagsMatch(matchExpr, itemStack)) {
-            cache.put(itemStack.getItem(), true);
-            return true;
-        }
-        cache.put(itemStack.getItem(), false);
-        return false;
+        return cache.computeIfAbsent(itemStack.getItem(), k -> TagExprFilter.tagsMatch(matchExpr, itemStack));
     }
 
     @Override

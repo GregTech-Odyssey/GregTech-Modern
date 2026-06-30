@@ -12,8 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
-import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
-import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -21,7 +20,7 @@ import java.util.stream.Stream;
 
 public class TagFluidFilter extends TagFilter<FluidStack, FluidFilter> implements FluidFilter {
 
-    private final Object2BooleanMap<Fluid> cache = new Object2BooleanOpenHashMap<>();
+    private final Reference2BooleanOpenHashMap<Fluid> cache = new Reference2BooleanOpenHashMap<>();
 
     protected TagFluidFilter() {}
 
@@ -48,13 +47,7 @@ public class TagFluidFilter extends TagFilter<FluidStack, FluidFilter> implement
     @Override
     public boolean test(FluidStack fluidStack) {
         if (oreDictFilterExpression.isEmpty()) return false;
-        if (cache.containsKey(fluidStack.getFluid())) return cache.getOrDefault(fluidStack.getFluid(), false);
-        if (TagExprFilter.tagsMatch(matchExpr, fluidStack)) {
-            cache.put(fluidStack.getFluid(), true);
-            return true;
-        }
-        cache.put(fluidStack.getFluid(), false);
-        return false;
+        return cache.computeIfAbsent(fluidStack.getFluid(), k -> TagExprFilter.tagsMatch(matchExpr, fluidStack));
     }
 
     @Override

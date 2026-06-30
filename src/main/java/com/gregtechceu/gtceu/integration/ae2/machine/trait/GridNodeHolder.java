@@ -15,7 +15,7 @@ import com.gto.datasynclib.annotations.Access;
 import com.gto.datasynclib.annotations.Codec;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.util.DataCodecs;
+import com.gto.datasynclib.datasream.data.NullData;
 import lombok.Getter;
 
 import java.util.EnumSet;
@@ -69,12 +69,11 @@ public class GridNodeHolder extends MachineTrait {
 
     @SuppressWarnings("unused")
     public Data serializeGridNode(SerializableManagedGridNode node) {
-        return DataCodecs.COMPOUND_TAG_CODEC.encode(node.serializeNBT());
+        return NullData.INSTANCE;
     }
 
     @SuppressWarnings("unused")
     public SerializableManagedGridNode deserializeGridNode(Data data, int v) {
-        this.mainNode.deserializeNBT(DataCodecs.COMPOUND_TAG_CODEC.decode(data, v));
         return this.mainNode;
     }
 }

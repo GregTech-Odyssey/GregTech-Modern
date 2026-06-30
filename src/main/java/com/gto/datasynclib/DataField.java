@@ -5,6 +5,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import com.gto.datasynclib.datasream.data.Data;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Comparator;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -41,7 +42,13 @@ public interface DataField<T> {
         DataField<T> create(DataFieldDefinition definition);
     }
 
-    record CustomFactory<T>(Predicate<Class<?>> predicate, Function<Class<?>, Factory<T>> factory, int priority) {}
+    record CustomFactory<T>(Predicate<Class<?>> predicate, Function<Class<?>, Factory<T>> factory, int priority) {
 
-    record CustomGenericFactory<T>(BiPredicate<Class<?>, Class<?>[]> predicate, BiFunction<Class<?>, Class<?>[], Factory<T>> factory, int priority) {}
+        static final Comparator<CustomFactory<?>> COMPARATOR = Comparator.comparingInt(f -> -f.priority);
+    }
+
+    record CustomGenericFactory<T>(BiPredicate<Class<?>, Class<?>[]> predicate, BiFunction<Class<?>, Class<?>[], Factory<T>> factory, int priority) {
+
+        static final Comparator<CustomGenericFactory<?>> COMPARATOR = Comparator.comparingInt(f -> -f.priority);
+    }
 }

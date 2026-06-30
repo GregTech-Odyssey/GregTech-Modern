@@ -18,7 +18,7 @@ import java.util.function.*;
 
 public final class FieldDefinitionStorage {
 
-    private static final PriorityQueue<DataField.CustomGenericFactory<?>> GENERIC_FIELDS = new PriorityQueue<>(Comparator.comparingInt(f -> -f.priority()));
+    private static final ArrayList<DataField.CustomGenericFactory<?>> GENERIC_FIELDS = new ArrayList<>();
 
     private static Function<Supplier<Class<?>[]>, DataField.Factory<?>> genericFunction(Class<?> type) {
         return genericType -> {
@@ -33,7 +33,7 @@ public final class FieldDefinitionStorage {
 
     private static final IdentityHashMapCache<Class<?>, HashMapCache<Supplier<Class<?>[]>, DataField.Factory<?>>> GENERIC_FIELDS_CACHE = new IdentityHashMapCache<>(type -> new HashMapCache<>(genericFunction(type)));
 
-    private static final PriorityQueue<DataField.CustomFactory<?>> FIELDS = new PriorityQueue<>(Comparator.comparingInt(f -> -f.priority()));
+    private static final ArrayList<DataField.CustomFactory<?>> FIELDS = new ArrayList<>();
     private static final IdentityHashMapCache<Class<?>, DataField.Factory<?>> FIELDS_CACHE = new IdentityHashMapCache<>(type -> {
         for (var f : FIELDS) {
             if (f.predicate().test(type)) {
@@ -43,7 +43,7 @@ public final class FieldDefinitionStorage {
         throw new IllegalStateException("No factory for " + type);
     });
 
-    private static final PriorityQueue<DataField.CustomFactory<?>> ACCESS = new PriorityQueue<>(Comparator.comparingInt(f -> -f.priority()));
+    private static final ArrayList<DataField.CustomFactory<?>> ACCESS = new ArrayList<>();
     private static final IdentityHashMapCache<Class<?>, DataField.Factory<?>> ACCESS_CACHE = new IdentityHashMapCache<>(type -> {
         for (var f : ACCESS) {
             if (f.predicate().test(type)) {
@@ -72,6 +72,7 @@ public final class FieldDefinitionStorage {
     public static <T> void registerAccessCustomFactory(Predicate<Class<?>> type, Function<Class<?>, DataField.Factory<T>> factory, int priority) {
         synchronized (ACCESS) {
             ACCESS.add(new DataField.CustomFactory<>(type, factory, priority));
+            ACCESS.sort(DataField.CustomFactory.COMPARATOR);
         }
     }
 
@@ -84,6 +85,7 @@ public final class FieldDefinitionStorage {
     public static <T> void registerCustomGenericFactory(BiPredicate<Class<?>, Class<?>[]> type, BiFunction<Class<?>, Class<?>[], DataField.Factory<T>> factory, int priority) {
         synchronized (GENERIC_FIELDS) {
             GENERIC_FIELDS.add(new DataField.CustomGenericFactory<>(type, factory, priority));
+            GENERIC_FIELDS.sort(DataField.CustomGenericFactory.COMPARATOR);
         }
     }
 
@@ -100,6 +102,7 @@ public final class FieldDefinitionStorage {
     public static <T> void registerCustomFactory(Predicate<Class<?>> type, Function<Class<?>, DataField.Factory<T>> factory, int priority) {
         synchronized (FIELDS) {
             FIELDS.add(new DataField.CustomFactory<>(type, factory, priority));
+            FIELDS.sort(DataField.CustomFactory.COMPARATOR);
         }
     }
 

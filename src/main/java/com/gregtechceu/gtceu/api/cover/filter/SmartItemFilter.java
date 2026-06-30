@@ -15,7 +15,6 @@ import net.minecraft.world.item.ItemStack;
 
 import com.fast.recipesearch.IntLongMap;
 import com.gto.fastcollection.O2IOpenCustomCacheHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenCustomHashMap;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -125,7 +124,7 @@ public class SmartItemFilter implements ItemFilter {
         private static final SmartFilteringMode[] VALUES = values();
         private final String localeName;
         private final GTRecipeType type;
-        private final Object2IntOpenCustomHashMap<ItemStack> cache = new O2IOpenCustomCacheHashMap<>(
+        private final O2IOpenCustomCacheHashMap<ItemStack> cache = new O2IOpenCustomCacheHashMap<>(
                 ItemStackHashStrategy.ITEM_AND_TAG);
 
         SmartFilteringMode(String localeName, GTRecipeType type) {

@@ -38,10 +38,10 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IField
     private final CoverBehavior container;
 
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValueGetter = "getDefaultItem")
     @SyncToClient
     @NotNull
-    private ItemStack filterItem = ItemStack.EMPTY;
+    private ItemStack filterItem = getDefaultItem();
     @Nullable
     private F filter;
     @Nullable
@@ -57,6 +57,10 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IField
 
     public FilterHandler(CoverBehavior container) {
         this.container = container;
+    }
+
+    private ItemStack getDefaultItem() {
+        return ItemStack.EMPTY;
     }
 
     protected abstract F loadFilter(ItemStack filterItem);

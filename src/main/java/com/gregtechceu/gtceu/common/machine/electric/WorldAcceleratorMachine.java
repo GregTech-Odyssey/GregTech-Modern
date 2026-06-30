@@ -2,8 +2,8 @@ package com.gregtechceu.gtceu.common.machine.electric;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.GTBlockEntity;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
@@ -32,8 +32,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.gto.fastcollection.O2OOpenCacheHashMap;
-import it.unimi.dsi.fastutil.objects.Object2BooleanFunction;
-import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +44,7 @@ import java.util.Set;
 public class WorldAcceleratorMachine extends TieredEnergyMachine implements IControllable {
 
     private static final Map<String, Class<?>> blacklistedClasses = new O2OOpenCacheHashMap<>();
-    private static final Object2BooleanFunction<Class<? extends BlockEntity>> blacklistCache = new Object2BooleanOpenHashMap<>();
+    private static final Reference2BooleanOpenHashMap<Class<? extends BlockEntity>> blacklistCache = new Reference2BooleanOpenHashMap<>();
     private static boolean gatheredClasses = false;
     // Hard-coded blacklist for blockentities
     private static final List<String> blockEntityClassNamesBlackList = new ArrayList<>();
@@ -105,8 +104,9 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
             for (int i = 0, j = 0; i < successLimit && j < attempts; j++) {
                 BlockPos randomPos = cornerPos.offset(GTValues.RNG.nextInt(randRange), GTValues.RNG.nextInt(randRange), GTValues.RNG.nextInt(randRange));
                 if (randomPos.getY() > getLevel().getMaxBuildHeight() || randomPos.getY() < getLevel().getMinBuildHeight() || !getLevel().isLoaded(randomPos) || randomPos.equals(getPos())) continue;
-                if (getLevel().getBlockState(randomPos).isRandomlyTicking()) {
-                    getLevel().getBlockState(randomPos).randomTick((ServerLevel) this.getLevel(), randomPos, GTValues.RNG);
+                var state = getLevel().getBlockState(randomPos);
+                if (state.isRandomlyTicking()) {
+                    state.randomTick((ServerLevel) this.getLevel(), randomPos, GTValues.RNG);
                 }
                 i++;
             }
@@ -115,7 +115,7 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
             for (Direction dir : GTUtil.DIRECTIONS) {
                 BlockEntity blockEntity = holder.getNeighborBlockEntity(dir);
                 if (blockEntity != null && canAccelerate(blockEntity)) {
-                    tickBlockEntity(blockEntity);
+                    tickBlockEntity(blockEntity, dir);
                 }
             }
         }
@@ -134,10 +134,9 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
         return false;
     }
 
-    private <T extends BlockEntity> void tickBlockEntity(@NotNull T blockEntity) {
-        BlockPos pos = blockEntity.getBlockPos();
+    private <T extends BlockEntity> void tickBlockEntity(@NotNull T blockEntity, Direction dir) {
         // noinspection unchecked
-        BlockEntityTicker<T> blockEntityTicker = this.getLevel().getBlockState(pos).getTicker(this.getLevel(), (BlockEntityType<T>) blockEntity.getType());
+        BlockEntityTicker<T> blockEntityTicker = this.getNeighborBlockState(dir).getTicker(this.getLevel(), (BlockEntityType<T>) blockEntity.getType());
         if (blockEntityTicker == null) return;
         for (int i = 0; i < speed - 1; i++) {
             blockEntityTicker.tick(blockEntity.getLevel(), blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity);
@@ -145,21 +144,17 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
     }
 
     private boolean canAccelerate(BlockEntity blockEntity) {
-        if (blockEntity instanceof PipeBlockEntity || blockEntity instanceof MetaMachineBlockEntity) return false;
+        if (blockEntity instanceof GTBlockEntity) return false;
         generateWorldAcceleratorBlacklist();
         final Class<? extends BlockEntity> blockEntityClass = blockEntity.getClass();
-        if (blacklistCache.containsKey(blockEntityClass)) {
-            return blacklistCache.getBoolean(blockEntityClass);
-        }
-        for (Class<?> clazz : blacklistedClasses.values()) {
-            if (clazz.isAssignableFrom(blockEntityClass)) {
-                // Is a subclass, so it cannot be accelerated
-                blacklistCache.put(blockEntityClass, false);
-                return false;
+        return blacklistCache.computeIfAbsent(blockEntityClass, k -> {
+            for (Class<?> clazz : blacklistedClasses.values()) {
+                if (clazz.isAssignableFrom(blockEntityClass)) {
+                    return false;
+                }
             }
-        }
-        blacklistCache.put(blockEntityClass, true);
-        return true;
+            return true;
+        });
     }
 
     @Override
