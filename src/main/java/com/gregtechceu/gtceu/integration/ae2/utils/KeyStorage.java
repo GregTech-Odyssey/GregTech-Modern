@@ -132,7 +132,7 @@ public class KeyStorage extends AbstractDataSerializable implements Iterable<Ref
         } finally {
             lock.unlock();
         }
-        return list.isEmpty() ? NullData.NONE : list;
+        return list.isEmpty() ? NullData.INSTANCE : list;
     }
 
     @Override

@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
+import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 
@@ -311,22 +312,7 @@ public interface ICoverable extends ITickSubscription, IAppearance, IFieldDataHo
 
     @SuppressWarnings("unused")
     default CoverBehavior deserializeCoverData(Data uid, int dataVersion) {
-        if (dataVersion == -1) {
-            var map = uid.getMap();
-            var definitionId = GTUtil.getResourceLocation(map.get("id").getString());
-            var definition = GTRegistries.COVERS.get(definitionId);
-            if (definition != null) {
-                return definition.createCoverBehavior(this, GTUtil.DIRECTIONS[map.get("side").getInt()]);
-            }
-        } else {
-            var list = uid.getList();
-            var definition = GTRegistries.COVERS.dataCodec().decode(list.getFirst(), dataVersion);
-            if (definition != null) {
-                return definition.createCoverBehavior(this, GTUtil.DIRECTIONS[list.get(1).getByte()]);
-            }
-        }
-        GTCEu.LOGGER.error("couldn't find cover definition {}", uid);
-        throw new RuntimeException();
+        return GTDataFixer.decodeCover(this, uid, dataVersion);
     }
 
     @SuppressWarnings("unused")

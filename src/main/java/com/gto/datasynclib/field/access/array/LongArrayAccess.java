@@ -6,6 +6,7 @@ import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.LongArrayData;
+import com.gto.datasynclib.datasream.data.NullData;
 import com.gto.datasynclib.field.access.AbstractFieldAccess;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +46,8 @@ public final class LongArrayAccess extends AbstractFieldAccess<long[]> {
     }
 
     @Override
-    protected @NotNull Data writeData(long @NotNull [] instance) {
+    protected @NotNull Data writeData(@NotNull Object source, long @NotNull [] instance) {
+        if (definition.hasDefaultValue() && Arrays.equals(instance, definition.getDefaultValue(source))) return NullData.NONE;
         return LongArrayData.valueOf(instance);
     }
 

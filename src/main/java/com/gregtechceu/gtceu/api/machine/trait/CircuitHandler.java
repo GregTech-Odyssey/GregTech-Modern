@@ -5,15 +5,25 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
+import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
 
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 
 import com.fast.recipesearch.IntLongMap;
+import com.gto.datasynclib.LogicalSide;
+import com.gto.datasynclib.datasream.data.ByteData;
+import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.datasream.data.IntData;
+import com.gto.datasynclib.datasream.data.NullData;
+import com.gto.datasynclib.util.DataCodecs;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -120,6 +130,56 @@ public class CircuitHandler extends NotifiableItemStackHandler {
         @Override
         public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
             return ItemStack.EMPTY;
+        }
+
+        @Override
+        public void writeBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
+            ItemStack stored = stacks[0];
+            if (stored.isEmpty()) {
+                data.writeByte(-1);
+            } else if (stored.getItem() == IntCircuitIngredient.PROGRAMMED_CIRCUIT) {
+                data.writeByte(IntCircuitIngredient.getConfiguration(stored.getTag()));
+            } else {
+                data.writeByte(-2);
+                data.writeItem(stored);
+            }
+        }
+
+        @Override
+        public void readBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
+            var configuration = data.readByte();
+            switch (configuration) {
+                case -1 -> stacks[0] = ItemStack.EMPTY;
+                case -2 -> stacks[0] = data.readItem();
+                default -> IntCircuitBehaviour.stack(configuration);
+            }
+        }
+
+        @Override
+        public Data writeData() {
+            ItemStack stored = stacks[0];
+            if (stored.isEmpty()) {
+                return NullData.INSTANCE;
+            } else if (stored.getItem() == IntCircuitIngredient.PROGRAMMED_CIRCUIT) {
+                return ByteData.valueOf((byte) IntCircuitIngredient.getConfiguration(stored.getTag()));
+            } else {
+                return DataCodecs.COMPOUND_TAG_CODEC.encode(stored.save(new CompoundTag()));
+            }
+        }
+
+        @Override
+        public void readData(@NotNull Data data, int dataVersion) {
+            if (dataVersion < 1) {
+                GTDataFixer.decodeCustomItemStackHandler(this, data, dataVersion);
+            } else {
+                if (data == NullData.INSTANCE) {
+                    stacks[0] = ItemStack.EMPTY;
+                } else if (data instanceof IntData(int value)) {
+                    stacks[0] = IntCircuitBehaviour.stack(value);
+                } else {
+                    stacks[0] = ItemStack.of(DataCodecs.COMPOUND_TAG_CODEC.decode(data));
+                }
+            }
         }
     }
 }

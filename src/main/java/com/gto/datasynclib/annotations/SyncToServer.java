@@ -41,5 +41,12 @@ public @interface SyncToServer {
      */
     boolean autoUpdate() default true;
 
+    /**
+     * Specifies a listener method to be called when this field receives a synchronization update.
+     * The method must have the signature: (T newValue, T oldValue) -> void, where T is the field type.
+     * This must be a non-static method accessible from this class.
+     *
+     * @return the name of the listener method
+     */
     String listener() default "";
 }

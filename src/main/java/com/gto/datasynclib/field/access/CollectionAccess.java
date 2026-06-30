@@ -63,7 +63,7 @@ public final class CollectionAccess<E> extends AbstractFieldAccess<Collection> {
     }
 
     @Override
-    protected @NotNull Data writeData(@NotNull Collection instance) {
+    protected @NotNull Data writeData(@NotNull Object source, @NotNull Collection instance) {
         if (instance.isEmpty()) return NullData.INSTANCE;
         var list = new ListData();
         instance.forEach(element -> {

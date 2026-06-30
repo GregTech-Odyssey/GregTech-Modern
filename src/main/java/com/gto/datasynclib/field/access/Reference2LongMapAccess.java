@@ -57,7 +57,7 @@ public class Reference2LongMapAccess<K> extends AbstractFieldAccess<Reference2Lo
     }
 
     @Override
-    protected @NotNull Data writeData(@NotNull Reference2LongMap instance) {
+    protected @NotNull Data writeData(@NotNull Object source, @NotNull Reference2LongMap instance) {
         if (instance.isEmpty()) return NullData.INSTANCE;
         var list = new ListData();
         Reference2LongMaps.fastForEach(instance, e -> {

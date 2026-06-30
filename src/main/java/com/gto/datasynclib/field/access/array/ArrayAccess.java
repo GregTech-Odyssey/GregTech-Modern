@@ -7,6 +7,7 @@ import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ListData;
+import com.gto.datasynclib.datasream.data.NullData;
 import com.gto.datasynclib.field.access.AbstractFieldAccess;
 import com.gto.datasynclib.util.DataFixer;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +55,8 @@ public final class ArrayAccess<T> extends AbstractFieldAccess<T[]> {
     }
 
     @Override
-    protected @NotNull Data writeData(T @NotNull [] instance) {
+    protected @NotNull Data writeData(@NotNull Object source, T @NotNull [] instance) {
+        if (definition.hasDefaultValue() && Arrays.equals(instance, definition.getDefaultValue(source))) return NullData.NONE;
         var list = new ListData();
         for (T element : instance) {
             if (element != null) {
@@ -63,7 +65,11 @@ public final class ArrayAccess<T> extends AbstractFieldAccess<T[]> {
                 list.addNull();
             }
         }
-        return list;
+        if (definition.saveNull) return list;
+        for (var data : list) {
+            if (data != NullData.INSTANCE) return list;
+        }
+        return NullData.NONE;
     }
 
     @Override

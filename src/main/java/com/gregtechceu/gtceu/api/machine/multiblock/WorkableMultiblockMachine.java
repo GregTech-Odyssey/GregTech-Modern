@@ -59,7 +59,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @SyncToClient
     protected GTRecipeType[] availableRecipeTypesCache;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "0")
     protected int activeRecipeType;
 
     protected boolean recipeLogicAvailable;
@@ -75,7 +75,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     protected final List<ISubscription> traitSubscriptions;
     @Getter
     @Setter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     @SyncToClient
     protected boolean isMuffled;
 
@@ -111,7 +111,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     public WorkableMultiblockMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder);
-        this.activeRecipeType = 0;
         this.recipeLogic = createRecipeLogic(args);
         this.capabilitiesProxy = new EnumMap<>(IO.class);
         this.capabilitiesFlat = new EnumMap<>(IO.class);

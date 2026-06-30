@@ -116,12 +116,12 @@ public abstract class AbstractFieldAccess<T> implements DataField<T> {
             } else {
                 var list = new ListData(2);
                 list.add(definition.encode(source, value));
-                list.add(writeData(value));
+                list.add(writeData(source, value));
                 return list;
             }
         } else {
             if (value == null) return NullData.NONE;
-            return writeData(value);
+            return writeData(source, value);
         }
     }
 
@@ -159,7 +159,7 @@ public abstract class AbstractFieldAccess<T> implements DataField<T> {
 
     protected abstract void readBuffer(@NotNull LogicalSide side, @NotNull T instance, @NotNull FriendlyByteBuf data);
 
-    protected abstract @NotNull Data writeData(@NotNull T instance);
+    protected abstract @NotNull Data writeData(@NotNull Object source, @NotNull T instance);
 
     protected abstract void readData(@NotNull T instance, @NotNull Data data, int dataVersion);
 }

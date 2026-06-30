@@ -167,7 +167,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     @Override
     public void loadCustomPersistedData(CompoundTag tag) {
         super.loadCustomPersistedData(tag);
-        lockedItem.deserializeNBT(tag.getCompound("lockedItem"));
+        lockedItem.deserializeNBT(tag.get("lockedItem"));
         stored = ItemStack.of(tag.getCompound("stored"));
         storedAmount = tag.getLong("storedAmount");
     }

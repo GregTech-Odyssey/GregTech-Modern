@@ -48,7 +48,7 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
     @SaveToDisk
     public final NotifiableItemStackHandler exportItems;
     @Setter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     private boolean needsVenting;
 
     @Getter

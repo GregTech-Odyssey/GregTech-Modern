@@ -54,7 +54,7 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
 
     @Getter
     @Setter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     @SyncToClient
     private boolean needsVenting;
     @SaveToDisk

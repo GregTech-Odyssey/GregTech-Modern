@@ -46,7 +46,7 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     @Getter
     protected int tier;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     protected boolean batchEnabled;
 
     public WorkableElectricMultiblockMachine(MetaMachineBlockEntity holder, Object... args) {

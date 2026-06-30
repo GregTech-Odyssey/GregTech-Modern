@@ -30,14 +30,13 @@ public class TieredIOPartMachine extends TieredPartMachine implements IControlla
      */
     @Getter
     @Setter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "true")
     @SyncToClient(notifyUpdate = true)
-    protected boolean workingEnabled;
+    protected boolean workingEnabled = true;
 
     public TieredIOPartMachine(MetaMachineBlockEntity holder, int tier, IO io) {
         super(holder, tier);
         this.io = io;
-        this.workingEnabled = true;
     }
 
     @Nullable

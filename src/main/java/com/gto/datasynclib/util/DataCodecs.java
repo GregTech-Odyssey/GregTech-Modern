@@ -193,7 +193,7 @@ public class DataCodecs {
         }
     };
 
-    public static <T> DataCodec<T> of(Registry<T> registry) {
+    public <T> DataCodec<T> of(Registry<T> registry) {
         return DataCodec.of(obj -> RESOURCE_LOCATION_CODEC.encode(registry.getKey(obj)), (data, dataVersion) -> registry.get(RESOURCE_LOCATION_CODEC.decode(data, dataVersion)));
     }
 }

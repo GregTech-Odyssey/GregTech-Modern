@@ -28,7 +28,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class ShutterCover extends CoverBehavior implements IControllable {
 
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "true")
     private boolean workingEnabled = true;
 
     public ShutterCover(CoverDefinition definition, ICoverable coverableView, Direction attachedSide) {

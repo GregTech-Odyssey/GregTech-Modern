@@ -58,7 +58,7 @@ public final class FieldDataHolderAccess extends AbstractFieldAccess<IFieldDataH
     }
 
     @Override
-    protected @NotNull Data writeData(@NotNull IFieldDataHolder instance) {
+    protected @NotNull Data writeData(@NotNull Object source, @NotNull IFieldDataHolder instance) {
         return instance.getFieldDataManager().writeToData();
     }
 

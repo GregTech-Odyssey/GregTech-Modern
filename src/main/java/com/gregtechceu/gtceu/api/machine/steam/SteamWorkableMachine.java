@@ -62,7 +62,7 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
     protected Direction outputFacing;
     @Getter
     @Setter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     @SyncToClient
     protected boolean isMuffled;
     @Getter

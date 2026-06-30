@@ -29,12 +29,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class CreativeComputationProviderMachine extends MetaMachine implements IUIMachine, IOpticalComputationHatch {
 
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "0")
     private long maxCWUt;
     private long lastRequestedCWUt;
     private long requestedCWUPerSec;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     private boolean active;
     @Nullable
     private TickableSubscription computationSubs;

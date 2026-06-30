@@ -4,62 +4,83 @@ import net.minecraft.network.FriendlyByteBuf;
 
 import com.gto.datasynclib.datasream.data.MapData;
 
+/**
+ * Interface for objects that hold field data managed by {@link FieldDataManager}.
+ * Provides methods for synchronization, persistence, and custom data handling.
+ */
 public interface IFieldDataHolder {
 
+    /**
+     * Gets the {@link FieldDataManager} associated with this data holder.
+     *
+     * @return the field data manager instance
+     */
+    FieldDataManager getFieldDataManager();
+
+    /**
+     * Marks the specified fields for synchronization.
+     * This is a convenience method that delegates to the underlying {@link FieldDataManager}.
+     *
+     * @param name the names of the fields to mark for synchronization
+     */
     default void markFieldsForSync(String... name) {
         getFieldDataManager().markFieldsForSync(name);
     }
 
-    FieldDataManager getFieldDataManager();
-
     /**
-     * 安排更新操作
+     * Schedules an update operation.
      * <p>
-     * 当字段数据发生变化并需要通知时调用此方法。
-     * 默认实现为空，子类可以覆盖以实现自定义的更新逻辑。
-     * 
-     * @param side 逻辑端（客户端或服务端），用于区分更新方向
+     * Called when field data has changed and notification is needed.
+     * The default implementation is empty; subclasses can override to implement
+     * custom update logic.
+     *
+     * @param side the logical side (client or server), used to distinguish update direction
      */
     default void scheduleUpdate(LogicalSide side) {}
 
     /**
-     * 写入自定义同步数据
+     * Writes custom synchronization data.
      * <p>
-     * 在常规字段同步之前写入额外的自定义数据到网络缓冲区。
-     * 默认实现为空，子类可以覆盖以实现自定义数据同步。
-     * 
-     * @param buf   网络数据缓冲区
-     * @param force 是否强制写入所有数据（忽略脏标记）
+     * Writes additional custom data to the network buffer before regular field synchronization.
+     * The default implementation is empty; subclasses can override to implement
+     * custom data synchronization.
+     *
+     * @param buf   the network data buffer
+     * @param force whether to force writing all data (ignoring dirty flags)
      */
     default void writeCustomSyncData(FriendlyByteBuf buf, boolean force) {}
 
     /**
-     * 读取自定义同步数据
+     * Reads custom synchronization data.
      * <p>
-     * 在常规字段同步之前从网络缓冲区读取额外的自定义数据。
-     * 默认实现为空，子类可以覆盖以实现自定义数据同步。
-     * 
-     * @param buf 网络数据缓冲区
+     * Reads additional custom data from the network buffer before regular field synchronization.
+     * The default implementation is empty; subclasses can override to implement
+     * custom data synchronization.
+     *
+     * @param buf the network data buffer
      */
     default void readCustomSyncData(FriendlyByteBuf buf) {}
 
     /**
-     * 写入自定义保存数据
+     * Writes custom save data.
      * <p>
-     * 在常规字段保存之前写入额外的自定义数据到MapData。
-     * 默认实现为空，子类可以覆盖以实现自定义数据持久化。
-     * 
-     * @param data 数据映射对象，用于存储持久化数据
+     * Writes additional custom data to the MapData object before regular field persistence.
+     * The default implementation is empty; subclasses can override to implement
+     * custom data persistence.
+     *
+     * @param data the data map object used for storing persistent data
      */
     default void writeCustomSaveData(MapData data) {}
 
     /**
-     * 读取自定义保存数据
+     * Reads custom save data.
      * <p>
-     * 在常规字段加载之前从MapData读取额外的自定义数据。
-     * 默认实现为空，子类可以覆盖以实现自定义数据持久化。
-     * 
-     * @param data 数据映射对象，包含持久化数据
+     * Reads additional custom data from the MapData object before regular field loading.
+     * The default implementation is empty; subclasses can override to implement
+     * custom data persistence.
+     *
+     * @param data        the data map object containing persistent data
+     * @param dataVersion the version of the data being read, useful for migration
      */
     default void readCustomSaveData(MapData data, int dataVersion) {}
 }

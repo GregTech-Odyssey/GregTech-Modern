@@ -96,7 +96,7 @@ public final class TagSerializableArrayAccess extends AbstractFieldAccess<ITagSe
     }
 
     @Override
-    protected @NotNull Data writeData(ITagSerializable @NotNull [] instance) {
+    protected @NotNull Data writeData(@NotNull Object source, ITagSerializable @NotNull [] instance) {
         var list = new ListData();
         for (var element : instance) {
             var nbt = element == null ? null : element.serializeNBT();

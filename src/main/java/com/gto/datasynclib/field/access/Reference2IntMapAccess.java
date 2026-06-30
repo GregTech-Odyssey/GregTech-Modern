@@ -57,7 +57,7 @@ public class Reference2IntMapAccess<K> extends AbstractFieldAccess<Reference2Int
     }
 
     @Override
-    protected @NotNull Data writeData(@NotNull Reference2IntMap instance) {
+    protected @NotNull Data writeData(@NotNull Object source, @NotNull Reference2IntMap instance) {
         if (instance.isEmpty()) return NullData.INSTANCE;
         var list = new ListData();
         Reference2IntMaps.fastForEach(instance, e -> {

@@ -57,7 +57,7 @@ public class Object2IntMapAccess<K> extends AbstractFieldAccess<Object2IntMap> {
     }
 
     @Override
-    protected @NotNull Data writeData(@NotNull Object2IntMap instance) {
+    protected @NotNull Data writeData(@NotNull Object source, @NotNull Object2IntMap instance) {
         if (instance.isEmpty()) return NullData.INSTANCE;
         var list = new ListData();
         Object2IntMaps.fastForEach(instance, e -> {

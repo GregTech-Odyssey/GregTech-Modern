@@ -57,7 +57,7 @@ public class Object2LongMapAccess<K> extends AbstractFieldAccess<Object2LongMap>
     }
 
     @Override
-    protected @NotNull Data writeData(@NotNull Object2LongMap instance) {
+    protected @NotNull Data writeData(@NotNull Object source, @NotNull Object2LongMap instance) {
         if (instance.isEmpty()) return NullData.INSTANCE;
         var list = new ListData();
         Object2LongMaps.fastForEach(instance, e -> {

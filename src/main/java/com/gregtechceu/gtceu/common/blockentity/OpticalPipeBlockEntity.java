@@ -34,7 +34,7 @@ public final class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeTyp
     private WeakReference<OpticalPipeNet> currentPipeNet = new WeakReference<>(null);
     private OpticalNetHandler defaultHandler;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     @SyncToClient(notifyUpdate = true)
     private boolean isActive;
 

@@ -10,9 +10,9 @@ import com.gto.datasynclib.datasream.data.ListData;
 import com.gto.datasynclib.datasream.data.MapData;
 import com.gto.datasynclib.datasream.data.NullData;
 import com.gto.datasynclib.field.access.AbstractFieldAccess;
+import com.gto.datasynclib.util.HashUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
 import java.util.Map;
 
 public final class SerializableArrayAccess extends AbstractFieldAccess<IDataSerializable[]> {
@@ -25,7 +25,7 @@ public final class SerializableArrayAccess extends AbstractFieldAccess<IDataSeri
 
     @Override
     protected boolean hasChange(@NotNull LogicalSide side, IDataSerializable @NotNull [] instance, boolean auto) {
-        var hashCode = Arrays.hashCode(instance);
+        var hashCode = HashUtil.arrayIdentityHashCode(instance);
         if (hashCode != this.hashCode) {
             this.hashCode = hashCode;
             for (var element : instance) {
@@ -65,7 +65,7 @@ public final class SerializableArrayAccess extends AbstractFieldAccess<IDataSeri
     }
 
     @Override
-    protected @NotNull Data writeData(IDataSerializable @NotNull [] instance) {
+    protected @NotNull Data writeData(@NotNull Object source, IDataSerializable @NotNull [] instance) {
         var list = new ListData();
         for (var element : instance) {
             if (element != null) {
@@ -74,7 +74,11 @@ public final class SerializableArrayAccess extends AbstractFieldAccess<IDataSeri
                 list.addNull();
             }
         }
-        return list;
+        if (definition.saveNull) return list;
+        for (var data : list) {
+            if (data != NullData.INSTANCE) return list;
+        }
+        return NullData.NONE;
     }
 
     @Override

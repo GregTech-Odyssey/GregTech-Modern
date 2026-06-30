@@ -11,8 +11,7 @@ public class SingleCustomItemStackHandler extends CustomItemStackHandler {
     }
 
     public SingleCustomItemStackHandler(@NotNull ItemStack itemStack) {
-        this.stacks = new ItemStack[] { itemStack };
-        this.size = 1;
+        super(itemStack);
     }
 
     @Override

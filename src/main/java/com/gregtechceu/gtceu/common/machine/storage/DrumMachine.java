@@ -64,7 +64,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     @SaveToDisk(key = "Fluid", defaultValueGetter = "getDefaultStored")
     @SyncToClient
     @DropSaved
-    protected FluidStack stored = FluidStack.EMPTY;
+    protected FluidStack stored = getDefaultStored();
     @Getter
     protected final Material material;
 

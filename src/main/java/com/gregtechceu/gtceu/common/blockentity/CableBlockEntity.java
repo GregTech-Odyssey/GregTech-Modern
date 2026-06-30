@@ -63,7 +63,7 @@ public final class CableBlockEntity extends PipeBlockEntity<Insulation, WireProp
     private EnergyNetHandler defaultHandler;
     private int heatQueue;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "298")
     @SyncToClient
     private int temperature = defaultTemp;
     private TickableSubscription heatSubs;

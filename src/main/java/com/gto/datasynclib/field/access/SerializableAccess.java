@@ -53,7 +53,7 @@ public final class SerializableAccess extends AbstractFieldAccess<IDataSerializa
     }
 
     @Override
-    protected @NotNull Data writeData(@NotNull IDataSerializable instance) {
+    protected @NotNull Data writeData(@NotNull Object source, @NotNull IDataSerializable instance) {
         return instance.writeData();
     }
 

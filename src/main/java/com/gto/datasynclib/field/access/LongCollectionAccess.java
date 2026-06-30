@@ -44,7 +44,7 @@ public final class LongCollectionAccess extends AbstractFieldAccess<LongCollecti
     }
 
     @Override
-    protected @NotNull Data writeData(@NotNull LongCollection instance) {
+    protected @NotNull Data writeData(@NotNull Object source, @NotNull LongCollection instance) {
         if (instance.isEmpty()) return NullData.INSTANCE;
         return new LongArrayData(instance.toLongArray());
     }

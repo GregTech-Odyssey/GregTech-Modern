@@ -33,10 +33,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class CreativeChestMachine extends QuantumChestMachine {
 
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "1")
     @DropSaved
     private int itemsPerCycle = 1;
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "1")
     @DropSaved
     private int ticksPerCycle = 1;
 

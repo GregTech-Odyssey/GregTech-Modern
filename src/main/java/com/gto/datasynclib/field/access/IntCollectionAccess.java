@@ -44,7 +44,7 @@ public final class IntCollectionAccess extends AbstractFieldAccess<IntCollection
     }
 
     @Override
-    protected @NotNull Data writeData(@NotNull IntCollection instance) {
+    protected @NotNull Data writeData(@NotNull Object source, @NotNull IntCollection instance) {
         if (instance.isEmpty()) return NullData.INSTANCE;
         return new IntArrayData(instance.toIntArray());
     }

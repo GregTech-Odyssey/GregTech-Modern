@@ -1,6 +1,7 @@
 package com.gto.datasynclib.datasream.data;
 
 import io.netty.buffer.ByteBuf;
+import org.jetbrains.annotations.ApiStatus;
 
 public enum NullData implements ImmutableData {
 
@@ -10,6 +11,7 @@ public enum NullData implements ImmutableData {
      * Do not save, runtime check
      * Generally used to prevent it from being saved
      */
+    @ApiStatus.Internal
     NONE;
 
     @Override

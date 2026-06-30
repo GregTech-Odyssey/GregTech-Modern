@@ -71,7 +71,7 @@ public class VirtualItemStorage extends VirtualEntry {
     @Override
     public void deserializeNBT(CompoundTag nbt) {
         super.deserializeNBT(nbt);
-        handler.deserializeNBT(nbt.getCompound(ITEM_KEY));
+        handler.deserializeNBT(nbt.get(ITEM_KEY));
     }
 
     @Override

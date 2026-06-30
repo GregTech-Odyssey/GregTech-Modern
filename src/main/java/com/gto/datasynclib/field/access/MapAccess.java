@@ -59,7 +59,7 @@ public final class MapAccess<K, V> extends AbstractFieldAccess<Map> {
     }
 
     @Override
-    protected @NotNull Data writeData(@NotNull Map instance) {
+    protected @NotNull Data writeData(@NotNull Object source, @NotNull Map instance) {
         if (instance.isEmpty()) return NullData.INSTANCE;
         var list = new ListData();
         instance.forEach((k, v) -> {

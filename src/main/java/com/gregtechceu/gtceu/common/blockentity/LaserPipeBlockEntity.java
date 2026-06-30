@@ -33,7 +33,7 @@ public final class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, L
     private int ticksActive = 0;
     private int activeDuration = 0;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     @SyncToClient
     private boolean active = false;
 

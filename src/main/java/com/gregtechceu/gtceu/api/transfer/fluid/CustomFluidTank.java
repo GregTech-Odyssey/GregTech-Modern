@@ -10,6 +10,7 @@ import net.minecraftforge.fluids.capability.templates.FluidTank;
 import com.gto.datasynclib.IDataSerializable;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.datasream.data.NullData;
 import com.gto.datasynclib.util.DataCodecs;
 import lombok.Getter;
 import lombok.Setter;
@@ -106,12 +107,17 @@ public class CustomFluidTank extends FluidTank implements ICustomFluidStackHandl
 
     @Override
     public Data writeData() {
+        if (fluid.isEmpty()) return NullData.INSTANCE;
         return DataCodecs.COMPOUND_TAG_CODEC.encode(this.writeToNBT(new CompoundTag()));
     }
 
     @Override
     public void readData(@NotNull Data data, int dataVersion) {
-        this.readFromNBT(DataCodecs.COMPOUND_TAG_CODEC.decode(data, dataVersion));
+        if (data == NullData.INSTANCE) {
+            fluid = FluidStack.EMPTY;
+        } else {
+            this.readFromNBT(DataCodecs.COMPOUND_TAG_CODEC.decode(data, dataVersion));
+        }
     }
 
     @Override

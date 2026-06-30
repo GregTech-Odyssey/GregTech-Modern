@@ -59,11 +59,11 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     protected final PipeCoverContainer coverContainer;
     @Getter
     @Setter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "0")
     @SyncToClient(notifyUpdate = true)
     protected int connections = Node.ALL_CLOSED;
 
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "0")
     @SyncToClient(notifyUpdate = true)
     private int blockedConnections = Node.ALL_CLOSED;
     @Nullable
@@ -73,7 +73,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     private NodeDataType cachedNodeData;
     @Getter
     @Setter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "-1")
     @SyncToClient(notifyUpdate = true)
     private int paintingColor = -1;
 

@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.SCPacketSBlockEntitySync;
+import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 import com.gregtechceu.gtceu.utils.cache.DirectionCache;
@@ -234,7 +235,7 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
     @Override
     protected final void saveAdditional(@NotNull CompoundTag tag) {
         super.saveAdditional(tag);
-        tag.putInt("field_data_dataVersion", 0);
+        tag.putInt("field_data_dataVersion", GTDataFixer.VERSION);
         tag.putByteArray("field_save", getFieldDataManager().writeToData().writeToBytes());
         saveCustomPersistedData(tag, false);
     }

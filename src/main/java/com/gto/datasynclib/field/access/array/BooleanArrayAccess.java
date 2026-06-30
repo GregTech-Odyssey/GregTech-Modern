@@ -6,6 +6,7 @@ import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.codec.DataCodec;
 import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.datasream.data.NullData;
 import com.gto.datasynclib.field.access.AbstractFieldAccess;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +46,8 @@ public final class BooleanArrayAccess extends AbstractFieldAccess<boolean[]> {
     }
 
     @Override
-    protected @NotNull Data writeData(boolean @NotNull [] instance) {
+    protected @NotNull Data writeData(@NotNull Object source, boolean @NotNull [] instance) {
+        if (definition.hasDefaultValue() && Arrays.equals(instance, definition.getDefaultValue(source))) return NullData.NONE;
         return DataCodec.BOOLEANS_CODEC.encode(instance);
     }
 

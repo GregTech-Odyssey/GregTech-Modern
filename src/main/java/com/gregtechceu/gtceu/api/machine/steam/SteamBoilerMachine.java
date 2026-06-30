@@ -74,11 +74,11 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     @SaveToDisk
     public final NotifiableFluidTank waterTank;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "0")
     @SyncToClient
     private int currentTemperature;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "0")
     private int timeBeforeCoolingDown;
     @Getter
     private boolean hasNoWater;

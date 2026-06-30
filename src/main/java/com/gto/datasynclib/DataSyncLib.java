@@ -64,6 +64,7 @@ public final class DataSyncLib {
         registerAccessInterfaceFactory(Object2IntMap.class, k -> Object2IntMapAccess::new, 1000);
         registerAccessInterfaceFactory(Map.class, k -> MapAccess::new, 100);
 
+        registerAccessCustomFactory(c -> c.isArray() && !c.componentType().isPrimitive() && IFieldDataHolder.class.isAssignableFrom(c.componentType()), c -> FieldDataHolderArrayAccess::new, 2000);
         registerAccessCustomFactory(c -> c.isArray() && !c.componentType().isPrimitive() && IDataSerializable.class.isAssignableFrom(c.componentType()), c -> SerializableArrayAccess::new, 2000);
 
         registerAccessCustomFactory(c -> c.isArray() && !c.componentType().isPrimitive(), c -> {

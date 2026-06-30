@@ -1,7 +1,9 @@
 package com.gregtechceu.gtceu.api.transfer.item;
 
+import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
+import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -13,6 +15,8 @@ import net.minecraftforge.items.ItemHandlerHelper;
 import com.gto.datasynclib.AbstractDataSerializable;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.datasream.data.ListData;
+import com.gto.datasynclib.datasream.data.NullData;
 import com.gto.datasynclib.util.DataCodecs;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,9 +36,9 @@ public class CustomItemStackHandler extends AbstractDataSerializable implements 
     @Setter
     protected Predicate<ItemStack> filter = GTUtil.FAVORABLE;
 
-    public ItemStack[] stacks;
     public boolean isInputLimited;
-    public int size;
+    public final ItemStack[] stacks;
+    public final int size;
 
     public CustomItemStackHandler() {
         this.stacks = new ItemStack[] { ItemStack.EMPTY };
@@ -56,15 +60,6 @@ public class CustomItemStackHandler extends AbstractDataSerializable implements 
     public CustomItemStackHandler(@NotNull List<ItemStack> stacks) {
         this.stacks = stacks.toArray(new ItemStack[0]);
         this.size = stacks.size();
-    }
-
-    public void setSize(int size) {
-        if (size != stacks.length) {
-            ItemStack[] stacks = new ItemStack[size];
-            Arrays.fill(stacks, ItemStack.EMPTY);
-            this.stacks = stacks;
-            this.size = size;
-        }
     }
 
     @Override
@@ -234,42 +229,11 @@ public class CustomItemStackHandler extends AbstractDataSerializable implements 
         }
     }
 
-    public CompoundTag serializeNBT() {
-        ListTag nbtTagList = new ListTag();
-        for (int i = 0; i < size; i++) {
-            if (!stacks[i].isEmpty()) {
-                CompoundTag itemTag = new CompoundTag();
-                itemTag.putInt("Slot", i);
-                stacks[i].save(itemTag);
-                nbtTagList.add(itemTag);
-            }
-        }
-        CompoundTag nbt = new CompoundTag();
-        nbt.put("Items", nbtTagList);
-        nbt.putInt("Size", size);
-        nbt.putBoolean("il", isInputLimited);
-        return nbt;
-    }
-
-    public void deserializeNBT(CompoundTag nbt) {
-        setSize(Math.max(size, nbt.getInt("Size")));
-        ListTag tagList = nbt.getList("Items", Tag.TAG_COMPOUND);
-        for (int i = 0; i < tagList.size(); i++) {
-            CompoundTag itemTags = tagList.getCompound(i);
-            int slot = itemTags.getInt("Slot");
-
-            if (slot >= 0 && slot < size) {
-                stacks[slot] = ItemStack.of(itemTags);
-            }
-        }
-        isInputLimited = nbt.getBoolean("il");
-    }
-
     @Override
     public void writeBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
-        data.writeVarInt(size);
         var i = 0;
-        while (i < size) {
+        var stacks = this.stacks;
+        while (i < this.size) {
             if (!stacks[i].isEmpty()) {
                 data.writeItem(stacks[i]);
                 data.writeVarInt(i);
@@ -277,30 +241,63 @@ public class CustomItemStackHandler extends AbstractDataSerializable implements 
             i++;
         }
         data.writeByte(-1);
-        data.writeBoolean(isInputLimited);
+        data.writeBoolean(this.isInputLimited);
     }
 
     @Override
     public void readBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
-        setSize(Math.max(size, data.readVarInt()));
+        var stacks = this.stacks;
+        Arrays.fill(stacks, ItemStack.EMPTY);
         while (data.getByte(data.readerIndex()) != -1) {
             var item = data.readItem();
             var slot = data.readVarInt();
-            if (slot >= 0 && slot < size) {
+            if (slot >= 0 && slot < this.size) {
                 stacks[slot] = item;
             }
         }
         data.readByte();
-        isInputLimited = data.readBoolean();
+        this.isInputLimited = data.readBoolean();
     }
 
     @Override
     public Data writeData() {
-        return DataCodecs.COMPOUND_TAG_CODEC.encode(serializeNBT());
+        var list = new ListData();
+        if (this.isInputLimited) list.addNull();
+        var stacks = this.stacks;
+        for (int i = 0; i < this.size; i++) {
+            var stack = stacks[i];
+            if (!stack.isEmpty()) {
+                CompoundTag itemTag = new CompoundTag();
+                itemTag.putInt("Slot", i);
+                stack.save(itemTag);
+                list.add(DataCodecs.COMPOUND_TAG_CODEC.encode(itemTag));
+            }
+        }
+        return list.isEmpty() ? NullData.INSTANCE : list;
     }
 
     @Override
     public void readData(@NotNull Data data, int dataVersion) {
-        deserializeNBT(DataCodecs.COMPOUND_TAG_CODEC.decode(data, dataVersion));
+        GTDataFixer.decodeCustomItemStackHandler(this, data, dataVersion);
+    }
+
+    public final ByteArrayTag serializeNBT() {
+        return new ByteArrayTag(writeData().writeToBytes());
+    }
+
+    public final void deserializeNBT(Tag tag) {
+        if (tag instanceof ByteArrayTag byteTags) {
+            readData(Data.readData(byteTags.getAsByteArray()), GTDataFixer.VERSION);
+        } else if (tag instanceof CompoundTag nbt) {
+            ListTag tagList = nbt.getList("Items", Tag.TAG_COMPOUND);
+            for (int i = 0; i < tagList.size(); i++) {
+                CompoundTag itemTags = tagList.getCompound(i);
+                int slot = itemTags.getInt("Slot");
+                if (slot >= 0 && slot < size) {
+                    stacks[slot] = ItemStack.of(itemTags);
+                }
+            }
+            isInputLimited = nbt.getBoolean("il");
+        }
     }
 }

@@ -88,7 +88,7 @@ public final class TagSerializableAccess extends AbstractFieldAccess<ITagSeriali
     }
 
     @Override
-    protected @NotNull Data writeData(@NotNull ITagSerializable instance) {
+    protected @NotNull Data writeData(@NotNull Object source, @NotNull ITagSerializable instance) {
         var nbt = instance.serializeNBT();
         if (nbt == null) {
             return NullData.INSTANCE;

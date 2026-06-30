@@ -99,7 +99,7 @@ public class CrateMachine extends MetaMachine implements IUIMachine, IMachineLif
         if (tag != null) {
             this.isTaped = tag.contains("taped") && tag.getBoolean("taped");
             if (isTaped) {
-                this.inventory.storage.deserializeNBT(tag.getCompound("inventory"));
+                this.inventory.storage.deserializeNBT(tag.get("inventory"));
             }
             tag.remove("taped");
             this.isTaped = false;
@@ -118,7 +118,7 @@ public class CrateMachine extends MetaMachine implements IUIMachine, IMachineLif
     @Override
     public void loadFromItem(CompoundTag tag) {
         if (tag.getBoolean("taped")) isTaped = true;
-        if (tag.contains("inventory")) inventory.storage.deserializeNBT(tag.getCompound("inventory"));
+        if (tag.contains("inventory")) inventory.storage.deserializeNBT(tag.get("inventory"));
     }
 
     @Override

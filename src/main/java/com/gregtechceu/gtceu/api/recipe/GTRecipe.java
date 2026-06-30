@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
+import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.nbt.*;
@@ -284,7 +285,7 @@ public final class GTRecipe {
     @Nullable
     public static GTRecipe fromNbt(@Nullable Tag t) {
         if (t instanceof ByteArrayTag tag) {
-            return DATA_CODEC.decode(Data.readData(tag.getAsByteArray()));
+            return DATA_CODEC.decode(Data.readData(tag.getAsByteArray()), GTDataFixer.VERSION);
         } else if (t instanceof CompoundTag compoundTag) {
             var definition = GTRecipe.EMPTY.definition;
             var data = new DataComponentMap();

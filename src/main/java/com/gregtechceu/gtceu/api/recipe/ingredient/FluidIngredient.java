@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.recipe.ingredient;
 
 import com.gregtechceu.gtceu.api.recipe.content.ContentInner;
+import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.HolderSet;
@@ -125,7 +126,7 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
         if (data.isNull()) return EMPTY;
         var map = data.getMap();
         var amount = map.get("a").getLong();
-        var nbt = map.get("n") instanceof MapData mapData ? DataCodecs.COMPOUND_TAG_CODEC.decode(mapData) : null;
+        var nbt = map.get("n") instanceof MapData mapData ? DataCodecs.COMPOUND_TAG_CODEC.decode(mapData, GTDataFixer.VERSION) : null;
         var fluid = map.get("f");
         if (fluid != null) {
             return new FluidIngredient(GTUtil.FLUID_VALUE.apply(GTUtil.getResourceLocation(fluid.getString())), amount, nbt);
