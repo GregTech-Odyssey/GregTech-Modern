@@ -296,6 +296,12 @@ public class GTItems {
             .properties(p -> p.stacksTo(1))
             .onRegister(attach(new ColorSprayBehaviour(() -> SPRAY_EMPTY.asStack(), 1024, -1))).register();
 
+    public static ItemEntry<ComponentItem> INFINITE_SPRAY_CAN = REGISTRATE
+            .item("infinite_spray_can", ComponentItem::create)
+            .lang("Spray Can (Infinite)")
+            .properties(p -> p.stacksTo(1))
+            .onRegister(attach(new InfiniteSprayCanBehaviour())).register();
+
     public static ItemEntry<ComponentItem> PORTABLE_SCANNER = REGISTRATE.item("portable_scanner", ComponentItem::create)
             .lang("Portable Scanner")
             .properties(p -> p.stacksTo(1))

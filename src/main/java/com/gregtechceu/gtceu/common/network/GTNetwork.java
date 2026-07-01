@@ -16,6 +16,7 @@ public class GTNetwork {
     public static void init() {
         NETWORK.registerC2S(CPacketKeysPressed.class);
         NETWORK.registerC2S(CSPacketSBlockEntitySync.class);
+        NETWORK.registerC2S(CPacketSprayCanAction.class);
 
         NETWORK.registerS2C(SPacketProspectOre.class);
         NETWORK.registerS2C(SPacketProspectBedrockFluid.class);

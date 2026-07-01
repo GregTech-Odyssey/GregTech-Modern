@@ -761,6 +761,12 @@ public class LangHandler {
         provider.add("behaviour.paintspray.red.tooltip", "Can paint things in Red");
         provider.add("behaviour.paintspray.black.tooltip", "Can paint things in Black");
         provider.add("behaviour.paintspray.uses", "Remaining Uses: %d");
+        provider.add("behaviour.infinite_spray_can.select", "Select Color");
+        provider.add("behaviour.infinite_spray_can.solvent", "Solvent (Remove Color)");
+        provider.add("behaviour.infinite_spray_can.current", "Current Color: %s");
+        provider.add("behaviour.infinite_spray_can.left", "§7Left-Click: Cycle Color");
+        provider.add("behaviour.infinite_spray_can.middle", "§7Middle-Click: Open Color Palette");
+        provider.add("behaviour.infinite_spray_can.right", "§7Right-Click: Paint (Sneak for chain)");
         provider.add("behaviour.prospecting", "Usable for Prospecting");
         provider.add("behaviour.meta.machine.config.copy.tooltip", "§7Sneak + R-Click to copy machine configuration");
         provider.add("behaviour.meta.machine.config.paste.tooltip", "§7R-Click to paste machine configuration");
