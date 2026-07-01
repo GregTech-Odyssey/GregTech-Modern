@@ -174,7 +174,7 @@ public class CircuitHandler extends NotifiableItemStackHandler {
             } else {
                 if (data == NullData.INSTANCE) {
                     stacks[0] = ItemStack.EMPTY;
-                } else if (data instanceof IntData(int value)) {
+                } else if (data instanceof ByteData(byte value)) {
                     stacks[0] = IntCircuitBehaviour.stack(value);
                 } else {
                     stacks[0] = ItemStack.of(DataCodecs.COMPOUND_TAG_CODEC.decode(data));

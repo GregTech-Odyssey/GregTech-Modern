@@ -31,7 +31,6 @@ public class BlockTagLoader {
         provider.addTag(CustomTags.ENDSTONE_ORE_REPLACEABLES).add(Blocks.END_STONE);
 
         provider.addTag(BlockTags.REPLACEABLE)
-                .add(GTMaterials.Oil.getFluid().defaultFluidState().createLegacyBlock().getBlock())
                 .add(GTMaterials.OilLight.getFluid().defaultFluidState().createLegacyBlock().getBlock())
                 .add(GTMaterials.OilHeavy.getFluid().defaultFluidState().createLegacyBlock().getBlock())
                 .add(GTMaterials.RawOil.getFluid().defaultFluidState().createLegacyBlock().getBlock())
