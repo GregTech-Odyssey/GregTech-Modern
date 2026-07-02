@@ -47,7 +47,7 @@ public final class ShortField extends AbstractField<Short> {
     @Override
     public @NotNull Data writeToData(@NotNull Object source) {
         var value = definition.getShort(source);
-        if (definition.hasDefaultValue() & definition.getDefaultShortValue(source) == value) return NullData.NONE;
+        if (definition.hasDefaultValue() && definition.getDefaultShortValue(source) == value) return NullData.NONE;
         return ShortData.valueOf(value);
     }
 
