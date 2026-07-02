@@ -17,17 +17,11 @@ import java.util.function.Predicate;
 public class FluidHandlerList implements ICustomFluidStackHandler, INBTSerializable<CompoundTag> {
 
     public final ICustomFluidStackHandler[] handlers;
-    protected final int size;
     @Setter
     protected Predicate<FluidStack> filter = GTUtil.FAVORABLE;
 
     public FluidHandlerList(ICustomFluidStackHandler... handlers) {
         this.handlers = handlers;
-        int size = 0;
-        for (var handler : handlers) {
-            size += handler.getTanks();
-        }
-        this.size = size;
     }
 
     public FluidHandlerList(List<ICustomFluidStackHandler> handlers) {
@@ -36,6 +30,12 @@ public class FluidHandlerList implements ICustomFluidStackHandler, INBTSerializa
 
     @Override
     public int getTanks() {
+        // computed dynamically: delegates (e.g. FluidTankProxyTrait) may change their tank
+        // count after this wrapper is created, such as when a multiblock forms after chunk load
+        int size = 0;
+        for (var handler : handlers) {
+            size += handler.getTanks();
+        }
         return size;
     }
 

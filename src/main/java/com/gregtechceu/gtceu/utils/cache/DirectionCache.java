@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @SuppressWarnings("unchecked")
@@ -54,5 +55,26 @@ public class DirectionCache<T> {
     public void clearCache() {
         any = null;
         Arrays.fill(array, null);
+    }
+
+    /**
+     * Clears the cache and passes each previously cached value to {@code onClear},
+     * e.g. to {@link net.minecraftforge.common.util.LazyOptional#invalidate()} handed-out capabilities
+     * so that other mods holding them know to re-query.
+     * Values are removed from the cache before the callback runs.
+     */
+    public void clearCache(@NotNull Consumer<? super T> onClear) {
+        var oldAny = any;
+        any = null;
+        if (oldAny != null && oldAny != NULL) {
+            onClear.accept((T) oldAny);
+        }
+        for (int i = 0; i < array.length; i++) {
+            var old = array[i];
+            array[i] = null;
+            if (old != null && old != NULL) {
+                onClear.accept((T) old);
+            }
+        }
     }
 }

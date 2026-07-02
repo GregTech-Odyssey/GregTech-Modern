@@ -7,19 +7,19 @@ import org.jetbrains.annotations.NotNull;
 public class ItemHandlerList implements ICustomItemStackHandler {
 
     protected final ICustomItemStackHandler[] handlers;
-    protected final int size;
 
     public ItemHandlerList(ICustomItemStackHandler... handlers) {
         this.handlers = handlers;
-        int size = 0;
-        for (var handler : handlers) {
-            size += handler.getSlots();
-        }
-        this.size = size;
     }
 
     @Override
     public int getSlots() {
+        // computed dynamically: delegates (e.g. ItemHandlerProxyTrait) may change their slot
+        // count after this wrapper is created, such as when a multiblock forms after chunk load
+        int size = 0;
+        for (var handler : handlers) {
+            size += handler.getSlots();
+        }
         return size;
     }
 
