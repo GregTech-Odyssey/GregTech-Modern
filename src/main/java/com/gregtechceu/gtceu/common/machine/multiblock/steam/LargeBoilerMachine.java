@@ -54,6 +54,8 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
     @Getter
     @SaveToDisk
     private int throttle;
+    @SaveToDisk
+    private int activeThrottle;
     @Nullable
     protected TickableSubscription temperatureSubs;
     private int steamGenerated;
@@ -65,6 +67,7 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
         this.maxTemperature = maxTemperature;
         this.heatSpeed = heatSpeed;
         this.throttle = 100;
+        this.activeThrottle = 100;
     }
 
     //////////////////////////////////////
@@ -115,10 +118,11 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
             currentTemperature -= 1;
         }
         if (currentTemperature > 100 && isFormed() && getOffsetTimer() % 5 == 0) {
-            int water = currentTemperature * throttle * 5 / 16000;
+            int currentThrottle = recipeLogic.isWorking() ? activeThrottle : throttle;
+            int water = currentTemperature * currentThrottle * 5 / 16000;
             if (water > 0) {
                 if (inputFluid(Fluids.WATER, water)) {
-                    steamGenerated = currentTemperature * throttle * 5 / 100;
+                    steamGenerated = currentTemperature * currentThrottle * 5 / 100;
                     if (steamGenerated > 0) {
                         outputFluid(STEAM, steamGenerated);
                     }
@@ -134,6 +138,12 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
 
     protected int getCoolDownRate() {
         return 1;
+    }
+
+    @Override
+    public void beforeWorking(RecipeHandlerUnit unit, GTRecipe recipe) {
+        super.beforeWorking(unit, recipe);
+        activeThrottle = throttle;
     }
 
     @Override
