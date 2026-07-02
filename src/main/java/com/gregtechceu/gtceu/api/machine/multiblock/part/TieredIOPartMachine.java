@@ -30,7 +30,7 @@ public class TieredIOPartMachine extends TieredPartMachine implements IControlla
      */
     @Getter
     @Setter
-    @SaveToDisk(defaultValue = "true")
+    @SaveToDisk
     @SyncToClient(notifyUpdate = true)
     protected boolean workingEnabled = true;
 

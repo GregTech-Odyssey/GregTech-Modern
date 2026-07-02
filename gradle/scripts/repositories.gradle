@@ -5,6 +5,7 @@ repositories {
     }
     mavenCentral()
 
+    maven { url = 'https://maven.gtodyssey.com/releases' }
     maven { // JEI mirror, AE2
         name = "ModMaven"
         url = "https://modmaven.dev"

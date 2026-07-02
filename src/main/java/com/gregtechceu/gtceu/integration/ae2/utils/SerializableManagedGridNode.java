@@ -17,7 +17,7 @@ public class SerializableManagedGridNode extends ManagedGridNode implements ITag
     public CompoundTag serializeNBT() {
         CompoundTag tag = new CompoundTag();
         super.saveToNBT(tag);
-        return tag;
+        return tag.isEmpty() ? null : tag;
     }
 
     @Override

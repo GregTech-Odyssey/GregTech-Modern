@@ -44,7 +44,7 @@ public class IntCircuitBehaviour implements IItemUIFactory, IAddInformation {
     }
 
     public static void setCircuitConfiguration(ItemStack itemStack, int configuration) {
-        itemStack.getOrCreateTag().putInt(IntCircuitIngredient.Configuration, configuration);
+        itemStack.getOrCreateTag().putInt(IntCircuitIngredient.Configuration, Math.max(0, configuration));
     }
 
     public static int getCircuitConfiguration(ItemStack itemStack) {

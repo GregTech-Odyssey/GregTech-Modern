@@ -7,6 +7,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import appeng.api.config.Actionable;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEKey;
+import appeng.api.stacks.AEKeyMap;
 import appeng.api.storage.MEStorage;
 import com.gto.datasynclib.AbstractDataSerializable;
 import com.gto.datasynclib.LogicalSide;
@@ -15,7 +16,6 @@ import com.gto.datasynclib.datasream.data.ListData;
 import com.gto.datasynclib.datasream.data.NullData;
 import com.gto.datasynclib.util.DataCodecs;
 import it.unimi.dsi.fastutil.objects.Reference2LongMap;
-import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +33,7 @@ public class KeyStorage extends AbstractDataSerializable implements Iterable<Ref
 
     public final ReentrantLock lock = new ReentrantLock();
 
-    public Reference2LongOpenHashMap<AEKey> storage = new Reference2LongOpenHashMap<>();
+    public final AEKeyMap<AEKey> storage = new AEKeyMap<>();
 
     // not
     @Nullable
@@ -113,7 +113,7 @@ public class KeyStorage extends AbstractDataSerializable implements Iterable<Ref
             var value = data.readVarLong();
             if (value == 0) continue;
             var key = AEKey.readKey(data);
-            storage.put(key, value);
+            storage.set(key, value);
         }
     }
 
@@ -145,7 +145,7 @@ public class KeyStorage extends AbstractDataSerializable implements Iterable<Ref
             long value = tag.getLong("value");
             lock.lock();
             try {
-                storage.put(key, value);
+                storage.set(key, value);
             } finally {
                 lock.unlock();
             }
