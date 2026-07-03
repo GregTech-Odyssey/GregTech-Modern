@@ -69,7 +69,7 @@ public class DirectionCache<T> {
         if (oldAny != null && oldAny != NULL) {
             onClear.accept((T) oldAny);
         }
-        for (int i = 0; i < array.length; i++) {
+        for (int i = 0; i < 6; i++) {
             var old = array[i];
             array[i] = null;
             if (old != null && old != NULL) {
