@@ -413,8 +413,9 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
         itemHandlerModifiableCoverCache.clearCache();
         fluidHandlerModifiableCache.clearCache();
         fluidHandlerModifiableCoverCache.clearCache();
-        itemCapDirectionCache.clearCache();
-        fluidCapDirectionCache.clearCache();
+        // invalidate handed-out LazyOptionals so mods caching them (Pipez etc.) re-query
+        itemCapDirectionCache.clearCache(LazyOptional::invalidate);
+        fluidCapDirectionCache.clearCache(LazyOptional::invalidate);
     }
 
     public void clearInventory(ICustomItemStackHandler inventory) {
