@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
+import com.gregtechceu.gtceu.api.gui.fancy.TabsWidget;
 import com.gregtechceu.gtceu.api.gui.widget.PhantomFluidWidget;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
@@ -15,7 +16,9 @@ import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredIOPartMac
 import com.gregtechceu.gtceu.api.machine.trait.CircuitHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.recipe.handler.IFilteredHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
@@ -55,7 +58,7 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     public static final int INITIAL_TANK_CAPACITY_9X = FluidType.BUCKET_VOLUME;
     @SaveToDisk
     public final NotifiableFluidTank tank;
-    private final int slots;
+    protected final int slots;
     @Nullable
     protected TickableSubscription autoIOSubs;
     @Nullable
@@ -64,9 +67,13 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     @SaveToDisk
     protected final NotifiableItemStackHandler circuitInventory;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "false")
     @SyncToClient
-    private boolean isDistinct = false;
+    protected boolean isDistinct = false;
+
+    @Getter
+    @SaveToDisk(defaultValue = "0")
+    protected int priority;
 
     // The `Object... args` parameter is necessary in case a superclass needs to pass any args along to createTank().
     // We can't use fields here because those won't be available while createTank() is called.
@@ -106,6 +113,7 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
             getHandlerUnit().setDistinct(isDistinct);
             getHandlerUnit().setColor(getPaintingColor());
             tankSubs = tank.addChangedListener(this::updateTankSubscription);
+            tank.setPriority(priority);
         }
     }
 
@@ -122,6 +130,12 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     public void setDistinct(boolean distinct) {
         isDistinct = (io != IO.OUT && distinct);
         getHandlerUnit().setDistinctAndNotify(isDistinct);
+    }
+
+    protected void setPriority(int priority) {
+        this.priority = priority;
+        tank.setPriority(priority);
+        RecipeHandlerUnit.notify(this);
     }
 
     @Override
@@ -232,6 +246,12 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
             IDistinctPart.super.attachConfigurators(configuratorPanel);
             configuratorPanel.attachConfigurators(new CircuitFancyConfigurator(circuitInventory.storage));
         }
+    }
+
+    @Override
+    public void attachSideTabs(TabsWidget sideTabs) {
+        super.attachSideTabs(sideTabs);
+        sideTabs.attachSubTab(IFilteredHandler.createPriorityConfigurator(this::getPriority, this::setPriority));
     }
 
     @Override

@@ -49,12 +49,12 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
     @Getter
     public final int heatSpeed;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "0")
     private int currentTemperature;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "100")
     private int throttle;
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "100")
     private int activeThrottle;
     @Nullable
     protected TickableSubscription temperatureSubs;

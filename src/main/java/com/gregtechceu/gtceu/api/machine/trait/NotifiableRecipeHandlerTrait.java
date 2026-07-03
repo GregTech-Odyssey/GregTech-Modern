@@ -7,6 +7,9 @@ import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
 import net.minecraft.server.level.ServerLevel;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +18,10 @@ public abstract class NotifiableRecipeHandlerTrait extends MachineTrait implemen
     protected List<Runnable> listeners = new ArrayList<>();
 
     protected boolean isDirty = true;
+
+    @Getter
+    @Setter
+    protected int priority;
 
     public NotifiableRecipeHandlerTrait(MetaMachine machine) {
         super(machine);

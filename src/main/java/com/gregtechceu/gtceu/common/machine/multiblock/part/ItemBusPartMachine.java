@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
+import com.gregtechceu.gtceu.api.gui.fancy.TabsWidget;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
@@ -13,7 +14,9 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachi
 import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.CircuitHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.recipe.handler.IFilteredHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
@@ -46,7 +49,7 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
 
     @Getter
     @SaveToDisk
-    private final NotifiableItemStackHandler inventory;
+    protected final NotifiableItemStackHandler inventory;
     @Nullable
     protected TickableSubscription autoIOSubs;
     @Nullable
@@ -58,7 +61,11 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
     @Getter
     @SaveToDisk
     @SyncToClient
-    private boolean isDistinct = false;
+    protected boolean isDistinct = false;
+
+    @Getter
+    @SaveToDisk(defaultValue = "0")
+    protected int priority;
 
     public ItemBusPartMachine(MetaMachineBlockEntity holder, int tier, IO io, Object... args) {
         super(holder, tier, io);
@@ -101,6 +108,7 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
             getHandlerUnit().setDistinct(isDistinct);
             getHandlerUnit().setColor(getPaintingColor());
             inventorySubs = getInventory().addChangedListener(this::updateInventorySubscription);
+            inventory.setPriority(priority);
         }
     }
 
@@ -122,6 +130,12 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
     public void setDistinct(boolean distinct) {
         isDistinct = (io != IO.OUT && distinct);
         getHandlerUnit().setDistinctAndNotify(isDistinct);
+    }
+
+    protected void setPriority(int priority) {
+        this.priority = priority;
+        inventory.setPriority(priority);
+        RecipeHandlerUnit.notify(this);
     }
 
     @Override
@@ -235,6 +249,12 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
             IInputLimitableMachine.super.attachConfigurators(configuratorPanel);
             configuratorPanel.attachConfigurators(new CircuitFancyConfigurator(circuitInventory.storage));
         }
+    }
+
+    @Override
+    public void attachSideTabs(TabsWidget sideTabs) {
+        super.attachSideTabs(sideTabs);
+        sideTabs.attachSubTab(IFilteredHandler.createPriorityConfigurator(this::getPriority, this::setPriority));
     }
 
     @Override

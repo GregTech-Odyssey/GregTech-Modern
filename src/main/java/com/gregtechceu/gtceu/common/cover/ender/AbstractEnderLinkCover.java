@@ -50,22 +50,22 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
 
     public static final Pattern COLOR_INPUT_PATTERN = Pattern.compile("^[0-9a-fA-F]{0,8}$");
     protected final ConditionalSubscriptionHandler subscriptionHandler;
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "FFFFFFFF")
     @SyncToClient
     protected String colorStr = VirtualEntry.DEFAULT_COLOR;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "PUBLIC")
     @SyncToClient
     protected Permissions permission = Permissions.PUBLIC;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "true")
     protected boolean isWorkingEnabled = true;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "DISABLED")
     @SyncToClient
     protected ManualIOMode manualIOMode = ManualIOMode.DISABLED;
     @Getter
-    @SaveToDisk
+    @SaveToDisk(defaultValue = "OUT")
     @SyncToClient(notifyUpdate = true)
     protected IO io = IO.OUT;
     protected VirtualEntryWidget virtualEntryWidget;

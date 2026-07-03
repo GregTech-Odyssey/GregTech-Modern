@@ -84,17 +84,17 @@ public class RecipeHandlerUnit {
         var searchs = new ArrayList<IRecipeHandler>();
         var traits = new ArrayList<IRecipeHandlerTrait>();
         for (var handler : handlers) {
+            var priority = handler.getPriority();
+            if (this.priority < priority) this.priority = priority;
             if (handler.canHandleItem()) {
                 if (handler.isInfiniteOutputItem()) {
                     isInfiniteOutputItem = true;
-                    priority = IFilteredHandler.HIGH;
                 }
                 items.add(handler);
             }
             if (handler.canHandleFluid()) {
                 if (handler.isInfiniteOutputFluid()) {
                     isInfiniteOutputFluid = true;
-                    priority = IFilteredHandler.HIGH;
                 }
                 fluids.add(handler);
             }

@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -67,6 +68,7 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
         super.onLoad();
         if (isRemote()) return;
         tankSubs = tank.addChangedListener(this::updateInventorySubscription);
+        tank.setPriority(priority);
     }
 
     @Override
@@ -76,6 +78,14 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
             tankSubs.unsubscribe();
             tankSubs = null;
         }
+    }
+
+    @Override
+    protected void setPriority(int priority) {
+        this.priority = priority;
+        inventory.setPriority(priority);
+        tank.setPriority(priority);
+        RecipeHandlerUnit.notify(this);
     }
 
     ///////////////////////////////
