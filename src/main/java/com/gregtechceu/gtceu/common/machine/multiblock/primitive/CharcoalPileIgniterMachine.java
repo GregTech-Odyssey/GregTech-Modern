@@ -18,12 +18,14 @@ import com.gregtechceu.gtceu.data.recipe.CustomTags;
 
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
@@ -213,6 +215,9 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
                 .where('W', Predicates.blockTag(CustomTags.CHARCOAL_PILE_IGNITER_WALLS))
                 .where('L', logPredicate())
                 .where('A', Predicates.any())
+                .info(Component.literal("✘ ")
+                        .append(Component.translatable("gtocore.structure.deprecated"))
+                        .withStyle(ChatFormatting.RED))
                 .build() };
     }
 
