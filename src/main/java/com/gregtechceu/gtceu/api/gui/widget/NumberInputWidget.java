@@ -161,6 +161,7 @@ public abstract class NumberInputWidget<T extends Number> extends WidgetGroup {
     }
 
     public NumberInputWidget<T> setValue(T value) {
+        if (valueSupplier.get().equals(value)) return this;
         onChanged.accept(value);
         return this;
     }

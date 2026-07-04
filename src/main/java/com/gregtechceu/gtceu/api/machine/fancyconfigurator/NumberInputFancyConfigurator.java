@@ -60,7 +60,7 @@ public class NumberInputFancyConfigurator<T extends Number> implements IFancyUIP
     @Override
     public Widget createMainPage(FancyMachineUIWidget widget) {
         var group = new NumberInputConfigurator<>(inputWidget);
-        group.setBackground(GuiTextures.BACKGROUND_INVERSE);
+        group.setBackground(GuiTextures.BACKGROUND);
         return group;
     }
 

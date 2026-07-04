@@ -25,7 +25,7 @@ public interface IFilteredHandler {
     int LOWEST = Integer.MIN_VALUE;
 
     static NumberInputFancyConfigurator<Integer> createPriorityConfigurator(Supplier<Integer> get, Consumer<Integer> set) {
-        var configurator = new NumberInputFancyConfigurator<>(new IntInputWidget(Position.ORIGIN, get, set));
+        var configurator = new NumberInputFancyConfigurator<>(new IntInputWidget(Position.ORIGIN, get, set).setMin(Integer.MIN_VALUE));
         configurator.setTitle(Component.translatable("gui.ae2.Priority"));
         configurator.setTabTooltips(Collections.singletonList(Component.translatable("gui.ae2.Priority")));
         configurator.setTabIcon(() -> new ItemStackTexture(GTItems.TAG_FILTER.asItem()));
