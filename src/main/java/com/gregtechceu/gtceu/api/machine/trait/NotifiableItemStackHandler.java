@@ -172,8 +172,9 @@ public class NotifiableItemStackHandler extends NotifiableContentHandler impleme
                 for (int slot = 0; slot < size; ++slot) {
                     ItemStack stored = storage.stacks[slot];
                     var visited = visiteds[slot];
-                    int count = (visited == null ? stored.getCount() : visited.getAmount());
-                    if (count < itemStack.getMaxStackSize() && count < storage.getSlotLimit(slot) && (count == 0 || stored.is(item)) && (visited == null || visited.inner.is(item))) {
+                    var storedCount = stored.getCount();
+                    int count = (visited == null ? storedCount : visited.getAmount());
+                    if (count < itemStack.getMaxStackSize() && count < storage.getSlotLimit(slot) && (storedCount == 0 || stored.is(item)) && (visited == null || visited.inner.is(item))) {
                         var inserted = storage.insert(slot, itemStack, ingredient.getIntAmount(), true);
                         if (inserted > 0) {
                             visiteds[slot] = new SimpleStack<>(itemStack, inserted);

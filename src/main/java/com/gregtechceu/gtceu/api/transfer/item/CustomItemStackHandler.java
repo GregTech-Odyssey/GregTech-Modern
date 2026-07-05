@@ -105,7 +105,7 @@ public class CustomItemStackHandler extends AbstractDataSerializable implements 
     }
 
     public int insert(int slot, @NotNull ItemStack stack, int amount, boolean simulate) {
-        if (!filter.test(stack)) return 0;
+        if (!isItemValid(slot, stack)) return 0;
         ItemStack existing = this.stacks[slot];
         var stored = existing.getCount();
         int limit = getStackLimit(slot, stack) - stored;
@@ -118,6 +118,7 @@ public class CustomItemStackHandler extends AbstractDataSerializable implements 
                 } else {
                     existing.grow(reachedLimit ? limit : amount);
                 }
+                onContentsChanged(slot);
             }
             return reachedLimit ? limit : amount;
         }

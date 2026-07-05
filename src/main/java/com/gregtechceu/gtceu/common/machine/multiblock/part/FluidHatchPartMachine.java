@@ -133,6 +133,7 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     }
 
     protected void setPriority(int priority) {
+        if (priority == Integer.MIN_VALUE) return;
         this.priority = priority;
         tank.setPriority(priority);
         RecipeHandlerUnit.notify(this);

@@ -3,7 +3,7 @@ ldlib = "1.0.48"
 mixinExtras = "0.5.0-rc.3"
 
 emi = "1.1.13+1.20.1"
-ae2 = "15.5.9"
+ae2 = "15.267.2"
 curios = "5.9.1+1.20.1"
 ftblibrary = "2001.2.4"
 ftbteams = "2001.3.0"

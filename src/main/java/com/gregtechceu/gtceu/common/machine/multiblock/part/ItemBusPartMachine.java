@@ -133,6 +133,7 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
     }
 
     protected void setPriority(int priority) {
+        if (priority == Integer.MIN_VALUE) return;
         this.priority = priority;
         inventory.setPriority(priority);
         RecipeHandlerUnit.notify(this);
