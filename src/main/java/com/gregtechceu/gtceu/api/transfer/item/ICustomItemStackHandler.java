@@ -1,7 +1,5 @@
 package com.gregtechceu.gtceu.api.transfer.item;
 
-import com.gregtechceu.gtceu.utils.SimpleStack;
-
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
@@ -70,27 +68,10 @@ public interface ICustomItemStackHandler extends IItemHandlerModifiable, Externa
     default int insertExternal(AEItemKey itemKey, int amount, Actionable mode) {
         final var orgInput = itemKey.toStack(amount);
         final var slotCount = this.getSlots();
+        final var simulate = mode == Actionable.SIMULATE;
         var remaining = orgInput;
-        if (mode == Actionable.SIMULATE) {
-            final SimpleStack<ItemStack>[] visiteds = new SimpleStack[slotCount];
-            for (var i = 0; i < slotCount && !remaining.isEmpty(); i++) {
-                final var stored = this.getStackInSlot(i);
-                final var visited = visiteds[i];
-                final var storedCount = stored.getCount();
-                int count = (visited == null ? storedCount : visited.getAmount());
-                if (count < orgInput.getMaxStackSize() && count < this.getSlotLimit(i) && (storedCount == 0 || itemKey.matches(stored))) {
-                    count = remaining.getCount();
-                    remaining = this.insertItem(i, remaining, false);
-                    var inserted = count - remaining.getCount();
-                    if (inserted > 0) {
-                        visiteds[i] = new SimpleStack<>(orgInput, inserted);
-                    }
-                }
-            }
-        } else {
-            for (var i = 0; i < slotCount && !remaining.isEmpty(); i++) {
-                remaining = this.insertItem(i, remaining, false);
-            }
+        for (var i = 0; i < slotCount && !remaining.isEmpty(); i++) {
+            remaining = this.insertItem(i, remaining, simulate);
         }
         if (remaining == orgInput) {
             return 0;

@@ -2,6 +2,8 @@ package com.gregtechceu.gtceu.api.transfer.item;
 
 import net.minecraft.world.item.ItemStack;
 
+import appeng.api.config.Actionable;
+import appeng.api.stacks.AEItemKey;
 import org.jetbrains.annotations.NotNull;
 
 public class ItemHandlerList implements ICustomItemStackHandler {
@@ -69,6 +71,58 @@ public class ItemHandlerList implements ICustomItemStackHandler {
             slot -= slots;
         }
         return ItemStack.EMPTY;
+    }
+
+    @Override
+    public ItemStack insertItemInternal(int slot, @NotNull ItemStack stack, boolean simulate) {
+        for (var handler : handlers) {
+            var slots = handler.getSlots();
+            if (slot < slots) {
+                return handler.insertItemInternal(slot, stack, simulate);
+            }
+            slot -= slots;
+        }
+        return stack;
+    }
+
+    @Override
+    public ItemStack extractItemInternal(int slot, int amount, boolean simulate) {
+        for (var handler : handlers) {
+            var slots = handler.getSlots();
+            if (slot < slots) {
+                return handler.extractItemInternal(slot, amount, simulate);
+            }
+            slot -= slots;
+        }
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public int insertExternal(AEItemKey itemKey, int amount, Actionable mode) {
+        var totalInserted = 0;
+        for (var handler : handlers) {
+            var inserted = handler.insertExternal(itemKey, amount, mode);
+            if (inserted > 0) {
+                totalInserted += inserted;
+                amount -= inserted;
+                if (amount <= 0) break;
+            }
+        }
+        return totalInserted;
+    }
+
+    @Override
+    public int extractExternal(AEItemKey itemKey, int amount, Actionable mode) {
+        var totalExtracted = 0;
+        for (var handler : handlers) {
+            var extracted = handler.extractExternal(itemKey, amount, mode);
+            if (extracted > 0) {
+                totalExtracted += extracted;
+                amount -= extracted;
+                if (amount <= 0) break;
+            }
+        }
+        return totalExtracted;
     }
 
     @Override

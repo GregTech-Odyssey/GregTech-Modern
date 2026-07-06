@@ -12,6 +12,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.items.ItemHandlerHelper;
 
+import appeng.api.config.Actionable;
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.AbstractDataSerializable;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
@@ -167,6 +169,45 @@ public class CustomItemStackHandler extends AbstractDataSerializable implements 
             }
             return amount;
         }
+    }
+
+    @Override
+    public int insertExternal(AEItemKey itemKey, int amount, Actionable mode) {
+        final var stack = itemKey.getReadOnlyStack();
+        final var slotCount = this.getSlots();
+        final var simulate = mode == Actionable.SIMULATE;
+        var totalInserted = 0;
+        for (var i = 0; i < slotCount && amount > 0; i++) {
+            final var inserted = this.insert(i, stack, amount, simulate);
+            if (inserted > 0) {
+                totalInserted += inserted;
+                amount -= inserted;
+                if (amount <= 0 || isInputLimited) {
+                    break;
+                }
+            }
+        }
+        return totalInserted;
+    }
+
+    @Override
+    public int extractExternal(AEItemKey itemKey, int amount, Actionable mode) {
+        final var slotCount = this.getSlots();
+        final var simulate = mode == Actionable.SIMULATE;
+        var totalExtracted = 0;
+        for (var i = 0; i < slotCount; i++) {
+            if (itemKey.matches(this.getStackInSlot(i))) {
+                final var extracted = this.extract(i, amount, simulate);
+                if (extracted > 0) {
+                    totalExtracted += extracted;
+                    amount -= extracted;
+                    if (amount <= 0) {
+                        break;
+                    }
+                }
+            }
+        }
+        return totalExtracted;
     }
 
     @Override

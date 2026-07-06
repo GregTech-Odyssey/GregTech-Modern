@@ -2,6 +2,8 @@ package com.gregtechceu.gtceu.api.transfer.item;
 
 import net.minecraft.world.item.ItemStack;
 
+import appeng.api.config.Actionable;
+import appeng.api.stacks.AEItemKey;
 import org.jetbrains.annotations.NotNull;
 
 public class LockableItemStackHandler implements ICustomItemStackHandler {
@@ -36,6 +38,26 @@ public class LockableItemStackHandler implements ICustomItemStackHandler {
     @Override
     public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
         return lock ? ItemStack.EMPTY : delegate.extractItem(slot, amount, simulate);
+    }
+
+    @Override
+    public ItemStack insertItemInternal(int slot, @NotNull ItemStack stack, boolean simulate) {
+        return lock ? stack : delegate.insertItem(slot, stack, simulate);
+    }
+
+    @Override
+    public ItemStack extractItemInternal(int slot, int amount, boolean simulate) {
+        return lock ? ItemStack.EMPTY : delegate.extractItem(slot, amount, simulate);
+    }
+
+    @Override
+    public int insertExternal(AEItemKey itemKey, int amount, Actionable mode) {
+        return lock ? 0 : delegate.insertExternal(itemKey, amount, mode);
+    }
+
+    @Override
+    public int extractExternal(AEItemKey itemKey, int amount, Actionable mode) {
+        return lock ? 0 : delegate.extractExternal(itemKey, amount, mode);
     }
 
     @Override

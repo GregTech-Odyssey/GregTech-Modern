@@ -17,6 +17,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import appeng.api.config.Actionable;
+import appeng.api.stacks.AEItemKey;
 import com.fast.recipesearch.IntLongMap;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
@@ -280,6 +282,14 @@ public class NotifiableItemStackHandler extends NotifiableContentHandler impleme
     }
 
     @Override
+    public int insertExternal(AEItemKey itemKey, int amount, Actionable mode) {
+        if (canCapInput()) {
+            return storage.insertExternal(itemKey, amount, mode);
+        }
+        return 0;
+    }
+
+    @Override
     public ItemStack insertItemInternal(int slot, @NotNull ItemStack stack, boolean simulate) {
         return storage.insertItem(slot, stack, simulate);
     }
@@ -291,6 +301,14 @@ public class NotifiableItemStackHandler extends NotifiableContentHandler impleme
             return storage.extractItem(slot, amount, simulate);
         }
         return ItemStack.EMPTY;
+    }
+
+    @Override
+    public int extractExternal(AEItemKey itemKey, int amount, Actionable mode) {
+        if (canCapOutput()) {
+            return storage.extractExternal(itemKey, amount, mode);
+        }
+        return 0;
     }
 
     @Override
