@@ -119,13 +119,9 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
             return 1;
         }
 
-        // prevent extracting the item while running
         @Override
-        public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            if (!isLocked()) {
-                return super.extractItem(slot, amount, simulate);
-            }
-            return ItemStack.EMPTY;
+        public boolean canCapOutput() {
+            return !isLocked() && super.canCapOutput();
         }
 
         // only allow data items in the second slot
