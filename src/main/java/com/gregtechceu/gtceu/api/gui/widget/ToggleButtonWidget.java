@@ -9,6 +9,9 @@ import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.SwitchWidget;
 
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -60,6 +63,21 @@ public class ToggleButtonWidget extends SwitchWidget {
         isMultiLang = true;
         updateHoverTooltips();
         return this;
+    }
+
+    @Override
+    public void readInitialData(FriendlyByteBuf buffer) {
+        super.readInitialData(buffer);
+        updateHoverTooltips();
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
+        super.readUpdateInfo(id, buffer);
+        if (id == 2) {
+            updateHoverTooltips();
+        }
     }
 
     protected void updateHoverTooltips() {
