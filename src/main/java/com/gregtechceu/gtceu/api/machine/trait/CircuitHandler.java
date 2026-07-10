@@ -19,9 +19,9 @@ import net.minecraft.world.item.ItemStack;
 
 import com.fast.recipesearch.IntLongMap;
 import com.gto.datasynclib.LogicalSide;
-import com.gto.datasynclib.datasream.data.ByteData;
-import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.data.NullData;
+import com.gto.datasynclib.datastream.data.ByteData;
+import com.gto.datasynclib.datastream.data.Data;
+import com.gto.datasynclib.datastream.data.NullData;
 import com.gto.datasynclib.util.DataCodecs;
 import org.jetbrains.annotations.NotNull;
 
@@ -132,7 +132,7 @@ public class CircuitHandler extends NotifiableItemStackHandler {
         }
 
         @Override
-        public void writeBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
+        public void writeBuffer(LogicalSide side, @NotNull FriendlyByteBuf data) {
             ItemStack stored = stacks[0];
             if (stored.isEmpty()) {
                 data.writeByte(-1);
@@ -145,7 +145,7 @@ public class CircuitHandler extends NotifiableItemStackHandler {
         }
 
         @Override
-        public void readBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
+        public void readBuffer(LogicalSide side, @NotNull FriendlyByteBuf data) {
             var configuration = data.readByte();
             switch (configuration) {
                 case -1 -> stacks[0] = ItemStack.EMPTY;

@@ -153,7 +153,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
         super.onWorking();
         GTRecipe recipe = recipeLogic.getLastRecipe();
         assert recipe != null;
-        if (recipe.data.contains(GTRecipeDataKeys.EU_TO_START)) {
+        if (recipe.data.containsKey(GTRecipeDataKeys.EU_TO_START)) {
             long heatDiff = recipe.data.getLong(GTRecipeDataKeys.EU_TO_START) - this.heat;
             // if the remaining energy needed is more than stored, do not run
             if (heatDiff > 0) {

@@ -5,8 +5,8 @@ import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.api.recipe.extension.CWUTRecipeExtension;
 
 import com.gto.datasynclib.DataSyncCodec;
-import com.gto.datasynclib.datasream.DataComponentKey;
-import com.gto.datasynclib.datasream.DataComponentRegistry;
+import com.gto.datasynclib.datastream.DataComponentKey;
+import com.gto.datasynclib.datastream.DataComponentRegistry;
 
 public final class GTRecipeDataKeys {
 

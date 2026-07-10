@@ -37,7 +37,7 @@ import net.minecraftforge.fluids.FluidStack;
 
 import com.fast.recipesearch.IntLongMap;
 import com.fast.recipesearch.RecipeSearcher;
-import com.gto.datasynclib.datasream.DataComponentMap;
+import com.gto.datasynclib.datastream.DataComponentMap;
 import com.gto.fastcollection.O2OOpenCacheHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntAVLTreeMap;
 import it.unimi.dsi.fastutil.objects.Object2IntSortedMap;

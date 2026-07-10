@@ -1,17 +1,13 @@
 package com.gregtechceu.gtceu.datasynclib;
 
-import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.capability.ICoverable;
-import com.gregtechceu.gtceu.api.cover.CoverBehavior;
-import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
-import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.world.item.ItemStack;
 
-import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.data.NullData;
-import com.gto.datasynclib.datasream.data.StringMapData;
+import com.gto.datasynclib.blockentity.FieldDataHolderBlockEntity;
+import com.gto.datasynclib.datastream.data.Data;
+import com.gto.datasynclib.datastream.data.NullData;
+import com.gto.datasynclib.datastream.data.StringMapData;
 import com.gto.datasynclib.util.DataCodecs;
 import lombok.experimental.UtilityClass;
 
@@ -22,23 +18,8 @@ public class GTDataFixer {
 
     public int VERSION = 1;
 
-    public CoverBehavior decodeCover(ICoverable coverable, Data data, int dataVersion) {
-        if (dataVersion == -1) {
-            var map = data.getStringMap();
-            var definitionId = GTUtil.getResourceLocation(map.get("id").getString());
-            var definition = GTRegistries.COVERS.get(definitionId);
-            if (definition != null) {
-                return definition.createCoverBehavior(coverable, GTUtil.DIRECTIONS[map.get("side").getInt()]);
-            }
-        } else {
-            var list = data.getList();
-            var definition = GTRegistries.COVERS.dataCodec().decode(list.getFirst(), dataVersion);
-            if (definition != null) {
-                return definition.createCoverBehavior(coverable, GTUtil.DIRECTIONS[list.get(1).getByte()]);
-            }
-        }
-        GTCEu.LOGGER.error("couldn't find cover definition {}", data);
-        throw new RuntimeException();
+    static {
+        FieldDataHolderBlockEntity.VERSION = VERSION;
     }
 
     public void decodeCustomItemStackHandler(CustomItemStackHandler inventory, Data data, int dataVersion) {

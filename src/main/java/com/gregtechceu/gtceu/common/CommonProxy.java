@@ -76,7 +76,6 @@ public class CommonProxy {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         eventBus.register(this);
         GTRegistration.REGISTRATE.registerEventListeners(eventBus);
-        DataSyncLib.init();
         initDataSync();
         ConfigHolder.init();
         GTCEuAPI.initializeHighTier();

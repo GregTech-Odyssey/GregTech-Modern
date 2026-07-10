@@ -8,8 +8,8 @@ import net.minecraft.network.FriendlyByteBuf;
 
 import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
-import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.data.NullData;
+import com.gto.datasynclib.datastream.data.Data;
+import com.gto.datasynclib.datastream.data.NullData;
 import com.gto.datasynclib.field.access.AbstractFieldAccess;
 import com.gto.datasynclib.util.DataCodecs;
 import io.netty.buffer.ByteBufInputStream;
@@ -33,11 +33,11 @@ public final class TagSerializableAccess extends AbstractFieldAccess<ITagSeriali
             if (getInstance(source) instanceof IContentChangeAware changeAware) {
                 var run = changeAware.getOnContentsChanged();
                 if (run == null) {
-                    changeAware.setOnContentsChanged(() -> syncChange = true);
+                    changeAware.setOnContentsChanged(() -> changed = true);
                 } else {
                     changeAware.setOnContentsChanged(() -> {
                         run.run();
-                        syncChange = true;
+                        changed = true;
                     });
                 }
             }
@@ -51,9 +51,9 @@ public final class TagSerializableAccess extends AbstractFieldAccess<ITagSeriali
         if (definition.skipSync(side, source, instance)) return false;
         if (this.instance != instance) {
             this.instance = instance;
-            return syncChange = true;
+            return changed = true;
         }
-        return syncChange;
+        return changed;
     }
 
     @Override

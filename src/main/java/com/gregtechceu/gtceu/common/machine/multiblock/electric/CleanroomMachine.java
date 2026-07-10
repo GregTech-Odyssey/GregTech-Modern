@@ -46,7 +46,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
-import com.gto.datasynclib.datasream.DataComponentKey;
+import com.gto.datasynclib.datastream.DataComponentKey;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceSet;
 import it.unimi.dsi.fastutil.objects.ReferenceSets;

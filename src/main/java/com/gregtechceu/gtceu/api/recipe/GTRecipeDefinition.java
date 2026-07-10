@@ -13,11 +13,11 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
 import com.fast.recipesearch.IntMapContainer;
-import com.gto.datasynclib.datasream.DataComponentMap;
-import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
-import com.gto.datasynclib.datasream.codec.DataCodec;
-import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.data.ListData;
+import com.gto.datasynclib.datastream.DataComponentMap;
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.DataCodec;
+import com.gto.datasynclib.datastream.data.Data;
+import com.gto.datasynclib.datastream.data.ListData;
 import com.gto.datasynclib.util.DataCodecs;
 import com.gto.datasynclib.util.StreamCodecs;
 import org.jetbrains.annotations.Range;

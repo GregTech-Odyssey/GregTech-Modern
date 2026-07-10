@@ -10,7 +10,7 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import com.fast.recipesearch.IntLongMap;
 import com.gto.datasynclib.DataSyncCodec;
-import com.gto.datasynclib.datasream.DataComponentKey;
+import com.gto.datasynclib.datastream.DataComponentKey;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

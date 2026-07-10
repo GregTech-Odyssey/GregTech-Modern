@@ -3,8 +3,8 @@ package com.gregtechceu.gtceu.api.pattern.util;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 
-import com.gto.datasynclib.datasream.DataComponentKey;
-import com.gto.datasynclib.datasream.DataComponentMap;
+import com.gto.datasynclib.datastream.DataComponentKey;
+import com.gto.datasynclib.datastream.DataComponentMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
 
@@ -70,7 +70,7 @@ public class PatternMatchContext {
     }
 
     public <T> boolean containsKey(DataComponentKey<T> key) {
-        return data.contains(key);
+        return data.containsKey(key);
     }
 
     public ObjectSet<Reference2ObjectMap.Entry<DataComponentKey<?>, Object>> entrySet() {

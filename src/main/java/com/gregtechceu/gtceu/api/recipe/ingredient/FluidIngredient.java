@@ -21,7 +21,7 @@ import appeng.api.stacks.AEFluidKey;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
-import com.gto.datasynclib.datasream.data.*;
+import com.gto.datasynclib.datastream.data.*;
 import com.gto.datasynclib.util.DataCodecs;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;

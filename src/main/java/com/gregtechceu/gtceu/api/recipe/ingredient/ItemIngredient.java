@@ -22,7 +22,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
 import appeng.api.stacks.AEItemKey;
-import com.gto.datasynclib.datasream.data.*;
+import com.gto.datasynclib.datastream.data.*;
 import com.mojang.serialization.JsonOps;
 import it.unimi.dsi.fastutil.Hash;
 import lombok.Getter;

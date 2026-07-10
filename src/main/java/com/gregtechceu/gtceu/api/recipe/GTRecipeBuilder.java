@@ -44,8 +44,8 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.google.common.collect.ImmutableList;
-import com.gto.datasynclib.datasream.DataComponentKey;
-import com.gto.datasynclib.datasream.DataComponentMap;
+import com.gto.datasynclib.datastream.DataComponentKey;
+import com.gto.datasynclib.datastream.DataComponentMap;
 import dev.ftb.mods.ftbquests.quest.QuestObjectBase;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;

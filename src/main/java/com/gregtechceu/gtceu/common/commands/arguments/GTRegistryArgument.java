@@ -54,7 +54,7 @@ public class GTRegistryArgument<K extends Comparable<K>, V> implements ArgumentT
         String id = readId(reader);
         if (ResourceLocation.class.isAssignableFrom(keyClass)) {
             K loc = (K) GTUtil.getResourceLocation(id);
-            if (!registry.containKey(loc)) {
+            if (!registry.containsKey(loc)) {
                 throw new SimpleCommandExceptionType(new LiteralMessage("Failed to find object" + id + " in registry"))
                         .createWithContext(reader);
             }
@@ -62,7 +62,7 @@ public class GTRegistryArgument<K extends Comparable<K>, V> implements ArgumentT
             return registry.get(loc);
         } else if (String.class.isAssignableFrom(keyClass)) {
             K loc = (K) id;
-            if (!registry.containKey(loc)) {
+            if (!registry.containsKey(loc)) {
                 throw new SimpleCommandExceptionType(Component.literal("Failed to find object " + id + " in registry"))
                         .createWithContext(reader);
             }

@@ -9,8 +9,8 @@ import net.minecraftforge.fluids.capability.templates.FluidTank;
 
 import com.gto.datasynclib.IDataSerializable;
 import com.gto.datasynclib.LogicalSide;
-import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.data.NullData;
+import com.gto.datasynclib.datastream.data.Data;
+import com.gto.datasynclib.datastream.data.NullData;
 import com.gto.datasynclib.util.DataCodecs;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,7 +24,7 @@ public class CustomFluidTank extends FluidTank implements ICustomFluidStackHandl
     @Getter
     @Setter
     protected Runnable onContentsChanged = GTUtil.NOOP;
-    protected boolean syncChange;
+    protected boolean changed;
 
     public CustomFluidTank(int capacity) {
         super(capacity, GTUtil.FAVORABLE);
@@ -60,26 +60,26 @@ public class CustomFluidTank extends FluidTank implements ICustomFluidStackHandl
     @Override
     public void onContentsChanged() {
         onContentsChanged.run();
-        syncChange = true;
+        changed = true;
     }
 
     @Override
     public void markAsChanged() {
-        syncChange = true;
+        changed = true;
     }
 
     @Override
     public void clearChanged() {
-        syncChange = false;
+        changed = false;
     }
 
     @Override
     public boolean isChanged() {
-        return syncChange;
+        return changed;
     }
 
     @Override
-    public void writeBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
+    public void writeBuffer(LogicalSide side, @NotNull FriendlyByteBuf data) {
         if (fluid.isEmpty()) {
             data.writeBoolean(false);
         } else {
@@ -89,7 +89,7 @@ public class CustomFluidTank extends FluidTank implements ICustomFluidStackHandl
     }
 
     @Override
-    public void readBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
+    public void readBuffer(LogicalSide side, @NotNull FriendlyByteBuf data) {
         if (data.readBoolean()) {
             setFluid(FluidStack.readFromPacket(data));
         } else {
@@ -122,6 +122,6 @@ public class CustomFluidTank extends FluidTank implements ICustomFluidStackHandl
 
     @Override
     public boolean detectChange() {
-        return syncChange;
+        return changed;
     }
 }

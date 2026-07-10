@@ -34,7 +34,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 
-import com.gto.datasynclib.datasream.DataComponentKey;
+import com.gto.datasynclib.datastream.DataComponentKey;
 import com.gto.registrate.util.entry.RegistryEntry;
 import it.unimi.dsi.fastutil.longs.LongOpenHashBigSet;
 import it.unimi.dsi.fastutil.longs.LongSet;

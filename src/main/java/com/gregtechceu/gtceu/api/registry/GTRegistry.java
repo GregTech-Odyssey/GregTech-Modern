@@ -4,7 +4,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModLoadingContext;
 
-import com.gto.datasynclib.datasream.codec.DataCodec;
+import com.gto.datasynclib.datastream.codec.DataCodec;
 import com.gto.datasynclib.util.DataCodecs;
 import com.gto.datasynclib.util.Registry;
 import com.gto.fastcollection.O2OOpenCacheHashMap;
@@ -34,7 +34,7 @@ public abstract class GTRegistry<K extends Comparable<K>, V> extends Registry<K,
     }
 
     @Override
-    public boolean checkContext() {
+    public boolean isContextValid() {
         if (!checkContext) return true;
         ModContainer container = ModLoadingContext.get().getActiveContainer();
         return container != null && (container.getModId().equals(this.registryName.getNamespace()));

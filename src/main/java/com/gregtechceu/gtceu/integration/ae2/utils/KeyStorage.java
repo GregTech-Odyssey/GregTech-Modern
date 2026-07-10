@@ -11,9 +11,9 @@ import appeng.api.stacks.AEKeyMap;
 import appeng.api.storage.MEStorage;
 import com.gto.datasynclib.AbstractDataSerializable;
 import com.gto.datasynclib.LogicalSide;
-import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.data.ListData;
-import com.gto.datasynclib.datasream.data.NullData;
+import com.gto.datasynclib.datastream.data.Data;
+import com.gto.datasynclib.datastream.data.ListData;
+import com.gto.datasynclib.datastream.data.NullData;
 import com.gto.datasynclib.util.DataCodecs;
 import it.unimi.dsi.fastutil.objects.Reference2LongMap;
 import lombok.Getter;
@@ -81,7 +81,7 @@ public class KeyStorage extends AbstractDataSerializable implements Iterable<Ref
         if (onContentsChanged != null) {
             onContentsChanged.run();
         }
-        syncChange = true;
+        changed = true;
     }
 
     @Override
@@ -94,7 +94,7 @@ public class KeyStorage extends AbstractDataSerializable implements Iterable<Ref
     }
 
     @Override
-    public void writeBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
+    public void writeBuffer(LogicalSide side, @NotNull FriendlyByteBuf data) {
         data.writeVarInt(storage.size());
         for (var entry : this) {
             if (entry == null || entry.getLongValue() < 1) {
@@ -107,7 +107,7 @@ public class KeyStorage extends AbstractDataSerializable implements Iterable<Ref
     }
 
     @Override
-    public void readBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
+    public void readBuffer(LogicalSide side, @NotNull FriendlyByteBuf data) {
         var size = data.readVarInt();
         for (var i = 0; i < size; i++) {
             var value = data.readVarLong();

@@ -16,9 +16,9 @@ import appeng.api.config.Actionable;
 import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.AbstractDataSerializable;
 import com.gto.datasynclib.LogicalSide;
-import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.data.ListData;
-import com.gto.datasynclib.datasream.data.NullData;
+import com.gto.datasynclib.datastream.data.Data;
+import com.gto.datasynclib.datastream.data.ListData;
+import com.gto.datasynclib.datastream.data.NullData;
 import com.gto.datasynclib.util.DataCodecs;
 import lombok.Getter;
 import lombok.Setter;
@@ -226,13 +226,13 @@ public class CustomItemStackHandler extends AbstractDataSerializable implements 
 
     public void onContentsChanged(int slot) {
         onContentsChanged.run();
-        syncChange = true;
+        changed = true;
     }
 
     public void clear() {
         Arrays.fill(stacks, ItemStack.EMPTY);
         onContentsChanged.run();
-        syncChange = true;
+        changed = true;
     }
 
     public static boolean canItemStacksStack(@NotNull ItemStack a, @NotNull ItemStack b) {
@@ -272,7 +272,7 @@ public class CustomItemStackHandler extends AbstractDataSerializable implements 
     }
 
     @Override
-    public void writeBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
+    public void writeBuffer(LogicalSide side, @NotNull FriendlyByteBuf data) {
         var i = 0;
         var stacks = this.stacks;
         while (i < this.size) {
@@ -287,7 +287,7 @@ public class CustomItemStackHandler extends AbstractDataSerializable implements 
     }
 
     @Override
-    public void readBuf(LogicalSide side, @NotNull FriendlyByteBuf data) {
+    public void readBuffer(LogicalSide side, @NotNull FriendlyByteBuf data) {
         var stacks = this.stacks;
         Arrays.fill(stacks, ItemStack.EMPTY);
         while (data.getByte(data.readerIndex()) != -1) {

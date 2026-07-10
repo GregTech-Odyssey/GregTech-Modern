@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
-import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 
@@ -32,8 +31,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import com.google.common.collect.ImmutableList;
 import com.gto.datasynclib.IFieldDataHolder;
-import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.data.ListData;
+import com.gto.datasynclib.datastream.data.Data;
+import com.gto.datasynclib.datastream.data.ListData;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -311,8 +310,14 @@ public interface ICoverable extends ITickSubscription, IAppearance, IFieldDataHo
     }
 
     @SuppressWarnings("unused")
-    default CoverBehavior deserializeCoverData(Data uid, int dataVersion) {
-        return GTDataFixer.decodeCover(this, uid, dataVersion);
+    default CoverBehavior deserializeCoverData(Data data, int dataVersion) {
+        var list = data.getList();
+        var definition = GTRegistries.COVERS.dataCodec().decode(list.getFirst(), dataVersion);
+        if (definition != null) {
+            return definition.createCoverBehavior(this, GTUtil.DIRECTIONS[list.get(1).getByte()]);
+        }
+        GTCEu.LOGGER.error("couldn't find cover definition {}", data);
+        throw new RuntimeException();
     }
 
     @SuppressWarnings("unused")

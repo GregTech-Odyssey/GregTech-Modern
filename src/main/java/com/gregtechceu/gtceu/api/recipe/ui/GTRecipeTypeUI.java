@@ -39,7 +39,7 @@ import net.minecraft.nbt.NbtIo;
 import net.minecraft.server.packs.resources.ResourceManager;
 
 import com.google.common.collect.Table;
-import com.gto.datasynclib.datasream.DataComponentMap;
+import com.gto.datasynclib.datastream.DataComponentMap;
 import dev.emi.emi.api.EmiApi;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectArrayMap;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectMap;

@@ -1,28 +1,29 @@
 package com.gregtechceu.gtceu.api.blockentity;
 
-import com.gregtechceu.gtceu.common.network.GTNetwork;
-import com.gregtechceu.gtceu.common.network.packets.CSPacketSBlockEntitySync;
-import com.gregtechceu.gtceu.common.network.packets.SCPacketSBlockEntitySync;
+import net.minecraftforge.network.PacketDistributor;
 
 import com.gto.datasynclib.IFieldDataHolder;
+import com.gto.datasynclib.LogicalSide;
+import com.gto.datasynclib.network.BlockEntitySyncPacket;
+import com.gto.datasynclib.network.DataSyncNetwork;
 
 public interface ISync extends IFieldDataHolder {
 
     GTBlockEntity getHolder();
 
     default void syncToServer() {
-        GTNetwork.NETWORK.sendToServer(CSPacketSBlockEntitySync.of(getHolder(), false));
+        DataSyncNetwork.CHANNEL.sendToServer(new BlockEntitySyncPacket(getHolder().getBlockPos(), getHolder().getFieldDataManager().writeToNetworkBuffer(LogicalSide.CLIENT, false)));
     }
 
     default void syncToClient() {
-        GTNetwork.NETWORK.sendToTrackingChunk(SCPacketSBlockEntitySync.of(getHolder(), false), getHolder().getChunk());
+        DataSyncNetwork.CHANNEL.send(PacketDistributor.TRACKING_CHUNK.with(() -> getHolder().getChunk()), new BlockEntitySyncPacket(getHolder().getBlockPos(), getHolder().getFieldDataManager().writeToNetworkBuffer(LogicalSide.SERVER, false)));
     }
 
     default void syncAllToServer() {
-        GTNetwork.NETWORK.sendToServer(CSPacketSBlockEntitySync.of(getHolder(), true));
+        DataSyncNetwork.CHANNEL.sendToServer(new BlockEntitySyncPacket(getHolder().getBlockPos(), getHolder().getFieldDataManager().writeToNetworkBuffer(LogicalSide.CLIENT, true)));
     }
 
     default void syncAllToClient() {
-        GTNetwork.NETWORK.sendToTrackingChunk(SCPacketSBlockEntitySync.of(getHolder(), true), getHolder().getChunk());
+        DataSyncNetwork.CHANNEL.send(PacketDistributor.TRACKING_CHUNK.with(() -> getHolder().getChunk()), new BlockEntitySyncPacket(getHolder().getBlockPos(), getHolder().getFieldDataManager().writeToNetworkBuffer(LogicalSide.SERVER, true)));
     }
 }

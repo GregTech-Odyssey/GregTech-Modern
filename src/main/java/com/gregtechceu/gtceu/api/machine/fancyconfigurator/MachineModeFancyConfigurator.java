@@ -18,8 +18,8 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 
-import com.gto.datasynclib.datasream.codec.ByteStreamDecoder;
-import com.gto.datasynclib.datasream.codec.ByteStreamEncoder;
+import com.gto.datasynclib.datastream.codec.ByteStreamDecoder;
+import com.gto.datasynclib.datastream.codec.ByteStreamEncoder;
 
 import java.util.ArrayList;
 import java.util.List;

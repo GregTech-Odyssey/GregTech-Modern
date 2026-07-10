@@ -1,11 +1,8 @@
 package com.gregtechceu.gtceu.api.blockentity;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
-import com.gregtechceu.gtceu.common.network.GTNetwork;
-import com.gregtechceu.gtceu.common.network.packets.SCPacketSBlockEntitySync;
 import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
@@ -24,7 +21,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 
 import com.gto.datasynclib.LogicalSide;
-import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.datastream.data.Data;
+import com.gto.datasynclib.network.DataSyncNetwork;
 import com.gto.datasynclib.util.DataCodecs;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -211,7 +209,7 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
     @Override
     public CompoundTag getUpdateTag() {
         var tag = super.getUpdateTag();
-        if (getFieldDataManager().hasSyncField(LogicalSide.SERVER)) {
+        if (getFieldDataManager().hasSyncFields(LogicalSide.SERVER)) {
             tag.putByteArray("field_sync", getFieldDataManager().writeToNetworkBuffer(LogicalSide.SERVER, true));
         }
         return tag;
@@ -224,11 +222,11 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
             getFieldDataManager().readFromNetworkBuffer(LogicalSide.CLIENT, byteArrayTag.getAsByteArray());
         } else {
             loadCustomPersistedData(tag);
-        }
-        if (tag.get("field_save") instanceof ByteArrayTag byteArrayTag) {
-            getFieldDataManager().readFromData(Data.readData(byteArrayTag.getAsByteArray()), tag.getInt("field_data_dataVersion"));
-        } else {
-            getFieldDataManager().readFromData(DataCodecs.COMPOUND_TAG_CODEC.encode(tag), -1);
+            if (tag.get("field_save") instanceof ByteArrayTag byteArrayTag) {
+                getFieldDataManager().readFromData(Data.readData(byteArrayTag.getAsByteArray()), tag.getInt("field_data_dataVersion"));
+            } else {
+                getFieldDataManager().readFromData(DataCodecs.COMPOUND_TAG_CODEC.encode(tag), -1);
+            }
         }
     }
 
@@ -247,17 +245,7 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
     public void asyncTick(long periodID) {
         if (remove) return;
         if (needSync() || periodID % 40 == 0) {
-            var server = GTCEu.getMinecraftServer();
-            if (server != null) {
-                if (getFieldDataManager().updateFieldDirtyFlags(LogicalSide.SERVER, true)) {
-                    var p = SCPacketSBlockEntitySync.of(this, false);
-                    if (remove) return;
-                    server.execute(() -> {
-                        if (remove) return;
-                        GTNetwork.NETWORK.sendToTrackingChunk(p, getChunk());
-                    });
-                }
-            }
+            DataSyncNetwork.syncBlockEntityToClient(this, false, true);
         }
     }
 

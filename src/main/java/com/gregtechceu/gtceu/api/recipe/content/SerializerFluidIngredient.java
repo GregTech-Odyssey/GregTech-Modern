@@ -4,7 +4,7 @@ import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 
 import net.minecraft.network.FriendlyByteBuf;
 
-import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.datastream.data.Data;
 
 public class SerializerFluidIngredient implements IContentSerializer<FluidIngredient> {
 

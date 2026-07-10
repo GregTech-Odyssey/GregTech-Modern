@@ -16,12 +16,12 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.nbt.*;
 import net.minecraft.network.FriendlyByteBuf;
 
-import com.gto.datasynclib.datasream.DataComponentMap;
-import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
-import com.gto.datasynclib.datasream.codec.DataCodec;
-import com.gto.datasynclib.datasream.codec.DataDecoder;
-import com.gto.datasynclib.datasream.codec.DataEncoder;
-import com.gto.datasynclib.datasream.data.*;
+import com.gto.datasynclib.datastream.DataComponentMap;
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.DataCodec;
+import com.gto.datasynclib.datastream.codec.DataDecoder;
+import com.gto.datasynclib.datastream.codec.DataEncoder;
+import com.gto.datasynclib.datastream.data.*;
 import com.gto.datasynclib.util.DataCodecs;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;

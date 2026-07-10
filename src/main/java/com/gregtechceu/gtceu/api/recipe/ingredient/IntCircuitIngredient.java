@@ -12,8 +12,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
 import appeng.api.stacks.AEItemKey;
-import com.gto.datasynclib.datasream.data.ByteData;
-import com.gto.datasynclib.datasream.data.Data;
+import com.gto.datasynclib.datastream.data.ByteData;
+import com.gto.datasynclib.datastream.data.Data;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -14,8 +14,8 @@ import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.gto.datasynclib.annotations.Access;
 import com.gto.datasynclib.annotations.Codec;
 import com.gto.datasynclib.annotations.SaveToDisk;
-import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.data.NullData;
+import com.gto.datasynclib.datastream.data.Data;
+import com.gto.datasynclib.datastream.data.NullData;
 import lombok.Getter;
 
 import java.util.EnumSet;

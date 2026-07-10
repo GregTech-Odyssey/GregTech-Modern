@@ -28,7 +28,7 @@ import net.minecraftforge.fluids.FluidType;
 
 import com.google.common.collect.Tables;
 import com.gto.datasynclib.annotations.SaveToDisk;
-import com.gto.datasynclib.datasream.DataComponentMap;
+import com.gto.datasynclib.datastream.DataComponentMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;

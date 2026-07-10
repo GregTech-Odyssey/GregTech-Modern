@@ -22,7 +22,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
 
 import com.google.common.collect.HashBiMap;
-import com.gto.datasynclib.datasream.DataComponentKey;
+import com.gto.datasynclib.datastream.DataComponentKey;
 import com.gto.fastcollection.O2OOpenCacheHashMap;
 import com.gto.fastcollection.OpenCacheHashSet;
 import com.mojang.serialization.Codec;
