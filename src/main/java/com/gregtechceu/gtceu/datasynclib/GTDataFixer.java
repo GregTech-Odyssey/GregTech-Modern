@@ -10,8 +10,8 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 import net.minecraft.world.item.ItemStack;
 
 import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.data.MapData;
 import com.gto.datasynclib.datasream.data.NullData;
+import com.gto.datasynclib.datasream.data.StringMapData;
 import com.gto.datasynclib.util.DataCodecs;
 import lombok.experimental.UtilityClass;
 
@@ -24,7 +24,7 @@ public class GTDataFixer {
 
     public CoverBehavior decodeCover(ICoverable coverable, Data data, int dataVersion) {
         if (dataVersion == -1) {
-            var map = data.getMap();
+            var map = data.getStringMap();
             var definitionId = GTUtil.getResourceLocation(map.get("id").getString());
             var definition = GTRegistries.COVERS.get(definitionId);
             if (definition != null) {
@@ -45,7 +45,7 @@ public class GTDataFixer {
         var stacks = inventory.stacks;
         Arrays.fill(stacks, ItemStack.EMPTY);
         if (data == NullData.INSTANCE) return;
-        if (dataVersion < 1 && data instanceof MapData mapData) {
+        if (dataVersion < 1 && data instanceof StringMapData mapData) {
             var list = mapData.getList("Items");
             for (int i = 0; i < list.size(); i++) {
                 var items = list.getMap(i);

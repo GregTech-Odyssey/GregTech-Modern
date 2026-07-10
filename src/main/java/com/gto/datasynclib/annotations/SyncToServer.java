@@ -31,6 +31,14 @@ public @interface SyncToServer {
     boolean notifyUpdate() default false;
 
     /**
+     * conditions for synchronized
+     * Method signature: T -> boolean
+     *
+     * @return the method name for conditions
+     */
+    String conditions() default "";
+
+    /**
      * Determines whether the field should be automatically updated.
      * When set to true, the field will be automatically synchronized when its value changes
      * (detected via the dirty flag mechanism). When set to false, the field will only be

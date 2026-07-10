@@ -29,7 +29,7 @@ public final class ByteNotifiableHolder extends ByteHolder implements IDataSeria
     private ByteSyncListener senderListener = ByteSyncListener.EMPTY;
 
     private byte lastValue;
-    private boolean syncChange = true;
+    private boolean syncChange;
 
     private ByteNotifiableHolder() {}
 

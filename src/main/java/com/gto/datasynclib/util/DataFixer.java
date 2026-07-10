@@ -6,8 +6,8 @@ import net.minecraft.core.UUIDUtil;
 import com.gto.datasynclib.datasream.codec.DataDecoder;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.IntArrayData;
-import com.gto.datasynclib.datasream.data.MapData;
 import com.gto.datasynclib.datasream.data.NullData;
+import com.gto.datasynclib.datasream.data.StringMapData;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +26,7 @@ public class DataFixer {
     }
 
     public BlockPos decodeBlockPos(@NotNull Data data) {
-        if (data instanceof MapData map) {
+        if (data instanceof StringMapData map) {
             return new BlockPos(map.getInt("X"), map.getInt("Y"), map.getInt("Z"));
         }
         var array = data.getIntArray();
@@ -45,7 +45,7 @@ public class DataFixer {
 
     public <T> T decodearray(DataDecoder<T> decoder, @NotNull Data data, int dataVersion) {
         if (dataVersion == -1) {
-            if (data instanceof MapData(Map<String, Data> map)) {
+            if (data instanceof StringMapData(Map<String, Data> map)) {
                 if (map.isEmpty()) {
                     return null;
                 } else {

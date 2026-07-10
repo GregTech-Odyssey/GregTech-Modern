@@ -24,7 +24,7 @@ public class CustomFluidTank extends FluidTank implements ICustomFluidStackHandl
     @Getter
     @Setter
     protected Runnable onContentsChanged = GTUtil.NOOP;
-    protected boolean syncChange = true;
+    protected boolean syncChange;
 
     public CustomFluidTank(int capacity) {
         super(capacity, GTUtil.FAVORABLE);

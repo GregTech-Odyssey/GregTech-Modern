@@ -2,7 +2,7 @@ package com.gto.datasynclib;
 
 import net.minecraft.network.FriendlyByteBuf;
 
-import com.gto.datasynclib.datasream.data.MapData;
+import com.gto.datasynclib.datasream.data.StringMapData;
 
 /**
  * Interface for objects that hold field data managed by {@link FieldDataManager}.
@@ -70,7 +70,7 @@ public interface IFieldDataHolder {
      *
      * @param data the data map object used for storing persistent data
      */
-    default void writeCustomSaveData(MapData data) {}
+    default void writeCustomSaveData(StringMapData data) {}
 
     /**
      * Reads custom save data.
@@ -82,5 +82,5 @@ public interface IFieldDataHolder {
      * @param data        the data map object containing persistent data
      * @param dataVersion the version of the data being read, useful for migration
      */
-    default void readCustomSaveData(MapData data, int dataVersion) {}
+    default void readCustomSaveData(StringMapData data, int dataVersion) {}
 }

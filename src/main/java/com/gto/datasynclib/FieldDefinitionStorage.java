@@ -201,7 +201,6 @@ public final class FieldDefinitionStorage {
             if (field.isAnnotationPresent(AdditionalHolder.class)) {
                 field.setAccessible(true);
                 scanFields(field.getType(), definitions, createNestedSourceFunction(field, source));
-                continue;
             }
             var savetoDisk = field.getAnnotation(SaveToDisk.class);
             var syncToClient = field.getAnnotation(SyncToClient.class);

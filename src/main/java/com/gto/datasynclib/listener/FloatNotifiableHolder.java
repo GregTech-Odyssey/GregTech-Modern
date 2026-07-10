@@ -29,7 +29,7 @@ public final class FloatNotifiableHolder extends FloatHolder implements IDataSer
     private FloatSyncListener senderListener = FloatSyncListener.EMPTY;
 
     private float lastValue;
-    private boolean syncChange = true;
+    private boolean syncChange;
 
     private FloatNotifiableHolder() {}
 

@@ -2,7 +2,7 @@ package com.gto.datasynclib;
 
 public abstract class AbstractDataSerializable implements IDataSerializable {
 
-    protected boolean syncChange = true;
+    protected boolean syncChange;
 
     @Override
     public void markAsChanged() {

@@ -7,8 +7,8 @@ import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ListData;
-import com.gto.datasynclib.datasream.data.MapData;
 import com.gto.datasynclib.datasream.data.NullData;
+import com.gto.datasynclib.datasream.data.StringMapData;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +20,7 @@ public abstract class AbstractFieldAccess<T> implements DataField<T> {
 
     protected T instance;
 
-    protected boolean syncChange = true;
+    protected boolean syncChange;
 
     protected AbstractFieldAccess(DataFieldDefinition<T> definition) {
         this.definition = definition;
@@ -28,6 +28,7 @@ public abstract class AbstractFieldAccess<T> implements DataField<T> {
 
     @Nullable
     protected T getInstance(Object source) {
+        var definition = this.definition;
         if (definition.isFinal) {
             if (instance != null) return instance;
             return instance = definition.get(source);
@@ -53,6 +54,7 @@ public abstract class AbstractFieldAccess<T> implements DataField<T> {
     @Override
     public boolean detectChange(@NotNull LogicalSide side, @NotNull Object source, boolean auto) {
         var instance = getInstance(source);
+        if (definition.skipSync(side, source, instance)) return false;
         if (this.instance != instance) {
             this.instance = instance;
             markAsChanged(source);
@@ -109,11 +111,13 @@ public abstract class AbstractFieldAccess<T> implements DataField<T> {
 
     @Override
     public final @NotNull Data writeToData(@NotNull Object source) {
+        var definition = this.definition;
         var value = getInstance(source);
         if (definition.createInstance) {
             if (value == null) {
                 return NullData.INSTANCE;
             } else {
+                if (definition.skipSave(source, value)) return NullData.NONE;
                 var list = new ListData(2);
                 list.add(definition.encode(source, value));
                 list.add(writeData(source, value));
@@ -121,6 +125,7 @@ public abstract class AbstractFieldAccess<T> implements DataField<T> {
             }
         } else {
             if (value == null) return NullData.NONE;
+            if (definition.skipSave(source, value)) return NullData.NONE;
             return writeData(source, value);
         }
     }
@@ -129,10 +134,10 @@ public abstract class AbstractFieldAccess<T> implements DataField<T> {
     public final void readFromData(@NotNull Object source, @NotNull Data data, int dataVersion) {
         if (definition.createInstance) {
             if (dataVersion == -1) {
-                if (data instanceof MapData mapData && !mapData.isEmpty()) {
+                if (data instanceof StringMapData mapData && !mapData.isEmpty()) {
                     var uid = mapData.get("uid");
                     var value = definition.decode(source, uid, dataVersion);
-                    readData(value, mapData.get("payload").getMap().get("d"), dataVersion);
+                    readData(value, mapData.get("payload").getStringMap().get("d"), dataVersion);
                     definition.set(source, value);
                 }
             } else {

@@ -29,7 +29,7 @@ public final class DoubleNotifiableHolder extends DoubleHolder implements IDataS
     private DoubleSyncListener senderListener = DoubleSyncListener.EMPTY;
 
     private double lastValue;
-    private boolean syncChange = true;
+    private boolean syncChange;
 
     private DoubleNotifiableHolder() {}
 

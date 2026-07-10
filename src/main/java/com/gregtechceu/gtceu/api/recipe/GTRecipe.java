@@ -85,7 +85,7 @@ public final class GTRecipe {
 
         @Override
         public GTRecipe decode(Data data, int dataVersion) {
-            if (dataVersion == -1 && data instanceof MapData mapData) {
+            if (dataVersion == -1 && data instanceof StringMapData mapData) {
                 var compoundTag = DataCodecs.COMPOUND_TAG_CODEC.decode(mapData, dataVersion);
                 var definition = GTRecipe.EMPTY.definition;
                 var duration = compoundTag.getInt("duration");

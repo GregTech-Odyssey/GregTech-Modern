@@ -12,6 +12,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -21,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public sealed interface Data permits MapData, CollectionData, ImmutableData {
+public sealed interface Data permits CollectionData, ImmutableData, CustomData {
 
     Codec<Data> CODEC = new Codec<>() {
 
@@ -84,11 +85,11 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
     byte LONG_ARRAY = 11;
     byte STRING = 12;
     byte LIST = 13;
-    byte MAP = 14;
-
-    static <T extends Data> T readData(Type<T> type, ByteBuf stream) {
-        return (T) readData(type.id, stream);
-    }
+    byte STRING_MAP = 14;
+    byte CUSTOM = 15;
+    byte DATA_MAP = 16;
+    byte INT_MAP = 17;
+    byte LONG_MAP = 18;
 
     static Data readData(byte id, ByteBuf stream) {
         return switch (id) {
@@ -106,8 +107,12 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
             case INT_ARRAY -> new IntArrayData(readIntArray(stream));
             case LONG_ARRAY -> new LongArrayData(readLongArray(stream));
             case LIST -> ListData.read(stream);
-            case MAP -> MapData.read(stream);
-            default -> throw new IllegalStateException("Unexpected value: " + id);
+            case STRING_MAP -> StringMapData.read(stream);
+            case CUSTOM -> CustomData.read(readVarInt(stream), stream);
+            case DATA_MAP -> DataMapData.read(stream);
+            case INT_MAP -> IntMapData.read(stream);
+            case LONG_MAP -> LongMapData.read(stream);
+            default -> throw new IllegalArgumentException("Unknown data type id: " + id);
         };
     }
 
@@ -161,6 +166,31 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
                 throw new RuntimeException("VarInt too big");
             }
         } while ((b0 & 128) == 128);
+        return i;
+    }
+
+    static void writeVarLong(ByteBuf buf, long input) {
+        while ((input & -128L) != 0L) {
+            buf.writeByte((int) (input & 127L) | 128);
+            input >>>= 7;
+        }
+
+        buf.writeByte((int) input);
+    }
+
+    static long readVarLong(ByteBuf buf) {
+        long i = 0L;
+        int j = 0;
+
+        byte b0;
+        do {
+            b0 = buf.readByte();
+            i |= (long) (b0 & 127) << j++ * 7;
+            if (j > 10) {
+                throw new RuntimeException("VarLong too big");
+            }
+        } while ((b0 & 128) == 128);
+
         return i;
     }
 
@@ -280,7 +310,12 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
     }
 
     @NotNull
-    default Map<String, Data> getMap() {
+    default Map<Data, Data> getDataMap() {
+        return Collections.emptyMap();
+    }
+
+    @NotNull
+    default Map<String, Data> getStringMap() {
         return Collections.emptyMap();
     }
 
@@ -447,37 +482,48 @@ public sealed interface Data permits MapData, CollectionData, ImmutableData {
         return new BigInteger(array);
     }
 
+    @Nullable
+    default ListData toListData() {
+        return this instanceof ListData listData ? listData : null;
+    }
+
+    @Nullable
+    default DataMapData toDataMapData() {
+        return this instanceof DataMapData dataMapData ? dataMapData : null;
+    }
+
+    @Nullable
+    default StringMapData toStringMapData() {
+        return this instanceof StringMapData stringMapData ? stringMapData : null;
+    }
+
+    @Nullable
+    default IntMapData toIntMapData() {
+        return this instanceof IntMapData intMapData ? intMapData : null;
+    }
+
+    @Nullable
+    default LongMapData toLongMapData() {
+        return this instanceof LongMapData longMapData ? longMapData : null;
+    }
+
     default ListData asListData() {
         return (ListData) this;
     }
 
-    default MapData asMapData() {
-        return (MapData) this;
+    default DataMapData asDataMapData() {
+        return (DataMapData) this;
     }
 
-    final class Type<T> {
+    default StringMapData asStringMapData() {
+        return (StringMapData) this;
+    }
 
-        public static final Type<NullData> NULL = new Type<>(Data.NULL, NullData.class);
-        public static final Type<ByteData> BYTE = new Type<>(Data.BYTE, ByteData.class);
-        public static final Type<ShortData> SHORT = new Type<>(Data.SHORT, ShortData.class);
-        public static final Type<CharData> CHAR = new Type<>(Data.CHAR, CharData.class);
-        public static final Type<IntData> INT = new Type<>(Data.INT, IntData.class);
-        public static final Type<LongData> LONG = new Type<>(Data.LONG, LongData.class);
-        public static final Type<FloatData> FLOAT = new Type<>(Data.FLOAT, FloatData.class);
-        public static final Type<DoubleData> DOUBLE = new Type<>(Data.DOUBLE, DoubleData.class);
-        public static final Type<ByteArrayData> BYTE_ARRAY = new Type<>(Data.BYTE_ARRAY, ByteArrayData.class);
-        public static final Type<IntArrayData> INT_ARRAY = new Type<>(Data.INT_ARRAY, IntArrayData.class);
-        public static final Type<LongArrayData> LONG_ARRAY = new Type<>(Data.LONG_ARRAY, LongArrayData.class);
-        public static final Type<StringData> STRING = new Type<>(Data.STRING, StringData.class);
-        public static final Type<ListData> LIST = new Type<>(Data.LIST, ListData.class);
-        public static final Type<MapData> MAP = new Type<>(Data.MAP, MapData.class);
+    default IntMapData asIntMapData() {
+        return (IntMapData) this;
+    }
 
-        public final byte id;
-        public final Class<T> clazz;
-
-        private Type(int id, Class<T> clazz) {
-            this.id = (byte) id;
-            this.clazz = clazz;
-        }
+    default LongMapData asLongMapData() {
+        return (LongMapData) this;
     }
 }

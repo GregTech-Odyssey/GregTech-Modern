@@ -18,8 +18,11 @@ public final class LongField extends AbstractField<Long> {
     }
 
     @Override
-    public boolean hasChanges(Object source) {
-        return lastValue != definition.getLong(source);
+    public boolean hasChanges(@NotNull LogicalSide side, Object source) {
+        var definition = this.definition;
+        var value = definition.getLong(source);
+        if (definition.skipSync(side, source, value)) return false;
+        return lastValue != value;
     }
 
     @Override
@@ -46,7 +49,9 @@ public final class LongField extends AbstractField<Long> {
 
     @Override
     public @NotNull Data writeToData(@NotNull Object source) {
+        var definition = this.definition;
         var value = definition.getLong(source);
+        if (definition.skipSave(source, value)) return NullData.NONE;
         if (definition.hasDefaultValue() && definition.getDefaultLongValue(source) == value) return NullData.NONE;
         return LongData.valueOf(value);
     }

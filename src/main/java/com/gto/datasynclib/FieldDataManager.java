@@ -3,8 +3,8 @@ package com.gto.datasynclib;
 import net.minecraft.network.FriendlyByteBuf;
 
 import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.data.MapData;
 import com.gto.datasynclib.datasream.data.NullData;
+import com.gto.datasynclib.datasream.data.StringMapData;
 import com.gto.datasynclib.util.ReflectUtil;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
@@ -21,7 +21,7 @@ public final class FieldDataManager {
     private final DataField<?>[] syncToClientFields;
     private final DataField<?>[] syncToServerFields;
     private final DataField<?>[] saveFields;
-    private boolean syncChange = true;
+    private boolean syncChange;
     private volatile boolean updateing;
     private volatile boolean writeing;
 
@@ -238,7 +238,7 @@ public final class FieldDataManager {
 
     @NotNull
     public Data writeFieldsToData(String... fields) {
-        MapData data = new MapData();
+        StringMapData data = new StringMapData();
         for (var field : fields) {
             var d = storage.allDefinition.get(field);
             if (d != null) {
@@ -258,7 +258,7 @@ public final class FieldDataManager {
     }
 
     public void readFieldsFromData(@NotNull Data data, int dataVersion, String... fields) {
-        if (data instanceof MapData(Map<String, Data> map)) {
+        if (data instanceof StringMapData(Map<String, Data> map)) {
             for (var field : fields) {
                 var d = storage.allDefinition.get(field);
                 if (d != null) {
@@ -285,7 +285,7 @@ public final class FieldDataManager {
      */
     @NotNull
     public Data writeToData() {
-        MapData data = new MapData();
+        StringMapData data = new StringMapData();
         holder.writeCustomSaveData(data);
         for (var field : saveFields) {
             var d = field.getDefinition();
@@ -302,7 +302,7 @@ public final class FieldDataManager {
      * @param data the MapData to read from
      */
     public void readFromData(@NotNull Data data, int dataVersion) {
-        if (data instanceof MapData mapData) {
+        if (data instanceof StringMapData mapData) {
             holder.readCustomSaveData(mapData, dataVersion);
             var map = mapData.value();
             for (var field : saveFields) {

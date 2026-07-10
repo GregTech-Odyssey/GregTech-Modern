@@ -6,7 +6,7 @@ import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.datasream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datasream.codec.DataCodec;
 import com.gto.datasynclib.datasream.data.Data;
-import com.gto.datasynclib.datasream.data.MapData;
+import com.gto.datasynclib.datasream.data.StringMapData;
 import com.gto.datasynclib.util.Registry;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
@@ -76,7 +76,7 @@ public final class DataComponentRegistry extends Registry<String, DataComponentK
 
     @Override
     public DataComponentMap decode(@NotNull Data d, int dataVersion) {
-        var data = d.getMap();
+        var data = d.getStringMap();
         var map = new DataComponentMap(data.size());
         data.forEach((k, v) -> {
             var key = get(k);
@@ -89,7 +89,7 @@ public final class DataComponentRegistry extends Registry<String, DataComponentK
 
     @Override
     public @NotNull Data encode(DataComponentMap obj) {
-        var data = new MapData();
+        var data = new StringMapData();
         obj.fastForEach((k, v) -> data.put(k.name, k.codec.dataWriter.encode(v)));
         return data;
     }

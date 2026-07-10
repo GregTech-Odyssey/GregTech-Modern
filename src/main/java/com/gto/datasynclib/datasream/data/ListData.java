@@ -190,11 +190,11 @@ public record ListData(List<Data> value) implements CollectionData, Iterable<Dat
     }
 
     @NotNull
-    public MapData getMap(int index) {
-        if (this.value.get(index) instanceof MapData mapData) {
+    public StringMapData getMap(int index) {
+        if (this.value.get(index) instanceof StringMapData mapData) {
             return mapData;
         }
-        return MapData.EMPTY;
+        return StringMapData.EMPTY;
     }
 
     @Nullable

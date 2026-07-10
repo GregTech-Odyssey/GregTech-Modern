@@ -24,7 +24,7 @@ public class ObjSerializableHolder<T> extends ObjHolder<T> implements IDataSeria
 
     protected T lastValue;
     protected int lastHash;
-    private boolean syncChange = true;
+    private boolean syncChange;
 
     protected final DataSyncCodec<T> codec;
 

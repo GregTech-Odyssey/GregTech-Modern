@@ -217,7 +217,7 @@ public final class DataSyncCodec<T> {
 
     public final static DataSyncCodec<Data> DATA_CODEC = register(Data.class, Data.BYTE_STREAM_CODEC, Data.DATA_CODEC);
 
-    public final static DataSyncCodec<MapData> MAP_DATA_CODEC = register(MapData.class, MapData.BYTE_STREAM_CODEC, MapData.DATA_CODEC);
+    public final static DataSyncCodec<StringMapData> MAP_DATA_CODEC = register(StringMapData.class, StringMapData.BYTE_STREAM_CODEC, StringMapData.DATA_CODEC);
 
     public final static DataSyncCodec<boolean[]> BOOLEANS_CODEC = register(boolean[].class, ByteStreamCodec.BOOLEANS_CODEC, DataCodec.BOOLEANS_CODEC);
     public final static DataSyncCodec<byte[]> BYTES_CODEC = register(byte[].class, ByteStreamCodec.BYTES_CODEC, DataCodec.BYTES_CODEC);

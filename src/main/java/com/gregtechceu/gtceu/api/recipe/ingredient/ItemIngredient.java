@@ -94,7 +94,7 @@ public class ItemIngredient extends ContentInner implements Predicate<ItemStack>
 
     public Data toData() {
         if (isEmpty) return NullData.INSTANCE;
-        var data = new MapData();
+        var data = new StringMapData();
         switch (value) {
             case Ingredient.ItemValue itemValue -> data.putString("i", GTUtil.ITEM_ID.apply(itemValue.item.getItem()).toString());
             case Ingredient.TagValue tagValue -> data.putString("t", tagValue.tag.location().toString());
@@ -132,7 +132,7 @@ public class ItemIngredient extends ContentInner implements Predicate<ItemStack>
         if (data instanceof ByteData(byte i)) {
             return IntCircuitIngredient.CIRCUIT_INPUTS[i];
         }
-        var map = data.getMap();
+        var map = data.getStringMap();
         var amount = map.get("a").getLong();
         var item = map.get("i");
         if (item != null) {

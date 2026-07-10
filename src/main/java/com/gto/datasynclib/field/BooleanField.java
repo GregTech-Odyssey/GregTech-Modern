@@ -18,8 +18,11 @@ public final class BooleanField extends AbstractField<Boolean> {
     }
 
     @Override
-    public boolean hasChanges(Object source) {
-        return lastValue != definition.getBoolean(source);
+    public boolean hasChanges(@NotNull LogicalSide side, Object source) {
+        var definition = this.definition;
+        var value = definition.getBoolean(source);
+        if (definition.skipSync(side, source, value)) return false;
+        return lastValue != value;
     }
 
     @Override
@@ -46,7 +49,9 @@ public final class BooleanField extends AbstractField<Boolean> {
 
     @Override
     public @NotNull Data writeToData(@NotNull Object source) {
+        var definition = this.definition;
         var value = definition.getBoolean(source);
+        if (definition.skipSave(source, value)) return NullData.NONE;
         if (definition.hasDefaultValue() && definition.getDefaultBooleanValue(source) == value) return NullData.NONE;
         return ByteData.valueOf(value);
     }

@@ -29,7 +29,7 @@ public final class ShortNotifiableHolder extends ShortHolder implements IDataSer
     private ShortSyncListener senderListener = ShortSyncListener.EMPTY;
 
     private short lastValue;
-    private boolean syncChange = true;
+    private boolean syncChange;
 
     private ShortNotifiableHolder() {}
 

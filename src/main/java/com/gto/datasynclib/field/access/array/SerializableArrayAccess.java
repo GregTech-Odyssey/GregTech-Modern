@@ -7,8 +7,8 @@ import com.gto.datasynclib.IDataSerializable;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datasream.data.Data;
 import com.gto.datasynclib.datasream.data.ListData;
-import com.gto.datasynclib.datasream.data.MapData;
 import com.gto.datasynclib.datasream.data.NullData;
+import com.gto.datasynclib.datasream.data.StringMapData;
 import com.gto.datasynclib.field.access.AbstractFieldAccess;
 import com.gto.datasynclib.util.HashUtil;
 import org.jetbrains.annotations.NotNull;
@@ -87,7 +87,7 @@ public final class SerializableArrayAccess extends AbstractFieldAccess<IDataSeri
         var length = Math.min(list.size(), instance.length);
         if (dataVersion == -1) {
             for (int i = 0; i < length; i++) {
-                if (list.get(i) instanceof MapData(Map<String, Data> map) && !map.isEmpty()) {
+                if (list.get(i) instanceof StringMapData(Map<String, Data> map) && !map.isEmpty()) {
                     var element = instance[i];
                     if (element != null) element.readData(map.get("p"), dataVersion);
                 }

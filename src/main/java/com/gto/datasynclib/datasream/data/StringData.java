@@ -34,7 +34,7 @@ public record StringData(@NotNull String value) implements ImmutableData {
 
     @Override
     public boolean equals(Object obj) {
-        return obj == this || (obj instanceof StringData(String i) && (i == this.value || this.value.equals(i)));
+        return obj == this || obj instanceof StringData(String i) && i.equals(this.value);
     }
 
     @Override

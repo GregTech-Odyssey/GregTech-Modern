@@ -28,6 +28,9 @@ final class FieldAnnotations {
     private final Method defaultValueGetter;
     private final Method clientUpdateListener;
     private final Method serverUpdateListener;
+    private final Method saveConditions;
+    private final Method syncToClientConditions;
+    private final Method syncToServerConditions;
     private final Hash.Strategy strategy;
     private final ByteStreamCodec streamCodec;
     private final DataCodec dataCodec;
@@ -81,6 +84,30 @@ final class FieldAnnotations {
             this.serverUpdateListener = method;
         } else {
             this.serverUpdateListener = null;
+        }
+
+        if (saveToDisk != null && !saveToDisk.conditions().isEmpty()) {
+            var method = ReflectUtil.getAccessibleMethod(clazz, saveToDisk.conditions(), type);
+            method.setAccessible(true);
+            this.saveConditions = method;
+        } else {
+            this.saveConditions = null;
+        }
+
+        if (syncToClient != null && !syncToClient.conditions().isEmpty()) {
+            var method = ReflectUtil.getAccessibleMethod(clazz, syncToClient.conditions(), type);
+            method.setAccessible(true);
+            this.syncToClientConditions = method;
+        } else {
+            this.syncToClientConditions = null;
+        }
+
+        if (syncToServer != null && !syncToServer.conditions().isEmpty()) {
+            var method = ReflectUtil.getAccessibleMethod(clazz, syncToServer.conditions(), type);
+            method.setAccessible(true);
+            this.syncToServerConditions = method;
+        } else {
+            this.syncToServerConditions = null;
         }
 
         var strategy = field.getAnnotation(Strategy.class);

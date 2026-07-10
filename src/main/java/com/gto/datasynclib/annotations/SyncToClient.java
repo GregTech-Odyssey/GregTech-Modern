@@ -41,6 +41,14 @@ public @interface SyncToClient {
     boolean autoUpdate() default true;
 
     /**
+     * conditions for synchronized
+     * Method signature: T -> boolean
+     *
+     * @return the method name for conditions
+     */
+    String conditions() default "";
+
+    /**
      * Specifies a listener method to be called when this field receives a synchronization update.
      * The method must have the signature: (T newValue, T oldValue) -> void, where T is the field type.
      * This must be a non-static method accessible from this class.

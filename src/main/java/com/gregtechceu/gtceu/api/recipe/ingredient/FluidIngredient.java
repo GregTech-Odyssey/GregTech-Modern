@@ -95,7 +95,7 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
     }
 
     public Data toData() {
-        var data = new MapData();
+        var data = new StringMapData();
         switch (value) {
             case null -> {
                 return NullData.INSTANCE;
@@ -124,9 +124,9 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
 
     public static FluidIngredient fromData(Data data) {
         if (data.isNull()) return EMPTY;
-        var map = data.getMap();
+        var map = data.getStringMap();
         var amount = map.get("a").getLong();
-        var nbt = map.get("n") instanceof MapData mapData ? DataCodecs.COMPOUND_TAG_CODEC.decode(mapData, GTDataFixer.VERSION) : null;
+        var nbt = map.get("n") instanceof StringMapData mapData ? DataCodecs.COMPOUND_TAG_CODEC.decode(mapData, GTDataFixer.VERSION) : null;
         var fluid = map.get("f");
         if (fluid != null) {
             return new FluidIngredient(GTUtil.FLUID_VALUE.apply(GTUtil.getResourceLocation(fluid.getString())), amount, nbt);

@@ -29,7 +29,7 @@ public final class LongNotifiableHolder extends LongHolder implements IDataSeria
     private LongSyncListener senderListener = LongSyncListener.EMPTY;
 
     private long lastValue;
-    private boolean syncChange = true;
+    private boolean syncChange;
 
     private LongNotifiableHolder() {}
 

@@ -5,8 +5,8 @@ import org.jetbrains.annotations.NotNull;
 
 public record ByteData(byte value) implements NumericData {
 
-    public static final ByteData TRUE = new ByteData((byte) 1);
-    public static final ByteData FALSE = new ByteData((byte) 0);
+    public static final ByteData TRUE = valueOf((byte) 1);
+    public static final ByteData FALSE = valueOf((byte) 0);
 
     @Deprecated(forRemoval = true)
     public ByteData {}

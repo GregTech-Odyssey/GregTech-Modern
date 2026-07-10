@@ -75,7 +75,7 @@ public class DataCodecs {
 
         @Override
         public CompoundTag decode(@NotNull Data data, int dataVersion) {
-            var dataMap = data.getMap();
+            var dataMap = data.getStringMap();
             var size = dataMap.size();
             if (size == 0) return new CompoundTag();
             var tagMap = new O2OOpenCacheHashMap<String, Tag>(size);
@@ -87,7 +87,7 @@ public class DataCodecs {
         public @NotNull Data encode(CompoundTag compoundTag) {
             var dataMap = new O2OOpenCacheHashMap<String, Data>(compoundTag.tags.size());
             compoundTag.tags.forEach((key, tag) -> dataMap.put(key, TAG_CODEC.encode(tag)));
-            return new MapData(dataMap);
+            return new StringMapData(dataMap);
         }
 
         static {
@@ -109,7 +109,7 @@ public class DataCodecs {
                 case Data.DOUBLE -> DoubleTag.valueOf(data.getDouble());
                 case Data.STRING -> StringTag.valueOf(data.getString());
                 case Data.LIST -> LIST_TAG_CODEC.decode(data, dataVersion);
-                case Data.MAP -> COMPOUND_TAG_CODEC.decode(data, dataVersion);
+                case Data.STRING_MAP -> COMPOUND_TAG_CODEC.decode(data, dataVersion);
                 case Data.BYTE_ARRAY -> new ByteArrayTag(data.getByteArray());
                 case Data.INT_ARRAY -> new IntArrayTag(data.getIntArray());
                 case Data.LONG_ARRAY -> new LongArrayTag(data.getLongArray());

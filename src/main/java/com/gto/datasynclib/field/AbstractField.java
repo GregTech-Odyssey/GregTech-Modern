@@ -11,7 +11,7 @@ public abstract class AbstractField<T> implements DataField<T> {
     @Getter
     protected final DataFieldDefinition<T> definition;
 
-    protected boolean syncChange = true;
+    protected boolean syncChange;
 
     protected AbstractField(DataFieldDefinition<T> definition) {
         this.definition = definition;
@@ -34,8 +34,8 @@ public abstract class AbstractField<T> implements DataField<T> {
 
     @Override
     public final boolean detectChange(@NotNull LogicalSide side, @NotNull Object source, boolean auto) {
-        return syncChange = hasChanges(source);
+        return syncChange = hasChanges(side, source);
     }
 
-    protected abstract boolean hasChanges(Object source);
+    protected abstract boolean hasChanges(@NotNull LogicalSide side, Object source);
 }

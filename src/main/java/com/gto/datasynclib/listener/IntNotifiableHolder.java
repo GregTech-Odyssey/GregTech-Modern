@@ -29,7 +29,7 @@ public final class IntNotifiableHolder extends IntHolder implements IDataSeriali
     private IntSyncListener senderListener = IntSyncListener.EMPTY;
 
     private int lastValue;
-    private boolean syncChange = true;
+    private boolean syncChange;
 
     private IntNotifiableHolder() {}
 

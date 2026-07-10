@@ -48,6 +48,10 @@ public final class DataFieldDefinition<T> {
     private final Object defaultValue;
     private final MethodHandle defaultValueHandle;
 
+    private final MethodHandle saveConditions;
+    private final MethodHandle syncToClientConditions;
+    private final MethodHandle syncToServerConditions;
+
     private final boolean notifyClientUpdate;
     private final boolean notifyServerUpdate;
     private final boolean autoServerUpdate;
@@ -100,6 +104,9 @@ public final class DataFieldDefinition<T> {
 
         this.clientListenerHandle = ReflectUtil.createAdaptedMethodHandle(fieldAnnotations.clientUpdateListener());
         this.serverListenerHandle = ReflectUtil.createAdaptedMethodHandle(fieldAnnotations.serverUpdateListener());
+        this.saveConditions = ReflectUtil.createAdaptedMethodHandle(fieldAnnotations.saveConditions(), boolean.class);
+        this.syncToClientConditions = ReflectUtil.createAdaptedMethodHandle(fieldAnnotations.syncToClientConditions(), boolean.class);
+        this.syncToServerConditions = ReflectUtil.createAdaptedMethodHandle(fieldAnnotations.syncToServerConditions(), boolean.class);
     }
 
     public boolean hasDefaultValue() {
@@ -203,6 +210,186 @@ public final class DataFieldDefinition<T> {
             }
         }
         return (T) defaultValue;
+    }
+
+    public boolean skipSync(LogicalSide side, Object source, boolean value) {
+        var conditions = side == LogicalSide.CLIENT ? this.syncToServerConditions : this.syncToClientConditions;
+        if (conditions == null) return true;
+        try {
+            return (boolean) conditions.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean skipSync(LogicalSide side, Object source, byte value) {
+        var conditions = side == LogicalSide.CLIENT ? this.syncToServerConditions : this.syncToClientConditions;
+        if (conditions == null) return true;
+        try {
+            return (boolean) conditions.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean skipSync(LogicalSide side, Object source, short value) {
+        var conditions = side == LogicalSide.CLIENT ? this.syncToServerConditions : this.syncToClientConditions;
+        if (conditions == null) return true;
+        try {
+            return (boolean) conditions.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean skipSync(LogicalSide side, Object source, int value) {
+        var conditions = side == LogicalSide.CLIENT ? this.syncToServerConditions : this.syncToClientConditions;
+        if (conditions == null) return true;
+        try {
+            return (boolean) conditions.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean skipSync(LogicalSide side, Object source, long value) {
+        var conditions = side == LogicalSide.CLIENT ? this.syncToServerConditions : this.syncToClientConditions;
+        if (conditions == null) return true;
+        try {
+            return (boolean) conditions.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean skipSync(LogicalSide side, Object source, float value) {
+        var conditions = side == LogicalSide.CLIENT ? this.syncToServerConditions : this.syncToClientConditions;
+        if (conditions == null) return true;
+        try {
+            return (boolean) conditions.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean skipSync(LogicalSide side, Object source, double value) {
+        var conditions = side == LogicalSide.CLIENT ? this.syncToServerConditions : this.syncToClientConditions;
+        if (conditions == null) return true;
+        try {
+            return (boolean) conditions.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean skipSync(LogicalSide side, Object source, char value) {
+        var conditions = side == LogicalSide.CLIENT ? this.syncToServerConditions : this.syncToClientConditions;
+        if (conditions == null) return true;
+        try {
+            return (boolean) conditions.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean skipSync(LogicalSide side, Object source, T value) {
+        var conditions = side == LogicalSide.CLIENT ? this.syncToServerConditions : this.syncToClientConditions;
+        if (conditions == null) return true;
+        try {
+            return (boolean) conditions.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean skipSave(Object source, boolean value) {
+        var conditions = this.saveConditions;
+        if (conditions == null) return true;
+        try {
+            return (boolean) conditions.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean skipSave(Object source, byte value) {
+        var conditions = this.saveConditions;
+        if (conditions == null) return true;
+        try {
+            return (boolean) conditions.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean skipSave(Object source, short value) {
+        var conditions = this.saveConditions;
+        if (conditions == null) return true;
+        try {
+            return (boolean) conditions.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean skipSave(Object source, int value) {
+        var conditions = this.saveConditions;
+        if (conditions == null) return true;
+        try {
+            return (boolean) conditions.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean skipSave(Object source, long value) {
+        var conditions = this.saveConditions;
+        if (conditions == null) return true;
+        try {
+            return (boolean) conditions.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean skipSave(Object source, float value) {
+        var conditions = this.saveConditions;
+        if (conditions == null) return true;
+        try {
+            return (boolean) conditions.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean skipSave(Object source, double value) {
+        var conditions = this.saveConditions;
+        if (conditions == null) return true;
+        try {
+            return (boolean) conditions.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean skipSave(Object source, char value) {
+        var conditions = this.saveConditions;
+        if (conditions == null) return true;
+        try {
+            return (boolean) conditions.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean skipSave(Object source, T value) {
+        var conditions = this.saveConditions;
+        if (conditions == null) return true;
+        try {
+            return (boolean) conditions.invokeExact(source, value);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @SuppressWarnings("unchecked")

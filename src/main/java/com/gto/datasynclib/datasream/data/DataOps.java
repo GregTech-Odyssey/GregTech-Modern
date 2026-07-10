@@ -31,7 +31,7 @@ public final class DataOps implements DynamicOps<Data> {
     }
 
     public Data emptyMap() {
-        return MapData.EMPTY;
+        return StringMapData.EMPTY;
     }
 
     public <U> U convertTo(DynamicOps<U> outOps, Data input) {
@@ -46,7 +46,7 @@ public final class DataOps implements DynamicOps<Data> {
             case Data.DOUBLE -> outOps.createDouble(input.getDouble());
             case Data.STRING -> outOps.createString(input.getString());
             case Data.LIST -> this.convertList(outOps, input);
-            case Data.MAP -> this.convertMap(outOps, input);
+            case Data.STRING_MAP -> this.convertMap(outOps, input);
             case Data.BYTE_ARRAY -> outOps.createByteList(ByteBuffer.wrap(input.getByteArray()));
             case Data.INT_ARRAY -> outOps.createIntList(Arrays.stream(input.getIntArray()));
             case Data.LONG_ARRAY -> outOps.createLongList(Arrays.stream(input.getLongArray()));
@@ -131,10 +131,10 @@ public final class DataOps implements DynamicOps<Data> {
     }
 
     public DataResult<Data> mergeToMap(Data map, Data key, Data value) {
-        if (!(map instanceof MapData) && !map.isNull()) {
+        if (!(map instanceof StringMapData) && !map.isNull()) {
             return DataResult.error(() -> "mergeToMap called with not a value: " + map, map);
         } else if (key instanceof StringData(String Data)) {
-            MapData output = map instanceof MapData Datax ? Datax.shallowCopy() : new MapData();
+            StringMapData output = map instanceof StringMapData Datax ? Datax.shallowCopy() : new StringMapData();
             output.put(Data, value);
             return DataResult.success(output);
         } else {
@@ -143,14 +143,14 @@ public final class DataOps implements DynamicOps<Data> {
     }
 
     public DataResult<Data> mergeToMap(Data map, MapLike<Data> values) {
-        if (!(map instanceof MapData) && !map.isNull()) {
+        if (!(map instanceof StringMapData) && !map.isNull()) {
             return DataResult.error(() -> "mergeToMap called with not a value: " + map, map);
         } else {
             Iterator<Pair<Data, Data>> valuesIterator = values.entries().iterator();
             if (!valuesIterator.hasNext()) {
-                return map.isNull() ? DataResult.success(MapData.EMPTY) : DataResult.success(map);
+                return map.isNull() ? DataResult.success(StringMapData.EMPTY) : DataResult.success(map);
             } else {
-                MapData output = map instanceof MapData Data ? Data.shallowCopy() : new MapData();
+                StringMapData output = map instanceof StringMapData Data ? Data.shallowCopy() : new StringMapData();
                 List<Data> missed = new ArrayList<>();
                 valuesIterator.forEachRemaining(entry -> {
                     Data key = entry.getFirst();
@@ -166,12 +166,12 @@ public final class DataOps implements DynamicOps<Data> {
     }
 
     public DataResult<Data> mergeToMap(Data map, Map<Data, Data> values) {
-        if (!(map instanceof MapData) && !map.isNull()) {
+        if (!(map instanceof StringMapData) && !map.isNull()) {
             return DataResult.error(() -> "mergeToMap called with not a value: " + map, map);
         } else if (values.isEmpty()) {
-            return map.isNull() ? DataResult.success(MapData.EMPTY) : DataResult.success(map);
+            return map.isNull() ? DataResult.success(StringMapData.EMPTY) : DataResult.success(map);
         } else {
-            MapData output = map instanceof MapData Data ? Data.shallowCopy() : new MapData();
+            StringMapData output = map instanceof StringMapData Data ? Data.shallowCopy() : new StringMapData();
             List<Data> missed = new ArrayList<>();
             values.forEach((k, v) -> {
                 if (k instanceof StringData(String var10)) {
@@ -185,15 +185,15 @@ public final class DataOps implements DynamicOps<Data> {
     }
 
     public DataResult<Stream<Pair<Data, Data>>> getMapValues(Data input) {
-        return input instanceof MapData(Map<String, Data> value) ? DataResult.success(value.entrySet().stream().map(entry -> Pair.of(StringData.valueOf(entry.getKey()), entry.getValue()))) : DataResult.error(() -> "Not a value: " + input);
+        return input instanceof StringMapData(Map<String, Data> value) ? DataResult.success(value.entrySet().stream().map(entry -> Pair.of(StringData.valueOf(entry.getKey()), entry.getValue()))) : DataResult.error(() -> "Not a value: " + input);
     }
 
     public DataResult<Consumer<BiConsumer<Data, Data>>> getMapEntries(Data input) {
-        return input instanceof MapData(Map<String, Data> value) ? DataResult.success(c -> value.forEach((k, v) -> c.accept(StringData.valueOf(k), v))) : DataResult.error(() -> "Not a value: " + input);
+        return input instanceof StringMapData(Map<String, Data> value) ? DataResult.success(c -> value.forEach((k, v) -> c.accept(StringData.valueOf(k), v))) : DataResult.error(() -> "Not a value: " + input);
     }
 
     public DataResult<MapLike<Data>> getMap(Data input) {
-        return input instanceof MapData(Map<String, Data> value) ? DataResult.success(new MapLike<>() {
+        return input instanceof StringMapData(Map<String, Data> value) ? DataResult.success(new MapLike<>() {
 
             public Data get(Data key) {
                 if (key instanceof StringData(String var4)) {
@@ -220,7 +220,7 @@ public final class DataOps implements DynamicOps<Data> {
     }
 
     public Data createMap(Stream<Pair<Data, Data>> map) {
-        MapData Data = new MapData();
+        StringMapData Data = new StringMapData();
         map.forEach(entry -> {
             Data key = entry.getFirst();
             Data value = entry.getSecond();
@@ -273,8 +273,8 @@ public final class DataOps implements DynamicOps<Data> {
     }
 
     public Data remove(Data input, String key) {
-        if (input instanceof MapData Data) {
-            MapData result = Data.shallowCopy();
+        if (input instanceof StringMapData Data) {
+            StringMapData result = Data.shallowCopy();
             result.remove(key);
             return result;
         } else {
@@ -292,28 +292,28 @@ public final class DataOps implements DynamicOps<Data> {
         return new DataRecordBuilder();
     }
 
-    private class DataRecordBuilder extends AbstractStringBuilder<Data, MapData> {
+    private class DataRecordBuilder extends AbstractStringBuilder<Data, StringMapData> {
 
         protected DataRecordBuilder() {
             super(DataOps.this);
         }
 
-        protected MapData initBuilder() {
-            return new MapData();
+        protected StringMapData initBuilder() {
+            return new StringMapData();
         }
 
-        protected MapData append(String key, Data value, MapData builder) {
+        protected StringMapData append(String key, Data value, StringMapData builder) {
             builder.put(key, value);
             return builder;
         }
 
-        protected DataResult<Data> build(MapData builder, Data prefix) {
+        protected DataResult<Data> build(StringMapData builder, Data prefix) {
             if (prefix == null || prefix.isNull()) {
                 return DataResult.success(builder);
-            } else if (!(prefix instanceof MapData compound)) {
+            } else if (!(prefix instanceof StringMapData compound)) {
                 return DataResult.error(() -> "mergeToMap called with not a value: " + prefix, prefix);
             } else {
-                MapData result = compound.shallowCopy();
+                StringMapData result = compound.shallowCopy();
                 builder.value().forEach(result::put);
                 return DataResult.success(result);
             }

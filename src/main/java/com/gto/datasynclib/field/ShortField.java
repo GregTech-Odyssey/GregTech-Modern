@@ -18,8 +18,11 @@ public final class ShortField extends AbstractField<Short> {
     }
 
     @Override
-    public boolean hasChanges(Object source) {
-        return lastValue != definition.getShort(source);
+    public boolean hasChanges(@NotNull LogicalSide side, Object source) {
+        var definition = this.definition;
+        var value = definition.getShort(source);
+        if (definition.skipSync(side, source, value)) return false;
+        return lastValue != value;
     }
 
     @Override
@@ -46,7 +49,9 @@ public final class ShortField extends AbstractField<Short> {
 
     @Override
     public @NotNull Data writeToData(@NotNull Object source) {
+        var definition = this.definition;
         var value = definition.getShort(source);
+        if (definition.skipSave(source, value)) return NullData.NONE;
         if (definition.hasDefaultValue() && definition.getDefaultShortValue(source) == value) return NullData.NONE;
         return ShortData.valueOf(value);
     }

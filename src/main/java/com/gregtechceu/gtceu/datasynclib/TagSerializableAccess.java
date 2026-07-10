@@ -48,6 +48,7 @@ public final class TagSerializableAccess extends AbstractFieldAccess<ITagSeriali
     public boolean detectChange(@NotNull LogicalSide side, @NotNull Object source, boolean auto) {
         addAware(source);
         var instance = getInstance(source);
+        if (definition.skipSync(side, source, instance)) return false;
         if (this.instance != instance) {
             this.instance = instance;
             return syncChange = true;

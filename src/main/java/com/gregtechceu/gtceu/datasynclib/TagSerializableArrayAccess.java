@@ -52,6 +52,7 @@ public final class TagSerializableArrayAccess extends AbstractFieldAccess<ITagSe
     public boolean detectChange(@NotNull LogicalSide side, @NotNull Object source, boolean auto) {
         addAware(source);
         var instance = getInstance(source);
+        if (definition.skipSync(side, source, instance)) return false;
         if (this.instance != instance) {
             this.instance = instance;
             return syncChange = true;
@@ -115,7 +116,7 @@ public final class TagSerializableArrayAccess extends AbstractFieldAccess<ITagSe
         var length = Math.min(list.size(), instance.length);
         if (dataVersion == -1) {
             for (int i = 0; i < length; i++) {
-                if (list.get(i) instanceof MapData(Map<String, Data> map) && !map.isEmpty()) {
+                if (list.get(i) instanceof StringMapData(Map<String, Data> map) && !map.isEmpty()) {
                     var element = instance[i];
                     if (element != null) {
                         var nbt = DataCodecs.TAG_CODEC.decode(map.get("p"), dataVersion);

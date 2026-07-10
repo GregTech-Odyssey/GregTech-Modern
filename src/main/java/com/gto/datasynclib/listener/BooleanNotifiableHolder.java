@@ -29,7 +29,7 @@ public final class BooleanNotifiableHolder extends BooleanHolder implements IDat
     private BooleanSyncListener senderListener = BooleanSyncListener.EMPTY;
 
     private boolean lastValue;
-    private boolean syncChange = true;
+    private boolean syncChange;
 
     private BooleanNotifiableHolder() {}
 

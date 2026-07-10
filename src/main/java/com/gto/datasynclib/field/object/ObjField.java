@@ -19,8 +19,10 @@ public abstract class ObjField<T> extends AbstractField<T> {
     }
 
     @Override
-    public final boolean hasChanges(Object source) {
+    public final boolean hasChanges(@NotNull LogicalSide side, Object source) {
+        var definition = this.definition;
         var value = definition.get(source);
+        if (definition.skipSync(side, source, value)) return false;
         var hash = definition.strategy.hashCode(value);
         if (hash != lastHash) {
             lastHash = hash;
@@ -63,10 +65,12 @@ public abstract class ObjField<T> extends AbstractField<T> {
 
     @Override
     public final @NotNull Data writeToData(@NotNull Object source) {
+        var definition = this.definition;
         T value = definition.get(source);
         if (value == null) {
             return NullData.INSTANCE;
         } else {
+            if (definition.skipSave(source, value)) return NullData.NONE;
             if (definition.hasDefaultValue() && definition.strategy.equals(value, definition.getDefaultValue(source))) return NullData.NONE;
             return write(source, value);
         }
