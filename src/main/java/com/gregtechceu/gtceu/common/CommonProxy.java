@@ -65,7 +65,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegisterEvent;
 
 import com.gto.datasynclib.DataSyncCodec;
-import com.gto.datasynclib.DataSyncLib;
 import com.gto.datasynclib.FieldDefinitionStorage;
 import com.gto.datasynclib.util.EnumUtil;
 

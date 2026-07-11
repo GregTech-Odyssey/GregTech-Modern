@@ -203,7 +203,10 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
     protected int periodID = offset;
 
     protected void autoSync() {
-        asyncTick(periodID++);
+        if (remove) return;
+        if (needSync() || periodID++ % 40 == 0) {
+            DataSyncNetwork.syncBlockEntityToClient(this);
+        }
     }
 
     @Override
@@ -241,13 +244,6 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
     public void loadCustomPersistedData(CompoundTag tag) {}
 
     public void saveCustomPersistedData(CompoundTag tag, boolean forDrop) {}
-
-    public void asyncTick(long periodID) {
-        if (remove) return;
-        if (needSync() || periodID % 40 == 0) {
-            DataSyncNetwork.syncBlockEntityToClient(this, false, true);
-        }
-    }
 
     @Override
     public void scheduleUpdate(LogicalSide side) {

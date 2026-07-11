@@ -33,9 +33,9 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
-import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.gto.datasynclib.network.DataSyncNetwork;
 import lombok.Getter;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.Contract;
@@ -260,9 +260,7 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
             mainChannelGroup = new WidgetGroup(10, 20, 156, 20);
             initWidgets();
             if (isRemote()) return;
-            if (cover.coverHolder.holder().getFieldDataManager().updateFieldDirtyFlags(LogicalSide.SERVER, true)) {
-                cover.coverHolder.holder().syncToClient();
-            }
+            DataSyncNetwork.syncBlockEntityToClient(cover.coverHolder.holder());
         }
 
         public void update() {
@@ -273,9 +271,7 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
             mainChannelGroup.widgets.clear();
             initWidgets();
             this.detectAndSendChanges();
-            if (cover.coverHolder.holder().getFieldDataManager().updateFieldDirtyFlags(LogicalSide.SERVER, true)) {
-                cover.coverHolder.holder().syncToClient();
-            }
+            DataSyncNetwork.syncBlockEntityToClient(cover.coverHolder.holder());
         }
 
         private void initWidgets() {

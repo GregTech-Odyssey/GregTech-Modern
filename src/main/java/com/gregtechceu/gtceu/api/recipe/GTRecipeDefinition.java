@@ -13,6 +13,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
 import com.fast.recipesearch.IntMapContainer;
+import com.gto.datasynclib.datastream.DataComponentKey;
 import com.gto.datasynclib.datastream.DataComponentMap;
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datastream.codec.DataCodec;
@@ -28,7 +29,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public final class GTRecipeDefinition {
+public final class GTRecipeDefinition extends DataComponentKey<GTRecipeDefinition> {
 
     public static final ByteStreamCodec<GTRecipeDefinition> STREAM_CODEC = new ByteStreamCodec<>() {
 
@@ -104,6 +105,7 @@ public final class GTRecipeDefinition {
     public final int priority;
 
     public GTRecipeDefinition(boolean registered, GTRecipeType recipeType, GTRecipeCategory recipeCategory, ResourceLocation id, List<Content<ItemIngredient>> itemInputs, List<Content<ItemIngredient>> itemOutputs, List<Content<FluidIngredient>> fluidInputs, List<Content<FluidIngredient>> fluidOutputs, List<RecipeCondition> conditions, List<RecipeExtension> recipeExtensions, List<RecipeExtension> tickRecipeExtensions, DataComponentMap data, ChanceBoostFunction chanceFunction, long eut, int tier, int duration, int priority) {
+        super(id.toString(), null);
         this.registered = registered;
         this.recipeType = recipeType;
         this.recipeCategory = recipeCategory;
@@ -143,6 +145,6 @@ public final class GTRecipeDefinition {
 
     @Override
     public String toString() {
-        return id.toString();
+        return name;
     }
 }
