@@ -148,6 +148,18 @@ public class MachineRenderer extends TextureOverrideRenderer
                 }
                 return quads;
             }
+
+            // No machine: either no level/pos at all, or the level has no block entity at that position, which is
+            // what fake render levels do (the Building Gadgets copy/paste preview, for one). Covers, auto IO
+            // overlays and formed part models are unavailable, but the machine itself can still be rendered from
+            // the block state alone, the same way the item model is rendered.
+            var upwardsFacing = state.hasProperty(MetaMachineBlock.UPWARDS_FACING_PROPERTY) ?
+                    state.getValue(MetaMachineBlock.UPWARDS_FACING_PROPERTY) : Direction.NORTH;
+            var quads = new LinkedList<BakedQuad>();
+            renderMachine(quads, machineBlock.definition, null, frontFacing, side, rand,
+                    side == null ? null : ModelFactory.modelFacing(side, frontFacing),
+                    GTMatrixUtils.createRotationState(frontFacing, upwardsFacing));
+            return quads;
         }
         return Collections.emptyList();
     }
