@@ -6,11 +6,20 @@ import com.gregtechceu.gtceu.client.TooltipsHandler;
 import com.gregtechceu.gtceu.client.renderer.BlockHighlightRenderer;
 import com.gregtechceu.gtceu.client.renderer.MultiblockInWorldPreviewRenderer;
 import com.gregtechceu.gtceu.client.util.TooltipHelper;
+import com.gregtechceu.gtceu.common.data.GTItems;
+import com.gregtechceu.gtceu.common.item.InfiniteSprayCanBehaviour;
+import com.gregtechceu.gtceu.common.network.GTNetwork;
+import com.gregtechceu.gtceu.common.network.packets.CPacketSprayCanAction;
 import com.gregtechceu.gtceu.integration.map.ClientCacheManager;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
+import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderHighlightEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.event.TickEvent;
@@ -64,5 +73,45 @@ public class ForgeClientEventListener {
     @SubscribeEvent
     public static void serverStopped(ServerStoppedEvent event) {
         ClientCacheManager.clearCaches();
+    }
+
+    /**
+     * Sneak + scroll while holding the infinite spray can cycles color, matching AE2's
+     * {@code ColorApplicator} / {@code AppEngClient#wheelEvent} pattern: only while shift is held,
+     * cancel the scroll so the hotbar does not change, apply client-side for responsiveness, and
+     * sync to the server.
+     */
+    @SubscribeEvent
+    public static void onSprayCanScroll(InputEvent.MouseScrollingEvent event) {
+        if (event.getScrollDelta() == 0) {
+            return;
+        }
+        Minecraft mc = Minecraft.getInstance();
+        LocalPlayer player = mc.player;
+        if (player == null || mc.screen != null) {
+            return;
+        }
+        // AE uses isShiftKeyDown (not pose-only isCrouching) as "alternate use mode"
+        if (!player.isShiftKeyDown()) {
+            return;
+        }
+
+        InteractionHand hand = InteractionHand.MAIN_HAND;
+        ItemStack stack = player.getMainHandItem();
+        if (!stack.is(GTItems.INFINITE_SPRAY_CAN.get())) {
+            stack = player.getOffhandItem();
+            hand = InteractionHand.OFF_HAND;
+            if (!stack.is(GTItems.INFINITE_SPRAY_CAN.get())) {
+                return;
+            }
+        }
+
+        // scroll up → next color; scroll down → previous (same sign as AE MouseWheelPacket)
+        int direction = event.getScrollDelta() > 0 ? 1 : -1;
+        InfiniteSprayCanBehaviour.cycle(stack, direction);
+        InfiniteSprayCanBehaviour.playColorSwitchSound(player);
+        GTNetwork.NETWORK.sendToServer(
+                new CPacketSprayCanAction(CPacketSprayCanAction.ACTION_CYCLE, hand, direction));
+        event.setCanceled(true);
     }
 }
