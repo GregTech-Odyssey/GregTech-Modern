@@ -35,7 +35,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public abstract class FilterHandler<T, F extends Filter<T, F>> implements IFieldDataHolder {
 
     private final LazyFieldDataManager fieldDataManager = new LazyFieldDataManager(this);
-    private final CoverBehavior container;
+    /**
+     * Cover or machine that owns this filter (both implement {@link IFieldDataHolder}).
+     * Upstream uses the same pattern so item buses can host filters like covers.
+     */
+    private final IFieldDataHolder container;
 
     @Getter
     @SaveToDisk(defaultValueGetter = "getDefaultItem")
@@ -55,7 +59,7 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IField
     @NotNull
     private Consumer<F> onFilterUpdated = filter -> {};
 
-    public FilterHandler(CoverBehavior container) {
+    public FilterHandler(IFieldDataHolder container) {
         this.container = container;
     }
 
@@ -148,10 +152,15 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IField
         if (!this.filterItem.isEmpty()) {
             this.filter = loadFilter(this.filterItem);
             filter.setOnUpdated(this.onFilterUpdated);
-            if (filter instanceof SmartItemFilter smart && container instanceof CoverBehavior cover && cover.coverHolder instanceof MachineCoverContainer mcc) {
-                var machine = MetaMachine.getMachine(mcc.holder());
-                if (machine != null) {
+            if (filter instanceof SmartItemFilter smart) {
+                if (container instanceof MetaMachine machine) {
                     smart.setModeFromMachine(machine.getDefinition().getName());
+                } else if (container instanceof CoverBehavior cover &&
+                        cover.coverHolder instanceof MachineCoverContainer mcc) {
+                    var machine = MetaMachine.getMachine(mcc.holder());
+                    if (machine != null) {
+                        smart.setModeFromMachine(machine.getDefinition().getName());
+                    }
                 }
             }
             this.onFilterLoaded.accept(this.filter);

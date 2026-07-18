@@ -1,6 +1,9 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.cover.filter.FilterHandler;
+import com.gregtechceu.gtceu.api.cover.filter.FilterHandlers;
+import com.gregtechceu.gtceu.api.cover.filter.ItemFilter;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.fancy.TabsWidget;
@@ -28,10 +31,12 @@ import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -67,8 +72,19 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
     @SaveToDisk(defaultValue = "0")
     protected int priority;
 
+    /**
+     * Item filter for export buses (upstream CEu #4337 / #4686).
+     * Insert a filter item in the bus GUI; only matching items can enter the inventory
+     * (and thus be outputted by the multiblock / auto-export).
+     */
+    @Getter
+    @SaveToDisk
+    @SyncToClient
+    protected final FilterHandler<ItemStack, ItemFilter> filterHandler;
+
     public ItemBusPartMachine(MetaMachineBlockEntity holder, int tier, IO io, Object... args) {
         super(holder, tier, io);
+        this.filterHandler = FilterHandlers.item(this);
         this.inventory = createInventory(args);
         this.circuitInventory = createCircuitItemHandler(io);
         if (io == IO.IN) this.workingEnabled = false;
@@ -83,8 +99,15 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
         return sizeRoot * sizeRoot;
     }
 
+    protected boolean matchesFilter(ItemStack stack) {
+        if (filterHandler.isFilterPresent()) {
+            return filterHandler.getFilter().test(stack);
+        }
+        return true;
+    }
+
     protected NotifiableItemStackHandler createInventory(Object... args) {
-        return new NotifiableItemStackHandler(this, getInventorySize(), io);
+        return new NotifiableItemStackHandler(this, getInventorySize(), io).setFilter(this::matchesFilter);
     }
 
     protected NotifiableItemStackHandler createCircuitItemHandler(Object... args) {
@@ -269,6 +292,11 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
         var group = new WidgetGroup(0, 0, 18 * rowSize + 16, 18 * colSize + 16);
         var container = new WidgetGroup(4, 4, 18 * rowSize + 8, 18 * colSize + 8);
         int index = 0;
+        // Output bus only: filter item slot (CEu #4686 layout)
+        if (this.io == IO.OUT) {
+            group.addWidget(filterHandler.createFilterSlotUI(71 + (18 * rowSize) / 2, 35 + 9 * rowSize)
+                    .setHoverTooltips(Component.translatable("cover.item_filter.title")));
+        }
         for (int y = 0; y < colSize; y++) {
             for (int x = 0; x < rowSize; x++) {
                 container.addWidget(new SlotWidget(getInventory().storage, index++, 4 + x * 18, 4 + y * 18, true, io.support(IO.IN)).setBackgroundTexture(GuiTextures.SLOT).setIngredientIO(this.io == IO.IN ? IngredientIO.INPUT : IngredientIO.OUTPUT));
