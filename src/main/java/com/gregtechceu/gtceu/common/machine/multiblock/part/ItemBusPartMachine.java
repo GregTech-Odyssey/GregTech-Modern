@@ -107,7 +107,12 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
     }
 
     protected NotifiableItemStackHandler createInventory(Object... args) {
-        return new NotifiableItemStackHandler(this, getInventorySize(), io).setFilter(this::matchesFilter);
+        // Filter applies to export buses only (CEu #4337 / #4686); import buses stay unrestricted.
+        var inv = new NotifiableItemStackHandler(this, getInventorySize(), io);
+        if (io == IO.OUT) {
+            inv.setFilter(this::matchesFilter);
+        }
+        return inv;
     }
 
     protected NotifiableItemStackHandler createCircuitItemHandler(Object... args) {
