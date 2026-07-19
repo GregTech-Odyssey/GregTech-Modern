@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
+import com.gregtechceu.gtceu.api.machine.feature.ICircuitConfigurable;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDistinctPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachine;
@@ -18,6 +19,7 @@ import com.gregtechceu.gtceu.api.recipe.handler.IFilteredHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.data.GTMachines;
+import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -32,6 +34,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -45,7 +48,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements IDistinctPart, IMachineLife, IInputLimitableMachine {
+public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements IDistinctPart, IMachineLife, IInputLimitableMachine, ICircuitConfigurable {
 
     @Getter
     @SaveToDisk
@@ -281,5 +284,26 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
 
     public boolean isInputLimit() {
         return this.inventory.storage.isInputLimited;
+    }
+
+    @Override
+    public boolean hasCircuitConfig() {
+        return io == IO.IN;
+    }
+
+    @Override
+    public int getCircuitConfiguration() {
+        var stack = circuitInventory.getStackInSlot(0);
+        return stack.isEmpty() ? CIRCUIT_EMPTY : IntCircuitBehaviour.getCircuitConfiguration(stack);
+    }
+
+    @Override
+    public void setCircuitConfiguration(int configuration) {
+        if (!hasCircuitConfig()) return;
+        if (configuration < 0) {
+            circuitInventory.setStackInSlot(0, ItemStack.EMPTY);
+        } else {
+            circuitInventory.setStackInSlot(0, IntCircuitBehaviour.stack(configuration));
+        }
     }
 }

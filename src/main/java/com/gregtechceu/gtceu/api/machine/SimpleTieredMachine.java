@@ -14,9 +14,11 @@ import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputBoth;
+import com.gregtechceu.gtceu.api.machine.feature.ICircuitConfigurable;
 import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.machine.trait.CircuitHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
@@ -42,6 +44,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -68,7 +71,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoOutputBoth {
+public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoOutputBoth, ICircuitConfigurable {
 
     @SaveToDisk
     @SyncToClient(notifyUpdate = true)
@@ -409,5 +412,25 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     @Override
     public VoidingMode getVoidingMode() {
         return this.voidingMode;
+    }
+
+    @Override
+    public boolean hasVoidingModeConfig() {
+        return true;
+    }
+
+    @Override
+    public int getCircuitConfiguration() {
+        var stack = circuitInventory.getStackInSlot(0);
+        return stack.isEmpty() ? CIRCUIT_EMPTY : IntCircuitBehaviour.getCircuitConfiguration(stack);
+    }
+
+    @Override
+    public void setCircuitConfiguration(int configuration) {
+        if (configuration < 0) {
+            circuitInventory.setStackInSlot(0, ItemStack.EMPTY);
+        } else {
+            circuitInventory.setStackInSlot(0, IntCircuitBehaviour.stack(configuration));
+        }
     }
 }

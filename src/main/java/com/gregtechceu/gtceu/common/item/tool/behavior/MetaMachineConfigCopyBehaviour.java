@@ -4,20 +4,16 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.SimpleTieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
+import com.gregtechceu.gtceu.api.machine.feature.ICircuitConfigurable;
 import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.machine.feature.IVoidable.VoidingMode;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachine;
-import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
-import com.gregtechceu.gtceu.api.machine.trait.CircuitHandler;
-import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
-import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 
 import net.minecraft.ChatFormatting;
@@ -61,9 +57,6 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
     public static final String VOIDING_MODE = "voiding_mode";
     public static final String INPUT_LIMIT = "input_limit";
     public static final String CIRCUIT = "circuit";
-
-    /** Stored when the source machine has no programmed circuit. */
-    public static final int CIRCUIT_EMPTY = -1;
 
     public static final Component ENABLED = Component.translatable("cover.voiding.label.enabled")
             .withStyle(ChatFormatting.GREEN);
@@ -147,20 +140,15 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
         if (machine instanceof IMufflableMachine mufflableMachine) {
             configData.putBoolean(MUFFLED, mufflableMachine.isMuffled());
         }
-        if (machine instanceof IVoidable voidable && supportsVoidingConfig(machine)) {
+        // Copy only through machine feature interfaces (no concrete class / trait scanning).
+        if (machine instanceof IVoidable voidable && voidable.hasVoidingModeConfig()) {
             configData.putString(VOIDING_MODE, voidable.getVoidingMode().name());
         }
         if (machine instanceof IInputLimitableMachine inputLimitable && inputLimitable.hasInputLimitConfig()) {
             configData.putBoolean(INPUT_LIMIT, inputLimitable.isInputLimit());
         }
-        CircuitHandler circuitHandler = findCircuitHandler(machine);
-        if (circuitHandler != null) {
-            ItemStack circuitStack = circuitHandler.storage.getStackInSlot(0);
-            if (circuitStack.isEmpty()) {
-                configData.putInt(CIRCUIT, CIRCUIT_EMPTY);
-            } else {
-                configData.putInt(CIRCUIT, IntCircuitBehaviour.getCircuitConfiguration(circuitStack));
-            }
+        if (machine instanceof ICircuitConfigurable circuit && circuit.hasCircuitConfig()) {
+            configData.putInt(CIRCUIT, circuit.getCircuitConfiguration());
         }
         if (!configData.isEmpty()) {
             stack.getOrCreateTag().put(CONFIG_DATA, configData);
@@ -186,7 +174,7 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
             mufflableMachine.setMuffled(configData.getBoolean(MUFFLED));
         }
         if (configData.contains(VOIDING_MODE) && machine instanceof IVoidable voidable &&
-                supportsVoidingConfig(machine)) {
+                voidable.hasVoidingModeConfig()) {
             VoidingMode mode = parseVoidingMode(configData.getString(VOIDING_MODE));
             if (mode != null) {
                 voidable.setVoidingMode(mode);
@@ -196,27 +184,11 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
                 inputLimitable.hasInputLimitConfig()) {
             inputLimitable.setInputLimit(configData.getBoolean(INPUT_LIMIT));
         }
-        if (configData.contains(CIRCUIT)) {
-            CircuitHandler circuitHandler = findCircuitHandler(machine);
-            if (circuitHandler != null) {
-                int circuit = configData.getInt(CIRCUIT);
-                if (circuit < 0) {
-                    circuitHandler.storage.setStackInSlot(0, ItemStack.EMPTY);
-                } else {
-                    circuitHandler.storage.setStackInSlot(0, IntCircuitBehaviour.stack(circuit));
-                }
-            }
+        if (configData.contains(CIRCUIT) && machine instanceof ICircuitConfigurable circuit &&
+                circuit.hasCircuitConfig()) {
+            circuit.setCircuitConfiguration(configData.getInt(CIRCUIT));
         }
         return InteractionResult.SUCCESS;
-    }
-
-    /**
-     * True when the machine actually stores/uses voiding mode (not the no-op {@link IVoidable} defaults).
-     * Single-block machines: {@link SimpleTieredMachine}. Multiblock controllers: electric multiblocks
-     * (GTO stores voiding mode on {@link WorkableElectricMultiblockMachine}).
-     */
-    private static boolean supportsVoidingConfig(MetaMachine machine) {
-        return machine instanceof SimpleTieredMachine || machine instanceof WorkableElectricMultiblockMachine;
     }
 
     private static @Nullable VoidingMode parseVoidingMode(String name) {
@@ -226,15 +198,6 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
         } catch (IllegalArgumentException ignored) {
             return null;
         }
-    }
-
-    private static @Nullable CircuitHandler findCircuitHandler(MetaMachine machine) {
-        for (MachineTrait trait : machine.getTraits()) {
-            if (trait instanceof CircuitHandler circuitHandler) {
-                return circuitHandler;
-            }
-        }
-        return null;
     }
 
     @Override
