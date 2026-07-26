@@ -126,6 +126,10 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
     @Override
     public void onMachineRemoved() {
         clearInventory(getInventory().storage);
+        // Drop the filter like covers do (ConveyorCover#getAdditionalDrops) and upstream CEu #4686.
+        if (!filterHandler.getFilterItem().isEmpty()) {
+            Block.popResource(getLevel(), getPos(), filterHandler.getFilterItem());
+        }
     }
 
     @Override
