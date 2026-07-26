@@ -105,6 +105,7 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
     @Override
     public void appendTooltips(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
                                TooltipFlag isAdvanced) {
+        tooltipComponents.add(Component.translatable("behaviour.meta.machine.config.applicable.tooltip"));
         tooltipComponents.add(Component.translatable("behaviour.meta.machine.config.copy.tooltip"));
         tooltipComponents.add(Component.translatable("behaviour.meta.machine.config.paste.tooltip"));
         CompoundTag data = stack.getTagElement(CONFIG_DATA);

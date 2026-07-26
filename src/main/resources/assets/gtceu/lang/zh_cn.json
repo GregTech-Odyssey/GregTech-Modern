@@ -64,6 +64,7 @@
     "behaviour.lighter.tooltip.description": "可以点火",
     "behaviour.lighter.tooltip.usage": "潜行右击以开/关",
     "behaviour.lighter.uses": "剩余次数：%d",
+    "behaviour.meta.machine.config.applicable.tooltip": "§7可复制输入总线、输入仓、单方块机器等机器的配置",
     "behaviour.meta.machine.config.copy.tooltip": "§7潜行右键单击以复制机器配置",
     "behaviour.meta.machine.config.paste.tooltip": "§7右键单击以粘贴机器配置",
     "behaviour.paintspray.black.tooltip": "可以将物品染成黑色",
