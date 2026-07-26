@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.api.item.tool;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
@@ -356,7 +357,17 @@ public class ToolHelper {
      */
     public static void applyHammerDropConversion(ServerLevel world, BlockPos pos, ItemStack tool, BlockState state, List<ItemStack> drops, int fortune, float dropChance, RandomSource random) {
         if (ToolHelper.is(tool, GTToolType.HARD_HAMMER)) {
-            for (ItemStack silktouchDrop : ToolHelper.getSilkTouchDrop(world, pos, state)) {
+            List<ItemStack> silktouchDrops;
+            try {
+                silktouchDrops = ToolHelper.getSilkTouchDrop(world, pos, state);
+            } catch (Exception e) {
+                // The conversion is purely cosmetic, so a modded getDrops with unusual loot-param
+                // requirements must never break the block-break chain: with FTB Ultimine this used to
+                // leak its drop-capture flag and swallow every item drop in the world (GTO #1788).
+                GTCEu.LOGGER.error("Failed to compute hammer drop conversion for {} at {}", state, pos, e);
+                return;
+            }
+            for (ItemStack silktouchDrop : silktouchDrops) {
                 var item = silktouchDrop.getItem();
                 if (item == Items.AIR) continue;
                 for (var tagKey : item.builtInRegistryHolder().tags) {
@@ -653,8 +664,12 @@ public class ToolHelper {
         ItemStack tool = GTMaterialItems.TOOL_ITEMS.get(GTMaterials.Neutronium, GTToolType.PICKAXE).get().get();
         tool.enchant(Enchantments.SILK_TOUCH, 1);
 
+        // BLOCK_ENTITY must be supplied like vanilla's Block.dropResources does: some modded getDrops
+        // require it (Apotheosis' anvil reads its block entity for enchantments) and throw
+        // NoSuchElementException otherwise.
         return state.getDrops(new LootParams.Builder(world).withParameter(LootContextParams.BLOCK_STATE, state)
                 .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(origin))
-                .withParameter(LootContextParams.TOOL, tool));
+                .withParameter(LootContextParams.TOOL, tool)
+                .withOptionalParameter(LootContextParams.BLOCK_ENTITY, world.getBlockEntity(origin)));
     }
 }
