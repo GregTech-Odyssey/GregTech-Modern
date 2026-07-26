@@ -90,7 +90,7 @@
   "behaviour.setting.muffled.tooltip": "Muffling %s",
   "behaviour.setting.voiding_mode.tooltip": "Voiding Mode: %s",
   "behaviour.setting.input_limit.tooltip": "Input Limit: %s",
-  "behaviour.setting.distinct.tooltip": "Distinct Buses: %s",
+  "behaviour.setting.distinct.tooltip": "Distinct Part: %s",
   "behaviour.setting.circuit.tooltip": "Circuit Configuration: %s",
   "behaviour.setting.circuit.none": "None",
   "behaviour.setting.output.direction.tooltip": "%s output direction: %s",

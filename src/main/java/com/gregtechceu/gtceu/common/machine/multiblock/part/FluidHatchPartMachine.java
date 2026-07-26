@@ -371,7 +371,7 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     }
 
     //////////////////////////////////////
-    // ***** Config Copy Card *****//
+    // ****** Config Copy Card *******//
     //////////////////////////////////////
     @Override
     public boolean hasDistinctConfig() {

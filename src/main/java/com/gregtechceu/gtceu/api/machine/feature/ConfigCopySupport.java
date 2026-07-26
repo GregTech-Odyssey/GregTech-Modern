@@ -116,6 +116,9 @@ public final class ConfigCopySupport {
 
     /**
      * Register a renderer that inspects the stored tag itself and decides what (if anything) to add.
+     * <p>
+     * Must be called during mod setup; iteration in {@link #appendStoredTooltips} is unsynchronized,
+     * so registering after tooltip rendering has started is undefined behavior.
      */
     public static synchronized void registerTooltip(TooltipRenderer renderer) {
         TOOLTIP_RENDERERS.add(renderer);
@@ -142,6 +145,8 @@ public final class ConfigCopySupport {
     // ------------------------------------------------------------------
 
     public static void writeAutoOutputItem(CompoundTag tag, IAutoOutputItem machine) {
+        // Same guard the directional config UI uses — machines without output slots have no setting.
+        if (!machine.hasAutoOutputItem()) return;
         Direction side = machine.getOutputFacingItems();
         if (side == null) return;
         tag.put(ITEM_CONFIG, writeOutputConfig(side, machine.isAutoOutputItems(),
@@ -149,11 +154,13 @@ public final class ConfigCopySupport {
     }
 
     public static void readAutoOutputItem(CompoundTag tag, IAutoOutputItem machine) {
+        if (!machine.hasAutoOutputItem()) return;
         readOutputConfig(tag, ITEM_CONFIG, machine, machine::setOutputFacingItems,
                 machine::setAutoOutputItems, machine::setAllowInputFromOutputSideItems);
     }
 
     public static void writeAutoOutputFluid(CompoundTag tag, IAutoOutputFluid machine) {
+        if (!machine.hasAutoOutputFluid()) return;
         Direction side = machine.getOutputFacingFluids();
         if (side == null) return;
         tag.put(FLUID_CONFIG, writeOutputConfig(side, machine.isAutoOutputFluids(),
@@ -161,6 +168,7 @@ public final class ConfigCopySupport {
     }
 
     public static void readAutoOutputFluid(CompoundTag tag, IAutoOutputFluid machine) {
+        if (!machine.hasAutoOutputFluid()) return;
         readOutputConfig(tag, FLUID_CONFIG, machine, machine::setOutputFacingFluids,
                 machine::setAutoOutputFluids, machine::setAllowInputFromOutputSideFluids);
     }

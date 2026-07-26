@@ -90,7 +90,7 @@
     "behaviour.setting.muffled.tooltip": "静音：%s",
     "behaviour.setting.voiding_mode.tooltip": "销毁模式：%s",
     "behaviour.setting.input_limit.tooltip": "输入限制：%s",
-    "behaviour.setting.distinct.tooltip": "隔离总线：%s",
+    "behaviour.setting.distinct.tooltip": "仓室隔离：%s",
     "behaviour.setting.circuit.tooltip": "电路配置：%s",
     "behaviour.setting.circuit.none": "无",
     "behaviour.setting.output.direction.tooltip": "%s-输出面方向：%s",

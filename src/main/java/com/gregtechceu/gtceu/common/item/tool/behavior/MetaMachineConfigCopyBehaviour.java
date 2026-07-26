@@ -76,14 +76,19 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
     }
 
     public static InteractionResult handleCopy(ItemStack stack, MetaMachine machine) {
-        if (!(machine instanceof IConfigCopyable copyable)) return InteractionResult.SUCCESS;
         CompoundTag configData = new CompoundTag();
-        configData.putString(ConfigCopySupport.ORIGINAL_FRONT,
-                ConfigCopySupport.directionToString(machine.getFrontFacing()));
-        copyable.writeConfigTo(configData);
-        // Only the front facing means the machine contributed nothing worth storing.
+        if (machine instanceof IConfigCopyable copyable) {
+            configData.putString(ConfigCopySupport.ORIGINAL_FRONT,
+                    ConfigCopySupport.directionToString(machine.getFrontFacing()));
+            copyable.writeConfigTo(configData);
+        }
+        // Copying means "the card now holds THIS machine". A machine that contributed nothing
+        // (only the front facing, or not copyable at all) therefore clears the card instead of
+        // silently keeping a previous machine's config around to be pasted later.
         if (configData.size() > 1) {
             stack.getOrCreateTag().put(CONFIG_DATA, configData);
+        } else {
+            stack.removeTagKey(CONFIG_DATA);
         }
         return InteractionResult.SUCCESS;
     }

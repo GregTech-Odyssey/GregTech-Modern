@@ -147,7 +147,9 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
 
     @Override
     public boolean hasInputLimitConfig() {
-        return inventory.storage.size > 1;
+        // Export buses never show the input-limit toggle (see attachConfigurators), so they must not
+        // contribute the setting to the config copy card either.
+        return io == IO.IN && inventory.storage.size > 1;
     }
 
     @Override
@@ -313,7 +315,7 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
     }
 
     //////////////////////////////////////
-    // ***** Config Copy Card *****//
+    // ****** Config Copy Card *******//
     //////////////////////////////////////
     @Override
     public boolean hasDistinctConfig() {
