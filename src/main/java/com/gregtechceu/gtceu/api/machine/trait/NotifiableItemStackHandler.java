@@ -97,7 +97,7 @@ public class NotifiableItemStackHandler extends NotifiableContentHandler impleme
                     int count = stored.getCount();
                     if (count == 0) continue;
                     if (ingredient.inner.test(stored)) {
-                        var extracted = storage.extract(slot, ingredient.getIntAmount(), false);
+                        var extracted = storage.extract(slot, stored, ingredient.getIntAmount(), false);
                         if (extracted > 0) {
                             changed = true;
                             ingredient.shrink(extracted);
@@ -153,7 +153,7 @@ public class NotifiableItemStackHandler extends NotifiableContentHandler impleme
                     int count = (visited == null ? stored.getCount() : visited.getAmount());
                     if (count == 0) continue;
                     if (ingredient.inner.test(stored)) {
-                        var extracted = storage.extract(slot, ingredient.getIntAmount(), true);
+                        var extracted = storage.extract(slot, stored, ingredient.getIntAmount(), true);
                         if (extracted > 0) {
                             visiteds[slot] = new SimpleStack<>(stored, count - extracted);
                             ingredient.shrink(extracted);

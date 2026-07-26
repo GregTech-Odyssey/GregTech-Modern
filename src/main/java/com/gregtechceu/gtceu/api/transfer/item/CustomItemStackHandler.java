@@ -10,7 +10,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.items.ItemHandlerHelper;
 
 import appeng.api.config.Actionable;
 import appeng.api.stacks.AEItemKey;
@@ -65,7 +64,7 @@ public class CustomItemStackHandler extends AbstractDataSerializable implements 
     }
 
     @Override
-    public void setStackInSlot(int slot, @NotNull ItemStack stack) {
+    public final void setStackInSlot(int slot, @NotNull ItemStack stack) {
         this.stacks[slot] = stack;
         onContentsChanged(slot);
     }
@@ -77,98 +76,45 @@ public class CustomItemStackHandler extends AbstractDataSerializable implements 
 
     @Override
     @NotNull
-    public ItemStack getStackInSlot(int slot) {
+    public final ItemStack getStackInSlot(int slot) {
         return this.stacks[slot];
     }
 
     @Override
-    @NotNull
-    public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
-        var count = stack.getCount();
-        if (count < 1) return ItemStack.EMPTY;
-        if (!isItemValid(slot, stack)) return stack;
-        ItemStack existing = this.stacks[slot];
-        var stored = existing.getCount();
-        int limit = getStackLimit(slot, stack) - stored;
-        if (limit < 1) return stack;
-        if (stored == 0 || canItemStacksStack(stack, existing)) {
-            boolean reachedLimit = count > limit;
-            if (!simulate) {
-                if (existing.isEmpty()) {
-                    this.stacks[slot] = stack.copyWithCount(reachedLimit ? limit : count);
-                } else {
-                    existing.grow(reachedLimit ? limit : count);
-                }
-                onContentsChanged(slot);
-            }
-            return reachedLimit ? ItemHandlerHelper.copyStackWithSize(stack, count - limit) : ItemStack.EMPTY;
-        }
-        return stack;
+    public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+        return filter.test(stack) && !(isInputLimited && limitedInsert(slot, stack));
     }
 
-    public int insert(int slot, @NotNull ItemStack stack, int amount, boolean simulate) {
-        if (!isItemValid(slot, stack)) return 0;
-        ItemStack existing = this.stacks[slot];
-        var stored = existing.getCount();
-        int limit = getStackLimit(slot, stack) - stored;
-        if (limit < 1) return 0;
-        if (stored == 0 || canItemStacksStack(stack, existing)) {
-            boolean reachedLimit = amount > limit;
-            if (!simulate) {
-                if (existing.isEmpty()) {
-                    this.stacks[slot] = stack.copyWithCount(reachedLimit ? limit : amount);
-                } else {
-                    existing.grow(reachedLimit ? limit : amount);
-                }
-                onContentsChanged(slot);
-            }
-            return reachedLimit ? limit : amount;
-        }
-        return 0;
+    @Override
+    public int getSlotLimit(int slot) {
+        return 64;
+    }
+
+    protected int getStackLimit(int slot, @NotNull ItemStack stack) {
+        return Math.min(getSlotLimit(slot), stack.getMaxStackSize());
     }
 
     @Override
     @NotNull
-    public ItemStack extractItem(int slot, int amount, boolean simulate) {
-        if (amount == 0) return ItemStack.EMPTY;
-        ItemStack existing = this.stacks[slot];
-        int count = existing.getCount();
+    public final ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+        var count = stack.getCount();
         if (count < 1) return ItemStack.EMPTY;
-        if (count <= amount) {
-            if (simulate) {
-                return existing.copy();
-            } else {
-                this.stacks[slot] = ItemStack.EMPTY;
-                onContentsChanged(slot);
-                return existing;
-            }
-        } else {
-            if (!simulate) {
-                existing.setCount(count - amount);
-                onContentsChanged(slot);
-            }
-            return ItemHandlerHelper.copyStackWithSize(existing, amount);
-        }
+        var inserted = this.insert(slot, stack, count, simulate);
+        if (inserted < 1) return stack;
+        if (inserted < count) return stack.copyWithCount(count - inserted);
+        return ItemStack.EMPTY;
     }
 
-    public int extract(int slot, int amount, boolean simulate) {
-        if (amount == 0) return 0;
+    @Override
+    @NotNull
+    public final ItemStack extractItem(int slot, int amount, boolean simulate) {
         ItemStack existing = this.stacks[slot];
-        int count = existing.getCount();
-        if (count < 1) return 0;
-        if (count <= amount) {
-            if (!simulate) {
-                this.stacks[slot] = ItemStack.EMPTY;
-                onContentsChanged(slot);
-            }
-            return count;
-        } else {
-            if (!simulate) {
-                existing.setCount(count - amount);
-                onContentsChanged(slot);
-            }
-            return amount;
-        }
+        var count = existing.getCount();
+        if (count < 1) return ItemStack.EMPTY;
+        var extracted = extract(slot, existing, amount, simulate);
+        if (extracted < 1) return ItemStack.EMPTY;
+        if (!simulate && extracted == count) return existing;
+        return existing.copyWithCount(extracted);
     }
 
     @Override
@@ -196,8 +142,9 @@ public class CustomItemStackHandler extends AbstractDataSerializable implements 
         final var simulate = mode == Actionable.SIMULATE;
         var totalExtracted = 0;
         for (var i = 0; i < slotCount; i++) {
-            if (itemKey.matches(this.getStackInSlot(i))) {
-                final var extracted = this.extract(i, amount, simulate);
+            var existing = this.stacks[i];
+            if (itemKey.matches(existing)) {
+                final var extracted = this.extract(i, existing, amount, simulate);
                 if (extracted > 0) {
                     totalExtracted += extracted;
                     amount -= extracted;
@@ -210,18 +157,44 @@ public class CustomItemStackHandler extends AbstractDataSerializable implements 
         return totalExtracted;
     }
 
-    @Override
-    public int getSlotLimit(int slot) {
-        return 64;
+    public int insert(int slot, @NotNull ItemStack stack, int amount, boolean simulate) {
+        if (!isItemValid(slot, stack)) return 0;
+        ItemStack existing = this.stacks[slot];
+        var stored = existing.getCount();
+        int limit = getStackLimit(slot, stack) - stored;
+        if (limit < 1) return 0;
+        if (stored == 0 || canItemStacksStack(stack, existing)) {
+            boolean reachedLimit = amount > limit;
+            if (!simulate) {
+                if (existing.isEmpty()) {
+                    this.stacks[slot] = stack.copyWithCount(reachedLimit ? limit : amount);
+                } else {
+                    existing.grow(reachedLimit ? limit : amount);
+                }
+                onContentsChanged(slot);
+            }
+            return reachedLimit ? limit : amount;
+        }
+        return 0;
     }
 
-    protected int getStackLimit(int slot, @NotNull ItemStack stack) {
-        return Math.min(getSlotLimit(slot), stack.getMaxStackSize());
-    }
-
-    @Override
-    public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-        return filter.test(stack) && !(isInputLimited && limitedInsert(slot, stack));
+    public int extract(int slot, ItemStack existing, int amount, boolean simulate) {
+        if (amount == 0) return 0;
+        int count = existing.getCount();
+        if (count < 1) return 0;
+        if (count <= amount) {
+            if (!simulate) {
+                this.stacks[slot] = ItemStack.EMPTY;
+                onContentsChanged(slot);
+            }
+            return count;
+        } else {
+            if (!simulate) {
+                existing.setCount(count - amount);
+                onContentsChanged(slot);
+            }
+            return amount;
+        }
     }
 
     public void onContentsChanged(int slot) {

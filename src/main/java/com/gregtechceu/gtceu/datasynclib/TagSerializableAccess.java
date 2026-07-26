@@ -62,7 +62,7 @@ public final class TagSerializableAccess extends AbstractFieldAccess<ITagSeriali
     }
 
     @Override
-    protected void writeBuffer(@NotNull LogicalSide side, @NotNull ITagSerializable instance, @NotNull FriendlyByteBuf data, boolean force) {
+    protected void doWriteBuffer(@NotNull LogicalSide side, @NotNull ITagSerializable instance, @NotNull FriendlyByteBuf data, boolean force) {
         var nbt = instance.serializeNBT();
         if (nbt == null) {
             data.writeByte(0);
@@ -77,7 +77,7 @@ public final class TagSerializableAccess extends AbstractFieldAccess<ITagSeriali
     }
 
     @Override
-    protected void readBuffer(@NotNull LogicalSide side, @NotNull ITagSerializable instance, @NotNull FriendlyByteBuf data) {
+    protected void doReadBuffer(@NotNull LogicalSide side, @NotNull ITagSerializable instance, @NotNull FriendlyByteBuf data) {
         var type = TagTypes.getType(data.readByte());
         if (type == EndTag.TYPE) return;
         try {
@@ -89,7 +89,7 @@ public final class TagSerializableAccess extends AbstractFieldAccess<ITagSeriali
     }
 
     @Override
-    protected @NotNull Data writeData(@NotNull Object source, @NotNull ITagSerializable instance) {
+    protected @NotNull Data doWriteData(@NotNull Object source, @NotNull ITagSerializable instance) {
         var nbt = instance.serializeNBT();
         if (nbt == null) {
             return NullData.INSTANCE;
@@ -99,7 +99,7 @@ public final class TagSerializableAccess extends AbstractFieldAccess<ITagSeriali
     }
 
     @Override
-    protected void readData(@NotNull ITagSerializable instance, @NotNull Data data, int dataVersion) {
+    protected void doReadData(@NotNull ITagSerializable instance, @NotNull Data data, int dataVersion) {
         if (data.isNull()) return;
         var nbt = DataCodecs.TAG_CODEC.decode(data, dataVersion);
         instance.deserializeNBT(nbt);
