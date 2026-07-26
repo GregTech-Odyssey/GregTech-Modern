@@ -777,10 +777,6 @@ public class LangHandler {
         provider.add("behaviour.setting.output.direction.tooltip", "%s output direction: %s");
         provider.add("behaviour.setting.item_auto_output.tooltip", "%s auto-output is %s");
         provider.add("behaviour.setting.muffled.tooltip", "Muffling %s");
-        provider.add("behaviour.setting.voiding_mode.tooltip", "Voiding Mode: %s");
-        provider.add("behaviour.setting.input_limit.tooltip", "Input Limit: %s");
-        provider.add("behaviour.setting.circuit.tooltip", "Circuit Configuration: %s");
-        provider.add("behaviour.setting.circuit.none", "None");
         provider.add("item.toggle.advanced.info.tooltip", "§8<Sneak to view stored configuration>");
         provider.add("enchantment.damage.disjunction", "Disjunction");
         provider.add("enchantment.gtceu.disjunction.description",
