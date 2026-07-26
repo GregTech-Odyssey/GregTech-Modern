@@ -298,12 +298,13 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
             rowSize = 4;
             colSize = 2;
         }
-        var group = new WidgetGroup(0, 0, 18 * rowSize + 16, 18 * colSize + 16);
+        // Output buses reserve an extra row below the grid for the filter slot; the upstream
+        // floating position (71 + 9 * rowSize) collides with the grid from LuV (7 columns) upward.
+        var group = new WidgetGroup(0, 0, 18 * rowSize + 16, 18 * colSize + 16 + (this.io == IO.OUT ? 24 : 0));
         var container = new WidgetGroup(4, 4, 18 * rowSize + 8, 18 * colSize + 8);
         int index = 0;
-        // Output bus only: filter item slot (CEu #4686 layout)
         if (this.io == IO.OUT) {
-            group.addWidget(filterHandler.createFilterSlotUI(71 + (18 * rowSize) / 2, 35 + 9 * rowSize)
+            group.addWidget(filterHandler.createFilterSlotUI((18 * rowSize + 16) / 2 - 9, 18 * colSize + 18)
                     .setHoverTooltips(Component.translatable("cover.item_filter.title")));
         }
         for (int y = 0; y < colSize; y++) {
