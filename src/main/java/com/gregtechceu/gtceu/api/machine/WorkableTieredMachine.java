@@ -15,6 +15,8 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
+import net.minecraft.nbt.CompoundTag;
+
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
@@ -32,7 +34,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class WorkableTieredMachine extends TieredEnergyMachine implements IRecipeLogicMachine, IMachineLife, IMufflableMachine, IOverclockMachine, IInputLimitableMachine {
+public abstract class WorkableTieredMachine extends TieredEnergyMachine implements IRecipeLogicMachine, IMachineLife, IMufflableMachine, IOverclockMachine, IInputLimitableMachine, IConfigCopyable {
 
     @Getter
     @SaveToDisk
@@ -230,5 +232,27 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     @Override
     public boolean isInputLimit() {
         return this.importItems.storage.isInputLimited;
+    }
+
+    //////////////////////////////////////
+    // ****** Config Copy Card *******//
+    //////////////////////////////////////
+
+    /**
+     * Contributes muffling and the input limit toggle. A class implementation takes precedence over
+     * {@link IMufflableMachine}'s default, so muffling has to be re-stated here. Subclasses that own
+     * further settings override these two and chain through {@code super} instead of touching the
+     * copy card.
+     */
+    @Override
+    public void writeConfigTo(CompoundTag tag) {
+        ConfigCopySupport.writeMuffled(tag, this);
+        ConfigCopySupport.writeInputLimit(tag, this);
+    }
+
+    @Override
+    public void readConfigFrom(CompoundTag tag) {
+        ConfigCopySupport.readMuffled(tag, this);
+        ConfigCopySupport.readInputLimit(tag, this);
     }
 }

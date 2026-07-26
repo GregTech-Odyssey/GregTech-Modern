@@ -10,7 +10,9 @@ import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
+import com.gregtechceu.gtceu.api.machine.feature.ConfigCopySupport;
 import com.gregtechceu.gtceu.api.machine.feature.ICircuitConfigurable;
+import com.gregtechceu.gtceu.api.machine.feature.IConfigCopyable;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDistinctPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredIOPartMachine;
@@ -33,6 +35,7 @@ import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -54,7 +57,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implements IMachineLife, IDistinctPart, ICircuitConfigurable {
+public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implements IMachineLife, IDistinctPart, ICircuitConfigurable, IConfigCopyable {
 
     public static final int INITIAL_TANK_CAPACITY_1X = 8 * FluidType.BUCKET_VOLUME;
     public static final int INITIAL_TANK_CAPACITY_4X = 2 * FluidType.BUCKET_VOLUME;
@@ -349,9 +352,11 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
         return io == IO.IN;
     }
 
+    // See SimpleTieredMachine#getCircuitConfiguration: CircuitHandler.getStackInSlot always reports
+    // EMPTY, so the circuit has to be read and written through storage.
     @Override
     public int getCircuitConfiguration() {
-        var stack = circuitInventory.getStackInSlot(0);
+        var stack = circuitInventory.storage.getStackInSlot(0);
         return stack.isEmpty() ? CIRCUIT_EMPTY : IntCircuitBehaviour.getCircuitConfiguration(stack);
     }
 
@@ -359,9 +364,29 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     public void setCircuitConfiguration(int configuration) {
         if (!hasCircuitConfig()) return;
         if (configuration < 0) {
-            circuitInventory.setStackInSlot(0, ItemStack.EMPTY);
+            circuitInventory.storage.setStackInSlot(0, ItemStack.EMPTY);
         } else {
-            circuitInventory.setStackInSlot(0, IntCircuitBehaviour.stack(configuration));
+            circuitInventory.storage.setStackInSlot(0, IntCircuitBehaviour.stack(configuration));
         }
+    }
+
+    //////////////////////////////////////
+    // ***** Config Copy Card *****//
+    //////////////////////////////////////
+    @Override
+    public boolean hasDistinctConfig() {
+        return io == IO.IN;
+    }
+
+    @Override
+    public void writeConfigTo(CompoundTag tag) {
+        ConfigCopySupport.writeDistinct(tag, this);
+        ConfigCopySupport.writeCircuit(tag, this);
+    }
+
+    @Override
+    public void readConfigFrom(CompoundTag tag) {
+        ConfigCopySupport.readDistinct(tag, this);
+        ConfigCopySupport.readCircuit(tag, this);
     }
 }

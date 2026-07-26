@@ -35,6 +35,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -348,5 +349,25 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
     public void setAllowInputFromOutputSideItems(final boolean allowInputFromOutputSideItems) {
         clearDirectionCache();
         this.allowInputFromOutputSideItems = allowInputFromOutputSideItems;
+    }
+
+    //////////////////////////////////////
+    // ****** Config Copy Card *******//
+    //////////////////////////////////////
+
+    /**
+     * The inherited class implementation wins over {@link IAutoOutputItem}'s default, so item auto
+     * output has to be re-stated on top of what {@link WorkableTieredMachine} already contributes.
+     */
+    @Override
+    public void writeConfigTo(CompoundTag tag) {
+        super.writeConfigTo(tag);
+        IAutoOutputItem.super.writeConfigTo(tag);
+    }
+
+    @Override
+    public void readConfigFrom(CompoundTag tag) {
+        super.readConfigFrom(tag);
+        IAutoOutputItem.super.readConfigFrom(tag);
     }
 }

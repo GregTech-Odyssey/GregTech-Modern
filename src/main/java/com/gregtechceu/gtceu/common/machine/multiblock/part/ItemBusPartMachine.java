@@ -8,7 +8,9 @@ import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
+import com.gregtechceu.gtceu.api.machine.feature.ConfigCopySupport;
 import com.gregtechceu.gtceu.api.machine.feature.ICircuitConfigurable;
+import com.gregtechceu.gtceu.api.machine.feature.IConfigCopyable;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDistinctPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachine;
@@ -30,6 +32,7 @@ import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -48,7 +51,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements IDistinctPart, IMachineLife, IInputLimitableMachine, ICircuitConfigurable {
+public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements IDistinctPart, IMachineLife, IInputLimitableMachine, ICircuitConfigurable, IConfigCopyable {
 
     @Getter
     @SaveToDisk
@@ -291,9 +294,11 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
         return io == IO.IN;
     }
 
+    // See SimpleTieredMachine#getCircuitConfiguration: CircuitHandler.getStackInSlot always reports
+    // EMPTY, so the circuit has to be read and written through storage.
     @Override
     public int getCircuitConfiguration() {
-        var stack = circuitInventory.getStackInSlot(0);
+        var stack = circuitInventory.storage.getStackInSlot(0);
         return stack.isEmpty() ? CIRCUIT_EMPTY : IntCircuitBehaviour.getCircuitConfiguration(stack);
     }
 
@@ -301,9 +306,31 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
     public void setCircuitConfiguration(int configuration) {
         if (!hasCircuitConfig()) return;
         if (configuration < 0) {
-            circuitInventory.setStackInSlot(0, ItemStack.EMPTY);
+            circuitInventory.storage.setStackInSlot(0, ItemStack.EMPTY);
         } else {
-            circuitInventory.setStackInSlot(0, IntCircuitBehaviour.stack(configuration));
+            circuitInventory.storage.setStackInSlot(0, IntCircuitBehaviour.stack(configuration));
         }
+    }
+
+    //////////////////////////////////////
+    // ***** Config Copy Card *****//
+    //////////////////////////////////////
+    @Override
+    public boolean hasDistinctConfig() {
+        return io == IO.IN;
+    }
+
+    @Override
+    public void writeConfigTo(CompoundTag tag) {
+        ConfigCopySupport.writeInputLimit(tag, this);
+        ConfigCopySupport.writeDistinct(tag, this);
+        ConfigCopySupport.writeCircuit(tag, this);
+    }
+
+    @Override
+    public void readConfigFrom(CompoundTag tag) {
+        ConfigCopySupport.readInputLimit(tag, this);
+        ConfigCopySupport.readDistinct(tag, this);
+        ConfigCopySupport.readCircuit(tag, this);
     }
 }

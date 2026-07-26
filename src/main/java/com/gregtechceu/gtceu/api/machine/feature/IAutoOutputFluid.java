@@ -1,10 +1,11 @@
 package com.gregtechceu.gtceu.api.machine.feature;
 
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 
 import org.jetbrains.annotations.Nullable;
 
-public interface IAutoOutputFluid extends IMachineFeature {
+public interface IAutoOutputFluid extends IMachineFeature, IConfigCopyable {
 
     boolean isAutoOutputFluids();
 
@@ -21,5 +22,16 @@ public interface IAutoOutputFluid extends IMachineFeature {
 
     default boolean hasAutoOutputFluid() {
         return true;
+    }
+
+    /** @see IAutoOutputItem#writeConfigTo(CompoundTag) */
+    @Override
+    default void writeConfigTo(CompoundTag tag) {
+        ConfigCopySupport.writeAutoOutputFluid(tag, this);
+    }
+
+    @Override
+    default void readConfigFrom(CompoundTag tag) {
+        ConfigCopySupport.readAutoOutputFluid(tag, this);
     }
 }
