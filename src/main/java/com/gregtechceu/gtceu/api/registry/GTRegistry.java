@@ -29,7 +29,7 @@ public abstract class GTRegistry<K extends Comparable<K>, V> extends Registry<K,
     }
 
     public GTRegistry(ResourceLocation registryName, DataCodec<K> keyCodec, boolean checkContext) {
-        super(registryName.toString(), keyCodec, (Class<V>) null);
+        super(registryName.toString(), keyCodec, null);
         this.registryName = registryName;
         this.checkContext = checkContext;
     }
