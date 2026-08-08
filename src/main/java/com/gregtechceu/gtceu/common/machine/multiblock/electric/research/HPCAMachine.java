@@ -35,6 +35,7 @@ import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
+import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -73,6 +74,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     private IFluidHandler coolantHandler;
 
     @AdditionalHolder
+    @Getter
     private final HPCAGridHandler hpcaHandler;
     @SaveToDisk
     private double temperature = IDLE_TEMPERATURE; // start at idle temperature
@@ -267,6 +269,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         }
     }
 
+    @Getter
     public static class HPCAGridHandler {
 
         // structure info
