@@ -19,6 +19,7 @@ import com.gregtechceu.gtceu.api.recipe.extension.RecipeExtension;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
+import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.api.recipe.research.ScannerBuilder;
 import com.gregtechceu.gtceu.api.recipe.research.StationBuilder;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
@@ -82,6 +83,8 @@ public class GTRecipeBuilder {
 
     @Nullable
     protected Set<RecipeCondition> conditions;
+    @Nullable
+    protected Set<RecipeModifier> modifiers;
     @Nullable
     protected Set<RecipeExtension> recipeExtensions;
     @Nullable
@@ -205,6 +208,16 @@ public class GTRecipeBuilder {
 
     public final DataComponentMap getData() {
         return data == null ? EMPTY_DATA : data;
+    }
+
+    public final Set<RecipeModifier> getModifiers() {
+        return modifiers == null ? Collections.emptySet() : modifiers;
+    }
+
+    public GTRecipeBuilder addModifier(RecipeModifier modifier) {
+        if (modifiers == null) modifiers = new ReferenceOpenHashSet<>();
+        modifiers.add(modifier);
+        return this;
     }
 
     public GTRecipeBuilder addCondition(RecipeCondition condition) {
@@ -1028,7 +1041,14 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeDefinition build(boolean registered) {
-        return new GTRecipeDefinition(registered, recipeType, recipeCategory, id.withPrefix(recipeType.registryName.getPath() + "/"), getItemInputs(), getItemOutputs(), getFluidInputs(), getFluidOutputs(), ImmutableList.copyOf(getConditions()), ImmutableList.copyOf(getRecipeExtensions()), ImmutableList.copyOf(getTickRecipeExtensions()), getData(), chanceFunction, eut, tier, duration, priority);
+        return new GTRecipeDefinition(
+                registered, recipeType, recipeCategory,
+                id.withPrefix(recipeType.registryName.getPath() + "/"),
+                getItemInputs(), getItemOutputs(), getFluidInputs(), getFluidOutputs(),
+                ImmutableList.copyOf(getModifiers()),
+                ImmutableList.copyOf(getConditions()), ImmutableList.copyOf(getRecipeExtensions()),
+                ImmutableList.copyOf(getTickRecipeExtensions()), getData(),
+                chanceFunction, eut, tier, duration, priority);
     }
 
     protected boolean checkChanceAndPrintError(int chance) {

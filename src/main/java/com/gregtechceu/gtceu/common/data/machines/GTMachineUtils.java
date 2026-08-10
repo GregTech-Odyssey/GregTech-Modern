@@ -627,10 +627,10 @@ public class GTMachineUtils {
     }
 
     // Tooltips
-    public static Component explosion() {
+    public @Nullable static Component explosion() {
         if (ConfigHolder.INSTANCE.machines.shouldWeatherOrTerrainExplosion)
             return Component.translatable("gtceu.universal.tooltip.terrain_resist");
-        return Component.empty();
+        return null;
     }
 
     public static BiConsumer<ItemStack, List<Component>> TANK_TOOLTIPS = (stack, list) -> {

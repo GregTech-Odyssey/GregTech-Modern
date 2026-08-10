@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.extension.RecipeExtension;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
+import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -97,6 +98,7 @@ public final class GTRecipeDefinition extends DataComponentKey<GTRecipeDefinitio
     public final RecipeCondition[] conditions;
     public final RecipeExtension[] recipeExtensions;
     public final RecipeExtension[] tickRecipeExtensions;
+    public final RecipeModifier[] recipeModifiers;
     public final DataComponentMap data;
     public final ChanceBoostFunction chanceFunction;
     public final long eut;
@@ -104,7 +106,21 @@ public final class GTRecipeDefinition extends DataComponentKey<GTRecipeDefinitio
     public final int duration;
     public final int priority;
 
-    public GTRecipeDefinition(boolean registered, GTRecipeType recipeType, GTRecipeCategory recipeCategory, ResourceLocation id, List<Content<ItemIngredient>> itemInputs, List<Content<ItemIngredient>> itemOutputs, List<Content<FluidIngredient>> fluidInputs, List<Content<FluidIngredient>> fluidOutputs, List<RecipeCondition> conditions, List<RecipeExtension> recipeExtensions, List<RecipeExtension> tickRecipeExtensions, DataComponentMap data, ChanceBoostFunction chanceFunction, long eut, int tier, int duration, int priority) {
+    public GTRecipeDefinition(boolean registered,
+                              GTRecipeType recipeType,
+                              GTRecipeCategory recipeCategory,
+                              ResourceLocation id,
+                              List<Content<ItemIngredient>> itemInputs,
+                              List<Content<ItemIngredient>> itemOutputs,
+                              List<Content<FluidIngredient>> fluidInputs,
+                              List<Content<FluidIngredient>> fluidOutputs,
+                              List<RecipeModifier> recipeModifiers,
+                              List<RecipeCondition> conditions,
+                              List<RecipeExtension> recipeExtensions,
+                              List<RecipeExtension> tickRecipeExtensions,
+                              DataComponentMap data,
+                              ChanceBoostFunction chanceFunction,
+                              long eut, int tier, int duration, int priority) {
         super(id.toString(), null);
         this.registered = registered;
         this.recipeType = recipeType;
@@ -116,6 +132,7 @@ public final class GTRecipeDefinition extends DataComponentKey<GTRecipeDefinitio
         this.fluidOutputs = fluidOutputs;
         this.conditions = conditions.toArray(new RecipeCondition[0]);
         this.recipeExtensions = recipeExtensions.toArray(new RecipeExtension[0]);
+        this.recipeModifiers = recipeModifiers.toArray(new RecipeModifier[0]);
         this.tickRecipeExtensions = tickRecipeExtensions.toArray(new RecipeExtension[0]);
         this.data = data;
         this.chanceFunction = chanceFunction;

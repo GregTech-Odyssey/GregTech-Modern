@@ -105,6 +105,10 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
         if (!GTRecipeType.available(definition.recipeType, getAvailableRecipeTypes())) return null;
         var recipe = definition.toRuntime();
         if (unit.color != -1) recipe.outputColor = unit.color;
+        for (var mod : definition.recipeModifiers) {
+            recipe = mod.applyModifier(this, unit, recipe);
+            if (recipe == null) return null;
+        }
         RecipeHelper.trimRecipeOutputs(recipe, getOutputLimits());
         return doModifyRecipe(unit, recipe);
     }
