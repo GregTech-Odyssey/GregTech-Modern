@@ -19,7 +19,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @SuppressWarnings("unused")
 @FunctionalInterface
 @ParametersAreNonnullByDefault
-public interface RecipeModifier {
+public interface RecipeModifier extends IRecipeInfo {
 
     int COIL_EUT_DISCOUNT_TEMPERATURE = 900;
 

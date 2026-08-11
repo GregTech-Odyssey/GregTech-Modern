@@ -2,15 +2,9 @@ package com.gregtechceu.gtceu.api.recipe;
 
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.modifier.IRecipeInfo;
 
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-
-import net.minecraft.network.chat.Component;
-
-import org.apache.commons.lang3.mutable.MutableInt;
-
-public abstract class RecipeCondition {
+public abstract class RecipeCondition implements IRecipeInfo {
 
     protected final boolean isReverse;
 
@@ -24,17 +18,6 @@ public abstract class RecipeCondition {
 
     public boolean isOr() {
         return false;
-    }
-
-    public abstract Component getTooltips();
-
-    public void addInfo(GTRecipeDefinition recipe, WidgetGroup group, int xOffset, MutableInt yOffset) {
-        if (getTooltips() == null) return;
-        group.addWidget(new LabelWidget(3 - xOffset, yOffset.addAndGet(10), getTooltips().getString()));
-    }
-
-    public int getInfoHeight(GTRecipeDefinition recipe) {
-        return 10;
     }
 
     public boolean check(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipeDefinition recipe) {

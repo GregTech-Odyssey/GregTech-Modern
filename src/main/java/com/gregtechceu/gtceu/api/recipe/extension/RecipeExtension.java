@@ -5,17 +5,15 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
-
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
+import com.gregtechceu.gtceu.api.recipe.modifier.IRecipeInfo;
 
 import com.fast.recipesearch.IntLongMap;
 import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.datastream.DataComponentKey;
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class RecipeExtension<T> extends DataComponentKey<T> {
+public abstract class RecipeExtension<T> extends DataComponentKey<T> implements IRecipeInfo {
 
     public final boolean isTick;
 
@@ -34,9 +32,4 @@ public abstract class RecipeExtension<T> extends DataComponentKey<T> {
                                      GTRecipe recipe, long parallel);
 
     public abstract void setParallel(GTRecipe recipe, long parallel);
-
-    public abstract void addInfo(GTRecipeDefinition recipe, WidgetGroup group,
-                                 int xOffset, MutableInt yOffset);
-
-    public abstract int getInfoHeight(GTRecipeDefinition recipe);
 }
