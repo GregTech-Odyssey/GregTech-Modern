@@ -5,7 +5,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
-import com.gregtechceu.gtceu.api.recipe.modifier.IRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.ui.IRecipeInfo;
 
 import com.fast.recipesearch.IntLongMap;
 import com.gto.datasynclib.DataSyncCodec;

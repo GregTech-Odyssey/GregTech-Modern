@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.api.recipe;
 
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
-import com.gregtechceu.gtceu.api.recipe.modifier.IRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.ui.IRecipeInfo;
 
 public abstract class RecipeCondition implements IRecipeInfo {
 

@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.api.recipe.modifier;
+package com.gregtechceu.gtceu.api.recipe.ui;
 
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 
