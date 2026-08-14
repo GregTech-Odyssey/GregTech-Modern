@@ -11,7 +11,7 @@ import com.fast.recipesearch.IntLongMap;
 import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.datastream.DataComponentKey;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnknownNullability;
 
 public abstract class RecipeExtension<T> extends DataComponentKey<T> implements IRecipeInfo {
 
@@ -23,7 +23,7 @@ public abstract class RecipeExtension<T> extends DataComponentKey<T> implements 
     }
 
     public abstract boolean handle(IO io, @NotNull IRecipeHandlerHolder holder,
-                                   @Nullable RecipeHandlerUnit unit,
+                                   @UnknownNullability("null when this.isTick == true") RecipeHandlerUnit unit,
                                    @NotNull GTRecipe recipe, boolean simulate);
 
     public abstract void extractInput(GTRecipeDefinition recipe, IntLongMap map);
