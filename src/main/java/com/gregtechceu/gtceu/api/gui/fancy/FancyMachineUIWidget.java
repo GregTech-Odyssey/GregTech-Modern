@@ -173,7 +173,7 @@ public class FancyMachineUIWidget extends WidgetGroup {
         if (GTCEu.isClientSide() && getGui() != null) {
             getGui().setSize(getSize().width, getSize().height);
         }
-        this.sideTabsWidget.setSize(new Size(24, size.height));
+        this.sideTabsWidget.setSize(new Size(24, 8 + (sideTabsWidget.getSubTabs().size() + 1) * 24));
         this.pageContainer.setSize(size);
         this.tooltipsPanel.setSelfPosition(new Position(size.width + 2, 2));
         setupInventoryPosition(showInventory, size);
