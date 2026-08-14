@@ -49,6 +49,8 @@ public class TraceabilityPredicate {
 
     public final List<SimplePredicate> common;
     public final List<SimplePredicate> limited;
+    @Nullable
+    private SimplePredicate defaultPredicate;
     public Function<MultiblockState, Direction> direction = GTUtil.NULL_FUNCTION;
 
     public TraceabilityPredicate() {
@@ -58,11 +60,14 @@ public class TraceabilityPredicate {
 
     public TraceabilityPredicate(Predicate<MultiblockState> predicate, Supplier<BlockInfo> blockInfo, @Nullable Supplier<Block[]> candidates) {
         this();
-        common.add(new SimplePredicate(predicate, blockInfo, candidates));
+        SimplePredicate simplePredicate = new SimplePredicate(predicate, blockInfo, candidates);
+        common.add(simplePredicate);
+        defaultPredicate = simplePredicate;
     }
 
     public TraceabilityPredicate(SimplePredicate simplePredicate) {
         this();
+        defaultPredicate = simplePredicate;
         if (simplePredicate.minCount != -1 || simplePredicate.maxCount != -1) {
             limited.add(simplePredicate);
         } else {
@@ -73,6 +78,7 @@ public class TraceabilityPredicate {
     protected TraceabilityPredicate(TraceabilityPredicate predicate) {
         this.common = new ArrayList<>(predicate.common);
         this.limited = new ArrayList<>(predicate.limited);
+        this.defaultPredicate = predicate.defaultPredicate;
         this.direction = predicate.direction;
     }
 
@@ -89,12 +95,22 @@ public class TraceabilityPredicate {
         } else {
             this.limited = ImmutableList.copyOf(limited);
         }
+        this.defaultPredicate = predicate.defaultPredicate;
         this.direction = predicate.direction;
     }
 
     public TraceabilityPredicate sort() {
         if (getClass() != TraceabilityPredicate.class) return this;
         return new TraceabilityPredicate(this, null);
+    }
+
+    /**
+     * Returns the first simple predicate added to this predicate chain. Auto-builders can use it as the fallback
+     * block after all minimum and preferred counts have been satisfied.
+     */
+    @Nullable
+    public SimplePredicate getDefaultPredicate() {
+        return defaultPredicate;
     }
 
     /**
@@ -241,6 +257,9 @@ public class TraceabilityPredicate {
             TraceabilityPredicate newPredicate = new TraceabilityPredicate(this);
             newPredicate.common.addAll(other.common);
             newPredicate.limited.addAll(other.limited);
+            if (newPredicate.defaultPredicate == null) {
+                newPredicate.defaultPredicate = other.defaultPredicate;
+            }
             return newPredicate;
         }
         return this;
