@@ -134,14 +134,14 @@ public class CoatedTurbineRotorBehaviour extends TurbineRotorBehaviour {
      */
     @Override
     public void setPartDamage(ItemStack itemStack, int resultDamage) {
-        if (resultDamage > getDamage(itemStack) &&
+        if (resultDamage > getPartDamage(itemStack) &&
                 getCoatDamage(itemStack) < getCoatMaxDamage(itemStack) &&
                 rd.nextInt(100) < 95 && !isCoatingMagical(itemStack)) {
-            setCoatDamage(itemStack, (int) Math.min(getCoatDamage(itemStack) + resultDamage - getDamage(itemStack), getCoatMaxDamage(itemStack)));
+            setCoatDamage(itemStack, (int) Math.min(getCoatDamage(itemStack) + resultDamage - getPartDamage(itemStack), getCoatMaxDamage(itemStack)));
             return;
         } else if (isCoatingMagical(itemStack)) {
             // 魔法镀层与本体耐久同时损失
-            setCoatDamage(itemStack, (int) (getCoatDamage(itemStack) + resultDamage - getDamage(itemStack)));
+            setCoatDamage(itemStack, (int) (getCoatDamage(itemStack) + resultDamage - getPartDamage(itemStack)));
         }
         super.setPartDamage(itemStack, resultDamage);
     }
