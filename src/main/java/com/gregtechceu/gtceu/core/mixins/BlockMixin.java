@@ -41,7 +41,7 @@ public abstract class BlockMixin implements Iblock {
         if (!tool.isEmpty() && entity instanceof Player player) {
             boolean isSilktouch = EnchantmentHelper.hasSilkTouch(tool);
             int fortuneLevel = tool.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE);
-            return ToolEventHandlers.onHarvestDrops(player, tool, level, pos, state, isSilktouch,
+            return ToolEventHandlers.onHarvestDrops(player, tool, level, pos, state, blockEntity, isSilktouch,
                     fortuneLevel,
                     original, 1);
         }

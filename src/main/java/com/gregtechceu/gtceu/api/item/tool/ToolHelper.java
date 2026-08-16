@@ -354,9 +354,12 @@ public class ToolHelper {
     /**
      * Applies Forge Hammer recipes to block broken, used for hammers or tools with hard hammer enchant applied.
      */
-    public static void applyHammerDropConversion(ServerLevel world, BlockPos pos, ItemStack tool, BlockState state, List<ItemStack> drops, int fortune, float dropChance, RandomSource random) {
+    public static void applyHammerDropConversion(ServerLevel world, BlockPos pos, ItemStack tool, BlockState state,
+                                                 @Nullable BlockEntity blockEntity, @Nullable Entity entity,
+                                                 List<ItemStack> drops, int fortune, float dropChance,
+                                                 RandomSource random) {
         if (ToolHelper.is(tool, GTToolType.HARD_HAMMER)) {
-            for (ItemStack silktouchDrop : ToolHelper.getSilkTouchDrop(world, pos, state)) {
+            for (ItemStack silktouchDrop : ToolHelper.getSilkTouchDrop(world, pos, state, blockEntity, entity)) {
                 var item = silktouchDrop.getItem();
                 if (item == Items.AIR) continue;
                 for (var tagKey : item.builtInRegistryHolder().tags) {
@@ -645,16 +648,21 @@ public class ToolHelper {
             .getDefaultInstance();
 
     /**
-     * @param state the BlockState of the block
+     * @param state       the BlockState of the block
+     * @param blockEntity the BlockEntity captured before the block was removed
+     * @param entity      the entity that broke the block
      * @return the silk touch drop
      */
     @NotNull
-    public static List<ItemStack> getSilkTouchDrop(ServerLevel world, BlockPos origin, @NotNull BlockState state) {
+    public static List<ItemStack> getSilkTouchDrop(ServerLevel world, BlockPos origin, @NotNull BlockState state,
+                                                   @Nullable BlockEntity blockEntity, @Nullable Entity entity) {
         ItemStack tool = GTMaterialItems.TOOL_ITEMS.get(GTMaterials.Neutronium, GTToolType.PICKAXE).get().get();
         tool.enchant(Enchantments.SILK_TOUCH, 1);
 
         return state.getDrops(new LootParams.Builder(world).withParameter(LootContextParams.BLOCK_STATE, state)
                 .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(origin))
-                .withParameter(LootContextParams.TOOL, tool));
+                .withParameter(LootContextParams.TOOL, tool)
+                .withOptionalParameter(LootContextParams.BLOCK_ENTITY, blockEntity)
+                .withOptionalParameter(LootContextParams.THIS_ENTITY, entity));
     }
 }
