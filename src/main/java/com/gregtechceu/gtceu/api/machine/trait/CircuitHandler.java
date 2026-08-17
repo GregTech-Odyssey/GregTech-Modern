@@ -140,7 +140,7 @@ public class CircuitHandler extends NotifiableItemStackHandler {
             switch (configuration) {
                 case -1 -> stacks[0] = ItemStack.EMPTY;
                 case -2 -> stacks[0] = data.readItem();
-                default -> IntCircuitBehaviour.stack(configuration);
+                default -> stacks[0] = IntCircuitBehaviour.stack(configuration);
             }
         }
 
