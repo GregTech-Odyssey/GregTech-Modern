@@ -3,13 +3,13 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapability;
-import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.IMiner;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerList;
 import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
@@ -118,14 +118,8 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
     }
 
     private void initializeAbilities() {
-        List<IEnergyContainer> energyContainers = new ArrayList<>();
-        List<ICustomFluidStackHandler> fluidTanks = new ArrayList<>();
-        for (var part : getWorkableParts()) {
-            for (var handlerList : part.getRecipeHandlers()) {
-                energyContainers.addAll(handlerList.getCapabilities(GTCapability.ENERGY_CONTAINER));
-                fluidTanks.addAll(handlerList.getCapabilities(ICustomFluidStackHandler.class));
-            }
-        }
+        var energyContainers = getCapabilitiesFlat(IO.IN, GTCapability.ENERGY_CONTAINER);
+        var fluidTanks = getCapabilitiesFlat(IO.IN, ICustomFluidStackHandler.class);
         this.energyContainer = new EnergyContainerList(energyContainers);
         this.inputFluidInventory = new FluidHandlerList(fluidTanks);
         getRecipeLogic().setVoltageTier(GTUtil.getTierByVoltage(this.energyContainer.getInputVoltage()));
@@ -157,13 +151,12 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
         // drain fluid
         if (inputFluidInventory != null && inputFluidInventory.handlers.length > 0) {
             FluidStack drillingFluid = DrillingFluid.getFluid(this.drillingFluidConsumePerTick * getRecipeLogic().getOverclockAmount());
-            FluidStack fluidStack = inputFluidInventory.getFluidInTank(0);
-            if (fluidStack != FluidStack.EMPTY && fluidStack.isFluidEqual(DrillingFluid.getFluid(1)) && fluidStack.getAmount() >= drillingFluid.getAmount()) {
-                if (!simulate) {
-                    GTTransferUtils.drainFluidAccountNotifiableList(inputFluidInventory, drillingFluid, IFluidHandler.FluidAction.EXECUTE);
-                }
-            } else {
+            FluidStack drained = GTTransferUtils.drainFluidAccountNotifiableList(inputFluidInventory, drillingFluid, IFluidHandler.FluidAction.SIMULATE);
+            if (drained.getAmount() < drillingFluid.getAmount()) {
                 return false;
+            }
+            if (!simulate) {
+                GTTransferUtils.drainFluidAccountNotifiableList(inputFluidInventory, drillingFluid, IFluidHandler.FluidAction.EXECUTE);
             }
         }
         return true;
