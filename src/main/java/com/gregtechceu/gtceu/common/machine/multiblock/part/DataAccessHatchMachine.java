@@ -70,6 +70,15 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
                 }
                 return stack;
             }
+
+            @Override
+            public ItemStack insertItemStacked(ItemStack stack, boolean simulate) {
+                boolean isDataBank = isFormed() && getController() instanceof DataBankMachine;
+                if (ResearchManager.isStackDataItem(stack, isDataBank) && ResearchManager.hasResearchTag(stack)) {
+                    return super.insertItemStacked(stack, simulate);
+                }
+                return stack;
+            }
         };
     }
 

@@ -62,6 +62,16 @@ public class ItemHandlerList implements ICustomItemStackHandler {
     }
 
     @Override
+    public @NotNull ItemStack insertItemStacked(@NotNull ItemStack stack, boolean simulate) {
+        var remaining = stack;
+        for (var handler : handlers) {
+            remaining = handler.insertItemStacked(remaining, simulate);
+            if (remaining.isEmpty()) break;
+        }
+        return remaining;
+    }
+
+    @Override
     public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
         for (var handler : handlers) {
             var slots = handler.getSlots();

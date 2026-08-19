@@ -107,6 +107,23 @@ public class CustomItemStackHandler extends AbstractDataSerializable implements 
 
     @Override
     @NotNull
+    public ItemStack insertItemStacked(@NotNull ItemStack stack, boolean simulate) {
+        if (!isInputLimited) {
+            return ICustomItemStackHandler.super.insertItemStacked(stack, simulate);
+        }
+        var remaining = stack;
+        for (var slot = 0; slot < size && !remaining.isEmpty(); slot++) {
+            var previousCount = remaining.getCount();
+            remaining = insertItem(slot, remaining, simulate);
+            if (remaining.getCount() < previousCount) {
+                break;
+            }
+        }
+        return remaining;
+    }
+
+    @Override
+    @NotNull
     public final ItemStack extractItem(int slot, int amount, boolean simulate) {
         ItemStack existing = this.stacks[slot];
         var count = existing.getCount();

@@ -282,6 +282,11 @@ public class NotifiableItemStackHandler extends NotifiableContentHandler impleme
     }
 
     @Override
+    public ItemStack insertItemStacked(@NotNull ItemStack stack, boolean simulate) {
+        return canCapInput() ? storage.insertItemStacked(stack, simulate) : stack;
+    }
+
+    @Override
     public int insertExternal(AEItemKey itemKey, int amount, Actionable mode) {
         if (canCapInput()) {
             return storage.insertExternal(itemKey, amount, mode);

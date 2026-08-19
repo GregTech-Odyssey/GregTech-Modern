@@ -128,6 +128,17 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
         }
 
         @Override
+        public ItemStack insertItemStacked(ItemStack stack, boolean simulate) {
+            if ((filterMode == FilterMode.FILTER_EXTRACT) && allowFlow == ManualIOMode.UNFILTERED) {
+                return delegate.insertItemStacked(stack, simulate);
+            }
+            if (filterMode != FilterMode.FILTER_EXTRACT && getItemFilter().test(stack)) {
+                return delegate.insertItemStacked(stack, simulate);
+            }
+            return stack;
+        }
+
+        @Override
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
             ItemStack result = super.extractItem(slot, amount, true);
             if (result.isEmpty() && (filterMode == FilterMode.FILTER_INSERT) && allowFlow == ManualIOMode.UNFILTERED) {

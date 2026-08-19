@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.utils;
 
 import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerList;
 import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -114,27 +115,118 @@ public class GTTransferUtils {
      * @param dest          ItemHandler to insert into
      * @param filter        Filter to test ItemStacks
      * @param transferLimit Maximum amount to transfer
-     * @return Remaining amount that wasn't transferred
+     * @return the amount that was transferred
      */
     public static int transferItemsFiltered(@NotNull IItemHandler source, @NotNull IItemHandler dest,
                                             @NotNull Predicate<ItemStack> filter, int transferLimit) {
+        if (transferLimit <= 0) return 0;
         int toTransfer = transferLimit;
         for (int i = 0; i < source.getSlots(); i++) {
-            ItemStack stack = source.getStackInSlot(i);
-            if (stack.isEmpty() || !filter.test(stack)) continue;
-
-            var canExtract = source.extractItem(i, toTransfer, true);
-            if (canExtract.isEmpty()) continue;
-            int canInsert = canExtract.getCount() -
-                    ItemHandlerHelper.insertItemStacked(dest, canExtract, true).getCount();
-            if (canInsert > 0) {
-                var extracted = source.extractItem(i, canInsert, false);
-                var remainder = ItemHandlerHelper.insertItemStacked(dest, extracted, false);
-                toTransfer -= (canInsert - remainder.getCount());
-                if (toTransfer <= 0) break;
-            }
+            toTransfer -= transferItemsFromSlot(source, i, dest, filter, toTransfer);
+            if (toTransfer <= 0) break;
         }
         return transferLimit - toTransfer;
+    }
+
+    /**
+     * Transfers items from one source slot. The destination simulation is performed through
+     * {@link ICustomItemStackHandler#insertItemStacked(ItemStack, boolean)} when available so handler-wide slot
+     * restrictions are represented correctly. Any remainder produced by the real insertion is returned to the source.
+     */
+    public static int transferItemsFromSlot(@NotNull IItemHandler source, int sourceSlot,
+                                            @NotNull IItemHandler dest, @NotNull Predicate<ItemStack> filter,
+                                            int transferLimit) {
+        if (transferLimit <= 0) return 0;
+        var simulatedExtract = source.extractItem(sourceSlot, transferLimit, true);
+        if (simulatedExtract.isEmpty() || !filter.test(simulatedExtract)) return 0;
+
+        var simulatedRemainder = insertItemStacked(dest, simulatedExtract, true);
+        int canInsert = simulatedExtract.getCount() - simulatedRemainder.getCount();
+        if (canInsert <= 0) return 0;
+
+        var extracted = source.extractItem(sourceSlot, canInsert, false);
+        if (extracted.isEmpty()) return 0;
+        if (!filter.test(extracted) || !ItemStack.isSameItemSameTags(simulatedExtract, extracted)) {
+            returnItemToSource(source, sourceSlot, extracted);
+            return 0;
+        }
+
+        int extractedCount = extracted.getCount();
+        var remainder = insertItemStacked(dest, extracted, false);
+        int remainderCount = Math.min(extractedCount, remainder.getCount());
+        if (!remainder.isEmpty()) {
+            returnItemToSource(source, sourceSlot, remainder);
+        }
+        return extractedCount - remainderCount;
+    }
+
+    /**
+     * Uses a custom handler's transaction-aware stacked insertion when possible.
+     */
+    @NotNull
+    public static ItemStack insertItemStacked(@NotNull IItemHandler handler, @NotNull ItemStack stack,
+                                              boolean simulate) {
+        if (handler instanceof ICustomItemStackHandler customHandler) {
+            return customHandler.insertItemStacked(stack, simulate);
+        }
+        return ItemHandlerHelper.insertItemStacked(handler, stack, simulate);
+    }
+
+    /**
+     * Returns an uninserted stack to its source, bypassing external side restrictions for custom handlers.
+     */
+    @NotNull
+    public static ItemStack insertItemBack(@NotNull IItemHandler source, int preferredSlot,
+                                           @NotNull ItemStack stack) {
+        if (stack.isEmpty()) return ItemStack.EMPTY;
+        var remaining = stack;
+        int slots = source.getSlots();
+        if (source instanceof ICustomItemStackHandler customHandler) {
+            remaining = customHandler.insertItemInternal(preferredSlot, remaining, false);
+            for (int slot = 0; slot < slots && !remaining.isEmpty(); slot++) {
+                if (slot != preferredSlot) {
+                    remaining = customHandler.insertItemInternal(slot, remaining, false);
+                }
+            }
+        } else {
+            remaining = source.insertItem(preferredSlot, remaining, false);
+            if (!remaining.isEmpty()) {
+                remaining = ItemHandlerHelper.insertItemStacked(source, remaining, false);
+            }
+        }
+        if (!remaining.isEmpty() && source instanceof IItemHandlerModifiable modifiable) {
+            remaining = forceRestoreItem(modifiable, preferredSlot, remaining);
+            for (int slot = 0; slot < slots && !remaining.isEmpty(); slot++) {
+                if (slot != preferredSlot) {
+                    remaining = forceRestoreItem(modifiable, slot, remaining);
+                }
+            }
+        }
+        return remaining;
+    }
+
+    private static ItemStack forceRestoreItem(IItemHandlerModifiable source, int slot, ItemStack stack) {
+        var existing = source.getStackInSlot(slot);
+        int existingCount = existing.getCount();
+        if (!existing.isEmpty() && !ItemStack.isSameItemSameTags(existing, stack)) return stack;
+
+        long restoredCount = (long) existingCount + stack.getCount();
+        int count = (int) Math.min(Integer.MAX_VALUE, restoredCount);
+        source.setStackInSlot(slot, (existing.isEmpty() ? stack : existing).copyWithCount(count));
+
+        var restored = source.getStackInSlot(slot);
+        int inserted = ItemStack.isSameItemSameTags(restored, stack) ? restored.getCount() - existingCount : 0;
+        if (inserted <= 0) return stack;
+        if (inserted >= stack.getCount()) return ItemStack.EMPTY;
+        return stack.copyWithCount(stack.getCount() - inserted);
+    }
+
+    public static void returnItemToSource(@NotNull IItemHandler source, int sourceSlot, @NotNull ItemStack stack) {
+        var unreturned = insertItemBack(source, sourceSlot, stack);
+        if (!unreturned.isEmpty()) {
+            throw new IllegalStateException("Source item handler rejected " + unreturned.getCount() +
+                    " items while rolling back a transfer");
+        }
     }
 
     // Override to transfer as much as possible
@@ -145,18 +237,7 @@ public class GTTransferUtils {
 
     public static void moveInventoryItems(IItemHandlerModifiable sourceInventory,
                                           IItemHandlerModifiable targetInventory) {
-        for (int srcIndex = 0; srcIndex < sourceInventory.getSlots(); srcIndex++) {
-            ItemStack sourceStack = sourceInventory.extractItem(srcIndex, Integer.MAX_VALUE, true);
-            if (sourceStack.isEmpty()) {
-                continue;
-            }
-            ItemStack remainder = insertItem(targetInventory, sourceStack, true);
-            int amountToInsert = sourceStack.getCount() - remainder.getCount();
-            if (amountToInsert > 0) {
-                sourceStack = sourceInventory.extractItem(srcIndex, amountToInsert, false);
-                insertItem(targetInventory, sourceStack, false);
-            }
-        }
+        transferItemsFiltered(sourceInventory, targetInventory, GTUtil.FAVORABLE, Integer.MAX_VALUE);
     }
 
     /**

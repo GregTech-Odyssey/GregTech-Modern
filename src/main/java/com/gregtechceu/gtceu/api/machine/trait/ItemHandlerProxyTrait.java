@@ -58,8 +58,13 @@ public class ItemHandlerProxyTrait extends MachineTrait implements ICustomItemSt
         return stack;
     }
 
+    @Override
+    public ItemStack insertItemStacked(@NotNull ItemStack stack, boolean simulate) {
+        return proxy != null && canCapInput() ? proxy.insertItemStacked(stack, simulate) : stack;
+    }
+
     public ItemStack insertItemInternal(int slot, @NotNull ItemStack stack, boolean simulate) {
-        return proxy == null ? stack : proxy.insertItem(slot, stack, simulate);
+        return proxy == null ? stack : proxy.insertItemInternal(slot, stack, simulate);
     }
 
     @NotNull
@@ -72,7 +77,7 @@ public class ItemHandlerProxyTrait extends MachineTrait implements ICustomItemSt
     }
 
     public ItemStack extractItemInternal(int slot, int amount, boolean simulate) {
-        return proxy == null ? ItemStack.EMPTY : proxy.extractItem(slot, amount, simulate);
+        return proxy == null ? ItemStack.EMPTY : proxy.extractItemInternal(slot, amount, simulate);
     }
 
     @Override

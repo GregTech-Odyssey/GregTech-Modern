@@ -15,11 +15,11 @@ import com.gregtechceu.gtceu.common.cover.RobotArmCover;
 import com.gregtechceu.gtceu.common.cover.data.DistributionMode;
 import com.gregtechceu.gtceu.common.cover.data.FilterMode;
 import com.gregtechceu.gtceu.utils.FacingPos;
+import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
 
 import com.gto.fastcollection.O2IOpenCacheHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -281,13 +281,13 @@ public final class ItemNetHandler implements ICustomItemStackHandler {
 
     private ItemStack insert(IItemHandler handler, ItemStack stack, boolean simulate, int allowed, boolean ignoreLimit) {
         if (stack.getCount() == allowed) {
-            ItemStack re = ItemHandlerHelper.insertItemStacked(handler, stack, simulate);
+            ItemStack re = GTTransferUtils.insertItemStacked(handler, stack, simulate);
             if (!ignoreLimit) transfer(simulate, stack.getCount() - re.getCount());
             return re;
         }
         ItemStack toInsert = stack.copy();
         toInsert.setCount(Math.min(allowed, stack.getCount()));
-        int r = ItemHandlerHelper.insertItemStacked(handler, toInsert, simulate).getCount();
+        int r = GTTransferUtils.insertItemStacked(handler, toInsert, simulate).getCount();
         if (!ignoreLimit) transfer(simulate, toInsert.getCount() - r);
         ItemStack remainder = stack.copy();
         remainder.setCount(r + (stack.getCount() - toInsert.getCount()));
