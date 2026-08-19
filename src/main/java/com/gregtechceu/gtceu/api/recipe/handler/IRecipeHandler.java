@@ -40,6 +40,16 @@ public interface IRecipeHandler extends IFilteredHandler {
         return IntLongMap.EMPTY;
     }
 
+    /**
+     * Merge this handler's search map into the given target map.
+     * Default implementation accumulates via {@link IntLongMap#copyTo} (i.e. adds amounts
+     * to already-present keys). Handlers that only need to report one shared count for a key
+     * (e.g. to avoid double-counting virtual items) may override with {@code put} semantics.
+     */
+    default void copyToSearchMap(IntLongMap target, @NotNull GTRecipeType type) {
+        getSearchMap(type).copyTo(target);
+    }
+
     default boolean isAvailable() {
         return true;
     }
