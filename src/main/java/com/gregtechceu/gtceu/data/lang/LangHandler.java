@@ -350,6 +350,8 @@ public class LangHandler {
                 "Insert a item to test if it matches the filter expression");
         provider.add("cover.tag_filter.matches", "Item matches");
         provider.add("cover.tag_filter.matches_not", "Item does not match");
+        provider.add("cover.tag_filter.tag_entry.tooltip",
+                "Left-click to add the tag to the filter; right-click to copy it");
         provider.add("cover.fluid_filter.title", "Fluid Filter");
         multilineLang(provider, "cover.fluid_filter.config_amount",
                 "Scroll wheel up increases amount, down decreases.\nShift[§6x10§r],Ctrl[§ex100§r],Shift+Ctrl[§ax1000§r]\nRight click increases amount, left click decreases.\nHold shift to double/halve.\nMiddle click to clear");
@@ -1014,6 +1016,7 @@ public class LangHandler {
         provider.add("gtceu.fluid.state_liquid", "§aState: Liquid");
         provider.add("gtceu.fluid.state_plasma", "§aState: Plasma");
         provider.add("gtceu.fluid.type_acid.tooltip", "§6Acidic! Handle with care!");
+        provider.add("gtceu.gui.close", "Close");
         provider.add("gtceu.gui.title_bar.back", "Back");
         provider.add("gtceu.gui.title_bar.page_switcher", "Pages");
         provider.add("gtceu.gui.fuel_amount", "Fuel Amount:");

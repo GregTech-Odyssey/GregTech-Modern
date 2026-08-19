@@ -1,15 +1,18 @@
 package com.gregtechceu.gtceu.common.cover;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.cover.IUICover;
 import com.gregtechceu.gtceu.api.cover.filter.FluidFilter;
+import com.gregtechceu.gtceu.api.cover.filter.SimpleFluidFilter;
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerDelegate;
 import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.common.cover.data.FilterMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
+import com.gregtechceu.gtceu.common.data.GTItems;
 
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -17,6 +20,7 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
@@ -32,6 +36,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class FluidFilterCover extends CoverBehavior implements IUICover {
 
     protected FluidFilter fluidFilter;
+    private ItemStack loadedFilterStack;
     @Getter
     @SaveToDisk
     @SyncToClient
@@ -57,8 +62,17 @@ public class FluidFilterCover extends CoverBehavior implements IUICover {
     }
 
     public FluidFilter getFluidFilter() {
-        if (fluidFilter == null) {
-            fluidFilter = FluidFilter.loadFilter(attachItem);
+        if (fluidFilter == null || loadedFilterStack != attachItem) {
+            var loader = FluidFilter.FILTERS.get(attachItem.getItem());
+            if (loader == null) {
+                GTCEu.LOGGER.warn("Unregistered fluid filter stack {} on cover at {} {}; replacing it with the default fluid filter", attachItem, coverHolder.getPos(), attachedSide);
+                attachItem = GTItems.FLUID_FILTER.asStack();
+                if (!coverHolder.isRemote()) coverHolder.onChanged();
+                fluidFilter = SimpleFluidFilter.loadFilter(attachItem);
+            } else {
+                fluidFilter = loader.apply(attachItem);
+            }
+            loadedFilterStack = attachItem;
         }
         return fluidFilter;
     }
@@ -77,11 +91,12 @@ public class FluidFilterCover extends CoverBehavior implements IUICover {
 
     @Override
     public Widget createUIWidget() {
+        var filter = getFluidFilter();
         final var group = new WidgetGroup(0, 0, 178, 85);
         group.addWidget(new LabelWidget(60, 5, attachItem.getDescriptionId()));
         group.addWidget(new EnumSelectorWidget<>(35, 25, 18, 18, FilterMode.VALUES, filterMode, this::setFilterMode));
         group.addWidget(new EnumSelectorWidget<>(35, 45, 18, 18, ManualIOMode.VALUES, allowFlow, this::setAllowFlow));
-        group.addWidget(getFluidFilter().openConfigurator(62, 25));
+        group.addWidget(filter.openConfigurator(62, 25));
         return group;
     }
 

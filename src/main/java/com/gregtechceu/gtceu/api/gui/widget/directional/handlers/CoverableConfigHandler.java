@@ -33,6 +33,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.List;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
@@ -40,6 +42,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class CoverableConfigHandler implements IDirectionalConfigHandler {
 
     private static final IGuiTexture CONFIG_BTN_TEXTURE = new GuiTextureGroup(GuiTextures.IO_CONFIG_COVER_SETTINGS);
+    private static final List<Component> CLOSE_TOOLTIPS = List.of(Component.translatable("gtceu.gui.close"));
 
     private final ICoverable machine;
     private CustomItemStackHandler handler;
@@ -93,10 +96,13 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
 
     // FIXME: This gets called twice in a single tick, causing two covers to exist simultaneously
     private void coverItemChanged() {
-        closeConfigTab();
-
-        if (!(panel.getGui().entityPlayer instanceof ServerPlayer serverPlayer) || side == null)
+        if (side == null) return;
+        if (!(panel.getGui().entityPlayer instanceof ServerPlayer serverPlayer)) {
+            if (hasCoverChanged()) closeConfigTab();
             return;
+        }
+
+        closeConfigTab();
 
         var item = handler.getStackInSlot(0);
         if (machine.getCoverAtSide(side) != null) {
@@ -115,6 +121,15 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
         }
 
         checkCoverBehaviour();
+    }
+
+    private boolean hasCoverChanged() {
+        // Filter settings mutate the attached stack's NBT; only structural cover changes close the tab.
+        var currentCover = machine.getCoverAtSide(side);
+        var item = handler.getStackInSlot(0);
+        if (currentCover != coverBehavior) return true;
+        if (currentCover == null) return !item.isEmpty();
+        return item.isEmpty() || !ItemStack.isSameItem(item, currentCover.getAttachItem());
     }
 
     @Override
@@ -165,6 +180,11 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
             @Override
             public IGuiTexture getIcon() {
                 return GuiTextures.CLOSE_ICON;
+            }
+
+            @Override
+            public List<Component> getTooltips() {
+                return CLOSE_TOOLTIPS;
             }
 
             @Override
