@@ -2,21 +2,15 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.IMiner;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
-import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerList;
-import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.trait.miner.LargeMinerLogic;
-import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
@@ -32,11 +26,8 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import lombok.Getter;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,10 +44,6 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
     public static final int CHUNK_LENGTH = 16;
     @Getter
     private final int tier;
-    @Nullable
-    protected EnergyContainerList energyContainer;
-    @Nullable
-    protected FluidHandlerList inputFluidInventory;
     private final int drillingFluidConsumePerTick;
 
     public LargeMinerMachine(MetaMachineBlockEntity holder, int tier, int speed, int maximumChunkDiameter, int fortune, int drillingFluidConsumePerTick) {
@@ -109,7 +96,7 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
         super.onStructureFormed();
         Direction opposite = this.getUpwardsFacing().getOpposite();
         getRecipeLogic().setDir(opposite == Direction.NORTH ? Direction.UP : Direction.DOWN);
-        initializeAbilities();
+        initializeMinerLogic();
     }
 
     @Override
@@ -117,25 +104,20 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
         return super.checkPattern() && (this.getUpwardsFacing() == Direction.NORTH || this.getUpwardsFacing() == Direction.SOUTH);
     }
 
-    private void initializeAbilities() {
-        var energyContainers = getCapabilitiesFlat(IO.IN, GTCapability.ENERGY_CONTAINER);
-        var fluidTanks = getCapabilitiesFlat(IO.IN, ICustomFluidStackHandler.class);
-        this.energyContainer = new EnergyContainerList(energyContainers);
-        this.inputFluidInventory = new FluidHandlerList(fluidTanks);
+    private void initializeMinerLogic() {
         getRecipeLogic().setVoltageTier(GTUtil.getTierByVoltage(this.energyContainer.getInputVoltage()));
         getRecipeLogic().setOverclockAmount(Math.max(1, GTUtil.getTierByVoltage(this.energyContainer.getInputVoltage()) - this.tier));
         getRecipeLogic().initPos(getPos(), getRecipeLogic().getCurrentRadius());
     }
 
     public int getEnergyTier() {
-        if (energyContainer == null) return this.tier;
         return Math.min(this.tier + 1, Math.max(this.tier, GTUtil.getFloorTierByVoltage(energyContainer.getInputVoltage())));
     }
 
     @Override
     public boolean drainInput(boolean simulate) {
         // drain energy
-        if (energyContainer != null && energyContainer.getEnergyStored() > 0) {
+        if (energyContainer.getEnergyStored() > 0) {
             long energyToDrain = GTValues.VA[getEnergyTier()];
             long resultEnergy = energyContainer.getEnergyStored() - energyToDrain;
             if (resultEnergy >= 0L && resultEnergy <= energyContainer.getEnergyCapacity()) {
@@ -149,17 +131,9 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
             return false;
         }
         // drain fluid
-        if (inputFluidInventory != null && inputFluidInventory.handlers.length > 0) {
-            FluidStack drillingFluid = DrillingFluid.getFluid(this.drillingFluidConsumePerTick * getRecipeLogic().getOverclockAmount());
-            FluidStack drained = GTTransferUtils.drainFluidAccountNotifiableList(inputFluidInventory, drillingFluid, IFluidHandler.FluidAction.SIMULATE);
-            if (drained.getAmount() < drillingFluid.getAmount()) {
-                return false;
-            }
-            if (!simulate) {
-                GTTransferUtils.drainFluidAccountNotifiableList(inputFluidInventory, drillingFluid, IFluidHandler.FluidAction.EXECUTE);
-            }
-        }
-        return true;
+        int drillingFluidAmount = this.drillingFluidConsumePerTick * getRecipeLogic().getOverclockAmount();
+        return simulate ? matchFluid(DrillingFluid.getFluid(), drillingFluidAmount) :
+                inputFluid(DrillingFluid.getFluid(), drillingFluidAmount);
     }
 
     //////////////////////////////////////

@@ -65,8 +65,7 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
     protected boolean isSubscriptionActive() {
         if (!isFormed()) return false;
 
-        if (powerInput == null || powerInput.getEnergyStored() <= 0) return false;
-        if (powerOutput == null) return false;
+        if (powerInput.getEnergyStored() <= 0) return false;
         if (powerOutput.getEnergyStored() >= powerOutput.getEnergyCapacity()) return false;
 
         return true;

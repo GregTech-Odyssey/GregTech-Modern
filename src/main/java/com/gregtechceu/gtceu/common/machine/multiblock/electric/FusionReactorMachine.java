@@ -4,12 +4,12 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.IFusionCasingType;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapability;
-import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
@@ -30,7 +30,7 @@ import it.unimi.dsi.fastutil.longs.Long2IntSortedMap;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -51,10 +51,13 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     public static int MINIMUM_TIER = MAX;
     @Getter
     private final int tier;
+    /** @deprecated Use the inherited input energy container. */
+    @Deprecated
     @Nullable
     protected EnergyContainerList inputEnergyContainers;
     @SaveToDisk
     protected long heat = 0;
+    /** Internal startup-energy buffer; input hatches are held by the parent field. */
     @SaveToDisk
     protected final NotifiableEnergyContainer energyContainer;
     @Getter
@@ -93,19 +96,12 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        // capture all energy containers
-        List<IEnergyContainer> energyContainers = new ArrayList<>();
-        for (var part : getWorkableParts()) {
-            for (var handlerList : part.getRecipeHandlers()) {
-                var containers = handlerList.getCapabilities(GTCapability.ENERGY_CONTAINER);
-                if (!containers.isEmpty()) {
-                    energyContainers.addAll(containers);
-                    traitSubscriptions.add(handlerList.subscribe(this::updatePreHeatSubscription, GTCapability.ENERGY_CONTAINER));
-                }
-            }
+        this.inputEnergyContainers = super.energyContainer;
+        int energyInputCount = getCapabilitiesFlat(IO.IN, GTCapability.ENERGY_CONTAINER).size();
+        energyContainer.resetBasicInfo(calculateEnergyStorageFactor(getTier(), energyInputCount), 0, 0, 0, 0);
+        for (var handlerList : getCapabilitiesProxy().getOrDefault(IO.IN, Collections.emptyList())) {
+            traitSubscriptions.add(handlerList.subscribe(this::updatePreHeatSubscription, GTCapability.ENERGY_CONTAINER));
         }
-        this.inputEnergyContainers = new EnergyContainerList(energyContainers);
-        energyContainer.resetBasicInfo(calculateEnergyStorageFactor(getTier(), energyContainers.size()), 0, 0, 0, 0);
         updatePreHeatSubscription();
     }
 
@@ -124,7 +120,8 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     //////////////////////////////////////
     protected void updatePreHeatSubscription() {
         // do preheat logic for heat cool down and charge internal energy container
-        if (heat > 0 || (inputEnergyContainers != null && inputEnergyContainers.getEnergyStored() > 0 && energyContainer.getEnergyStored() < energyContainer.getEnergyCapacity())) {
+        if (heat > 0 || (super.energyContainer.getEnergyStored() > 0 &&
+                energyContainer.getEnergyStored() < energyContainer.getEnergyCapacity())) {
             preHeatSubs = subscribeServerTick(preHeatSubs, this::updateHeat);
         } else if (preHeatSubs != null) {
             preHeatSubs.unsubscribe();
@@ -191,8 +188,8 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
         }
         // charge the internal energy storage
         var leftStorage = energyContainer.getEnergyCapacity() - energyContainer.getEnergyStored();
-        if (inputEnergyContainers != null && leftStorage > 0) {
-            energyContainer.addEnergy(inputEnergyContainers.removeEnergy(leftStorage));
+        if (leftStorage > 0) {
+            energyContainer.addEnergy(super.energyContainer.removeEnergy(leftStorage));
         }
         updatePreHeatSubscription();
     }

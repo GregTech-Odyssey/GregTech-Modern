@@ -60,7 +60,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     default List<IRecipeHandler> getItemCapabilitiesFlat(IO io) {
         var all = getCapabilitiesFlat(io);
         if (all.isEmpty()) return Collections.emptyList();
-        var list = new ArrayList<IRecipeHandler>();
+        var list = new ArrayList<IRecipeHandler>(all.size());
         for (var handler : all) {
             if (handler.canHandleItem()) {
                 list.add(handler);
@@ -73,7 +73,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     default List<IRecipeHandler> getFluidCapabilitiesFlat(IO io) {
         var all = getCapabilitiesFlat(io);
         if (all.isEmpty()) return Collections.emptyList();
-        var list = new ArrayList<IRecipeHandler>();
+        var list = new ArrayList<IRecipeHandler>(all.size());
         for (var handler : all) {
             if (handler.canHandleFluid()) {
                 list.add(handler);
@@ -83,15 +83,15 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     }
 
     @NotNull
-    default <T> List<T> getCapabilitiesFlat(IO io, Class<T> capabilitie) {
+    default <T> List<T> getCapabilitiesFlat(IO io, Class<T> capability) {
         var all = getCapabilitiesFlat(io);
         if (all.isEmpty()) return Collections.emptyList();
-        var list = new ArrayList<T>();
-        all.forEach(h -> {
-            if (capabilitie.isInstance(h)) {
-                list.add((T) h);
+        var list = new ArrayList<T>(all.size());
+        for (var handler : all) {
+            if (capability.isInstance(handler)) {
+                list.add(capability.cast(handler));
             }
-        });
+        }
         return list;
     }
 
@@ -304,18 +304,26 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
 
     default long[] getFluidAmount(boolean consumable, Fluid... fluids) {
         long[] amounts = new long[fluids.length];
+        getFluidAmount(consumable, fluids, amounts);
+        return amounts;
+    }
+
+    default void getFluidAmount(boolean consumable, Fluid[] fluids, long[] amounts) {
         for (var handler : getInputUnits()) {
             handler.getFluidAmount(consumable, fluids, amounts);
         }
-        return amounts;
     }
 
     default long[] getItemAmount(boolean consumable, Item... items) {
         long[] amounts = new long[items.length];
+        getItemAmount(consumable, items, amounts);
+        return amounts;
+    }
+
+    default void getItemAmount(boolean consumable, Item[] items, long[] amounts) {
         for (var handler : getInputUnits()) {
             handler.getItemAmount(consumable, items, amounts);
         }
-        return amounts;
     }
 
     default boolean forEachItems(boolean consumable, ObjLongPredicate<ItemStack> function) {

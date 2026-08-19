@@ -185,10 +185,10 @@ public class RecipeHandlerUnit {
         };
     }
 
-    public <T> ISubscription subscribe(Runnable listener, Class<T> capabilitie) {
-        var subs = new ArrayList<ISubscription>();
+    public <T> ISubscription subscribe(Runnable listener, Class<T> capability) {
+        var subs = new ArrayList<ISubscription>(allHandlerTraits.length);
         for (IRecipeHandlerTrait trait : allHandlerTraits) {
-            if (capabilitie.isInstance(trait)) {
+            if (capability.isInstance(trait)) {
                 subs.add(trait.addChangedListener(listener));
             }
         }
@@ -196,13 +196,13 @@ public class RecipeHandlerUnit {
     }
 
     @NotNull
-    public <T> List<T> getCapabilities(Class<T> capabilitie) {
+    public <T> List<T> getCapabilities(Class<T> capability) {
         var all = allHandlers;
         if (all.length == 0) return Collections.emptyList();
-        var list = new ArrayList<T>();
+        var list = new ArrayList<T>(all.length);
         for (var handler : all) {
-            if (capabilitie.isInstance(handler)) {
-                list.add((T) handler);
+            if (capability.isInstance(handler)) {
+                list.add(capability.cast(handler));
             }
         }
         return list;

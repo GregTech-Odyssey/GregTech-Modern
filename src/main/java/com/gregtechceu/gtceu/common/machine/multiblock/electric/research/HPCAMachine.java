@@ -12,16 +12,12 @@ import com.gregtechceu.gtceu.api.gui.widget.ExtendedProgressWidget;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
-import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerList;
-import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
@@ -71,7 +67,8 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     private static final double DAMAGE_TEMPERATURE = 1000;
     private static final double SAFE_TEMPERATURE = (IDLE_TEMPERATURE + DAMAGE_TEMPERATURE) / 2;
     private static final int TEMPERATURE_DISPLAY_UPDATE_INTERVAL = 20;
-    private IFluidHandler coolantHandler;
+    private final Fluid[] coolantQuery = new Fluid[1];
+    private final long[] coolantAmount = new long[1];
 
     @AdditionalHolder
     @Getter
@@ -87,7 +84,6 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
 
     public HPCAMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder, args);
-        this.energyContainer = EnergyContainerList.EMPTY;
         this.progressSupplier = new TimedProgressSupplier(200, 47, false);
         this.hpcaHandler = new HPCAGridHandler();
     }
@@ -106,15 +102,6 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        List<ICustomFluidStackHandler> coolantContainers = new ArrayList<>();
-        for (IMultiPart part : getParts()) {
-            if (part instanceof IWorkableMultiPart workableMultiPart) {
-                for (var handlerList : workableMultiPart.getRecipeHandlers()) {
-                    coolantContainers.addAll(handlerList.getCapabilities(ICustomFluidStackHandler.class));
-                }
-            }
-        }
-        this.coolantHandler = new FluidHandlerList(coolantContainers);
         refreshHPCAComponents();
     }
 
@@ -183,7 +170,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
                 getRecipeLogic().setWaiting(ActionResult.failInsufficientIn(EURecipeInfo.INSTANCE.getName()).reason());
             }
             // forcibly use active coolers at full rate if temperature is half-way to damaging temperature
-            double temperatureChange = hpcaHandler.calculateTemperatureChange(coolantHandler, overheated || temperature >= SAFE_TEMPERATURE);
+            double temperatureChange = hpcaHandler.calculateTemperatureChange(this, overheated || temperature >= SAFE_TEMPERATURE);
             temperatureChange /= (overheated && temperatureChange < 0) ? 8.0 : 2.0;
             if (temperature + temperatureChange <= IDLE_TEMPERATURE) {
                 temperature = IDLE_TEMPERATURE;
@@ -214,6 +201,15 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
             overheated = true;
             hpcaHandler.damageHPCAComponent();
         }
+    }
+
+    private int inputCoolant(int maximumAmount) {
+        Fluid coolant = hpcaHandler.getCoolant();
+        coolantQuery[0] = coolant;
+        coolantAmount[0] = 0;
+        getFluidAmount(true, coolantQuery, coolantAmount);
+        int amount = (int) Math.min(maximumAmount, coolantAmount[0]);
+        return amount > 0 && inputFluid(coolant, amount) ? amount : 0;
     }
 
     @Override
@@ -335,6 +331,10 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
             }
         }
 
+        private double calculateTemperatureChange(HPCAMachine machine, boolean forceCoolWithActive) {
+            return calculateTemperatureChange(machine, null, forceCoolWithActive);
+        }
+
         /**
          * Calculate the temperature differential this tick given active computation and consume coolant.
          *
@@ -344,6 +344,11 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
          * @return The temperature change, can be positive or negative.
          */
         public double calculateTemperatureChange(IFluidHandler coolantTank, boolean forceCoolWithActive) {
+            return calculateTemperatureChange(null, coolantTank, forceCoolWithActive);
+        }
+
+        private double calculateTemperatureChange(@Nullable HPCAMachine machine, @Nullable IFluidHandler coolantTank,
+                                                  boolean forceCoolWithActive) {
             // calculate temperature increase
             long maxCWUt = Math.max(1, this.maxCWUt); // avoids dividing by 0 and the behavior is no different
             int maxCoolingDemand = getMaxCoolingDemand();
@@ -369,9 +374,8 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
             }
             if (forceCoolWithActive || maxActiveCooling <= temperatureChange) {
                 // try to fully utilize active coolers
-                FluidStack coolantStack = GTTransferUtils.drainFluidAccountNotifiableList(coolantTank, getCoolantStack(maxCoolantDrain), IFluidHandler.FluidAction.EXECUTE);
-                if (!coolantStack.isEmpty()) {
-                    long coolantDrained = coolantStack.getAmount();
+                int coolantDrained = drainCoolant(machine, coolantTank, maxCoolantDrain);
+                if (coolantDrained > 0) {
                     if (coolantDrained == maxCoolantDrain) {
                         // coolant requirement was fully met
                         temperatureChange -= maxActiveCooling;
@@ -385,9 +389,8 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
                 // try to partially utilize active coolers to stabilize to zero
                 double temperatureToDecrease = Math.min(temperatureChange, maxActiveCooling);
                 int coolantToDrain = Math.max(1, (int) (maxCoolantDrain * (temperatureToDecrease / maxActiveCooling)));
-                FluidStack coolantStack = GTTransferUtils.drainFluidAccountNotifiableList(coolantTank, getCoolantStack(coolantToDrain), IFluidHandler.FluidAction.EXECUTE);
-                if (!coolantStack.isEmpty()) {
-                    int coolantDrained = coolantStack.getAmount();
+                int coolantDrained = drainCoolant(machine, coolantTank, coolantToDrain);
+                if (coolantDrained > 0) {
                     if (coolantDrained == coolantToDrain) {
                         // successfully stabilized to zero
                         return 0;
@@ -399,6 +402,15 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
                 }
             }
             return temperatureChange;
+        }
+
+        private int drainCoolant(@Nullable HPCAMachine machine, @Nullable IFluidHandler coolantTank, int amount) {
+            if (machine != null) {
+                return machine.inputCoolant(amount);
+            }
+            if (coolantTank == null) return 0;
+            return GTTransferUtils.drainFluidAccountNotifiableList(coolantTank, getCoolantStack(amount),
+                    IFluidHandler.FluidAction.EXECUTE).getAmount();
         }
 
         /**

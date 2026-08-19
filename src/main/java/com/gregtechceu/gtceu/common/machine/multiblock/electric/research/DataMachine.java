@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
 import com.gregtechceu.gtceu.utils.TaskHandler;
@@ -35,7 +34,6 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
 
     public DataMachine(MetaMachineBlockEntity holder) {
         super(holder);
-        this.energyContainer = EnergyContainerList.EMPTY;
     }
 
     @Override

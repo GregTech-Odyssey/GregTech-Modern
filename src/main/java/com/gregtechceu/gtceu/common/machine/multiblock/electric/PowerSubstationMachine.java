@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapability;
-import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.IEnergyInfoProvider;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
@@ -80,25 +79,15 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        List<IEnergyContainer> inputs = new ArrayList<>();
-        List<IEnergyContainer> outputs = new ArrayList<>();
         for (var part : getWorkableParts()) {
             if (part instanceof IMaintenanceMachine maintenanceMachine) {
                 this.maintenance = maintenanceMachine;
-            } else {
-                for (var handlerList : part.getRecipeHandlers()) {
-                    var containers = handlerList.getCapabilities(GTCapability.ENERGY_CONTAINER);
-                    if (handlerList.handlerIO == IO.IN) {
-                        inputs.addAll(containers);
-                    } else if (handlerList.handlerIO == IO.OUT) {
-                        outputs.addAll(containers);
-                    }
-                    traitSubscriptions.add(handlerList.subscribe(tickSubscription::updateSubscription, GTCapability.ENERGY_CONTAINER));
-                }
             }
         }
-        this.inputHatches = new EnergyContainerList(inputs);
-        this.outputHatches = new EnergyContainerList(outputs);
+        this.inputHatches = new EnergyContainerList(getCapabilitiesFlat(IO.IN, GTCapability.ENERGY_CONTAINER));
+        this.outputHatches = new EnergyContainerList(getCapabilitiesFlat(IO.OUT, GTCapability.ENERGY_CONTAINER));
+        subscribeEnergyHandlers(IO.IN);
+        subscribeEnergyHandlers(IO.OUT);
         List<IBatteryData> batteries = new ArrayList<>();
         var batterys = getMultiblockState().getMatchContext().get(Predicates.DataKey.BATTERY_DATA);
         if (batterys != null) {
@@ -114,6 +103,12 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
             this.energyBank = energyBank.rebuild(batteries);
         }
         this.passiveDrain = this.energyBank.getPassiveDrainPerTick();
+    }
+
+    private void subscribeEnergyHandlers(IO io) {
+        for (var handlerList : getCapabilitiesProxy().getOrDefault(io, Collections.emptyList())) {
+            traitSubscriptions.add(handlerList.subscribe(tickSubscription::updateSubscription, GTCapability.ENERGY_CONTAINER));
+        }
     }
 
     @Override

@@ -46,22 +46,20 @@ public class PrimitivePumpMachine extends MultiblockControllerMachine implements
 
     private void initializeTank() {
         for (var part : getWorkableParts()) {
-            var handlerLists = part.getRecipeHandlers();
-
-            for (var handlerList : handlerLists) {
-                var recipeCap = handlerList.getCapabilities(NotifiableFluidTank.class);
-                if (handlerList.handlerIO == IO.OUT && !recipeCap.isEmpty()) {
-                    fluidTank = recipeCap.getFirst();
-                    long tankCapacity = fluidTank.getTankCapacity(0);
-                    if (tankCapacity == FluidType.BUCKET_VOLUME) {
-                        hatchModifier = 1;
-                    } else if (tankCapacity == FluidType.BUCKET_VOLUME * 8) {
-                        hatchModifier = 2;
-                    } else {
-                        hatchModifier = 4;
-                    }
-                    return;
+            var handlerList = part.getHandlerUnit();
+            if (!handlerList.isValid(IO.OUT)) continue;
+            var fluidTanks = handlerList.getCapabilities(NotifiableFluidTank.class);
+            if (!fluidTanks.isEmpty()) {
+                fluidTank = fluidTanks.getFirst();
+                long tankCapacity = fluidTank.getTankCapacity(0);
+                if (tankCapacity == FluidType.BUCKET_VOLUME) {
+                    hatchModifier = 1;
+                } else if (tankCapacity == FluidType.BUCKET_VOLUME * 8) {
+                    hatchModifier = 2;
+                } else {
+                    hatchModifier = 4;
                 }
+                return;
             }
         }
     }
