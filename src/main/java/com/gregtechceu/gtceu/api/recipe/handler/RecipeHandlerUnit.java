@@ -280,7 +280,7 @@ public class RecipeHandlerUnit {
     public IntLongMap getSearchMap(@NotNull GTRecipeType type) {
         intIngredientMap.clear();
         for (var s : contentHandlers) {
-            s.copyToSearchMap(intIngredientMap, type);
+            s.addToSearchMap(intIngredientMap, type);
         }
         return intIngredientMap;
     }

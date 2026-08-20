@@ -259,7 +259,7 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
                         var size = fluids.size();
                         var stacks = new FluidStack[size];
                         for (int i = 0; i < size; i++) {
-                            stacks[i] = new FluidStack(fluids.get(i).value(), getAmount());
+                            stacks[i] = new FluidStack(fluids.get(i).value(), getAmount(), nbt);
                         }
                         this.stacks = stacks;
                     } else {
