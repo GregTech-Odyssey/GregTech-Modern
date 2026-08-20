@@ -14,8 +14,8 @@ import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
 import net.minecraft.network.chat.Component;
 
-import com.fast.recipesearch.IntLongMap;
 import com.gto.datasynclib.DataSyncCodec;
+import com.gto.recipesearch.IntLongMap;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 

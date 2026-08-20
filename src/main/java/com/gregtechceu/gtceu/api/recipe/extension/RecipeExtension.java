@@ -6,9 +6,9 @@ import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.ui.IRecipeInfo;
 
-import com.fast.recipesearch.IntLongMap;
 import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.datastream.DataComponentKey;
+import com.gto.recipesearch.IntLongMap;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("BooleanMethodIsAlwaysInverted")

@@ -26,8 +26,8 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
-import com.fast.recipesearch.IntLongMap;
 import com.gto.datasynclib.util.holder.LongHolder;
+import com.gto.recipesearch.IntLongMap;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 

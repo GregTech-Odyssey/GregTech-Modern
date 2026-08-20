@@ -10,7 +10,7 @@ import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
-import com.fast.recipesearch.IntLongMap;
+import com.gto.recipesearch.IntLongMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

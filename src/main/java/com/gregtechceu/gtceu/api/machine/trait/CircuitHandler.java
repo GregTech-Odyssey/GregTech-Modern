@@ -17,12 +17,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 
-import com.fast.recipesearch.IntLongMap;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datastream.data.ByteData;
 import com.gto.datasynclib.datastream.data.Data;
 import com.gto.datasynclib.datastream.data.NullData;
 import com.gto.datasynclib.util.DataCodecs;
+import com.gto.recipesearch.IntLongMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

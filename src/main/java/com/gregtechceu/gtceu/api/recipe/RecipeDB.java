@@ -2,10 +2,10 @@ package com.gregtechceu.gtceu.api.recipe;
 
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 
-import com.fast.recipesearch.AbstractRecipeDB;
-import com.fast.recipesearch.IntLongMap;
-import com.fast.recipesearch.IntMapContainer;
-import com.fast.recipesearch.RecipeSearcher;
+import com.gto.recipesearch.AbstractRecipeDB;
+import com.gto.recipesearch.IntLongMap;
+import com.gto.recipesearch.IntMapContainer;
+import com.gto.recipesearch.RecipeSearcher;
 
 import java.util.function.BiPredicate;
 
