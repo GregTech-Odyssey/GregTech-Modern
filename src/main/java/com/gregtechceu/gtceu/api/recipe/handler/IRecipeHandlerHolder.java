@@ -203,7 +203,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         var fluids = RecipeHelper.copyContents(recipe.fluidInputs, 1);
         if (unit.handleRecipeItem(IO.IN, recipe, items, true) && unit.handleRecipeFluid(IO.IN, recipe, fluids, true)) {
             for (var e : recipe.definition.recipeExtensions) {
-                if (!e.handle(IO.IN, this, unit, recipe, true)) return false;
+                if (!e.handleInput(this, unit, recipe, true)) return false;
             }
             return true;
         }
@@ -212,7 +212,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
 
     default boolean matchRecipeOutput(GTRecipe recipe) {
         for (var e : recipe.definition.recipeExtensions) {
-            if (!e.handle(IO.OUT, this, null, recipe, true)) return false;
+            if (!e.handleOutput(this, recipe, true)) return false;
         }
         var items = RecipeHelper.copyContents(recipe.itemOutputs, 1);
         var fluids = RecipeHelper.copyContents(recipe.fluidOutputs, 1);
@@ -231,7 +231,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         var fluids = RecipeHelper.copyAndRoll(recipe, recipe.fluidInputs);
         if (unit.handleRecipeItem(IO.IN, recipe, items, false) && unit.handleRecipeFluid(IO.IN, recipe, fluids, false)) {
             for (var e : recipe.definition.recipeExtensions) {
-                if (!e.handle(IO.IN, this, unit, recipe, false)) return false;
+                if (!e.handleInput(this, unit, recipe, false)) return false;
             }
             return true;
         }
@@ -241,7 +241,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     default boolean handleRecipeOutput(GTRecipe recipe) {
         var extension = true;
         for (var e : recipe.definition.recipeExtensions) {
-            if (!e.handle(IO.OUT, this, null, recipe, false)) extension = false;
+            if (!e.handleOutput(this, recipe, false)) extension = false;
         }
         var items = RecipeHelper.copyAndRoll(recipe, recipe.itemOutputs);
         var fluids = RecipeHelper.copyAndRoll(recipe, recipe.fluidOutputs);
@@ -267,7 +267,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
             }
         }
         for (var e : recipe.definition.tickRecipeExtensions) {
-            if (!e.handle(IO.BOTH, this, null, recipe, true)) return false;
+            if (!e.handleTick(this, recipe, true)) return false;
         }
         return true;
     }
@@ -285,7 +285,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
             }
         }
         for (var e : recipe.definition.tickRecipeExtensions) {
-            if (!e.handle(IO.BOTH, this, null, recipe, false)) return false;
+            if (!e.handleTick(this, recipe, false)) return false;
         }
         return true;
     }

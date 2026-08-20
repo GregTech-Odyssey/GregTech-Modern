@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.api.recipe.extension;
 
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
-import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.ui.IRecipeInfo;
@@ -11,8 +10,8 @@ import com.fast.recipesearch.IntLongMap;
 import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.datastream.DataComponentKey;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.UnknownNullability;
 
+@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 public abstract class RecipeExtension<T> extends DataComponentKey<T> implements IRecipeInfo {
 
     public final boolean isTick;
@@ -22,9 +21,20 @@ public abstract class RecipeExtension<T> extends DataComponentKey<T> implements 
         this.isTick = isTick;
     }
 
-    public abstract boolean handle(IO io, @NotNull IRecipeHandlerHolder holder,
-                                   @UnknownNullability("null when this.isTick == true") RecipeHandlerUnit unit,
-                                   @NotNull GTRecipe recipe, boolean simulate);
+    @SuppressWarnings("unused")
+    public boolean handleInput(@NotNull IRecipeHandlerHolder holder, @NotNull RecipeHandlerUnit unit, @NotNull GTRecipe recipe, boolean simulate) {
+        return true;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean handleOutput(@NotNull IRecipeHandlerHolder holder, @NotNull GTRecipe recipe, boolean simulate) {
+        return true;
+    }
+
+    public boolean handleTick(@NotNull IRecipeHandlerHolder holder,
+                              @NotNull GTRecipe recipe, boolean simulate) {
+        return true;
+    }
 
     public abstract void extractInput(GTRecipeDefinition recipe, IntLongMap map);
 

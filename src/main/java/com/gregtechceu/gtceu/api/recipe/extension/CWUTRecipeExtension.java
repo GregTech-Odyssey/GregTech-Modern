@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.api.recipe.extension;
 import com.gregtechceu.gtceu.api.machine.feature.IComputationContainerMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
-import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
@@ -19,7 +18,6 @@ import com.fast.recipesearch.IntLongMap;
 import com.gto.datasynclib.DataSyncCodec;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class CWUTRecipeExtension extends RecipeExtension<Long> {
 
@@ -30,7 +28,7 @@ public final class CWUTRecipeExtension extends RecipeExtension<Long> {
     }
 
     @Override
-    public boolean handle(IO io, @NotNull IRecipeHandlerHolder holder, @Nullable RecipeHandlerUnit unit, @NotNull GTRecipe recipe, boolean simulate) {
+    public boolean handleTick(@NotNull IRecipeHandlerHolder holder, @NotNull GTRecipe recipe, boolean simulate) {
         var cwu = recipe.getInputCWUt();
         if (cwu < 1) return true;
         boolean result;
