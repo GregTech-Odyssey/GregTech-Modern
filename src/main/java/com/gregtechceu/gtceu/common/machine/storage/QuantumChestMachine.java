@@ -76,7 +76,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
      * href=https://github.com/Buuz135/FunctionalStorage/blob/1.21/src/main/java/com/buuz135/functionalstorage/block/tile/ItemControllableDrawerTile.java>
      * ItemControllerDrawerTile</a>
      */
-    public static final Object2LongOpenHashMap<UUID> INTERACTION_LOGGER = new O2LOpenCacheHashMap<>();
+    public static final O2LOpenCacheHashMap<UUID> INTERACTION_LOGGER = new O2LOpenCacheHashMap<>();
     @Getter
     @SaveToDisk
     @SyncToClient(notifyUpdate = true)

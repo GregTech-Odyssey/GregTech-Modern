@@ -139,7 +139,7 @@ public abstract class ProspectorMode<T> {
 
         @Override
         public void appendTooltips(List<String[]> items, List<Component> tooltips, String selected) {
-            Object2IntOpenHashMap<String> counter = new O2IOpenCacheHashMap<>();
+            O2IOpenCacheHashMap<String> counter = new O2IOpenCacheHashMap<>();
             for (var array : items) {
                 for (String item : array) {
                     if (ProspectingTexture.SELECTED_ALL.equals(selected) || selected.equals(getUniqueID(item))) {

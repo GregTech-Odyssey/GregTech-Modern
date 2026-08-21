@@ -46,7 +46,7 @@ import java.util.List;
 public class PowerlessJetpack implements IArmorLogic, IJetpack, IItemHUDProvider {
 
     // Map of FluidIngredient -> burn time
-    public static final Object2IntOpenHashMap<FluidIngredient> FUELS = new O2IOpenCacheHashMap<>();
+    public static final O2IOpenCacheHashMap<FluidIngredient> FUELS = new O2IOpenCacheHashMap<>();
     public static final int tankCapacity = 16000;
 
     private FluidIngredient currentFuel = FluidIngredient.EMPTY;

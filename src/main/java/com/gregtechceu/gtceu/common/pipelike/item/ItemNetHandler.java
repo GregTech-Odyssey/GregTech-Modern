@@ -43,7 +43,7 @@ public final class ItemNetHandler implements ICustomItemStackHandler {
     private final ItemPipeBlockEntity pipe;
     @Getter
     private final Direction facing;
-    private final Object2IntOpenHashMap<FacingPos> simulatedTransfersGlobalRoundRobin = new O2IOpenCacheHashMap<>();
+    private final O2IOpenCacheHashMap<FacingPos> simulatedTransfersGlobalRoundRobin = new O2IOpenCacheHashMap<>();
     private int simulatedTransfers = 0;
     private final CustomItemStackHandler testHandler = new CustomItemStackHandler(1);
 

@@ -2,10 +2,7 @@ package com.gregtechceu.gtceu.api.recipe;
 
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 
-import com.gto.recipesearch.AbstractRecipeDB;
-import com.gto.recipesearch.IntLongMap;
-import com.gto.recipesearch.IntMapContainer;
-import com.gto.recipesearch.RecipeSearcher;
+import com.gto.recipesearch.*;
 
 import java.util.function.BiPredicate;
 
@@ -24,8 +21,8 @@ public final class RecipeDB extends AbstractRecipeDB<GTRecipeDefinition> {
                 return true;
             }
         }
-        if (!serialRecipes.isEmpty()) {
-            for (var recipe : serialRecipes) {
+        if (!unindexedSerial.isEmpty()) {
+            for (var recipe : unindexedSerial) {
                 if (canHandle.test(unit, recipe)) return true;
             }
         }
@@ -38,7 +35,7 @@ public final class RecipeDB extends AbstractRecipeDB<GTRecipeDefinition> {
     }
 
     @Override
-    protected IntLongMap extractIntMap(GTRecipeDefinition recipe) {
+    protected IntLongMap extractIngredientMap(GTRecipeDefinition recipe) {
         var intMap = new IntLongMap();
         recipe.itemInputs.forEach(content -> recipe.recipeType.convertItem(content.inner, intMap));
         recipe.fluidInputs.forEach(content -> recipe.recipeType.convertFluid(content.inner, intMap));
@@ -52,7 +49,7 @@ public final class RecipeDB extends AbstractRecipeDB<GTRecipeDefinition> {
     }
 
     @Override
-    protected void setRecipeContainer(GTRecipeDefinition gtRecipe, IntMapContainer intMapContainer) {
+    protected void setIngredientTable(GTRecipeDefinition gtRecipe, IngredientTable intMapContainer) {
         gtRecipe.container = intMapContainer;
     }
 }
