@@ -4,9 +4,7 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
-import com.gto.fastcollection.O2ZOpenCacheHashMap;
-import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
-import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
+import com.gto.fastcollection.fastutil.O2ZOpenCacheHashMap;
 import xaero.common.minimap.highlight.DimensionHighlighterHandler;
 import xaero.common.minimap.write.MinimapWriter;
 import xaero.hud.minimap.BuiltInHudModules;

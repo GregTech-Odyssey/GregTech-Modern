@@ -39,7 +39,7 @@ import net.minecraftforge.items.IItemHandler;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
-import com.gto.fastcollection.O2OOpenCustomCacheHashMap;
+import com.gto.fastcollection.fastutil.O2OOpenCustomCacheHashMap;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;

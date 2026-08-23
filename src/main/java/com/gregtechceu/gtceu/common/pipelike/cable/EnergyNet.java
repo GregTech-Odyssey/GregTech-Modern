@@ -4,11 +4,11 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.WirePropertie
 import com.gregtechceu.gtceu.api.pipenet.LevelPipeNet;
 import com.gregtechceu.gtceu.api.pipenet.Node;
 import com.gregtechceu.gtceu.api.pipenet.PipeNet;
-import com.gregtechceu.gtceu.utils.collection.LoopIterator;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 
+import com.gto.fastcollection.LoopIterator;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 public final class EnergyNet extends PipeNet<WireProperties> {
@@ -25,7 +25,7 @@ public final class EnergyNet extends PipeNet<WireProperties> {
             var datas = EnergyNetWalker.createNetData(this, pos);
             if (datas == null) {
                 // walker failed, don't cache so it tries again on next insertion
-                return LoopIterator.EMPTY;
+                return LoopIterator.empty();
             }
             data = new LoopIterator<>(datas.toArray(new EnergyRoutePath[0]));
             netData.put(pipePos, data);

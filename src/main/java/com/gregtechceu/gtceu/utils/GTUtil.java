@@ -56,10 +56,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 import static com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey.HAZARD;
 
@@ -452,13 +449,13 @@ public class GTUtil {
         return closestColor(rgbColor, MAP_COLORS, c -> c.calculateRGBColor(MapColor.Brightness.NORMAL));
     }
 
-    private static <T> T closestColor(int rgbColor, T[] colors, Function<T, Integer> extractRgbColor) {
+    private static <T> T closestColor(int rgbColor, T[] colors, ToIntFunction<T> extractRgbColor) {
         float[] c = GradientUtil.getRGB(rgbColor);
 
         double min = Double.MAX_VALUE;
         T minColor = null;
         for (T color : colors) {
-            float[] c2 = GradientUtil.getRGB(extractRgbColor.apply(color));
+            float[] c2 = GradientUtil.getRGB(extractRgbColor.applyAsInt(color));
 
             double distance = (c[0] - c2[0]) * (c[0] - c2[0]) + (c[1] - c2[1]) * (c[1] - c2[1]) + (c[2] - c2[2]) * (c[2] - c2[2]);
 

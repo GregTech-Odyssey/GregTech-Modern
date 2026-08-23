@@ -4,21 +4,19 @@ import com.gregtechceu.gtceu.api.data.worldgen.ores.GeneratedVeinMetadata;
 import com.gregtechceu.gtceu.api.gui.misc.ProspectorMode;
 import com.gregtechceu.gtceu.integration.map.GenericMapRenderer;
 import com.gregtechceu.gtceu.integration.map.xaeros.minimap.ore.OreVeinElement;
-import com.gregtechceu.gtceu.utils.collection.NestedMap;
 
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-
-import java.util.HashMap;
+import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
+import com.gto.fastcollection.map.NestedMap;
 
 public class XaerosRenderer extends GenericMapRenderer {
 
-    public static final NestedMap<ResourceKey<Level>, String, OreVeinElement> oreElements = NestedMap.create(new Reference2ReferenceOpenHashMap<>(), HashMap::new);
-    public static final NestedMap<ResourceKey<Level>, ChunkPos, ProspectorMode.FluidInfo> fluidElements = NestedMap.create(new Reference2ReferenceOpenHashMap<>(), HashMap::new);
-    public static final NestedMap<ResourceKey<Level>, ChunkPos, ProspectorMode.OreInfo[]> bedrockOreElements = NestedMap.create(new Reference2ReferenceOpenHashMap<>(), HashMap::new);
+    public static final NestedMap<ResourceKey<Level>, String, OreVeinElement> oreElements = NestedMap.createIdentity(O2OOpenCacheHashMap::new);
+    public static final NestedMap<ResourceKey<Level>, ChunkPos, ProspectorMode.FluidInfo> fluidElements = NestedMap.createIdentity(O2OOpenCacheHashMap::new);
+    public static final NestedMap<ResourceKey<Level>, ChunkPos, ProspectorMode.OreInfo[]> bedrockOreElements = NestedMap.createIdentity(O2OOpenCacheHashMap::new);
 
     public XaerosRenderer() {
         super();
