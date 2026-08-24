@@ -11,7 +11,7 @@ dependencies {
 
     implementation("com.gto.fastcollection:FastCollection:26.8.5")
     implementation("com.gto.recipesearch:RecipeSearch:26.8.3")
-    modImplementation("com.gto:datasynclib-forge-1.20.1:26.8.2")
+    modImplementation("com.gto:datasynclib-forge-1.20.1:26.8.3")
     modCompileOnly("curse.maven:tool-belt-260262:5929061")
 
     modImplementation("org.appliedenergistics:guideme:20.1.13")

@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
+import com.gregtechceu.gtceu.utils.OptimalSearch;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 
@@ -128,82 +129,45 @@ public final class ParallelLogic {
         for (var unit : list) {
             if (unit.isInfiniteOutputItem) return multiplier;
         }
-        long minMultiplier = 0;
-        long maxMultiplier = multiplier;
         long maxCount = 0;
         for (var content : contents) {
             maxCount = Math.max(maxCount, content.amount);
         }
         if (maxCount == 0) return multiplier;
         if (multiplier > ParallelLogic.MAX_PARALLEL / maxCount) {
-            maxMultiplier = multiplier = ParallelLogic.MAX_PARALLEL / maxCount;
+            multiplier = ParallelLogic.MAX_PARALLEL / maxCount;
         }
-        while (minMultiplier != maxMultiplier) {
-            boolean success = false;
-            var items = RecipeHelper.copyContents(contents, multiplier);
+        return OptimalSearch.exactSearch(multiplier, m -> {
+            var items = RecipeHelper.copyContents(contents, m);
             for (var unit : list) {
                 if (unit.handleRecipeItem(IO.OUT, recipe, items, true)) {
-                    success = true;
-                    break;
+                    return true;
                 }
             }
-            if (!success && multiplier == 1) {
-                return 0;
-            }
-            long[] bin = adjustMultiplier(success, minMultiplier, multiplier, maxMultiplier);
-            minMultiplier = bin[0];
-            multiplier = bin[1];
-            maxMultiplier = bin[2];
-        }
-        return multiplier;
+            return false;
+        });
     }
 
     public static long getOutputFluidParallelAmount(List<RecipeHandlerUnit> list, GTRecipe recipe, List<Content<FluidIngredient>> contents, long multiplier) {
         for (var unit : list) {
             if (unit.isInfiniteOutputFluid) return multiplier;
         }
-        long minMultiplier = 0;
-        long maxMultiplier = multiplier;
         long maxCount = 0;
         for (var content : contents) {
             maxCount = Math.max(maxCount, content.amount);
         }
         if (maxCount == 0) return multiplier;
         if (multiplier > ParallelLogic.MAX_PARALLEL / maxCount) {
-            maxMultiplier = multiplier = ParallelLogic.MAX_PARALLEL / maxCount;
+            multiplier = ParallelLogic.MAX_PARALLEL / maxCount;
         }
-        while (minMultiplier != maxMultiplier) {
-            boolean success = false;
-            var fluids = RecipeHelper.copyContents(contents, multiplier);
+        return OptimalSearch.exactSearch(multiplier, m -> {
+            var fluids = RecipeHelper.copyContents(contents, m);
             for (var unit : list) {
                 if (unit.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
-                    success = true;
-                    break;
+                    return true;
                 }
             }
-            if (!success && multiplier == 1) {
-                return 0;
-            }
-            long[] bin = adjustMultiplier(success, minMultiplier, multiplier, maxMultiplier);
-            minMultiplier = bin[0];
-            multiplier = bin[1];
-            maxMultiplier = bin[2];
-        }
-        return multiplier;
-    }
-
-    public static long[] adjustMultiplier(boolean mergedAll, long minMultiplier, long multiplier, long maxMultiplier) {
-        if (mergedAll) {
-            minMultiplier = multiplier;
-            long remainder = (maxMultiplier - multiplier) % 2;
-            multiplier = multiplier + remainder + (maxMultiplier - multiplier) / 2;
-        } else {
-            maxMultiplier = multiplier;
-            multiplier = (multiplier + minMultiplier) / 2;
-        }
-        if (maxMultiplier - minMultiplier <= 1) {
-            multiplier = maxMultiplier = minMultiplier;
-        }
-        return new long[] { minMultiplier, multiplier, maxMultiplier };
+            return false;
+        });
     }
 }
