@@ -14,7 +14,7 @@ public class OptimalSearch {
         long low = lowBound;
         long high = startValue;
         if (high - low > FAST_PRUNE_THRESHOLD) {
-            long current = high;
+            long current = high >>= 8;
             while (true) {
                 if (predicate.test(current)) {
                     low = current;

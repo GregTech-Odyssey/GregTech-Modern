@@ -13,8 +13,6 @@ import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
-import com.gregtechceu.gtceu.utils.FluidStackHashStrategy;
-import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 import com.gregtechceu.gtceu.utils.collection.SafeR2LMap;
 import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
 
@@ -26,6 +24,8 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.gto.datasynclib.util.FluidStackHashStrategy;
+import com.gto.datasynclib.util.ItemStackHashStrategy;
 import com.gto.datasynclib.util.holder.LongHolder;
 import com.gto.recipesearch.IntLongMap;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;

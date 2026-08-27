@@ -9,8 +9,8 @@ dependencies {
     compileOnly('org.projectlombok:lombok:1.18.42')
     annotationProcessor('org.projectlombok:lombok:1.18.42')
 
-    implementation("com.gto.fastcollection:FastCollection:26.8.5")
-    implementation("com.gto.recipesearch:RecipeSearch:26.8.3")
+    implementation("com.gto.fastcollection:FastCollection:26.8.7")
+    implementation("com.gto.recipesearch:RecipeSearch:26.8.4")
     modImplementation("com.gto:datasynclib-forge-1.20.1:26.8.3")
     modCompileOnly("curse.maven:tool-belt-260262:5929061")
 
