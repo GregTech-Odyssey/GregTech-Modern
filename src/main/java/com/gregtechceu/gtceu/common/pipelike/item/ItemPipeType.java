@@ -58,10 +58,11 @@ public enum ItemPipeType implements IMaterialPipeType<ItemPipeProperties> {
 
     public PipeModel createPipeModel(Material material) {
         PipeModel model;
+        ItemPipeType textureType = isRestrictive() ? VALUES[ordinal() - 4] : this;
         if (material.hasProperty(PropertyKey.WOOD)) {
-            model = new PipeModel(thickness, () -> GTCEu.id("block/pipe/pipe_side_wood"), () -> GTCEu.id("block/pipe/pipe_%s_in_wood".formatted(this.isRestrictive() ? values()[this.ordinal() - 4].name : name)), null, null);
+            model = new PipeModel(thickness, () -> GTCEu.id("block/pipe/pipe_side_wood"), () -> GTCEu.id("block/pipe/pipe_%s_in_wood".formatted(textureType.name)), null, null);
         } else {
-            model = new PipeModel(thickness, () -> GTCEu.id("block/pipe/pipe_side"), () -> GTCEu.id("block/pipe/pipe_%s_in".formatted(this.isRestrictive() ? values()[this.ordinal() - 4].name : name)), null, null);
+            model = new PipeModel(thickness, () -> GTCEu.id("block/pipe/pipe_side"), () -> GTCEu.id("block/pipe/pipe_%s_in".formatted(textureType.name)), null, null);
         }
         if (isRestrictive()) {
             model.setSideOverlayTexture(GTCEu.id("block/pipe/pipe_restrictive"));
