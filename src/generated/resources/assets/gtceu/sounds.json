@@ -314,6 +314,15 @@
     ],
     "subtitle": "gtceu.subtitle.spray_can"
   },
+  "spraycan_shake": {
+    "sounds": [
+      {
+        "type": "file",
+        "name": "gtceu:spraycan_shake"
+      }
+    ],
+    "subtitle": "gtceu.subtitle.spraycan_shake"
+  },
   "sus": {
     "sounds": [
       {
