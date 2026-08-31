@@ -16,6 +16,14 @@ public interface IDistinctPart extends IMultiPart {
 
     void setDistinct(boolean isDistinct);
 
+    /**
+     * Whether this part actually exposes the distinct toggle right now — export parts do not.
+     * Used by the machine config copy protocol so it only copies parts that really have the setting.
+     */
+    default boolean hasDistinctConfig() {
+        return true;
+    }
+
     @Override
     default void attachConfigurators(ConfiguratorPanel configuratorPanel) {
         superAttachConfigurators(configuratorPanel);

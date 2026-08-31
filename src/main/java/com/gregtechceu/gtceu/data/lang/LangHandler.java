@@ -764,12 +764,19 @@ public class LangHandler {
         provider.add("behaviour.paintspray.black.tooltip", "Can paint things in Black");
         provider.add("behaviour.paintspray.uses", "Remaining Uses: %d");
         provider.add("behaviour.prospecting", "Usable for Prospecting");
+        provider.add("behaviour.meta.machine.config.applicable.tooltip",
+                "§7Copies settings of input buses, input hatches, single-block machines, etc.");
         provider.add("behaviour.meta.machine.config.copy.tooltip", "§7Sneak + R-Click to copy machine configuration");
         provider.add("behaviour.meta.machine.config.paste.tooltip", "§7R-Click to paste machine configuration");
         provider.add("behaviour.setting.allow.input.from.output.tooltip", "%s input from output side is %s");
         provider.add("behaviour.setting.output.direction.tooltip", "%s output direction: %s");
         provider.add("behaviour.setting.item_auto_output.tooltip", "%s auto-output is %s");
         provider.add("behaviour.setting.muffled.tooltip", "Muffling %s");
+        provider.add("behaviour.setting.voiding_mode.tooltip", "Voiding Mode: %s");
+        provider.add("behaviour.setting.input_limit.tooltip", "Input Limit: %s");
+        provider.add("behaviour.setting.distinct.tooltip", "Distinct Part: %s");
+        provider.add("behaviour.setting.circuit.tooltip", "Circuit Configuration: %s");
+        provider.add("behaviour.setting.circuit.none", "None");
         provider.add("item.toggle.advanced.info.tooltip", "§8<Sneak to view stored configuration>");
         provider.add("enchantment.damage.disjunction", "Disjunction");
         provider.add("enchantment.gtceu.disjunction.description",

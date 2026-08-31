@@ -13,7 +13,9 @@ import com.gregtechceu.gtceu.api.gui.widget.GhostCircuitSlotWidget;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
+import com.gregtechceu.gtceu.api.machine.feature.ConfigCopySupport;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputBoth;
+import com.gregtechceu.gtceu.api.machine.feature.ICircuitConfigurable;
 import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.machine.trait.CircuitHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
@@ -25,6 +27,7 @@ import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
+import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
 import com.gregtechceu.gtceu.utils.TaskHandler;
@@ -38,10 +41,12 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -68,7 +73,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoOutputBoth {
+public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoOutputBoth, ICircuitConfigurable {
 
     @SaveToDisk
     @SyncToClient(notifyUpdate = true)
@@ -409,5 +414,53 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     @Override
     public VoidingMode getVoidingMode() {
         return this.voidingMode;
+    }
+
+    @Override
+    public boolean hasVoidingModeConfig() {
+        return true;
+    }
+
+    // Go through storage, not the handler: CircuitHandler.getStackInSlot always reports EMPTY so the
+    // non-consumable circuit stays invisible to item transfer. The configured circuit lives in storage,
+    // which is also what CircuitFancyConfigurator edits.
+    @Override
+    public int getCircuitConfiguration() {
+        var stack = circuitInventory.storage.getStackInSlot(0);
+        return stack.isEmpty() ? CIRCUIT_EMPTY : IntCircuitBehaviour.getCircuitConfiguration(stack);
+    }
+
+    @Override
+    public void setCircuitConfiguration(int configuration) {
+        if (configuration < 0) {
+            circuitInventory.storage.setStackInSlot(0, ItemStack.EMPTY);
+        } else {
+            circuitInventory.storage.setStackInSlot(0, IntCircuitBehaviour.stack(configuration));
+        }
+    }
+
+    //////////////////////////////////////
+    // ****** Config Copy Card *******//
+    //////////////////////////////////////
+
+    /**
+     * Muffling and input limit come from {@link WorkableTieredMachine}. Auto output has to be
+     * re-stated because the inherited class implementation wins over {@link IAutoOutputBoth}'s
+     * default; voiding mode and circuit are owned by this class.
+     */
+    @Override
+    public void writeConfigTo(CompoundTag tag) {
+        super.writeConfigTo(tag);
+        IAutoOutputBoth.super.writeConfigTo(tag);
+        ConfigCopySupport.writeVoiding(tag, this);
+        ConfigCopySupport.writeCircuit(tag, this);
+    }
+
+    @Override
+    public void readConfigFrom(CompoundTag tag) {
+        super.readConfigFrom(tag);
+        IAutoOutputBoth.super.readConfigFrom(tag);
+        ConfigCopySupport.readVoiding(tag, this);
+        ConfigCopySupport.readCircuit(tag, this);
     }
 }
