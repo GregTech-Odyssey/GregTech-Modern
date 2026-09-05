@@ -29,11 +29,12 @@ public final class CWUTRecipeExtension extends RecipeExtension<Long> {
 
     @Override
     public boolean handleTick(@NotNull IRecipeHandlerHolder holder, @NotNull GTRecipe recipe, boolean simulate) {
+        if (simulate) return holder instanceof IComputationContainerMachine;
         var cwu = recipe.getInputCWUt();
         if (cwu < 1) return true;
         boolean result;
         if (holder instanceof IComputationContainerMachine machine) {
-            result = machine.requestCWU(cwu, simulate) >= cwu;
+            result = machine.requestCWU(cwu, false) >= cwu;
         } else {
             result = false;
         }
