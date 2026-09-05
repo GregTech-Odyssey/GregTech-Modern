@@ -15,7 +15,6 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.research.DataBankMachine;
-import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 import com.gregtechceu.gtceu.utils.ResearchManager;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -29,6 +28,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.util.ItemStackHashStrategy;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
@@ -149,11 +149,10 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
             List<Component> list = new ArrayList<>();
             list.add(Component.translatable("behavior.data_item.assemblyline.title"));
             list.add(Component.empty());
-            Collection<ItemStack> itemsAdded = new ObjectOpenCustomHashSet<>(ItemStackHashStrategy.ALL);
+            var itemsAdded = new ObjectOpenCustomHashSet<>(ItemStackHashStrategy.ALL);
             for (GTRecipeDefinition recipe : recipes) {
                 ItemStack stack = recipe.itemOutputs.getFirst().inner.getInnerItemStack();
-                if (!itemsAdded.contains(stack)) {
-                    itemsAdded.add(stack);
+                if (itemsAdded.add(stack)) {
                     list.add(Component.translatable("behavior.data_item.assemblyline.data", stack.getDisplayName()));
                 }
             }

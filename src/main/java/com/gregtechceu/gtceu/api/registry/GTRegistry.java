@@ -7,16 +7,15 @@ import net.minecraftforge.fml.ModLoadingContext;
 import com.gto.datasynclib.datastream.codec.DataCodec;
 import com.gto.datasynclib.util.DataCodecs;
 import com.gto.datasynclib.util.Registry;
-import com.gto.fastcollection.O2OOpenCacheHashMap;
+import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
 import com.mojang.serialization.Codec;
 import lombok.Getter;
 
-import java.util.Map;
 import java.util.function.Function;
 
 public abstract class GTRegistry<K extends Comparable<K>, V> extends Registry<K, V> {
 
-    public static final Map<ResourceLocation, GTRegistry<?, ?>> REGISTERED = new O2OOpenCacheHashMap<>();
+    public static final O2OOpenCacheHashMap<ResourceLocation, GTRegistry<?, ?>> REGISTERED = new O2OOpenCacheHashMap<>();
 
     @Getter
     protected final ResourceLocation registryName;

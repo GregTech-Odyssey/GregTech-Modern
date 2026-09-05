@@ -21,7 +21,7 @@ import com.gto.datasynclib.datastream.data.Data;
 import com.gto.datasynclib.datastream.data.ListData;
 import com.gto.datasynclib.util.DataCodecs;
 import com.gto.datasynclib.util.StreamCodecs;
-import com.gto.recipesearch.IntMapContainer;
+import com.gto.recipesearch.IngredientTable;
 import org.jetbrains.annotations.Range;
 
 import java.util.List;
@@ -83,7 +83,7 @@ public final class GTRecipeDefinition extends DataComponentKey<GTRecipeDefinitio
         }
     };
 
-    IntMapContainer container;
+    IngredientTable container;
 
     public final boolean registered;
     public final GTRecipeType recipeType;

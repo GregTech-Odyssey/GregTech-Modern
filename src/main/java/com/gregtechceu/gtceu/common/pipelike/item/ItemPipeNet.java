@@ -4,12 +4,12 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.ItemPipePrope
 import com.gregtechceu.gtceu.api.pipenet.LevelPipeNet;
 import com.gregtechceu.gtceu.api.pipenet.Node;
 import com.gregtechceu.gtceu.api.pipenet.PipeNet;
-import com.gregtechceu.gtceu.utils.collection.LoopIterator;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 
+import com.gto.fastcollection.LoopIterator;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import java.util.Comparator;
@@ -28,7 +28,7 @@ public final class ItemPipeNet extends PipeNet<ItemPipeProperties> {
             var datas = ItemNetWalker.createNetData(this, pos, facing);
             if (datas == null) {
                 // walker failed, don't cache so it tries again on next insertion
-                return LoopIterator.EMPTY;
+                return LoopIterator.empty();
             }
             datas.sort(Comparator.comparingInt(inv -> inv.getTargetPipe().isBlocked(inv.getTargetFacing()) ? 0 : inv.getProperties().getPriority()));
             data = new LoopIterator<>(datas.toArray(new ItemRoutePath[0]));

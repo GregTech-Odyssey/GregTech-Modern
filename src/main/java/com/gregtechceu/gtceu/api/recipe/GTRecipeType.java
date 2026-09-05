@@ -36,7 +36,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.gto.datasynclib.datastream.DataComponentMap;
-import com.gto.fastcollection.O2OOpenCacheHashMap;
+import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
 import com.gto.recipesearch.IntLongMap;
 import com.gto.recipesearch.RecipeSearcher;
 import it.unimi.dsi.fastutil.objects.Object2IntAVLTreeMap;

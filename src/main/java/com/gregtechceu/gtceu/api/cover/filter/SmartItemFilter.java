@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.api.cover.filter;
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
-import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -13,7 +12,8 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
-import com.gto.fastcollection.O2IOpenCustomCacheHashMap;
+import com.gto.datasynclib.util.ItemStackHashStrategy;
+import com.gto.fastcollection.fastutil.O2IOpenCustomCacheHashMap;
 import com.gto.recipesearch.IntLongMap;
 
 import java.util.concurrent.atomic.AtomicInteger;

@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.gui.misc.ProspectorMode;
 import com.gregtechceu.gtceu.integration.map.GroupingMapRenderer;
 import com.gregtechceu.gtceu.integration.map.layer.builtin.BedrockOreRenderLayer;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.collection.NestedMap;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -14,13 +13,12 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-
-import java.util.HashMap;
+import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
+import com.gto.fastcollection.map.NestedMap;
 
 public class BedrockOreCache {
 
-    private final NestedMap<ResourceKey<Level>, ChunkPos, ProspectorMode.OreInfo[]> bedrockOreCache = NestedMap.create(new Reference2ReferenceOpenHashMap<>(), HashMap::new);
+    private final NestedMap<ResourceKey<Level>, ChunkPos, ProspectorMode.OreInfo[]> bedrockOreCache = NestedMap.createIdentity(O2OOpenCacheHashMap::new);
 
     public void addBedrockOre(ResourceKey<Level> dim, int chunkX, int chunkZ, ProspectorMode.OreInfo[] ores) {
         ChunkPos pos = new ChunkPos(chunkX, chunkZ);

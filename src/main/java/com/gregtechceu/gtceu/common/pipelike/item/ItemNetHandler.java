@@ -21,11 +21,10 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
-import com.gto.fastcollection.O2IOpenCacheHashMap;
+import com.gto.fastcollection.fastutil.O2IOpenCacheHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.Getter;
@@ -43,7 +42,7 @@ public final class ItemNetHandler implements ICustomItemStackHandler {
     private final ItemPipeBlockEntity pipe;
     @Getter
     private final Direction facing;
-    private final Object2IntOpenHashMap<FacingPos> simulatedTransfersGlobalRoundRobin = new O2IOpenCacheHashMap<>();
+    private final O2IOpenCacheHashMap<FacingPos> simulatedTransfersGlobalRoundRobin = new O2IOpenCacheHashMap<>();
     private int simulatedTransfers = 0;
     private final CustomItemStackHandler testHandler = new CustomItemStackHandler(1);
 

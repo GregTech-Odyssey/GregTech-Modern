@@ -191,7 +191,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     }
 
     public Iterable<IWorkableMultiPart> getWorkableParts() {
-        return IteratorUtil.wrap(Arrays.stream(parts).filter(IWorkableMultiPart.class::isInstance).map(IWorkableMultiPart.class::cast).iterator());
+        return IteratorUtil.asIterable(Arrays.stream(parts).filter(IWorkableMultiPart.class::isInstance).map(IWorkableMultiPart.class::cast).iterator());
     }
 
     @Override

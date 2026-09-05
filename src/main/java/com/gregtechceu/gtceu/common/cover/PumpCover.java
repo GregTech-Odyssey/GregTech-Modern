@@ -36,7 +36,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
-import com.gto.fastcollection.O2LOpenCacheHashMap;
+import com.gto.fastcollection.fastutil.O2LOpenCacheHashMap;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import lombok.Getter;

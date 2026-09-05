@@ -9,38 +9,37 @@ import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.common.util.Lazy;
 
+import com.gto.fastcollection.map.enums.Enum2IntMap;
 import com.mojang.serialization.Codec;
 import lombok.Getter;
 
-import java.util.EnumMap;
-
 public enum GTArmorMaterials implements ArmorMaterial, StringRepresentable {
 
-    GOGGLES("goggles", 0, Util.make(new EnumMap<>(ArmorItem.Type.class), map -> {
+    GOGGLES("goggles", 0, Util.make(new Enum2IntMap<>(ArmorItem.Type.class), map -> {
         map.put(ArmorItem.Type.BOOTS, 0);
         map.put(ArmorItem.Type.LEGGINGS, 0);
         map.put(ArmorItem.Type.CHESTPLATE, 0);
         map.put(ArmorItem.Type.HELMET, 0);
     }), 50, SoundEvents.ARMOR_EQUIP_GENERIC, 0.0F, 0.0F, () -> Ingredient.EMPTY),
-    JETPACK("jetpack", 0, Util.make(new EnumMap<>(ArmorItem.Type.class), map -> {
+    JETPACK("jetpack", 0, Util.make(new Enum2IntMap<>(ArmorItem.Type.class), map -> {
         map.put(ArmorItem.Type.BOOTS, 0);
         map.put(ArmorItem.Type.LEGGINGS, 0);
         map.put(ArmorItem.Type.CHESTPLATE, 0);
         map.put(ArmorItem.Type.HELMET, 0);
     }), 50, SoundEvents.ARMOR_EQUIP_GENERIC, 0.0F, 0.0F, () -> Ingredient.EMPTY),
-    ARMOR("armor", 0, Util.make(new EnumMap<>(ArmorItem.Type.class), map -> {
+    ARMOR("armor", 0, Util.make(new Enum2IntMap<>(ArmorItem.Type.class), map -> {
         map.put(ArmorItem.Type.BOOTS, 0);
         map.put(ArmorItem.Type.LEGGINGS, 0);
         map.put(ArmorItem.Type.CHESTPLATE, 0);
         map.put(ArmorItem.Type.HELMET, 0);
     }), 50, SoundEvents.ARMOR_EQUIP_GENERIC, 5.0F, 0.0F, () -> Ingredient.EMPTY),
-    BAD_PPE_EQUIPMENT("bad_ppe_equipment", 10, Util.make(new EnumMap<>(ArmorItem.Type.class), map -> {
+    BAD_PPE_EQUIPMENT("bad_ppe_equipment", 10, Util.make(new Enum2IntMap<>(ArmorItem.Type.class), map -> {
         map.put(ArmorItem.Type.BOOTS, 1);
         map.put(ArmorItem.Type.LEGGINGS, 2);
         map.put(ArmorItem.Type.CHESTPLATE, 3);
         map.put(ArmorItem.Type.HELMET, 1);
     }), 10, SoundEvents.ARMOR_EQUIP_GENERIC, 0.0F, 0.0F, () -> Ingredient.EMPTY),
-    GOOD_PPE_EQUIPMENT("good_ppe_equipment", 20, Util.make(new EnumMap<>(ArmorItem.Type.class), map -> {
+    GOOD_PPE_EQUIPMENT("good_ppe_equipment", 20, Util.make(new Enum2IntMap<>(ArmorItem.Type.class), map -> {
         map.put(ArmorItem.Type.BOOTS, 2);
         map.put(ArmorItem.Type.LEGGINGS, 5);
         map.put(ArmorItem.Type.CHESTPLATE, 6);
@@ -48,7 +47,7 @@ public enum GTArmorMaterials implements ArmorMaterial, StringRepresentable {
     }), 10, SoundEvents.ARMOR_EQUIP_GENERIC, 0.0F, 0.0F, () -> Ingredient.EMPTY);
 
     public static final Codec<GTArmorMaterials> CODEC = StringRepresentable.fromEnum(GTArmorMaterials::values);
-    private static final EnumMap<ArmorItem.Type, Integer> HEALTH_FUNCTION_FOR_TYPE = Util.make(new EnumMap<>(ArmorItem.Type.class), map -> {
+    private static final Enum2IntMap<ArmorItem.Type> HEALTH_FUNCTION_FOR_TYPE = Util.make(new Enum2IntMap<>(ArmorItem.Type.class), map -> {
         map.put(ArmorItem.Type.BOOTS, 13);
         map.put(ArmorItem.Type.LEGGINGS, 15);
         map.put(ArmorItem.Type.CHESTPLATE, 16);
@@ -56,7 +55,7 @@ public enum GTArmorMaterials implements ArmorMaterial, StringRepresentable {
     });
     private final String name;
     private final int durabilityMultiplier;
-    private final EnumMap<ArmorItem.Type, Integer> protectionFunctionForType;
+    private final Enum2IntMap<ArmorItem.Type> protectionFunctionForType;
     @Getter
     private final int enchantmentValue;
     @Getter
@@ -69,12 +68,12 @@ public enum GTArmorMaterials implements ArmorMaterial, StringRepresentable {
 
     @Override
     public int getDurabilityForType(ArmorItem.Type type) {
-        return HEALTH_FUNCTION_FOR_TYPE.get(type) * this.durabilityMultiplier;
+        return HEALTH_FUNCTION_FOR_TYPE.getInt(type) * this.durabilityMultiplier;
     }
 
     @Override
     public int getDefenseForType(ArmorItem.Type type) {
-        return this.protectionFunctionForType.get(type);
+        return this.protectionFunctionForType.getInt(type);
     }
 
     @Override
@@ -92,7 +91,7 @@ public enum GTArmorMaterials implements ArmorMaterial, StringRepresentable {
         return name;
     }
 
-    private GTArmorMaterials(final String name, final int durabilityMultiplier, final EnumMap<ArmorItem.Type, Integer> protectionFunctionForType, final int enchantmentValue, final SoundEvent equipSound, final float toughness, final float knockbackResistance, final Lazy<Ingredient> repairIngredient) {
+    private GTArmorMaterials(final String name, final int durabilityMultiplier, final Enum2IntMap<ArmorItem.Type> protectionFunctionForType, final int enchantmentValue, final SoundEvent equipSound, final float toughness, final float knockbackResistance, final Lazy<Ingredient> repairIngredient) {
         this.name = name;
         this.durabilityMultiplier = durabilityMultiplier;
         this.protectionFunctionForType = protectionFunctionForType;

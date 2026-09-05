@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.common.data.GTSoundEntries;
 import com.gregtechceu.gtceu.config.ConfigHolder;
-import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -22,7 +21,8 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.event.ForgeEventFactory;
 
-import com.gto.fastcollection.O2IOpenCustomCacheHashMap;
+import com.gto.datasynclib.util.ItemStackHashStrategy;
+import com.gto.fastcollection.fastutil.O2IOpenCustomCacheHashMap;
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntIntPair;
@@ -161,7 +161,7 @@ public class ArmorUtils {
      * @return Formated list
      */
     public static List<ItemStack> format(List<ItemStack> input) {
-        var items = new O2IOpenCustomCacheHashMap<ItemStack>(
+        var items = new O2IOpenCustomCacheHashMap<>(
                 ItemStackHashStrategy.ITEM_AND_TAG);
         List<ItemStack> output = new ArrayList<>();
         for (ItemStack itemStack : input) {

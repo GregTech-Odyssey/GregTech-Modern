@@ -18,7 +18,7 @@ import net.minecraft.world.level.ItemLike;
 import com.google.common.collect.ArrayTable;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
-import com.gto.fastcollection.O2OOpenCacheHashMap;
+import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
 import com.gto.registrate.providers.ProviderType;
 import com.gto.registrate.util.entry.ItemEntry;
 import com.gto.registrate.util.entry.ItemProviderEntry;
