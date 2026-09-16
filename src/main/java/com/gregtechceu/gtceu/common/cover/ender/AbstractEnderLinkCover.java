@@ -120,9 +120,16 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
     public void setWorkingEnabled(boolean isWorkingAllowed) {
         if (this.isWorkingEnabled != isWorkingAllowed) {
             this.isWorkingEnabled = isWorkingAllowed;
+            if (!isWorkingAllowed) onTransferStopped();
             subscriptionHandler.updateSubscription();
         }
     }
+
+    /**
+     * 傳輸停止時（切換 IO 模式、或關閉工作開關）呼叫。
+     * update() 之後不會再跑，子類別必須在這裡清掉自己殘留的輸出與頻道值，否則會被永久凍結在最後一次的狀態。
+     */
+    protected void onTransferStopped() {}
 
     @Override
     public Widget createUIWidget() {
@@ -132,6 +139,7 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
 
     public void setIo(IO io) {
         if (io == IO.IN || io == IO.OUT) {
+            if (this.io != io) onTransferStopped();
             this.io = io;
             subscriptionHandler.updateSubscription();
         }
@@ -161,9 +169,12 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
 
     protected void setChannelName(String name) {
         if (isRemote()) return;
-        VirtualEnderRegistry.getInstance().deleteEntryIf(getOwner(), getEntryType(), getChannelName(), VirtualEntry::canRemove);
+        var oldChannel = getChannelName();
         this.colorStr = name;
+        // 先加入新頻道（setEntry 會順便把自己從舊 entry 移除），再回頭清舊 entry；
+        // 反過來做的話舊頻道永遠會因為「自己還在成員裡」而通不過 canRemove()。
         setVirtualEntry();
+        VirtualEnderRegistry.getInstance().deleteEntryIf(getOwner(), getEntryType(), oldChannel, VirtualEntry::canRemove);
     }
 
     protected final String getChannelName(VirtualEntry entry) {
@@ -172,9 +183,11 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
 
     protected void setPermission(Permissions permission) {
         if (isRemote()) return;
-        VirtualEnderRegistry.getInstance().deleteEntryIf(getOwner(), getEntryType(), getChannelName(), VirtualEntry::canRemove);
+        var oldOwner = getOwner();
+        var oldChannel = getChannelName();
         this.permission = permission;
         setVirtualEntry();
+        VirtualEnderRegistry.getInstance().deleteEntryIf(oldOwner, getEntryType(), oldChannel, VirtualEntry::canRemove);
     }
 
     protected void setVirtualEntry() {
