@@ -19,8 +19,8 @@ import net.minecraft.world.item.Items;
 
 import appeng.api.config.Actionable;
 import appeng.api.stacks.AEItemKey;
-import com.fast.recipesearch.IntLongMap;
 import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.recipesearch.IntLongMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -97,7 +97,7 @@ public class NotifiableItemStackHandler extends NotifiableContentHandler impleme
                     int count = stored.getCount();
                     if (count == 0) continue;
                     if (ingredient.inner.test(stored)) {
-                        var extracted = storage.extract(slot, ingredient.getIntAmount(), false);
+                        var extracted = storage.extract(slot, stored, ingredient.getIntAmount(), false);
                         if (extracted > 0) {
                             changed = true;
                             ingredient.shrink(extracted);
@@ -153,7 +153,7 @@ public class NotifiableItemStackHandler extends NotifiableContentHandler impleme
                     int count = (visited == null ? stored.getCount() : visited.getAmount());
                     if (count == 0) continue;
                     if (ingredient.inner.test(stored)) {
-                        var extracted = storage.extract(slot, ingredient.getIntAmount(), true);
+                        var extracted = storage.extract(slot, stored, ingredient.getIntAmount(), true);
                         if (extracted > 0) {
                             visiteds[slot] = new SimpleStack<>(stored, count - extracted);
                             ingredient.shrink(extracted);
@@ -279,6 +279,11 @@ public class NotifiableItemStackHandler extends NotifiableContentHandler impleme
             return storage.insertItem(slot, stack, simulate);
         }
         return stack;
+    }
+
+    @Override
+    public ItemStack insertItemStacked(@NotNull ItemStack stack, boolean simulate) {
+        return canCapInput() ? storage.insertItemStacked(stack, simulate) : stack;
     }
 
     @Override

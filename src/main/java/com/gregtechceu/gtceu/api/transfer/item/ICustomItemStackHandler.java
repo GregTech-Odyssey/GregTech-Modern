@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.transfer.item;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.items.ItemHandlerHelper;
 
 import appeng.api.config.Actionable;
 import appeng.api.stacks.AEItemKey;
@@ -64,18 +65,22 @@ public interface ICustomItemStackHandler extends IItemHandlerModifiable, Externa
         return extractItem(slot, amount, simulate);
     }
 
+    /**
+     * Inserts a stack across this handler while preserving any handler-wide insertion rules during simulation.
+     * Implementations with cross-slot constraints should override this method.
+     *
+     * @return the part of {@code stack} that was not inserted
+     */
+    @NotNull
+    default ItemStack insertItemStacked(@NotNull ItemStack stack, boolean simulate) {
+        return ItemHandlerHelper.insertItemStacked(this, stack, simulate);
+    }
+
     @Override
     default int insertExternal(AEItemKey itemKey, int amount, Actionable mode) {
         final var orgInput = itemKey.toStack(amount);
-        final var slotCount = this.getSlots();
         final var simulate = mode == Actionable.SIMULATE;
-        var remaining = orgInput;
-        for (var i = 0; i < slotCount && !remaining.isEmpty(); i++) {
-            remaining = this.insertItem(i, remaining, simulate);
-        }
-        if (remaining == orgInput) {
-            return 0;
-        }
+        var remaining = insertItemStacked(orgInput, simulate);
         return amount - remaining.getCount();
     }
 

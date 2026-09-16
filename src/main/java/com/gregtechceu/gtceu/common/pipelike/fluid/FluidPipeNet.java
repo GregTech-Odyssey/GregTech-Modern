@@ -4,12 +4,12 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidPipeProp
 import com.gregtechceu.gtceu.api.pipenet.LevelPipeNet;
 import com.gregtechceu.gtceu.api.pipenet.Node;
 import com.gregtechceu.gtceu.api.pipenet.PipeNet;
-import com.gregtechceu.gtceu.utils.collection.LoopIterator;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 
+import com.gto.fastcollection.LoopIterator;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 public final class FluidPipeNet extends PipeNet<FluidPipeProperties> {
@@ -26,7 +26,7 @@ public final class FluidPipeNet extends PipeNet<FluidPipeProperties> {
             var datas = FluidNetWalker.createNetData(this, pos, facing);
             if (datas == null) {
                 // walker failed, don't cache so it tries again on next insertion
-                return LoopIterator.EMPTY;
+                return LoopIterator.empty();
             }
             data = new LoopIterator<>(datas.toArray(new FluidRoutePath[0]));
             netData.put(pipePos, data);

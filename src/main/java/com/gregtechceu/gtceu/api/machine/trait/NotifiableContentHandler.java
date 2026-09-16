@@ -4,7 +4,7 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 
-import com.fast.recipesearch.IntLongMap;
+import com.gto.recipesearch.IntLongMap;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 

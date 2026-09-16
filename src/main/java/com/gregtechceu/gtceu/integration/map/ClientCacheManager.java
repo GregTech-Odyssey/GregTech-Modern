@@ -12,7 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
-import com.gto.fastcollection.OpenCacheHashSet;
+import com.gto.fastcollection.fastutil.OpenCacheHashSet;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import org.apache.commons.io.FileUtils;

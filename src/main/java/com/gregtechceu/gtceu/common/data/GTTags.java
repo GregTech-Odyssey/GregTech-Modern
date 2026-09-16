@@ -30,7 +30,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 
-import com.gto.fastcollection.O2OOpenCacheHashMap;
+import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectFunction;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceFunction;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;

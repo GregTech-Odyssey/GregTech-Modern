@@ -105,6 +105,10 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
         if (!GTRecipeType.available(definition.recipeType, getAvailableRecipeTypes())) return null;
         var recipe = definition.toRuntime();
         if (unit.color != -1) recipe.outputColor = unit.color;
+        for (var mod : definition.recipeModifiers) {
+            recipe = mod.applyModifier(this, unit, recipe);
+            if (recipe == null) return null;
+        }
         RecipeHelper.trimRecipeOutputs(recipe, getOutputLimits());
         return doModifyRecipe(unit, recipe);
     }
@@ -129,7 +133,7 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
     @Override
     default boolean matchRecipeOutput(GTRecipe recipe) {
         for (var e : recipe.definition.recipeExtensions) {
-            if (!e.handle(IO.OUT, this, null, recipe, true)) return false;
+            if (!e.handleOutput(this, recipe, true)) return false;
         }
         List<Content<ItemIngredient>> items = canVoidRecipeOutputs(ItemRecipeInfo.INSTANCE) ? Collections.emptyList() : RecipeHelper.copyContents(recipe.itemOutputs, 1);
         List<Content<FluidIngredient>> fluids = canVoidRecipeOutputs(FluidRecipeInfo.INSTANCE) ? Collections.emptyList() : RecipeHelper.copyContents(recipe.fluidOutputs, 1);

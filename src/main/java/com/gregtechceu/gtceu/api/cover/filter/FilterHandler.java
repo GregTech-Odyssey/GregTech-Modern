@@ -78,19 +78,19 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IField
 
     public Widget createFilterConfigUI(int xPos, int yPos, int width, int height) {
         this.filterGroup = new WidgetGroup(xPos, yPos, width, height);
-        if (!this.filterItem.isEmpty()) {
+        if (hasValidFilterItem()) {
             this.filterGroup.addWidget(getFilter().openConfigurator(0, 0));
         }
         return this.filterGroup;
     }
 
     public boolean isFilterPresent() {
-        return filter != null || !filterItem.isEmpty();
+        return filter != null || hasValidFilterItem();
     }
 
     public F getFilter() {
         if (this.filter == null) {
-            if (this.filterItem.isEmpty()) {
+            if (!hasValidFilterItem()) {
                 return getEmptyFilter();
             } else {
                 loadFilterFromItem();
@@ -123,6 +123,7 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IField
     ///////////////////////////////////////
     private CustomItemStackHandler getFilterSlot() {
         if (this.filterSlot == null) {
+            hasValidFilterItem();
             this.filterSlot = new SingleCustomItemStackHandler(this.filterItem);
             this.filterSlot.setFilter(this::canInsertFilterItem);
         }
@@ -145,7 +146,7 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IField
     }
 
     private void loadFilterFromItem() {
-        if (!this.filterItem.isEmpty()) {
+        if (hasValidFilterItem()) {
             this.filter = loadFilter(this.filterItem);
             filter.setOnUpdated(this.onFilterUpdated);
             if (filter instanceof SmartItemFilter smart && container instanceof CoverBehavior cover && cover.coverHolder instanceof MachineCoverContainer mcc) {
@@ -157,6 +158,28 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IField
             this.onFilterLoaded.accept(this.filter);
         }
         updateFilterGroupUI();
+    }
+
+    private boolean hasValidFilterItem() {
+        if (this.filterItem.isEmpty()) return false;
+        if (canInsertFilterItem(this.filterItem)) return true;
+
+        GTCEu.LOGGER.warn("Unregistered filter stack {} in {} at {} {}; removing it", this.filterItem, container.getClass().getSimpleName(), container.coverHolder.getPos(), container.attachedSide);
+        this.filterItem = ItemStack.EMPTY;
+        if (this.filterSlot != null) {
+            this.filterSlot.setStackInSlot(0, ItemStack.EMPTY);
+        }
+        if (this.filter != null) {
+            this.filter = null;
+            this.onFilterRemoved.accept(null);
+        }
+        if (this.filterGroup != null) {
+            this.filterGroup.clearAllWidgets();
+        }
+        if (!container.coverHolder.isRemote()) {
+            container.coverHolder.onChanged();
+        }
+        return false;
     }
 
     private void updateFilterGroupUI() {

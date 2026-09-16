@@ -36,16 +36,16 @@ import org.jetbrains.annotations.ApiStatus;
 public final class GTRegistries {
 
     // GT Registry
-    public static final GTRegistry.RL<GTRecipeType> RECIPE_TYPES = new GTRegistry.RL<>(GTCEu.id("recipe_type"));
+    public static final GTRegistry.RL<GTRecipeType> RECIPE_TYPES = new GTRegistry.RL<>(GTCEu.id("recipe_type"), t -> t.registryName);
     public static final GTRegistry.RL<GTRecipeCategory> RECIPE_CATEGORIES = new GTRegistry.RL<>(
-            GTCEu.id("recipe_category"));
-    public static final GTRegistry.RL<CoverDefinition> COVERS = new GTRegistry.RL<>(GTCEu.id("cover"));
+            GTCEu.id("recipe_category"), c -> c.registryKey);
+    public static final GTRegistry.RL<CoverDefinition> COVERS = new GTRegistry.RL<>(GTCEu.id("cover"), CoverDefinition::getId);
 
-    public static final GTRegistry.RL<MachineDefinition> MACHINES = new GTRegistry.RL<>(GTCEu.id("machine"));
+    public static final GTRegistry.RL<MachineDefinition> MACHINES = new GTRegistry.RL<>(GTCEu.id("machine"), MachineDefinition::getId);
     public static final GTRegistry.Str<RecipeInfo> RECIPE_INFOS = new GTRegistry.Str<>(
-            GTCEu.id("recipe_capability"));
+            GTCEu.id("recipe_info"), i -> i.name);
 
-    public static final GTRegistry.RL<SoundEntry> SOUNDS = new GTRegistry.RL<>(GTCEu.id("sound"));
+    public static final GTRegistry.RL<SoundEntry> SOUNDS = new GTRegistry.RL<>(GTCEu.id("sound"), SoundEntry::getId);
     public static final GTRegistry.RL<BedrockFluidDefinition> BEDROCK_FLUID_DEFINITIONS = new GTRegistry.RL<>(
             GTCEu.id("bedrock_fluid"), false);
     public static final GTRegistry.RL<BedrockOreDefinition> BEDROCK_ORE_DEFINITIONS = new GTRegistry.RL<>(

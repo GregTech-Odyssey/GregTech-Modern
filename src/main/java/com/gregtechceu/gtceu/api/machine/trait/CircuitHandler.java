@@ -17,12 +17,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 
-import com.fast.recipesearch.IntLongMap;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datastream.data.ByteData;
 import com.gto.datasynclib.datastream.data.Data;
 import com.gto.datasynclib.datastream.data.NullData;
 import com.gto.datasynclib.util.DataCodecs;
+import com.gto.recipesearch.IntLongMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -112,23 +112,13 @@ public class CircuitHandler extends NotifiableItemStackHandler {
         }
 
         @Override
-        public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
-            return stack;
-        }
-
-        @Override
         public int insert(int slot, @NotNull ItemStack stack, int count, boolean simulate) {
             return 0;
         }
 
         @Override
-        public int extract(int slot, int amount, boolean simulate) {
+        public int extract(int slot, ItemStack existing, int amount, boolean simulate) {
             return 0;
-        }
-
-        @Override
-        public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
-            return ItemStack.EMPTY;
         }
 
         @Override
@@ -150,7 +140,7 @@ public class CircuitHandler extends NotifiableItemStackHandler {
             switch (configuration) {
                 case -1 -> stacks[0] = ItemStack.EMPTY;
                 case -2 -> stacks[0] = data.readItem();
-                default -> IntCircuitBehaviour.stack(configuration);
+                default -> stacks[0] = IntCircuitBehaviour.stack(configuration);
             }
         }
 

@@ -15,7 +15,7 @@ import net.minecraft.world.level.levelgen.FlatLevelSource;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 
-import com.gto.fastcollection.O2OOpenCacheHashMap;
+import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;

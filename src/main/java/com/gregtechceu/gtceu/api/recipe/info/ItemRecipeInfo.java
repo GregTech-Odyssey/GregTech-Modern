@@ -18,7 +18,6 @@ import com.gregtechceu.gtceu.integration.xei.entry.item.ItemTagList;
 import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemEntryHandler;
 import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemStackHandler;
 import com.gregtechceu.gtceu.integration.xei.widgets.GTRecipeWidget;
-import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 import com.gregtechceu.gtceu.utils.ResearchManager;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -28,6 +27,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.common.crafting.IntersectionIngredient;
 
+import com.gto.datasynclib.util.ItemStackHashStrategy;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,7 +64,7 @@ public final class ItemRecipeInfo extends ContentRecipeInfo<ItemIngredient> {
             if (researchData != null) {
                 Collection<GTRecipeDefinition> possibleRecipes = researchData.recipeType()
                         .getDataStickEntry(researchData.researchId());
-                Set<ItemStack> cache = new ObjectOpenCustomHashSet<>(ItemStackHashStrategy.ITEM);
+                var cache = new ObjectOpenCustomHashSet<>(ItemStackHashStrategy.ITEM);
                 if (possibleRecipes != null) {
                     for (GTRecipeDefinition r : possibleRecipes) {
                         var outputs = r.itemOutputs;

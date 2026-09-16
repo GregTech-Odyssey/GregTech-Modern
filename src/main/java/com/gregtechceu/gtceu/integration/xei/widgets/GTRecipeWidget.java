@@ -12,6 +12,7 @@ import com.gregtechceu.gtceu.api.recipe.content.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.info.*;
+import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -123,6 +124,9 @@ public class GTRecipeWidget extends WidgetGroup {
         }
 
         for (RecipeCondition condition : recipe.conditions) {
+            condition.addInfo(recipe, this, xOffset, yOff);
+        }
+        for (RecipeModifier condition : recipe.recipeModifiers) {
             condition.addInfo(recipe, this, xOffset, yOff);
         }
         for (var dataInfo : recipe.recipeType.getDataInfos()) {

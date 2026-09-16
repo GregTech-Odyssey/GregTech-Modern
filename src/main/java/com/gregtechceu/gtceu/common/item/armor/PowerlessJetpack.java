@@ -35,9 +35,8 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
 
-import com.gto.fastcollection.O2IOpenCacheHashMap;
+import com.gto.fastcollection.fastutil.O2IOpenCacheHashMap;
 import it.unimi.dsi.fastutil.ints.IntIntPair;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +45,7 @@ import java.util.List;
 public class PowerlessJetpack implements IArmorLogic, IJetpack, IItemHUDProvider {
 
     // Map of FluidIngredient -> burn time
-    public static final Object2IntOpenHashMap<FluidIngredient> FUELS = new O2IOpenCacheHashMap<>();
+    public static final O2IOpenCacheHashMap<FluidIngredient> FUELS = new O2IOpenCacheHashMap<>();
     public static final int tankCapacity = 16000;
 
     private FluidIngredient currentFuel = FluidIngredient.EMPTY;

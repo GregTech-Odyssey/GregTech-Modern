@@ -1,8 +1,6 @@
 package com.gto.registrate;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.utils.collection.MultiMap;
-import com.gregtechceu.gtceu.utils.collection.NestedMap;
 
 import net.minecraft.Util;
 import net.minecraft.client.gui.screens.Screen;
@@ -39,6 +37,8 @@ import net.minecraftforge.registries.NewRegistryEvent;
 import net.minecraftforge.registries.RegisterEvent;
 import net.minecraftforge.registries.RegistryBuilder;
 
+import com.gto.fastcollection.map.MultiMap;
+import com.gto.fastcollection.map.NestedMap;
 import com.gto.registrate.builders.BlockBuilder;
 import com.gto.registrate.builders.BlockEntityBuilder;
 import com.gto.registrate.builders.BlockEntityBuilder.BlockEntityFactory;

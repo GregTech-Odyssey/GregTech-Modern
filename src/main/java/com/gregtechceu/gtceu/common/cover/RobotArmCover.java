@@ -79,9 +79,9 @@ public class RobotArmCover extends ConveyorCover {
         boolean notEnoughTransferRate = false;
         for (TypeItemInfo itemInfo : sourceItemAmount.values()) {
             if (maxTotalTransferAmount >= itemInfo.totalCount) {
-                boolean result = moveInventoryItemsExact(sourceInventory, targetInventory, itemInfo);
-                itemsTransferred += result ? itemInfo.totalCount : 0;
-                maxTotalTransferAmount -= result ? itemInfo.totalCount : 0;
+                int transferred = moveInventoryItemsExact(sourceInventory, targetInventory, itemInfo);
+                itemsTransferred += transferred;
+                maxTotalTransferAmount -= transferred;
             } else {
                 notEnoughTransferRate = true;
             }

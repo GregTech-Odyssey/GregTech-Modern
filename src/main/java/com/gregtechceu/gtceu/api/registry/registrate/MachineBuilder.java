@@ -200,7 +200,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
         return this;
     }
 
-    public MachineBuilder<DEFINITION> tooltips(Component... components) {
+    public MachineBuilder<DEFINITION> tooltips(@Nullable Component... components) {
         tooltips.addAll(Arrays.stream(components).filter(Objects::nonNull).toList());
         return this;
     }

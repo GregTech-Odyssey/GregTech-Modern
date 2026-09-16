@@ -42,7 +42,7 @@ import net.minecraftforge.fluids.capability.wrappers.BucketPickupHandlerWrapper;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
-import com.gto.fastcollection.OpenCacheHashSet;
+import com.gto.fastcollection.fastutil.OpenCacheHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;

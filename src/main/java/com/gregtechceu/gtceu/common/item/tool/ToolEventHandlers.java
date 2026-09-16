@@ -23,6 +23,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluids;
@@ -35,6 +36,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -104,15 +106,16 @@ public class ToolEventHandlers {
      * Handles drop conversion when a hammer tool (or tool with hard hammer enchantment) is used
      */
     public static List<ItemStack> onHarvestDrops(Player player, ItemStack tool, ServerLevel level,
-                                                 BlockPos pos, BlockState state, boolean isSilkTouch,
+                                                 BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity,
+                                                 boolean isSilkTouch,
                                                  int fortuneLevel, List<ItemStack> drops,
                                                  float dropChance) {
         if (!tool.hasTag() || !(tool.getItem() instanceof IGTTool)) {
             return drops;
         }
         if (!isSilkTouch) {
-            ToolHelper.applyHammerDropConversion(level, pos, tool, state, drops, fortuneLevel, dropChance,
-                    player.getRandom());
+            ToolHelper.applyHammerDropConversion(level, pos, tool, state, blockEntity, player, drops, fortuneLevel,
+                    dropChance, player.getRandom());
         }
 
         Block block = state.getBlock();

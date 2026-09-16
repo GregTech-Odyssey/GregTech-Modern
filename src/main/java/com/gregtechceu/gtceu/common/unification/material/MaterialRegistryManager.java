@@ -32,7 +32,7 @@ public final class MaterialRegistryManager extends GTRegistry.RL<Material> {
     private Phase registrationPhase = Phase.PRE;
 
     private MaterialRegistryManager() {
-        super(GTCEu.id("material"));
+        super(GTCEu.id("material"), Material::getResourceLocation);
     }
 
     public static MaterialRegistryManager getInstance() {
@@ -96,11 +96,6 @@ public final class MaterialRegistryManager extends GTRegistry.RL<Material> {
             return get(new ResourceLocation(modid, materialName));
         }
         return GTMaterials.NULL;
-    }
-
-    @Override
-    public ResourceLocation getKey(Material material) {
-        return material.getResourceLocation();
     }
 
     public void unfreezeRegistries() {

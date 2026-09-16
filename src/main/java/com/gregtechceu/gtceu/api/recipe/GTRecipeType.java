@@ -35,10 +35,10 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
-import com.fast.recipesearch.IntLongMap;
-import com.fast.recipesearch.RecipeSearcher;
 import com.gto.datasynclib.datastream.DataComponentMap;
-import com.gto.fastcollection.O2OOpenCacheHashMap;
+import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
+import com.gto.recipesearch.IntLongMap;
+import com.gto.recipesearch.RecipeSearcher;
 import it.unimi.dsi.fastutil.objects.Object2IntAVLTreeMap;
 import it.unimi.dsi.fastutil.objects.Object2IntSortedMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
@@ -101,7 +101,7 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
         recipeBuilder = new GTRecipeBuilder(registryName, this);
         // must be linked to stop json contents from shuffling
         this.proxyRecipes = new ReferenceOpenHashSet<>(proxyRecipes);
-        this.defaultDefinition = new GTRecipeDefinition(false, this, category, GTCEu.id("default"), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), new DataComponentMap(), ChanceBoostFunction.OVERCLOCK, 0, 0, 100, 0);
+        this.defaultDefinition = new GTRecipeDefinition(false, this, category, GTCEu.id("default"), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), new DataComponentMap(), ChanceBoostFunction.OVERCLOCK, 0, 0, 100, 0);
     }
 
     public static boolean available(@Nullable GTRecipeType recipeType, GTRecipeType... types) {

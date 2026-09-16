@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Locale;
@@ -22,11 +23,11 @@ import static net.minecraft.ChatFormatting.YELLOW;
 public class FormattingUtil {
 
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance(Locale.ROOT);
-    public static final DecimalFormat DECIMAL_FORMAT_0F = new DecimalFormat(",###");
-    public static final DecimalFormat DECIMAL_FORMAT_1F = new DecimalFormat("#,##0.#");
-    public static final DecimalFormat DECIMAL_FORMAT_2F = new DecimalFormat("#,##0.##");
-    public static final DecimalFormat DECIMAL_FORMAT_SIC = new DecimalFormat("0E00");
-    public static final DecimalFormat DECIMAL_FORMAT_SIC_2F = new DecimalFormat("0.00E00");
+    public static final DecimalFormat DECIMAL_FORMAT_0F = createDecimalFormat(",###");
+    public static final DecimalFormat DECIMAL_FORMAT_1F = createDecimalFormat("#,##0.#");
+    public static final DecimalFormat DECIMAL_FORMAT_2F = createDecimalFormat("#,##0.##");
+    public static final DecimalFormat DECIMAL_FORMAT_SIC = createDecimalFormat("0E00");
+    public static final DecimalFormat DECIMAL_FORMAT_SIC_2F = createDecimalFormat("0.00E00");
 
     private static final int SMALL_DOWN_NUMBER_BASE = '\u2080';
     private static final int SMALL_UP_NUMBER_BASE = '\u2070';
@@ -34,6 +35,10 @@ public class FormattingUtil {
     private static final int SMALL_UP_NUMBER_TWO = '\u00B2';
     private static final int SMALL_UP_NUMBER_THREE = '\u00B3';
     private static final int NUMBER_BASE = '0';
+
+    private static DecimalFormat createDecimalFormat(String pattern) {
+        return new DecimalFormat(pattern, DecimalFormatSymbols.getInstance(Locale.ROOT));
+    }
 
     public static String toSmallUpNumbers(String string) {
         return checkNumbers(string, SMALL_UP_NUMBER_BASE);
@@ -175,7 +180,7 @@ public class FormattingUtil {
     }
 
     public static String formatPercent(double number) {
-        return String.format("%,.2f", number);
+        return String.format(Locale.ROOT, "%,.2f", number);
     }
 
     /** To avoids (un)boxing. */

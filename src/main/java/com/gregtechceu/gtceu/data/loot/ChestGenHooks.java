@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.core.mixins.LootPoolAccessor;
 import com.gregtechceu.gtceu.utils.GTMath;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -34,7 +33,8 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
-import com.gto.fastcollection.O2OOpenCacheHashMap;
+import com.gto.datasynclib.util.ItemStackHashStrategy;
+import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
 import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;

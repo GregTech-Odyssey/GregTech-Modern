@@ -82,6 +82,7 @@ public class LargeMinerLogic extends MinerLogic {
             } else {
                 pipeY = pos.getY() - 1;
             }
+            onRemove();
         }
     }
 

@@ -4,7 +4,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.util.INBTSerializable;
 
-import com.gto.fastcollection.OpenCacheHashSet;
+import com.gto.fastcollection.fastutil.OpenCacheHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

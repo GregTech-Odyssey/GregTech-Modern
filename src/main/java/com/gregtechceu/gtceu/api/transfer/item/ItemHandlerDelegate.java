@@ -48,18 +48,23 @@ public abstract class ItemHandlerDelegate implements ICustomItemStackHandler {
     }
 
     @Override
+    public ItemStack insertItemStacked(ItemStack stack, boolean simulate) {
+        return ICustomItemStackHandler.super.insertItemStacked(stack, simulate);
+    }
+
+    @Override
     public ItemStack extractItem(int slot, int amount, boolean simulate) {
         return delegate.extractItem(slot, amount, simulate);
     }
 
     @Override
     public ItemStack insertItemInternal(int slot, @NotNull ItemStack stack, boolean simulate) {
-        return delegate.insertItem(slot, stack, simulate);
+        return delegate.insertItemInternal(slot, stack, simulate);
     }
 
     @Override
     public ItemStack extractItemInternal(int slot, int amount, boolean simulate) {
-        return delegate.extractItem(slot, amount, simulate);
+        return delegate.extractItemInternal(slot, amount, simulate);
     }
 
     @Override

@@ -60,7 +60,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     default List<IRecipeHandler> getItemCapabilitiesFlat(IO io) {
         var all = getCapabilitiesFlat(io);
         if (all.isEmpty()) return Collections.emptyList();
-        var list = new ArrayList<IRecipeHandler>();
+        var list = new ArrayList<IRecipeHandler>(all.size());
         for (var handler : all) {
             if (handler.canHandleItem()) {
                 list.add(handler);
@@ -73,7 +73,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     default List<IRecipeHandler> getFluidCapabilitiesFlat(IO io) {
         var all = getCapabilitiesFlat(io);
         if (all.isEmpty()) return Collections.emptyList();
-        var list = new ArrayList<IRecipeHandler>();
+        var list = new ArrayList<IRecipeHandler>(all.size());
         for (var handler : all) {
             if (handler.canHandleFluid()) {
                 list.add(handler);
@@ -83,15 +83,15 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     }
 
     @NotNull
-    default <T> List<T> getCapabilitiesFlat(IO io, Class<T> capabilitie) {
+    default <T> List<T> getCapabilitiesFlat(IO io, Class<T> capability) {
         var all = getCapabilitiesFlat(io);
         if (all.isEmpty()) return Collections.emptyList();
-        var list = new ArrayList<T>();
-        all.forEach(h -> {
-            if (capabilitie.isInstance(h)) {
-                list.add((T) h);
+        var list = new ArrayList<T>(all.size());
+        for (var handler : all) {
+            if (capability.isInstance(handler)) {
+                list.add(capability.cast(handler));
             }
-        });
+        }
         return list;
     }
 
@@ -203,7 +203,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         var fluids = RecipeHelper.copyContents(recipe.fluidInputs, 1);
         if (unit.handleRecipeItem(IO.IN, recipe, items, true) && unit.handleRecipeFluid(IO.IN, recipe, fluids, true)) {
             for (var e : recipe.definition.recipeExtensions) {
-                if (!e.handle(IO.IN, this, unit, recipe, true)) return false;
+                if (!e.handleInput(this, unit, recipe, true)) return false;
             }
             return true;
         }
@@ -212,7 +212,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
 
     default boolean matchRecipeOutput(GTRecipe recipe) {
         for (var e : recipe.definition.recipeExtensions) {
-            if (!e.handle(IO.OUT, this, null, recipe, true)) return false;
+            if (!e.handleOutput(this, recipe, true)) return false;
         }
         var items = RecipeHelper.copyContents(recipe.itemOutputs, 1);
         var fluids = RecipeHelper.copyContents(recipe.fluidOutputs, 1);
@@ -231,7 +231,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         var fluids = RecipeHelper.copyAndRoll(recipe, recipe.fluidInputs);
         if (unit.handleRecipeItem(IO.IN, recipe, items, false) && unit.handleRecipeFluid(IO.IN, recipe, fluids, false)) {
             for (var e : recipe.definition.recipeExtensions) {
-                if (!e.handle(IO.IN, this, unit, recipe, false)) return false;
+                if (!e.handleInput(this, unit, recipe, false)) return false;
             }
             return true;
         }
@@ -241,7 +241,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     default boolean handleRecipeOutput(GTRecipe recipe) {
         var extension = true;
         for (var e : recipe.definition.recipeExtensions) {
-            if (!e.handle(IO.OUT, this, null, recipe, false)) extension = false;
+            if (!e.handleOutput(this, recipe, false)) extension = false;
         }
         var items = RecipeHelper.copyAndRoll(recipe, recipe.itemOutputs);
         var fluids = RecipeHelper.copyAndRoll(recipe, recipe.fluidOutputs);
@@ -267,7 +267,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
             }
         }
         for (var e : recipe.definition.tickRecipeExtensions) {
-            if (!e.handle(IO.BOTH, this, null, recipe, true)) return false;
+            if (!e.handleTick(this, recipe, true)) return false;
         }
         return true;
     }
@@ -285,7 +285,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
             }
         }
         for (var e : recipe.definition.tickRecipeExtensions) {
-            if (!e.handle(IO.BOTH, this, null, recipe, false)) return false;
+            if (!e.handleTick(this, recipe, false)) return false;
         }
         return true;
     }
@@ -304,18 +304,26 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
 
     default long[] getFluidAmount(boolean consumable, Fluid... fluids) {
         long[] amounts = new long[fluids.length];
+        getFluidAmount(consumable, fluids, amounts);
+        return amounts;
+    }
+
+    default void getFluidAmount(boolean consumable, Fluid[] fluids, long[] amounts) {
         for (var handler : getInputUnits()) {
             handler.getFluidAmount(consumable, fluids, amounts);
         }
-        return amounts;
     }
 
     default long[] getItemAmount(boolean consumable, Item... items) {
         long[] amounts = new long[items.length];
+        getItemAmount(consumable, items, amounts);
+        return amounts;
+    }
+
+    default void getItemAmount(boolean consumable, Item[] items, long[] amounts) {
         for (var handler : getInputUnits()) {
             handler.getItemAmount(consumable, items, amounts);
         }
-        return amounts;
     }
 
     default boolean forEachItems(boolean consumable, ObjLongPredicate<ItemStack> function) {

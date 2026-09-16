@@ -4,8 +4,7 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
-import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
-import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
+import com.gto.fastcollection.fastutil.O2ZOpenCacheHashMap;
 import xaero.common.minimap.highlight.DimensionHighlighterHandler;
 import xaero.common.minimap.write.MinimapWriter;
 import xaero.hud.minimap.BuiltInHudModules;
@@ -17,7 +16,7 @@ public class XaerosMapPlugin {
 
     public static boolean isActive = false;
 
-    public static final Object2BooleanMap<String> OPTIONS = new Object2BooleanOpenHashMap<>();
+    public static final O2ZOpenCacheHashMap<String> OPTIONS = new O2ZOpenCacheHashMap<>();
 
     public static void init() {
         isActive = true;

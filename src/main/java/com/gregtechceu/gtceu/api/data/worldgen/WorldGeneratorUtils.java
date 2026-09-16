@@ -23,8 +23,8 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
 
 import com.google.common.collect.HashBiMap;
 import com.gto.datasynclib.datastream.DataComponentKey;
-import com.gto.fastcollection.O2OOpenCacheHashMap;
-import com.gto.fastcollection.OpenCacheHashSet;
+import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
+import com.gto.fastcollection.fastutil.OpenCacheHashSet;
 import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;

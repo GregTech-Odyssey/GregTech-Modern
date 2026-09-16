@@ -10,7 +10,7 @@ import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
-import com.fast.recipesearch.IntLongMap;
+import com.gto.recipesearch.IntLongMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -38,6 +38,16 @@ public interface IRecipeHandler extends IFilteredHandler {
 
     default IntLongMap getSearchMap(@NotNull GTRecipeType type) {
         return IntLongMap.EMPTY;
+    }
+
+    /**
+     * Merge this handler's search map into the given target map.
+     * Default implementation accumulates via {@link IntLongMap#addTo} (i.e. adds amounts
+     * to already-present keys). Handlers that only need to report one shared count for a key
+     * (e.g. to avoid double-counting virtual items) may override with {@code put} semantics.
+     */
+    default void addToSearchMap(IntLongMap target, @NotNull GTRecipeType type) {
+        getSearchMap(type).addTo(target);
     }
 
     default boolean isAvailable() {

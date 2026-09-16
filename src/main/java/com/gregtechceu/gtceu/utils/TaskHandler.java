@@ -4,10 +4,10 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.core.ILevel;
-import com.gregtechceu.gtceu.utils.collection.CustomLinkedQueue;
 
 import net.minecraft.world.level.Level;
 
+import com.gto.fastcollection.CustomLinkedQueue;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;

@@ -49,10 +49,10 @@ import com.gto.datasynclib.annotations.AdditionalHolder;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.Strategy;
 import com.gto.datasynclib.annotations.SyncToClient;
-import com.gto.fastcollection.O2LOpenCacheHashMap;
+import com.gto.datasynclib.util.ItemStackHashStrategy;
+import com.gto.fastcollection.fastutil.O2LOpenCacheHashMap;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.Hash;
-import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -76,7 +76,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
      * href=https://github.com/Buuz135/FunctionalStorage/blob/1.21/src/main/java/com/buuz135/functionalstorage/block/tile/ItemControllableDrawerTile.java>
      * ItemControllerDrawerTile</a>
      */
-    public static final Object2LongOpenHashMap<UUID> INTERACTION_LOGGER = new O2LOpenCacheHashMap<>();
+    public static final O2LOpenCacheHashMap<UUID> INTERACTION_LOGGER = new O2LOpenCacheHashMap<>();
     @Getter
     @SaveToDisk
     @SyncToClient(notifyUpdate = true)

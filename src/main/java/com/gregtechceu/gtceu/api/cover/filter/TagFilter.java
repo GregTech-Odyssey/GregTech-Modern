@@ -163,7 +163,7 @@ public abstract class TagFilter<T, S extends Filter<T, S>> implements Filter<T, 
                     }
                     return super.mouseReleased(mouseX, mouseY, button);
                 }
-            }.setTextColor(0x39c5bb).setHoverTooltips(Component.translatable("gtocore.part.extendae.tag_filter.tooltip")).setClientSideWidget());
+            }.setTextColor(0x39c5bb).setHoverTooltips(Component.translatable("cover.tag_filter.tag_entry.tooltip")).setClientSideWidget());
         }
         return container;
     }

@@ -18,9 +18,9 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
-import com.fast.recipesearch.IntLongMap;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.gto.recipesearch.IntLongMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;

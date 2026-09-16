@@ -251,7 +251,7 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
         if (this.stacks == null) {
             switch (value) {
                 case null -> this.stacks = EMPTY_STACKS;
-                case Fluid fluid -> this.stacks = new FluidStack[] { new FluidStack(fluid, getAmount()) };
+                case Fluid fluid -> this.stacks = new FluidStack[] { new FluidStack(fluid, getAmount(), nbt) };
                 case TagKey tagKey -> {
                     Optional<HolderSet.Named<Fluid>> optional = BuiltInRegistries.FLUID.getTag(tagKey);
                     if (optional.isPresent()) {
@@ -259,7 +259,7 @@ public final class FluidIngredient extends ContentInner implements Predicate<Flu
                         var size = fluids.size();
                         var stacks = new FluidStack[size];
                         for (int i = 0; i < size; i++) {
-                            stacks[i] = new FluidStack(fluids.get(i).value(), getAmount());
+                            stacks[i] = new FluidStack(fluids.get(i).value(), getAmount(), nbt);
                         }
                         this.stacks = stacks;
                     } else {

@@ -2,20 +2,17 @@ package com.gregtechceu.gtceu.api.recipe.extension;
 
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
-import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.ui.IRecipeInfo;
 
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-
-import com.fast.recipesearch.IntLongMap;
 import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.datastream.DataComponentKey;
-import org.apache.commons.lang3.mutable.MutableInt;
+import com.gto.recipesearch.IntLongMap;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public abstract class RecipeExtension<T> extends DataComponentKey<T> {
+@SuppressWarnings("BooleanMethodIsAlwaysInverted")
+public abstract class RecipeExtension<T> extends DataComponentKey<T> implements IRecipeInfo {
 
     public final boolean isTick;
 
@@ -24,9 +21,20 @@ public abstract class RecipeExtension<T> extends DataComponentKey<T> {
         this.isTick = isTick;
     }
 
-    public abstract boolean handle(IO io, @NotNull IRecipeHandlerHolder holder,
-                                   @Nullable RecipeHandlerUnit unit,
-                                   @NotNull GTRecipe recipe, boolean simulate);
+    @SuppressWarnings("unused")
+    public boolean handleInput(@NotNull IRecipeHandlerHolder holder, @NotNull RecipeHandlerUnit unit, @NotNull GTRecipe recipe, boolean simulate) {
+        return true;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean handleOutput(@NotNull IRecipeHandlerHolder holder, @NotNull GTRecipe recipe, boolean simulate) {
+        return true;
+    }
+
+    public boolean handleTick(@NotNull IRecipeHandlerHolder holder,
+                              @NotNull GTRecipe recipe, boolean simulate) {
+        return true;
+    }
 
     public abstract void extractInput(GTRecipeDefinition recipe, IntLongMap map);
 
@@ -34,9 +42,4 @@ public abstract class RecipeExtension<T> extends DataComponentKey<T> {
                                      GTRecipe recipe, long parallel);
 
     public abstract void setParallel(GTRecipe recipe, long parallel);
-
-    public abstract void addInfo(GTRecipeDefinition recipe, WidgetGroup group,
-                                 int xOffset, MutableInt yOffset);
-
-    public abstract int getInfoHeight(GTRecipeDefinition recipe);
 }

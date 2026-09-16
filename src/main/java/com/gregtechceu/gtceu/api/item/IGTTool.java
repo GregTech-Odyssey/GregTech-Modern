@@ -65,7 +65,7 @@ import net.minecraftforge.common.util.LazyOptional;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.gto.fastcollection.OpenCacheHashSet;
+import com.gto.fastcollection.fastutil.OpenCacheHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;

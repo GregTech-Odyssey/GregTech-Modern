@@ -36,18 +36,23 @@ public class LockableItemStackHandler implements ICustomItemStackHandler {
     }
 
     @Override
+    public @NotNull ItemStack insertItemStacked(@NotNull ItemStack stack, boolean simulate) {
+        return lock ? stack : delegate.insertItemStacked(stack, simulate);
+    }
+
+    @Override
     public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
         return lock ? ItemStack.EMPTY : delegate.extractItem(slot, amount, simulate);
     }
 
     @Override
     public ItemStack insertItemInternal(int slot, @NotNull ItemStack stack, boolean simulate) {
-        return lock ? stack : delegate.insertItem(slot, stack, simulate);
+        return lock ? stack : delegate.insertItemInternal(slot, stack, simulate);
     }
 
     @Override
     public ItemStack extractItemInternal(int slot, int amount, boolean simulate) {
-        return lock ? ItemStack.EMPTY : delegate.extractItem(slot, amount, simulate);
+        return lock ? ItemStack.EMPTY : delegate.extractItemInternal(slot, amount, simulate);
     }
 
     @Override

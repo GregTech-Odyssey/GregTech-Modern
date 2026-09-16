@@ -13,8 +13,6 @@ import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
-import com.gregtechceu.gtceu.utils.FluidStackHashStrategy;
-import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 import com.gregtechceu.gtceu.utils.collection.SafeR2LMap;
 import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
 
@@ -26,8 +24,10 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
-import com.fast.recipesearch.IntLongMap;
+import com.gto.datasynclib.util.FluidStackHashStrategy;
+import com.gto.datasynclib.util.ItemStackHashStrategy;
 import com.gto.datasynclib.util.holder.LongHolder;
+import com.gto.recipesearch.IntLongMap;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
@@ -185,10 +185,10 @@ public class RecipeHandlerUnit {
         };
     }
 
-    public <T> ISubscription subscribe(Runnable listener, Class<T> capabilitie) {
-        var subs = new ArrayList<ISubscription>();
+    public <T> ISubscription subscribe(Runnable listener, Class<T> capability) {
+        var subs = new ArrayList<ISubscription>(allHandlerTraits.length);
         for (IRecipeHandlerTrait trait : allHandlerTraits) {
-            if (capabilitie.isInstance(trait)) {
+            if (capability.isInstance(trait)) {
                 subs.add(trait.addChangedListener(listener));
             }
         }
@@ -196,13 +196,13 @@ public class RecipeHandlerUnit {
     }
 
     @NotNull
-    public <T> List<T> getCapabilities(Class<T> capabilitie) {
+    public <T> List<T> getCapabilities(Class<T> capability) {
         var all = allHandlers;
         if (all.length == 0) return Collections.emptyList();
-        var list = new ArrayList<T>();
+        var list = new ArrayList<T>(all.length);
         for (var handler : all) {
-            if (capabilitie.isInstance(handler)) {
-                list.add((T) handler);
+            if (capability.isInstance(handler)) {
+                list.add(capability.cast(handler));
             }
         }
         return list;
@@ -280,7 +280,7 @@ public class RecipeHandlerUnit {
     public IntLongMap getSearchMap(@NotNull GTRecipeType type) {
         intIngredientMap.clear();
         for (var s : contentHandlers) {
-            s.getSearchMap(type).copyTo(intIngredientMap);
+            s.addToSearchMap(intIngredientMap, type);
         }
         return intIngredientMap;
     }

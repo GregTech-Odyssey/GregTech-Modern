@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiContro
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.ui.IRecipeInfo;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTMath;
@@ -19,7 +20,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @SuppressWarnings("unused")
 @FunctionalInterface
 @ParametersAreNonnullByDefault
-public interface RecipeModifier {
+public interface RecipeModifier extends IRecipeInfo {
 
     int COIL_EUT_DISCOUNT_TEMPERATURE = 900;
 
