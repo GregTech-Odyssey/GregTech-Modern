@@ -20,7 +20,6 @@ import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.common.block.BatteryBlock;
 import com.gregtechceu.gtceu.common.block.CoilBlock;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
-import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
@@ -39,6 +38,7 @@ import com.gto.registrate.util.entry.RegistryEntry;
 import it.unimi.dsi.fastutil.longs.LongOpenHashBigSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -103,6 +103,25 @@ public class Predicates {
         return blocks((tiers.length == 0 ? ability.getAllBlocks() : ability.getBlocks(tiers)).toArray(Block[]::new));
     }
 
+    /**
+     * Matches ordinary utility parts without a count limit and machine control parts with a shared global maximum of
+     * one. Callers that combine this predicate more than once must reuse the same predicate instance so the machine
+     * control limit remains global.
+     */
+    public static TraceabilityPredicate utilityAbilities() {
+        var machineControls = new ReferenceOpenHashSet<>(PartAbility.MACHINE_CONTROL.getAllBlocks());
+        var utilities = PartAbility.UTILITY.getAllBlocks().stream()
+                .filter(block -> !machineControls.contains(block))
+                .toArray(Block[]::new);
+        var utilityPredicate = utilities.length == 0 ? new TraceabilityPredicate() :
+                blocks(utilities).setPreviewCount(0);
+        if (machineControls.isEmpty()) {
+            return utilityPredicate;
+        }
+        return utilityPredicate.or(blocks(machineControls.toArray(Block[]::new))
+                .setMaxGlobalLimited(1).setPreviewCount(0));
+    }
+
     public static TraceabilityPredicate autoAbilities(GTRecipeType... recipeType) {
         return autoAbilities(recipeType, true, true, true, true, true, true);
     }
@@ -114,7 +133,7 @@ public class Predicates {
                                                       boolean checkItemOut,
                                                       boolean checkFluidIn,
                                                       boolean checkFluidOut) {
-        TraceabilityPredicate predicate = blocks(GTMachines.CONTROL_HATCH.get()).setMaxGlobalLimited(1).setPreviewCount(0);
+        TraceabilityPredicate predicate = new TraceabilityPredicate();
 
         if (checkEnergyIn) {
             for (var type : recipeType) {

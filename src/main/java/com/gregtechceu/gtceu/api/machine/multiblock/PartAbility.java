@@ -49,6 +49,8 @@ public class PartAbility {
     public static final PartAbility OPTICAL_DATA_TRANSMISSION = new PartAbility("optical_data_transmission");
     public static final PartAbility DATA_ACCESS = new PartAbility("data_access");
     public static final PartAbility HPCA_COMPONENT = new PartAbility("hpca_component");
+    public static final PartAbility UTILITY = new PartAbility("utility");
+    public static final PartAbility MACHINE_CONTROL = new PartAbility("machine_control");
     /**
      * tier -> available blocks
      */
