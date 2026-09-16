@@ -111,7 +111,7 @@ public class ForgeClientEventListener {
         InfiniteSprayCanBehaviour.cycle(stack, direction);
         InfiniteSprayCanBehaviour.playColorSwitchSound(player);
         GTNetwork.NETWORK.sendToServer(
-                new CPacketSprayCanAction(CPacketSprayCanAction.ACTION_CYCLE, hand, direction));
+                new CPacketSprayCanAction(hand, direction));
         event.setCanceled(true);
     }
 }

@@ -45,9 +45,9 @@ import java.util.List;
  * <p>
  * Controls (AE Color Applicator–style for wheel):
  * <ul>
- *   <li>Right-click block — paint</li>
- *   <li>Right-click air — open the color palette GUI</li>
- *   <li>Sneak + scroll — cycle selected color (client intercept → server packet)</li>
+ * <li>Right-click block — paint</li>
+ * <li>Right-click air — open the color palette GUI</li>
+ * <li>Sneak + scroll — cycle selected color (client intercept → server packet)</li>
  * </ul>
  */
 public class InfiniteSprayCanBehaviour implements IItemUIFactory, IDurabilityBar, IAddInformation {
@@ -143,19 +143,16 @@ public class InfiniteSprayCanBehaviour implements IItemUIFactory, IDurabilityBar
 
     @Override
     public InteractionResultHolder<ItemStack> use(Item item, Level level, Player player, InteractionHand usedHand) {
-        // Right-click air (or when block interaction was not consumed): open palette.
-        if (player instanceof ServerPlayer serverPlayer) {
-            HeldItemUIFactory.INSTANCE.openUI(serverPlayer, usedHand);
-        }
-        return InteractionResultHolder.success(player.getItemInHand(usedHand));
+        if (player.isShiftKeyDown()) return IItemUIFactory.super.use(item, level, player, usedHand);
+        return InteractionResultHolder.pass(player.getItemInHand(usedHand));
     }
 
     @Override
     public ModularUI createUI(HeldItemUIFactory.HeldItemHolder holder, Player entityPlayer) {
         // Layout:
-        //  title + current color | color preview (top-right)
-        //  4×4 dye grid
-        //  solvent cell alone on the bottom row, anchored bottom-right
+        // title + current color | color preview (top-right)
+        // 4×4 dye grid
+        // solvent cell alone on the bottom row, anchored bottom-right
         final int pad = 12;
         final int uiW = 176;
         final int grid = 4;
