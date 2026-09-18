@@ -16,7 +16,7 @@ import java.util.Arrays;
 @UtilityClass
 public class GTDataFixer {
 
-    public int VERSION = 1;
+    public int VERSION = 2;
 
     static {
         FieldDataHolderBlockEntity.VERSION = VERSION;
