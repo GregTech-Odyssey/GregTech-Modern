@@ -53,6 +53,11 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine {
     }
 
     @Override
+    public boolean nextTickSearch() {
+        return false;
+    }
+
+    @Override
     protected boolean isEnergyEmitter() {
         return true;
     }

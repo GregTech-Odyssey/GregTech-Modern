@@ -13,7 +13,7 @@ import net.minecraft.server.level.ServerLevel;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,7 +84,7 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
         if (outputs == null) {
             setOutputUnits(Collections.emptyList());
         } else {
-            outputs.sort(RecipeHandlerUnit.PRIORITY_COMPARATOR);
+            outputs.sort(RecipeHandlerUnit.TYPE_COMPARATOR);
             Int2ObjectOpenHashMap<List<RecipeHandlerUnit>> colour = new Int2ObjectOpenHashMap<>();
             List<RecipeHandlerUnit> untreated = new ArrayList<>();
             List<RecipeHandlerUnit> distinct = new ArrayList<>();
@@ -124,7 +124,7 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
         if (inputs == null) {
             setInputUnits(Collections.emptyList());
         } else {
-            inputs.sort(RecipeHandlerUnit.PRIORITY_COMPARATOR);
+            inputs.sort(RecipeHandlerUnit.TYPE_COMPARATOR);
             Int2ObjectOpenHashMap<Map<IMultiPart, List<RecipeHandlerUnit>>> colour = new Int2ObjectOpenHashMap<>();
             List<RecipeHandlerUnit> untreated = new ArrayList<>();
             List<RecipeHandlerUnit> distinct = new ArrayList<>();
@@ -132,7 +132,7 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
                 if (handler.part != null) {
                     var color = handler.part.self().getPaintingColor();
                     if (color != -1) {
-                        colour.computeIfAbsent(color, k -> new Reference2ObjectOpenHashMap<>()).computeIfAbsent(handler.part, k -> new ArrayList<>()).add(handler);
+                        colour.computeIfAbsent(color, k -> new Reference2ReferenceLinkedOpenHashMap<>()).computeIfAbsent(handler.part, k -> new ArrayList<>()).add(handler);
                         continue;
                     }
                 }

@@ -156,6 +156,10 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
         return false;
     }
 
+    default boolean nextTickSearch() {
+        return true;
+    }
+
     /**
      * Whether the recipe logic should work or waiting for next {@link RecipeLogic#updateTickSubscription()}.
      */

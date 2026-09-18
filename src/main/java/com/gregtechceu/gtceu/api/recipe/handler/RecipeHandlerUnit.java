@@ -38,6 +38,16 @@ import java.util.function.ObjLongConsumer;
 public class RecipeHandlerUnit {
 
     public static final Comparator<RecipeHandlerUnit> PRIORITY_COMPARATOR = Comparator.comparingInt(u -> -u.priority);
+    public static final Comparator<RecipeHandlerUnit> TYPE_COMPARATOR = (a, b) -> {
+        var aClass = a.getClass();
+        var bClass = b.getClass();
+        if (aClass == bClass) return Integer.compare(b.priority, a.priority);
+        if (aClass == RecipeHandlerUnit.class) return 1;
+        if (bClass == RecipeHandlerUnit.class) return -1;
+        int cmp = Integer.compare(b.priority, a.priority);
+        if (cmp != 0) return cmp;
+        return aClass.getName().compareTo(bClass.getName());
+    };
 
     public static final RecipeHandlerUnit NO_DATA = new RecipeHandlerUnit(IO.NONE, null) {
 
@@ -50,7 +60,7 @@ public class RecipeHandlerUnit {
         public boolean handleRecipeFluid(IO io, GTRecipe recipe, List<Content<FluidIngredient>> fluids, boolean simulate) {
             return fluids.isEmpty();
         }
-    };;
+    };
 
     public final IMultiPart part;
 
