@@ -34,6 +34,14 @@ public interface IVoidable extends IMachineFeature {
         return VoidingMode.VOID_NONE;
     }
 
+    /**
+     * Whether this machine really stores/uses voiding mode (not the no-op defaults on {@link IRecipeLogicMachine}).
+     * Used by the meta machine config copy card so it only copies machines that implement voiding properly.
+     */
+    default boolean hasVoidingModeConfig() {
+        return false;
+    }
+
     static void attachConfigurators(ConfiguratorPanel configuratorPanel, IVoidable controller) {
         configuratorPanel.attachConfigurators(new FancySelectorConfigurator<>(VoidingMode.VALUES, controller.getVoidingMode(), controller::setVoidingMode).setTooltip(m -> (List) LangHandler.getMultiLang(m.localeName)));
     }
