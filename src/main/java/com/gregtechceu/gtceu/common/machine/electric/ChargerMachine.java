@@ -57,7 +57,7 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
     private final int inventorySize;
     @SaveToDisk
     protected final CustomItemStackHandler chargerInventory;
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     private State state;
 
     public ChargerMachine(MetaMachineBlockEntity holder, int tier, int inventorySize, Object... args) {

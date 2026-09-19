@@ -71,18 +71,18 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoOutputBoth {
 
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected Direction outputFacingItems;
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected Direction outputFacingFluids;
     @Getter
     @SaveToDisk(defaultValue = "false")
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected boolean autoOutputItems;
     @Getter
     @SaveToDisk(defaultValue = "false")
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected boolean autoOutputFluids;
     @Getter
     @SaveToDisk(defaultValue = "false")

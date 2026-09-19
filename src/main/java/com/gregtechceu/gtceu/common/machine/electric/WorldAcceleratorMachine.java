@@ -66,7 +66,7 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
     private boolean isRandomTickMode = true;
     @Getter
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     private boolean active = false;
     private TickableSubscription tickSubs;
 

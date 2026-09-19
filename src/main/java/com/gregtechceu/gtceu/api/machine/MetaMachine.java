@@ -106,7 +106,7 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     public final MachineCoverContainer coverContainer;
     @Getter
     @SaveToDisk(defaultValue = "-1")
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     private int paintingColor = -1;
     @Getter
     protected final List<MachineTrait> traits = new ArrayList<>();

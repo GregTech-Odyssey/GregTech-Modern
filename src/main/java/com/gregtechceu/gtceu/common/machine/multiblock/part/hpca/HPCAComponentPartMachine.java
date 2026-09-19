@@ -26,7 +26,7 @@ public abstract class HPCAComponentPartMachine extends MultiblockPartMachine
                                                implements IHPCAComponentHatch, IMachineModifyDrops {
 
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     private boolean damaged;
 
     public HPCAComponentPartMachine(MetaMachineBlockEntity holder) {

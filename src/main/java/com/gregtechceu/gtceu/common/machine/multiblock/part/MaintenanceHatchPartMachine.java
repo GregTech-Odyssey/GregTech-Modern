@@ -73,7 +73,7 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
     @Getter
     @Setter
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     private boolean isTaped;
     @Getter
     @Setter

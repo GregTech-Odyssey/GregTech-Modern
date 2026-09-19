@@ -65,11 +65,11 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
 
     @Getter
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected Direction outputFacingItems;
     @Getter
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected boolean autoOutputItems;
     @Getter
     @SaveToDisk

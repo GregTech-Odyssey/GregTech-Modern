@@ -35,7 +35,7 @@ public final class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeTyp
     private OpticalNetHandler defaultHandler;
     @Getter
     @SaveToDisk(defaultValue = "false")
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     private boolean isActive;
 
     public OpticalPipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {

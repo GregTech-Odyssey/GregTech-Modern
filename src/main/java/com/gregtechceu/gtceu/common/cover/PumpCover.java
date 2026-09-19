@@ -61,7 +61,7 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
     protected int transferRate;
     @Getter
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected IO io = IO.OUT;
     @Getter
     @SaveToDisk

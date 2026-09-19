@@ -73,11 +73,11 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     public static Reference2LongOpenHashMap<MachineDefinition> TANK_CAPACITY = new Reference2LongOpenHashMap<>();
     @Getter
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected Direction outputFacingFluids;
     @Getter
     @SaveToDisk(defaultValue = "false")
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected boolean autoOutputFluids;
     @Getter
     @SaveToDisk(defaultValue = "false")

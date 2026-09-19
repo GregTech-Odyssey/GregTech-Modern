@@ -56,7 +56,7 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
     public int rotorSpeed;
     @Setter
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     @NotNull
     public Material rotorMaterial = GTMaterials.NULL; // 0 - no rotor
     @Nullable

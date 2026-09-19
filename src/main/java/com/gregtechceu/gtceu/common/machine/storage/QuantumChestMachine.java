@@ -79,11 +79,11 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     public static final O2LOpenCacheHashMap<UUID> INTERACTION_LOGGER = new O2LOpenCacheHashMap<>();
     @Getter
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected Direction outputFacingItems;
     @Getter
     @SaveToDisk(defaultValue = "false")
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected boolean autoOutputItems;
     @Getter
     @SaveToDisk(defaultValue = "false")

@@ -101,7 +101,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Nullable
     protected TickableSubscription activeBlocksSubs;
 
-    @SyncToClient(autoUpdate = false, listener = "onActiveBlocksUpdate")
+    @SyncToClient(autoDetect = false, listener = "onActiveBlocksUpdate")
     @Access
     protected LongSet activeBlocks = new LongOpenHashSet();
 

@@ -45,10 +45,10 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
 
     @Getter
     @SaveToDisk(defaultValue = "0")
-    @SyncToClient(listener = "onStatusSynced", notifyUpdate = true)
+    @SyncToClient(listener = "onStatusSynced", scheduleUpdate = true)
     protected int status = IDLE;
     @SaveToDisk(defaultValue = "false")
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected boolean isActive;
 
     @Nullable

@@ -28,7 +28,7 @@ import java.util.EnumSet;
 public class GridNodeHolder extends MachineTrait {
 
     @SaveToDisk
-    @Access(createInstance = true)
+    @Access(instanceAsValue = true)
     @Codec(writeToData = "serializeGridNode", readFromData = "deserializeGridNode")
     protected final SerializableManagedGridNode mainNode;
 

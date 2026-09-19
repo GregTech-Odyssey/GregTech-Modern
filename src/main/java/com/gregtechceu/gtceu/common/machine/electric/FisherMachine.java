@@ -72,12 +72,12 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
 
     @Getter
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     @Nullable
     protected Direction outputFacingItems;
     @Getter
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected boolean autoOutputItems;
     @SaveToDisk
     protected final NotifiableItemStackHandler cache;

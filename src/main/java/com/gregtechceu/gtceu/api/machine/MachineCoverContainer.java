@@ -36,7 +36,7 @@ public final class MachineCoverContainer implements ICoverable {
 
     @SaveToDisk
     @SyncToClient(listener = "onCoverSet")
-    @Access(createInstance = true)
+    @Access(instanceAsValue = true)
     @Codec(writeToData = "serializeCoverData", readFromData = "deserializeCoverData", writeToBuffer = "serializeCoverBuffer", readFromBuffer = "deserializeCoverBuffer")
     private CoverBehavior up, down, north, south, west, east;
 

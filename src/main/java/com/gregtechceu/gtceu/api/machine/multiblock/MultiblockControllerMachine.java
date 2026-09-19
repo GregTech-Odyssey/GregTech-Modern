@@ -74,7 +74,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @SyncToClient(listener = "onPartsUpdated")
     protected BlockPos[] partPositions = new BlockPos[0];
     @Getter
-    @SyncToClient(listener = "onFormedUpdated", notifyUpdate = true)
+    @SyncToClient(listener = "onFormedUpdated", scheduleUpdate = true)
     protected boolean isFormed;
 
     @Getter

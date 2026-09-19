@@ -45,21 +45,21 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
 
     @Getter
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     @Nullable
     protected Direction outputFacingItems;
     @Getter
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     @Nullable
     protected Direction outputFacingFluids;
     @Getter
     @SaveToDisk(defaultValue = "false")
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected boolean autoOutputItems;
     @Getter
     @SaveToDisk(defaultValue = "false")
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected boolean autoOutputFluids;
     @Getter
     @SaveToDisk(defaultValue = "false")

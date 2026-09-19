@@ -60,24 +60,24 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     @Getter
     @Setter
     @SaveToDisk(defaultValue = "0")
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected int connections = Node.ALL_CLOSED;
 
     @SaveToDisk(defaultValue = "0")
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     private int blockedConnections = Node.ALL_CLOSED;
     @Nullable
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     public Direction blockedSide;
     private NodeDataType cachedNodeData;
     @Getter
     @Setter
     @SaveToDisk(defaultValue = "-1")
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     private int paintingColor = -1;
 
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     @SaveToDisk
     @Nullable
     private Material frameMaterial;

@@ -67,7 +67,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
     @Getter
     @Setter
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected boolean autoOutputFluids;
     @SaveToDisk
     @DropSaved

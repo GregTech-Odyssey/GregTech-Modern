@@ -71,11 +71,11 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     private static final int BASE_EU_CONSUMPTION = 6;
     @Getter
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected Direction outputFacingItems;
     @Getter
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected boolean autoOutputItems;
     @SaveToDisk
     protected final NotifiableItemStackHandler output;
@@ -109,7 +109,7 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     private boolean isWorkingEnabled = true;
     @Getter
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     private boolean active = false;
 
     public ItemCollectorMachine(MetaMachineBlockEntity holder, int tier, Object... ignoredArgs) {

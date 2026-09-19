@@ -26,7 +26,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class MultiblockPartMachine extends MetaMachine implements IMultiPart {
 
-    @SyncToClient(listener = "onControllersUpdated", notifyUpdate = true)
+    @SyncToClient(listener = "onControllersUpdated", scheduleUpdate = true)
     protected final LongSet controllerPositions = new LongOpenHashSet(1);
     protected final Set<IMultiController> controllers = Collections.synchronizedSet(new ReferenceOpenHashSet<>());
 

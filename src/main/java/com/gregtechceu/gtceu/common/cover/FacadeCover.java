@@ -28,7 +28,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class FacadeCover extends CoverBehavior {
 
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     @SaveToDisk
     private BlockState facadeState = Blocks.STONE.defaultBlockState();
 

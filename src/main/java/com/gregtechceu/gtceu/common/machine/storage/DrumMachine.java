@@ -49,7 +49,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
 
     @Getter
     @SaveToDisk(defaultValue = "false")
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected boolean autoOutputFluids;
     @Getter
     private final int maxStoredFluids;

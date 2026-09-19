@@ -66,7 +66,7 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
     protected ManualIOMode manualIOMode = ManualIOMode.DISABLED;
     @Getter
     @SaveToDisk(defaultValue = "OUT")
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected IO io = IO.OUT;
     protected VirtualEntryWidget virtualEntryWidget;
     @SyncToClient

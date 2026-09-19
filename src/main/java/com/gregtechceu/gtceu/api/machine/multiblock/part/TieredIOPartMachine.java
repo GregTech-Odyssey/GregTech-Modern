@@ -31,7 +31,7 @@ public class TieredIOPartMachine extends TieredPartMachine implements IControlla
     @Getter
     @Setter
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected boolean workingEnabled = true;
 
     public TieredIOPartMachine(MetaMachineBlockEntity holder, int tier, IO io) {

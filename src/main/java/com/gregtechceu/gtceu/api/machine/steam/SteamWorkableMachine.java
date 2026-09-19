@@ -58,7 +58,7 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
 
     @Getter
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected Direction outputFacing;
     @Getter
     @Setter

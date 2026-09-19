@@ -64,7 +64,7 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     protected int transferRate;
     @Getter
     @SaveToDisk
-    @SyncToClient(notifyUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected IO io;
     @Getter
     @SaveToDisk
