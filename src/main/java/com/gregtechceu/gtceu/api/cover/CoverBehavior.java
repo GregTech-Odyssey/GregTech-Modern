@@ -119,6 +119,7 @@ public abstract class CoverBehavior implements IToolGridHighlight, IFieldDataHol
     public void onNeighborChanged(Block block, BlockPos fromPos, boolean isMoving) {}
 
     public void setRedstoneSignalOutput(int redstoneSignalOutput) {
+        redstoneSignalOutput = Math.clamp(redstoneSignalOutput, 0, 15);
         if (this.redstoneSignalOutput == redstoneSignalOutput) return;
         this.redstoneSignalOutput = redstoneSignalOutput;
         coverHolder.notifyNeighborsUpdate();
