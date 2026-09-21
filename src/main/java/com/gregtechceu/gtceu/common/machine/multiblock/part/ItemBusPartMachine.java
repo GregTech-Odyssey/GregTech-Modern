@@ -8,6 +8,9 @@ import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
+import com.gregtechceu.gtceu.api.machine.feature.ConfigCopySupport;
+import com.gregtechceu.gtceu.api.machine.feature.ICircuitConfigurable;
+import com.gregtechceu.gtceu.api.machine.feature.IConfigCopyable;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDistinctPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachine;
@@ -18,6 +21,7 @@ import com.gregtechceu.gtceu.api.recipe.handler.IFilteredHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.data.GTMachines;
+import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -28,10 +32,12 @@ import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -45,7 +51,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements IDistinctPart, IMachineLife, IInputLimitableMachine {
+public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements IDistinctPart, IMachineLife, IInputLimitableMachine, ICircuitConfigurable, IConfigCopyable {
 
     @Getter
     @SaveToDisk
@@ -141,7 +147,9 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
 
     @Override
     public boolean hasInputLimitConfig() {
-        return inventory.storage.size > 1;
+        // Export buses never show the input-limit toggle (see attachConfigurators), so they must not
+        // contribute the setting to the config copy card either.
+        return io == IO.IN && inventory.storage.size > 1;
     }
 
     @Override
@@ -281,5 +289,50 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
 
     public boolean isInputLimit() {
         return this.inventory.storage.isInputLimited;
+    }
+
+    @Override
+    public boolean hasCircuitConfig() {
+        return io == IO.IN;
+    }
+
+    // See SimpleTieredMachine#getCircuitConfiguration: CircuitHandler.getStackInSlot always reports
+    // EMPTY, so the circuit has to be read and written through storage.
+    @Override
+    public int getCircuitConfiguration() {
+        var stack = circuitInventory.storage.getStackInSlot(0);
+        return stack.isEmpty() ? CIRCUIT_EMPTY : IntCircuitBehaviour.getCircuitConfiguration(stack);
+    }
+
+    @Override
+    public void setCircuitConfiguration(int configuration) {
+        if (!hasCircuitConfig()) return;
+        if (configuration < 0) {
+            circuitInventory.storage.setStackInSlot(0, ItemStack.EMPTY);
+        } else {
+            circuitInventory.storage.setStackInSlot(0, IntCircuitBehaviour.stack(configuration));
+        }
+    }
+
+    //////////////////////////////////////
+    // ****** Config Copy Card *******//
+    //////////////////////////////////////
+    @Override
+    public boolean hasDistinctConfig() {
+        return io == IO.IN;
+    }
+
+    @Override
+    public void writeConfigTo(CompoundTag tag) {
+        ConfigCopySupport.writeInputLimit(tag, this);
+        ConfigCopySupport.writeDistinct(tag, this);
+        ConfigCopySupport.writeCircuit(tag, this);
+    }
+
+    @Override
+    public void readConfigFrom(CompoundTag tag) {
+        ConfigCopySupport.readInputLimit(tag, this);
+        ConfigCopySupport.readDistinct(tag, this);
+        ConfigCopySupport.readCircuit(tag, this);
     }
 }
