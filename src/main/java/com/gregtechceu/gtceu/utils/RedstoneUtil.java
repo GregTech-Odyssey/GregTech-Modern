@@ -29,7 +29,7 @@ public class RedstoneUtil {
     public static int computeRedstoneBetweenValues(BigInteger value, BigInteger maxValue, BigInteger minValue,
                                                    boolean isInverted) {
         if (value.compareTo(maxValue) >= 0) return isInverted ? 0 : 15;
-        else if (value.compareTo(maxValue) <= 0) return isInverted ? 15 : 0;
+        else if (value.compareTo(minValue) <= 0) return isInverted ? 15 : 0;
 
         float ratio;
         if (isInverted) ratio = 15 * GTMath.ratio(maxValue.subtract(value), maxValue.subtract(minValue));
