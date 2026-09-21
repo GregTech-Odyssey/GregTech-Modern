@@ -73,13 +73,13 @@ public class RedstoneUtil {
      */
     public static int computeRedstoneValue(long current, long max, boolean isInverted) throws ArithmeticException {
         var output = (int) (14f * current / max) + (current > 0 ? 1 : 0);
-        return isInverted ? 15 - output : output;
+        return Math.clamp(isInverted ? 15 - output : output, 0, 15);
     }
 
     public static int computeRedstoneValue(BigInteger current, BigInteger max,
                                            boolean isInverted) throws ArithmeticException {
         var isNotEmpty = current.compareTo(BigInteger.ZERO) > 0;
         var output = (int) (14f * GTMath.ratio(current, max)) + (isNotEmpty ? 1 : 0);
-        return isInverted ? 15 - output : output;
+        return Math.clamp(isInverted ? 15 - output : output, 0, 15);
     }
 }
