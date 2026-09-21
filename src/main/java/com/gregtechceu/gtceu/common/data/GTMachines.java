@@ -848,6 +848,7 @@ public class GTMachines {
             .langValue("Machine Control Hatch")
             .allRotation()
             .tier(2)
+            .abilities(PartAbility.UTILITY, PartAbility.MACHINE_CONTROL)
             .overlayTieredHullRenderer("hull")
             .register();
 

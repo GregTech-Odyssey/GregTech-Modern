@@ -1,15 +1,20 @@
 package com.gregtechceu.gtceu.api.pattern;
 
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
+import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.block.Block;
 
 import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -24,6 +29,7 @@ public class FactoryBlockPattern {
     private Component info;
     private int aisleHeight;
     private int rowWidth;
+    private TraceabilityPredicate utilityAbilities;
 
     private FactoryBlockPattern(RelativeDirection charDir, RelativeDirection stringDir, RelativeDirection aisleDir, MultiblockMachineDefinition definition) {
         this.definition = definition;
@@ -120,6 +126,74 @@ public class FactoryBlockPattern {
             this.symbolMap.put(symbol, blockMatcher.sort());
         }
         return this;
+    }
+
+    /**
+     * Allows the base blocks and registered utility parts at this symbol.
+     */
+    public FactoryBlockPattern wherePart(char symbol, TraceabilityPredicate base) {
+        return wherePart(symbol, base, null);
+    }
+
+    /**
+     * Allows the base blocks and registered utility parts at this symbol, except blocks enumerated by
+     * {@code exclusions}. Exclusions without enumerable candidates (for example, custom predicates) are rejected.
+     */
+    public FactoryBlockPattern wherePart(char symbol, TraceabilityPredicate base,
+                                         TraceabilityPredicate exclusions) {
+        if (utilityAbilities == null) {
+            utilityAbilities = Predicates.utilityAbilities();
+        }
+        if (exclusions == null) {
+            return where(symbol, base.or(utilityAbilities));
+        }
+
+        var excludedBlocks = candidateBlocks(exclusions, "wherePart exclusions");
+        var allowedUtilities = new TraceabilityPredicate();
+        for (SimplePredicate predicate : utilityAbilities.common) {
+            var candidates = candidateBlocks(predicate, "utility ability");
+            var allowed = candidates.stream()
+                    .filter(block -> !excludedBlocks.contains(block))
+                    .toArray(Block[]::new);
+            if (allowed.length > 0) {
+                allowedUtilities = allowedUtilities.or(Predicates.blocks(allowed).setPreviewCount(0));
+            }
+        }
+        for (SimplePredicate predicate : utilityAbilities.limited) {
+            var candidates = candidateBlocks(predicate, "utility ability");
+            if (Collections.disjoint(candidates, excludedBlocks)) {
+                allowedUtilities.limited.add(predicate);
+            } else if (!excludedBlocks.containsAll(candidates)) {
+                throw new IllegalArgumentException(
+                        "wherePart exclusions cannot partially exclude a globally limited utility ability");
+            }
+        }
+        return where(symbol, base.or(allowedUtilities));
+    }
+
+    private static ReferenceOpenHashSet<Block> candidateBlocks(TraceabilityPredicate predicate, String description) {
+        var blocks = new ReferenceOpenHashSet<Block>();
+        for (SimplePredicate simplePredicate : predicate.common) {
+            blocks.addAll(candidateBlocks(simplePredicate, description));
+        }
+        for (SimplePredicate simplePredicate : predicate.limited) {
+            blocks.addAll(candidateBlocks(simplePredicate, description));
+        }
+        if (blocks.isEmpty()) {
+            throw new IllegalArgumentException(description + " must provide at least one block candidate");
+        }
+        return blocks;
+    }
+
+    private static List<Block> candidateBlocks(SimplePredicate predicate, String description) {
+        if (predicate.candidates == null) {
+            throw new IllegalArgumentException(description + " must provide enumerable block candidates");
+        }
+        var candidates = predicate.candidates.get();
+        if (candidates == null) {
+            throw new IllegalArgumentException(description + " returned null block candidates");
+        }
+        return Arrays.asList(candidates);
     }
 
     public FactoryBlockPattern condition(Predicate<MultiblockState> condition) {

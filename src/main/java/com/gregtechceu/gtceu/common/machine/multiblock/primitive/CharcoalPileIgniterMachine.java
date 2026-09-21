@@ -211,7 +211,7 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
                 .aisle(m).setRepeatable(wallLayers.size())
                 .aisle(c)
                 .where('S', Predicates.controller(getDefinition()))
-                .where('B', Predicates.blocks(Blocks.BRICKS))
+                .wherePart('B', Predicates.blocks(Blocks.BRICKS))
                 .where('W', Predicates.blockTag(CustomTags.CHARCOAL_PILE_IGNITER_WALLS))
                 .where('L', logPredicate())
                 .where('A', Predicates.any())
