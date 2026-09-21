@@ -265,7 +265,7 @@ public class Predicates {
                 }
             }
             return false;
-        }, () -> BlockInfo.fromBlockState(GTBlocks.BATTERY_EMPTY_TIER_I.getDefaultState()), () -> GTCEuAPI.PSS_BATTERIES.entrySet().stream()
+        }, () -> BlockInfo.fromBlockState(GTBlocks.BATTERY_LAPOTRONIC_EV.getDefaultState()), () -> GTCEuAPI.PSS_BATTERIES.entrySet().stream()
                 .sorted(Comparator.comparingInt(entry -> entry.getKey().getTier()))
                 .map(entry -> entry.getValue().get())
                 .toArray(Block[]::new))

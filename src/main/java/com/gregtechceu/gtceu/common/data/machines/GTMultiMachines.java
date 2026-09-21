@@ -43,7 +43,6 @@ import appeng.api.networking.pathing.ChannelMode;
 import appeng.core.AEConfig;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -858,37 +857,6 @@ public class GTMultiMachines {
                     .where('G', blocks(CASING_LAMINATED_GLASS.get()))
                     .where('B', Predicates.powerSubstationBatteries())
                     .build())
-            .shapeInfos(definition -> {
-                List<MultiblockShapeInfo> shapeInfo = new ArrayList<>();
-                MultiblockShapeInfo.ShapeInfoBuilder builder = MultiblockShapeInfo.builder()
-                        .aisle("ICSCO", "NCMCT", "GGGGG", "GGGGG", "GGGGG")
-                        .aisle("CCCCC", "CCCCC", "GBBBG", "GBBBG", "GGGGG")
-                        .aisle("CCCCC", "CCCCC", "GBBBG", "GBBBG", "GGGGG")
-                        .aisle("CCCCC", "CCCCC", "GBBBG", "GBBBG", "GGGGG")
-                        .aisle("CCCCC", "CCCCC", "GGGGG", "GGGGG", "GGGGG")
-                        .where('S', definition, Direction.NORTH)
-                        .where('C', CASING_PALLADIUM_SUBSTATION)
-                        .where('G', CASING_LAMINATED_GLASS)
-                        .where('I', GTMachines.ENERGY_INPUT_HATCH[HV], Direction.NORTH)
-                        .where('N', GTMachines.SUBSTATION_ENERGY_INPUT_HATCH[EV], Direction.NORTH)
-                        .where('O', GTMachines.ENERGY_OUTPUT_HATCH[HV], Direction.NORTH)
-                        .where('T', GTMachines.SUBSTATION_ENERGY_OUTPUT_HATCH[EV], Direction.NORTH)
-                        .where('M',
-                                ConfigHolder.INSTANCE.machines.enableMaintenance ?
-                                        GTMachines.MAINTENANCE_HATCH.get().defaultBlockState().setValue(
-                                                GTMachines.MAINTENANCE_HATCH.get().getRotationState().property,
-                                                Direction.NORTH) :
-                                        CASING_PALLADIUM_SUBSTATION.get().defaultBlockState());
-
-                GTCEuAPI.PSS_BATTERIES.entrySet().stream()
-                        // filter out empty batteries in example structures, though they are still
-                        // allowed in the predicate (so you can see them on right-click)
-                        .filter(entry -> entry.getKey().getCapacity() > 0)
-                        .sorted(Comparator.comparingInt(entry -> entry.getKey().getTier()))
-                        .forEach(entry -> shapeInfo.add(builder.where('B', entry.getValue().get()).build(definition)));
-
-                return shapeInfo;
-            })
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_palladium_substation"),
                     GTCEu.id("block/multiblock/power_substation"))
             .register();
