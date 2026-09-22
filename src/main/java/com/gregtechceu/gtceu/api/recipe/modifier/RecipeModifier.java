@@ -78,10 +78,7 @@ public interface RecipeModifier extends IRecipeInfo {
                             if (maxContentMultiplier == 0) return null;
                         }
                         final long parallel = contentMultiplier << 1;
-                        if (parallel > maxContentMultiplier) {
-                            contentMultiplier = maxContentMultiplier;
-                            break;
-                        }
+                        if (parallel > maxContentMultiplier) break;
                         contentMultiplier = parallel;
                     } else {
                         duration = d;
@@ -184,10 +181,7 @@ public interface RecipeModifier extends IRecipeInfo {
                         if (maxContentMultiplier == 0) return null;
                     }
                     final long parallel = contentMultiplier * parallelFactor;
-                    if (parallel > maxContentMultiplier) {
-                        contentMultiplier = maxContentMultiplier;
-                        break;
-                    }
+                    if (parallel > maxContentMultiplier) break;
                     contentMultiplier = parallel;
                 } else {
                     duration = d;
