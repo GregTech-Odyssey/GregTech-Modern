@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.item.armor.ArmorLogicSuite;
 import com.gregtechceu.gtceu.api.item.component.IEnchantableItem;
 import com.gregtechceu.gtceu.api.item.component.IItemAttributes;
 import com.gregtechceu.gtceu.api.item.component.IItemComponent;
+import com.gregtechceu.gtceu.common.item.armor.ArmorSuiteFeatures;
 import com.gregtechceu.gtceu.common.item.armor.ArmorTooltips;
 
 import net.minecraft.ChatFormatting;
@@ -47,6 +48,8 @@ import java.util.UUID;
  * <p>
  * 潜行右键开关能量刃，开关总能切换；开启且电量足够时为激活伤害，并按目标最大生命值附加伤害，
  * 关闭或电量不足时为激活伤害的 30%。能量刃只在手持时按 1 A/s 耗电。
+ * <p>
+ * II 起与同级盔甲一样具备对 ExtraBotany 盖亚守护者 III 的召唤限制破解与缴械魔法破解，见 {@link ArmorSuiteFeatures}。
  */
 public class NanoSaberBehavior extends ToggleEnergyConsumerBehavior implements IItemAttributes, IEnchantableItem {
 
@@ -92,6 +95,14 @@ public class NanoSaberBehavior extends ToggleEnergyConsumerBehavior implements I
             }
         }
         return null;
+    }
+
+    public int getGrade() {
+        return grade;
+    }
+
+    public int getTier() {
+        return tier;
     }
 
     public double getActiveDamage() {
@@ -234,6 +245,7 @@ public class NanoSaberBehavior extends ToggleEnergyConsumerBehavior implements I
                 ArmorTooltips.amps(getHealthPercent()) + "%", ArmorTooltips.amps(ATTACK_RANGE[grade]),
                 ArmorTooltips.amps(getInactiveDamage()), ArmorTooltips.amps(PLAYER_ENTITY_REACH));
         ArmorTooltips.addDetail(lines, "metaarmor.gto.detail.energy_blade_drain");
+        if (grade >= 2) ArmorSuiteFeatures.addGaiaItemFeatures(tier, stack, lines);
         if (!ArmorTooltips.showDetails()) lines.add(ArmorTooltips.SHIFT_HINT);
     }
 

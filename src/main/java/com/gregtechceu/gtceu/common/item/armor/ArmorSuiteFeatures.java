@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorLogicSuite;
+import com.gregtechceu.gtceu.common.item.NanoSaberBehavior;
 import com.gregtechceu.gtceu.utils.input.KeyBind;
 
 import net.minecraft.ChatFormatting;
@@ -33,7 +34,8 @@ import java.util.List;
 
 /**
  * GTO: 纳米肌体 / 夸克高科四套（I~IV）共用的功能：生命强化、环境伤害抵扣、定时清除负面效果、
- * 生命恢复（III 起）、机械辅助，以及 II 起对 ExtraBotany 盖亚守护者 III 的法阵解析、抗缴械、缴械地雷解析。
+ * 生命恢复（III 起）、机械辅助，以及 II 起对 ExtraBotany 盖亚守护者 III 的召唤限制破解、缴械魔法破解、缴械地雷解析。
+ * 召唤限制破解与缴械魔法破解同样适用于 II 起的能量剑。
  * <p>
  * 持续耗电以 A/s 标示（实际每 tick 扣 1/20 或每秒扣一次），一次性耗电为 n/3600 A·h，均按该件装备自身电压计。
  */
@@ -200,30 +202,52 @@ public final class ArmorSuiteFeatures {
     // ExtraBotany 盖亚守护者 III（由 GTOCore 的 mixin 调用）
 
     /**
-     * II 起的四套装备可以对抗盖亚守护者 III
+     * 可对抗盖亚守护者 III 的物品（II 起的四套装备与能量剑）的电压等级，其余返回 -1
      */
-    public static boolean isGaiaResistant(ItemStack stack) {
+    private static int getGaiaTier(ItemStack stack) {
         ArmorLogicSuite suite = getSuite(stack);
-        return suite != null && suite.getGrade() >= 2;
-    }
-
-    public static boolean canPayGaiaInventory(ItemStack stack) {
-        ArmorLogicSuite suite = getSuite(stack);
-        IElectricItem item = GTCapabilityHelper.getElectricItem(stack);
-        return suite != null && item != null && item.canUse(suite.ampHourParts(GAIA_INVENTORY_PARTS));
-    }
-
-    public static boolean payGaiaInventory(ItemStack stack) {
-        ArmorLogicSuite suite = getSuite(stack);
-        return suite != null && pay(stack, suite.ampHourParts(GAIA_INVENTORY_PARTS));
+        if (suite != null) return suite.getGrade() >= 2 ? suite.getTier() : -1;
+        NanoSaberBehavior saber = NanoSaberBehavior.get(stack);
+        return saber != null && saber.getGrade() >= 2 ? saber.getTier() : -1;
     }
 
     /**
-     * 抗缴械：每 tick 扣 1 A/s 的 1/20
+     * 召唤限制破解每次召唤的耗电，与 {@link ArmorLogicSuite#ampHourParts} 同一算法
+     */
+    private static long gaiaInventoryCost(int tier) {
+        return Math.round((double) GAIA_INVENTORY_PARTS * 20 * GTValues.V[tier]);
+    }
+
+    /**
+     * 缴械魔法破解每 tick 的耗电，与 {@link ArmorLogicSuite#ampsPerSecond} 同一算法
+     */
+    private static long gaiaDisarmCost(int tier) {
+        return Math.round(GAIA_DISARM_AMPS * GTValues.V[tier] / 20);
+    }
+
+    /**
+     * II 起的四套装备与能量剑可以对抗盖亚守护者 III
+     */
+    public static boolean isGaiaResistant(ItemStack stack) {
+        return getGaiaTier(stack) >= 0;
+    }
+
+    public static boolean canPayGaiaInventory(ItemStack stack) {
+        int tier = getGaiaTier(stack);
+        return tier >= 0 && ArmorTooltips.canUse(stack, gaiaInventoryCost(tier));
+    }
+
+    public static boolean payGaiaInventory(ItemStack stack) {
+        int tier = getGaiaTier(stack);
+        return tier >= 0 && pay(stack, gaiaInventoryCost(tier));
+    }
+
+    /**
+     * 缴械魔法破解：每 tick 扣 1 A/s 的 1/20
      */
     public static boolean payGaiaDisarm(ItemStack stack) {
-        ArmorLogicSuite suite = getSuite(stack);
-        return suite != null && pay(stack, suite.ampsPerSecond(GAIA_DISARM_AMPS));
+        int tier = getGaiaTier(stack);
+        return tier >= 0 && pay(stack, gaiaDisarmCost(tier));
     }
 
     /**
@@ -292,20 +316,27 @@ public final class ArmorSuiteFeatures {
      */
     public static void addGaiaFeatures(ArmorLogicSuite suite, ItemStack stack, List<Component> lines) {
         if (suite.getGrade() < 2) return;
-        lines.add(ArmorTooltips.section("metaarmor.gto.section.gaia"));
-        ArmorTooltips.addFeature(lines, "metaarmor.gto.feature.gaia_inventory",
-                ArmorTooltips.piecePassive(ArmorTooltips.canUse(stack, suite.ampHourParts(GAIA_INVENTORY_PARTS))),
-                ArmorTooltips.ampHours("metaarmor.gto.cost.per_summon", GAIA_INVENTORY_PARTS));
-        ArmorTooltips.addDetail(lines, "metaarmor.gto.detail.gaia_inventory");
-        ArmorTooltips.addFeature(lines, "metaarmor.gto.feature.gaia_disarm",
-                ArmorTooltips.piecePassive(ArmorTooltips.canUse(stack, suite.ampsPerSecond(GAIA_DISARM_AMPS))),
-                ArmorTooltips.ampsPerSecond(GAIA_DISARM_AMPS));
-        ArmorTooltips.addDetail(lines, "metaarmor.gto.detail.gaia_disarm");
+        addGaiaItemFeatures(suite.getTier(), stack, lines);
         if (suite.getArmorType() == ArmorItem.Type.CHESTPLATE) {
             ArmorTooltips.addFeature(lines, "metaarmor.gto.feature.gaia_mine",
                     ArmorTooltips.piecePassive(ArmorTooltips.canUse(stack, suite.ampHourParts(GAIA_MINE_PARTS))),
                     ArmorTooltips.ampHours("metaarmor.gto.cost.per_use", GAIA_MINE_PARTS));
             ArmorTooltips.addDetail(lines, "metaarmor.gto.detail.gaia_mine");
         }
+    }
+
+    /**
+     * 盖亚对抗一节的召唤限制破解与缴械魔法破解，四套装备与能量剑共用
+     */
+    public static void addGaiaItemFeatures(int tier, ItemStack stack, List<Component> lines) {
+        lines.add(ArmorTooltips.section("metaarmor.gto.section.gaia"));
+        ArmorTooltips.addFeature(lines, "metaarmor.gto.feature.gaia_inventory",
+                ArmorTooltips.piecePassive(ArmorTooltips.canUse(stack, gaiaInventoryCost(tier))),
+                ArmorTooltips.ampHours("metaarmor.gto.cost.per_summon", GAIA_INVENTORY_PARTS));
+        ArmorTooltips.addDetail(lines, "metaarmor.gto.detail.gaia_inventory");
+        ArmorTooltips.addFeature(lines, "metaarmor.gto.feature.gaia_disarm",
+                ArmorTooltips.piecePassive(ArmorTooltips.canUse(stack, gaiaDisarmCost(tier))),
+                ArmorTooltips.ampsPerSecond(GAIA_DISARM_AMPS));
+        ArmorTooltips.addDetail(lines, "metaarmor.gto.detail.gaia_disarm");
     }
 }

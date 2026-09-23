@@ -401,14 +401,14 @@ public class LangHandler {
         provider.add("metaarmor.gto.cost.per_heal", "%s/3600 A·h per health point");
         provider.add("metaarmor.gto.feature.mech_assist", "Mechanical assist");
         provider.add("metaarmor.gto.detail.mech_assist", "Bare-handed melee attacks deal %s extra damage, including against Gaia Guardians");
-        provider.add("metaarmor.gto.feature.gaia_inventory", "Ritual bypass");
+        provider.add("metaarmor.gto.feature.gaia_inventory", "Summon restriction breaker");
         provider.add("metaarmor.gto.detail.gaia_inventory", "Counts as an allowed item in the Gaia Guardian III summoning inventory check");
         provider.add("metaarmor.gto.cost.per_summon", "%s/3600 A·h per summon");
-        provider.add("metaarmor.gto.feature.gaia_disarm", "Disarm resistance");
+        provider.add("metaarmor.gto.feature.gaia_disarm", "Disarm magic breaker");
         provider.add("metaarmor.gto.detail.gaia_disarm", "Gaia Guardian III's continuous disarm cannot remove this piece");
         provider.add("metaarmor.gto.feature.gaia_mine", "Disarm mine bypass");
         provider.add("metaarmor.gto.detail.gaia_mine", "Green disarm mines no longer knock the main-hand item away; paid by any worn tier II or higher piece");
-        provider.add("metaarmor.gto.gaia.no_energy", "insufficient energy; cannot bypass this ritual");
+        provider.add("metaarmor.gto.gaia.no_energy", "insufficient energy; cannot break the summoning restriction");
         provider.add("metaarmor.gto.section.weapon", "Weapon");
         provider.add("metaarmor.gto.feature.energy_blade", "Energy blade");
         provider.add("metaarmor.gto.name.energy_blade", "Energy blade");
