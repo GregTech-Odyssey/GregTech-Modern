@@ -892,7 +892,8 @@ public class LangHandler {
         provider.add("behaviour.memory_card.gto.section.copied", "Currently Copied Data");
         provider.add("behaviour.memory_card.gto.section.usage", "Usage");
         provider.add("behaviour.memory_card.gto.empty", "Card is empty");
-        provider.add("behaviour.memory_card.gto.not_recorded", "Not recorded");
+        provider.add("behaviour.memory_card.gto.none", "None");
+        provider.add("behaviour.memory_card.gto.not_recorded", "Not on source machine");
         provider.add("behaviour.memory_card.gto.on", "On");
         provider.add("behaviour.memory_card.gto.off", "Off");
         provider.add("behaviour.memory_card.gto.setting.output_side", "Output Side");

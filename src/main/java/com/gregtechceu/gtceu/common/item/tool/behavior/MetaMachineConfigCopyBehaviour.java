@@ -226,12 +226,13 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
     }
 
     /**
-     * 功能行「▸ 名称 值」；value 为 null（卡内为空）时只显示名称
+     * 功能行「▸ 名称 值」；value 为 null（卡内为空）时显示「无」
      */
     private static Component settingLine(MutableComponent name, @Nullable Component value) {
         MutableComponent line = Component.literal(" ▸ ").withStyle(ChatFormatting.DARK_GRAY)
                 .append(name.withStyle(ChatFormatting.WHITE));
-        if (value != null) line.append("  ").append(value);
+        line.append("  ").append(value != null ? value :
+                Component.translatable("behaviour.memory_card.gto.none").withStyle(ChatFormatting.GRAY));
         return line;
     }
 
