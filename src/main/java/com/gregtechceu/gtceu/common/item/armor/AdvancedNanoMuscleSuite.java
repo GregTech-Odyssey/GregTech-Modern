@@ -3,14 +3,9 @@ package com.gregtechceu.gtceu.common.item.armor;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
-import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
-import com.gregtechceu.gtceu.api.item.armor.ArmorUtils;
-import com.gregtechceu.gtceu.utils.input.KeyBind;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
@@ -24,184 +19,51 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.ints.IntList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+/**
+ * 纳米肌体进阶套装 (II)。GTO: 补齐为完整四件，胸甲带喷气背包，其余部件与纳米肌体 (I) 行为一致、数值更高
+ */
 public class AdvancedNanoMuscleSuite extends NanoMuscleSuite implements IJetpack {
 
-    // A replacement for checking the current world time, to get around the gamerule that stops it
-    private long timer = 0L;
-    private List<Pair<NonNullList<ItemStack>, IntList>> inventoryIndexMap;
+    public AdvancedNanoMuscleSuite(ArmorItem.Type slot, int energyPerUse, long capacity, int tier) {
+        super(slot, energyPerUse, capacity, tier);
+    }
 
     public AdvancedNanoMuscleSuite(int energyPerUse, long capacity, int tier) {
-        super(ArmorItem.Type.CHESTPLATE, energyPerUse, capacity, tier);
+        this(ArmorItem.Type.CHESTPLATE, energyPerUse, capacity, tier);
     }
 
     @Override
     public void onArmorTick(Level world, Player player, @NotNull ItemStack item) {
-        IElectricItem cont = GTCapabilityHelper.getElectricItem(item);
-        if (cont == null) {
-            return;
+        if (type == ArmorItem.Type.CHESTPLATE) {
+            ArmorSuiteFeatures.tick(this, world, player, item);
+            JetpackChestHelper.tick(this, world, player, item);
+        } else {
+            super.onArmorTick(world, player, item);
         }
-
-        CompoundTag data = item.getOrCreateTag();
-        // Assume no tags exist if we don't see the enabled tag
-        if (!data.contains("enabled")) {
-            data.putBoolean("enabled", true);
-            data.putBoolean("hover", false);
-            data.putBoolean("emergencyHover", true);
-            data.putByte("toggleTimer", (byte) 0);
-            data.putBoolean("canShare", false);
-        }
-
-        boolean jetpackEnabled = data.getBoolean("enabled");
-        boolean hoverMode = data.getBoolean("hover");
-        boolean emergencyHover = data.getBoolean("emergencyHover");
-        byte toggleTimer = data.getByte("toggleTimer");
-        boolean canShare = data.getBoolean("canShare");
-
-        String messageKey = null;
-        if (toggleTimer == 0) {
-            if (KeyBind.JETPACK_ENABLE.isKeyDown(player)) {
-                jetpackEnabled = !jetpackEnabled;
-                messageKey = "metaarmor.jetpack.flight." + (jetpackEnabled ? "enable" : "disable");
-                data.putBoolean("enabled", jetpackEnabled);
-            } else if (KeyBind.ARMOR_HOVER.isKeyDown(player)) {
-                hoverMode = !hoverMode;
-                messageKey = "metaarmor.jetpack.hover." + (hoverMode ? "enable" : "disable");
-                data.putBoolean("hover", hoverMode);
-            } else if (KeyBind.ARMOR_EMERGENCY_HOVER.isKeyDown(player)) {
-                emergencyHover = !emergencyHover;
-                messageKey = "metaarmor.jetpack.emergency_hover." + (emergencyHover ? "enable" : "disable");
-                data.putBoolean("emergencyHover", emergencyHover);
-            } else if (KeyBind.ARMOR_CHARGING.isKeyDown(player)) {
-                canShare = !canShare;
-                if (canShare && cont.getCharge() == 0) { // Only allow for charging to be enabled if charge is nonzero
-                    messageKey = "metaarmor.nms.share.error";
-                    canShare = false;
-                } else {
-                    messageKey = "metaarmor.nms.share." + (canShare ? "enable" : "disable");
-                }
-                data.putBoolean("canShare", canShare);
-            }
-
-            if (messageKey != null) {
-                toggleTimer = 5;
-                if (!world.isClientSide) player.displayClientMessage(Component.translatable(messageKey), true);
-            }
-        }
-
-        if (toggleTimer > 0) toggleTimer--;
-        data.putByte("toggleTimer", toggleTimer);
-
-        performFlying(player, jetpackEnabled, hoverMode, item);
-
-        // Charging mechanics
-        if (canShare && !world.isClientSide) {
-            // Check for new things to charge every 5 seconds
-            if (timer % 100 == 0)
-                inventoryIndexMap = ArmorUtils.getChargeableItem(player, cont.getTier());
-
-            if (inventoryIndexMap != null && !inventoryIndexMap.isEmpty()) {
-                // Charge all inventory slots
-                for (int i = 0; i < inventoryIndexMap.size(); i++) {
-                    Pair<NonNullList<ItemStack>, IntList> inventoryMap = inventoryIndexMap.get(i);
-                    var inventoryIterator = inventoryMap.getSecond().iterator();
-                    while (inventoryIterator.hasNext()) {
-                        int slot = inventoryIterator.nextInt();
-                        IElectricItem chargable = GTCapabilityHelper.getElectricItem(inventoryMap.getFirst().get(slot));
-
-                        // Safety check the null, it should not actually happen. Also don't try and charge itself
-                        if (chargable == null || chargable == cont) {
-                            inventoryIterator.remove();
-                            continue;
-                        }
-
-                        long attemptedChargeAmount = chargable.getTransferLimit() * 10;
-
-                        // Accounts for tick differences when charging items
-                        if (chargable.getCharge() < chargable.getMaxCharge() && cont.canUse(attemptedChargeAmount) &&
-                                timer % 10 == 0) {
-                            long delta = chargable.charge(attemptedChargeAmount, cont.getTier(), true, false);
-                            if (delta > 0) {
-                                cont.discharge(delta, cont.getTier(), true, false, false);
-                            }
-                            if (chargable.getCharge() == chargable.getMaxCharge()) {
-                                inventoryIterator.remove();
-                            }
-                            player.inventoryMenu.sendAllDataToRemote();
-                        }
-                    }
-
-                    if (inventoryMap.getSecond().isEmpty()) inventoryIndexMap.remove(inventoryMap);
-                }
-            }
-        }
-
-        timer++;
-        if (timer == Long.MAX_VALUE)
-            timer = 0;
     }
 
     @Override
-    public void addInfo(ItemStack itemStack, List<Component> lines) {
-        super.addInfo(itemStack, lines);
-        CompoundTag data = itemStack.getOrCreateTag();
-        Component state;
-        boolean enabled = !data.contains("enabled") || data.getBoolean("enabled");
-        state = enabled ? Component.translatable("metaarmor.hud.status.enabled") :
-                Component.translatable("metaarmor.hud.status.disabled");
-        lines.add(Component.translatable("metaarmor.hud.engine_enabled", state));
-
-        boolean canShare = data.contains("canShare") && data.getBoolean("canShare");
-        state = canShare ? Component.translatable("metaarmor.hud.status.enabled") :
-                Component.translatable("metaarmor.hud.status.disabled");
-        lines.add(Component.translatable("metaarmor.energy_share.tooltip", state));
-        lines.add(Component.translatable("metaarmor.energy_share.tooltip.guide"));
-
-        boolean hover = data.contains("hover") && data.getBoolean("hover");
-        state = hover ? Component.translatable("metaarmor.hud.status.enabled") :
-                Component.translatable("metaarmor.hud.status.disabled");
-        lines.add(Component.translatable("metaarmor.hud.hover_mode", state));
-
-        boolean emergencyHover = data.getBoolean("emergencyHover");
-        state = emergencyHover ? Component.translatable("metaarmor.hud.status.enabled") :
-                Component.translatable("metaarmor.hud.status.disabled");
-        lines.add(Component.translatable("metaarmor.hud.emergency_hover_mode", state));
+    protected void addFeatures(ItemStack itemStack, List<Component> features) {
+        super.addFeatures(itemStack, features);
+        ArmorTooltips.addFeature(features, "ppe", ArmorTooltips.setPassive(itemStack, ArmorTooltips::isPPE), null);
+        ArmorTooltips.addDetail(features, "detail.ppe");
+        // GTO: 放射性材料危害要求四个部位均为防护装备，II 及以上每件都算
+        ArmorTooltips.addFeature(features, "radiation", ArmorTooltips.setPassive(itemStack, ArmorTooltips::isPPE),
+                null);
+        ArmorTooltips.addDetail(features, "detail.radiation");
+        if (type == ArmorItem.Type.CHESTPLATE) ArmorTooltips.addJetpackFeatures(itemStack, this, features);
     }
 
     @Override
     public InteractionResultHolder<ItemStack> onRightClick(Level world, @NotNull Player player, InteractionHand hand) {
-        ItemStack armor = player.getItemInHand(hand);
-
-        if (armor.getItem() instanceof ArmorComponentItem && player.isShiftKeyDown()) {
-            CompoundTag data = armor.getOrCreateTag();
-            boolean canShare = data.contains("canShare") && data.getBoolean("canShare");
-            IElectricItem cont = GTCapabilityHelper.getElectricItem(armor);
-            if (cont == null) {
-                return InteractionResultHolder.fail(armor);
-            }
-
-            canShare = !canShare;
-            if (!world.isClientSide) {
-                if (canShare && cont.getCharge() == 0) {
-                    player.sendSystemMessage(Component.translatable("metaarmor.energy_share.error"));
-                } else if (canShare) {
-                    player.sendSystemMessage(Component.translatable("metaarmor.energy_share.enable"));
-                } else {
-                    player.sendSystemMessage(Component.translatable("metaarmor.energy_share.disable"));
-                }
-            }
-
-            canShare = canShare && (cont.getCharge() != 0);
-            data.putBoolean("canShare", canShare);
-            return InteractionResultHolder.success(armor);
+        if (type == ArmorItem.Type.CHESTPLATE && player.isShiftKeyDown()) {
+            return JetpackChestHelper.onShiftUse(world, player, hand);
         }
-
         return super.onRightClick(world, player, hand);
     }
 
@@ -209,75 +71,72 @@ public class AdvancedNanoMuscleSuite extends NanoMuscleSuite implements IJetpack
     @Override
     public void drawHUD(ItemStack item, GuiGraphics guiGraphics) {
         addCapacityHUD(item, this.HUD);
-        IElectricItem cont = GTCapabilityHelper.getElectricItem(item);
-        if (cont == null) return;
-        if (!cont.canUse(energyPerUse)) return;
-        CompoundTag data = item.getTag();
-        if (data != null) {
-            if (data.contains("enabled")) {
-                Component status = (data.getBoolean("enabled") ?
-                        Component.translatable("metaarmor.hud.status.enabled") :
-                        Component.translatable("metaarmor.hud.status.disabled"));
-                Component result = Component.translatable("metaarmor.hud.engine_enabled", status);
-                this.HUD.newString(result);
-            }
-            if (data.contains("canShare")) {
-                String status = data.getBoolean("canShare") ? "metaarmor.hud.status.enabled" :
-                        "metaarmor.hud.status.disabled";
-                this.HUD.newString(Component.translatable("mataarmor.hud.supply_mode", Component.translatable(status)));
-            }
-
-            if (data.contains("hover")) {
-                String status = data.getBoolean("hover") ? "metaarmor.hud.status.enabled" :
-                        "metaarmor.hud.status.disabled";
-                this.HUD.newString(Component.translatable("metaarmor.hud.hover_mode", Component.translatable(status)));
-            }
-            String status = data.getBoolean("emergencyHover") ?
-                    "metaarmor.hud.status.enabled" : "metaarmor.hud.status.disabled";
-            this.HUD.newString(
-                    Component.translatable("metaarmor.hud.emergency_hover_mode", Component.translatable(status)));
-        }
+        if (canUseEnergy(item, energyPerUse)) JetpackChestHelper.addHudLines(item, this.HUD);
         this.HUD.draw(guiGraphics);
         this.HUD.reset();
     }
 
     @Override
     public ResourceLocation getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
-        return GTCEu.id("textures/armor/advanced_nano_muscle_suite_1.png");
+        if (this.type == ArmorItem.Type.CHESTPLATE) return GTCEu.id("textures/armor/advanced_nano_muscle_suite_1.png");
+        return super.getArmorTexture(stack, entity, slot, type);
+    }
+
+    @Override
+    public int getGrade() {
+        return 2;
+    }
+
+    // GTO: 整套护甲 45、韧性 24、击退抗性 1/6
+
+    @Override
+    public double getSuiteDamageAbsorption() {
+        return 2.25D;
+    }
+
+    @Override
+    public float getSuiteExtraToughness() {
+        return 1.0F;
+    }
+
+    @Override
+    public float getSuiteExtraKnockbackResistance() {
+        return 1.0F / 24;
+    }
+
+    @Override
+    public int getMaxSpeedLevel() {
+        return 2;
+    }
+
+    @Override
+    public boolean isPPE() {
+        return true;
+    }
+
+    // 喷气背包
+
+    @Override
+    public int getFlightEnergyPerTick() {
+        return (int) ampsPerSecond(JetpackChestHelper.FLIGHT_AMPS);
     }
 
     @Override
     public boolean canUseEnergy(@NotNull ItemStack stack, int amount) {
-        IElectricItem container = getIElectricItem(stack);
-        if (container == null)
-            return false;
-        return container.canUse(amount);
+        IElectricItem container = GTCapabilityHelper.getElectricItem(stack);
+        return container != null && container.canUse(amount);
     }
 
     @Override
     public void drainEnergy(@NotNull ItemStack stack, int amount) {
-        IElectricItem container = getIElectricItem(stack);
-        if (container == null)
-            return;
-        container.discharge(amount, tier, true, false, false);
+        IElectricItem container = GTCapabilityHelper.getElectricItem(stack);
+        if (container != null) container.discharge(amount, tier, true, false, false);
     }
 
     @Override
     public boolean hasEnergy(@NotNull ItemStack stack) {
-        IElectricItem container = getIElectricItem(stack);
-        if (container == null)
-            return false;
-        return container.getCharge() > 0;
-    }
-
-    @Nullable
-    private static IElectricItem getIElectricItem(@NotNull ItemStack stack) {
-        return GTCapabilityHelper.getElectricItem(stack);
-    }
-
-    @Override
-    public double getSprintEnergyModifier() {
-        return 4.0D;
+        IElectricItem container = GTCapabilityHelper.getElectricItem(stack);
+        return container != null && container.getCharge() > 0;
     }
 
     @Override
@@ -319,10 +178,5 @@ public class AdvancedNanoMuscleSuite extends NanoMuscleSuite implements IJetpack
     @Override
     public float getFallDamageReduction() {
         return 3.5f;
-    }
-
-    @Override
-    public boolean isPPE() {
-        return true;
     }
 }

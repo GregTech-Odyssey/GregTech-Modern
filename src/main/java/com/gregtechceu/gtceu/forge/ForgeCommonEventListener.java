@@ -36,12 +36,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.PotionItem;
@@ -125,16 +125,15 @@ public class ForgeCommonEventListener {
     public static void onMobEffectEvent(MobEffectEvent.Applicable event) {
         if (event.getEntity() instanceof Player player) {
             ItemStack item = player.getItemBySlot(EquipmentSlot.HEAD);
-            if (item.is(GTItems.QUANTUM_HELMET.asItem()) && GTCapabilityHelper.getElectricItem(item) != null) {
+            // GTO: 夸克高科头盔 (III)(IV) 均生效，按头盔自身电压的安时计费
+            if (item.getItem() instanceof ArmorComponentItem armor &&
+                    armor.getArmorLogic() instanceof QuarkTechSuite suite &&
+                    suite.getArmorType() == ArmorItem.Type.HELMET) {
                 IElectricItem helmet = GTCapabilityHelper.getElectricItem(item);
-                MobEffectInstance effect = event.getEffectInstance();
-                int cost = QuarkTechSuite.potionRemovalCost.getOrDefault(effect.getEffect(), -1);
-                if (cost != -1) {
-                    cost = cost * (effect.getAmplifier() + 1);
-                    if (helmet.canUse(cost)) {
-                        helmet.discharge(cost, helmet.getTier(), true, false, false);
-                        event.setResult(Event.Result.DENY);
-                    }
+                long cost = suite.getEffectRemovalCost(event.getEffectInstance());
+                if (helmet != null && cost > 0 && helmet.canUse(cost)) {
+                    helmet.discharge(cost, helmet.getTier(), true, false, false);
+                    event.setResult(Event.Result.DENY);
                 }
             }
         }

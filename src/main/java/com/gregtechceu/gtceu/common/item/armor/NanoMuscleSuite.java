@@ -41,7 +41,20 @@ public class NanoMuscleSuite extends ArmorLogicSuite implements IStepAssist {
     }
 
     @Override
-    public void onArmorTick(Level world, Player player, ItemStack itemStack) {}
+    public void onArmorTick(Level world, Player player, ItemStack itemStack) {
+        ArmorSuiteFeatures.tick(this, world, player, itemStack);
+        if (type == ArmorItem.Type.LEGGINGS) tickSpeedLeggings(world, player, itemStack);
+    }
+
+    @Override
+    public int getGrade() {
+        return 1;
+    }
+
+    /**
+     * GTO: 受击、摔落每点伤害消耗 1/3600 A·h
+     */
+    public static final int DAMAGE_COST_PARTS = 1;
 
     public boolean handleUnblockableDamage(LivingEntity entity, @NotNull ItemStack armor, DamageSource source,
                                            double damage, ArmorItem.Type equipmentSlot) {
@@ -69,7 +82,7 @@ public class NanoMuscleSuite extends ArmorLogicSuite implements IStepAssist {
                            EquipmentSlot equipmentSlot) {
         IElectricItem item = GTCapabilityHelper.getElectricItem(itemStack);
         if (item != null) {
-            item.discharge(energyPerUse / 10L * damage, item.getTier(), true, false, false);
+            item.discharge(ampHourParts(DAMAGE_COST_PARTS) * damage, item.getTier(), true, false, false);
         }
         return super.damageArmor(entity, itemStack, source, damage, equipmentSlot);
     }
@@ -88,7 +101,19 @@ public class NanoMuscleSuite extends ArmorLogicSuite implements IStepAssist {
 
     @Override
     public double getDamageAbsorption() {
-        return 1.0D;
+        return getSuiteDamageAbsorption();
+    }
+
+    // GTO: 1.0 -> 1.5，整套 20 -> 30 护甲
+    @Override
+    public double getSuiteDamageAbsorption() {
+        return 1.5D;
+    }
+
+    // GTO: 护腿疾跑倍率 I 只有 1.8 倍一档
+    @Override
+    public int getMaxSpeedLevel() {
+        return 1;
     }
 
     @Override
@@ -105,13 +130,16 @@ public class NanoMuscleSuite extends ArmorLogicSuite implements IStepAssist {
     }
 
     @Override
-    public void addInfo(ItemStack itemStack, List<Component> lines) {
-        super.addInfo(itemStack, lines);
+    protected void addFeatures(ItemStack itemStack, List<Component> features) {
+        ArmorTooltips.addFeature(features, "damage_drain", ArmorTooltips.piecePassive(),
+                ArmorTooltips.ampHours("per_damage", DAMAGE_COST_PARTS));
         if (type == ArmorItem.Type.HELMET) {
-            lines.add(Component.translatable("metaarmor.tooltip.gto_no_nightvision"));
+            ArmorTooltips.addDetail(features, "detail.no_nightvision");
+        } else if (type == ArmorItem.Type.LEGGINGS) {
+            ArmorTooltips.addSpeedFeature(itemStack, this, features);
         } else if (type == ArmorItem.Type.BOOTS) {
-            lines.add(Component.translatable("metaarmor.tooltip.stepassist"));
-            lines.add(Component.translatable("metaarmor.tooltip.falldamage"));
+            ArmorTooltips.addFeature(features, "step_assist", ArmorTooltips.piecePassive(), null);
+            ArmorTooltips.addDetail(features, "detail.step_assist");
         }
     }
 }

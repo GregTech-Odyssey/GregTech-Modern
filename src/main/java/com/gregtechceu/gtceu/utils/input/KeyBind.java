@@ -41,6 +41,10 @@ public enum KeyBind {
     JETPACK_ENABLE("gtceu.key.enable_jetpack", KeyConflictContext.IN_GAME, InputConstants.KEY_G),
     BOOTS_ENABLE("gtceu.key.enable_boots", KeyConflictContext.IN_GAME, InputConstants.KEY_PERIOD),
     ARMOR_CHARGING("gtceu.key.armor_charging", KeyConflictContext.IN_GAME, InputConstants.KEY_N),
+    // GTO: 护腿疾跑倍率循环切换
+    ARMOR_SPEED("gtceu.key.armor_speed", KeyConflictContext.IN_GAME, InputConstants.KEY_K),
+    // GTO: 盔甲生命强化开关，默认不绑定（-1 即 GLFW_KEY_UNKNOWN；不引用 InputConstants.UNKNOWN，避免服务端加载客户端类）
+    ARMOR_LIFE("gtceu.key.armor_life", KeyConflictContext.IN_GAME, -1),
     TOOL_AOE_CHANGE("gtceu.key.tool_aoe_change", KeyConflictContext.IN_GAME, InputConstants.KEY_V),
     ACTION("gtceu.key.action", KeyConflictContext.GUI, InputConstants.KEY_DELETE),
     ;
@@ -154,13 +158,31 @@ public enum KeyBind {
 
     public void update(boolean pressed, boolean keyDown, ServerPlayer player) {
         BooleanBooleanMutablePair pair = this.mapping.get(player);
+        boolean wasDown = pair != null && pair.rightBoolean();
         if (pair == null) {
             this.mapping.put(player, BooleanBooleanMutablePair.of(pressed, keyDown));
         } else {
             pair.left(pressed);
             pair.right(keyDown);
         }
+        // GTO: 记录按下沿，供开关类功能每次按键只切换一次
+        if (keyDown && !wasDown) {
+            this.pressedAt.put(player, player.level().getGameTime());
+        }
     }
+
+    /**
+     * GTO: 服务端消费一次按键按下（按下后 {@link #PRESS_VALID_TICKS} tick 内有效）。
+     * 开关类功能用它代替 {@link #isKeyDown(Player)}，按住按键也只切换一次，状态以服务端为准再同步给客户端。
+     */
+    public boolean consumePress(Player player) {
+        if (!(player instanceof ServerPlayer serverPlayer)) return false;
+        Long time = this.pressedAt.remove(serverPlayer);
+        return time != null && player.level().getGameTime() - time <= PRESS_VALID_TICKS;
+    }
+
+    private static final int PRESS_VALID_TICKS = 10;
+    private final WeakHashMap<ServerPlayer, Long> pressedAt = new WeakHashMap<>();
 
     public boolean isPressed(Player player) {
         if (player.level().isClientSide) {

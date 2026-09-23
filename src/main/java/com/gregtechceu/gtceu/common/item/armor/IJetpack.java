@@ -1,12 +1,12 @@
 package com.gregtechceu.gtceu.common.item.armor;
 
+import com.gregtechceu.gtceu.api.item.armor.ArmorLogicSuite;
 import com.gregtechceu.gtceu.api.item.armor.ArmorUtils;
 import com.gregtechceu.gtceu.utils.input.KeyBind;
 
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -60,6 +60,13 @@ public interface IJetpack {
     }
 
     int getEnergyPerUse();
+
+    /**
+     * GTO: 飞行 / 悬停每 tick 耗电，默认等于 getEnergyPerUse
+     */
+    default int getFlightEnergyPerTick() {
+        return getEnergyPerUse();
+    }
 
     boolean canUseEnergy(ItemStack stack, int amount);
 
@@ -115,8 +122,9 @@ public interface IJetpack {
                 setYMotion(player, potentialY);
             }
 
-            float speedSideways = (float) (player.isShiftKeyDown() ? getSidewaysSpeed() * 0.5f :
-                    getSidewaysSpeed());
+            // GTO: 水平飞行速度同样乘以护腿疾跑倍率
+            float speedSideways = (float) ((player.isShiftKeyDown() ? getSidewaysSpeed() * 0.5f :
+                    getSidewaysSpeed()) * ArmorLogicSuite.getLeggingsSpeedMultiplier(player));
             float speedForward = (float) (player.isSprinting() ? speedSideways * getSprintSpeedModifier() :
                     speedSideways);
 
@@ -137,7 +145,7 @@ public interface IJetpack {
 
             if (editMotion) {
                 int energyUsed = (int) Math
-                        .round(getEnergyPerUse() * (player.isSprinting() ? getSprintEnergyModifier() : 1));
+                        .round(getFlightEnergyPerTick() * (player.isSprinting() ? getSprintEnergyModifier() : 1));
                 drainEnergy(stack, energyUsed);
                 ArmorUtils.spawnParticle(player.level(), player, getParticle(), -0.6D);
             }
@@ -162,7 +170,9 @@ public interface IJetpack {
         CompoundTag tag = stack.getOrCreateTag();
         tag.putBoolean("enabled", true);
         tag.putBoolean("hover", true);
-        player.displayClientMessage(Component.translatable("metaarmor.jetpack.emergency_hover_mode"), true);
+        if (!player.level().isClientSide) {
+            player.displayClientMessage(ArmorTooltips.emergencyHoverMessage(stack), false);
+        }
         player.fallDistance = 0;
 
         if (!player.level().isClientSide) {

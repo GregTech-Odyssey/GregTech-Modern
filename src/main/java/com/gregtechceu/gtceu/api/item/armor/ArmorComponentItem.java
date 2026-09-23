@@ -61,6 +61,17 @@ public class ArmorComponentItem extends ArmorItem implements IComponentItem {
         }
     }
 
+    /**
+     * GTO: 电力盔甲在自己的 tooltip 里写明有电 / 断电的防护数值，隐藏原版"穿在身上时"属性段，避免显示两套不一致的数字
+     */
+    @Override
+    public int getDefaultTooltipHideFlags(ItemStack stack) {
+        if (armorLogic instanceof ArmorLogicSuite suite && suite.getDamageAbsorption() > 0) {
+            return ItemStack.TooltipPart.MODIFIERS.getMask();
+        }
+        return super.getDefaultTooltipHideFlags(stack);
+    }
+
     @Override
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
         Multimap<Attribute, AttributeModifier> multimap = ArrayListMultimap.create();

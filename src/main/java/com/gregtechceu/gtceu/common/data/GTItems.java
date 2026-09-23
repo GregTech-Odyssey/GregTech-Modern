@@ -20,6 +20,7 @@ import com.gregtechceu.gtceu.api.item.ComponentItem;
 import com.gregtechceu.gtceu.api.item.IComponentItem;
 import com.gregtechceu.gtceu.api.item.TagPrefixItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
+import com.gregtechceu.gtceu.api.item.armor.ArmorLogicSuite;
 import com.gregtechceu.gtceu.api.item.component.*;
 import com.gregtechceu.gtceu.api.item.tool.MaterialToolTier;
 import com.gregtechceu.gtceu.common.data.materials.GTFoods;
@@ -2269,11 +2270,10 @@ public class GTItems {
             .item("nanomuscle_chestplate",
                     (p) -> new ArmorComponentItem(GTArmorMaterials.ARMOR, ArmorItem.Type.CHESTPLATE, p)
                             .setArmorLogic(new NanoMuscleSuite(ArmorItem.Type.CHESTPLATE,
-                                    512,
-                                    6_400_000L * (long) Math.max(1,
-                                            Math.pow(4, ConfigHolder.INSTANCE.tools.voltageTierNanoSuit - 3)),
+                                    ArmorLogicSuite.fullPowerDrain(ConfigHolder.INSTANCE.tools.voltageTierNanoSuit),
+                                    ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierNanoSuit, 1),
                                     ConfigHolder.INSTANCE.tools.voltageTierNanoSuit)))
-            .lang("NanoMuscle™ Suite Chestplate")
+            .lang("NanoMuscle™ Suite Chestplate (I)")
             .properties(p -> p.rarity(Rarity.UNCOMMON))
             .tag(Tags.Items.ARMORS_CHESTPLATES)
             .register();
@@ -2281,22 +2281,20 @@ public class GTItems {
             .item("nanomuscle_leggings",
                     (p) -> new ArmorComponentItem(GTArmorMaterials.ARMOR, ArmorItem.Type.LEGGINGS, p)
                             .setArmorLogic(new NanoMuscleSuite(ArmorItem.Type.LEGGINGS,
-                                    512,
-                                    6_400_000L * (long) Math.max(1,
-                                            Math.pow(4, ConfigHolder.INSTANCE.tools.voltageTierNanoSuit - 3)),
+                                    ArmorLogicSuite.fullPowerDrain(ConfigHolder.INSTANCE.tools.voltageTierNanoSuit),
+                                    ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierNanoSuit, 1),
                                     ConfigHolder.INSTANCE.tools.voltageTierNanoSuit)))
-            .lang("NanoMuscle™ Suite Leggings")
+            .lang("NanoMuscle™ Suite Leggings (I)")
             .properties(p -> p.rarity(Rarity.UNCOMMON))
             .tag(Tags.Items.ARMORS_LEGGINGS)
             .register();
     public static ItemEntry<ArmorComponentItem> NANO_BOOTS = REGISTRATE
             .item("nanomuscle_boots", (p) -> new ArmorComponentItem(GTArmorMaterials.ARMOR, ArmorItem.Type.BOOTS, p)
                     .setArmorLogic(new NanoMuscleSuite(ArmorItem.Type.BOOTS,
-                            512,
-                            6_400_000L * (long) Math.max(1,
-                                    Math.pow(4, ConfigHolder.INSTANCE.tools.voltageTierNanoSuit - 3)),
+                            ArmorLogicSuite.fullPowerDrain(ConfigHolder.INSTANCE.tools.voltageTierNanoSuit),
+                            ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierNanoSuit, 1),
                             ConfigHolder.INSTANCE.tools.voltageTierNanoSuit)))
-            .lang("NanoMuscle™ Suite Boots")
+            .lang("NanoMuscle™ Suite Boots (I)")
             .properties(p -> p.rarity(Rarity.UNCOMMON))
             .tag(Tags.Items.ARMORS_BOOTS)
             .tag(CustomTags.STEP_BOOTS)
@@ -2304,11 +2302,10 @@ public class GTItems {
     public static ItemEntry<ArmorComponentItem> NANO_HELMET = REGISTRATE
             .item("nanomuscle_helmet", (p) -> new ArmorComponentItem(GTArmorMaterials.ARMOR, ArmorItem.Type.HELMET, p)
                     .setArmorLogic(new NanoMuscleSuite(ArmorItem.Type.HELMET,
-                            512,
-                            6_400_000L * (long) Math.max(1,
-                                    Math.pow(4, ConfigHolder.INSTANCE.tools.voltageTierNanoSuit - 3)),
+                            ArmorLogicSuite.fullPowerDrain(ConfigHolder.INSTANCE.tools.voltageTierNanoSuit),
+                            ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierNanoSuit, 1),
                             ConfigHolder.INSTANCE.tools.voltageTierNanoSuit)))
-            .lang("NanoMuscle™ Suite Helmet")
+            .lang("NanoMuscle™ Suite Helmet (I)")
             .tag(Tags.Items.ARMORS_HELMETS)
             .properties(p -> p.rarity(Rarity.UNCOMMON))
             .register();
@@ -2378,11 +2375,10 @@ public class GTItems {
             .item("quarktech_chestplate",
                     (p) -> new ArmorComponentItem(GTArmorMaterials.ARMOR, ArmorItem.Type.CHESTPLATE, p)
                             .setArmorLogic(new QuarkTechSuite(ArmorItem.Type.CHESTPLATE,
-                                    8192,
-                                    100_000_000L * (long) Math.max(1,
-                                            Math.pow(4, ConfigHolder.INSTANCE.tools.voltageTierQuarkTech - 5)),
+                                    ArmorLogicSuite.fullPowerDrain(ConfigHolder.INSTANCE.tools.voltageTierQuarkTech),
+                                    ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierQuarkTech, 9),
                                     ConfigHolder.INSTANCE.tools.voltageTierQuarkTech)))
-            .lang("QuarkTech™ Suite Chestplate")
+            .lang("QuarkTech™ Suite Chestplate (III)")
             .properties(p -> p.rarity(Rarity.RARE))
             .tag(Tags.Items.ARMORS_CHESTPLATES)
             .tag(ItemTags.FREEZE_IMMUNE_WEARABLES)
@@ -2392,11 +2388,10 @@ public class GTItems {
             .item("quarktech_leggings",
                     (p) -> new ArmorComponentItem(GTArmorMaterials.ARMOR, ArmorItem.Type.LEGGINGS, p)
                             .setArmorLogic(new QuarkTechSuite(ArmorItem.Type.LEGGINGS,
-                                    8192,
-                                    100_000_000L * (long) Math.max(1,
-                                            Math.pow(4, ConfigHolder.INSTANCE.tools.voltageTierQuarkTech - 5)),
+                                    ArmorLogicSuite.fullPowerDrain(ConfigHolder.INSTANCE.tools.voltageTierQuarkTech),
+                                    ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierQuarkTech, 9),
                                     ConfigHolder.INSTANCE.tools.voltageTierQuarkTech)))
-            .lang("QuarkTech™ Suite Leggings")
+            .lang("QuarkTech™ Suite Leggings (III)")
             .properties(p -> p.rarity(Rarity.RARE))
             .tag(Tags.Items.ARMORS_LEGGINGS)
             .tag(CustomTags.PPE_ARMOR)
@@ -2404,11 +2399,10 @@ public class GTItems {
     public static ItemEntry<ArmorComponentItem> QUANTUM_BOOTS = REGISTRATE
             .item("quarktech_boots", (p) -> new ArmorComponentItem(GTArmorMaterials.ARMOR, ArmorItem.Type.BOOTS, p)
                     .setArmorLogic(new QuarkTechSuite(ArmorItem.Type.BOOTS,
-                            8192,
-                            100_000_000L * (long) Math.max(1,
-                                    Math.pow(4, ConfigHolder.INSTANCE.tools.voltageTierQuarkTech - 5)),
+                            ArmorLogicSuite.fullPowerDrain(ConfigHolder.INSTANCE.tools.voltageTierQuarkTech),
+                            ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierQuarkTech, 9),
                             ConfigHolder.INSTANCE.tools.voltageTierQuarkTech)))
-            .lang("QuarkTech™ Suite Boots")
+            .lang("QuarkTech™ Suite Boots (III)")
             .properties(p -> p.rarity(Rarity.RARE))
             .tag(Tags.Items.ARMORS_BOOTS)
             .tag(CustomTags.PPE_ARMOR)
@@ -2417,11 +2411,10 @@ public class GTItems {
     public static ItemEntry<ArmorComponentItem> QUANTUM_HELMET = REGISTRATE
             .item("quarktech_helmet", (p) -> new ArmorComponentItem(GTArmorMaterials.ARMOR, ArmorItem.Type.HELMET, p)
                     .setArmorLogic(new QuarkTechSuite(ArmorItem.Type.HELMET,
-                            8192,
-                            100_000_000L * (long) Math.max(1,
-                                    Math.pow(4, ConfigHolder.INSTANCE.tools.voltageTierQuarkTech - 5)),
+                            ArmorLogicSuite.fullPowerDrain(ConfigHolder.INSTANCE.tools.voltageTierQuarkTech),
+                            ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierQuarkTech, 9),
                             ConfigHolder.INSTANCE.tools.voltageTierQuarkTech)))
-            .lang("QuarkTech™ Suite Helmet")
+            .lang("QuarkTech™ Suite Helmet (III)")
             .properties(p -> p.rarity(Rarity.RARE))
             .tag(Tags.Items.ARMORS_HELMETS)
             .tag(CustomTags.PPE_ARMOR)
@@ -2463,28 +2456,105 @@ public class GTItems {
     public static ItemEntry<ArmorComponentItem> NANO_CHESTPLATE_ADVANCED = REGISTRATE
             .item("advanced_nanomuscle_chestplate",
                     (p) -> new ArmorComponentItem(GTArmorMaterials.ARMOR, ArmorItem.Type.CHESTPLATE, p)
-                            .setArmorLogic(new AdvancedNanoMuscleSuite(512,
-                                    12_800_000L * (long) Math.max(1,
-                                            Math.pow(4, ConfigHolder.INSTANCE.tools.voltageTierAdvNanoSuit - 3)),
+                            .setArmorLogic(new AdvancedNanoMuscleSuite(ArmorLogicSuite.fullPowerDrain(ConfigHolder.INSTANCE.tools.voltageTierAdvNanoSuit),
+                                    ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierAdvNanoSuit, 3),
                                     ConfigHolder.INSTANCE.tools.voltageTierAdvNanoSuit)))
-            .lang("Advanced NanoMuscle™ Suite Chestplate")
+            .lang("Advanced NanoMuscle™ Suite Chestplate (II)")
             .properties(p -> p.rarity(Rarity.RARE))
             .tag(Tags.Items.ARMORS_CHESTPLATES)
             .tag(CustomTags.PPE_ARMOR)
             .register();
+    public static ItemEntry<ArmorComponentItem> NANO_HELMET_ADVANCED = REGISTRATE
+            .item("advanced_nanomuscle_helmet", (p) -> new ArmorComponentItem(GTArmorMaterials.ARMOR, ArmorItem.Type.HELMET, p)
+                    .setArmorLogic(new AdvancedNanoMuscleSuite(ArmorItem.Type.HELMET,
+                            ArmorLogicSuite.fullPowerDrain(ConfigHolder.INSTANCE.tools.voltageTierAdvNanoSuit),
+                            ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierAdvNanoSuit, 3),
+                            ConfigHolder.INSTANCE.tools.voltageTierAdvNanoSuit)))
+            .lang("Advanced NanoMuscle™ Suite Helmet (II)")
+            // GTO: 图标沿用 nanomuscle 系列
+            .model((ctx, prov) -> prov.generated(ctx::getEntry, prov.modLoc("item/nanomuscle_helmet")))
+            .properties(p -> p.rarity(Rarity.RARE))
+            .tag(Tags.Items.ARMORS_HELMETS)
+            .tag(CustomTags.PPE_ARMOR)
+            .register();
+    public static ItemEntry<ArmorComponentItem> NANO_LEGGINGS_ADVANCED = REGISTRATE
+            .item("advanced_nanomuscle_leggings", (p) -> new ArmorComponentItem(GTArmorMaterials.ARMOR, ArmorItem.Type.LEGGINGS, p)
+                    .setArmorLogic(new AdvancedNanoMuscleSuite(ArmorItem.Type.LEGGINGS,
+                            ArmorLogicSuite.fullPowerDrain(ConfigHolder.INSTANCE.tools.voltageTierAdvNanoSuit),
+                            ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierAdvNanoSuit, 3),
+                            ConfigHolder.INSTANCE.tools.voltageTierAdvNanoSuit)))
+            .lang("Advanced NanoMuscle™ Suite Leggings (II)")
+            // GTO: 图标沿用 nanomuscle 系列
+            .model((ctx, prov) -> prov.generated(ctx::getEntry, prov.modLoc("item/nanomuscle_leggings")))
+            .properties(p -> p.rarity(Rarity.RARE))
+            .tag(Tags.Items.ARMORS_LEGGINGS)
+            .tag(CustomTags.PPE_ARMOR)
+            .register();
+    public static ItemEntry<ArmorComponentItem> NANO_BOOTS_ADVANCED = REGISTRATE
+            .item("advanced_nanomuscle_boots", (p) -> new ArmorComponentItem(GTArmorMaterials.ARMOR, ArmorItem.Type.BOOTS, p)
+                    .setArmorLogic(new AdvancedNanoMuscleSuite(ArmorItem.Type.BOOTS,
+                            ArmorLogicSuite.fullPowerDrain(ConfigHolder.INSTANCE.tools.voltageTierAdvNanoSuit),
+                            ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierAdvNanoSuit, 3),
+                            ConfigHolder.INSTANCE.tools.voltageTierAdvNanoSuit)))
+            .lang("Advanced NanoMuscle™ Suite Boots (II)")
+            // GTO: 图标沿用 nanomuscle 系列
+            .model((ctx, prov) -> prov.generated(ctx::getEntry, prov.modLoc("item/nanomuscle_boots")))
+            .properties(p -> p.rarity(Rarity.RARE))
+            .tag(Tags.Items.ARMORS_BOOTS)
+            .tag(CustomTags.PPE_ARMOR)
+            .tag(CustomTags.STEP_BOOTS)
+            .register();
     public static ItemEntry<ArmorComponentItem> QUANTUM_CHESTPLATE_ADVANCED = REGISTRATE
             .item("advanced_quarktech_chestplate", (p) -> new ArmorComponentItem(GTArmorMaterials.ARMOR,
                     ArmorItem.Type.CHESTPLATE, p)
-                    .setArmorLogic(new AdvancedQuarkTechSuite(8192,
-                            1_000_000_000L *
-                                    (long) Math.max(1,
-                                            Math.pow(4, ConfigHolder.INSTANCE.tools.voltageTierAdvQuarkTech - 6)),
+                    .setArmorLogic(new AdvancedQuarkTechSuite(ArmorLogicSuite.fullPowerDrain(ConfigHolder.INSTANCE.tools.voltageTierAdvQuarkTech),
+                            ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierAdvQuarkTech, 27),
                             ConfigHolder.INSTANCE.tools.voltageTierAdvQuarkTech)))
-            .lang("Advanced QuarkTech™ Suite Chestplate")
+            .lang("Advanced QuarkTech™ Suite Chestplate (IV)")
             .properties(p -> p.rarity(Rarity.EPIC))
             .tag(Tags.Items.ARMORS_CHESTPLATES)
             .tag(ItemTags.FREEZE_IMMUNE_WEARABLES)
             .tag(CustomTags.PPE_ARMOR)
+            .register();
+    public static ItemEntry<ArmorComponentItem> QUANTUM_HELMET_ADVANCED = REGISTRATE
+            .item("advanced_quarktech_helmet", (p) -> new ArmorComponentItem(GTArmorMaterials.ARMOR, ArmorItem.Type.HELMET, p)
+                    .setArmorLogic(new AdvancedQuarkTechSuite(ArmorItem.Type.HELMET,
+                            ArmorLogicSuite.fullPowerDrain(ConfigHolder.INSTANCE.tools.voltageTierAdvQuarkTech),
+                            ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierAdvQuarkTech, 27),
+                            ConfigHolder.INSTANCE.tools.voltageTierAdvQuarkTech)))
+            .lang("Advanced QuarkTech™ Suite Helmet (IV)")
+            // GTO: 图标沿用 quarktech 系列
+            .model((ctx, prov) -> prov.generated(ctx::getEntry, prov.modLoc("item/quarktech_helmet")))
+            .properties(p -> p.rarity(Rarity.EPIC))
+            .tag(Tags.Items.ARMORS_HELMETS)
+            .tag(CustomTags.PPE_ARMOR)
+            .register();
+    public static ItemEntry<ArmorComponentItem> QUANTUM_LEGGINGS_ADVANCED = REGISTRATE
+            .item("advanced_quarktech_leggings", (p) -> new ArmorComponentItem(GTArmorMaterials.ARMOR, ArmorItem.Type.LEGGINGS, p)
+                    .setArmorLogic(new AdvancedQuarkTechSuite(ArmorItem.Type.LEGGINGS,
+                            ArmorLogicSuite.fullPowerDrain(ConfigHolder.INSTANCE.tools.voltageTierAdvQuarkTech),
+                            ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierAdvQuarkTech, 27),
+                            ConfigHolder.INSTANCE.tools.voltageTierAdvQuarkTech)))
+            .lang("Advanced QuarkTech™ Suite Leggings (IV)")
+            // GTO: 图标沿用 quarktech 系列
+            .model((ctx, prov) -> prov.generated(ctx::getEntry, prov.modLoc("item/quarktech_leggings")))
+            .properties(p -> p.rarity(Rarity.EPIC))
+            .tag(Tags.Items.ARMORS_LEGGINGS)
+            .tag(CustomTags.PPE_ARMOR)
+            .register();
+    public static ItemEntry<ArmorComponentItem> QUANTUM_BOOTS_ADVANCED = REGISTRATE
+            .item("advanced_quarktech_boots", (p) -> new ArmorComponentItem(GTArmorMaterials.ARMOR, ArmorItem.Type.BOOTS, p)
+                    .setArmorLogic(new AdvancedQuarkTechSuite(ArmorItem.Type.BOOTS,
+                            ArmorLogicSuite.fullPowerDrain(ConfigHolder.INSTANCE.tools.voltageTierAdvQuarkTech),
+                            ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierAdvQuarkTech, 27),
+                            ConfigHolder.INSTANCE.tools.voltageTierAdvQuarkTech)))
+            .lang("Advanced QuarkTech™ Suite Boots (IV)")
+            // GTO: 图标沿用 quarktech 系列
+            .model((ctx, prov) -> prov.generated(ctx::getEntry, prov.modLoc("item/quarktech_boots")))
+            .properties(p -> p.rarity(Rarity.EPIC))
+            .tag(Tags.Items.ARMORS_BOOTS)
+            .tag(CustomTags.PPE_ARMOR)
+            .tag(CustomTags.STEP_BOOTS)
             .register();
 
     public static ItemEntry<Item> POWER_THRUSTER = REGISTRATE.item("power_thruster", Item::new)
