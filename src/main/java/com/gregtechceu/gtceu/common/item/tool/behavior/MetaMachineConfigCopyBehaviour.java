@@ -19,8 +19,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -37,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInformation {
 
@@ -159,41 +160,97 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
         return InteractionResult.SUCCESS;
     }
 
+    /**
+     * GTO: 按电力盔甲 tooltip 的格式列出可复制的每一项，并在同一行显示卡内存储的值。
+     */
     @Override
     public void appendTooltips(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
                                TooltipFlag isAdvanced) {
-        tooltipComponents.add(Component.translatable("behaviour.meta.machine.config.copy.tooltip"));
-        tooltipComponents.add(Component.translatable("behaviour.meta.machine.config.paste.tooltip"));
         CompoundTag data = stack.getTagElement(CONFIG_DATA);
-        if (data == null) return;
+        MutableComponent header = Component.literal("◆ ")
+                .append(Component.translatable("behaviour.memory_card.gto.section.copyable"));
+        if (data == null) {
+            header.append(Component.literal(" · ").append(Component.translatable("behaviour.memory_card.gto.empty"))
+                    .withStyle(ChatFormatting.GRAY));
+        }
+        tooltipComponents.add(header.withStyle(ChatFormatting.GOLD));
+
+        Direction origFront = data == null ? null : tagToDirection(data.get(ORIGINAL_FRONT));
+        addSetting(tooltipComponents, Component.translatable("behaviour.memory_card.gto.setting.output_side"), data,
+                config -> {
+                    Direction side = tagToDirection(config.get(DIRECTION));
+                    if (origFront == null || side == null) return notRecorded();
+                    return relativeDirectionComponent(origFront, side).copy().withStyle(ChatFormatting.WHITE);
+                });
+        addSetting(tooltipComponents, Component.translatable("behaviour.memory_card.gto.setting.auto_output"), data,
+                config -> onOff(config.getBoolean(AUTO)));
+        addSetting(tooltipComponents, Component.translatable("behaviour.memory_card.gto.setting.input_from_output"),
+                data, config -> onOff(config.getBoolean(INPUT_FROM_OUTPUT_SIDE)));
+        tooltipComponents.add(settingLine(Component.translatable("behaviour.memory_card.gto.setting.muffled"),
+                data == null ? null : data.contains(MUFFLED) ? onOff(data.getBoolean(MUFFLED)) : notRecorded()));
+
+        tooltipComponents.add(Component.literal("◆ ")
+                .append(Component.translatable("behaviour.memory_card.gto.section.usage"))
+                .withStyle(ChatFormatting.GOLD));
+        tooltipComponents.add(Component.literal(" ").append(Component.translatable("behaviour.memory_card.gto.usage.copy"))
+                .withStyle(ChatFormatting.GRAY));
+        tooltipComponents.add(Component.literal(" ")
+                .append(Component.translatable("behaviour.memory_card.gto.usage.paste"))
+                .withStyle(ChatFormatting.GRAY));
+        tooltipComponents.add(Component.literal(" ")
+                .append(Component.translatable("behaviour.memory_card.gto.usage.clear"))
+                .withStyle(ChatFormatting.GRAY));
         if (Screen.hasShiftDown()) {
-            tooltipComponents.add(CommonComponents.EMPTY);
-            if (data.contains(ORIGINAL_FRONT)) {
-                var origFront = tagToDirection(data.get(ORIGINAL_FRONT));
-                for (RecipeInfo cap : GTRegistries.RECIPE_INFOS) {
-                    if (!data.contains(cap.name)) continue;
-                    var configData = data.getCompound(cap.name);
-                    var component = cap.getColoredName();
-                    addConfigTypeTooltips(tooltipComponents, component, configData, origFront);
-                }
-            }
-            if (data.contains(MUFFLED)) {
-                tooltipComponents.add(Component.translatable("behaviour.setting.muffled.tooltip",
-                        data.getBoolean(MUFFLED) ? ENABLED : DISABLED));
-            }
+            tooltipComponents.add(Component.literal(" ")
+                    .append(Component.translatable("behaviour.memory_card.gto.details.relative"))
+                    .withStyle(ChatFormatting.DARK_GRAY));
+            tooltipComponents.add(Component.literal(" ")
+                    .append(Component.translatable("behaviour.memory_card.gto.details.skip"))
+                    .withStyle(ChatFormatting.DARK_GRAY));
+            tooltipComponents.add(Component.literal(" ")
+                    .append(Component.translatable("behaviour.memory_card.gto.details.not_copied"))
+                    .withStyle(ChatFormatting.DARK_GRAY));
         } else {
-            tooltipComponents.add(Component.translatable("item.toggle.advanced.info.tooltip"));
+            tooltipComponents.add(Component.translatable("metaarmor.gto.hint.shift")
+                    .withStyle(ChatFormatting.DARK_GRAY));
         }
     }
 
-    private static void addConfigTypeTooltips(List<Component> tooltip, Component baseComponent,
-                                              CompoundTag data, Direction origFront) {
-        tooltip.add(Component.translatable("behaviour.setting.output.direction.tooltip",
-                baseComponent, relativeDirectionComponent(origFront, tagToDirection(data.get(DIRECTION)))));
-        tooltip.add(Component.translatable("behaviour.setting.item_auto_output.tooltip", baseComponent,
-                data.getBoolean(AUTO) ? ENABLED : DISABLED));
-        tooltip.add(Component.translatable("behaviour.setting.allow.input.from.output.tooltip", baseComponent,
-                data.getBoolean(INPUT_FROM_OUTPUT_SIDE) ? ENABLED : DISABLED));
+    private static Component notRecorded() {
+        return Component.translatable("behaviour.memory_card.gto.not_recorded").withStyle(ChatFormatting.DARK_GRAY);
+    }
+
+    private static Component onOff(boolean on) {
+        return on ? Component.translatable("behaviour.memory_card.gto.on").withStyle(ChatFormatting.GREEN) :
+                Component.translatable("behaviour.memory_card.gto.off").withStyle(ChatFormatting.RED);
+    }
+
+    /**
+     * 功能行「▸ 名称 值」；value 为 null（卡内为空）时只显示名称
+     */
+    private static Component settingLine(MutableComponent name, @Nullable Component value) {
+        MutableComponent line = Component.literal(" ▸ ").withStyle(ChatFormatting.DARK_GRAY)
+                .append(name.withStyle(ChatFormatting.WHITE));
+        if (value != null) line.append("  ").append(value);
+        return line;
+    }
+
+    /**
+     * 物品、流体各记录一份的设置，同一行依次列出「物品 值 · 流体 值」
+     */
+    private static void addSetting(List<Component> tooltip, MutableComponent name, @Nullable CompoundTag data,
+                                   Function<CompoundTag, Component> valueOf) {
+        MutableComponent value = null;
+        if (data != null) {
+            for (RecipeInfo cap : GTRegistries.RECIPE_INFOS) {
+                if (!data.contains(cap.name)) continue;
+                if (value == null) value = Component.empty();
+                else value.append(Component.literal(" · ").withStyle(ChatFormatting.DARK_GRAY));
+                value.append(cap.getColoredName()).append(" ").append(valueOf.apply(data.getCompound(cap.name)));
+            }
+            if (value == null) value = notRecorded().copy();
+        }
+        tooltip.add(settingLine(name, value));
     }
 
     private static CompoundTag copyOutputConfig(Direction outputSide, boolean autoOutput,
