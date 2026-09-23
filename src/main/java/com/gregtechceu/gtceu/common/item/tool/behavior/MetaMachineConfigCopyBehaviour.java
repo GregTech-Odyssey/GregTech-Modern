@@ -168,7 +168,7 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
                                TooltipFlag isAdvanced) {
         CompoundTag data = stack.getTagElement(CONFIG_DATA);
         MutableComponent header = Component.literal("◆ ")
-                .append(Component.translatable("behaviour.memory_card.gto.section.copyable"));
+                .append(Component.translatable("behaviour.memory_card.gto.section.copied"));
         if (data == null) {
             header.append(Component.literal(" · ").append(Component.translatable("behaviour.memory_card.gto.empty"))
                     .withStyle(ChatFormatting.GRAY));

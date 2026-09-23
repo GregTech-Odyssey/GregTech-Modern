@@ -71,7 +71,7 @@
     "behaviour.memory_card.gto.not_recorded": "未记录",
     "behaviour.memory_card.gto.off": "关",
     "behaviour.memory_card.gto.on": "开",
-    "behaviour.memory_card.gto.section.copyable": "可复制的配置",
+    "behaviour.memory_card.gto.section.copied": "当前复制的数据",
     "behaviour.memory_card.gto.section.usage": "用法",
     "behaviour.memory_card.gto.setting.auto_output": "自动输出",
     "behaviour.memory_card.gto.setting.input_from_output": "允许从输出面输入",

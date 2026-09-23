@@ -71,7 +71,7 @@
   "behaviour.memory_card.gto.not_recorded": "Not recorded",
   "behaviour.memory_card.gto.off": "Off",
   "behaviour.memory_card.gto.on": "On",
-  "behaviour.memory_card.gto.section.copyable": "Copyable Settings",
+  "behaviour.memory_card.gto.section.copied": "Currently Copied Data",
   "behaviour.memory_card.gto.section.usage": "Usage",
   "behaviour.memory_card.gto.setting.auto_output": "Auto Output",
   "behaviour.memory_card.gto.setting.input_from_output": "Input from Output Side",

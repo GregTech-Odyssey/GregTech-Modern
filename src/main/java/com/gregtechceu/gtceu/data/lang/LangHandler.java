@@ -889,7 +889,7 @@ public class LangHandler {
         provider.add("behaviour.infinite_spray_can.right", "§7Right-Click Block: Paint");
         provider.add("behaviour.infinite_spray_can.ultimine", "§7Hold Ultimine key: Chain Paint");
         provider.add("behaviour.prospecting", "Usable for Prospecting");
-        provider.add("behaviour.memory_card.gto.section.copyable", "Copyable Settings");
+        provider.add("behaviour.memory_card.gto.section.copied", "Currently Copied Data");
         provider.add("behaviour.memory_card.gto.section.usage", "Usage");
         provider.add("behaviour.memory_card.gto.empty", "Card is empty");
         provider.add("behaviour.memory_card.gto.not_recorded", "Not recorded");
