@@ -28,14 +28,9 @@ import java.util.function.Predicate;
  */
 public final class ArmorTooltips {
 
-    private static final String PREFIX = "metaarmor.gto.";
-    public static final Component SHIFT_HINT = tr("hint.shift").withStyle(ChatFormatting.DARK_GRAY);
+    public static final Component SHIFT_HINT = Component.translatable("metaarmor.gto.hint.shift").withStyle(ChatFormatting.DARK_GRAY);
 
     private ArmorTooltips() {}
-
-    public static MutableComponent tr(String key, Object... args) {
-        return Component.translatable(PREFIX + key, args);
-    }
 
     public static Component value(String text) {
         return Component.literal(text).withStyle(ChatFormatting.WHITE);
@@ -55,15 +50,15 @@ public final class ArmorTooltips {
         return Component.literal(" · ").append(reason).withStyle(color);
     }
 
-    public static Component section(String name) {
-        return Component.literal("◆ ").append(tr("section." + name)).withStyle(ChatFormatting.GOLD);
+    public static Component section(String key) {
+        return Component.literal("◆ ").append(Component.translatable(key)).withStyle(ChatFormatting.GOLD);
     }
 
     /**
      * 缩进的说明行（灰色），用于防护数值等常驻信息
      */
     public static MutableComponent info(String key, Object... args) {
-        return Component.literal(" ").append(tr(key, args)).withStyle(ChatFormatting.GRAY);
+        return Component.literal(" ").append(Component.translatable(key, args)).withStyle(ChatFormatting.GRAY);
     }
 
     public static boolean showDetails() {
@@ -75,16 +70,16 @@ public final class ArmorTooltips {
      */
     public static void addDetail(List<Component> lines, String key, Object... args) {
         if (showDetails()) {
-            lines.add(Component.literal("     ").append(tr(key, args)).withStyle(ChatFormatting.DARK_GRAY));
+            lines.add(Component.literal("     ").append(Component.translatable(key, args)).withStyle(ChatFormatting.DARK_GRAY));
         }
     }
 
     /**
      * 功能行；cost 为 null 表示不耗电，不显示
      */
-    public static void addFeature(List<Component> lines, String name, Component state, @Nullable Component cost) {
+    public static void addFeature(List<Component> lines, String key, Component state, @Nullable Component cost) {
         MutableComponent line = Component.literal(" ▸ ").withStyle(ChatFormatting.DARK_GRAY)
-                .append(tr("feature." + name).withStyle(ChatFormatting.WHITE))
+                .append(Component.translatable(key).withStyle(ChatFormatting.WHITE))
                 .append("  ").append(state);
         if (cost != null) line.append("  ").append(cost);
         lines.add(line);
@@ -92,32 +87,32 @@ public final class ArmorTooltips {
 
     // 状态
 
-    public static MutableComponent state(String name, ChatFormatting color) {
-        return tr("state." + name).withStyle(color);
+    public static MutableComponent state(String key, ChatFormatting color) {
+        return Component.translatable(key).withStyle(color);
     }
 
     public static Component piecePassive() {
-        return state("piece", ChatFormatting.GREEN);
+        return state("metaarmor.gto.state.piece", ChatFormatting.GREEN);
     }
 
     /**
      * 单件被动但需要电量才生效
      */
     public static Component piecePassive(boolean hasEnergy) {
-        return hasEnergy ? piecePassive() : state("no_energy", ChatFormatting.YELLOW);
+        return hasEnergy ? piecePassive() : state("metaarmor.gto.state.no_energy", ChatFormatting.YELLOW);
     }
 
     /**
      * 全套被动：本件穿在身上且四个部位都满足条件时为绿，否则为黄
      */
     public static Component setPassive(ItemStack stack, Predicate<ItemStack> eachPiece) {
-        return isWornInSet(stack, eachPiece) ? state("set", ChatFormatting.GREEN) :
-                state("need_set", ChatFormatting.YELLOW);
+        return isWornInSet(stack, eachPiece) ? state("metaarmor.gto.state.set", ChatFormatting.GREEN) :
+                state("metaarmor.gto.state.need_set", ChatFormatting.YELLOW);
     }
 
     public static Component oxygen(boolean hasOxygen, boolean worn) {
-        if (!hasOxygen) return state("oxygen_empty", ChatFormatting.YELLOW);
-        return worn ? state("oxygen_active", ChatFormatting.GREEN) : state("oxygen_ready", ChatFormatting.GREEN);
+        if (!hasOxygen) return state("metaarmor.gto.state.oxygen_empty", ChatFormatting.YELLOW);
+        return worn ? state("metaarmor.gto.state.oxygen_active", ChatFormatting.GREEN) : state("metaarmor.gto.state.oxygen_ready", ChatFormatting.GREEN);
     }
 
     /**
@@ -136,22 +131,22 @@ public final class ArmorTooltips {
      */
     public static Component shiftUseToggle(boolean enabled, boolean hasEnergy) {
         return toggleState(enabled, hasEnergy)
-                .append(Component.literal(" ").append(tr("shift_use")).withStyle(ChatFormatting.DARK_GRAY));
+                .append(Component.literal(" ").append(Component.translatable("metaarmor.gto.shift_use")).withStyle(ChatFormatting.DARK_GRAY));
     }
 
     private static MutableComponent toggleState(boolean enabled, boolean hasEnergy) {
-        if (!enabled) return state("off", ChatFormatting.RED);
-        return hasEnergy ? state("on", ChatFormatting.GREEN) :
-                tr("state.on_but", tr("reason.no_energy")).withStyle(ChatFormatting.YELLOW);
+        if (!enabled) return state("metaarmor.gto.state.off", ChatFormatting.RED);
+        return hasEnergy ? state("metaarmor.gto.state.on", ChatFormatting.GREEN) :
+                Component.translatable("metaarmor.gto.state.on_but", Component.translatable("metaarmor.gto.reason.no_energy")).withStyle(ChatFormatting.YELLOW);
     }
 
     private static Component keyHint(KeyBind key, boolean orShiftUse) {
         if (!GTCEu.isClientSide() || ArmorTooltipsClient.isUnbound(key)) {
-            return Component.literal(" ").append(tr("state.unbound")).withStyle(ChatFormatting.YELLOW);
+            return Component.literal(" ").append(Component.translatable("metaarmor.gto.state.unbound")).withStyle(ChatFormatting.YELLOW);
         }
         Component keyName = ArmorTooltipsClient.keyName(key);
         return Component.literal(" ")
-                .append(orShiftUse ? tr("key_or_shift_use", keyName) : tr("key", keyName))
+                .append(orShiftUse ? Component.translatable("metaarmor.gto.key_or_shift_use", keyName) : Component.translatable("metaarmor.gto.key", keyName))
                 .withStyle(ChatFormatting.DARK_GRAY);
     }
 
@@ -201,21 +196,21 @@ public final class ArmorTooltips {
         CompoundTag data = stack.getTag();
         boolean hasEnergy = canUse(stack, jetpack.getEnergyPerUse());
         Component flightCost = ampsPerSecond(JetpackChestHelper.FLIGHT_AMPS);
-        addFeature(features, "jetpack",
+        addFeature(features, "metaarmor.gto.feature.jetpack",
                 keyToggle(KeyBind.JETPACK_ENABLE, JetpackChestHelper.isFlightEnabled(data), hasEnergy), flightCost);
-        addDetail(features, "detail.jetpack");
-        addFeature(features, "hover",
+        addDetail(features, "metaarmor.gto.detail.jetpack");
+        addFeature(features, "metaarmor.gto.feature.hover",
                 keyToggle(KeyBind.ARMOR_HOVER, data != null && data.getBoolean(JetpackChestHelper.HOVER), hasEnergy),
                 flightCost);
-        addFeature(features, "emergency_hover",
+        addFeature(features, "metaarmor.gto.feature.emergency_hover",
                 keyToggle(KeyBind.ARMOR_EMERGENCY_HOVER, JetpackChestHelper.isEmergencyHoverEnabled(data), hasEnergy),
                 flightCost);
-        addDetail(features, "detail.emergency_hover");
-        addFeature(features, "charge_items",
+        addDetail(features, "metaarmor.gto.detail.emergency_hover");
+        addFeature(features, "metaarmor.gto.feature.charge_items",
                 keyOrShiftUseToggle(KeyBind.ARMOR_CHARGING,
                         data != null && data.getBoolean(JetpackChestHelper.CHARGE), hasCharge(stack)),
-                cost("transferred"));
-        addDetail(features, "detail.charge_items");
+                cost("metaarmor.gto.cost.transferred"));
+        addDetail(features, "metaarmor.gto.detail.charge_items");
     }
 
     /**
@@ -226,22 +221,22 @@ public final class ArmorTooltips {
         int shownLevel = Math.max(level, 1);
         MutableComponent state;
         if (level <= 0) {
-            state = state("off", ChatFormatting.RED);
+            state = state("metaarmor.gto.state.off", ChatFormatting.RED);
         } else if (canUse(stack, suite.getSpeedCost(level))) {
-            state = tr("state.speed", multiplier(level)).withStyle(ChatFormatting.GREEN);
+            state = Component.translatable("metaarmor.gto.state.speed", multiplier(level)).withStyle(ChatFormatting.GREEN);
         } else {
-            state = tr("state.speed_but", multiplier(level), tr("reason.no_energy")).withStyle(ChatFormatting.YELLOW);
+            state = Component.translatable("metaarmor.gto.state.speed_but", multiplier(level), Component.translatable("metaarmor.gto.reason.no_energy")).withStyle(ChatFormatting.YELLOW);
         }
-        addFeature(features, "speed_boost", state.append(keyHint(KeyBind.ARMOR_SPEED, false)),
+        addFeature(features, "metaarmor.gto.feature.speed_boost", state.append(keyHint(KeyBind.ARMOR_SPEED, false)),
                 ampsPerSecond(ArmorLogicSuite.SPEED_AMPS_PER_LEVEL * shownLevel));
         if (showDetails()) {
             MutableComponent levels = Component.empty();
             for (int i = 1; i <= suite.getMaxSpeedLevel(); i++) {
-                if (i > 1) levels.append(tr("separator"));
-                levels.append(tr("detail.speed_level", multiplier(i),
+                if (i > 1) levels.append(Component.translatable("metaarmor.gto.separator"));
+                levels.append(Component.translatable("metaarmor.gto.detail.speed_level", multiplier(i),
                         amps(ArmorLogicSuite.SPEED_AMPS_PER_LEVEL * i)));
             }
-            addDetail(features, "detail.speed_levels", levels);
+            addDetail(features, "metaarmor.gto.detail.speed_levels", levels);
         }
     }
 
@@ -251,19 +246,19 @@ public final class ArmorTooltips {
 
     // 耗电：持续耗电以 A/s 标示，一次性耗电为 n/3600 A·h，均按装备自身电压计
 
-    public static Component cost(String name) {
-        return tr("cost." + name).withStyle(ChatFormatting.GRAY);
+    public static Component cost(String key) {
+        return Component.translatable(key).withStyle(ChatFormatting.GRAY);
     }
 
     public static Component ampsPerSecond(double amps) {
-        return tr("cost.amps_per_second", amps(amps)).withStyle(ChatFormatting.GRAY);
+        return Component.translatable("metaarmor.gto.cost.amps_per_second", amps(amps)).withStyle(ChatFormatting.GRAY);
     }
 
     /**
      * 一次性耗电 n/3600 A·h；kind 为 per_damage / per_block / per_use / per_jump
      */
-    public static Component ampHours(String kind, int parts) {
-        return tr("cost." + kind, parts).withStyle(ChatFormatting.GRAY);
+    public static Component ampHours(String key, int parts) {
+        return Component.translatable(key, parts).withStyle(ChatFormatting.GRAY);
     }
 
     /**
@@ -285,13 +280,13 @@ public final class ArmorTooltips {
     /**
      * [装备名] 功能 已开启 / 已关闭；开启但条件不足时说明暂不生效
      */
-    public static Component toggleMessage(ItemStack stack, String name, boolean enabled, boolean effective) {
+    public static Component toggleMessage(ItemStack stack, String nameKey, boolean enabled, boolean effective) {
         MutableComponent state;
-        if (!enabled) state = tr("toggle.off").withStyle(ChatFormatting.RED);
-        else if (effective) state = tr("toggle.on").withStyle(ChatFormatting.GREEN);
-        else state = tr("toggle.on_ineffective", tr("reason.no_energy")).withStyle(ChatFormatting.YELLOW);
+        if (!enabled) state = Component.translatable("metaarmor.gto.toggle.off").withStyle(ChatFormatting.RED);
+        else if (effective) state = Component.translatable("metaarmor.gto.toggle.on").withStyle(ChatFormatting.GREEN);
+        else state = Component.translatable("metaarmor.gto.toggle.on_ineffective", Component.translatable("metaarmor.gto.reason.no_energy")).withStyle(ChatFormatting.YELLOW);
         return Component.empty().append(stack.getDisplayName()).append(" ")
-                .append(tr("name." + name).withStyle(ChatFormatting.WHITE)).append(" ").append(state);
+                .append(Component.translatable(nameKey).withStyle(ChatFormatting.WHITE)).append(" ").append(state);
     }
 
     /**
@@ -299,16 +294,16 @@ public final class ArmorTooltips {
      */
     public static Component speedMessage(ItemStack stack, int level, boolean effective) {
         MutableComponent state;
-        if (level <= 0) state = tr("toggle.off").withStyle(ChatFormatting.RED);
-        else if (effective) state = tr("state.speed", multiplier(level)).withStyle(ChatFormatting.GREEN);
-        else state = tr("toggle.speed_ineffective", multiplier(level), tr("reason.no_energy"))
+        if (level <= 0) state = Component.translatable("metaarmor.gto.toggle.off").withStyle(ChatFormatting.RED);
+        else if (effective) state = Component.translatable("metaarmor.gto.state.speed", multiplier(level)).withStyle(ChatFormatting.GREEN);
+        else state = Component.translatable("metaarmor.gto.toggle.speed_ineffective", multiplier(level), Component.translatable("metaarmor.gto.reason.no_energy"))
                 .withStyle(ChatFormatting.YELLOW);
         return Component.empty().append(stack.getDisplayName()).append(" ")
-                .append(tr("name.speed_boost").withStyle(ChatFormatting.WHITE)).append(" ").append(state);
+                .append(Component.translatable("metaarmor.gto.name.speed_boost").withStyle(ChatFormatting.WHITE)).append(" ").append(state);
     }
 
     public static Component emergencyHoverMessage(ItemStack stack) {
         return Component.empty().append(stack.getDisplayName()).append(" ")
-                .append(tr("toggle.emergency_triggered").withStyle(ChatFormatting.YELLOW));
+                .append(Component.translatable("metaarmor.gto.toggle.emergency_triggered").withStyle(ChatFormatting.YELLOW));
     }
 }

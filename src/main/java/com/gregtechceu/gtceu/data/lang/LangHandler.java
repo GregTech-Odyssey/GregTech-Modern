@@ -401,7 +401,6 @@ public class LangHandler {
         provider.add("metaarmor.gto.cost.per_heal", "%s/3600 A·h per health point");
         provider.add("metaarmor.gto.feature.mech_assist", "Mechanical assist");
         provider.add("metaarmor.gto.detail.mech_assist", "Bare-handed melee attacks deal %s extra damage, including against Gaia Guardians");
-        provider.add("metaarmor.gto.cost.per_hit", "%s/3600 A·h per hit");
         provider.add("metaarmor.gto.feature.gaia_inventory", "Ritual bypass");
         provider.add("metaarmor.gto.detail.gaia_inventory", "Counts as an allowed item in the Gaia Guardian III summoning inventory check");
         provider.add("metaarmor.gto.cost.per_summon", "%s/3600 A·h per summon");

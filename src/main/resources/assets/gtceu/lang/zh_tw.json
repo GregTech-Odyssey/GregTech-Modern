@@ -5231,7 +5231,6 @@
     "metaarmor.gto.cost.per_damage": "每點傷害 %s/3600 A·h",
     "metaarmor.gto.cost.per_effect": "按效果計費",
     "metaarmor.gto.cost.per_heal": "每點 %s/3600 A·h",
-    "metaarmor.gto.cost.per_hit": "每次 %s/3600 A·h",
     "metaarmor.gto.cost.per_jump": "每次起跳 %s/3600 A·h",
     "metaarmor.gto.cost.per_level": "每級 %s/3600 A·h",
     "metaarmor.gto.cost.per_summon": "每次召喚 %s/3600 A·h",

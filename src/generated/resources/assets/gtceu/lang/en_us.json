@@ -5285,7 +5285,6 @@
   "metaarmor.gto.cost.per_damage": "%s/3600 A·h per damage",
   "metaarmor.gto.cost.per_effect": "Charged per effect",
   "metaarmor.gto.cost.per_heal": "%s/3600 A·h per health point",
-  "metaarmor.gto.cost.per_hit": "%s/3600 A·h per hit",
   "metaarmor.gto.cost.per_jump": "%s/3600 A·h per jump",
   "metaarmor.gto.cost.per_level": "%s/3600 A·h per level",
   "metaarmor.gto.cost.per_summon": "%s/3600 A·h per summon",

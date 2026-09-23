@@ -67,17 +67,17 @@ public final class JetpackChestHelper {
             if (KeyBind.JETPACK_ENABLE.consumePress(player)) {
                 flight = !flight;
                 data.putBoolean(FLIGHT, flight);
-                notify(player, item, "jetpack", flight, hasEnergy);
+                notify(player, item, "metaarmor.gto.name.jetpack", flight, hasEnergy);
             }
             if (KeyBind.ARMOR_HOVER.consumePress(player)) {
                 hover = !hover;
                 data.putBoolean(HOVER, hover);
-                notify(player, item, "hover", hover, hasEnergy);
+                notify(player, item, "metaarmor.gto.name.hover", hover, hasEnergy);
             }
             if (KeyBind.ARMOR_EMERGENCY_HOVER.consumePress(player)) {
                 emergencyHover = !emergencyHover;
                 data.putBoolean(EMERGENCY_HOVER, emergencyHover);
-                notify(player, item, "emergency_hover", emergencyHover, hasEnergy);
+                notify(player, item, "metaarmor.gto.name.emergency_hover", emergencyHover, hasEnergy);
             }
             if (KeyBind.ARMOR_CHARGING.consumePress(player)) {
                 canShare = toggleCharging(player, item, data, cont);
@@ -108,12 +108,12 @@ public final class JetpackChestHelper {
     private static boolean toggleCharging(Player player, ItemStack item, CompoundTag data, IElectricItem cont) {
         boolean canShare = !data.getBoolean(CHARGE);
         data.putBoolean(CHARGE, canShare);
-        notify(player, item, "charge_items", canShare, cont.getCharge() > 0);
+        notify(player, item, "metaarmor.gto.name.charge_items", canShare, cont.getCharge() > 0);
         return canShare;
     }
 
-    private static void notify(Player player, ItemStack item, String name, boolean enabled, boolean effective) {
-        player.displayClientMessage(ArmorTooltips.toggleMessage(item, name, enabled, effective), false);
+    private static void notify(Player player, ItemStack item, String nameKey, boolean enabled, boolean effective) {
+        player.displayClientMessage(ArmorTooltips.toggleMessage(item, nameKey, enabled, effective), false);
     }
 
     private static void chargeInventory(Player player, ItemStack self, IElectricItem cont) {

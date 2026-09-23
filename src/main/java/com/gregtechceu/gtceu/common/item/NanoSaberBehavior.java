@@ -169,7 +169,7 @@ public class NanoSaberBehavior extends ToggleEnergyConsumerBehavior implements I
         setItemActive(stack, enabled);
         if (!world.isClientSide) {
             player.displayClientMessage(
-                    ArmorTooltips.toggleMessage(stack, "energy_blade", enabled, isPowered(stack)), false);
+                    ArmorTooltips.toggleMessage(stack, "metaarmor.gto.name.energy_blade", enabled, isPowered(stack)), false);
         }
         return InteractionResultHolder.sidedSuccess(stack, world.isClientSide);
     }
@@ -214,26 +214,26 @@ public class NanoSaberBehavior extends ToggleEnergyConsumerBehavior implements I
         ChatFormatting color = powered ? ChatFormatting.GREEN :
                 enabled ? ChatFormatting.YELLOW : ChatFormatting.RED;
         Component reason = powered ? null : ArmorTooltips.reason(
-                ArmorTooltips.tr(enabled ? "state.no_energy" : "state.blade_off"), color);
+                Component.translatable(enabled ? "metaarmor.gto.state.no_energy" : "metaarmor.gto.state.blade_off"), color);
 
-        lines.add(ArmorTooltips.info("capacity", ArmorTooltips.value(Integer.toString(HOURS[grade])),
+        lines.add(ArmorTooltips.info("metaarmor.gto.capacity", ArmorTooltips.value(Integer.toString(HOURS[grade])),
                 GTValues.VNF[tier]));
-        lines.add(ArmorTooltips.section("weapon"));
-        lines.add(stateLine("saber.damage", ArmorTooltips.amps(getAttackDamage(powered)), color, reason));
-        lines.add(stateLine("saber.health_percent", ArmorTooltips.amps(powered ? getHealthPercent() : 0) + "%",
+        lines.add(ArmorTooltips.section("metaarmor.gto.section.weapon"));
+        lines.add(stateLine("metaarmor.gto.saber.damage", ArmorTooltips.amps(getAttackDamage(powered)), color, reason));
+        lines.add(stateLine("metaarmor.gto.saber.health_percent", ArmorTooltips.amps(powered ? getHealthPercent() : 0) + "%",
                 color, reason));
         // I、II 没有攻击距离加成，按常量显示
         lines.add(ATTACK_RANGE[grade] > PLAYER_ENTITY_REACH ?
-                stateLine("saber.range", ArmorTooltips.amps(getAttackRange(powered)), color, reason) :
-                ArmorTooltips.info("saber.range", ArmorTooltips.value(ArmorTooltips.amps(PLAYER_ENTITY_REACH))));
-        lines.add(ArmorTooltips.info("saber.speed", ArmorTooltips.value(ArmorTooltips.amps(ATTACK_SPEED[grade]))));
-        lines.add(ArmorTooltips.section("features"));
-        ArmorTooltips.addFeature(lines, "energy_blade", ArmorTooltips.shiftUseToggle(enabled, hasEnergy),
+                stateLine("metaarmor.gto.saber.range", ArmorTooltips.amps(getAttackRange(powered)), color, reason) :
+                ArmorTooltips.info("metaarmor.gto.saber.range", ArmorTooltips.value(ArmorTooltips.amps(PLAYER_ENTITY_REACH))));
+        lines.add(ArmorTooltips.info("metaarmor.gto.saber.speed", ArmorTooltips.value(ArmorTooltips.amps(ATTACK_SPEED[grade]))));
+        lines.add(ArmorTooltips.section("metaarmor.gto.section.features"));
+        ArmorTooltips.addFeature(lines, "metaarmor.gto.feature.energy_blade", ArmorTooltips.shiftUseToggle(enabled, hasEnergy),
                 ArmorTooltips.ampsPerSecond(ACTIVE_AMPS));
-        ArmorTooltips.addDetail(lines, "detail.energy_blade", ArmorTooltips.amps(getActiveDamage()),
+        ArmorTooltips.addDetail(lines, "metaarmor.gto.detail.energy_blade", ArmorTooltips.amps(getActiveDamage()),
                 ArmorTooltips.amps(getHealthPercent()) + "%", ArmorTooltips.amps(ATTACK_RANGE[grade]),
                 ArmorTooltips.amps(getInactiveDamage()), ArmorTooltips.amps(PLAYER_ENTITY_REACH));
-        ArmorTooltips.addDetail(lines, "detail.energy_blade_drain");
+        ArmorTooltips.addDetail(lines, "metaarmor.gto.detail.energy_blade_drain");
         if (!ArmorTooltips.showDetails()) lines.add(ArmorTooltips.SHIFT_HINT);
     }
 

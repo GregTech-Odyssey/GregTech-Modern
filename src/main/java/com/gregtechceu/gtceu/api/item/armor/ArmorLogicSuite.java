@@ -319,7 +319,7 @@ public abstract class ArmorLogicSuite implements IArmorLogic, IItemHUDProvider {
         addFeatures(itemStack, features);
         if (getGrade() > 0) ArmorSuiteFeatures.addCommonFeatures(this, itemStack, features);
         if (!features.isEmpty()) {
-            lines.add(ArmorTooltips.section("features"));
+            lines.add(ArmorTooltips.section("metaarmor.gto.section.features"));
             lines.addAll(features);
         }
         ArmorSuiteFeatures.addGaiaFeatures(this, itemStack, lines);
@@ -334,50 +334,50 @@ public abstract class ArmorLogicSuite implements IArmorLogic, IItemHUDProvider {
         double hours = maxCapacity / (voltage * 20D * 3600D);
         String hoursText = Math.abs(hours - Math.rint(hours)) < 0.01 ? String.valueOf(Math.round(hours)) :
                 String.format("%.2f", hours);
-        info.add(ArmorTooltips.info("capacity", ArmorTooltips.value(hoursText), GTValues.VNF[tier]));
+        info.add(ArmorTooltips.info("metaarmor.gto.capacity", ArmorTooltips.value(hoursText), GTValues.VNF[tier]));
 
         float baseToughness = GTArmorMaterials.ARMOR.getToughness();
         ChatFormatting color = charged ? ChatFormatting.GREEN : ChatFormatting.YELLOW;
-        info.add(ArmorTooltips.section("protection"));
-        MutableComponent piece = ArmorTooltips.info("protection.piece",
+        info.add(ArmorTooltips.section("metaarmor.gto.section.protection"));
+        MutableComponent piece = ArmorTooltips.info("metaarmor.gto.protection.piece",
                 ArmorTooltips.value(formatValue(getArmorPoints(charged)), color),
                 ArmorTooltips.value(formatValue(baseToughness + (charged ? getExtraToughness() : 0)), color),
                 ArmorTooltips.value(formatPercent(charged ? getExtraKnockbackResistance() : 0), color));
-        if (!charged) piece.append(ArmorTooltips.reason(ArmorTooltips.tr("state.no_energy"), color));
+        if (!charged) piece.append(ArmorTooltips.reason(Component.translatable("metaarmor.gto.state.no_energy"), color));
         info.add(piece);
-        details.add(detail("detail.full_power"));
+        details.add(detail("metaarmor.gto.detail.full_power"));
         if (charged) {
-            details.add(detail("detail.unpowered_piece", formatValue(getArmorPoints(false)),
+            details.add(detail("metaarmor.gto.detail.unpowered_piece", formatValue(getArmorPoints(false)),
                     formatValue(baseToughness)));
         } else {
-            details.add(detail("detail.powered_piece", formatValue(getArmorPoints(true)),
+            details.add(detail("metaarmor.gto.detail.powered_piece", formatValue(getArmorPoints(true)),
                     formatValue(baseToughness + getExtraToughness()), formatPercent(getExtraKnockbackResistance())));
         }
         if (type == ArmorItem.Type.CHESTPLATE) {
             float setArmor = getSetArmorPoints(charged);
             float setToughness = getSetToughness(charged);
-            MutableComponent set = ArmorTooltips.info("protection.set",
+            MutableComponent set = ArmorTooltips.info("metaarmor.gto.protection.set",
                     ArmorTooltips.value(formatValue(setArmor), color),
                     ArmorTooltips.value(formatValue(setToughness), color),
                     ArmorTooltips.value(formatPercent(charged ? getSetKnockbackResistance() : 0), color));
-            if (!charged) set.append(ArmorTooltips.reason(ArmorTooltips.tr("state.no_energy"), color));
+            if (!charged) set.append(ArmorTooltips.reason(Component.translatable("metaarmor.gto.state.no_energy"), color));
             info.add(set);
             if (charged) {
-                details.add(detail("detail.unpowered_set", formatValue(getSetArmorPoints(false)),
+                details.add(detail("metaarmor.gto.detail.unpowered_set", formatValue(getSetArmorPoints(false)),
                         formatValue(getSetToughness(false))));
             } else {
-                details.add(detail("detail.powered_set", formatValue(getSetArmorPoints(true)),
+                details.add(detail("metaarmor.gto.detail.powered_set", formatValue(getSetArmorPoints(true)),
                         formatValue(getSetToughness(true)), formatPercent(getSetKnockbackResistance())));
             }
-            details.add(detail("detail.set_definition"));
+            details.add(detail("metaarmor.gto.detail.set_definition"));
             // Apothic Attributes 默认公式：单次伤害 < 20 时承受 10 / (10 + 护甲)；每点韧性抵抗 2% 破甲，60% 封顶
-            details.add(detail("detail.set_effect", formatPercent(10.0F / (10.0F + setArmor)),
+            details.add(detail("metaarmor.gto.detail.set_effect", formatPercent(10.0F / (10.0F + setArmor)),
                     formatPercent(Math.min(setToughness * 0.02F, 0.6F))));
         }
     }
 
     private static Component detail(String key, Object... args) {
-        return Component.literal("     ").append(ArmorTooltips.tr(key, args)).withStyle(ChatFormatting.DARK_GRAY);
+        return Component.literal("     ").append(Component.translatable(key, args)).withStyle(ChatFormatting.DARK_GRAY);
     }
 
     /**

@@ -131,15 +131,15 @@ public class NanoMuscleSuite extends ArmorLogicSuite implements IStepAssist {
 
     @Override
     protected void addFeatures(ItemStack itemStack, List<Component> features) {
-        ArmorTooltips.addFeature(features, "damage_drain", ArmorTooltips.piecePassive(),
-                ArmorTooltips.ampHours("per_damage", DAMAGE_COST_PARTS));
+        ArmorTooltips.addFeature(features, "metaarmor.gto.feature.damage_drain", ArmorTooltips.piecePassive(),
+                ArmorTooltips.ampHours("metaarmor.gto.cost.per_damage", DAMAGE_COST_PARTS));
         if (type == ArmorItem.Type.HELMET) {
-            ArmorTooltips.addDetail(features, "detail.no_nightvision");
+            ArmorTooltips.addDetail(features, "metaarmor.gto.detail.no_nightvision");
         } else if (type == ArmorItem.Type.LEGGINGS) {
             ArmorTooltips.addSpeedFeature(itemStack, this, features);
         } else if (type == ArmorItem.Type.BOOTS) {
-            ArmorTooltips.addFeature(features, "step_assist", ArmorTooltips.piecePassive(), null);
-            ArmorTooltips.addDetail(features, "detail.step_assist");
+            ArmorTooltips.addFeature(features, "metaarmor.gto.feature.step_assist", ArmorTooltips.piecePassive(), null);
+            ArmorTooltips.addDetail(features, "metaarmor.gto.detail.step_assist");
         }
     }
 }

@@ -114,7 +114,7 @@ public class QuarkTechSuite extends ArmorLogicSuite implements IStepAssist, IJet
                 boostedJump = !boostedJump;
                 data.putBoolean("boostedJump", boostedJump);
                 player.displayClientMessage(
-                        ArmorTooltips.toggleMessage(itemStack, "boosted_jump", boostedJump, canUseEnergy), false);
+                        ArmorTooltips.toggleMessage(itemStack, "metaarmor.gto.name.boosted_jump", boostedJump, canUseEnergy), false);
             }
             if (boostedJump) {
                 if (!world.isClientSide) {
@@ -319,48 +319,48 @@ public class QuarkTechSuite extends ArmorLogicSuite implements IStepAssist, IJet
 
     @Override
     protected void addFeatures(ItemStack itemStack, List<Component> features) {
-        ArmorTooltips.addFeature(features, "damage_drain", ArmorTooltips.piecePassive(),
-                ArmorTooltips.ampHours("per_damage", NanoMuscleSuite.DAMAGE_COST_PARTS));
-        ArmorTooltips.addFeature(features, "ppe", ArmorTooltips.setPassive(itemStack, ArmorTooltips::isPPE), null);
-        ArmorTooltips.addDetail(features, "detail.ppe");
+        ArmorTooltips.addFeature(features, "metaarmor.gto.feature.damage_drain", ArmorTooltips.piecePassive(),
+                ArmorTooltips.ampHours("metaarmor.gto.cost.per_damage", NanoMuscleSuite.DAMAGE_COST_PARTS));
+        ArmorTooltips.addFeature(features, "metaarmor.gto.feature.ppe", ArmorTooltips.setPassive(itemStack, ArmorTooltips::isPPE), null);
+        ArmorTooltips.addDetail(features, "metaarmor.gto.detail.ppe");
         // GTO: 放射性材料危害要求四个部位均为防护装备，II 及以上每件都算
-        ArmorTooltips.addFeature(features, "radiation", ArmorTooltips.setPassive(itemStack, ArmorTooltips::isPPE),
+        ArmorTooltips.addFeature(features, "metaarmor.gto.feature.radiation", ArmorTooltips.setPassive(itemStack, ArmorTooltips::isPPE),
                 null);
-        ArmorTooltips.addDetail(features, "detail.radiation");
+        ArmorTooltips.addDetail(features, "metaarmor.gto.detail.radiation");
         if (type == ArmorItem.Type.HELMET) {
-            ArmorTooltips.addFeature(features, "breath",
+            ArmorTooltips.addFeature(features, "metaarmor.gto.feature.breath",
                     ArmorTooltips.piecePassive(ArmorTooltips.canUse(itemStack, ampHourParts(BREATH_COST_PARTS))),
-                    ArmorTooltips.ampHours("per_use", BREATH_COST_PARTS));
-            ArmorTooltips.addDetail(features, "detail.breath");
-            ArmorTooltips.addFeature(features, "auto_eat",
+                    ArmorTooltips.ampHours("metaarmor.gto.cost.per_use", BREATH_COST_PARTS));
+            ArmorTooltips.addDetail(features, "metaarmor.gto.detail.breath");
+            ArmorTooltips.addFeature(features, "metaarmor.gto.feature.auto_eat",
                     ArmorTooltips.piecePassive(ArmorTooltips.canUse(itemStack, ampHourParts(FOOD_COST_PARTS))),
-                    ArmorTooltips.ampHours("per_use", FOOD_COST_PARTS));
-            ArmorTooltips.addDetail(features, "detail.auto_eat");
-            ArmorTooltips.addFeature(features, "cleanse",
+                    ArmorTooltips.ampHours("metaarmor.gto.cost.per_use", FOOD_COST_PARTS));
+            ArmorTooltips.addDetail(features, "metaarmor.gto.detail.auto_eat");
+            ArmorTooltips.addFeature(features, "metaarmor.gto.feature.cleanse",
                     ArmorTooltips.piecePassive(
                             ArmorTooltips.canUse(itemStack, ampHourParts(potionRemovalCost.getInt(MobEffects.UNLUCK)))),
-                    ArmorTooltips.cost("per_effect"));
-            ArmorTooltips.addDetail(features, "detail.cleanse_costs",
+                    ArmorTooltips.cost("metaarmor.gto.cost.per_effect"));
+            ArmorTooltips.addDetail(features, "metaarmor.gto.detail.cleanse_costs",
                     potionRemovalCost.getInt(MobEffects.POISON), potionRemovalCost.getInt(MobEffects.WITHER),
                     potionRemovalCost.getInt(MobEffects.CONFUSION), potionRemovalCost.getInt(MobEffects.DIG_SLOWDOWN),
                     potionRemovalCost.getInt(MobEffects.MOVEMENT_SLOWDOWN), potionRemovalCost.getInt(MobEffects.UNLUCK));
-            ArmorTooltips.addDetail(features, "detail.no_nightvision");
+            ArmorTooltips.addDetail(features, "metaarmor.gto.detail.no_nightvision");
         } else if (type == ArmorItem.Type.CHESTPLATE) {
-            ArmorTooltips.addFeature(features, "fire_immune", ArmorTooltips.piecePassive(), null);
+            ArmorTooltips.addFeature(features, "metaarmor.gto.feature.fire_immune", ArmorTooltips.piecePassive(), null);
             // 胸甲带 minecraft:freeze_immune_wearables 标签
-            ArmorTooltips.addFeature(features, "freeze_immune", ArmorTooltips.piecePassive(), null);
+            ArmorTooltips.addFeature(features, "metaarmor.gto.feature.freeze_immune", ArmorTooltips.piecePassive(), null);
             ArmorTooltips.addJetpackFeatures(itemStack, this, features);
         } else if (type == ArmorItem.Type.LEGGINGS) {
             ArmorTooltips.addSpeedFeature(itemStack, this, features);
         } else if (type == ArmorItem.Type.BOOTS) {
-            ArmorTooltips.addFeature(features, "step_assist", ArmorTooltips.piecePassive(), null);
-            ArmorTooltips.addDetail(features, "detail.step_assist");
+            ArmorTooltips.addFeature(features, "metaarmor.gto.feature.step_assist", ArmorTooltips.piecePassive(), null);
+            ArmorTooltips.addDetail(features, "metaarmor.gto.detail.step_assist");
             CompoundTag data = itemStack.getTag();
-            ArmorTooltips.addFeature(features, "boosted_jump",
+            ArmorTooltips.addFeature(features, "metaarmor.gto.feature.boosted_jump",
                     ArmorTooltips.keyToggle(KeyBind.BOOTS_ENABLE, data != null && data.getBoolean("boostedJump"),
                             ArmorTooltips.canUse(itemStack, ampHourParts(JUMP_COST_PARTS))),
-                    ArmorTooltips.ampHours("per_jump", JUMP_COST_PARTS));
-            ArmorTooltips.addDetail(features, "detail.boosted_jump");
+                    ArmorTooltips.ampHours("metaarmor.gto.cost.per_jump", JUMP_COST_PARTS));
+            ArmorTooltips.addDetail(features, "metaarmor.gto.detail.boosted_jump");
         }
     }
 
