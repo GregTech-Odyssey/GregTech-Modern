@@ -28,6 +28,7 @@ import java.util.Map;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
 import static com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags.HIGH_SIFTER_OUTPUT;
+import static com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags.NO_ORE_SIFTING;
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.*;
 import static com.gregtechceu.gtceu.common.data.GTMaterials.*;
 import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.*;
@@ -404,7 +405,7 @@ public final class OreRecipeHandler {
                     .save();
         }
 
-        if (material.hasProperty(PropertyKey.GEM)) {
+        if (material.hasProperty(PropertyKey.GEM) && !material.hasFlag(NO_ORE_SIFTING)) {
             ItemStack exquisiteStack = ChemicalHelper.get(gemExquisite, material);
             ItemStack flawlessStack = ChemicalHelper.get(gemFlawless, material);
             ItemStack gemStack = ChemicalHelper.get(gem, material);

@@ -189,6 +189,13 @@ public class MaterialFlags {
             .build();
 
     /**
+     * Add to a material to disable the standard purified ore sifting recipe and tag.
+     */
+    public static final MaterialFlag NO_ORE_SIFTING = new MaterialFlag.Builder("no_ore_sifting")
+            .requireProps(PropertyKey.ORE)
+            .build();
+
+    /**
      * Add this to your Material if you want to have its Ore Calcite heated in a Blast Furnace for more output. Already
      * listed are:
      * Iron, Pyrite, PigIron, WroughtIron.

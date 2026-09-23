@@ -132,7 +132,7 @@ public class GTOreByProduct {
         } else {
             addToInputs(ItemStack.EMPTY);
         }
-        if (material.hasProperty(PropertyKey.GEM)) {
+        if (material.hasProperty(PropertyKey.GEM) && !material.hasFlag(MaterialFlags.NO_ORE_SIFTING)) {
             hasSifter = true;
             addToInputs(GTMachines.SIFTER[GTValues.LV].asStack());
         } else {
