@@ -208,9 +208,22 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
     private static void pasteOutputConfig(Direction originalFront, Direction currentFront, CompoundTag data,
                                           Consumer<Direction> outputSide, BooleanConsumer autoOutput,
                                           BooleanConsumer allowInputFromOutputSide) {
-        outputSide.accept(RelativeDirection.getActualDirection(originalFront, currentFront,
-                tagToDirection(data.get(DIRECTION))));
+        outputSide.accept(rotateSide(originalFront, currentFront, tagToDirection(data.get(DIRECTION))));
         autoOutput.accept(data.getBoolean(AUTO));
         allowInputFromOutputSide.accept(data.getBoolean(INPUT_FROM_OUTPUT_SIDE));
+    }
+
+    /**
+     * Keeps {@code side} at the same position relative to the machine front, using the same convention as the
+     * tooltip ({@link RelativeDirection#findRelativeOf}), so e.g. a bottom output stays at the bottom.
+     */
+    private static @Nullable Direction rotateSide(@Nullable Direction originalFront, Direction currentFront,
+                                                  @Nullable Direction side) {
+        if (originalFront == null || side == null) return side;
+        RelativeDirection relative = RelativeDirection.findRelativeOf(originalFront, side);
+        for (Direction dir : Direction.values()) {
+            if (RelativeDirection.findRelativeOf(currentFront, dir) == relative) return dir;
+        }
+        return side;
     }
 }
