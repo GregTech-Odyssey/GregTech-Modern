@@ -61,6 +61,9 @@ public class ItemLang {
     private static void initItemTooltips(RegistrateLangProvider provider) {
         provider.add("item.gtceu.empty_mold.tooltip", "§7Raw Plate to make Molds and Extrude Shapes");
         provider.add("item.gtceu.nano_saber.tooltip", "§7Ryujin no ken wo kurae!");
+        provider.add("item.gtceu.nano_saber_ii.tooltip", "§7Ryujin no ken wo kurae!");
+        provider.add("item.gtceu.nano_saber_iii.tooltip", "§7Ryujin no ken wo kurae!");
+        provider.add("item.gtceu.nano_saber_iv.tooltip", "§7Ryujin no ken wo kurae!");
         provider.add("item.gtceu.plate_casting_mold.tooltip", "§7Mold for making Plates");
         provider.add("item.gtceu.casing_casting_mold.tooltip", "§7Mold for making Item Casings");
         provider.add("item.gtceu.gear_casting_mold.tooltip", "§7Mold for making Gears");

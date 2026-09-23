@@ -23,7 +23,7 @@ import java.util.List;
 
 public class ToggleEnergyConsumerBehavior implements IInteractionItem, IItemLifeCycle, IAddInformation {
 
-    private final int energyUsagePerTick;
+    protected final int energyUsagePerTick;
 
     public ToggleEnergyConsumerBehavior(int energyUsagePerTick) {
         this.energyUsagePerTick = energyUsagePerTick;

@@ -182,7 +182,9 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
                 for (var electricItem : electricItems) {
                     long charged = 0;
                     if (electricItem instanceof IElectricItem item) {
-                        charged = item.charge(Math.min(distributed, GTValues.V[item.getTier()] * AMPS_PER_ITEM), getTier(), true, false);
+                        // GTO: 可接受更大电流的物品（如电力盔甲、纳米剑）按其自身上限充电
+                        long perItem = Math.max(GTValues.V[item.getTier()] * AMPS_PER_ITEM, item.getTransferLimit());
+                        charged = item.charge(Math.min(distributed, perItem), getTier(), true, false);
                     } else if (electricItem instanceof IEnergyStorage energyStorage) {
                         charged = FeCompat.insertEu(energyStorage, Math.min(distributed, GTValues.V[getTier()] * AMPS_PER_ITEM), false);
                     }

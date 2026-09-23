@@ -2,13 +2,13 @@
   "parent": "minecraft:item/generated",
   "overrides": [
     {
-      "model": "gtceu:item/nano_saber/active",
+      "model": "gtceu:item/nano_saber_iii/active",
       "predicate": {
         "gtceu:nano_saber_active": 1.0
       }
     }
   ],
   "textures": {
-    "layer0": "gtceu:item/nano_saber/normal_1"
+    "layer0": "gtceu:item/nano_saber/normal_3"
   }
 }

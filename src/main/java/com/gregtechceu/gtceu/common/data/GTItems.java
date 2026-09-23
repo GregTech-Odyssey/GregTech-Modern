@@ -2111,23 +2111,35 @@ public class GTItems {
             .onRegister(attach(new AntidoteBehavior(50, GTMedicalConditions.CARCINOGEN)))
             .register();
 
-    public static ItemEntry<ComponentItem> NANO_SABER = REGISTRATE.item("nano_saber", ComponentItem::create)
-            .lang("Nano Saber")
-            .properties(p -> p.stacksTo(1))
-            .onRegister(attach(new NanoSaberBehavior(), ElectricStats.createElectricItem(4_000_000L, GTValues.HV)))
-            .model((ctx, prov) -> {
-                var rootModel = prov.generated(ctx::getEntry, prov.modLoc("item/nano_saber/normal"));
-                prov.getBuilder("item/nano_saber/active")
-                        .parent(new ModelFile.UncheckedModelFile("item/handheld"))
-                        .texture("layer0", prov.modLoc("item/nano_saber/active"));
+    // GTO: 纳米剑 I～IV，同一模型，剑刃按等级叠加红色
+    public static ItemEntry<ComponentItem> NANO_SABER = nanoSaber("nano_saber", "NanoMuscle™ Saber (I)", 1);
+    public static ItemEntry<ComponentItem> NANO_SABER_II = nanoSaber("nano_saber_ii", "Advanced NanoMuscle™ Saber (II)", 2);
+    public static ItemEntry<ComponentItem> NANO_SABER_III = nanoSaber("nano_saber_iii", "QuarkTech™ Saber (III)", 3);
+    public static ItemEntry<ComponentItem> NANO_SABER_IV = nanoSaber("nano_saber_iv", "Advanced QuarkTech™ Saber (IV)", 4);
 
-                rootModel.override().predicate(NanoSaberBehavior.OVERRIDE_KEY_LOCATION, 1.0f)
-                        .model(new ModelFile.UncheckedModelFile(prov.modLoc("item/nano_saber/active")))
-                        .end();
-            })
-            .onRegister(modelPredicate(NanoSaberBehavior.OVERRIDE_KEY_LOCATION,
-                    () -> () -> (stack, level, entity, layer) -> NanoSaberBehavior.isItemActive(stack) ? 1.0f : 0.0f))
-            .register();
+    private static ItemEntry<ComponentItem> nanoSaber(String id, String lang, int grade) {
+        return REGISTRATE.item(id, ComponentItem::create)
+                .lang(lang)
+                .properties(p -> p.stacksTo(1))
+                .onRegister(attach(ElectricStats.createElectricItem(NanoSaberBehavior.capacity(grade),
+                        NanoSaberBehavior.TIERS[grade]).transferAmps(ArmorLogicSuite.TRANSFER_AMPS),
+                        new NanoSaberBehavior(grade)))
+                .model((ctx, prov) -> {
+                    var rootModel = prov.generated(ctx::getEntry, prov.modLoc("item/nano_saber/normal_" + grade));
+                    prov.getBuilder("item/" + id + "/active")
+                            .parent(new ModelFile.UncheckedModelFile("item/handheld"))
+                            .texture("layer0", prov.modLoc("item/nano_saber/active_" + grade));
+
+                    rootModel.override().predicate(NanoSaberBehavior.OVERRIDE_KEY_LOCATION, 1.0f)
+                            .model(new ModelFile.UncheckedModelFile(prov.modLoc("item/" + id + "/active")))
+                            .end();
+                })
+                .onRegister(modelPredicate(NanoSaberBehavior.OVERRIDE_KEY_LOCATION,
+                        () -> () -> (stack, level, entity, layer) -> NanoSaberBehavior.isPoweredStack(stack) ? 1.0f :
+                                0.0f))
+                .register();
+    }
+
     public static ItemEntry<ComponentItem> PROSPECTOR_LV = REGISTRATE.item("prospector.lv", ComponentItem::create)
             .lang("Ore Prospector (LV)")
             .properties(p -> p.stacksTo(1))

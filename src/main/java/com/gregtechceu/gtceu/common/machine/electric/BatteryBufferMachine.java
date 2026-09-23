@@ -281,7 +281,8 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                 for (Object item : batteries) {
                     long charged = 0;
                     if (item instanceof IElectricItem electricItem) {
-                        charged = electricItem.charge(Math.min(distributed, Math.min(canAccept, GTValues.V[electricItem.getTier()])), getTier(), true, false);
+                        long perItem = Math.max(GTValues.V[electricItem.getTier()], electricItem.getTransferLimit());
+                        charged = electricItem.charge(Math.min(distributed, Math.min(canAccept, perItem)), getTier(), true, false);
                     } else if (item instanceof IEnergyStorage energyStorage) {
                         charged = FeCompat.insertEu(energyStorage, Math.min(distributed, Math.min(canAccept, GTValues.V[getTier()])), false);
                     }

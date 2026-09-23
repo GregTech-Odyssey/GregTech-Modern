@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.utils.input.KeyBind;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -47,10 +48,11 @@ public abstract class ArmorLogicSuite implements IArmorLogic, IItemHUDProvider {
     protected final int tier;
     protected final long maxCapacity;
     protected final ArmorItem.Type type;
-    @Nullable
-    private List<Component> staticInfo;
-    @Nullable
-    private List<Component> staticDetails;
+    // 下标 0 为断电、1 为有电
+    @SuppressWarnings("unchecked")
+    private final List<Component>[] staticInfo = new List[2];
+    @SuppressWarnings("unchecked")
+    private final List<Component>[] staticDetails = new List[2];
 
     protected ArmorLogicSuite(int energyPerUse, long maxCapacity, int tier, ArmorItem.Type type) {
         this.energyPerUse = energyPerUse;
@@ -142,6 +144,10 @@ public abstract class ArmorLogicSuite implements IArmorLogic, IItemHUDProvider {
 
     public static final double[] SPEED_MULTIPLIERS = { 1.0, 1.8, 3.0, 4.5, 6.0 };
     public static final double SPEED_AMPS_PER_LEVEL = 1.0;
+    /**
+     * 电力盔甲与纳米剑每 tick 最多可充入 16A
+     */
+    public static final long TRANSFER_AMPS = 16;
     public static final String SPEED_LEVEL = "speedLevel";
 
     /**
@@ -273,7 +279,7 @@ public abstract class ArmorLogicSuite implements IArmorLogic, IItemHUDProvider {
                                        TooltipFlag isAdvanced) {
                 addInfo(stack, tooltipComponents);
             }
-        });
+        }.transferAmps(TRANSFER_AMPS));
     }
 
     /**
@@ -296,17 +302,19 @@ public abstract class ArmorLogicSuite implements IArmorLogic, IItemHUDProvider {
             ElectricStats.addCurrentChargeTooltip(lines, cont.getCharge(), cont.getMaxCharge(), cont.getTier(), false);
         }
         if (getDamageAbsorption() <= 0) return;
-        // 电容量与防护数值只取决于本逻辑的常量，生成一次后复用
-        if (staticInfo == null) {
+        // 电容量与防护数值只取决于本逻辑的常量与是否有电，两种状态各生成一次后复用
+        boolean charged = cont != null && cont.getCharge() >= energyPerUse;
+        int state = charged ? 1 : 0;
+        if (staticInfo[state] == null) {
             List<Component> info = new ArrayList<>(4);
             List<Component> details = new ArrayList<>(5);
-            buildStaticInfo(info, details);
-            staticDetails = details;
-            staticInfo = info;
+            buildStaticInfo(info, details, charged);
+            staticDetails[state] = details;
+            staticInfo[state] = info;
         }
         boolean showDetails = ArmorTooltips.showDetails();
-        lines.addAll(staticInfo);
-        if (showDetails) lines.addAll(staticDetails);
+        lines.addAll(staticInfo[state]);
+        if (showDetails) lines.addAll(staticDetails[state]);
         List<Component> features = new ArrayList<>(24);
         addFeatures(itemStack, features);
         if (getGrade() > 0) ArmorSuiteFeatures.addCommonFeatures(this, itemStack, features);
@@ -318,7 +326,10 @@ public abstract class ArmorLogicSuite implements IArmorLogic, IItemHUDProvider {
         if (!showDetails) lines.add(ArmorTooltips.SHIFT_HINT);
     }
 
-    private void buildStaticInfo(List<Component> info, List<Component> details) {
+    /**
+     * 防护数值按当前是否有电取值：有电为绿；断电为黄并注明电量不足，Shift 说明给出另一状态的数值
+     */
+    private void buildStaticInfo(List<Component> info, List<Component> details, boolean charged) {
         long voltage = GTValues.V[tier];
         double hours = maxCapacity / (voltage * 20D * 3600D);
         String hoursText = Math.abs(hours - Math.rint(hours)) < 0.01 ? String.valueOf(Math.round(hours)) :
@@ -326,20 +337,38 @@ public abstract class ArmorLogicSuite implements IArmorLogic, IItemHUDProvider {
         info.add(ArmorTooltips.info("capacity", ArmorTooltips.value(hoursText), GTValues.VNF[tier]));
 
         float baseToughness = GTArmorMaterials.ARMOR.getToughness();
+        ChatFormatting color = charged ? ChatFormatting.GREEN : ChatFormatting.YELLOW;
         info.add(ArmorTooltips.section("protection"));
-        info.add(ArmorTooltips.info("protection.piece", ArmorTooltips.value(formatValue(getArmorPoints(true))),
-                ArmorTooltips.value(formatValue(baseToughness + getExtraToughness())),
-                ArmorTooltips.value(formatPercent(getExtraKnockbackResistance()))));
+        MutableComponent piece = ArmorTooltips.info("protection.piece",
+                ArmorTooltips.value(formatValue(getArmorPoints(charged)), color),
+                ArmorTooltips.value(formatValue(baseToughness + (charged ? getExtraToughness() : 0)), color),
+                ArmorTooltips.value(formatPercent(charged ? getExtraKnockbackResistance() : 0), color));
+        if (!charged) piece.append(ArmorTooltips.reason(ArmorTooltips.tr("state.no_energy"), color));
+        info.add(piece);
         details.add(detail("detail.full_power"));
-        details.add(detail("detail.unpowered_piece", formatValue(getArmorPoints(false)), formatValue(baseToughness)));
+        if (charged) {
+            details.add(detail("detail.unpowered_piece", formatValue(getArmorPoints(false)),
+                    formatValue(baseToughness)));
+        } else {
+            details.add(detail("detail.powered_piece", formatValue(getArmorPoints(true)),
+                    formatValue(baseToughness + getExtraToughness()), formatPercent(getExtraKnockbackResistance())));
+        }
         if (type == ArmorItem.Type.CHESTPLATE) {
-            float setArmor = getSetArmorPoints(true);
-            float setToughness = getSetToughness(true);
-            info.add(ArmorTooltips.info("protection.set", ArmorTooltips.value(formatValue(setArmor)),
-                    ArmorTooltips.value(formatValue(setToughness)),
-                    ArmorTooltips.value(formatPercent(getSetKnockbackResistance()))));
-            details.add(detail("detail.unpowered_set", formatValue(getSetArmorPoints(false)),
-                    formatValue(getSetToughness(false))));
+            float setArmor = getSetArmorPoints(charged);
+            float setToughness = getSetToughness(charged);
+            MutableComponent set = ArmorTooltips.info("protection.set",
+                    ArmorTooltips.value(formatValue(setArmor), color),
+                    ArmorTooltips.value(formatValue(setToughness), color),
+                    ArmorTooltips.value(formatPercent(charged ? getSetKnockbackResistance() : 0), color));
+            if (!charged) set.append(ArmorTooltips.reason(ArmorTooltips.tr("state.no_energy"), color));
+            info.add(set);
+            if (charged) {
+                details.add(detail("detail.unpowered_set", formatValue(getSetArmorPoints(false)),
+                        formatValue(getSetToughness(false))));
+            } else {
+                details.add(detail("detail.powered_set", formatValue(getSetArmorPoints(true)),
+                        formatValue(getSetToughness(true)), formatPercent(getSetKnockbackResistance())));
+            }
             details.add(detail("detail.set_definition"));
             // Apothic Attributes 默认公式：单次伤害 < 20 时承受 10 / (10 + 护甲)；每点韧性抵抗 2% 破甲，60% 封顶
             details.add(detail("detail.set_effect", formatPercent(10.0F / (10.0F + setArmor)),

@@ -15,14 +15,21 @@ public class ElectricItem implements IElectricItem {
 
     protected final boolean chargeable;
     protected final boolean canProvideEnergyExternally;
+    protected final long transferAmps;
 
     public ElectricItem(ItemStack itemStack, long maxCharge, int tier, boolean chargeable,
                         boolean canProvideEnergyExternally) {
+        this(itemStack, maxCharge, tier, chargeable, canProvideEnergyExternally, 1);
+    }
+
+    public ElectricItem(ItemStack itemStack, long maxCharge, int tier, boolean chargeable,
+                        boolean canProvideEnergyExternally, long transferAmps) {
         this.itemStack = itemStack;
         this.maxCharge = maxCharge;
         this.tier = tier;
         this.chargeable = chargeable;
         this.canProvideEnergyExternally = canProvideEnergyExternally;
+        this.transferAmps = transferAmps;
     }
 
     public void setCharge(long change) {
@@ -35,7 +42,7 @@ public class ElectricItem implements IElectricItem {
 
     @Override
     public long getTransferLimit() {
-        return GTValues.V[getTier()];
+        return GTValues.V[getTier()] * transferAmps;
     }
 
     @Override

@@ -41,6 +41,20 @@ public final class ArmorTooltips {
         return Component.literal(text).withStyle(ChatFormatting.WHITE);
     }
 
+    /**
+     * 随状态着色的数值：绿 = 生效，黄 = 缺条件，红 = 关闭
+     */
+    public static Component value(String text, ChatFormatting color) {
+        return Component.literal(text).withStyle(color);
+    }
+
+    /**
+     * 数值未按最佳状态生效时附在行尾的原因，例如「 · 电量不足」
+     */
+    public static Component reason(Component reason, ChatFormatting color) {
+        return Component.literal(" · ").append(reason).withStyle(color);
+    }
+
     public static Component section(String name) {
         return Component.literal("◆ ").append(tr("section." + name)).withStyle(ChatFormatting.GOLD);
     }
@@ -48,7 +62,7 @@ public final class ArmorTooltips {
     /**
      * 缩进的说明行（灰色），用于防护数值等常驻信息
      */
-    public static Component info(String key, Object... args) {
+    public static MutableComponent info(String key, Object... args) {
         return Component.literal(" ").append(tr(key, args)).withStyle(ChatFormatting.GRAY);
     }
 
@@ -115,6 +129,14 @@ public final class ArmorTooltips {
 
     public static Component keyOrShiftUseToggle(KeyBind key, boolean enabled, boolean hasEnergy) {
         return toggleState(enabled, hasEnergy).append(keyHint(key, true));
+    }
+
+    /**
+     * 潜行右键开关：开启为绿、开启但电量不足为黄、关闭为红，后面附操作提示
+     */
+    public static Component shiftUseToggle(boolean enabled, boolean hasEnergy) {
+        return toggleState(enabled, hasEnergy)
+                .append(Component.literal(" ").append(tr("shift_use")).withStyle(ChatFormatting.DARK_GRAY));
     }
 
     private static MutableComponent toggleState(boolean enabled, boolean hasEnergy) {

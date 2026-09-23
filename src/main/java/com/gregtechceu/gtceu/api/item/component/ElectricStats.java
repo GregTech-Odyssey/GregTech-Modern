@@ -42,6 +42,10 @@ public class ElectricStats implements IInteractionItem, IAddInformation, IItemLi
 
     public final boolean chargeable;
     public final boolean dischargeable;
+    /**
+     * GTO: 每 tick 最多可充入 / 放出的安培数，默认 1A
+     */
+    public long transferAmps = 1;
 
     protected ElectricStats(long maxCharge, int tier, boolean chargeable, boolean dischargeable) {
         this.maxCharge = maxCharge;
@@ -52,6 +56,11 @@ public class ElectricStats implements IInteractionItem, IAddInformation, IItemLi
 
     public static ElectricStats create(long maxCharge, int tier, boolean chargeable, boolean dischargeable) {
         return new ElectricStats(maxCharge, tier, chargeable, dischargeable);
+    }
+
+    public ElectricStats transferAmps(long amps) {
+        this.transferAmps = amps;
+        return this;
     }
 
     public static float getStoredPredicate(ItemStack itemStack) {

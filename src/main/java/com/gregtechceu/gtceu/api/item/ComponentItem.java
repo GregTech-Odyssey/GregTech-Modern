@@ -139,6 +139,26 @@ public class ComponentItem extends Item implements HeldItemUIFactory.IHeldItemUI
     }
 
     @Override
+    public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
+        for (IItemComponent component : components) {
+            if (component.suppressReequipOnNbtChange()) {
+                return slotChanged || oldStack.getItem() != newStack.getItem();
+            }
+        }
+        return super.shouldCauseReequipAnimation(oldStack, newStack, slotChanged);
+    }
+
+    @Override
+    public int getDefaultTooltipHideFlags(ItemStack stack) {
+        for (IItemComponent component : components) {
+            if (component instanceof IItemAttributes itemAttributes && itemAttributes.hideAttributeTooltip(stack)) {
+                return ItemStack.TooltipPart.MODIFIERS.getMask();
+            }
+        }
+        return super.getDefaultTooltipHideFlags(stack);
+    }
+
+    @Override
     public boolean isEnchantable(ItemStack stack) {
         for (IItemComponent component : components) {
             if (component instanceof IEnchantableItem enchantableItem) {

@@ -670,24 +670,13 @@ public class ConfigHolder {
         @Configurable.Range(min = 0, max = 14)
         public int voltageTierAdvImpeller = 3;
 
+        // GTO: 纳米剑分级后伤害与耗电由 NanoSaberBehavior 按等级给出，不再提供配置
         public static class NanoSaber {
 
-            @Configurable
-            @Configurable.DecimalRange(min = 0, max = 100)
-            @Configurable.Comment({ "The additional damage added when the NanoSaber is powered.", "Default: 20.0" })
-            public double nanoSaberDamageBoost = 20;
-            @Configurable
-            @Configurable.DecimalRange(min = 0, max = 100)
-            @Configurable.Comment({ "The base damage of the NanoSaber.", "Default: 5.0" })
-            public double nanoSaberBaseDamage = 5;
             @Configurable
             @Configurable.Comment({ "Should Zombies spawn with charged, active NanoSabers on hard difficulty?",
                     "Default: true" })
             public boolean zombieSpawnWithSabers = true;
-            @Configurable
-            @Configurable.Range(min = 1, max = 512)
-            @Configurable.Comment({ "The EU/t consumption of the NanoSaber.", "Default: 64" })
-            public int energyConsumption = 64;
         }
     }
 
