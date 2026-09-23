@@ -1,13 +1,14 @@
 package com.gregtechceu.gtceu.api.cover.filter;
 
-import com.gregtechceu.gtceu.api.cover.CoverBehavior;
-
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.gto.datasynclib.IFieldDataHolder;
+
 public interface FilterHandlers {
 
-    static FilterHandler<ItemStack, ItemFilter> item(CoverBehavior container) {
+    /** Host may be a cover or a machine (e.g. item export bus). */
+    static FilterHandler<ItemStack, ItemFilter> item(IFieldDataHolder container) {
         return new FilterHandler<>(container) {
 
             @Override
@@ -27,7 +28,8 @@ public interface FilterHandlers {
         };
     }
 
-    static FilterHandler<FluidStack, FluidFilter> fluid(CoverBehavior container) {
+    /** Host may be a cover or a machine. */
+    static FilterHandler<FluidStack, FluidFilter> fluid(IFieldDataHolder container) {
         return new FilterHandler<>(container) {
 
             @Override
