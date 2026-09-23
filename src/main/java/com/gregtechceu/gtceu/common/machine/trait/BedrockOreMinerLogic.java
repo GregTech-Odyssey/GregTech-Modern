@@ -7,15 +7,13 @@ import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockore.BedrockOreVeinSavedData;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockore.OreVeinWorldEntry;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockore.WeightedMaterial;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.machine.trait.VeinDrillLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeBuilder;
-import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.BedrockOreMinerMachine;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 
@@ -23,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class BedrockOreMinerLogic extends RecipeLogic {
+public class BedrockOreMinerLogic extends VeinDrillLogic {
 
     public static final int MAX_PROGRESS = 20;
     @Nullable
@@ -39,28 +37,21 @@ public class BedrockOreMinerLogic extends RecipeLogic {
     }
 
     @Override
-    public boolean findAndHandleRecipe() {
-        if (getMachine().getLevel() instanceof ServerLevel serverLevel && getMachine().getEnergyTier() >= getMachine().getTier()) {
-            lastRecipe = null;
-            var data = BedrockOreVeinSavedData.getOrCreate(serverLevel);
-            if (veinMaterials == null) {
-                this.veinMaterials = data.getOreInChunk(getChunkX(), getChunkZ());
-                if (this.veinMaterials == null) {
-                    return false;
-                }
-            }
-            var match = getOreMinerRecipe();
-            if (match != null) {
-                if (machine.matchTickRecipe(match) && machine.matchRecipeOutput(match)) {
-                    return setupRecipe(RecipeHandlerUnit.NO_DATA, match);
-                }
-            }
+    protected boolean canDrill() {
+        return getMachine().getEnergyTier() >= getMachine().getTier();
+    }
+
+    @Override
+    protected boolean resolveVein(ServerLevel serverLevel) {
+        if (veinMaterials == null) {
+            veinMaterials = BedrockOreVeinSavedData.getOrCreate(serverLevel).getOreInChunk(getChunkX(), getChunkZ());
         }
-        return false;
+        return veinMaterials != null;
     }
 
     @Nullable
-    private GTRecipe getOreMinerRecipe() {
+    @Override
+    protected GTRecipe buildDrillRecipe() {
         if (getMachine().getLevel() instanceof ServerLevel serverLevel && veinMaterials != null) {
             WeightedMaterial wm = GTUtil.getRandomItem(serverLevel.random, veinMaterials);
             if (wm == null) return null;
@@ -120,26 +111,8 @@ public class BedrockOreMinerLogic extends RecipeLogic {
     }
 
     @Override
-    public boolean onRecipeFinish() {
-        machine.afterWorking();
-        if (lastRecipe != null) {
-            machine.handleRecipeOutput(lastRecipe);
-        }
+    protected void onDrillFinish() {
         depleteVein();
-        if (suspendAfterFinish) {
-            setStatus(SUSPEND);
-            suspendAfterFinish = false;
-        } else {
-            // try it again
-            var match = getOreMinerRecipe();
-            if (match != null) {
-                if (machine.matchTickRecipe(match) && machine.matchRecipeOutput(match)) {
-                    return setupRecipe(RecipeHandlerUnit.NO_DATA, match);
-                }
-            }
-            setStatus(IDLE);
-        }
-        return false;
     }
 
     protected void depleteVein() {
@@ -155,14 +128,6 @@ public class BedrockOreMinerLogic extends RecipeLogic {
 
     protected boolean isOverclocked() {
         return getMachine().getEnergyTier() > getMachine().getTier();
-    }
-
-    private int getChunkX() {
-        return SectionPos.blockToSectionCoord(getMachine().getPos().getX());
-    }
-
-    private int getChunkZ() {
-        return SectionPos.blockToSectionCoord(getMachine().getPos().getZ());
     }
 
     @Nullable
