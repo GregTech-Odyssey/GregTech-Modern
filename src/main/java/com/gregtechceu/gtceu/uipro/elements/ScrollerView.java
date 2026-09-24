@@ -172,9 +172,13 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
         return this;
     }
 
-    /** 是否显示右下角的拖拽缩放角（默认显示）。 */
+    /** 是否显示右下角的拖拽缩放角（默认显示）；不能缩放时也不套用锁定的高度。 */
     public ScrollerView setResizable(boolean resizable) {
         this.resizable = resizable;
+        if (!resizable && (lockedHeight > 0 || userHeight > 0)) {
+            lockedHeight = userHeight = -1;
+            relayout();
+        }
         return this;
     }
 
@@ -191,6 +195,12 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
 
     public ScrollerView addScrollViewChild(Widget child) {
         content.addWidget(child);
+        return this;
+    }
+
+    /** 清空内容（不要对滚动区本身调 {@code clearAllWidgets}，那会把内容列一起删掉）。 */
+    public ScrollerView clearScrollViewChildren() {
+        content.clearAllWidgets();
         return this;
     }
 

@@ -397,7 +397,13 @@ public class FancyMachineUIWidget extends WidgetGroup implements ILayoutHost {
         int screen = vertical ? window.getGuiScaledHeight() : window.getGuiScaledWidth();
         // 按窗口本身算（新式外壳的界面尺寸会为定位加大，不代表窗口大小）
         int current = vertical ? getSizeHeight() : getSizeWidth();
-        return (int) (screen * UISizes.MAX_WINDOW_SCREEN_RATIO) - current;
+        return maxWindowExtent(vertical, screen) - current;
+    }
+
+    /** 拖拽缩放时窗口的最大宽 / 高（{@code screen} 为屏幕的宽 / 高）：默认屏幕的 {@link UISizes#MAX_WINDOW_SCREEN_RATIO}。 */
+    @OnlyIn(Dist.CLIENT)
+    protected int maxWindowExtent(boolean vertical, int screen) {
+        return (int) (screen * UISizes.MAX_WINDOW_SCREEN_RATIO);
     }
 
     @Override

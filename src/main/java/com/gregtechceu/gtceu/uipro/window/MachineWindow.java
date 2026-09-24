@@ -1,9 +1,11 @@
 package com.gregtechceu.gtceu.uipro.window;
 
+import com.gregtechceu.gtceu.api.gui.factory.MachineSubWindowFactory;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.Button;
 import com.gregtechceu.gtceu.uipro.elements.ItemView;
@@ -11,6 +13,7 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
+import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.SlotWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
@@ -22,12 +25,14 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +74,13 @@ public class MachineWindow extends FancyMachineUIWidget {
     private final List<PageOverlay> overlays = new ArrayList<>();
     @Nullable
     private IntFunction<Widget> titleContent;
+    /// 页面右侧伸出的一列（如滚动条）宽度：玩家背包按去掉这一列后的宽度居中，与页面里的槽位对齐（切换页面时清零）
+    private int inventoryGutter;
+    /// 独立窗口（见 IMachineSubWindows）：标题栏"返回"回到这台机器的主界面
+    @Nullable
+    private MetaMachine backToMachine;
+    /// 始终按屏幕居中（见 setCentered）
+    private boolean centered;
     private boolean placing;
     /** 客户端：第一次摆放时的窗口宽度，之后切页时窗口左边缘按它固定（见 {@link #applyClientPlacement}）。 */
     private int anchorWidth;
@@ -303,6 +315,59 @@ public class MachineWindow extends FancyMachineUIWidget {
         return null;
     }
 
+    // ==================== 独立窗口 ====================
+
+    /**
+     * 本窗口是机器的独立窗口（{@code IMachineSubWindows}）：没有可退回的页面时，标题栏左侧也显示"返回"按钮，
+     * 点击后（服务端）回到这台机器的主界面。建界面时两端都要调用。
+     */
+    public MachineWindow setBackToMachine(MetaMachine machine) {
+        this.backToMachine = machine;
+        return this;
+    }
+
+    /**
+     * 窗口（连同顶部标签栏）始终按屏幕正中摆放：页面尺寸变了（如画布拖拽缩放）就用动画回到正中，
+     * 而不是像普通机器窗口那样固定左边缘和顶边、只向右下长。尺寸随屏幕撑大的大页面（如科技树）用它。
+     * 这样的窗口拖拽缩放的上限是整个屏幕（留出边距），不是屏幕的 2/3。
+     */
+    public MachineWindow setCentered(boolean centered) {
+        this.centered = centered;
+        return this;
+    }
+
+    public boolean isCentered() {
+        return centered;
+    }
+
+    /** 独立窗口：Esc 和背包键回到机器主界面，而不是关掉界面（界面里的输入框等先处理按键）。 */
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (super.keyPressed(keyCode, scanCode, modifiers)) return true;
+        if (backToMachine != null && (keyCode == GLFW.GLFW_KEY_ESCAPE || Minecraft.getInstance().options.keyInventory.matches(keyCode, scanCode))) {
+            title.requestBackToMachine();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 切换到某个页面标签（客户端调用，与点击顶部标签相同：先发请求再切换，服务端收到后同样切换）。
+     * 页面自己要跳到另一个标签页时用（如科技树从一棵树的节点跳到另一棵树）；标签不在当前标签栏里时忽略。
+     */
+    public void selectTab(IFancyUIProvider tab) {
+        tabs.request(tab);
+    }
+
+    /** 标签栏里当前的页面（主页在前，子页面依次在后）。 */
+    public List<IFancyUIProvider> getTabs() {
+        var list = new ArrayList<IFancyUIProvider>(1 + sideTabsWidget.getSubTabs().size());
+        if (sideTabsWidget.getMainTab() != null) list.add(sideTabsWidget.getMainTab());
+        list.addAll(sideTabsWidget.getSubTabs());
+        return list;
+    }
+
     // ==================== 标题栏内容 ====================
 
     /**
@@ -312,6 +377,15 @@ public class MachineWindow extends FancyMachineUIWidget {
      */
     public void setTitleContent(IntFunction<Widget> content) {
         this.titleContent = content;
+    }
+
+    /**
+     * 页面右侧有一列伸出在槽位网格之外（常见是 9 槽宽的滚动区的滚动条，宽 {@code ScrollerView.SCROLL_BAR_SPACE}）：
+     * 玩家背包按去掉这一列后的宽度居中，和页面里的槽位上下对齐，只有滚动条伸出来。
+     * 页面在 {@link IFancyUIProvider#createMainPage} 里设置（两端都会执行），切换页面时清零。
+     */
+    public void setInventoryGutter(int rightGutter) {
+        this.inventoryGutter = Math.max(0, rightGutter);
     }
 
     // ==================== 布局 ====================
@@ -339,6 +413,7 @@ public class MachineWindow extends FancyMachineUIWidget {
         configurators.clear();
         popups.reset();
         titleContent = null;
+        inventoryGutter = 0;
         pageShowsInventory = showInventory;
         sideTabsWidget.selectTab(fancyUI);
         var page = fancyUI.createMainPage(this);
@@ -350,7 +425,7 @@ public class MachineWindow extends FancyMachineUIWidget {
         fancyUI.attachConfigurators(configurators);
         placeConfigurators();
         fancyUI.attachTooltips(tooltipsPanel);
-        title.setup(currentHomePage, contentWidth, !previousPages.isEmpty(), allPages.size() > 1 && currentPage != pageSwitcher, titleContent);
+        title.setup(currentHomePage, contentWidth, !previousPages.isEmpty() || backToMachine != null, allPages.size() > 1 && currentPage != pageSwitcher, titleContent);
 
         updatePlacement();
     }
@@ -368,7 +443,11 @@ public class MachineWindow extends FancyMachineUIWidget {
 
         boolean inventory = showInventory && playerInventory != null;
         if (playerInventory != null) {
-            playerInventory.setSelfPosition(new Position(UISizes.WINDOW_PADDING_X + (contentWidth - UISizes.SLOT_ROW_WIDTH) / 2, y + UISizes.SECTION_GAP));
+            int pageX = UISizes.WINDOW_PADDING_X + (contentWidth - page.getSizeWidth()) / 2;
+            int alignWidth = page.getSizeWidth() - inventoryGutter;
+            int inventoryX = inventoryGutter > 0 && alignWidth >= UISizes.SLOT_ROW_WIDTH ? pageX + (alignWidth - UISizes.SLOT_ROW_WIDTH) / 2 :
+                    UISizes.WINDOW_PADDING_X + (contentWidth - UISizes.SLOT_ROW_WIDTH) / 2;
+            playerInventory.setSelfPosition(new Position(inventoryX, y + UISizes.SECTION_GAP));
             playerInventory.setActive(inventory);
             playerInventory.setVisible(inventory);
         }
@@ -439,15 +518,15 @@ public class MachineWindow extends FancyMachineUIWidget {
         int screenWidth = screen.getGuiScaledWidth(), screenHeight = screen.getGuiScaledHeight();
         int width = getSizeWidth(), height = getSizeHeight();
         int tabsHeight = tabs.reservedHeight();
-        if (anchorWidth <= 0) anchorWidth = width;
-        // 打开阶段（首屏数据陆续到达、页面还在变高）一直按屏幕居中，之后才固定
-        if (anchorTop == Integer.MIN_VALUE || isOpening() || anchorScreenWidth != screenWidth || anchorScreenHeight != screenHeight) {
+        if (anchorWidth <= 0 || centered) anchorWidth = width;
+        // 打开阶段（首屏数据陆续到达、页面还在变高）一直按屏幕居中，之后才固定；始终居中的窗口每次都重新居中
+        if (centered || anchorTop == Integer.MIN_VALUE || isOpening() || anchorScreenWidth != screenWidth || anchorScreenHeight != screenHeight) {
             anchorTop = (screenHeight - height - tabsHeight) / 2 + tabsHeight;
             anchorScreenWidth = screenWidth;
             anchorScreenHeight = screenHeight;
         }
         int bottomLimit = screenHeight - Math.round(screenHeight * UISizes.WINDOW_BOTTOM_SCREEN_MARGIN);
-        int top = Math.max(tabsHeight, Math.min(anchorTop, bottomLimit - height));
+        int top = centered ? Math.max(tabsHeight, anchorTop) : Math.max(tabsHeight, Math.min(anchorTop, bottomLimit - height));
 
         int extra = Math.max(0, width - anchorWidth);
         int[] placement = clientPlacement(screenWidth, screenHeight, width, top);
@@ -474,6 +553,14 @@ public class MachineWindow extends FancyMachineUIWidget {
         int offsetY = Math.min(0, screenHeight - margin - top - popupHeight);
         offsetY = Math.max(offsetY, margin - top);
         return new int[] { shift, offsetY };
+    }
+
+    /** 始终居中的窗口：拖拽缩放可以长到整个屏幕（四周留边距、上方留出标签栏）。 */
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    protected int maxWindowExtent(boolean vertical, int screen) {
+        if (!centered) return super.maxWindowExtent(vertical, screen);
+        return screen - 2 * UISizes.POPUP_SCREEN_MARGIN - (vertical ? tabs.reservedHeight() : 0);
     }
 
     @Override
@@ -643,6 +730,18 @@ public class MachineWindow extends FancyMachineUIWidget {
             sideTabsWidget.selectTab(tab);
             sideTabsWidget.getOnTabClick().accept(tab);
         }
+
+        /** 客户端：请求切到 {@code tab}（同点击标签）。 */
+        private void request(IFancyUIProvider tab) {
+            if (!shown() || tab == sideTabsWidget.getSelectedTab()) return;
+            for (int i = 0, count = count(); i < count; i++) {
+                if (tab(i) != tab) continue;
+                int index = i;
+                writeClientAction(0, buf -> buf.writeVarInt(index));
+                select(tab);
+                return;
+            }
+        }
     }
 
     // ==================== 标题栏 ====================
@@ -674,6 +773,34 @@ public class MachineWindow extends FancyMachineUIWidget {
             super(0, 0, UISizes.CONTENT_WIDTH, UISizes.CONTROL_HEIGHT);
         }
 
+        /// 客户端请求回到机器主界面（Esc）：避开 WidgetGroup 的 1、2
+        private static final int BACK_TO_MACHINE_ID = 3;
+
+        /** 客户端：请求服务端回到机器主界面（独立窗口按 Esc 时）。 */
+        private void requestBackToMachine() {
+            writeClientAction(BACK_TO_MACHINE_ID, buf -> {});
+        }
+
+        @Override
+        public void handleClientAction(int id, FriendlyByteBuf buffer) {
+            if (id == BACK_TO_MACHINE_ID) {
+                if (backToMachine != null && getGui() != null && getGui().entityPlayer instanceof ServerPlayer player) {
+                    MachineSubWindowFactory.openMachine(player, backToMachine);
+                }
+            } else {
+                super.handleClientAction(id, buffer);
+            }
+        }
+
+        /** 返回：有退回的页面时两端各退一页；否则是独立窗口，服务端回到机器主界面。 */
+        private void back(ClickData clickData) {
+            if (!previousPages.isEmpty()) {
+                navigateBack(clickData);
+            } else if (!clickData.isRemote && backToMachine != null && getGui() != null && getGui().entityPlayer instanceof ServerPlayer player) {
+                MachineSubWindowFactory.openMachine(player, backToMachine);
+            }
+        }
+
         private void setup(IFancyUIProvider page, int width, boolean showBack, boolean showMenu, @Nullable IntFunction<Widget> content) {
             this.page = page;
             clearAllWidgets();
@@ -683,7 +810,7 @@ public class MachineWindow extends FancyMachineUIWidget {
             int left = 0;
             int right = width;
             if (showBack) {
-                var back = Button.icon(UITheme.ARROW_LEFT).setOnClick(MachineWindow.this::navigateBack);
+                var back = Button.icon(UITheme.ARROW_LEFT).setOnClick(this::back);
                 back.setHoverTooltips("gtceu.gui.title_bar.back");
                 addWidget(back);
                 left += UISizes.ICON_BUTTON + UISizes.GAP;

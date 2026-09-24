@@ -36,6 +36,10 @@ public final class UISizes {
     public static final int SMALL_TEXT_HEIGHT = 7;
     /** 状态行高度：一行文字上下各留 1 像素（与单行 Label 同高），状态面板里逐行紧排。 */
     public static final int STATUS_LINE_HEIGHT = TEXT_HEIGHT + 2;
+    /** 带物品图标的状态行高：放得下 16 像素的图标，上下各留 1。 */
+    public static final int STATUS_LINE_ICON_HEIGHT = 18;
+    /** 进度条高度：一行文字加上下各 1 像素轨道边与 1 像素留白（{@code ProgressBar}）。 */
+    public static final int PROGRESS_BAR_HEIGHT = TEXT_HEIGHT + 3;
 
     // ==================== 控件宽度 ====================
     /** 方形图标按钮 / 步进器箭头的宽度，与控件行高相同。 */
@@ -98,6 +102,21 @@ public final class UISizes {
     public static final int RECIPE_MACHINE_PAGE_HEIGHT = 4 * SLOT;
     /** 悬浮栏（dock）离所在区域底边的距离。 */
     public static final int DOCK_MARGIN = 4;
+    /** 悬浮栏里的图标按钮边长：按钮面（去掉底部台阶）里正好原尺寸放下一个 16×16 图标。 */
+    public static final int DOCK_BUTTON = 22;
+
+    // ==================== 画布 ====================
+    /** 画布网格最细一级的世界间距、屏幕上允许的最小线距。 */
+    public static final float CANVAS_GRID_SIZE = 16;
+    public static final float CANVAS_GRID_MIN_PIXELS = 12;
+    /** 画布视口的最小边长（拖拽缩放的下限）。 */
+    public static final int CANVAS_MIN_SIZE = 3 * SLOT;
+    /** 画布缩略图：最大占视口的 1/3，并夹在这组宽高之间；离视口右上角的距离。 */
+    public static final int CANVAS_MINIMAP_MIN_WIDTH = 2 * SLOT;
+    public static final int CANVAS_MINIMAP_MAX_WIDTH = 5 * SLOT;
+    public static final int CANVAS_MINIMAP_MIN_HEIGHT = SLOT + GAP * 3;
+    public static final int CANVAS_MINIMAP_MAX_HEIGHT = 4 * SLOT;
+    public static final int CANVAS_MINIMAP_MARGIN = 3;
     /** 窗口左侧配置按钮（GTM 配置面板）的方块边长。 */
     public static final int SIDE_TAB = 24;
     /** 窗口顶部页面标签：宽、高（未选中时），选中时再向上高出 {@link #PAGE_TAB_RAISE}、向下伸进窗口顶边 {@link #PAGE_TAB_OVERLAP}。 */

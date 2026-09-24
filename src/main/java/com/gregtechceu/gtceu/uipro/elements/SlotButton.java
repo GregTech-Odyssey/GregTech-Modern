@@ -21,8 +21,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 public class SlotButton extends Button {
 
     public static final int SIZE = UISizes.SLOT;
-    /// 悬停蒙层，与物品槽一致
-    private static final int HOVER_OVERLAY = 0x80FFFFFF;
 
     private final IGuiTexture slotIcon;
 
@@ -44,7 +42,7 @@ public class SlotButton extends Button {
         slotIcon.draw(graphics, mouseX, mouseY, x + 1, y + 1, SIZE - 2, SIZE - 2);
         if (!disabled && isMouseOverElement(mouseX, mouseY)) {
             RenderSystem.colorMask(true, true, true, false);
-            graphics.fill(x + 1, y + 1, x + SIZE - 1, y + SIZE - 1, 200, HOVER_OVERLAY);
+            graphics.fill(x + 1, y + 1, x + SIZE - 1, y + SIZE - 1, 200, UITheme.SLOT_HOVER_OVERLAY);
             RenderSystem.colorMask(true, true, true, true);
         }
         if (disabled) UITheme.drawDisabled(graphics, x, y, SIZE, SIZE);

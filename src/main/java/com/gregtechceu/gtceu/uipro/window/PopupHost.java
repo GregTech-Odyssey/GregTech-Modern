@@ -1,14 +1,9 @@
 package com.gregtechceu.gtceu.uipro.window;
 
-import com.gregtechceu.gtceu.uipro.IShiftClickPriority;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.SyncValueHost;
-import com.gregtechceu.gtceu.uipro.elements.Button;
-import com.gregtechceu.gtceu.uipro.elements.Label;
-import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
-import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
@@ -71,7 +66,7 @@ public final class PopupHost extends UIElement {
         if (this.maxHeight == maxHeight) return;
         this.maxHeight = maxHeight;
         for (var widget : widgets) {
-            if (widget instanceof PopupPanel panel) panel.setMaxHeight(maxHeight);
+            if (widget instanceof PopupCard panel) panel.setMaxHeight(maxHeight);
         }
         layout(l -> l.maxHeight(maxHeight == Integer.MAX_VALUE ? LayoutStyle.AUTO : maxHeight));
     }
@@ -144,7 +139,7 @@ public final class PopupHost extends UIElement {
 
     /** 同一种面板已打开时原地替换（保持下标），否则追加到末尾。 */
     private void openLocal(String key, int argument, Popup popup) {
-        var panel = new PopupPanel(key, popup, maxHeight, () -> close(key));
+        var panel = new PopupCard("popup." + key, popup, maxHeight, () -> close(key));
         int index = indexOf(key);
         if (index >= 0) {
             removeWidget(widgets.get(index));
@@ -219,53 +214,6 @@ public final class PopupHost extends UIElement {
      * {@code close} 在客户端点 {@code [×]} 时执行。高度不设上限（没有窗口可参照屏幕高度）。
      */
     public static UIElement standalonePanel(String key, Popup popup, Runnable close) {
-        return new PopupPanel(key, popup, Integer.MAX_VALUE, close);
-    }
-
-    /**
-     * 面板本体：Ore 窗口外框，标题行 + 高度随内容的滚动区。宽度随内容（flexbox 自适应）：滚动区宽度跟随内容，
-     * 放得下时不留滚动条的位置，要滚动时向右加宽；标题行由交叉轴拉伸跟到同宽。
-     */
-    private static final class PopupPanel extends UIElement implements IShiftClickPriority {
-
-        /// 标题行、内边距、间距占掉的高度，面板高度上限减去它就是滚动区的高度上限
-        private static final int CHROME = UISizes.POPUP_PADDING + UISizes.CONTROL_HEIGHT + UISizes.SECTION_GAP + UISizes.POPUP_PADDING_BOTTOM;
-
-        private final ScrollerView scroller;
-
-        private PopupPanel(String key, Popup popup, int maxHeight, Runnable close) {
-            layout(l -> l.column().gapAll(UISizes.SECTION_GAP).paddingAll(UISizes.POPUP_PADDING).paddingBottom(UISizes.POPUP_PADDING_BOTTOM));
-            setBackground(UITheme.WINDOW);
-
-            var closeButton = Button.glyph("×").setOnClientClick(close);
-            closeButton.setHoverTooltips(MachineWindow.POPUP_CLOSE);
-            var titleRow = UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter())
-                    .addChildren(Label.of(popup.title(), UISizes.POPUP_CONTENT_WIDTH - UISizes.ICON_BUTTON - UISizes.GAP), UIElement.flexSpacer(), closeButton);
-
-            // 内容至少一个 9 槽区块宽（按 getContentWidth 定宽的页面照旧），里面的滚动区被拖宽时跟着变宽
-            var content = new UIElement().layout(l -> l.column().widthAuto().minWidth(UISizes.POPUP_CONTENT_WIDTH).gapAll(UISizes.SECTION_GAP));
-            popup.content().accept(content);
-            // 初始尺寸取最小，宽高都跟随内容（见 ScrollerView 对滚动范围的处理）
-            // 滚动区 id 按面板的键取：同一种面板锁定的高度重开时沿用
-            scroller = new ScrollerView("popup." + key, UISizes.POPUP_CONTENT_WIDTH, UISizes.SLOT).adaptiveWidth();
-            scroller.addScrollViewChild(content);
-            scroller.adaptiveHeight(contentLimit(maxHeight));
-            addChildren(titleRow, scroller);
-        }
-
-        private static int contentLimit(int maxHeight) {
-            return Math.max(UISizes.SLOT, maxHeight - CHROME);
-        }
-
-        /** 弹出面板是玩家正在操作的窗口：Shift+点击时面板里的槽优先接收。 */
-        @Override
-        public int getShiftClickPriority() {
-            return IShiftClickPriority.POPUP;
-        }
-
-        /** 屏幕尺寸变化时更新滚动区高度上限（内容放得下就不滚动）。 */
-        private void setMaxHeight(int maxHeight) {
-            scroller.adaptiveHeight(contentLimit(maxHeight));
-        }
+        return new PopupCard("popup." + key, popup, Integer.MAX_VALUE, close);
     }
 }

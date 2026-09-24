@@ -7,11 +7,15 @@ import com.gregtechceu.gtceu.uipro.styletemplate.OreSprites;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+
+import dev.vfyjxf.taffy.style.FlexWrap;
 
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
@@ -81,6 +85,30 @@ public class ButtonGroup extends UIElement {
         return new ButtonGroup(true, count, label, isOn, i -> set.set(i, !isOn.test(i)));
     }
 
+    /**
+     * 图标单选：一排 {@link UISizes#SLOT} 见方的图标选项（如切换要看的科技树），选中项整块确认色（与 {@link IconToggle} 开着时一致）。
+     * 放不下文字时用它；有名称的选项用 {@link #single}。
+     *
+     * @param icon    第 i 个选项的图标（两端都会调用）
+     * @param tooltip 第 i 个选项的名称（悬停显示，两端都会调用）
+     * @param current 服务端：当前选中的序号
+     * @param select  服务端：选中第 i 个
+     */
+    public static ButtonGroup singleIcons(int count, IntFunction<IGuiTexture> icon, IntFunction<Component> tooltip,
+                                          IntSupplier current, IntConsumer select) {
+        return new ButtonGroup(count, icon, tooltip, current, select);
+    }
+
+    private ButtonGroup(int count, IntFunction<IGuiTexture> icon, IntFunction<Component> tooltip, IntSupplier current, IntConsumer select) {
+        this.multiple = false;
+        layout(l -> l.row().gapAll(UISizes.GAP).flexWrap(FlexWrap.WRAP));
+        for (int i = 0; i < count; i++) {
+            addChild(new IconOption(i, icon.apply(i), tooltip.apply(i), index -> current.getAsInt() == index, index -> {
+                if (current.getAsInt() != index) select.accept(index);
+            }));
+        }
+    }
+
     /** 横排、平分宽度。 */
     public ButtonGroup horizontal() {
         layout(l -> l.row().height(OPTION_HEIGHT));
@@ -88,6 +116,18 @@ public class ButtonGroup extends UIElement {
             if (child instanceof Option option) option.layout(l -> l.flex(1));
         }
         return this;
+    }
+
+    /** 图标选项：方形图标按钮，选中时整块确认色。 */
+    private static final class IconOption extends Button {
+
+        private IconOption(int index, IGuiTexture icon, Component tooltip, IntPredicate serverSelected, IntConsumer serverClick) {
+            super(UISizes.SLOT, UISizes.SLOT, null, icon);
+            var selected = addSyncValue(SyncValue.of(() -> serverSelected.test(index), SyncValue.BOOLEAN, false));
+            setVariant(() -> selected.getValue() ? UITheme.ButtonVariant.CONFIRM : UITheme.ButtonVariant.DEFAULT);
+            setOnServerClick(() -> serverClick.accept(index));
+            setHoverTooltips(tooltip);
+        }
     }
 
     /** 分段选择（见类注释）：没有选项标记，每项按文字定宽，选项紧挨着排在同一条底上。 */

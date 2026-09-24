@@ -15,6 +15,7 @@ import com.gregtechceu.gtceu.api.data.worldgen.generator.IndicatorGenerators;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerators;
 import com.gregtechceu.gtceu.api.gui.factory.CoverUIFactory;
 import com.gregtechceu.gtceu.api.gui.factory.GTUIEditorFactory;
+import com.gregtechceu.gtceu.api.gui.factory.MachineSubWindowFactory;
 import com.gregtechceu.gtceu.api.gui.factory.MachineUIFactory;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.entries.VirtualItemStorage;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.entries.VirtualRedstone;
@@ -98,6 +99,7 @@ public class CommonProxy {
         GTNetwork.init();
         UIFactory.register(MachineUIFactory.INSTANCE);
         UIFactory.register(CoverUIFactory.INSTANCE);
+        UIFactory.register(MachineSubWindowFactory.INSTANCE);
         UIFactory.register(GTUIEditorFactory.INSTANCE);
         GTPlacerTypes.init();
         GTRecipeDataKeys.init();

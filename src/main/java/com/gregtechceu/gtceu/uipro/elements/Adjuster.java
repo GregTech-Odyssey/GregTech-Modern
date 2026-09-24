@@ -57,7 +57,8 @@ public abstract class Adjuster extends UIElement {
     private static final String RANGE_TOOLTIP = "gtceu.uipro.adjuster.range";
     private static final String STEP_LINE = "gtceu.uipro.adjuster.step";
     private static final String UNBOUNDED = "gtceu.uipro.adjuster.unbounded";
-    /// 滚轮加减的客户端请求（登记见 AEStackGrid：ID_BASE-1 列表行、-2 步进器、-3/-4 弹出面板、-5 AE 网格）
+    /// 滚轮加减的客户端请求。SyncValueHost 段以下的 ID 登记：-1 列表行、-2 步进器、-3/-4 弹出面板、-5 AE 网格、
+    /// -6 数值框滚轮（本类）、-7/-8/-9 卡片位（CardHost）、-10 可点击的状态行（StatusLine）
     private static final int WHEEL_ID = SyncValueHost.ID_BASE - 6;
 
     /**

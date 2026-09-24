@@ -58,6 +58,8 @@ public final class UITheme {
      * 区块面板是平的细边框，二者并排时一眼能分出"状态"和"设置"。
      */
     public static final IGuiTexture STATUS_PANEL = new OreSprites.Bevel(0xFF7A7A7A, 0xFFFFFFFF, 0xFFB5B5B5);
+    /** 进度条（{@code ProgressBar}）的轨道：与状态显示窗同样的下凹斜面，底色再深一档，填充色压在上面看得清。 */
+    public static final IGuiTexture PROGRESS_TRACK = new OreSprites.Bevel(0xFF7A7A7A, 0xFFFFFFFF, 0xFFA4A4A4);
     /** 输入框、数值框的深色框。 */
     public static final IGuiTexture INSET = OreSprites.RECT;
     /** 滚动条轨道、滑块。 */
@@ -333,6 +335,13 @@ public final class UITheme {
         }
     }
 
+    /** 1 像素直角矩形边框（缩略图、画布里的框线等）。 */
+    @OnlyIn(Dist.CLIENT)
+    public static void drawOutline(GuiGraphics graphics, int x, int y, int width, int height, int color) {
+        if (width <= 0 || height <= 0) return;
+        ring(graphics, x, y, x + width, y + height, color, false);
+    }
+
     /** 1 像素矩形边框；{@code roundCorners} 时空出四个角，呈圆角。 */
     @OnlyIn(Dist.CLIENT)
     private static void ring(GuiGraphics graphics, int l, int t, int r, int b, int color, boolean roundCorners) {
@@ -376,6 +385,45 @@ public final class UITheme {
         graphics.fill(x + 1, y + 1, r - 1, y + 2, DOCK_HIGHLIGHT);
         graphics.fill(x + 1, y + 2, x + 2, b - 1, DOCK_HIGHLIGHT);
     }
+
+    // ==================== 画布（CanvasView） ====================
+
+    /**
+     * 画布底色：比窗口底色暗一档的浅灰。画布里的内容（节点、连线）自带颜色，底色要衬得住又不能成为"一大块暗色"。
+     */
+    public static final int CANVAS_FILL = 0xFFB4B4B4;
+    /** 画布外框：与状态显示窗同样的下凹斜面（左上暗、右下白），一眼看出是一块"视口"。 */
+    public static final IGuiTexture CANVAS = new OreSprites.Bevel(0xFF7A7A7A, 0xFFFFFFFF, CANVAS_FILL);
+    /** 画布网格：细线、主线都是半透明深色，叠在底色上只比底色深一点点。 */
+    public static final int CANVAS_GRID_LINE = 0x14000000;
+    public static final int CANVAS_GRID_ACCENT = 0x26000000;
+    /** 缩略图：窗口底色（略透明）、深色 1 像素边、视口框用选中金色。 */
+    public static final int CANVAS_MINIMAP_FILL = 0xE6C6C6C6;
+    public static final int CANVAS_MINIMAP_BORDER = 0xFF373737;
+    public static final int CANVAS_MINIMAP_VIEWPORT = SELECTION_COLOR;
+
+    /**
+     * 视图按钮图标（{@code uipro/view_icons.png}，{@value #VIEW_ICON_SIZE} 见方横排）：缩小、放大、适应全部、缩略图、定位。
+     * 按机器小组件图标的画法（1 像素深色方角描边、细线、降饱和、按外框自动居中），放在画布悬浮栏
+     * {@link UISizes#DOCK_BUTTON} 见方的按钮里原尺寸显示。
+     */
+    private static final ResourceTexture VIEW_ICONS = new ResourceTexture(GTCEu.id("textures/gui/uipro/view_icons.png"));
+    private static final int VIEW_ICON_COUNT = 5;
+    public static final int VIEW_ICON_SIZE = 16;
+    public static final IGuiTexture CANVAS_ZOOM_OUT = viewIcon(0);
+    public static final IGuiTexture CANVAS_ZOOM_IN = viewIcon(1);
+    public static final IGuiTexture CANVAS_FIT = viewIcon(2);
+    public static final IGuiTexture CANVAS_MINIMAP = viewIcon(3);
+    public static final IGuiTexture CANVAS_LOCATE = viewIcon(4);
+
+    private static IGuiTexture viewIcon(int index) {
+        return VIEW_ICONS.getSubTexture((double) index / VIEW_ICON_COUNT, 0, 1.0 / VIEW_ICON_COUNT, 1);
+    }
+
+    /** 画布项在最小细节层级与缩略图里的默认色（与物品槽同色）。 */
+    public static final int CANVAS_ITEM_BLOCK = 0xFF8B8B8B;
+    /** 槽位类格子的悬停蒙层（与原版物品槽一致，画在物品之上、只写颜色不写透明度）。 */
+    public static final int SLOT_HOVER_OVERLAY = 0x80FFFFFF;
 
     /** 居中绘制单行文字，超出 {@code maxWidth} 时截断并加省略号。 */
     @OnlyIn(Dist.CLIENT)

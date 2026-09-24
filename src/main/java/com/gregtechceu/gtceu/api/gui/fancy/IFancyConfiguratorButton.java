@@ -6,8 +6,10 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 
 import org.apache.commons.lang3.NotImplementedException;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,6 +21,14 @@ import java.util.function.Function;
 public interface IFancyConfiguratorButton extends IFancyConfigurator {
 
     void onClick(ClickData clickData);
+
+    /**
+     * 带点击玩家的版本（服务端是发起点击的玩家，客户端是本地玩家；取不到时为 null）。
+     * 需要玩家的按钮（如打开独立窗口）覆写它；默认转给 {@link #onClick(ClickData)}。
+     */
+    default void onClick(ClickData clickData, @Nullable Player player) {
+        onClick(clickData);
+    }
 
     @Override
     default Component getTitle() {

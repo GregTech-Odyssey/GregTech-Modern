@@ -311,7 +311,7 @@ public class ConfiguratorPanel extends WidgetGroup {
             if (clickData.button == 2 && configurator instanceof IFancyCustomMiddleClickAction middleAction) {
                 middleAction.onMiddleClick(this::writeClientAction);
             } else if (configurator instanceof IFancyConfiguratorButton fancyButton) {
-                fancyButton.onClick(clickData);
+                fancyButton.onClick(clickData, getGui() == null ? null : getGui().entityPlayer);
             } else {
                 if (expanded == this) {
                     collapseTab();

@@ -1539,6 +1539,16 @@ public class LangHandler {
         provider.add("gtceu.uipro.adjuster.step", "Step: %s (Shift %s, Ctrl %s, Ctrl+Shift %s)");
         provider.add("gtceu.uipro.adjuster.unbounded", "unlimited");
         provider.add("gtceu.uipro.percent_field.tooltip", "Adjusts a percentage: 100%% = ×1.00, 150%% = ×1.50");
+        provider.add("gtceu.uipro.canvas.resize", "Drag: resize");
+        provider.add("gtceu.uipro.canvas.lock", "Right-click: lock size (kept after reopening)");
+        provider.add("gtceu.uipro.canvas.locked", "Size locked");
+        provider.add("gtceu.uipro.canvas.unlock", "Right-click: unlock");
+        provider.add("gtceu.uipro.canvas.help.pan", "Drag with left or middle mouse: pan");
+        provider.add("gtceu.uipro.canvas.help.zoom", "Scroll wheel: zoom around the cursor");
+        provider.add("gtceu.uipro.canvas.zoom_in", "Zoom in");
+        provider.add("gtceu.uipro.canvas.zoom_out", "Zoom out");
+        provider.add("gtceu.uipro.canvas.fit", "Fit all");
+        provider.add("gtceu.uipro.canvas.minimap", "Minimap (click or drag it to jump)");
 
         // 配方页（uipro）
         provider.add("gtceu.recipe.info.duration", "Duration");
