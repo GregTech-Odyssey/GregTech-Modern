@@ -33,6 +33,12 @@ public class FloatInputWidget extends NumberInputWidget<Float> {
         super(x, y, width, height, valueSupplier, onChanged);
     }
 
+    /** 小数：保留原来的按钮 + 输入框（新式数值输入只处理整数）。 */
+    @Override
+    protected boolean isIntegral() {
+        return false;
+    }
+
     @Override
     protected Float defaultMin() {
         return 0F;

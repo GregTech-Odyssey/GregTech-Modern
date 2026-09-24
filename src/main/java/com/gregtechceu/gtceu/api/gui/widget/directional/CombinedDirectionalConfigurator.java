@@ -1,13 +1,14 @@
 package com.gregtechceu.gtceu.api.gui.widget.directional;
 
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.uipro.elements.Dock;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.client.scene.ISceneBlockRenderHook;
 import com.lowdragmc.lowdraglib.client.scene.WorldSceneRenderer;
-import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.SceneWidget;
@@ -15,7 +16,6 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.BlockPosFace;
 import com.lowdragmc.lowdraglib.utils.Position;
-import com.lowdragmc.lowdraglib.utils.Size;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.renderer.RenderType;
@@ -29,6 +29,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -37,8 +38,15 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class CombinedDirectionalConfigurator extends WidgetGroup {
 
+    /** 禁用原因：还没在三视图上选中一面。 */
+    public static final String SELECT_SIDE = "gtceu.gui.directional_setting.select_side";
+    /** 禁用原因：选中的面没有可设置的覆盖板。 */
+    public static final String NO_COVER_SETTINGS = "gtceu.gui.directional_setting.no_cover_settings";
+
     protected final static int MOUSE_CLICK_CLIENT_ACTION_ID = 0x0001_0001;
     protected final static int UPDATE_UI_ID = 0x0001_0002;
+    /// 三视图与内凹框边缘的距离（内凹框的边宽）
+    private static final int SCENE_INSET = 1;
 
     protected final IDirectionalConfigHandler[] configHandlers;
     protected final int width, height;
@@ -48,6 +56,8 @@ public class CombinedDirectionalConfigurator extends WidgetGroup {
     protected SceneWidget sceneWidget;
     protected ImageWidget imageWidget;
 
+    /** 悬浮栏（底部：选中面的设置；右侧：整机设置），没有控件的不加。 */
+    protected final List<Dock> docks = new ArrayList<>(2);
     protected @Nullable BlockPos selectedPos;
     protected @Nullable Direction selectedSide;
 
@@ -66,7 +76,8 @@ public class CombinedDirectionalConfigurator extends WidgetGroup {
     public void initWidget() {
         super.initWidget();
 
-        addWidget(imageWidget = new ImageWidget(0, 0, width, height, GuiTextures.BACKGROUND_INVERSE));
+        // 三视图铺满整页（标准尺寸），放在深色内凹框里；各配置项的控件收在底部居中的悬浮栏里
+        addWidget(imageWidget = new ImageWidget(0, 0, width, sceneHeight(), UITheme.INSET));
         addWidget(sceneWidget = createSceneWidget());
 
         for (IDirectionalConfigHandler configHandler : configHandlers) {
@@ -79,7 +90,7 @@ public class CombinedDirectionalConfigurator extends WidgetGroup {
     private SceneWidget createSceneWidget() {
         var pos = this.machine.getPos();
 
-        SceneWidget sceneWidget = new SceneWidget(4, 4, width - 8, height - 8, this.machine.getLevel())
+        SceneWidget sceneWidget = new SceneWidget(SCENE_INSET, SCENE_INSET, width - 2 * SCENE_INSET, sceneHeight() - 2 * SCENE_INSET, this.machine.getLevel())
                 .setRenderedCore(List.of(pos), null)
                 .setRenderSelect(false)
                 .setOnSelected(this::onSideSelected);
@@ -102,7 +113,6 @@ public class CombinedDirectionalConfigurator extends WidgetGroup {
             var playerRotation = gui.entityPlayer.getRotationVector();
             sceneWidget.setCameraYawAndPitch(playerRotation.x, playerRotation.y - 90);
         }
-        sceneWidget.setBackground(ColorPattern.BLACK.rectTexture());
         return sceneWidget;
     }
 
@@ -116,29 +126,39 @@ public class CombinedDirectionalConfigurator extends WidgetGroup {
         }
     }
 
+    /** 三视图的高：铺满整页（控件在悬浮栏里，不另占一行）。 */
+    protected int sceneHeight() {
+        return height;
+    }
+
+    /**
+     * 各配置项的控件分两处悬浮在三视图上，作用范围不同的设置不混在一起：
+     * <ul>
+     * <li>只作用于选中面的（输出面、覆盖板）：底部居中的横向悬浮栏，每个配置项一组，屏幕左侧的配置项在前；</li>
+     * <li>作用于整台机器的（允许从输出面输入）：右侧竖向居中的竖向悬浮栏。</li>
+     * </ul>
+     */
     private void addConfigWidgets(SceneWidget sceneWidget) {
-        int yOffsetLeft = 0, yOffsetRight = 0;
-
-        for (IDirectionalConfigHandler configHandler : configHandlers) {
-            Widget widget = configHandler.getSideSelectorWidget(sceneWidget, machineUI);
-
-            if (widget == null)
-                continue;
-
-            final Size widgetSize = widget.getSize();
-            switch (configHandler.getScreenSide()) {
-                case LEFT -> {
-                    widget.setSelfPosition(new Position(6, height - 6 - widgetSize.height - yOffsetLeft));
-                    yOffsetLeft += widgetSize.height + 3;
-                }
-                case RIGHT -> {
-                    widget.setSelfPosition(
-                            new Position(width - widgetSize.width - 6, height - 6 - widgetSize.height - yOffsetRight));
-                    yOffsetRight += widgetSize.height + 3;
-                }
+        var sideDock = new Dock();
+        var machineDock = Dock.vertical();
+        for (var side : IDirectionalConfigHandler.ScreenSide.values()) {
+            for (IDirectionalConfigHandler configHandler : configHandlers) {
+                if (configHandler.getScreenSide() != side) continue;
+                Widget sideWidget = configHandler.getSideSelectorWidget(sceneWidget, machineUI);
+                if (sideWidget != null) sideDock.addGroup(sideWidget);
+                Widget machineWidget = configHandler.getMachineWidget(sceneWidget, machineUI);
+                if (machineWidget != null) machineDock.addGroup(machineWidget);
             }
-
-            this.addWidget(widget);
+        }
+        if (!sideDock.isEmpty()) {
+            sideDock.setSelfPosition(new Position((width - sideDock.getSizeWidth()) / 2, sceneHeight() - UISizes.DOCK_MARGIN - sideDock.getSizeHeight()));
+            this.addWidget(sideDock);
+            docks.add(sideDock);
+        }
+        if (!machineDock.isEmpty()) {
+            machineDock.setSelfPosition(new Position(width - UISizes.DOCK_MARGIN - machineDock.getSizeWidth(), (sceneHeight() - machineDock.getSizeHeight()) / 2));
+            this.addWidget(machineDock);
+            docks.add(machineDock);
         }
     }
 
@@ -162,6 +182,8 @@ public class CombinedDirectionalConfigurator extends WidgetGroup {
         var lastSide = this.selectedSide;
 
         var result = super.mouseClicked(mouseX, mouseY, button);
+        // 点在悬浮栏上：交给栏里的控件，不算点三视图（栏下面可能正悬停着已选中的面）
+        for (var dock : docks) if (dock.isMouseOverElement(mouseX, mouseY)) return result;
 
         if (isMouseOverElement(mouseX, mouseY) && this.selectedSide == lastSide && this.selectedSide != null) {
             var hover = sceneWidget.getHoverPosFace();

@@ -8,14 +8,17 @@ import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.gui.widget.CoverConfigurator;
-import com.gregtechceu.gtceu.api.gui.widget.PredicatedButtonWidget;
-import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
+import com.gregtechceu.gtceu.api.gui.widget.directional.CombinedDirectionalConfigurator;
 import com.gregtechceu.gtceu.api.gui.widget.directional.IDirectionalConfigHandler;
 import com.gregtechceu.gtceu.api.item.IComponentItem;
 import com.gregtechceu.gtceu.api.item.component.IItemComponent;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 import com.gregtechceu.gtceu.common.item.CoverPlaceBehavior;
+import com.gregtechceu.gtceu.uipro.elements.Button;
+import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -51,7 +54,7 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
     private ConfiguratorPanel panel;
     private ConfiguratorPanel.FloatingTab coverConfigurator;
 
-    private SlotWidget slotWidget;
+    private ItemSlot slotWidget;
     private CoverBehavior coverBehavior;
 
     public CoverableConfigHandler(ICoverable machine) {
@@ -72,22 +75,29 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
     }
 
     @Override
+    /**
+     * 三视图下方的两个控件：覆盖板设置（该面的覆盖板有设置界面时可点，否则禁用并说明原因），覆盖板槽（放入 / 取出覆盖板）。
+     */
     public Widget getSideSelectorWidget(SceneWidget scene, FancyMachineUIWidget machineUI) {
-        WidgetGroup group = new WidgetGroup(0, 0, (18 * 2) + 1, 18);
+        WidgetGroup group = new WidgetGroup(0, 0, UISizes.SLOT * 2 + UISizes.GAP, UISizes.SLOT);
         this.panel = machineUI.getConfiguratorPanel();
 
-        group.addWidget(slotWidget = new SlotWidget(handler, 0, 19, 0) {
+        group.addWidget(Button.icon(CONFIG_BTN_TEXTURE, UISizes.SLOT).setOnClick(this::toggleConfigTab)
+                .disabled(() -> side == null || coverBehavior == null || !(machine.getCoverAtSide(side) instanceof IUICover),
+                        CombinedDirectionalConfigurator.NO_COVER_SETTINGS));
+
+        slotWidget = new ItemSlot(handler, 0, true, true) {
 
             @Override
             public boolean canPutStack(ItemStack stack) {
                 return super.canPutStack(stack) && CoverPlaceBehavior.isCoverBehaviorItem(stack, () -> false,
                         def -> def.createCoverBehavior(machine, side).canAttach());
             }
-        }
-                .setChangeListener(this::coverItemChanged)
-                .setBackgroundTexture(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.IO_CONFIG_COVER_SLOT_OVERLAY)));
-        group.addWidget(new PredicatedButtonWidget(0, 0, 18, 18, CONFIG_BTN_TEXTURE, this::toggleConfigTab,
-                () -> side != null && coverBehavior != null && machine.getCoverAtSide(side) instanceof IUICover));
+        };
+        slotWidget.setChangeListener(this::coverItemChanged);
+        slotWidget.setBackgroundTexture(new GuiTextureGroup(UITheme.ITEM_SLOT, GuiTextures.IO_CONFIG_COVER_SLOT_OVERLAY));
+        slotWidget.setSelfPosition(new Position(UISizes.SLOT + UISizes.GAP, 0));
+        group.addWidget(slotWidget);
 
         checkCoverBehaviour();
 

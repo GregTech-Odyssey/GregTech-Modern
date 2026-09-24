@@ -1,6 +1,12 @@
 package com.gregtechceu.gtceu.api.gui.fancy;
 
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
+import com.gregtechceu.gtceu.uipro.LayoutStyle;
+import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.Button;
+import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
+import com.gregtechceu.gtceu.uipro.elements.TextLine;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
@@ -9,8 +15,6 @@ import com.lowdragmc.lowdraglib.gui.widget.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
-
-import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -39,49 +43,44 @@ public class PageSwitcher implements IFancyUIProvider {
         this.currentPage = currentPage;
     }
 
+    /// 页面按钮边长：按钮面 20，16 的图标居中
+    private static final int PAGE_BUTTON = 22;
+    /// 每行页面按钮数（区块内容宽 156 放得下 6 个）
+    private static final int PAGES_PER_ROW = 6;
+    /// 页面列表视口最高多少，再多就滚动
+    private static final int MAX_LIST_HEIGHT = 146;
+
+    /**
+     * 页面切换页（新式框架组件）：按分组各一个区块，组名在上，下面每行 {@link #PAGES_PER_ROW} 个页面图标按钮，
+     * 悬停显示页面名；页面多时列表滚动。点击两端各切换一次（界面结构两端同步变化）。
+     */
     @Override
     public Widget createMainPage(FancyMachineUIWidget widget) {
-        var container = new WidgetGroup(0, 0, 176, 166);
-
-        var scrollableGroup = new DraggableScrollableWidgetGroup(10, 10, 156, 146);
-        scrollableGroup.setYScrollBarWidth(8);
-        scrollableGroup.setYBarStyle(GuiTextures.SLIDER_BACKGROUND_VERTICAL, GuiTextures.BUTTON);
-        container.addWidget(scrollableGroup);
-
+        var list = new ScrollerView("page_switcher", UISizes.CONTENT_WIDTH, PAGE_BUTTON, UISizes.SECTION_GAP)
+                .adaptiveHeight(MAX_LIST_HEIGHT);
         var groupedPages = pages.stream().collect(Collectors.groupingBy(
                 page -> Objects.requireNonNullElse(page.getPageGroupingData(), new PageGroupingData(null, -1))));
-
-        final MutableInt currentY = new MutableInt(0);
         groupedPages.keySet().stream()
                 .sorted(Comparator.comparingInt(PageGroupingData::groupPositionWeight))
                 .forEachOrdered(group -> {
+                    var section = UIElement.section();
                     if (group.groupKey() != null) {
-                        scrollableGroup.addWidget(
-                                new LabelWidget(0, currentY.getAndAdd(12), group.groupKey()).setDropShadow(false));
+                        section.addChild(TextLine.translatable(LayoutStyle.AUTO, group.groupKey()).setColor(UITheme.PANEL_TEXT));
                     }
-
-                    final var currentPage = new MutableInt(0);
-                    currentY.subtract(30); // To account for adding it back on the first page inside this group
-
-                    groupedPages.get(group).forEach(page -> {
-                        var index = currentPage.getAndIncrement();
-                        var y = currentY.addAndGet(index % 5 == 0 ? 30 : 0); // Jump to the next row every 5 parts
-
-                        var pageWidget = new WidgetGroup((index % 5) * 30, y, 25, 25);
-                        pageWidget.addWidget(new ButtonWidget(0, 0, 25, 25, GuiTextures.BACKGROUND,
-                                clickData -> onPageSwitched.accept(page)));
-                        pageWidget.addWidget(new ImageWidget(4, 4, 17, 17, page.getTabIcon()));
-                        // For some reason, this doesn't work in any other way:
-                        pageWidget.widgets.getFirst().setHoverTooltips(page.getTitle().getString());
-                        scrollableGroup.addWidget(pageWidget);
-                    });
-
-                    if (!groupedPages.get(group).isEmpty()) {
-                        currentY.add(30);
+                    var groupPages = groupedPages.get(group);
+                    for (int rowStart = 0; rowStart < groupPages.size(); rowStart += PAGES_PER_ROW) {
+                        var row = UIElement.row(PAGE_BUTTON).layout(l -> l.gapAll(UISizes.GAP));
+                        for (int i = rowStart; i < Math.min(groupPages.size(), rowStart + PAGES_PER_ROW); i++) {
+                            var page = groupPages.get(i);
+                            var button = Button.icon(page.getTabIcon(), PAGE_BUTTON).setOnClick(clickData -> onPageSwitched.accept(page));
+                            button.setHoverTooltips(page.getTitle());
+                            row.addChild(button);
+                        }
+                        section.addChild(row);
                     }
+                    list.addScrollViewChild(section);
                 });
-
-        return container;
+        return UIElement.column(UISizes.CONTENT_WIDTH).addChild(list);
     }
 
     @Override

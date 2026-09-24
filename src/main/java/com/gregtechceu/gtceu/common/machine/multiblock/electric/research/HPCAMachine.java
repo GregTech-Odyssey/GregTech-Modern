@@ -19,6 +19,7 @@ import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -47,6 +48,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import com.gto.datasynclib.annotations.AdditionalHolder;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import dev.vfyjxf.taffy.style.AlignContent;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -215,11 +217,14 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     @Override
     public Widget createUIWidget() {
         displayedTemperature = temperature;
-        WidgetGroup builder = (WidgetGroup) super.createUIWidget();
+        // 状态显示窗下方单独一行居中放 3×3 组件格（原来按绝对坐标叠在显示屏上）
+        var page = (UIElement) super.createUIWidget();
+        var builder = new WidgetGroup(0, 0, 47, 47);
+        page.addChild(UIElement.row(47).layout(l -> l.justifyContent(AlignContent.CENTER)).addChild(builder));
         // Create the hover grid
-        builder.addWidget(new ExtendedProgressWidget(() -> hpcaHandler.cachedCWUt > 0 ? progressSupplier.getAsDouble() : 0, 74, 57, 47, 47, GuiTextures.HPCA_COMPONENT_OUTLINE).setServerTooltipSupplier(this::addHPCAInfo).setFillDirection(ProgressTexture.FillDirection.LEFT_TO_RIGHT));
-        int startX = 76;
-        int startY = 59;
+        builder.addWidget(new ExtendedProgressWidget(() -> hpcaHandler.cachedCWUt > 0 ? progressSupplier.getAsDouble() : 0, 0, 0, 47, 47, GuiTextures.HPCA_COMPONENT_OUTLINE).setServerTooltipSupplier(this::addHPCAInfo).setFillDirection(ProgressTexture.FillDirection.LEFT_TO_RIGHT));
+        int startX = 2;
+        int startY = 2;
         // we need to know what components we have on the client
         if (getLevel().isClientSide) {
             if (isFormed) {
@@ -235,7 +240,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
                 builder.addWidget(new ImageWidget(startX + (15 * j), startY + (15 * i), 13, 13, textureSupplier));
             }
         }
-        return builder;
+        return page;
     }
 
     @Override

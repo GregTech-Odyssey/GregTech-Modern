@@ -1,14 +1,13 @@
 package com.gregtechceu.gtceu.api.machine.fancyconfigurator;
 
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
 import com.gregtechceu.gtceu.api.gui.widget.NumberInputWidget;
+import com.gregtechceu.gtceu.uiwidgets.number.NumberSettingPage;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Items;
@@ -57,11 +56,11 @@ public class NumberInputFancyConfigurator<T extends Number> implements IFancyUIP
         return tabIcon.get();
     }
 
+    /** 数值设置页：新式数值设置（{@link NumberSettingPage}），读写经 {@link NumberInputWidget} 的桥接方法，原控件本身不再放进界面。 */
     @Override
     public Widget createMainPage(FancyMachineUIWidget widget) {
-        var group = new NumberInputConfigurator<>(inputWidget);
-        group.setBackground(GuiTextures.BACKGROUND);
-        return group;
+        return NumberSettingPage.create(title, inputWidget::getLongValue, inputWidget::setLongValue,
+                inputWidget::getLongMin, inputWidget::getLongMax, inputWidget.getLongSteps());
     }
 
     public NumberInputFancyConfigurator<T> setMin(T min) {
@@ -72,13 +71,5 @@ public class NumberInputFancyConfigurator<T extends Number> implements IFancyUIP
     public NumberInputFancyConfigurator<T> setMax(T max) {
         inputWidget.setMax(max);
         return this;
-    }
-
-    private static class NumberInputConfigurator<T extends Number> extends WidgetGroup {
-
-        public NumberInputConfigurator(NumberInputWidget<T> inputWidget) {
-            super(inputWidget.getPosition(), inputWidget.getSize());
-            this.addWidget(inputWidget);
-        }
     }
 }

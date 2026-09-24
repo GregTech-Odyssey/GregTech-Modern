@@ -13,12 +13,23 @@ import net.minecraft.core.Direction;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import org.jetbrains.annotations.Nullable;
+
 public interface IDirectionalConfigHandler {
 
     /**
-     * Returns the buttons to display inside the side selector
+     * Returns the buttons to display inside the side selector（只作用于选中的面，放在三视图底部的悬浮栏）
      */
     Widget getSideSelectorWidget(SceneWidget scene, FancyMachineUIWidget machineUI);
+
+    /**
+     * 整台机器的设置控件（与选中哪一面无关，例如"允许从输出面输入"），放在三视图右侧的竖向悬浮栏里，
+     * 与 {@link #getSideSelectorWidget}（只作用于选中的面，放在底部悬浮栏）分开。没有整机设置时返回 null。
+     */
+    @Nullable
+    default Widget getMachineWidget(SceneWidget scene, FancyMachineUIWidget machineUI) {
+        return null;
+    }
 
     /**
      * Called whenever a side is selected in the side selector GUI

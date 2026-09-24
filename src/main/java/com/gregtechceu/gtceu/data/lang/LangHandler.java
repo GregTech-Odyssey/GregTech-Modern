@@ -1458,6 +1458,15 @@ public class LangHandler {
         provider.add("gtceu.gui.cover_setting.title", "Cover Settings");
         provider.add("gtceu.gui.output_setting.title", "Output Settings");
         provider.add("gtceu.gui.circuit.title", "Circuit Settings");
+        provider.add("gtceu.gui.circuit.clear", "Clear circuit");
+        provider.add("gtceu.gui.directional_setting.select_side", "Select a side of the machine above first");
+        provider.add("gtceu.gui.directional_setting.no_cover_settings", "No configurable cover on this side");
+        provider.add("gtceu.gui.directional_setting.item_output.off", "Items: not output from this side (click to make it the output side)");
+        provider.add("gtceu.gui.directional_setting.item_output.output", "Items: output side, no auto output (click to enable auto output)");
+        provider.add("gtceu.gui.directional_setting.item_output.auto", "Items: auto output from this side (click to disable auto output)");
+        provider.add("gtceu.gui.directional_setting.fluid_output.off", "Fluids: not output from this side (click to make it the output side)");
+        provider.add("gtceu.gui.directional_setting.fluid_output.output", "Fluids: output side, no auto output (click to enable auto output)");
+        provider.add("gtceu.gui.directional_setting.fluid_output.auto", "Fluids: auto output from this side (click to disable auto output)");
         multiLang(provider, "gtceu.gui.output_setting.tooltips", "left-click to tune the item auto output",
                 "right-click to tune the fluid auto output.");
         provider.add("gtceu.gui.item_auto_output.allow_input.enabled",
@@ -1513,6 +1522,16 @@ public class LangHandler {
         provider.add("gtceu.gui.config_slot.set_only", "§7Click to §bset§7 config slot.§r");
         provider.add("gtceu.gui.config_slot.auto_pull_managed", "§4Disabled:§7 Managed by Auto-Pull");
         provider.add("gtceu.gui.me_bus.auto_pull_button", "Click to toggle automatic item pulling from ME");
+
+        // 新式 UI 框架（uipro）
+        provider.add("gtceu.uipro.disabled", "Operation not allowed");
+        provider.add("gtceu.uipro.popup.close", "Close");
+        provider.add("gtceu.uipro.scroller.resize", "Drag: resize");
+        provider.add("gtceu.uipro.scroller.lock", "Right-click: lock height (kept after reopening)");
+        provider.add("gtceu.uipro.scroller.locked", "Height locked");
+        provider.add("gtceu.uipro.scroller.unlock", "Right-click: unlock");
+        provider.add("gtceu.uipro.stepper.at_min", "Already at the minimum");
+        provider.add("gtceu.uipro.stepper.at_max", "Already at the maximum");
 
         provider.add("gtceu.gui.programmed_circuit_configuration", "Programmed Circuit Configuration");
 

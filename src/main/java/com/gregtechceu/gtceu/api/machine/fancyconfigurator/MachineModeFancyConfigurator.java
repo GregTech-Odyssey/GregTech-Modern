@@ -1,17 +1,14 @@
 package com.gregtechceu.gtceu.api.machine.fancyconfigurator;
 
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.data.GTItems;
+import com.gregtechceu.gtceu.uiwidgets.mode.ModeSelector;
 
-import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.texture.*;
-import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
-import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
@@ -42,23 +39,16 @@ public class MachineModeFancyConfigurator implements IFancyUIProvider {
         return new ItemStackTexture(GTItems.ROBOT_ARM_LV.get());
     }
 
+    /**
+     * 机器模式页：新式模式选择（{@link ModeSelector}）。另挂一个不占位置的 {@link MachineModeConfigurator}，
+     * 沿用原来的做法在打开界面时把可用配方类型下发给客户端机器。
+     */
     @Override
     public Widget createMainPage(FancyMachineUIWidget widget) {
-        var group = new MachineModeConfigurator(0, 0, 140, 20 * machine.getAvailableRecipeTypes().length + 4);
-        group.setBackground(GuiTextures.BACKGROUND_INVERSE);
-        for (int i = 0; i < machine.getAvailableRecipeTypes().length; i++) {
-            int finalI = i;
-            group.addWidget(new ButtonWidget(2, 2 + i * 20, 136, 20, IGuiTexture.EMPTY,
-                    cd -> machine.setActiveRecipeType(finalI)));
-            group.addWidget(new ImageWidget(2, 2 + i * 20, 136, 20,
-                    () -> new GuiTextureGroup(
-                            ResourceBorderTexture.BUTTON_COMMON.copy()
-                                    .setColor(machine.getActiveRecipeType() == finalI ? ColorPattern.CYAN.color : -1),
-                            new TextTexture(machine.getAvailableRecipeTypes()[finalI].registryName.toLanguageKey()).setWidth(136)
-                                    .setType(TextTexture.TextType.ROLL))));
-
-        }
-        return group;
+        var types = machine.getAvailableRecipeTypes();
+        return ModeSelector.create(types.length, i -> Component.translatable(types[i].registryName.toLanguageKey()),
+                machine::getActiveRecipeType, machine::setActiveRecipeType)
+                .addChild(new MachineModeConfigurator(0, 0, 0, 0));
     }
 
     @Override

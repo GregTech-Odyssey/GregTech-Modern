@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.gui.widget;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
+import com.gregtechceu.gtceu.uipro.elements.NumberField;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
@@ -107,7 +108,19 @@ public abstract class NumberInputWidget<T extends Number> extends WidgetGroup {
         textField.setCurrentString(buffer.readUtf());
     }
 
+    /**
+     * 整数类型（Int / Long）用新式统一数值输入 {@link NumberField}（按钮、输入框、滚轮、修饰键步长都与新界面一致），
+     * 竖直居中放在本控件里；小数类型仍用原来的按钮 + 输入框。
+     */
     private void buildUI() {
+        if (isIntegral()) {
+            var field = new NumberField(getSize().width, this::getLongValue, this::setLongValue, this::getLongMin, this::getLongMax, getLongSteps());
+            field.setSelfPosition(new Position(0, (getSize().height - NumberField.HEIGHT) / 2));
+            this.textField = field.getField().getInput();
+            this.updateTextFieldRange();
+            this.addWidget(field);
+            return;
+        }
         int buttonWidth = Mth.clamp(this.getSize().width / 5, 15, 40);
         int textFieldWidth = this.getSize().width - (2 * buttonWidth) - 4;
         this.addWidget(new ButtonWidget(0, 0, buttonWidth, 20, new GuiTextureGroup(GuiTextures.VANILLA_BUTTON, getButtonTexture("-", buttonWidth)), this::decrease).setHoverTooltips("gui.widget.incrementButton.default_tooltip"));
@@ -164,6 +177,37 @@ public abstract class NumberInputWidget<T extends Number> extends WidgetGroup {
         if (valueSupplier.get().equals(value)) return this;
         onChanged.accept(value);
         return this;
+    }
+
+    /** 值是否为整数：整数类型桥接到新式数值输入（见 {@link #buildUI}）。 */
+    protected boolean isIntegral() {
+        return true;
+    }
+
+    // ==================== 新式界面桥接 ====================
+    // 新式数值输入（uipro NumberField）按 long 读写；Integer / Long 两种实现的值、上下限、步长都在 long 范围内。
+
+    public long getLongValue() {
+        return valueSupplier.get().longValue();
+    }
+
+    /** 夹到上下限后写入（先按 long 夹，再转回本类型，Integer 实现不会溢出）。 */
+    public void setLongValue(long value) {
+        long clamped = Math.max(min.longValue(), Math.min(max.longValue(), value));
+        setValue(fromText(Long.toString(clamped)));
+    }
+
+    public long getLongMin() {
+        return min.longValue();
+    }
+
+    public long getLongMax() {
+        return max.longValue();
+    }
+
+    /** 四档步长：默认 / Shift / Ctrl / Ctrl+Shift。 */
+    public long[] getLongSteps() {
+        return new long[] { CHANGE_VALUES.regular().longValue(), CHANGE_VALUES.shift().longValue(), CHANGE_VALUES.ctrl().longValue(), CHANGE_VALUES.ctrlShift().longValue() };
     }
 
     protected void updateTextFieldRange() {

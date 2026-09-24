@@ -1,15 +1,13 @@
 package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.UITemplate;
-import com.gregtechceu.gtceu.api.gui.widget.CustomComponentPanelWidget;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
+import com.gregtechceu.gtceu.uipro.window.MachineWindow;
+import com.gregtechceu.gtceu.uiwidgets.display.MachineDisplay;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
-import com.lowdragmc.lowdraglib.gui.widget.DraggableScrollableWidgetGroup;
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -35,19 +33,12 @@ public interface IDisplayUIMachine extends IUIMachine, IMultiController {
         return GuiTextures.DISPLAY;
     }
 
+    /**
+     * 没有实现 {@code IFancyUIMachine} 的显示类机器（如蒸汽多方块）也用新式机器窗口，主页是状态显示窗
+     * （{@link MachineDisplay#provider}）；原来是独立的深色显示屏 + 玩家背包。
+     */
     @Override
     default ModularUI createUI(Player entityPlayer) {
-        var screen = new DraggableScrollableWidgetGroup(7, 4, 162, 121).setBackground(getScreenTexture());
-        screen.addWidget(new LabelWidget(4, 5, self().getBlockState().getBlock().getDescriptionId()));
-        screen.addWidget(new CustomComponentPanelWidget(4, 17)
-                .setTextDataReader(this::readClientTextData)
-                .setTextDataWriter(this::writeClientTextData)
-                .textSupplier(this.self().getLevel().isClientSide ? null : this::addDisplayText)
-                .setMaxWidthLimit(150)
-                .clickHandler(this::handleDisplayClick));
-        return new ModularUI(176, 216, this, entityPlayer)
-                .background(GuiTextures.BACKGROUND)
-                .widget(screen)
-                .widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT, 7, 134, true));
+        return new ModularUI(176, 216, this, entityPlayer).widget(new MachineWindow(MachineDisplay.provider(this)));
     }
 }
