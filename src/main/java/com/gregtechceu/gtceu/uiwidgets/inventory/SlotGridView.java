@@ -14,7 +14,7 @@ import java.util.function.IntFunction;
 /**
  * 小格子库存（共享物品库、共享流体库，以及其他挂在机器左侧、展开后是一小块槽位的配置项）。
  * <p>
- * 槽位用框架的标准物品槽 / 流体槽，紧排成近似正方形：列数取格数的平方根（8 格排成 4×2），最多一行
+ * 槽位用框架的标准物品槽 / 流体槽，紧排成近似正方形且每行排满（8 格 4×2、18 格 6×3，见 {@link #columns}），最多一行
  * {@link UISizes#SLOTS_PER_ROW} 个；不再套 GTM 的深色底板。
  */
 public final class SlotGridView {
@@ -29,10 +29,16 @@ public final class SlotGridView {
         return grid(tanks.length, i -> FluidSlot.of(tanks[i]));
     }
 
-    /** 列数：格数的平方根（8 格为 4），1 到一行上限之间。 */
+    /** 列数：从格数平方根到约 2 倍平方根之间能整除格数的最小列数（每行排满），没有就取平方根；1 到一行上限之间（3 格以内排成一行）。 */
     public static int columns(int count) {
-        if (count == 8) return 4;
-        return Math.max(1, Math.min(UISizes.SLOTS_PER_ROW, (int) Math.ceil(Math.sqrt(count))));
+        int square = Math.max(1, Math.min(UISizes.SLOTS_PER_ROW, (int) Math.ceil(Math.sqrt(count))));
+        // 从接近正方形的列数往上找能整除的，让每行排满（8 格 4×2、18 格 6×3）；只找到约 2 倍平方根，
+        // 找不到就按正方形排（5 格 3+2、7 格 3+3+1），格数多时不会排成又长又扁的一行
+        int widest = Math.min(UISizes.SLOTS_PER_ROW, (int) Math.floor(2 * Math.sqrt(count)));
+        for (int columns = square; columns <= widest; columns++) {
+            if (count % columns == 0) return columns;
+        }
+        return square;
     }
 
     /** 行数：按 {@link #columns} 排开后的行数。 */

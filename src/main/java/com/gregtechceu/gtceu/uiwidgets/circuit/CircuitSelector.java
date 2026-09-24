@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.uiwidgets.circuit;
 
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.Button;
@@ -36,7 +36,7 @@ public final class CircuitSelector {
 
     private CircuitSelector() {}
 
-    public static UIElement create(CustomItemStackHandler circuitSlot) {
+    public static UIElement create(ICustomItemStackHandler circuitSlot) {
         var root = UIElement.column(UISizes.SLOT_ROW_WIDTH).layout(l -> l.gapAll(UISizes.SECTION_GAP));
         var clear = Button.glyph("×").setVariant(UITheme.ButtonVariant.DANGER)
                 .setOnServerClick(() -> circuitSlot.setStackInSlot(0, ItemStack.EMPTY));
@@ -61,13 +61,13 @@ public final class CircuitSelector {
         return root.addChild(grid);
     }
 
-    public static boolean isCurrent(CustomItemStackHandler circuitSlot, int circuit) {
+    public static boolean isCurrent(ICustomItemStackHandler circuitSlot, int circuit) {
         var stack = circuitSlot.getStackInSlot(0);
         return IntCircuitBehaviour.isIntegratedCircuit(stack) && IntCircuitBehaviour.getCircuitConfiguration(stack) == circuit;
     }
 
     /** 服务端：设为指定编号；已有编程电路时只改编号（保留物品上的其他数据）。 */
-    public static void setCircuit(CustomItemStackHandler circuitSlot, int circuit) {
+    public static void setCircuit(ICustomItemStackHandler circuitSlot, int circuit) {
         ItemStack stack = circuitSlot.getStackInSlot(0).copy();
         if (IntCircuitBehaviour.isIntegratedCircuit(stack)) {
             IntCircuitBehaviour.setCircuitConfiguration(stack, circuit);

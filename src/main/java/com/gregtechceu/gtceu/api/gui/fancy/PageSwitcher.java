@@ -9,10 +9,8 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 
@@ -83,9 +81,10 @@ public class PageSwitcher implements IFancyUIProvider {
         return UIElement.column(UISizes.CONTENT_WIDTH).addChild(list);
     }
 
+    /// 与标题栏打开本页的按钮同一个图标（原先是 GTM 的"+"字符，放在标题栏里像一个多余的加号）
     @Override
     public IGuiTexture getTabIcon() {
-        return new TextTexture("+").setDropShadow(false).setColor(ChatFormatting.BLACK.getColor());
+        return UITheme.PAGES;
     }
 
     @Override

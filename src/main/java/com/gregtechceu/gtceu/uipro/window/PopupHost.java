@@ -34,12 +34,16 @@ import java.util.function.IntFunction;
  * 面板状态属于这一个打开的界面（每名玩家各自独立），以服务端为准：客户端只发"请求打开/关闭"，
  * 服务端先通知客户端按同样的键和参数构建，再构建自己的那份，新控件的初始数据随后经 {@code addWidget} 的初始化通道下发。
  * 子控件顺序即打开顺序，两端执行同样的增删，下标一致。切换页面时两端各自 {@link #reset()}，不发包。
+ * <p>
+ * 容器本身只由 {@link MachineWindow} 使用；对外只公开 {@link #standalonePanel}，供不在 MachineWindow 里的控件复用同一面板外观。
  */
-final class PopupHost extends UIElement {
+public final class PopupHost extends UIElement {
 
     private static final int OPEN_ID = SyncValueHost.ID_BASE - 3;
     private static final int CLOSE_ID = SyncValueHost.ID_BASE - 4;
     private static final int MAX_KEY_LENGTH = 64;
+    /// 上次处理打开请求的游戏刻（服务端）
+    private long lastOpenTick = Long.MIN_VALUE + 1;
     // WidgetGroup 转发子控件消息、下发新子控件初始数据用的 ID，包体第一个值都是子控件下标
     private static final int CHILD_UPDATE_ID = 1;
     private static final int CHILD_INIT_ID = 2;
@@ -114,6 +118,8 @@ final class PopupHost extends UIElement {
     }
 
     private void serverOpen(String key, int argument) {
+        // 同一种面板已按这个参数打开：状态不变，忽略。客户端重复发请求（连点、刷包）不会让服务端反复重建面板、整段重发初始数据
+        if (isOpen(key, argument)) return;
         var popup = create(key, argument);
         if (popup == null) return;
         writeUpdateInfo(OPEN_ID, buf -> {
@@ -169,6 +175,10 @@ final class PopupHost extends UIElement {
     @Override
     public void handleClientAction(int id, FriendlyByteBuf buffer) {
         if (id == OPEN_ID) {
+            // 每次打开都要在服务端建面板并下发初始数据，同一刻只处理一次，防止开关交替刷包
+            long tick = gui != null ? gui.entityPlayer.level().getGameTime() : Long.MIN_VALUE;
+            if (tick == lastOpenTick) return;
+            lastOpenTick = tick;
             serverOpen(buffer.readUtf(MAX_KEY_LENGTH), buffer.readVarInt());
         } else if (id == CLOSE_ID) {
             serverClose(buffer.readUtf(MAX_KEY_LENGTH));
@@ -201,6 +211,15 @@ final class PopupHost extends UIElement {
         int index = buffer.readVarInt();
         buffer.resetReaderIndex();
         return index >= 0 && index < widgets.size();
+    }
+
+    /**
+     * 单独的一个面板，外观与右侧弹出面板完全相同（Ore 窗口外框、标题行与 {@code [×]}、高度随内容的滚动区、Shift+点击优先），
+     * 给不在 {@link MachineWindow} 里、没有面板容器可用的控件做退路。面板挂到哪里、何时开关、两端怎样保持一致都由调用方负责；
+     * {@code close} 在客户端点 {@code [×]} 时执行。高度不设上限（没有窗口可参照屏幕高度）。
+     */
+    public static UIElement standalonePanel(String key, Popup popup, Runnable close) {
+        return new PopupPanel(key, popup, Integer.MAX_VALUE, close);
     }
 
     /**

@@ -132,6 +132,16 @@ public final class OreSprites {
         }
     }
 
+    /** 把 {@code base} 的顶边下移 {@code depth} 像素、整块变矮（底边与九宫格厚边不变，顶上空出），按钮类贴图的按下态用。 */
+    public record Sunk(IGuiTexture base, int depth) implements IGuiTexture {
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void draw(GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
+            base.draw(graphics, mouseX, mouseY, x, y + depth, width, height - depth);
+        }
+    }
+
     /**
      * 先画 {@code base}，再用 {@code fill} 重涂它的内部（距四边 {@code left/top/right/bottom}，四角各再内收 1 像素保住圆角），
      * 用来在不改贴图的前提下换一个精灵的底色。
@@ -204,6 +214,29 @@ public final class OreSprites {
                 int rowY = up ? y0 + row : y0 + HEIGHT - 1 - row;
                 int left = x0 + WIDTH / 2 - row;
                 graphics.fill(left, rowY, left + 2 * row + 1, rowY + 1, color);
+            }
+        }
+    }
+
+    /**
+     * 实心像素 3×3 方格（"页面"图标：页面切换页就是一格一格的页面按钮），每格 2 像素、格间 1 像素，共 8 见方，在给定区域里居中。
+     * 与 {@link Arrow} 同样手画，像素对齐。
+     */
+    public record Grid(int color) implements IGuiTexture {
+
+        private static final int CELLS = 3;
+        private static final int CELL = 2;
+        private static final int SIZE = CELLS * CELL + (CELLS - 1);
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void draw(GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
+            int x0 = Math.round(x) + (width - SIZE) / 2, y0 = Math.round(y) + (height - SIZE) / 2;
+            for (int row = 0; row < CELLS; row++) {
+                for (int column = 0; column < CELLS; column++) {
+                    int cellX = x0 + column * (CELL + 1), cellY = y0 + row * (CELL + 1);
+                    graphics.fill(cellX, cellY, cellX + CELL, cellY + CELL, color);
+                }
             }
         }
     }

@@ -15,6 +15,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import java.util.function.BooleanSupplier;
+
 /**
  * 元素的统一外观：形状采用 LDLib2 的 Ore UI（{@link OreSprites}），颜色向原版容器看齐。
  * <ul>
@@ -80,6 +82,20 @@ public final class UITheme {
     public static final IGuiTexture ARROW_RIGHT = new OreSprites.Arrow(false, OreSprites.TEXT_DARK);
     public static final IGuiTexture ARROW_UP = new OreSprites.VerticalArrow(true, OreSprites.TEXT_DARK);
     public static final IGuiTexture ARROW_DOWN = new OreSprites.VerticalArrow(false, OreSprites.TEXT_DARK);
+    /** "页面"图标（3×3 方格）：标题栏的页面切换按钮、页面切换页自己的标题图标，与箭头同色。 */
+    public static final IGuiTexture PAGES = new OreSprites.Grid(OreSprites.TEXT_DARK);
+
+    /** 按客户端条件在两张图之间切换的贴图（如图标按钮的开 / 关态：收藏星标）。{@code on} 每次绘制时取值。 */
+    public static IGuiTexture switching(BooleanSupplier on, IGuiTexture offTexture, IGuiTexture onTexture) {
+        return new IGuiTexture() {
+
+            @Override
+            @OnlyIn(Dist.CLIENT)
+            public void draw(GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
+                (on.getAsBoolean() ? onTexture : offTexture).draw(graphics, mouseX, mouseY, x, y, width, height);
+            }
+        };
+    }
 
     /** 窗口底色，与 {@link #WINDOW} 的内部一致（标签页与窗口接缝处涂它）。 */
     public static final int WINDOW_FILL = OreSprites.WINDOW_FILL;
@@ -88,10 +104,44 @@ public final class UITheme {
      * 未选中的底色暗一档、坐在窗口顶边上，悬停时介于两者之间。
      */
     public static final IGuiTexture PAGE_TAB_SELECTED = OreSprites.BORDER_7_BRIGHT;
-    public static final IGuiTexture PAGE_TAB_HOVER = new OreSprites.Refilled(OreSprites.BORDER_7, 0xFFB9B9B9, 2, 2, 2, 4);
+    /// 标签悬停底色（页面标签、配置按钮共用）
+    private static final int TAB_HOVER_FILL = 0xFFB9B9B9;
+    public static final IGuiTexture PAGE_TAB_HOVER = new OreSprites.Refilled(OreSprites.BORDER_7, TAB_HOVER_FILL, 2, 2, 2, 4);
     public static final IGuiTexture PAGE_TAB = new OreSprites.Refilled(OreSprites.BORDER_7, 0xFFA8A8A8, 2, 2, 2, 4);
     /** 窗口左侧配置按钮（GTM 配置面板）的底图，下移 1 像素，让居中摆放的图标落在面板中央。 */
     public static final IGuiTexture CONFIGURATOR_TAB = new OreSprites.Shifted(OreSprites.BORDER_7_BRIGHT, 0, 1);
+    /// 浮层（弹出面板、展开的配置项、滚动区缩放角）的绘制高度：盖过物品模型（约 150）和数量文字
+    public static final int OVERLAY_Z = 200;
+    /// 页内浮层（如 AE 配置格的数量面板）的绘制高度：盖过格子里的物品（约 150）与数量文字（200）
+    public static final int PAGE_OVERLAY_Z = 250;
+    /// 窗口外框（{@link #WINDOW}，即 BORDER_7）最外圈的描边色
+    public static final int WINDOW_OUTLINE = 0xFF181A1B;
+    /// 弹出面板指向所属对象的小尖角高度
+    public static final int POPUP_NOTCH = 4;
+    /// 分段选择（{@code ButtonGroup.compact}）里未选中项悬停时叠的暗色
+    public static final int SEGMENT_HOVER = 0x20000000;
+
+    /**
+     * 弹出面板顶边上指向所属对象（如被点的格子）的小尖角：尖端 2 像素宽、高 {@link #POPUP_NOTCH}，逐行加宽；
+     * 描边、底色与 {@link #WINDOW} 一致，面板顶边在尖角处打通，看起来是面板自己伸出的一角。
+     * {@code centerX} 是尖角中线（左右两像素之间），{@code panelTop} 是面板顶边。
+     */
+    @OnlyIn(Dist.CLIENT)
+    public static void drawPopupNotch(GuiGraphics graphics, int centerX, int panelTop) {
+        for (int k = 0; k < POPUP_NOTCH; k++) {
+            int y = panelTop - POPUP_NOTCH + k, half = k + 1;
+            graphics.fill(centerX - half, y, centerX + half, y + 1, WINDOW_OUTLINE);
+            if (k > 0) graphics.fill(centerX - half + 1, y, centerX + half - 1, y + 1, WINDOW_FILL);
+        }
+        graphics.fill(centerX - POPUP_NOTCH + 1, panelTop, centerX + POPUP_NOTCH - 1, panelTop + 2, WINDOW_FILL);
+    }
+
+    /** 配置按钮悬停：底色暗一档（不比窗口底色亮）。 */
+    public static final IGuiTexture CONFIGURATOR_TAB_HOVER = new OreSprites.Shifted(new OreSprites.Refilled(OreSprites.BORDER_7, TAB_HOVER_FILL, 2, 2, 2, 4), 0, 1);
+    /** 配置按钮按下：顶边下移 {@link #CONFIGURATOR_TAB_PRESS_DEPTH} 像素（整块变矮、底边不动）、再暗一档，图标跟着下移同样距离。 */
+    public static final int CONFIGURATOR_TAB_PRESS_DEPTH = 2;
+    public static final IGuiTexture CONFIGURATOR_TAB_PRESSED = new OreSprites.Shifted(
+            new OreSprites.Sunk(new OreSprites.Refilled(OreSprites.BORDER_7, 0xFFADADAD, 2, 2, 2, 4), CONFIGURATOR_TAB_PRESS_DEPTH), 0, 1);
     /** 区块内边距：让开 1 像素细边后留 2 像素空白。 */
     public static final int PANEL_PADDING = 3;
     public static final int PANEL_PADDING_BOTTOM = 3;
@@ -119,6 +169,11 @@ public final class UITheme {
     private static final int SELECTION_FILL_ALPHA_MIN = 0x08;
     private static final int SELECTION_FILL_ALPHA_MAX = 0x28;
     private static final long SELECTION_PULSE_MS = 1600;
+    /**
+     * 三视图（方向配置页）里的面描边：选中的面用 {@link #SELECTION_COLOR}（与槽位选中框同一金色，作用于该面的悬浮栏也用它描边），
+     * 鼠标悬停、尚未选中的面用白色。
+     */
+    public static final int SCENE_HOVER_FACE = 0xFFFFFFFF;
 
     /** 按钮配色。 */
     public enum ButtonVariant {
@@ -300,8 +355,23 @@ public final class UITheme {
      */
     @OnlyIn(Dist.CLIENT)
     public static void drawDock(GuiGraphics graphics, int x, int y, int width, int height) {
+        drawDock(graphics, x, y, width, height, 0);
+    }
+
+    /**
+     * 带强调色的悬浮栏底板：{@code accent} 非 0 时外框换成 1 像素宽的强调色圆角边（不画白色高光），
+     * 用来把栏和它作用的对象在视觉上连起来（例如三视图里选中的面，见 {@code Dock#setAccentColor}）；为 0 时同
+     * {@link #drawDock(GuiGraphics, int, int, int, int)}。
+     */
+    @OnlyIn(Dist.CLIENT)
+    public static void drawDock(GuiGraphics graphics, int x, int y, int width, int height, int accent) {
         int r = x + width, b = y + height;
         graphics.fill(x + 1, y + 1, r - 1, b - 1, WINDOW_FILL);
+        if (accent != 0) {
+            // 1 像素强调色圆角边，不画白色高光（用户要求 1px，2px 显得粗）
+            ring(graphics, x, y, r, b, accent, true);
+            return;
+        }
         ring(graphics, x, y, r, b, DOCK_OUTLINE, true);
         graphics.fill(x + 1, y + 1, r - 1, y + 2, DOCK_HIGHLIGHT);
         graphics.fill(x + 1, y + 2, x + 2, b - 1, DOCK_HIGHLIGHT);

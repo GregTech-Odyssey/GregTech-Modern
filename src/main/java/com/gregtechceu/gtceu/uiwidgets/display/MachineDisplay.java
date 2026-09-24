@@ -59,7 +59,7 @@ public final class MachineDisplay {
 
     public static ScrollerView display(IDisplayUIMachine machine) {
         var text = new RichText();
-        text.setTextDataReader(machine::readClientTextData).setTextDataWriter(machine::writeClientTextData);
+        text.setTextData(machine::writeClientTextData, machine::readClientTextData);
         text.textSupplier(machine.self().isRemote() ? null : machine::addDisplayText).clickHandler(machine::handleDisplayClick);
         return wrap(text);
     }

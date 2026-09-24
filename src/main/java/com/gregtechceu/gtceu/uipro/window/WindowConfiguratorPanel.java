@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.uipro.window;
 
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfigurator;
+import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfiguratorButton;
 import com.gregtechceu.gtceu.uipro.animation.Animation;
 import com.gregtechceu.gtceu.uipro.animation.AnimationEngine;
 import com.gregtechceu.gtceu.uipro.animation.Eases;
@@ -9,12 +10,14 @@ import com.gregtechceu.gtceu.uipro.elements.TextLine;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 
+import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -37,10 +40,11 @@ import java.util.Map;
  */
 final class WindowConfiguratorPanel extends ConfiguratorPanel {
 
-    /// 绘制高度层：整块抬到主窗口之上（主窗口里的物品模型约在 150~170），展开后伸到主窗口上方时盖得住
-    private static final int LAYER_Z = 200;
     /// 小组件移动（展开、收起）的动画
     private static final Animation MOVE = Animation.of(0.2f, Eases.CUBIC_OUT);
+
+    /// 快速点击时按下态至少保持这么久，看得见
+    private static final long PRESS_HOLD_MS = 120;
 
     private final AnimationEngine animations = new AnimationEngine();
     private final Map<Widget, AnimationEngine.Playback> moving = new IdentityHashMap<>();
@@ -183,7 +187,7 @@ final class WindowConfiguratorPanel extends ConfiguratorPanel {
         animations.updateFrame();
         var pose = graphics.pose();
         pose.pushPose();
-        pose.translate(0, 0, LAYER_Z);
+        pose.translate(0, 0, UITheme.OVERLAY_Z);
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
         pose.popPose();
     }
@@ -193,9 +197,22 @@ final class WindowConfiguratorPanel extends ConfiguratorPanel {
     public void drawInForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         var pose = graphics.pose();
         pose.pushPose();
-        pose.translate(0, 0, LAYER_Z);
+        pose.translate(0, 0, UITheme.OVERLAY_Z);
         super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
         pose.popPose();
+    }
+
+    /**
+     * 悬停命中与点击分发的优先顺序一致：GTM 的 {@code ConfiguratorPanel.mouseClicked} 先把点击交给展开的配置项，
+     * 这里也先查它（屏幕窄时展开面板会压在收起的标签列上，按子控件倒序查会先命中被压住的标签）。
+     */
+    @Override
+    public @Nullable Widget getHoverElement(double mouseX, double mouseY) {
+        if (expanded != null && expanded.isVisible()) {
+            var hovered = expanded.getHoverElement(mouseX, mouseY);
+            if (hovered != null) return hovered;
+        }
+        return super.getHoverElement(mouseX, mouseY);
     }
 
     /**
@@ -205,6 +222,85 @@ final class WindowConfiguratorPanel extends ConfiguratorPanel {
     boolean isCovering(double mouseX, double mouseY) {
         return expanded != null && expanded.isVisible() &&
                 isMouseOver(expanded.getPositionX(), expanded.getPositionY(), expanded.getSizeWidth(), expanded.getSizeHeight(), mouseX, mouseY);
+    }
+
+    /** 标签的交互状态（与 LDLib2 按钮同名）。 */
+    private enum TabState {
+        DEFAULT,
+        HOVERED,
+        PRESSED
+    }
+
+    /**
+     * 按钮类配置标签（开关、一次性动作，点了不展开）的悬停、按下反馈：悬停底色暗一档；左键按住时面下沉、图标跟着下沉，
+     * 快速点击也保持 {@link #PRESS_HOLD_MS}。鼠标移出标签即取消按住（同 LDLib2 按钮的 onMouseLeave）；
+     * 松开由面板统一通知（LDLib1 的松开事件倒序分发、遇到第一个返回 true 的控件就停，按下后在别的标签上松开时原标签收不到）。
+     * 展开类标签点下即展开，没有可见的按下态；移动中的标签不画反馈。只在客户端用。
+     */
+    private final class TabFeedback {
+
+        private final Tab tab;
+        /// 按钮类（开关、一次性动作）才有按下态；展开类点下即展开
+        private final boolean button;
+        private boolean held;
+        /// 按下态至少保持到这个时刻（初值远在过去，比较不会溢出）
+        private long pressedUntil = Long.MIN_VALUE;
+        /// 本帧状态：画底图时求一次，画图标时沿用
+        private TabState state = TabState.DEFAULT;
+
+        private TabFeedback(Tab tab, boolean button) {
+            this.tab = tab;
+            this.button = button;
+        }
+
+        private boolean active() {
+            return button && !moving.containsKey(tab) && tab.getSizeWidth() == getTabSize() &&
+                    tab.getSizeHeight() == getTabSize();
+        }
+
+        private boolean isHovered(double mouseX, double mouseY) {
+            return isMouseOver(tab.getPositionX(), tab.getPositionY(), getTabSize(), getTabSize(), mouseX, mouseY);
+        }
+
+        void mouseClicked(double mouseX, double mouseY, int button) {
+            if (button == 0 && active() && isHovered(mouseX, mouseY)) {
+                held = true;
+                pressedUntil = Util.getMillis() + PRESS_HOLD_MS;
+            }
+        }
+
+        void release() {
+            held = false;
+        }
+
+        /** 求本帧状态并返回该用的底图；null 表示用标签原来的底图。 */
+        @Nullable
+        IGuiTexture background(int mouseX, int mouseY) {
+            state = TabState.DEFAULT;
+            if (!active()) return null;
+            boolean hovered = isHovered(mouseX, mouseY);
+            if (!hovered) held = false;
+            if (held || Util.getMillis() < pressedUntil) state = TabState.PRESSED;
+            else if (hovered) state = TabState.HOVERED;
+            return switch (state) {
+                case PRESSED -> UITheme.CONFIGURATOR_TAB_PRESSED;
+                case HOVERED -> UITheme.CONFIGURATOR_TAB_HOVER;
+                case DEFAULT -> null;
+            };
+        }
+
+        int iconOffsetY() {
+            return state == TabState.PRESSED ? UITheme.CONFIGURATOR_TAB_PRESS_DEPTH : 0;
+        }
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        for (var tab : tabs) {
+            if (tab instanceof AnimatedTab animated) animated.feedback.release();
+        }
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     /** 两种标签页共用：读内容控件、设拖拽偏移（GTM 的字段是 protected，只在子类里能碰）。 */
@@ -220,9 +316,32 @@ final class WindowConfiguratorPanel extends ConfiguratorPanel {
 
     private final class AnimatedTab extends Tab implements Draggable {
 
+        private final TabFeedback feedback = new TabFeedback(this, configurator instanceof IFancyConfiguratorButton);
+
         private AnimatedTab(IFancyConfigurator configurator) {
             super(configurator);
             restyleTitle(view, configurator);
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public boolean mouseClicked(double mouseX, double mouseY, int button) {
+            feedback.mouseClicked(mouseX, mouseY, button);
+            return super.mouseClicked(mouseX, mouseY, button);
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        protected void drawTabBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY) {
+            var texture = feedback.background(mouseX, mouseY);
+            if (texture == null) super.drawTabBackground(graphics, mouseX, mouseY);
+            else texture.draw(graphics, mouseX, mouseY, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight());
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        protected int getIconOffsetY() {
+            return feedback.iconOffsetY();
         }
 
         @Override

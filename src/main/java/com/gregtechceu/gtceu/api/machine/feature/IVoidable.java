@@ -70,7 +70,7 @@ public interface IVoidable extends IMachineFeature {
 
         VoidingMode(String name) {
             this.localeName = name;
-            this.icon = WidgetIcons.VOIDING[ordinal()];
+            this.icon = WidgetIcons.voiding(ordinal());
         }
 
         public boolean canVoid(RecipeInfo capability) {

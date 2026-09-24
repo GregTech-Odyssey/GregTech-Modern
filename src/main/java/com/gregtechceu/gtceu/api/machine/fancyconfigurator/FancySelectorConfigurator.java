@@ -22,9 +22,10 @@ public class FancySelectorConfigurator<T extends Enum<T> & EnumSelectorWidget.Se
         this.widget = new EnumSelectorWidget<>(0, 0, 20, 20, values, initialValue, onChanged);
     }
 
+    /// 标签本身就是按钮底，直接用选项自己的图标；EnumSelectorWidget.getTexture 会再套一层原版按钮底图，放进标签成了双层底
     @Override
     public IGuiTexture getIcon() {
-        return widget.getTexture(widget.selected);
+        return widget.getCurrentValue().getIcon();
     }
 
     @Override

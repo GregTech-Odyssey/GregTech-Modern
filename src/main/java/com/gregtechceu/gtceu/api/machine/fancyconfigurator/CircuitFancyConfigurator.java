@@ -72,7 +72,11 @@ public class CircuitFancyConfigurator implements IFancyConfigurator, IFancyCusto
         switch (id) {
             case SET_TO_ZERO -> circuitSlot.setStackInSlot(0, IntCircuitBehaviour.stack(0));
             case SET_TO_EMPTY -> circuitSlot.setStackInSlot(0, ItemStack.EMPTY);
-            case SET_TO_N -> circuitSlot.setStackInSlot(0, IntCircuitBehaviour.stack(buffer.readVarInt()));
+            case SET_TO_N -> {
+                // 编号来自客户端，越界（伪造包）直接忽略
+                int n = buffer.readVarInt();
+                if (n >= 0 && n <= IntCircuitBehaviour.CIRCUIT_MAX) circuitSlot.setStackInSlot(0, IntCircuitBehaviour.stack(n));
+            }
         }
     }
 

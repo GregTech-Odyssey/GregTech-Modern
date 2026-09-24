@@ -1461,12 +1461,15 @@ public class LangHandler {
         provider.add("gtceu.gui.circuit.clear", "Clear circuit");
         provider.add("gtceu.gui.directional_setting.select_side", "Select a side of the machine above first");
         provider.add("gtceu.gui.directional_setting.no_cover_settings", "No configurable cover on this side");
-        provider.add("gtceu.gui.directional_setting.item_output.off", "Items: not output from this side (click to make it the output side)");
-        provider.add("gtceu.gui.directional_setting.item_output.output", "Items: output side, no auto output (click to enable auto output)");
-        provider.add("gtceu.gui.directional_setting.item_output.auto", "Items: auto output from this side (click to disable auto output)");
-        provider.add("gtceu.gui.directional_setting.fluid_output.off", "Fluids: not output from this side (click to make it the output side)");
-        provider.add("gtceu.gui.directional_setting.fluid_output.output", "Fluids: output side, no auto output (click to enable auto output)");
-        provider.add("gtceu.gui.directional_setting.fluid_output.auto", "Fluids: auto output from this side (click to disable auto output)");
+        provider.add("gtceu.gui.directional_setting.output_mode.default", "Default");
+        provider.add("gtceu.gui.directional_setting.output_mode.output", "Output");
+        provider.add("gtceu.gui.directional_setting.output_mode.auto", "Auto");
+        provider.add("gtceu.gui.directional_setting.item_output.set_default", "Items: default, not output from this side");
+        provider.add("gtceu.gui.directional_setting.item_output.set_output", "Items: set as output side (output from here, no auto push)");
+        provider.add("gtceu.gui.directional_setting.item_output.set_auto", "Items: set as auto output side (push out from here)");
+        provider.add("gtceu.gui.directional_setting.fluid_output.set_default", "Fluids: default, not output from this side");
+        provider.add("gtceu.gui.directional_setting.fluid_output.set_output", "Fluids: set as output side (output from here, no auto push)");
+        provider.add("gtceu.gui.directional_setting.fluid_output.set_auto", "Fluids: set as auto output side (push out from here)");
         multiLang(provider, "gtceu.gui.output_setting.tooltips", "left-click to tune the item auto output",
                 "right-click to tune the fluid auto output.");
         provider.add("gtceu.gui.item_auto_output.allow_input.enabled",
@@ -1532,6 +1535,10 @@ public class LangHandler {
         provider.add("gtceu.uipro.scroller.unlock", "Right-click: unlock");
         provider.add("gtceu.uipro.stepper.at_min", "Already at the minimum");
         provider.add("gtceu.uipro.stepper.at_max", "Already at the maximum");
+        provider.add("gtceu.uipro.adjuster.range", "Range: %s ~ %s");
+        provider.add("gtceu.uipro.adjuster.step", "Step: %s (Shift %s, Ctrl %s, Ctrl+Shift %s)");
+        provider.add("gtceu.uipro.adjuster.unbounded", "unlimited");
+        provider.add("gtceu.uipro.percent_field.tooltip", "Adjusts a percentage: 100%% = ×1.00, 150%% = ×1.50");
 
         // 配方页（uipro）
         provider.add("gtceu.recipe.info.duration", "Duration");

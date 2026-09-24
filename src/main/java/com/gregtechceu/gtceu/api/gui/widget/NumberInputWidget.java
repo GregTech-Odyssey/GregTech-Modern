@@ -211,7 +211,8 @@ public abstract class NumberInputWidget<T extends Number> extends WidgetGroup {
     }
 
     protected void updateTextFieldRange() {
-        setTextFieldRange(textField, min, max);
+        // 整数类型桥接到 NumberField：输入框的校验、上下限由它自己管（直通校验 + 服务端夹取），不能再套 LDLib 的范围校验
+        if (!isIntegral()) setTextFieldRange(textField, min, max);
         this.setValue(clamp(valueSupplier.get(), min, max));
     }
 }

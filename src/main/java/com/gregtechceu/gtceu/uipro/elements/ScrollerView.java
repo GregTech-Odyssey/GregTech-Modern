@@ -467,7 +467,7 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
         var pose = graphics.pose();
         pose.pushPose();
         // 画在内容之上（物品图标 z 约 150）
-        pose.translate(0, 0, 200);
+        pose.translate(0, 0, UITheme.OVERLAY_Z);
         UITheme.drawResizeGrip(graphics, getPositionX() + getSizeWidth(), getPositionY() + getSizeHeight(), resizing || isOverGrip(mouseX, mouseY), isLocked());
         pose.popPose();
     }

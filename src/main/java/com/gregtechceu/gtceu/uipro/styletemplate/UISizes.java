@@ -58,6 +58,20 @@ public final class UISizes {
     /** 按钮文字两侧留白。 */
     public static final int TEXT_PADDING = 4;
 
+    /**
+     * 两端都能算的文字宽度估算（按字数，偏大不偏小）：中日韩文字 9 像素，其余 6 像素（原版字体最宽的 ASCII 含字距为 6）。
+     * 用于按文字定宽的元素（如紧凑按钮组）：客户端的字体在服务端不存在。两端语言不同时算出的宽度可以不同，控件树不变。
+     */
+    public static int textWidth(String text) {
+        int width = 0;
+        for (int i = 0; i < text.length();) {
+            int codePoint = text.codePointAt(i);
+            width += codePoint >= 0x2E80 ? 9 : 6;
+            i += Character.charCount(codePoint);
+        }
+        return width;
+    }
+
     // ==================== 窗口 ====================
     /** 机器窗口的标准宽度（原版容器宽）。 */
     public static final int WINDOW_WIDTH = 176;

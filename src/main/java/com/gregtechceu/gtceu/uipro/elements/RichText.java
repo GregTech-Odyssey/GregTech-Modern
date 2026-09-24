@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
  * 内容由机器代码逐行拼出来、带颜色和可点击片段的文字。
  * <p>
  * 同步、点击、悬停沿用 GTM {@link CustomComponentPanelWidget}：服务端 {@code textSupplier} 取文字，变化时整表下发，
- * 附加数据经 {@code setTextDataWriter / setTextDataReader}；{@code ComponentPanelWidget.withButton} 做出的片段可点击，
+ * 附加数据经 {@code setTextData}（写、读成对设置）；{@code ComponentPanelWidget.withButton} 做出的片段可点击，
  * 点击交给 {@code clickHandler}（两端各调一次）；带悬停事件的片段悬停时显示说明。
  * <p>
  * 外观按亮底重配：这些文字原本是写给 GTM 深色显示屏的（白字、亮黄、亮青……），在窗口的浅色底上看不清，

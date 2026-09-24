@@ -15,11 +15,15 @@ import net.minecraftforge.api.distmarker.OnlyIn;
  * 里面一组组控件横排，组与组之间一条细分隔线。宽高随内容，由使用方摆到内容的底部居中（离底边 {@link UISizes#DOCK_MARGIN}）。
  * <p>
  * 栏本身挡住下面的内容：点在栏上（包括控件之间的空隙）不会落到下面（例如三视图的选面）。
+ * <p>
+ * 可选强调色（{@link #setAccentColor}）：栏里的设置只作用于某个对象时，外框用与该对象高亮相同的颜色，把两者在视觉上连起来。
  */
 public class Dock extends UIElement {
 
     private final boolean vertical;
     private boolean empty = true;
+    /// 强调色（ARGB），0 为不用：画普通的深色外框 + 白色高光
+    private int accentColor;
 
     /** 横向悬浮栏（组从左往右排）。 */
     public Dock() {
@@ -48,11 +52,20 @@ public class Dock extends UIElement {
         return empty;
     }
 
+    /**
+     * 外框强调色（ARGB，颜色从 {@link UITheme} 取）：栏里的设置只作用于某个被高亮的对象时，外框用与它相同的颜色
+     * （例如方向配置页底部的栏用 {@link UITheme#SELECTION_COLOR}，与三视图里选中面的描边一致）。传 0 恢复普通外框。
+     */
+    public Dock setAccentColor(int argb) {
+        this.accentColor = argb;
+        return this;
+    }
+
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         if (empty) return;
-        UITheme.drawDock(graphics, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight());
+        UITheme.drawDock(graphics, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight(), accentColor);
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
     }
 

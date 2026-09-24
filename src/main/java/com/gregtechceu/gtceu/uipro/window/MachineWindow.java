@@ -29,6 +29,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.IntFunction;
 
 /**
@@ -38,7 +40,7 @@ import java.util.function.IntFunction;
  * <pre>
  *            [主页][页2][页3]              ← 页面标签：窗口顶上横排，选中的与窗口连成一体
  *  [配置]  ┌─────────── 176 ───────────┐    ┌──── 弹出面板 ────┐
- *  [配置]  │ [&lt;] 图标 标题 ………… ⓘ [+] │ 4  │ 标题 ……… [×]   │
+ *  [配置]  │ [&lt;] 图标 标题 ………… ⓘ [▦] │ 4  │ 标题 ……… [×]   │
  *  [配置]  │ 页面（宽 162，x = 7）       │    │ 可滚动内容       │
  *          │ 玩家背包（x = 7，与页面对齐）│    └─────────────────┘
  *          └────────────────────────────┘
@@ -63,6 +65,8 @@ public class MachineWindow extends FancyMachineUIWidget {
     private final PopupHost popups;
     /** 左侧机器小组件（替代 GTM 的配置面板，见 {@link WindowConfiguratorPanel}）。 */
     private final WindowConfiguratorPanel configurators = new WindowConfiguratorPanel();
+    /// 页内浮层（见 {@link PageOverlay}）：窗口最后画它们、盖住处的鼠标先交给它们
+    private final List<PageOverlay> overlays = new ArrayList<>();
     @Nullable
     private IntFunction<Widget> titleContent;
     private boolean placing;
@@ -109,10 +113,55 @@ public class MachineWindow extends FancyMachineUIWidget {
     /// 被盖住时交给其他部分的鼠标坐标：离开任何控件
     private static final int OUTSIDE = -100000;
 
+    /**
+     * 屏幕点击分发之前（{@code UIClientEvents}）：界面里每个窗口的显示中的页内浮层，这次点击不落在它上面的
+     * （包括被展开的机器小组件盖住、或点在窗口外），通知它 {@link PageOverlay#onOutsideClick}。
+     */
+    @OnlyIn(Dist.CLIENT)
+    public static void beforeGuiClick(WidgetGroup root, double mouseX, double mouseY) {
+        for (var widget : root.widgets) {
+            if (widget instanceof MachineWindow window) window.notifyOutsideClick(mouseX, mouseY);
+            else if (widget instanceof WidgetGroup group) beforeGuiClick(group, mouseX, mouseY);
+        }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private void notifyOutsideClick(double mouseX, double mouseY) {
+        if (overlays.isEmpty()) return;
+        var cover = coverAt(mouseX, mouseY);
+        // 回调里可能关掉浮层、改动列表，先拷一份
+        for (var overlay : List.copyOf(overlays)) {
+            if (overlay != cover && overlay.isShown()) overlay.onOutsideClick();
+        }
+    }
+
+    /** 页内浮层在 initWidget 时登记（两端都会调，只有客户端用）。 */
+    void registerOverlay(PageOverlay overlay) {
+        if (!overlays.contains(overlay)) overlays.add(overlay);
+    }
+
+    /** 鼠标下显示中的页内浮层（后登记的在上）；换页后已不在本窗口里的顺手清掉。 */
+    @Nullable
+    private PageOverlay coveringOverlay(double mouseX, double mouseY) {
+        overlays.removeIf(overlay -> MachineWindow.of(overlay) != this);
+        for (int i = overlays.size() - 1; i >= 0; i--) {
+            if (overlays.get(i).isCovering(mouseX, mouseY)) return overlays.get(i);
+        }
+        return null;
+    }
+
+    /** 这一点被谁盖住：展开的机器小组件优先，其次页内浮层；都没有为 null。 */
+    @Nullable
+    private Widget coverAt(double mouseX, double mouseY) {
+        if (configurators.isCovering(mouseX, mouseY)) return configurators;
+        return coveringOverlay(mouseX, mouseY);
+    }
+
     @Override
     @OnlyIn(Dist.CLIENT)
     protected void drawWidgetsBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        if (!configurators.isCovering(mouseX, mouseY)) {
+        var cover = coverAt(mouseX, mouseY);
+        if (cover == null) {
             super.drawWidgetsBackground(graphics, mouseX, mouseY, partialTicks);
             return;
         }
@@ -120,7 +169,7 @@ public class MachineWindow extends FancyMachineUIWidget {
             if (!widget.isVisible()) continue;
             RenderSystem.setShaderColor(1, 1, 1, 1);
             RenderSystem.enableBlend();
-            int x = widget == configurators ? mouseX : OUTSIDE, y = widget == configurators ? mouseY : OUTSIDE;
+            int x = widget == cover ? mouseX : OUTSIDE, y = widget == cover ? mouseY : OUTSIDE;
             if (widget.inAnimate()) widget.getAnimation().drawInBackground(graphics, x, y, partialTicks);
             else widget.drawInBackground(graphics, x, y, partialTicks);
         }
@@ -129,30 +178,55 @@ public class MachineWindow extends FancyMachineUIWidget {
     @Override
     @OnlyIn(Dist.CLIENT)
     protected void drawWidgetsForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        if (!configurators.isCovering(mouseX, mouseY)) {
+        var cover = coverAt(mouseX, mouseY);
+        if (cover == null) {
             super.drawWidgetsForeground(graphics, mouseX, mouseY, partialTicks);
-            return;
+        } else {
+            for (var widget : widgets) {
+                if (!widget.isVisible()) continue;
+                RenderSystem.setShaderColor(1, 1, 1, 1);
+                int x = widget == cover ? mouseX : OUTSIDE, y = widget == cover ? mouseY : OUTSIDE;
+                if (widget.inAnimate()) widget.getAnimation().drawInForeground(graphics, x, y, partialTicks);
+                else widget.drawInForeground(graphics, x, y, partialTicks);
+            }
         }
-        for (var widget : widgets) {
-            if (!widget.isVisible()) continue;
+        // 页内浮层最后画（背景 + 前景），盖住所有格子；被展开的机器小组件盖住的地方不给它真实鼠标
+        boolean configuratorsCover = cover == configurators;
+        for (var overlay : overlays) {
+            if (!overlay.isShown()) continue;
             RenderSystem.setShaderColor(1, 1, 1, 1);
-            int x = widget == configurators ? mouseX : OUTSIDE, y = widget == configurators ? mouseY : OUTSIDE;
-            if (widget.inAnimate()) widget.getAnimation().drawInForeground(graphics, x, y, partialTicks);
-            else widget.drawInForeground(graphics, x, y, partialTicks);
+            RenderSystem.enableBlend();
+            overlay.drawAsOverlay(graphics, configuratorsCover ? OUTSIDE : mouseX, configuratorsCover ? OUTSIDE : mouseY, partialTicks);
         }
     }
 
     @Override
     public @Nullable Widget getHoverElement(double mouseX, double mouseY) {
-        if (configurators.isCovering(mouseX, mouseY)) return configurators.getHoverElement(mouseX, mouseY);
+        var cover = coverAt(mouseX, mouseY);
+        if (cover != null) return cover.getHoverElement(mouseX, mouseY);
         return super.getHoverElement(mouseX, mouseY);
+    }
+
+    /// 页内浮层盖住的地方点击只交给浮层（展开的机器小组件是最后加入的子控件，本来就先拿到点击）
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (!configurators.isCovering(mouseX, mouseY)) {
+            var overlay = coveringOverlay(mouseX, mouseY);
+            if (overlay != null) {
+                overlay.mouseClicked(mouseX, mouseY, button);
+                return true;
+            }
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
     public boolean mouseWheelMove(double mouseX, double mouseY, double wheelDelta) {
-        if (configurators.isCovering(mouseX, mouseY)) {
-            configurators.mouseWheelMove(mouseX, mouseY, wheelDelta);
+        var cover = coverAt(mouseX, mouseY);
+        if (cover != null) {
+            cover.mouseWheelMove(mouseX, mouseY, wheelDelta);
             return true;
         }
         return super.mouseWheelMove(mouseX, mouseY, wheelDelta);
@@ -160,7 +234,8 @@ public class MachineWindow extends FancyMachineUIWidget {
 
     @Override
     public @Nullable Object getXEIIngredientOverMouse(double mouseX, double mouseY) {
-        if (configurators.isCovering(mouseX, mouseY)) return configurators.getXEIIngredientOverMouse(mouseX, mouseY);
+        var cover = coverAt(mouseX, mouseY);
+        if (cover != null) return cover instanceof WidgetGroup group ? group.getXEIIngredientOverMouse(mouseX, mouseY) : null;
         return super.getXEIIngredientOverMouse(mouseX, mouseY);
     }
 
@@ -574,7 +649,8 @@ public class MachineWindow extends FancyMachineUIWidget {
 
     /**
      * 窗口内第一行：{@code [<]} 返回（有历史时）、页面图标、中段（默认是页面标题，页面可用 {@link #setTitleContent} 换成自己的控件）、
-     * 右侧 GTM 悬浮说明图标（{@link IFancyTooltip}，12 见方，悬停显示说明；按已挂上的个数预留位置）、{@code [+]} 切换部件页（多于一页时）。
+     * 右侧 GTM 悬浮说明图标（{@link IFancyTooltip}，12 见方，悬停显示说明；按已挂上的个数预留位置）、{@code [▦]}
+     * 页面按钮（{@link UITheme#PAGES}，打开页面切换页，多于一页时）。
      * 两端在每次切换页面时一起重建子控件，控件树保持一致。
      */
     private final class WindowTitleBar extends WidgetGroup {
@@ -614,7 +690,7 @@ public class MachineWindow extends FancyMachineUIWidget {
             }
             if (showMenu) {
                 right -= UISizes.ICON_BUTTON;
-                var menu = Button.glyph("+").setOnClick(MachineWindow.this::openPageSwitcher);
+                var menu = Button.icon(UITheme.PAGES).setOnClick(MachineWindow.this::openPageSwitcher);
                 menu.setHoverTooltips("gtceu.gui.title_bar.page_switcher");
                 menu.setSelfPosition(new Position(right, 0));
                 addWidget(menu);

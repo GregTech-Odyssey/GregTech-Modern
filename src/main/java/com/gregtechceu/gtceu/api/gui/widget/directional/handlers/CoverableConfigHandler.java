@@ -27,7 +27,6 @@ import com.lowdragmc.lowdraglib.gui.widget.SceneWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Position;
-import com.lowdragmc.lowdraglib.utils.Size;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -100,6 +99,8 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
         group.addWidget(slotWidget);
 
         checkCoverBehaviour();
+        // 初次打开还没选面时，覆盖板槽两端都先停用（服务端的 Shift 快速移动、伪造点击也放不进去）
+        updateWidgetVisibility();
 
         return group;
     }
@@ -147,6 +148,8 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
         this.side = side;
         checkCoverBehaviour();
         closeConfigTab();
+        // 取消选中：槽里还放着上一面的覆盖板，必须两端都停用，否则取出时机器上的覆盖板不会被拆（side 为空时不处理）
+        if (side == null && slotWidget != null) updateWidgetVisibility();
     }
 
     private void updateWidgetVisibility() {
@@ -178,14 +181,12 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
             closeConfigTab();
     }
 
+    /**
+     * 浮动标签页：内容与排布沿用 {@link CoverConfigurator}（面板标题留空，覆盖板界面上移
+     * {@link CoverConfigurator#COVER_TITLE_HEIGHT}，自带的标题落进面板标题行、与右侧的关闭图标同一行），这里只把图标和说明换成"关闭"。
+     */
     private void openConfigTab() {
         CoverConfigurator configurator = new CoverConfigurator(this.machine, this.side, this.coverBehavior) {
-
-            @Override
-            public Component getTitle() {
-                // Uses the widget's own title
-                return Component.empty();
-            }
 
             @Override
             public IGuiTexture getIcon() {
@@ -195,24 +196,6 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
             @Override
             public List<Component> getTooltips() {
                 return CLOSE_TOOLTIPS;
-            }
-
-            @Override
-            public Widget createConfigurator() {
-                WidgetGroup group = new WidgetGroup(new Position(0, 0));
-
-                if (side == null || !(coverable.getCoverAtSide(side) instanceof IUICover iuiCover))
-                    return group;
-
-                Widget coverConfigurator = iuiCover.createUIWidget();
-                coverConfigurator.addSelfPosition(-1, -20);
-
-                group.addWidget(coverConfigurator);
-                group.setSize(new Size(
-                        Math.max(120, coverConfigurator.getSize().width),
-                        Math.max(80, coverConfigurator.getSize().height - 20)));
-
-                return group;
             }
         };
 

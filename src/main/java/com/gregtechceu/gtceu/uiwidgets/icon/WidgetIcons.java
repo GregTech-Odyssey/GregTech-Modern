@@ -11,13 +11,18 @@ import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
  */
 public final class WidgetIcons {
 
+    /// 行数必须与图集高度一致（64×288 → 18 行）；加图标时加一行并改这里
     private static final WidgetIconAtlas ATLAS = new WidgetIconAtlas(GTCEu.id("textures/gui/uiwidgets/widget_icons.png"), 18);
 
     /// 机器开关
     public static final IGuiTexture POWER_OFF = ATLAS.icon(0, 0);
     public static final IGuiTexture POWER_ON = ATLAS.icon(0, 1);
+
     /// 销毁模式：不销毁 / 物品 / 流体 / 全部（与 {@code VoidingMode} 顺序一致）
-    public static final IGuiTexture[] VOIDING = { ATLAS.icon(1, 0), ATLAS.icon(1, 1), ATLAS.icon(1, 2), ATLAS.icon(1, 3) };
+    public static IGuiTexture voiding(int mode) {
+        return ATLAS.icon(1, mode);
+    }
+
     /// 输入限制（锁）
     public static final IGuiTexture INPUT_LIMIT_OFF = ATLAS.icon(2, 0);
     public static final IGuiTexture INPUT_LIMIT_ON = ATLAS.icon(2, 1);

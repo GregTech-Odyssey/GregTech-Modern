@@ -32,9 +32,10 @@ public interface IDirectionalConfigHandler {
     }
 
     /**
-     * Called whenever a side is selected in the side selector GUI
+     * Called whenever a side is selected in the side selector GUI.
+     * 取消选中（点三视图空白处）时 {@code side} 为 null；两端都会调用。
      */
-    void onSideSelected(BlockPos pos, Direction side);
+    void onSideSelected(BlockPos pos, @Nullable Direction side);
 
     /**
      * Determines which side of the screen the UI element should be placed on.

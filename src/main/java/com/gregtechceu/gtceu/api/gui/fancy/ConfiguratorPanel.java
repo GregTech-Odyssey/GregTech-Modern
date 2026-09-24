@@ -358,7 +358,7 @@ public class ConfiguratorPanel extends WidgetGroup {
         @Override
         @OnlyIn(Dist.CLIENT)
         public void drawInBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-            drawBackgroundTexture(graphics, mouseX, mouseY);
+            drawTabBackground(graphics, mouseX, mouseY);
             var position = getPosition();
             var size = getSize();
             if (inAnimate()) {
@@ -368,7 +368,19 @@ public class ConfiguratorPanel extends WidgetGroup {
             } else {
                 drawWidgetsBackground(graphics, mouseX, mouseY, partialTicks);
             }
-            configurator.getIcon().draw(graphics, mouseX, mouseY, position.x + size.width - 20, position.y + 4, 16, 16);
+            configurator.getIcon().draw(graphics, mouseX, mouseY, position.x + size.width - 20, position.y + 4 + getIconOffsetY(), 16, 16);
+        }
+
+        /** 画标签底图。子类可按悬停、按下换底图。 */
+        @OnlyIn(Dist.CLIENT)
+        protected void drawTabBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY) {
+            drawBackgroundTexture(graphics, mouseX, mouseY);
+        }
+
+        /** 图标的纵向偏移（子类用于按下时让图标随底面下沉）。 */
+        @OnlyIn(Dist.CLIENT)
+        protected int getIconOffsetY() {
+            return 0;
         }
 
         @Override
