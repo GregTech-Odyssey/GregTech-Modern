@@ -1,20 +1,16 @@
 package com.gregtechceu.gtceu.common.data;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.api.block.ICoilType;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.recipe.*;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.sound.ExistingSoundEntry;
-import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.FusionReactorMachine;
 import com.gregtechceu.gtceu.common.machine.steam.SteamLiquidBoilerMachine;
 import com.gregtechceu.gtceu.common.machine.steam.SteamSolidBoilerMachine;
@@ -23,9 +19,9 @@ import com.gregtechceu.gtceu.common.machine.trait.customlogic.BreweryLogic;
 import com.gregtechceu.gtceu.common.machine.trait.customlogic.CannerLogic;
 import com.gregtechceu.gtceu.common.machine.trait.customlogic.MaceratorLogic;
 import com.gregtechceu.gtceu.common.recipe.*;
-import com.gregtechceu.gtceu.common.recipe.condition.AdjacentFluidCondition;
 import com.gregtechceu.gtceu.data.recipe.RecipeUtil;
-import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemStackHandler;
+import com.gregtechceu.gtceu.uiwidgets.recipe.GTRecipeLayouts;
+import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeDisplaySlots;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.ResearchManager;
@@ -38,12 +34,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.fluids.FluidStack;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import static com.lowdragmc.lowdraglib.gui.texture.ProgressTexture.FillDirection.*;
 
@@ -307,6 +297,7 @@ public class GTRecipeTypes {
             .setSound(GTSoundEntries.COOLING);
 
     public final static GTRecipeType FORGE_HAMMER_RECIPES = register("forge_hammer", ELECTRIC).setMaxIOSize(1, 1, 0, 0)
+            .setSlotLayout(GTRecipeLayouts.FORGE_HAMMER)
             .setEUIO(IO.IN)
             .setSlotOverlay(false, false, GuiTextures.HAMMER_OVERLAY)
             .setProgressBar(GuiTextures.PROGRESS_BAR_HAMMER, UP_TO_DOWN)
@@ -321,6 +312,7 @@ public class GTRecipeTypes {
             .setSound(GTSoundEntries.COMPRESSOR);
 
     public final static GTRecipeType LATHE_RECIPES = register("lathe", ELECTRIC).setMaxIOSize(1, 2, 0, 0)
+            .setSlotLayout(GTRecipeLayouts.LATHE)
             .setEUIO(IO.IN)
             .setSlotOverlay(false, false, GuiTextures.PIPE_OVERLAY_1)
             .setSlotOverlay(true, false, false, GuiTextures.PIPE_OVERLAY_2)
@@ -420,6 +412,7 @@ public class GTRecipeTypes {
             .setSound(GTSoundEntries.COOLING);
 
     public static final GTRecipeType RESEARCH_STATION_RECIPES = register("research_station", ELECTRIC)
+            .setSlotLayout(GTRecipeLayouts.RESEARCH_STATION)
             .setMaxIOSize(2, 1, 0, 0)
             .setEUIO(IO.IN)
             .setProgressBar(GuiTextures.PROGRESS_BAR_ARROW, LEFT_TO_RIGHT)
@@ -435,20 +428,6 @@ public class GTRecipeTypes {
             .setProgressBar(GuiTextures.PROGRESS_BAR_MACERATE, LEFT_TO_RIGHT)
             .setIconSupplier(() -> GTMachines.ROCK_CRUSHER[GTValues.LV].asStack())
             .setSteamProgressBar(GuiTextures.PROGRESS_BAR_MACERATE_STEAM, LEFT_TO_RIGHT)
-            .setUiBuilder((recipe, widgetGroup) -> Arrays.stream(recipe.conditions).filter(AdjacentFluidCondition.class::isInstance).map(AdjacentFluidCondition.class::cast).findFirst().ifPresent(c -> {
-                var fluidA = c.A;
-                var fluidB = c.B;
-                if (fluidA != Fluids.EMPTY) {
-                    widgetGroup.addWidget(new TankWidget(new CustomFluidTank(new FluidStack(fluidA, 1000)),
-                            widgetGroup.getSize().width - 30, widgetGroup.getSize().height - 30, false, false)
-                            .setBackground(GuiTextures.FLUID_SLOT).setShowAmount(false));
-                }
-                if (fluidB != Fluids.EMPTY) {
-                    widgetGroup.addWidget(new TankWidget(new CustomFluidTank(new FluidStack(fluidB, 1000)),
-                            widgetGroup.getSize().width - 30 - 20, widgetGroup.getSize().height - 30, false, false)
-                            .setBackground(GuiTextures.FLUID_SLOT).setShowAmount(false));
-                }
-            }))
             .setSound(GTSoundEntries.FIRE);
 
     public static final GTRecipeType SCANNER_RECIPES = register("scanner", ELECTRIC)
@@ -524,18 +503,11 @@ public class GTRecipeTypes {
                 }
                 return "";
             })
-            .setUiBuilder((recipe, widgetGroup) -> {
-                int temp = recipe.data.getInt(GTRecipeDataKeys.EBF_TEMP);
-                List<List<ItemStack>> items = new ArrayList<>();
-                items.add(GTCEuAPI.HEATING_COILS.entrySet().stream()
-                        .filter(coil -> coil.getKey().getCoilTemperature() >= temp)
-                        .map(coil -> new ItemStack(coil.getValue().get())).toList());
-                widgetGroup.addWidget(new SlotWidget(new CycleItemStackHandler(items), 0,
-                        widgetGroup.getSize().width - 25, widgetGroup.getSize().height - 32, false, false));
-            })
+            .setUiBuilder(RecipeDisplaySlots::coilInfo)
             .setSound(GTSoundEntries.FURNACE);
 
     public final static GTRecipeType DISTILLATION_RECIPES = register("distillation_tower", MULTIBLOCK)
+            .setSlotLayout(GTRecipeLayouts.DISTILLATION_TOWER)
             .setMaxIOSize(0, 1, 1, 12)
             .setEUIO(IO.IN)
             .setSound(GTSoundEntries.CHEMICAL)
@@ -634,6 +606,7 @@ public class GTRecipeTypes {
             .setSound(GTSoundEntries.COOLING);
 
     public final static GTRecipeType ASSEMBLY_LINE_RECIPES = register("assembly_line", MULTIBLOCK)
+            .setSlotLayout(GTRecipeLayouts.ASSEMBLY_LINE)
             .setMaxIOSize(16, 1, 4, 0)
             .setEUIO(IO.IN)
             .setProgressBar(GuiTextures.PROGRESS_BAR_ARROW, LEFT_TO_RIGHT)

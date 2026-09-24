@@ -72,4 +72,9 @@ final class SlotState {
     boolean readUpdateInfo(int id, FriendlyByteBuf buffer) {
         return syncValues.readUpdateInfo(id, buffer);
     }
+
+    /** 客户端每帧调用（纯客户端界面靠它取本端值）。 */
+    void pollClient() {
+        syncValues.pollClient();
+    }
 }

@@ -9,15 +9,13 @@ import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
-import com.gregtechceu.gtceu.common.recipe.condition.ResearchCondition;
-import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.core.mixins.IntersectionIngredientAccessor;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemEntryList;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemStackList;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemTagList;
 import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemEntryHandler;
-import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemStackHandler;
 import com.gregtechceu.gtceu.integration.xei.widgets.GTRecipeWidget;
+import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
 import com.gregtechceu.gtceu.utils.ResearchManager;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -110,13 +108,11 @@ public final class ItemRecipeInfo extends ContentRecipeInfo<ItemStack, ItemIngre
         return new CycleItemEntryHandler((List<ItemEntryList>) contents);
     }
 
-    /** 物品槽控件。 */
+    /** 标准物品槽（uipro {@link ItemSlot}），绑定前是空槽。 */
     @NotNull
     @Override
     public Widget createWidget() {
-        SlotWidget slot = new SlotWidget();
-        slot.initTemplate();
-        return slot;
+        return ItemSlot.unbound();
     }
 
     /** 该种类使用 {@link SlotWidget} 显示。 */
@@ -128,11 +124,8 @@ public final class ItemRecipeInfo extends ContentRecipeInfo<ItemStack, ItemIngre
 
     /**
      * 把槽位信息应用到物品槽上：绑定存储槽位（若有）、设置输入 / 输出类型与是否可交互，
-     * 并填充产出概率与提示文本。
-     *
-     * <p>
-     * 另外，在配方查看器（{@code isXEI}）中且配方类型声明了研究槽位时，索引刚好落在
-     * 容器容量之后的那一格会被替换成「研究条件所需数据球」的催化剂展示槽。
+     * 并填充产出概率与提示文本。{@code storage} 为 null 时只刷新内容信息（配方页切换电压档时）。
+     * 配方所需的研究数据不再占用槽位区，由研究条件作为额外展示槽加在配方页信息区。
      */
     @Override
     public void applyWidgetInfo(@NotNull Widget widget,
@@ -151,22 +144,6 @@ public final class ItemRecipeInfo extends ContentRecipeInfo<ItemStack, ItemIngre
                     slot.setIngredientIO(io == IO.IN ? IngredientIO.INPUT : IngredientIO.OUTPUT);
                     slot.setCanTakeItems(!isXEI);
                     slot.setCanPutItems(!isXEI && io.support(IO.IN));
-                }
-                // 1 over container size.
-                // If in a recipe viewer and a research slot can be added, add it.
-                if (isXEI && recipeType.isHasResearchSlot() && index == items.getSlots()) {
-                    if (ConfigHolder.INSTANCE.machines.enableResearch) {
-                        ResearchCondition condition = recipeHolder.conditions().stream()
-                                .filter(ResearchCondition.class::isInstance).findAny()
-                                .map(ResearchCondition.class::cast).orElse(null);
-                        if (condition != null) {
-                            CycleItemStackHandler handler = new CycleItemStackHandler(Collections.singletonList(Collections.singletonList(condition.dataStack)));
-                            slot.setHandlerSlot(handler, 0);
-                            slot.setIngredientIO(IngredientIO.CATALYST);
-                            slot.setCanTakeItems(false);
-                            slot.setCanPutItems(false);
-                        }
-                    }
                 }
             }
             if (content != null) {

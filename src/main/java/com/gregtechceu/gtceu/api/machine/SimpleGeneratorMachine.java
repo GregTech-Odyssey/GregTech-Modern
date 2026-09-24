@@ -14,10 +14,7 @@ import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
-
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.utils.Position;
-import com.lowdragmc.lowdraglib.utils.Size;
+import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeMachinePage;
 
 import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
@@ -106,22 +103,17 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine {
     // *********** GUI ***********//
     //////////////////////////////////////
     @SuppressWarnings("UnstableApiUsage")
-    public static BiFunction<ResourceLocation, GTRecipeType, EditableMachineUI> EDITABLE_UI_CREATOR = Util.memoize((path, recipeType) -> new EditableMachineUI("generator", path, () -> {
-        WidgetGroup template = recipeType.getRecipeUI().createEditableUITemplate(false, false, (output, key) -> !output).createDefault();
-        WidgetGroup group = new WidgetGroup(0, 0, template.getSize().width + 4 + 8, template.getSize().height + 8);
-        Size size = group.getSize();
-        template.setSelfPosition(new Position((size.width - 4 - template.getSize().width) / 2 + 4, (size.height - template.getSize().height) / 2));
-        group.addWidget(template);
-        return group;
-    }, (template, machine) -> {
-        if (machine instanceof SimpleGeneratorMachine generatorMachine) {
-            var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeInfo, Object>::new);
-            storages.put(IO.IN, ItemRecipeInfo.INSTANCE, generatorMachine.importItems.storage);
-            storages.put(IO.OUT, ItemRecipeInfo.INSTANCE, generatorMachine.exportItems.storage);
-            storages.put(IO.IN, FluidRecipeInfo.INSTANCE, generatorMachine.importFluids);
-            storages.put(IO.OUT, FluidRecipeInfo.INSTANCE, generatorMachine.exportFluids);
-            generatorMachine.getRecipeType().getRecipeUI().createEditableUITemplate(false, false, (output, key) -> !output).setupUI(template, new GTRecipeTypeUI.RecipeHolder(generatorMachine.recipeLogic::getProgressPercent, storages, new DataComponentMap(), Collections.emptyList(), false, false));
-            createEnergyBar().setupUI(template, generatorMachine);
-        }
-    }));
+    /** 发电机主页：只显示输入的配方槽位区，放在标准尺寸外框（{@link RecipeMachinePage}）里居中。 */
+    public static BiFunction<ResourceLocation, GTRecipeType, EditableMachineUI> EDITABLE_UI_CREATOR = Util.memoize((path, recipeType) -> new EditableMachineUI("generator", path, () -> RecipeMachinePage.page(
+            recipeType.getRecipeUI().createEditableUITemplate(false, false, (output, key) -> !output).createDefault()), (template, machine) -> {
+                if (machine instanceof SimpleGeneratorMachine generatorMachine) {
+                    var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeInfo, Object>::new);
+                    storages.put(IO.IN, ItemRecipeInfo.INSTANCE, generatorMachine.importItems.storage);
+                    storages.put(IO.OUT, ItemRecipeInfo.INSTANCE, generatorMachine.exportItems.storage);
+                    storages.put(IO.IN, FluidRecipeInfo.INSTANCE, generatorMachine.importFluids);
+                    storages.put(IO.OUT, FluidRecipeInfo.INSTANCE, generatorMachine.exportFluids);
+                    generatorMachine.getRecipeType().getRecipeUI().createEditableUITemplate(false, false, (output, key) -> !output).setupUI(template, new GTRecipeTypeUI.RecipeHolder(generatorMachine.recipeLogic::getProgressPercent, storages, new DataComponentMap(), Collections.emptyList(), false, false));
+                    createEnergyBar().setupUI(template, generatorMachine);
+                }
+            }));
 }

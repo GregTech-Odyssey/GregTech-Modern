@@ -2,45 +2,28 @@ package com.gregtechceu.gtceu.api.recipe.ui;
 
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-
 import net.minecraft.network.chat.Component;
 
-import org.apache.commons.lang3.mutable.MutableInt;
-
+/**
+ * 能在配方页信息区显示内容的对象：配方条件、配方扩展、配方修饰器。
+ */
 public interface IRecipeInfo {
 
     /**
-     * Simple method to get the tooltips for the recipe display.
-     * Overrides {@link #addInfo(GTRecipeDefinition, WidgetGroup, int, MutableInt)} and
-     * {@link #getInfoHeight(GTRecipeDefinition)}
-     * if there is more than one component.
-     * 
-     * @return The tooltips for the recipe display.
+     * 最简单的写法：一句说明。{@link #appendInfo} 的默认实现把它作为一行整句追加；
+     * 要显示"名称 …… 数值"或额外展示槽时改写 {@link #appendInfo}。
+     *
+     * @return 说明，为 null 时不显示
      */
     default Component getTooltips() {
         return null;
     }
 
     /**
-     * Adds information to the recipe display.
-     * 
-     * @param recipe  The recipe to display information for.
-     * @param group   The widget group to add the information to.
-     * @param xOffset The x offset of the recipe display.
-     * @param yOffset The y offset of the recipe display.
+     * 往配方页信息区追加内容（见 {@link RecipeInfoBuilder} 的约定：只按配方决定追加什么，数值与槽以 Supplier 传入）。
      */
-    default void addInfo(GTRecipeDefinition recipe, WidgetGroup group, int xOffset, MutableInt yOffset) {
-        if (getTooltips() == null) return;
-        group.addWidget(new LabelWidget(3 - xOffset, yOffset.addAndGet(10), getTooltips().getString()));
-    }
-
-    /**
-     * Returns the height of the information to be displayed for the recipe.
-     * Used to compute the total height of the recipe display.
-     */
-    default int getInfoHeight(GTRecipeDefinition recipe) {
-        return getTooltips() == null ? 0 : 10;
+    default void appendInfo(GTRecipeDefinition recipe, RecipeInfoBuilder info) {
+        var tooltips = getTooltips();
+        if (tooltips != null) info.sentence(tooltips);
     }
 }

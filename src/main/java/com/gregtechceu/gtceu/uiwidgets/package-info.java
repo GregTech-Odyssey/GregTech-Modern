@@ -7,6 +7,8 @@
  * <li>{@code mode}：机器模式（配方类型）选择；</li>
  * <li>{@code number}：单个数值的设置页（优先级等）。</li>
  * <li>{@code icon}：机器小组件（窗口左侧配置标签）的通用图标。</li>
+ * <li>{@code recipe}：配方页（EMI）的组成部分——信息区内容、额外展示槽、GT 专用槽位排布；
+ * 配方槽位排布的接口与通用工具在 {@code api.recipe.ui}（{@code RecipeSlotLayout}、{@code RecipeSlots}、{@code RecipeSlotLayouts}）。</li>
  * </ul>
  * 与框架的分工：{@code uipro} 只放通用的元素、布局、外壳和样式（不认识任何具体机器或功能）；
  * 这里的组件知道自己的业务（电路、配方类型、库存……），只用框架的标准元素拼装，不自己画界面元素。

@@ -5,18 +5,14 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.ui.RecipeInfoBuilder;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
-
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
 import net.minecraft.network.chat.Component;
 
 import com.gto.datasynclib.DataSyncCodec;
 import com.gto.recipesearch.IntLongMap;
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -98,18 +94,10 @@ public final class CWUTRecipeExtension extends RecipeExtension<Long> {
      * 再补一行把它显示成总消耗。
      */
     @Override
-    public void addInfo(GTRecipeDefinition recipe, WidgetGroup group, int xOffset, MutableInt yOffset) {
-        group.addWidget(new LabelWidget(3 - xOffset, yOffset.addAndGet(10),
-                LocalizationUtils.format("gtceu.recipe.computation_per_tick", FormattingUtil.formatNumbers(recipe.data.getLong(GTRecipeDataKeys.CWUT)))));
+    public void appendInfo(GTRecipeDefinition recipe, RecipeInfoBuilder info) {
+        info.line("gtceu.recipe.info.cwut", () -> Component.literal(FormattingUtil.formatNumbers(recipe.data.getLong(GTRecipeDataKeys.CWUT)) + " CWU/t"));
         if (recipe.data.getBoolean(GTRecipeDataKeys.DURATION_IS_TOTAL_CWU)) {
-            group.addWidget(new LabelWidget(3 - xOffset, yOffset.addAndGet(10),
-                    LocalizationUtils.format("gtceu.recipe.total_computation", FormattingUtil.formatNumbers(recipe.duration))));
+            info.line("gtceu.recipe.info.total_cwu", () -> Component.literal(FormattingUtil.formatNumbers(recipe.duration) + " CWU"));
         }
-    }
-
-    /** 固定占一行高度（{@link #addInfo} 可能画两行，但布局按一行计入）。 */
-    @Override
-    public int getInfoHeight(GTRecipeDefinition recipe) {
-        return 10;
     }
 }

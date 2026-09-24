@@ -35,6 +35,12 @@ public final class SlotGridView {
         return Math.max(1, Math.min(UISizes.SLOTS_PER_ROW, (int) Math.ceil(Math.sqrt(count))));
     }
 
+    /** 行数：按 {@link #columns} 排开后的行数。 */
+    public static int rows(int count) {
+        int columns = columns(count);
+        return (count + columns - 1) / columns;
+    }
+
     public static UIElement grid(int count, IntFunction<Widget> slot) {
         int columns = columns(count);
         var grid = UIElement.column(columns * UISizes.SLOT);

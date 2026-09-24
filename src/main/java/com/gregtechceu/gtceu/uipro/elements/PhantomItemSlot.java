@@ -142,4 +142,11 @@ public class PhantomItemSlot extends PhantomSlotWidget implements ElementState.H
     public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
         if (!slotState.readUpdateInfo(id, buffer)) super.readUpdateInfo(id, buffer);
     }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void updateScreen() {
+        super.updateScreen();
+        slotState.pollClient();
+    }
 }

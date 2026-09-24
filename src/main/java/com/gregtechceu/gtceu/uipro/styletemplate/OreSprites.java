@@ -189,6 +189,25 @@ public final class OreSprites {
         }
     }
 
+    /** 竖向的实心像素三角箭头（{@link Arrow} 转 90°）：7 宽、4 高，逐行收尖，在给定区域里居中。 */
+    public record VerticalArrow(boolean up, int color) implements IGuiTexture {
+
+        private static final int WIDTH = 7;
+        private static final int HEIGHT = 4;
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void draw(GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
+            int x0 = Math.round(x) + (width - WIDTH) / 2, y0 = Math.round(y) + (height - HEIGHT) / 2;
+            for (int row = 0; row < HEIGHT; row++) {
+                // 离尖端第 row 行，宽 2*row+1，左右居中
+                int rowY = up ? y0 + row : y0 + HEIGHT - 1 - row;
+                int left = x0 + WIDTH / 2 - row;
+                graphics.fill(left, rowY, left + 2 * row + 1, rowY + 1, color);
+            }
+        }
+    }
+
     /**
      * 图集上的一块九宫格精灵，实现 LDLib1 的 {@link IGuiTexture}，可直接作为控件背景使用。
      */

@@ -16,6 +16,9 @@ import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.common.recipe.condition.VentCondition;
+import com.gregtechceu.gtceu.uipro.elements.StatusLine;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
@@ -23,6 +26,7 @@ import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.fluids.FluidType;
 
@@ -36,12 +40,18 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.function.Supplier;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaustVentMachine, IUIMachine, IDummyEnergyMachine {
+
+    /// 蒸汽机界面里玩家背包的纵坐标（原版 176×166 容器）
+    private static final int INVENTORY_Y = 84;
+    /// 蒸汽底板在背包右上方印着 GT 标志，蒸汽储量一行在它左边结束
+    private static final int STEAM_LOGO_SPACE = 24;
 
     @SaveToDisk
     public final NotifiableItemStackHandler importItems;
@@ -134,6 +144,11 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
     //////////////////////////////////////
     // *********** GUI ***********//
     //////////////////////////////////////
+    /**
+     * 蒸汽机保留自己的铜 / 钢皮肤：蒸汽版底板、槽位和玩家背包，不用新式外壳。
+     * 配方槽位区在上方居中；等待中（蒸汽不足或排气口被挡）时槽位区中央显示缺蒸汽图标；
+     * 蒸汽储量一行贴在玩家背包正上方。
+     */
     @Override
     public ModularUI createUI(Player entityPlayer) {
         var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeInfo, Object>::new);
@@ -142,6 +157,31 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
         var group = getRecipeType().getRecipeUI().createUITemplate(recipeLogic::getProgressPercent, storages, new DataComponentMap(), Collections.emptyList(), true, isHighPressure);
         Position pos = new Position((Math.max(group.getSize().width + 4 + 8, 176) - 4 - group.getSize().width) / 2 + 4, 32);
         group.setSelfPosition(pos);
-        return new ModularUI(176, 166, this, entityPlayer).background(GuiTextures.BACKGROUND_STEAM.get(isHighPressure)).widget(group).widget(new LabelWidget(5, 5, getBlockState().getBlock().getDescriptionId())).widget(new PredicatedImageWidget(pos.x + group.getSize().width / 2 - 9, pos.y + group.getSize().height / 2 - 9, 18, 18, GuiTextures.INDICATOR_NO_STEAM.get(isHighPressure)).setPredicate(recipeLogic::isWaiting)).widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT_STEAM.get(isHighPressure), 7, 84, true));
+        var steam = new StatusLine(UISizes.CONTENT_WIDTH - STEAM_LOGO_SPACE, Component.translatable("gtceu.gui.steam_machine.steam"), new SteamText())
+                .level(() -> recipeLogic.isWaiting() ? StatusLine.Level.WARNING : StatusLine.Level.NORMAL)
+                .detail(() -> recipeLogic.isWaiting() ? Component.translatable("gtceu.gui.steam_machine.waiting") : Component.empty());
+        steam.setSelfPosition(new Position(UISizes.WINDOW_PADDING_X, INVENTORY_Y - UISizes.GAP - StatusLine.HEIGHT));
+        return new ModularUI(176, 166, this, entityPlayer).background(GuiTextures.BACKGROUND_STEAM.get(isHighPressure)).widget(group)
+                .widget(new LabelWidget(5, 5, getBlockState().getBlock().getDescriptionId()))
+                .widget(new PredicatedImageWidget(pos.x + group.getSize().width / 2 - 9, pos.y + group.getSize().height / 2 - 9, 18, 18, GuiTextures.INDICATOR_NO_STEAM.get(isHighPressure)).setPredicate(recipeLogic::isWaiting))
+                .widget(steam)
+                .widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT_STEAM.get(isHighPressure), UISizes.WINDOW_PADDING_X, INVENTORY_Y, true));
+    }
+
+    /** 蒸汽储量一行的数值：服务端每 tick 取值，储量不变时复用上次的文字，不重复拼字符串。 */
+    private final class SteamText implements Supplier<Component> {
+
+        private long amount = -1;
+        private Component text = Component.empty();
+
+        @Override
+        public Component get() {
+            long current = steamTank.getFluidInTank(0).getAmount();
+            if (current != amount) {
+                amount = current;
+                text = Component.literal(FormattingUtil.formatNumbers(current) + " / " + FormattingUtil.formatNumbers(steamTank.getTankCapacity(0)) + " mB");
+            }
+            return text;
+        }
     }
 }

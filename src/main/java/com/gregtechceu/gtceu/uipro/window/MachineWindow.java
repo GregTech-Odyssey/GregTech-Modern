@@ -247,6 +247,18 @@ public class MachineWindow extends FancyMachineUIWidget {
         relayoutAnimated(() -> setupPage(fancyUI, showInventory));
     }
 
+    /**
+     * 导航：一次建好目标页。GTM 进子页面前要先建一遍所在主页（为了主页的布局），新窗口的 {@link #setupPage} 本身就完整摆放，
+     * 这一遍只会让两端各多建一次页，服务端还会多发一份主页的初始数据。
+     */
+    @Override
+    protected void performNavigation(IFancyUIProvider nextPage, IFancyUIProvider nextHomePage) {
+        if (currentHomePage != nextHomePage) setupSideTabs(nextHomePage);
+        this.currentPage = nextPage;
+        this.currentHomePage = nextHomePage;
+        setupFancyUI(nextPage, nextPage.hasPlayerInventory());
+    }
+
     private void setupPage(IFancyUIProvider fancyUI, boolean showInventory) {
         clearUI();
         configurators.clear();

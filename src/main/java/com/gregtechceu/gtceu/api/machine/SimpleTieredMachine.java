@@ -27,14 +27,15 @@ import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
+import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
+import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
+import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeMachinePage;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
@@ -306,33 +307,23 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
         }
     }
 
+    /**
+     * 单方块机器主页：配方槽位区（与配方查看器同一排布）居中，充电槽贴在页面底部、紧挨玩家背包。
+     * 外框是单方块配方机器的标准尺寸（{@link RecipeMachinePage}）。
+     */
     @SuppressWarnings("UnstableApiUsage")
-    public static BiFunction<ResourceLocation, GTRecipeType, EditableMachineUI> EDITABLE_UI_CREATOR = Util.memoize((path, recipeType) -> new EditableMachineUI("simple", path, () -> {
-        WidgetGroup template = recipeType.getRecipeUI().createEditableUITemplate(false, false).createDefault();
-        SlotWidget batterySlot = createBatterySlot().createDefault();
-        WidgetGroup group = new WidgetGroup(0, 0, template.getSize().width, Math.max(template.getSize().height, 78));
-        template.setSelfPosition(new Position(0, (group.getSize().height - template.getSize().height) / 2));
-        batterySlot.setSelfPosition(new Position(group.getSize().width / 2 - 9, group.getSize().height - 18));
-        group.addWidget(batterySlot);
-        group.addWidget(template);
-        // TODO fix this.
-        // if (ConfigHolder.INSTANCE.machines.ghostCircuit) {
-        // SlotWidget circuitSlot = createCircuitConfigurator().createDefault();
-        // circuitSlot.setSelfPosition(new Position(120, 62));
-        // group.addWidget(circuitSlot);
-        // }
-        return group;
-    }, (template, machine) -> {
-        if (machine instanceof SimpleTieredMachine tieredMachine) {
-            var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeInfo, Object>::new);
-            storages.put(IO.IN, ItemRecipeInfo.INSTANCE, tieredMachine.importItems.storage);
-            storages.put(IO.OUT, ItemRecipeInfo.INSTANCE, tieredMachine.exportItems.storage);
-            storages.put(IO.IN, FluidRecipeInfo.INSTANCE, tieredMachine.importFluids);
-            storages.put(IO.OUT, FluidRecipeInfo.INSTANCE, tieredMachine.exportFluids);
-            tieredMachine.getRecipeType().getRecipeUI().createEditableUITemplate(false, false).setupUI(template, new GTRecipeTypeUI.RecipeHolder(tieredMachine.recipeLogic::getProgressPercent, storages, new DataComponentMap(), Collections.emptyList(), false, false));
-            createBatterySlot().setupUI(template, tieredMachine);
-        }
-    }));
+    public static BiFunction<ResourceLocation, GTRecipeType, EditableMachineUI> EDITABLE_UI_CREATOR = Util.memoize((path, recipeType) -> new EditableMachineUI("simple", path, () -> RecipeMachinePage.page(
+            recipeType.getRecipeUI().createEditableUITemplate(false, false).createDefault(), createBatterySlot().createDefault()), (template, machine) -> {
+                if (machine instanceof SimpleTieredMachine tieredMachine) {
+                    var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeInfo, Object>::new);
+                    storages.put(IO.IN, ItemRecipeInfo.INSTANCE, tieredMachine.importItems.storage);
+                    storages.put(IO.OUT, ItemRecipeInfo.INSTANCE, tieredMachine.exportItems.storage);
+                    storages.put(IO.IN, FluidRecipeInfo.INSTANCE, tieredMachine.importFluids);
+                    storages.put(IO.OUT, FluidRecipeInfo.INSTANCE, tieredMachine.exportFluids);
+                    tieredMachine.getRecipeType().getRecipeUI().createEditableUITemplate(false, false).setupUI(template, new GTRecipeTypeUI.RecipeHolder(tieredMachine.recipeLogic::getProgressPercent, storages, new DataComponentMap(), Collections.emptyList(), false, false));
+                    createBatterySlot().setupUI(template, tieredMachine);
+                }
+            }));
 
     // createCircuitConfigurator().setupUI(template, tieredMachine);
     /**
@@ -340,8 +331,8 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
      */
     protected static EditableUI<SlotWidget, SimpleTieredMachine> createBatterySlot() {
         return new EditableUI<>("battery_slot", SlotWidget.class, () -> {
-            var slotWidget = new SlotWidget();
-            slotWidget.setBackground(GuiTextures.SLOT, GuiTextures.CHARGER_OVERLAY);
+            var slotWidget = ItemSlot.unbound();
+            slotWidget.setBackground(UITheme.ITEM_SLOT, GuiTextures.CHARGER_OVERLAY);
             return slotWidget;
         }, (slotWidget, machine) -> {
             slotWidget.setHandlerSlot(machine.chargerInventory, 0);

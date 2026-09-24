@@ -1,8 +1,12 @@
 package com.gregtechceu.gtceu.uipro.data;
 
+import com.gregtechceu.gtceu.uipro.ILocalUI;
+
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.network.FriendlyByteBuf;
+
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +24,9 @@ public final class SyncValueHost {
 
     private final Widget owner;
     private final List<SyncValue<?>> values = new ArrayList<>(2);
+    /// 是否位于没有服务端的界面里，第一次 pollClient 时判定
+    @Nullable
+    private Boolean local;
 
     public SyncValueHost(Widget owner) {
         this.owner = owner;
@@ -61,8 +68,14 @@ public final class SyncValueHost {
         return true;
     }
 
+    /**
+     * 客户端每 tick 调用：没有服务端的界面（{@link ILocalUI}）里直接取本端 getter，其余只刷新开了 {@link SyncValue#pollOnClient()} 的值。
+     * 控件挂进界面后父链不再变化，判定结果第一次调用时算好缓存。
+     */
     public void pollClient() {
-        for (var value : values) value.pollClient();
+        if (values.isEmpty()) return;
+        if (local == null) local = ILocalUI.isLocal(owner);
+        for (var value : values) value.pollClient(local);
     }
 
     @FunctionalInterface

@@ -13,6 +13,8 @@ import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
+import com.gregtechceu.gtceu.api.recipe.ui.RecipeInfoBuilder;
+import com.gregtechceu.gtceu.api.recipe.ui.RecipeSlotLayout;
 import com.gregtechceu.gtceu.api.sound.SoundEntry;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -20,7 +22,6 @@ import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -157,8 +158,15 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
         return this;
     }
 
-    public GTRecipeType setUiBuilder(BiConsumer<GTRecipeDefinition, WidgetGroup> uiBuilder) {
+    /** 配方页的附加内容（所需线圈等），见 {@link GTRecipeTypeUI#setUiBuilder}。 */
+    public GTRecipeType setUiBuilder(BiConsumer<GTRecipeDefinition, RecipeInfoBuilder> uiBuilder) {
         this.recipeUI.setUiBuilder(uiBuilder);
+        return this;
+    }
+
+    /** 槽位区换成专用排布，见 {@link GTRecipeTypeUI#setSlotLayout}。 */
+    public GTRecipeType setSlotLayout(RecipeSlotLayout slotLayout) {
+        this.recipeUI.setSlotLayout(slotLayout);
         return this;
     }
 

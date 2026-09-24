@@ -37,10 +37,20 @@ public class ItemSlot extends SlotWidget implements ElementState.Host {
     public static final int SIZE = UISizes.SLOT;
 
     private final SlotState slotState = new SlotState(this);
+    /// 调用方要求的悬停高亮（如 EMI 配方页把槽交给 EMI 画高亮时关掉）；实际还要未禁用
+    private boolean hoverOverlay = true;
 
     public ItemSlot(ICustomItemStackHandler handler, int index, boolean canTakeItems, boolean canPutItems) {
         super(handler, index, 0, 0, canTakeItems, canPutItems);
         setBackgroundTexture(UITheme.ITEM_SLOT);
+    }
+
+    /**
+     * 暂未绑定库存的槽（绑定前是空槽），用于先搭好控件树、之后再 {@code setHandlerSlot} 的模板，
+     * 如配方界面：同一个布局在机器里绑定机器库存，在配方查看器里绑定配方内容。
+     */
+    public static ItemSlot unbound() {
+        return new ItemSlot(ICustomItemStackHandler.EMPTY, 0, false, false);
     }
 
     /** 可取可放的物品槽。 */
@@ -74,6 +84,13 @@ public class ItemSlot extends SlotWidget implements ElementState.Host {
     }
 
     @Override
+    public ItemSlot setDrawHoverOverlay(boolean drawHoverOverlay) {
+        this.hoverOverlay = drawHoverOverlay;
+        super.setDrawHoverOverlay(drawHoverOverlay);
+        return this;
+    }
+
+    @Override
     public boolean canPutStack(ItemStack stack) {
         return !isDisabled() && super.canPutStack(stack);
     }
@@ -96,7 +113,7 @@ public class ItemSlot extends SlotWidget implements ElementState.Host {
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        drawHoverOverlay = !isDisabled();
+        drawHoverOverlay = hoverOverlay && !isDisabled();
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
         slotState.drawDisabled(graphics);
     }
@@ -132,5 +149,12 @@ public class ItemSlot extends SlotWidget implements ElementState.Host {
     @OnlyIn(Dist.CLIENT)
     public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
         if (!slotState.readUpdateInfo(id, buffer)) super.readUpdateInfo(id, buffer);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void updateScreen() {
+        super.updateScreen();
+        slotState.pollClient();
     }
 }

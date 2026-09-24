@@ -1533,6 +1533,33 @@ public class LangHandler {
         provider.add("gtceu.uipro.stepper.at_min", "Already at the minimum");
         provider.add("gtceu.uipro.stepper.at_max", "Already at the maximum");
 
+        // 配方页（uipro）
+        provider.add("gtceu.recipe.info.duration", "Duration");
+        provider.add("gtceu.recipe.info.seconds", "%s s");
+        provider.add("gtceu.recipe.info.total_eu", "Total");
+        provider.add("gtceu.recipe.info.max_eu", "Max Total");
+        provider.add("gtceu.recipe.info.eu_usage", "Usage");
+        provider.add("gtceu.recipe.info.eu_generation", "Generation");
+        provider.add("gtceu.recipe.info.cwut", "Min. Computation");
+        provider.add("gtceu.recipe.info.total_cwu", "Total Computation");
+        provider.add("gtceu.recipe.info.overclock", "Overclock preview: change the voltage tier to see duration and power after overclocking (minimum: %s)");
+        provider.add("gtceu.recipe.info.overclock_perfect", "Hold Shift while changing to preview perfect overclocking");
+        provider.add("gtceu.recipe.info.shift_click", "Shift-click: %s");
+        provider.add("gtceu.recipe.info.preview_tier", "Overclock preview");
+        provider.add("gtceu.gui.hatch.fluid", "Fluid");
+        provider.add("gtceu.gui.hatch.amount", "Amount");
+        provider.add("gtceu.gui.hatch.empty", "Empty");
+        provider.add("gtceu.gui.hatch.lock_on", "Fluid locked: only the locked fluid is accepted");
+        provider.add("gtceu.gui.hatch.lock_off", "Fluid not locked");
+        provider.add("gtceu.gui.hatch.stored", "Stored");
+        provider.add("gtceu.gui.hatch.extract_stack", "Take out one stack");
+        provider.add("gtceu.gui.hatch.item", "Item");
+        provider.add("gtceu.gui.hatch.locked", "Locked fluid");
+        provider.add("gtceu.gui.hatch.not_locked", "None");
+        provider.add("gtceu.gui.hatch.lock_need_empty", "Empty the tank to change the locked fluid");
+        provider.add("gtceu.gui.steam_machine.steam", "Steam");
+        provider.add("gtceu.gui.steam_machine.waiting", "Waiting: not enough steam, or the exhaust vent is blocked");
+
         provider.add("gtceu.gui.programmed_circuit_configuration", "Programmed Circuit Configuration");
 
         // Decor Stuff

@@ -133,4 +133,11 @@ public class PhantomFluidSlot extends PhantomFluidWidget implements ElementState
     public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
         if (!slotState.readUpdateInfo(id, buffer)) super.readUpdateInfo(id, buffer);
     }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void updateScreen() {
+        super.updateScreen();
+        slotState.pollClient();
+    }
 }

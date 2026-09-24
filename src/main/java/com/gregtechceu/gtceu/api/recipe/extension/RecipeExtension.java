@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
  * <li>{@link #handleTick}——每 tick 的持续结算；</li>
  * <li>{@link #getParallel} / {@link #setParallel}——参与并行数计算与随并行放大；</li>
  * <li>{@link #extractInput}——往配方检索索引里加料；</li>
- * <li>从 {@link IRecipeInfo} 继承的 {@code getTooltips} / {@code addInfo} / {@code getInfoHeight}——
+ * <li>从 {@link IRecipeInfo} 继承的 {@code getTooltips} / {@code appendInfo}——
  * 在配方界面上补一段说明。</li>
  * </ul>
  *

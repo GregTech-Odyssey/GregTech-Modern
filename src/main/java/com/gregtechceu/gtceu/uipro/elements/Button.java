@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.uipro.elements;
 
 import com.gregtechceu.gtceu.uipro.ElementState;
 import com.gregtechceu.gtceu.uipro.ILayoutItem;
+import com.gregtechceu.gtceu.uipro.ILocalUI;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
@@ -33,7 +34,7 @@ import java.util.function.Supplier;
  * 标准尺寸：高 {@link #HEIGHT}；文字按钮宽 {@link #WIDTH}，图标/箭头按钮 {@link #ICON_SIZE} 见方；
  * 宽度传 {@link LayoutStyle#AUTO} 时由布局决定（被父元素拉伸，整行按钮用）。
  * 点击：{@link #setOnServerClick} 只在服务端执行，{@link #setOnClientClick} 只在客户端执行
- * （LDLib1 的 {@code ButtonWidget} 两端都会回调，这里按 {@code ClickData.isRemote} 分派）。
+ * （LDLib1 的 {@code ButtonWidget} 两端都会回调，这里按 {@code ClickData.isRemote} 分派）；没有服务端的界面（{@link ILocalUI}）里两者都在本端执行。
  */
 public class Button extends ButtonWidget implements ILayoutItem, ElementState.Host {
 
@@ -111,6 +112,12 @@ public class Button extends ButtonWidget implements ILayoutItem, ElementState.Ho
         return this;
     }
 
+    /** 只在客户端执行，需要点击信息（Shift / Ctrl、哪个键）时用这个。 */
+    public Button setOnClientClick(Consumer<ClickData> onClientClick) {
+        this.onClientClick = onClientClick;
+        return this;
+    }
+
     /** 两端各执行一次（客户端点击时先执行，服务端收到点击后再执行），用于两端都要同步改动的界面结构。 */
     public Button setOnClick(Consumer<ClickData> onClick) {
         this.onServerClick = onClick;
@@ -179,6 +186,10 @@ public class Button extends ButtonWidget implements ILayoutItem, ElementState.Ho
         if (!clickData.isRemote && isDisabled()) return;
         var handler = clickData.isRemote ? onClientClick : onServerClick;
         if (handler != null) handler.accept(clickData);
+        // 没有服务端的界面（ILocalUI，如 EMI 配方页）里，"服务端"那份也在本端执行；两端同一个回调（setOnClick）时只执行一次
+        if (clickData.isRemote && onServerClick != null && onServerClick != onClientClick && ILocalUI.isLocal(this)) {
+            onServerClick.accept(clickData);
+        }
     }
 
     @Override
@@ -243,5 +254,12 @@ public class Button extends ButtonWidget implements ILayoutItem, ElementState.Ho
     @OnlyIn(Dist.CLIENT)
     public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
         if (!syncValues.readUpdateInfo(id, buffer)) super.readUpdateInfo(id, buffer);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void updateScreen() {
+        super.updateScreen();
+        syncValues.pollClient();
     }
 }

@@ -49,6 +49,14 @@ public class GTEmiRecipe extends ModularEmiRecipe<WidgetGroup> {
         return recipe.id;
     }
 
+    /** {@code widget} 是否位于带裁剪的滚动区里（沿父链找，不只看直接父控件）。 */
+    public static boolean isInsideScroller(com.lowdragmc.lowdraglib.gui.widget.Widget widget) {
+        for (var parent = widget.getParent(); parent != null; parent = parent.getParent()) {
+            if (parent instanceof DraggableScrollableWidgetGroup draggable && draggable.isUseScissor()) return true;
+        }
+        return false;
+    }
+
     @Override
     public void addWidgets(WidgetHolder widgets) {
         var widget = this.widget.get();
@@ -61,11 +69,8 @@ public class GTEmiRecipe extends ModularEmiRecipe<WidgetGroup> {
         List<Widget> slots = new ArrayList<>();
         for (com.lowdragmc.lowdraglib.gui.widget.Widget w : getFlatWidgetCollection(widget)) {
             if (w instanceof IRecipeIngredientSlot slot) {
-                if (w.getParent() instanceof DraggableScrollableWidgetGroup draggable && draggable.isUseScissor()) {
-                    // don't add the EMI widget at all if we have a draggable group, let the draggable widget handle it
-                    // instead.
-                    continue;
-                }
+                // 位于带裁剪的滚动区里的槽交给滚动区自己画和响应：EMI 槽钉在固定坐标，不会跟着滚动、也不会被裁剪
+                if (isInsideScroller(w)) continue;
                 var io = slot.getIngredientIO();
                 if (io != null && io != IngredientIO.RENDER_ONLY) {
                     // noinspection unchecked

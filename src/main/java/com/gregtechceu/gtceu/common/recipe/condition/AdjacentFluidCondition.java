@@ -5,11 +5,17 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.ui.RecipeInfoBuilder;
+import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeDisplaySlots;
 import com.gregtechceu.gtceu.utils.GTUtil;
+
+import com.lowdragmc.lowdraglib.jei.IngredientIO;
 
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraftforge.fluids.FluidStack;
 
 public class AdjacentFluidCondition extends RecipeCondition {
 
@@ -25,6 +31,14 @@ public class AdjacentFluidCondition extends RecipeCondition {
     @Override
     public Component getTooltips() {
         return Component.translatable("recipe.condition.rock_breaker.tooltip");
+    }
+
+    /** 配方页：一句说明，并把两侧需要的流体作为展示槽。 */
+    @Override
+    public void appendInfo(GTRecipeDefinition recipe, RecipeInfoBuilder info) {
+        info.sentence(this::getTooltips);
+        if (A != Fluids.EMPTY) info.slot(() -> RecipeDisplaySlots.fluid(new FluidStack(A, 1000), IngredientIO.CATALYST));
+        if (B != Fluids.EMPTY) info.slot(() -> RecipeDisplaySlots.fluid(new FluidStack(B, 1000), IngredientIO.CATALYST));
     }
 
     @Override

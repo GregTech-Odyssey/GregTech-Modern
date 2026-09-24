@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.uipro.elements;
 
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.data.ClientActions;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
 import com.gregtechceu.gtceu.uipro.data.SyncValueHost;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
@@ -13,6 +14,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
 import java.util.function.IntSupplier;
@@ -80,7 +82,8 @@ public class Stepper extends UIElement {
         public boolean mouseWheelMove(double mouseX, double mouseY, double wheelDelta) {
             if (!isMouseOverElement(mouseX, mouseY) || wheelDelta == 0 || isDisabled()) return false;
             int delta = wheelDelta > 0 ? 1 : -1;
-            writeClientAction(WHEEL_ID, buf -> buf.writeVarInt(delta));
+            Consumer<FriendlyByteBuf> writer = buf -> buf.writeVarInt(delta);
+            if (!ClientActions.handleLocally(this, WHEEL_ID, writer)) writeClientAction(WHEEL_ID, writer);
             return true;
         }
 

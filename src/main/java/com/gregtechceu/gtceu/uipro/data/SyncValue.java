@@ -19,6 +19,9 @@ import java.util.function.Supplier;
  * 开启 {@link #pollOnClient()} 后，客户端每帧还会用本端 getter 取一次值（不回调），
  * 适合 getter 只依赖已同步到客户端的机器字段、希望本地即时跟随的场景。
  * <p>
+ * 没有服务端的界面（根实现 {@link com.gregtechceu.gtceu.uipro.ILocalUI}，如 EMI 里的配方页）：getter 就是数据源，
+ * 每帧直接用本端 getter 取值，变了照常回调 {@link #onChanged}。
+ * <p>
  * 由 {@link SyncValueHost} 统一编号和收发，挂到 {@link UIElement} 上使用。
  */
 public final class SyncValue<T> {
@@ -152,7 +155,12 @@ public final class SyncValue<T> {
         accept(codec.read(buf));
     }
 
-    void pollClient() {
+    /** @param local 控件在没有服务端的界面里：getter 就是数据源，取到新值要照常回调 */
+    void pollClient(boolean local) {
+        if (local) {
+            accept(getter.get());
+            return;
+        }
         if (!pollOnClient) return;
         var latest = getter.get();
         if (!Objects.equals(latest, value)) value = latest;

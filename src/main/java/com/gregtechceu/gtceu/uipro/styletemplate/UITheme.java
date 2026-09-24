@@ -78,6 +78,8 @@ public final class UITheme {
     /** 步进器、翻页的左右箭头（放在 {@code Button.icon} 里），与按钮文字同色。 */
     public static final IGuiTexture ARROW_LEFT = new OreSprites.Arrow(true, OreSprites.TEXT_DARK);
     public static final IGuiTexture ARROW_RIGHT = new OreSprites.Arrow(false, OreSprites.TEXT_DARK);
+    public static final IGuiTexture ARROW_UP = new OreSprites.VerticalArrow(true, OreSprites.TEXT_DARK);
+    public static final IGuiTexture ARROW_DOWN = new OreSprites.VerticalArrow(false, OreSprites.TEXT_DARK);
 
     /** 窗口底色，与 {@link #WINDOW} 的内部一致（标签页与窗口接缝处涂它）。 */
     public static final int WINDOW_FILL = OreSprites.WINDOW_FILL;

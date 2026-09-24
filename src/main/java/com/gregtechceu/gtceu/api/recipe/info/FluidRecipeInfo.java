@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidStackList;
 import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidTagList;
 import com.gregtechceu.gtceu.integration.xei.handlers.fluid.CycleFluidEntryHandler;
 import com.gregtechceu.gtceu.integration.xei.widgets.GTRecipeWidget;
+import com.gregtechceu.gtceu.uipro.elements.FluidSlot;
 
 import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -66,12 +67,11 @@ public final class FluidRecipeInfo extends ContentRecipeInfo<FluidStack, FluidIn
         return new CycleFluidEntryHandler((List<FluidEntryList>) contents);
     }
 
-    /** 流体罐控件，填充方向设为 {@code ALWAYS_FULL}，该设置同时用于机器界面与配方查看器。 */
+    /** 标准流体槽（uipro {@link FluidSlot}），绑定前是空槽；填充方向为 {@code ALWAYS_FULL}，机器界面与配方查看器相同。 */
     @NotNull
     @Override
     public Widget createWidget() {
-        TankWidget tank = new TankWidget();
-        tank.initTemplate();
+        var tank = FluidSlot.unbound();
         tank.setFillDirection(ProgressTexture.FillDirection.ALWAYS_FULL);
         return tank;
     }

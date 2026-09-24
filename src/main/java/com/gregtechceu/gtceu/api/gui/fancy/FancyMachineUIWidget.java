@@ -53,7 +53,7 @@ public class FancyMachineUIWidget extends WidgetGroup implements ILayoutHost {
     @Getter
     protected final VerticalTabsWidget sideTabsWidget;
     @Getter
-    protected final WidgetGroup pageContainer;
+    protected final PageContainer pageContainer;
     @Getter
     protected final PageSwitcher pageSwitcher;
     @Getter
@@ -105,7 +105,7 @@ public class FancyMachineUIWidget extends WidgetGroup implements ILayoutHost {
     public FancyMachineUIWidget(IFancyUIProvider mainPage, int width, int height) {
         super(0, 0, width, height);
         this.mainPage = mainPage;
-        addWidget(this.pageContainer = new WidgetGroup(0, 0, width, height));
+        addWidget(this.pageContainer = new PageContainer(0, 0, width, height));
         if (mainPage.hasPlayerInventory()) {
             addWidget(this.playerInventory = new PlayerInventoryWidget());
             this.playerInventory.setSelfPosition(new Position(2, height - 86));

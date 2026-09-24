@@ -31,10 +31,17 @@ public class FluidSlot extends TankWidget implements ElementState.Host {
     private static final int CLICK_CONTAINER_ID = 1;
 
     private final SlotState slotState = new SlotState(this);
+    /// 调用方要求的悬停高亮（如 EMI 配方页把槽交给 EMI 画高亮时关掉）；实际还要未禁用
+    private boolean hoverOverlay = true;
 
-    public FluidSlot(IFluidHandler handler, int tank, boolean allowClickFilled, boolean allowClickDrained) {
+    public FluidSlot(@Nullable IFluidHandler handler, int tank, boolean allowClickFilled, boolean allowClickDrained) {
         super(handler, tank, 0, 0, SIZE, SIZE, allowClickFilled, allowClickDrained);
         setBackground(UITheme.FLUID_SLOT);
+    }
+
+    /** 暂未绑定储罐的槽，之后再 {@code setFluidTank}，用法同 {@link ItemSlot#unbound()}。 */
+    public static FluidSlot unbound() {
+        return new FluidSlot(null, 0, false, false);
     }
 
     /** 可拿容器装入、取出的流体槽（{@code handler} 的第 0 号储罐）。 */
@@ -60,6 +67,13 @@ public class FluidSlot extends TankWidget implements ElementState.Host {
     }
 
     @Override
+    public FluidSlot setDrawHoverOverlay(boolean drawHoverOverlay) {
+        this.hoverOverlay = drawHoverOverlay;
+        super.setDrawHoverOverlay(drawHoverOverlay);
+        return this;
+    }
+
+    @Override
     public void handleClientAction(int id, FriendlyByteBuf buffer) {
         // 服务端再判一次：客户端的点击请求可以伪造
         if (id == CLICK_CONTAINER_ID && isDisabled()) return;
@@ -81,7 +95,7 @@ public class FluidSlot extends TankWidget implements ElementState.Host {
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        drawHoverOverlay = !isDisabled();
+        drawHoverOverlay = hoverOverlay && !isDisabled();
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
         slotState.drawDisabled(graphics);
     }
@@ -115,5 +129,12 @@ public class FluidSlot extends TankWidget implements ElementState.Host {
     @OnlyIn(Dist.CLIENT)
     public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
         if (!slotState.readUpdateInfo(id, buffer)) super.readUpdateInfo(id, buffer);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void updateScreen() {
+        super.updateScreen();
+        slotState.pollClient();
     }
 }

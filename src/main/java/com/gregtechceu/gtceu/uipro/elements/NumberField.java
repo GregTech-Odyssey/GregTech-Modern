@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.uipro.elements;
 
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.data.ClientActions;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
 import com.gregtechceu.gtceu.uipro.data.SyncValueHost;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
@@ -14,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.util.function.Consumer;
 import java.util.function.LongConsumer;
 import java.util.function.LongSupplier;
 
@@ -134,11 +136,12 @@ public class NumberField extends UIElement {
     public boolean mouseWheelMove(double mouseX, double mouseY, double wheelDelta) {
         if (!isMouseOverElement(mouseX, mouseY) || wheelDelta == 0 || isDisabled()) return super.mouseWheelMove(mouseX, mouseY, wheelDelta);
         boolean up = wheelDelta > 0, shift = GTUtil.isShiftDown(), ctrl = GTUtil.isCtrlDown();
-        writeClientAction(WHEEL_ID, buf -> {
+        Consumer<FriendlyByteBuf> writer = buf -> {
             buf.writeBoolean(up);
             buf.writeBoolean(shift);
             buf.writeBoolean(ctrl);
-        });
+        };
+        if (!ClientActions.handleLocally(this, WHEEL_ID, writer)) writeClientAction(WHEEL_ID, writer);
         return true;
     }
 
