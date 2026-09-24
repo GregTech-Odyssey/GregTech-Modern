@@ -27,6 +27,7 @@ import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -293,7 +294,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     //////////////////////////////////////
     @Override
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
-        configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(GuiTextures.BUTTON_POWER.getSubTexture(0, 0, 1, 0.5), GuiTextures.BUTTON_POWER.getSubTexture(0, 0.5, 1, 0.5), this::isWorkingEnabled, (clickData, pressed) -> this.setWorkingEnabled(pressed)).setTooltipsSupplier(pressed -> List.of(Component.translatable(pressed ? "behaviour.soft_hammer.enabled" : "behaviour.soft_hammer.disabled"))));
+        configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(WidgetIcons.POWER_OFF, WidgetIcons.POWER_ON, this::isWorkingEnabled, (clickData, pressed) -> this.setWorkingEnabled(pressed)).setTooltipsSupplier(pressed -> List.of(Component.translatable(pressed ? "behaviour.soft_hammer.enabled" : "behaviour.soft_hammer.disabled"))));
         IVoidable.attachConfigurators(configuratorPanel, this);
         super.attachConfigurators(configuratorPanel);
         configuratorPanel.attachConfigurators(new CircuitFancyConfigurator(circuitInventory.storage));

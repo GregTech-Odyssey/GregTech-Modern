@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CombinedDirectionalFancyConfigurator;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.MachineModeFancyConfigurator;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -108,8 +109,8 @@ public interface IFancyUIMachine extends IUIMachine, IFancyUIProvider {
     default void attachConfigurators(ConfiguratorPanel configuratorPanel) {
         if (this instanceof IControllable controllable) {
             configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(
-                    GuiTextures.BUTTON_POWER.getSubTexture(0, 0, 1, 0.5),
-                    GuiTextures.BUTTON_POWER.getSubTexture(0, 0.5, 1, 0.5),
+                    WidgetIcons.POWER_OFF,
+                    WidgetIcons.POWER_ON,
                     controllable::isWorkingEnabled, (clickData, pressed) -> controllable.setWorkingEnabled(pressed))
                     .setTooltipsSupplier(pressed -> List.of(
                             Component.translatable(

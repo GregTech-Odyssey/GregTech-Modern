@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.api.machine.fancyconfigurator;
 
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfigurator;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.gregtechceu.gtceu.uiwidgets.inventory.SlotGridView;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -30,7 +30,7 @@ public class FancyInvConfigurator implements IFancyConfigurator {
 
     @Override
     public IGuiTexture getIcon() {
-        return GuiTextures.BUTTON_ITEM_OUTPUT;
+        return WidgetIcons.ITEMS;
     }
 
     /** 展开后的内容：标准物品槽紧排成的小网格（{@link SlotGridView}）。 */

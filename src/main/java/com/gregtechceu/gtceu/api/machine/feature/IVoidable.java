@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.machine.feature;
 
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.FancySelectorConfigurator;
@@ -8,6 +7,7 @@ import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 
@@ -70,7 +70,7 @@ public interface IVoidable extends IMachineFeature {
 
         VoidingMode(String name) {
             this.localeName = name;
-            this.icon = GuiTextures.BUTTON_VOID_MULTIBLOCK.getSubTexture(0, ordinal(), 1, 0.25);
+            this.icon = WidgetIcons.VOIDING[ordinal()];
         }
 
         public boolean canVoid(RecipeInfo capability) {

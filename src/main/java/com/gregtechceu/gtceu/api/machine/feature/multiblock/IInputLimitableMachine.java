@@ -1,9 +1,9 @@
 package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfiguratorButton;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -24,8 +24,8 @@ public interface IInputLimitableMachine extends IFancyUIMachine {
     @Override
     default void attachConfigurators(ConfiguratorPanel configuratorPanel) {
         if (hasInputLimitConfig()) configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(
-                GuiTextures.LOCK,
-                GuiTextures.LOCK_WHITE,
+                WidgetIcons.INPUT_LIMIT_OFF,
+                WidgetIcons.INPUT_LIMIT_ON,
                 this::isInputLimit, (clickData, pressed) -> setInputLimit(pressed))
                 .setTooltipsSupplier(pressed -> List.of(
                         Component.translatable("gtceu.multiblock.universal.input_limit")

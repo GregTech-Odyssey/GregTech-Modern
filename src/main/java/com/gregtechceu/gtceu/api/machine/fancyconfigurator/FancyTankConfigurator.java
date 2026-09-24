@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.api.machine.fancyconfigurator;
 
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfigurator;
 import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.gregtechceu.gtceu.uiwidgets.inventory.SlotGridView;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -30,7 +30,7 @@ public class FancyTankConfigurator implements IFancyConfigurator {
 
     @Override
     public IGuiTexture getIcon() {
-        return GuiTextures.BUTTON_FLUID_OUTPUT;
+        return WidgetIcons.FLUIDS;
     }
 
     /** 展开后的内容：标准流体槽紧排成的小网格（{@link SlotGridView}）。 */

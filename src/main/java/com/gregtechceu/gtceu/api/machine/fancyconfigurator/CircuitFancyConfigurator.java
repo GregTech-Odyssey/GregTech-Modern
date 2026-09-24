@@ -7,8 +7,8 @@ import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
 import com.gregtechceu.gtceu.uiwidgets.circuit.CircuitSelector;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -17,7 +17,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,8 +49,7 @@ public class CircuitFancyConfigurator implements IFancyConfigurator, IFancyCusto
         if (IntCircuitBehaviour.isIntegratedCircuit(circuitSlot.getStackInSlot(0))) {
             return new ItemStackTexture(circuitSlot.getStackInSlot(0));
         }
-        return new GuiTextureGroup(new ItemStackTexture(IntCircuitBehaviour.stack(0)),
-                new ItemStackTexture(Items.BARRIER));
+        return WidgetIcons.CIRCUIT_NONE;
     }
 
     @Override

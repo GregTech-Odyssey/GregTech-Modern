@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.machine.fancyconfigurator;
 
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
 import com.gregtechceu.gtceu.api.gui.widget.directional.CombinedDirectionalConfigurator;
@@ -12,6 +11,7 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -52,7 +52,7 @@ public class CombinedDirectionalFancyConfigurator implements IFancyUIProvider {
 
     @Override
     public IGuiTexture getTabIcon() {
-        return GuiTextures.TOOL_COVER_SETTINGS;
+        return WidgetIcons.SETTINGS;
     }
 
     @Override
