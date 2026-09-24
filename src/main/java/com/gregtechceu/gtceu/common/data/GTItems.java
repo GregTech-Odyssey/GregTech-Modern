@@ -2111,7 +2111,7 @@ public class GTItems {
             .onRegister(attach(new AntidoteBehavior(50, GTMedicalConditions.CARCINOGEN)))
             .register();
 
-    // GTO: 纳米剑 I～IV，同一模型，剑刃按等级叠加红色
+    // GTO: 能量剑 I～IV，贴图按对应套装配色：I 纳米红、II 纳米青、III 夸克绿、IV 夸克绿＋青
     public static ItemEntry<ComponentItem> NANO_SABER = nanoSaber("nano_saber", "NanoMuscle™ Saber (I)", 1);
     public static ItemEntry<ComponentItem> NANO_SABER_II = nanoSaber("nano_saber_ii", "Advanced NanoMuscle™ Saber (II)", 2);
     public static ItemEntry<ComponentItem> NANO_SABER_III = nanoSaber("nano_saber_iii", "QuarkTech™ Saber (III)", 3);
@@ -2483,8 +2483,6 @@ public class GTItems {
                             ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierAdvNanoSuit, 3),
                             ConfigHolder.INSTANCE.tools.voltageTierAdvNanoSuit)))
             .lang("Advanced NanoMuscle™ Suite Helmet (II)")
-            // GTO: 图标沿用 nanomuscle 系列
-            .model((ctx, prov) -> prov.generated(ctx::getEntry, prov.modLoc("item/nanomuscle_helmet")))
             .properties(p -> p.rarity(Rarity.RARE))
             .tag(Tags.Items.ARMORS_HELMETS)
             .tag(CustomTags.PPE_ARMOR)
@@ -2496,8 +2494,6 @@ public class GTItems {
                             ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierAdvNanoSuit, 3),
                             ConfigHolder.INSTANCE.tools.voltageTierAdvNanoSuit)))
             .lang("Advanced NanoMuscle™ Suite Leggings (II)")
-            // GTO: 图标沿用 nanomuscle 系列
-            .model((ctx, prov) -> prov.generated(ctx::getEntry, prov.modLoc("item/nanomuscle_leggings")))
             .properties(p -> p.rarity(Rarity.RARE))
             .tag(Tags.Items.ARMORS_LEGGINGS)
             .tag(CustomTags.PPE_ARMOR)
@@ -2509,8 +2505,6 @@ public class GTItems {
                             ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierAdvNanoSuit, 3),
                             ConfigHolder.INSTANCE.tools.voltageTierAdvNanoSuit)))
             .lang("Advanced NanoMuscle™ Suite Boots (II)")
-            // GTO: 图标沿用 nanomuscle 系列
-            .model((ctx, prov) -> prov.generated(ctx::getEntry, prov.modLoc("item/nanomuscle_boots")))
             .properties(p -> p.rarity(Rarity.RARE))
             .tag(Tags.Items.ARMORS_BOOTS)
             .tag(CustomTags.PPE_ARMOR)
@@ -2535,8 +2529,6 @@ public class GTItems {
                             ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierAdvQuarkTech, 27),
                             ConfigHolder.INSTANCE.tools.voltageTierAdvQuarkTech)))
             .lang("Advanced QuarkTech™ Suite Helmet (IV)")
-            // GTO: 图标沿用 quarktech 系列
-            .model((ctx, prov) -> prov.generated(ctx::getEntry, prov.modLoc("item/quarktech_helmet")))
             .properties(p -> p.rarity(Rarity.EPIC))
             .tag(Tags.Items.ARMORS_HELMETS)
             .tag(CustomTags.PPE_ARMOR)
@@ -2548,8 +2540,6 @@ public class GTItems {
                             ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierAdvQuarkTech, 27),
                             ConfigHolder.INSTANCE.tools.voltageTierAdvQuarkTech)))
             .lang("Advanced QuarkTech™ Suite Leggings (IV)")
-            // GTO: 图标沿用 quarktech 系列
-            .model((ctx, prov) -> prov.generated(ctx::getEntry, prov.modLoc("item/quarktech_leggings")))
             .properties(p -> p.rarity(Rarity.EPIC))
             .tag(Tags.Items.ARMORS_LEGGINGS)
             .tag(CustomTags.PPE_ARMOR)
@@ -2561,8 +2551,6 @@ public class GTItems {
                             ArmorLogicSuite.enduranceCapacity(ConfigHolder.INSTANCE.tools.voltageTierAdvQuarkTech, 27),
                             ConfigHolder.INSTANCE.tools.voltageTierAdvQuarkTech)))
             .lang("Advanced QuarkTech™ Suite Boots (IV)")
-            // GTO: 图标沿用 quarktech 系列
-            .model((ctx, prov) -> prov.generated(ctx::getEntry, prov.modLoc("item/quarktech_boots")))
             .properties(p -> p.rarity(Rarity.EPIC))
             .tag(Tags.Items.ARMORS_BOOTS)
             .tag(CustomTags.PPE_ARMOR)
