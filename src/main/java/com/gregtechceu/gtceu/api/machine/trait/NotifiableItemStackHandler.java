@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.handler.IItemRecipeHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
@@ -31,7 +32,7 @@ import java.util.function.IntFunction;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Predicate;
 
-public class NotifiableItemStackHandler extends NotifiableContentHandler implements ICapabilityTrait, ICustomItemStackHandler {
+public class NotifiableItemStackHandler extends NotifiableContentHandler implements IItemRecipeHandler, ICapabilityTrait, ICustomItemStackHandler {
 
     public static NotifiableItemStackHandler empty(MetaMachine machine) {
         return new NotifiableItemStackHandler(machine, 0, IO.NONE).setAvailable(false);
@@ -41,6 +42,7 @@ public class NotifiableItemStackHandler extends NotifiableContentHandler impleme
     public final IO capabilityIO;
     @Setter
     @Getter
+    @SuppressWarnings("unchecked") // GTUtil.FAVORABLE is a raw shared constant
     protected Predicate<@Nullable Direction> capabilityValidator = GTUtil.FAVORABLE;
     @SaveToDisk
     public final CustomItemStackHandler storage;
@@ -63,11 +65,6 @@ public class NotifiableItemStackHandler extends NotifiableContentHandler impleme
     public NotifiableItemStackHandler setFilter(Predicate<ItemStack> filter) {
         this.storage.setFilter(filter);
         return this;
-    }
-
-    @Override
-    public boolean canHandleItem() {
-        return true;
     }
 
     @Override
@@ -139,6 +136,7 @@ public class NotifiableItemStackHandler extends NotifiableContentHandler impleme
 
     public static boolean handleRecipeSimulate(IO io, List<Content<ItemIngredient>> items, CustomItemStackHandler storage) {
         var size = storage.size;
+        @SuppressWarnings({ "rawtypes", "unchecked" }) // a generic array cannot be created without a raw component type
         SimpleStack<ItemStack>[] visiteds = new SimpleStack[size];
         for (var it = items.iterator(); it.hasNext();) {
             var ingredient = it.next();

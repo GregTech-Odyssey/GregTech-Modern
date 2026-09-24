@@ -29,9 +29,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Predicate;
-
-public class ItemIngredient extends ContentInner implements Predicate<ItemStack> {
+public class ItemIngredient extends ContentInner<ItemStack> {
 
     public static final ItemIngredient EMPTY = new ItemIngredient(Ingredient.of(), 0);
 

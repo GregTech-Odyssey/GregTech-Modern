@@ -33,14 +33,23 @@ import org.jetbrains.annotations.UnknownNullability;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public final class FluidRecipeInfo extends ContentRecipeInfo<FluidIngredient> {
+/**
+ * 流体内容种类的元信息与渲染实现。
+ *
+ * <p>
+ * 与 {@link ItemRecipeInfo} 对称：把配方里的 {@link FluidIngredient} 转成配方查看器条目
+ * （单个流体堆或流体标签列表），并绑定到流体罐控件上。
+ */
+public final class FluidRecipeInfo extends ContentRecipeInfo<FluidStack, FluidIngredient> {
 
+    /** 全局唯一实例，注册名为 {@code fluid}。 */
     public final static FluidRecipeInfo INSTANCE = new FluidRecipeInfo();
 
     private FluidRecipeInfo() {
         super("fluid", 0xFF3C70EE, true, 1);
     }
 
+    /** 把流体内容转成查看器条目，并按配方类型的最大输出数补 {@code null} 占位。 */
     @Override
     public @NotNull List<Object> createXEIContainerContents(List<Content<FluidIngredient>> contents, GTRecipeDefinition recipe, IO io) {
         List<Object> entryLists = contents.stream()
@@ -51,12 +60,13 @@ public final class FluidRecipeInfo extends ContentRecipeInfo<FluidIngredient> {
         return entryLists;
     }
 
+    /** 把条目列表包成可循环切换的流体显示 handler。 */
+    @SuppressWarnings("unchecked") // cast is safe if you don't pass the wrong thing.
     public Object createXEIContainer(List<?> contents) {
-        // cast is safe if you don't pass the wrong thing.
-        // noinspection unchecked
         return new CycleFluidEntryHandler((List<FluidEntryList>) contents);
     }
 
+    /** 流体罐控件，填充方向设为 {@code ALWAYS_FULL}，该设置同时用于机器界面与配方查看器。 */
     @NotNull
     @Override
     public Widget createWidget() {
@@ -66,12 +76,17 @@ public final class FluidRecipeInfo extends ContentRecipeInfo<FluidIngredient> {
         return tank;
     }
 
+    /** 该种类使用 {@link TankWidget} 显示。 */
     @NotNull
     @Override
     public Class<? extends Widget> getWidgetClass() {
         return TankWidget.class;
     }
 
+    /**
+     * 把槽位信息应用到流体罐上：绑定流体存储、设置输入 / 输出类型与是否可交互；
+     * 在非查看器界面（{@code !isXEI}）下还会把该流体的提示文本追加到槽位 tooltip 上。
+     */
     @Override
     public void applyWidgetInfo(@NotNull Widget widget,
                                 int index,
@@ -108,14 +123,20 @@ public final class FluidRecipeInfo extends ContentRecipeInfo<FluidIngredient> {
         }
     }
 
-    // Maps fluids to a FluidEntryList for XEI: either a FluidTagList or a FluidStackList
+    /**
+     * 把单条流体内容映射成查看器条目：具体流体映射成流体堆列表，标签则映射成流体标签列表。
+     *
+     * <p>
+     * Maps fluids to a FluidEntryList for XEI: either a FluidTagList or a FluidStackList
+     */
+    @SuppressWarnings("unchecked") // FluidIngredient only ever stores fluid tag keys
     public static FluidEntryList mapFluid(Content<FluidIngredient> ingredient) {
         int amount = ingredient.inner.getAmount();
         CompoundTag nbt = ingredient.inner.nbt;
         if (ingredient.inner.value instanceof Fluid fluid) {
             return FluidStackList.of(new FluidStack(fluid, amount, nbt));
-        } else if (ingredient.inner.value instanceof TagKey tag) {
-            return FluidTagList.of(tag, amount, nbt);
+        } else if (ingredient.inner.value instanceof TagKey<?> tag) {
+            return FluidTagList.of((TagKey<Fluid>) tag, amount, nbt);
         }
         return new FluidStackList();
     }

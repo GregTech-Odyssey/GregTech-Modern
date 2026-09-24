@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.config.ConfigHolder;
@@ -86,7 +87,7 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
             var handlers = part.getRecipeHandlers();
             for (var hl : handlers) {
                 if (!hl.isValid(IO.IN)) continue;
-                for (var fluidHandler : hl.getCapabilities(NotifiableFluidTank.class)) {
+                for (var fluidHandler : hl.getCapabilities(FluidRecipeInfo.INSTANCE, NotifiableFluidTank.class)) {
                     energyContainer = new SteamEnergyContainer(getConversionRate(), fluidHandler);
                     return;
                 }

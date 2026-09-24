@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
@@ -42,7 +43,7 @@ public interface IDistillationTower extends IWorkableMultiController {
                 }
                 var part = parts.get(outputIndex);
                 if (part.self().getPos().getY() == y) {
-                    var handler = part.getRecipeHandlers().getFirst().getCapabilities(IFluidHandler.class).stream().findFirst().orElse(VoidFluidHandler.INSTANCE);
+                    var handler = part.getRecipeHandlers().getFirst().getCapabilities(FluidRecipeInfo.INSTANCE, IFluidHandler.class).stream().findFirst().orElse(VoidFluidHandler.INSTANCE);
                     fluidOutputs.add(handler);
                     outputIndex++;
                 } else if (part.self().getPos().getY() > y) {

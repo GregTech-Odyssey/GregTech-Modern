@@ -61,7 +61,7 @@ public record ActionResult(boolean isSuccess, @Nullable Component reason) {
         return new ActionResult(false, Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(key));
     }
 
-    public static <T extends ContentInner> ActionResult failInsufficientIn(Content<T> content) {
+    public static <T, C extends ContentInner<T>> ActionResult failInsufficientIn(Content<C> content) {
         return new ActionResult(false, Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(content.getName()));
     }
 

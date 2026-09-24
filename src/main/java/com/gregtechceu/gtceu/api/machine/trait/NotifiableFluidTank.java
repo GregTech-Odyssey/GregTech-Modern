@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.handler.IFluidRecipeHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
@@ -30,12 +31,13 @@ import java.util.List;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Predicate;
 
-public class NotifiableFluidTank extends NotifiableContentHandler implements ICapabilityTrait, ICustomFluidStackHandler {
+public class NotifiableFluidTank extends NotifiableContentHandler implements IFluidRecipeHandler, ICapabilityTrait, ICustomFluidStackHandler {
 
     @Getter
     public final IO capabilityIO;
     @Setter
     @Getter
+    @SuppressWarnings("unchecked") // GTUtil.FAVORABLE is a raw shared constant
     protected Predicate<@Nullable Direction> capabilityValidator = GTUtil.FAVORABLE;
     @Getter
     @SaveToDisk
@@ -49,6 +51,7 @@ public class NotifiableFluidTank extends NotifiableContentHandler implements ICa
     @SaveToDisk(defaultValue = "false")
     public boolean isVoiding;
     @Getter
+    @SuppressWarnings("unchecked") // GTUtil.FAVORABLE is a raw shared constant
     protected Predicate<FluidStack> filter = GTUtil.FAVORABLE;
 
     public NotifiableFluidTank(MetaMachine machine, int slots, int capacity, IO handlerIO, IO capabilityIO) {
@@ -77,11 +80,6 @@ public class NotifiableFluidTank extends NotifiableContentHandler implements ICa
 
     public NotifiableFluidTank(MetaMachine machine, List<CustomFluidTank> storages, IO io) {
         this(machine, storages, io, io);
-    }
-
-    @Override
-    public boolean canHandleFluid() {
-        return true;
     }
 
     @Override
@@ -158,6 +156,7 @@ public class NotifiableFluidTank extends NotifiableContentHandler implements ICa
 
     public static boolean handleRecipeSimulate(IO io, List<Content<FluidIngredient>> fluids, CustomFluidTank[] storages, CustomFluidTank lockedFluid) {
         var length = storages.length;
+        @SuppressWarnings({ "unchecked" }) // a generic array cannot be created without a raw component type
         SimpleStack<FluidStack>[] visiteds = new SimpleStack[length];
         for (var it = fluids.iterator(); it.hasNext();) {
             var ingredient = it.next();
@@ -226,6 +225,7 @@ public class NotifiableFluidTank extends NotifiableContentHandler implements ICa
         setLocked(locked, storages[0].getFluid());
     }
 
+    @SuppressWarnings("unchecked") // GTUtil.FAVORABLE is a raw shared constant
     public void setLocked(boolean locked, FluidStack fluidStack) {
         if (this.isLocked() == locked) return;
         if (locked && !fluidStack.isEmpty()) {

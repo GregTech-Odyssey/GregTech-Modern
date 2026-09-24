@@ -30,9 +30,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Predicate;
 
-public final class FluidIngredient extends ContentInner implements Predicate<FluidStack> {
+public final class FluidIngredient extends ContentInner<FluidStack> {
 
     public static Codec<FluidIngredient> CODEC = Codec.PASSTHROUGH.xmap(dynamic -> FluidIngredient.fromData(dynamic.convert(DataOps.INSTANCE).getValue()), ingredient -> new Dynamic<>(DataOps.INSTANCE, ingredient.toData()));
     public static FluidIngredient EMPTY = new FluidIngredient(null, 0, null);

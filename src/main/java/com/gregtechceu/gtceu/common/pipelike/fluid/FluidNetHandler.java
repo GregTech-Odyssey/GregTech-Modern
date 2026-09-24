@@ -52,12 +52,24 @@ public final class FluidNetHandler implements ICustomFluidStackHandler {
     public int fillFirst(FluidStack stack, boolean simulate) {
         int amount = stack.getAmount();
         int total = 0;
-        for (var inv : net.getNetData(pipe.getPipeLongPos(), pipe.getPipePos(), facing)) {
-            if (pipe.autoTransfer && inv.getTargetPipe() == pipe && inv.getTargetFacing() != pipe.blockedSide) continue;
-            int fill = fill(inv, stack, amount, simulate, false);
-            amount -= fill;
-            total += fill;
-            if (amount <= 0) break;
+        var data = net.getNetData(pipe.getPipeLongPos(), pipe.getPipePos(), facing);
+        if (simulate) {
+            for (var inv : data.array) {
+                if (pipe.autoTransfer && inv.getTargetPipe() == pipe && inv.getTargetFacing() != pipe.blockedSide) continue;
+                int fill = fill(inv, stack, amount, simulate, false);
+                amount -= fill;
+                total += fill;
+                if (amount <= 0) break;
+            }
+        } else {
+            for (var inv : data) {
+                if (pipe.autoTransfer && inv.getTargetPipe() == pipe && inv.getTargetFacing() != pipe.blockedSide)
+                    continue;
+                int fill = fill(inv, stack, amount, simulate, false);
+                amount -= fill;
+                total += fill;
+                if (amount <= 0) break;
+            }
         }
         return total;
     }

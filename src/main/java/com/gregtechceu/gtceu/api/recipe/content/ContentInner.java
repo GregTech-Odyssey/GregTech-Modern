@@ -2,7 +2,9 @@ package com.gregtechceu.gtceu.api.recipe.content;
 
 import net.minecraft.network.chat.Component;
 
-public abstract class ContentInner {
+import java.util.function.Predicate;
+
+public abstract class ContentInner<T> implements Predicate<T> {
 
     public final long amount;
 
@@ -14,7 +16,7 @@ public abstract class ContentInner {
 
     public abstract boolean isEmpty();
 
-    public abstract ContentInner copy(long amount);
+    public abstract ContentInner<T> copy(long amount);
 
     public abstract Component getName();
 }

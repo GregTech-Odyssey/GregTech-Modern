@@ -52,51 +52,54 @@ public class RecipeHelper {
      * @param trimLimits The limit(s) on the number of outputs
      * @return All recipe outputs, limited by some factor(s)
      */
-    public static <T extends ContentInner> List<Content<T>> doTrim(List<Content<T>> contents,
-                                                                   RecipeInfo capability, Reference2IntOpenHashMap<RecipeInfo> trimLimits) {
+    public static <T, C extends ContentInner<T>> List<Content<C>> doTrim(List<Content<C>> contents,
+                                                                         RecipeInfo capability, Reference2IntOpenHashMap<RecipeInfo> trimLimits) {
         if (contents.isEmpty()) return contents;
         return trimFirst(contents, trimLimits.getOrDefault(capability, -1));
     }
 
-    public static <T extends ContentInner> List<Content<T>> trimFirst(List<Content<T>> contents, int trimLimit) {
+    public static <T, C extends ContentInner<T>> List<Content<C>> trimFirst(List<Content<C>> contents, int trimLimit) {
         int N = Math.min(contents.size(), trimLimit);
         if (N == 0) return Collections.emptyList();
         if (N == -1) return contents;
-        var array = new Content[N];
+        @SuppressWarnings({ "rawtypes", "unchecked" }) // a generic array cannot be created without a raw component type
+        Content<C>[] array = new Content[N];
         for (var i = 0; i < N; i++) {
             array[i] = contents.get(i);
         }
         return Arrays.asList(array);
     }
 
-    public static <T extends ContentInner> List<Content<T>> trimLast(List<Content<T>> contents, int trimLimit) {
+    public static <T, C extends ContentInner<T>> List<Content<C>> trimLast(List<Content<C>> contents, int trimLimit) {
         int size = contents.size();
         int N = Math.min(size, trimLimit);
         if (N == 0) return Collections.emptyList();
         if (N == -1) return contents;
-        var array = new Content[N];
+        @SuppressWarnings({ "rawtypes", "unchecked" }) // a generic array cannot be created without a raw component type
+        Content<C>[] array = new Content[N];
         for (int i = 0; i < N; i++) {
             array[i] = contents.get(size - N + i);
         }
         return Arrays.asList(array);
     }
 
-    public static <T extends ContentInner> List<Content<T>> trimRange(List<Content<T>> contents, int fromIndex, int toIndex) {
+    public static <T, C extends ContentInner<T>> List<Content<C>> trimRange(List<Content<C>> contents, int fromIndex, int toIndex) {
         int size = contents.size();
         if (fromIndex < 0) fromIndex = 0;
         if (toIndex > size) toIndex = size;
         if (fromIndex >= toIndex) return Collections.emptyList();
-        var array = new Content[toIndex - fromIndex];
+        @SuppressWarnings({ "rawtypes", "unchecked" }) // a generic array cannot be created without a raw component type
+        Content<C>[] array = new Content[toIndex - fromIndex];
         for (int i = fromIndex; i < toIndex; i++) {
             array[i - fromIndex] = contents.get(i);
         }
         return Arrays.asList(array);
     }
 
-    public static <T extends ContentInner> List<Content<T>> copyAndRoll(GTRecipe recipe, List<Content<T>> contents) {
+    public static <T, C extends ContentInner<T>> List<Content<C>> copyAndRoll(GTRecipe recipe, List<Content<C>> contents) {
         var size = contents.size();
         if (size == 0) return Collections.emptyList();
-        var contentList = new ArrayList<Content<T>>(size);
+        var contentList = new ArrayList<Content<C>>(size);
         var boost = recipe.definition.chanceFunction;
         var recipeTier = recipe.tier;
         var chanceTier = recipeTier + recipe.ocLevel;
@@ -116,22 +119,23 @@ public class RecipeHelper {
         return contentList;
     }
 
-    public static <T extends ContentInner> List<Content<T>> modifierContents(List<Content<T>> contents, @Range(from = 1, to = ParallelLogic.MAX_PARALLEL) long multiplier) {
+    public static <T, C extends ContentInner<T>> List<Content<C>> modifierContents(List<Content<C>> contents, @Range(from = 1, to = ParallelLogic.MAX_PARALLEL) long multiplier) {
         if (multiplier == 1) return contents;
         var size = contents.size();
         if (size == 0) return contents;
-        var array = new Content[size];
+        @SuppressWarnings({ "rawtypes", "unchecked" }) // a generic array cannot be created without a raw component type
+        Content<C>[] array = new Content[size];
         for (var i = 0; i < size; i++) {
             array[i] = contents.get(i).modifier(multiplier);
         }
         return Arrays.asList(array);
     }
 
-    public static <T extends ContentInner> List<Content<T>> copyContents(List<Content<T>> contents, @Range(from = 1, to = ParallelLogic.MAX_PARALLEL) long multiplier) {
+    public static <T, C extends ContentInner<T>> List<Content<C>> copyContents(List<Content<C>> contents, @Range(from = 1, to = ParallelLogic.MAX_PARALLEL) long multiplier) {
         var size = contents.size();
         if (size == 0) return Collections.emptyList();
-        var list = new ArrayList<Content<T>>(size);
-        for (Content<T> content : contents) {
+        var list = new ArrayList<Content<C>>(size);
+        for (var content : contents) {
             list.add(content.copy(multiplier));
         }
         return list;

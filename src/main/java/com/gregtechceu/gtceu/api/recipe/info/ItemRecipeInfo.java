@@ -36,14 +36,30 @@ import org.jetbrains.annotations.UnknownNullability;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public final class ItemRecipeInfo extends ContentRecipeInfo<ItemIngredient> {
+/**
+ * 物品内容种类的元信息与渲染实现。
+ *
+ * <p>
+ * 负责把配方里的 {@link ItemIngredient} 转成配方查看器能显示的条目（单个物品堆、标签列表，
+ * 或交叉配方的多个可选结果），并把这些条目绑定到普通物品槽控件上。扫描仪的产物还做了特殊处理：
+ * 会把扫描可能得到的全部研究产物列成可循环切换的候选。
+ */
+public final class ItemRecipeInfo extends ContentRecipeInfo<ItemStack, ItemIngredient> {
 
+    /** 全局唯一实例，注册名为 {@code item}。 */
     public final static ItemRecipeInfo INSTANCE = new ItemRecipeInfo();
 
     private ItemRecipeInfo() {
         super("item", 0xFFD96106, true, 0);
     }
 
+    /**
+     * 把物品内容转成查看器条目。
+     *
+     * <p>
+     * 扫描仪的<b>输出</b>会被替换成「本次扫描可能得到的全部研究产物」的循环列表，
+     * 这样在配方查看器里逐个切换就能看到所有可能结果。
+     */
     @Override
     public @NotNull List<Object> createXEIContainerContents(List<Content<ItemIngredient>> contents, GTRecipeDefinition recipe, IO io) {
         List<Object> entryLists = contents.stream()
@@ -88,12 +104,13 @@ public final class ItemRecipeInfo extends ContentRecipeInfo<ItemIngredient> {
         return entryLists;
     }
 
+    /** 把条目列表包成可循环切换的物品显示 handler。 */
+    @SuppressWarnings("unchecked") // cast is safe if you don't pass the wrong thing.
     public Object createXEIContainer(List<?> contents) {
-        // cast is safe if you don't pass the wrong thing.
-        // noinspection unchecked
         return new CycleItemEntryHandler((List<ItemEntryList>) contents);
     }
 
+    /** 物品槽控件。 */
     @NotNull
     @Override
     public Widget createWidget() {
@@ -102,12 +119,21 @@ public final class ItemRecipeInfo extends ContentRecipeInfo<ItemIngredient> {
         return slot;
     }
 
+    /** 该种类使用 {@link SlotWidget} 显示。 */
     @NotNull
     @Override
     public Class<? extends Widget> getWidgetClass() {
         return SlotWidget.class;
     }
 
+    /**
+     * 把槽位信息应用到物品槽上：绑定存储槽位（若有）、设置输入 / 输出类型与是否可交互，
+     * 并填充产出概率与提示文本。
+     *
+     * <p>
+     * 另外，在配方查看器（{@code isXEI}）中且配方类型声明了研究槽位时，索引刚好落在
+     * 容器容量之后的那一格会被替换成「研究条件所需数据球」的催化剂展示槽。
+     */
     @Override
     public void applyWidgetInfo(@NotNull Widget widget,
                                 int index,
@@ -116,7 +142,7 @@ public final class ItemRecipeInfo extends ContentRecipeInfo<ItemIngredient> {
                                 GTRecipeTypeUI.@UnknownNullability("null when storage == null") RecipeHolder recipeHolder,
                                 @NotNull GTRecipeType recipeType,
                                 @UnknownNullability("null when content == null") GTRecipeDefinition recipe,
-                                @Nullable Content content,
+                                @Nullable Content<ItemIngredient> content,
                                 @Nullable Object storage, int recipeTier, int chanceTier) {
         if (widget instanceof SlotWidget slot) {
             if (storage instanceof ICustomItemStackHandler items) {
@@ -159,11 +185,17 @@ public final class ItemRecipeInfo extends ContentRecipeInfo<ItemIngredient> {
         }
     }
 
-    // Maps ingredients to an ItemEntryList for XEI: either an ItemTagList or an ItemStackList
+    /** 把单条物品内容映射成查看器条目。 */
     private static ItemEntryList mapItem(final Content<ItemIngredient> ingredient) {
         return tryMapInner(ingredient.inner.inner, ingredient.inner.getAmount());
     }
 
+    /**
+     * 按优先级尝试映射：交叉配方 → 标签 → 普通物品堆列表。
+     *
+     * <p>
+     * 若某个 {@link ItemIngredient} 实际是交叉（intersection）配方，则先降级成它内部的子配方再映射。
+     */
     private static ItemEntryList tryMapInner(final Ingredient ingredient, int amount) {
         if (ingredient instanceof IntersectionIngredient intersection) return mapIntersection(intersection, amount);
         var tagList = tryMapTag(ingredient, amount);
@@ -171,7 +203,12 @@ public final class ItemRecipeInfo extends ContentRecipeInfo<ItemIngredient> {
         return new ItemStackList(Arrays.stream(ingredient.getItems()).map(stack -> stack.copyWithCount(amount)).toArray(ItemStack[]::new));
     }
 
-    // Map intersection ingredients to the items inside, as recipe viewers don't support them.
+    /**
+     * 把交叉配方展开成「同时满足所有子配方」的物品集合。
+     *
+     * <p>
+     * 配方查看器不支持交叉配方，所以这里取第一个子配方的物品，再逐个用其余子配方过滤。
+     */
     private static ItemEntryList mapIntersection(final IntersectionIngredient intersection, int amount) {
         List<Ingredient> children = ((IntersectionIngredientAccessor) intersection).getChildren();
         if (children.isEmpty()) return new ItemStackList();
@@ -187,6 +224,9 @@ public final class ItemRecipeInfo extends ContentRecipeInfo<ItemIngredient> {
         return stackList;
     }
 
+    /**
+     * 若该配方的第一个候选是标签，则映射成标签列表，否则返回 {@code null} 交给上层按物品堆处理。
+     */
     private static ItemTagList tryMapTag(final Ingredient ingredient, int amount) {
         var values = ingredient.values;
         if (values.length > 0 && values[0] instanceof Ingredient.TagValue tagValue) {
