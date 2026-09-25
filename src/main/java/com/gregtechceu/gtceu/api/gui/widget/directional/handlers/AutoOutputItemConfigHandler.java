@@ -3,11 +3,9 @@ package com.gregtechceu.gtceu.api.gui.widget.directional.handlers;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.gui.widget.directional.IDirectionalConfigHandler;
-import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.uipro.elements.IconToggle;
 
-import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.lowdragmc.lowdraglib.utils.BlockPosFace;
 
@@ -62,31 +60,6 @@ public class AutoOutputItemConfigHandler implements IDirectionalConfigHandler {
     @Override
     public ScreenSide getScreenSide() {
         return ScreenSide.LEFT;
-    }
-
-    @Override
-    public void handleClick(ClickData cd, Direction direction) {
-        if (!canHandleClick(cd) || !machine.hasAutoOutputItem())
-            return;
-
-        if (machine.getOutputFacingItems() != side) {
-            machine.setOutputFacingItems(side);
-            machine.setAutoOutputItems(false);
-        } else {
-            machine.setAutoOutputItems(!machine.isAutoOutputItems());
-        }
-        machine.self().requestSync();
-    }
-
-    @SuppressWarnings("RedundantIfStatement") // Cleaner code this way
-    private boolean canHandleClick(ClickData cd) {
-        if (cd.button == 0)
-            return true;
-
-        if (!(machine instanceof IAutoOutputFluid) && cd.button == 1)
-            return true;
-
-        return false;
     }
 
     @Override

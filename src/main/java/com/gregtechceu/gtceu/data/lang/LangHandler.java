@@ -1557,6 +1557,7 @@ public class LangHandler {
         provider.add("gtceu.recipe.info.max_eu", "Max Total");
         provider.add("gtceu.recipe.info.eu_usage", "Usage");
         provider.add("gtceu.recipe.info.eu_generation", "Generation");
+        provider.add("gtceu.recipe.info.amperage", "Amperage");
         provider.add("gtceu.recipe.info.cwut", "Min. Computation");
         provider.add("gtceu.recipe.info.total_cwu", "Total Computation");
         provider.add("gtceu.recipe.info.overclock", "Overclock preview: change the voltage tier to see duration and power after overclocking (minimum: %s)");

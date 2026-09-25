@@ -28,7 +28,6 @@ import java.util.function.Supplier;
  *  超频预览                 (i) [&lt; LV &gt;]    标题行：左侧标题，右侧控件（可省）
  *  ────────────────────────────────────
  *  耗时                         21.9 秒     数值行：名称靠左、数值靠右，隔行加底纹方便横向对行
- *  耗能功率          30 EU/t  1 A @ LV      数值后可跟一段次要说明（灰色）
  *  ────────────────────────────────────
  *  ▪ 可通过科技节点[太空电梯]解锁             说明行：配方条件等整句，前面一个小方块
  * </pre>
@@ -84,15 +83,15 @@ public class RecipeSpecPanel extends UIElement {
         return this;
     }
 
-    /** 数值行："名称 …… 数值 次要说明"。{@code detail} 可为 null。 */
-    public RecipeSpecPanel value(Component label, Supplier<Component> value, @Nullable Supplier<Component> detail) {
-        addChild(new Row(label, value, detail, rows++ % 2 == 1));
+    /** 数值行："名称 …… 数值"。 */
+    public RecipeSpecPanel value(Component label, Supplier<Component> value) {
+        addChild(new Row(label, value, rows++ % 2 == 1));
         return this;
     }
 
     /** 说明行：一整句。 */
     public RecipeSpecPanel sentence(Supplier<Component> text) {
-        addChild(new Row(null, text, null, false));
+        addChild(new Row(null, text, false));
         return this;
     }
 
@@ -176,21 +175,17 @@ public class RecipeSpecPanel extends UIElement {
         @Nullable
         private final Component label;
         private final SyncValue<Component> value;
-        @Nullable
-        private final SyncValue<Component> detail;
         private final boolean striped;
         private final CachedText labelText = new CachedText();
         private final CachedText valueText = new CachedText();
-        private final CachedText detailText = new CachedText();
-        /// 上次绘制时有没有截断或省略（悬停据此显示整行）
+        /// 上次绘制时有没有截断（悬停据此显示整行）
         private boolean truncated;
 
-        private Row(@Nullable Component label, Supplier<Component> value, @Nullable Supplier<Component> detail, boolean striped) {
+        private Row(@Nullable Component label, Supplier<Component> value, boolean striped) {
             this.label = label;
             this.striped = striped;
             layout(l -> l.height(ROW_HEIGHT).alignSelf(AlignItems.STRETCH));
             this.value = addSyncValue(SyncValue.of(value, SyncValue.COMPONENT, Component.empty()));
-            this.detail = detail == null ? null : addSyncValue(SyncValue.of(detail, SyncValue.COMPONENT, Component.empty()));
         }
 
         @Override
@@ -209,20 +204,14 @@ public class RecipeSpecPanel extends UIElement {
                 graphics.drawString(font, shownValue.clip(font, inner - BULLET_SPACE), left + BULLET_SPACE, textY, UITheme.TEXT, false);
                 return;
             }
-            // 整行放得下就全部显示；放不下时先省略次要说明，数值最多占 2/3，名称用剩下的宽度（截断）
-            var shownDetail = detail == null ? null : detailText.update(font, detail.getValue());
+            // 数值最多占 2/3，名称用剩下的宽度（截断）
             int labelWidth = labelText.update(font, label).width;
-            int fullDetail = shownDetail == null || shownDetail.text.isEmpty() ? 0 : UISizes.TEXT_PADDING + shownDetail.width;
             int valueWidth = Math.min(shownValue.width, inner * 2 / 3);
-            int detailWidth = labelWidth + UISizes.TEXT_PADDING + valueWidth + fullDetail <= inner ? fullDetail : 0;
-            int labelSpace = inner - valueWidth - detailWidth - UISizes.TEXT_PADDING;
-            truncated = detailWidth < fullDetail || valueWidth < shownValue.width || labelWidth > labelSpace;
-            var shownLabel = labelText.clip(font, labelSpace);
-            graphics.drawString(font, shownLabel, left, textY, UITheme.TEXT_SECONDARY, false);
-            int right = left + inner;
-            if (detailWidth > 0) graphics.drawString(font, shownDetail.text, right - shownDetail.width, textY, UITheme.TEXT_SECONDARY, false);
+            int labelSpace = inner - valueWidth - UISizes.TEXT_PADDING;
+            truncated = valueWidth < shownValue.width || labelWidth > labelSpace;
+            graphics.drawString(font, labelText.clip(font, labelSpace), left, textY, UITheme.TEXT_SECONDARY, false);
             String clippedValue = shownValue.clip(font, valueWidth);
-            graphics.drawString(font, clippedValue, right - detailWidth - font.width(clippedValue), textY, UITheme.TEXT, false);
+            graphics.drawString(font, clippedValue, left + inner - font.width(clippedValue), textY, UITheme.TEXT, false);
         }
 
         @Override
@@ -230,11 +219,9 @@ public class RecipeSpecPanel extends UIElement {
         public void drawInForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
             super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
             if (gui == null || gui.getModularUIGui() == null || !isMouseOverElement(mouseX, mouseY)) return;
-            // 截断或省略了次要说明时，悬停显示整行
+            // 截断时，悬停显示整行
             if (!truncated) return;
-            boolean hasDetail = detail != null && !detailText.text.isEmpty();
             var full = label == null ? value.getValue().copy() : label.copy().append("  ").append(value.getValue());
-            if (hasDetail) full.append("  ").append(detail.getValue());
             gui.getModularUIGui().setHoverTooltip(List.of(full), ItemStack.EMPTY, null, null);
         }
     }

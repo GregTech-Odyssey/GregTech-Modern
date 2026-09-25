@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.api.gui.widget.directional;
 
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 
-import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.SceneWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
@@ -45,10 +44,6 @@ public interface IDirectionalConfigHandler {
     enum ScreenSide {
         LEFT,
         RIGHT,
-    }
-
-    default void handleClick(ClickData cd, Direction direction) {
-        // Do nothing by default
     }
 
     @OnlyIn(Dist.CLIENT)

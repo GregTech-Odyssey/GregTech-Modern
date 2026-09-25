@@ -11,7 +11,6 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.client.scene.ISceneBlockRenderHook;
 import com.lowdragmc.lowdraglib.client.scene.WorldSceneRenderer;
-import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.SceneWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -47,7 +46,6 @@ public class CombinedDirectionalConfigurator extends WidgetGroup {
     /** 禁用原因：选中的面没有可设置的覆盖板。 */
     public static final String NO_COVER_SETTINGS = "gtceu.gui.directional_setting.no_cover_settings";
 
-    protected final static int MOUSE_CLICK_CLIENT_ACTION_ID = 0x0001_0001;
     protected final static int UPDATE_UI_ID = 0x0001_0002;
     /// 取消选中（客户端点三视图空白处后通知服务端）
     protected final static int DESELECT_ID = 0x0001_0003;
@@ -231,7 +229,6 @@ public class CombinedDirectionalConfigurator extends WidgetGroup {
     @Override
     @OnlyIn(Dist.CLIENT)
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        var lastSide = this.selectedSide;
         pressOnBlank = false;
 
         var result = super.mouseClicked(mouseX, mouseY, button);
@@ -246,16 +243,6 @@ public class CombinedDirectionalConfigurator extends WidgetGroup {
             pressOnBlank = true;
             pressX = mouseX;
             pressY = mouseY;
-        }
-
-        if (this.selectedSide == lastSide && this.selectedSide != null) {
-            if (hover != null && hover.pos.equals(machine.getPos()) && hover.facing == this.selectedSide) {
-                var cd = new ClickData();
-                writeClientAction(MOUSE_CLICK_CLIENT_ACTION_ID, buf -> {
-                    cd.writeToBuf(buf);
-                    buf.writeByte(this.selectedSide.ordinal());
-                });
-            }
         }
 
         return result;
@@ -281,21 +268,7 @@ public class CombinedDirectionalConfigurator extends WidgetGroup {
             applyDeselect();
             return;
         }
-        if (id != MOUSE_CLICK_CLIENT_ACTION_ID) {
-            super.handleClientAction(id, buf);
-            return;
-        }
-
-        var clickData = ClickData.readFromBuf(buf);
-        // 客户端可以伪造：方向下标越界、没有选中面、点的不是选中的面都不处理
-        int index = buf.readByte();
-        if (index < 0 || index >= GTUtil.DIRECTIONS.length || selectedSide == null) return;
-        var side = GTUtil.DIRECTIONS[index];
-        if (side != selectedSide) return;
-
-        for (IDirectionalConfigHandler configHandler : configHandlers) {
-            configHandler.handleClick(clickData, side);
-        }
+        super.handleClientAction(id, buf);
     }
 
     /**

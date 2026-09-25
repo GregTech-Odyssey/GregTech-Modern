@@ -3397,6 +3397,7 @@
   "gtceu.recipe.eu_inverted": "Generation: %s EU/t",
   "gtceu.recipe.eu_to_start": "EU To Start: %sEU%s",
   "gtceu.recipe.explosive": "Explosive: %s",
+  "gtceu.recipe.info.amperage": "Amperage",
   "gtceu.recipe.info.cwut": "Min. Computation",
   "gtceu.recipe.info.duration": "Duration",
   "gtceu.recipe.info.eu_generation": "Generation",

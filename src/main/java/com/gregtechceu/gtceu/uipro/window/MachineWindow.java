@@ -81,6 +81,7 @@ public class MachineWindow extends FancyMachineUIWidget {
     private MetaMachine backToMachine;
     /// 始终按屏幕居中（见 setCentered）
     private boolean centered;
+    private boolean titleFollowsTab;
     private boolean placing;
     /** 客户端：第一次摆放时的窗口宽度，之后切页时窗口左边缘按它固定（见 {@link #applyClientPlacement}）。 */
     private int anchorWidth;
@@ -340,6 +341,11 @@ public class MachineWindow extends FancyMachineUIWidget {
         return centered;
     }
 
+    public MachineWindow setTitleFollowsTab(boolean follows) {
+        this.titleFollowsTab = follows;
+        return this;
+    }
+
     /** 独立窗口：Esc 和背包键回到机器主界面，而不是关掉界面（界面里的输入框等先处理按键）。 */
     @Override
     @OnlyIn(Dist.CLIENT)
@@ -425,7 +431,7 @@ public class MachineWindow extends FancyMachineUIWidget {
         fancyUI.attachConfigurators(configurators);
         placeConfigurators();
         fancyUI.attachTooltips(tooltipsPanel);
-        title.setup(currentHomePage, contentWidth, !previousPages.isEmpty() || backToMachine != null, allPages.size() > 1 && currentPage != pageSwitcher, titleContent);
+        title.setup(titleFollowsTab ? fancyUI : currentHomePage, contentWidth, !previousPages.isEmpty() || backToMachine != null, allPages.size() > 1 && currentPage != pageSwitcher, titleContent);
 
         updatePlacement();
     }

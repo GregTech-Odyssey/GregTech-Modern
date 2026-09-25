@@ -95,11 +95,12 @@ public final class UISizes {
      * 多方块的状态显示窗、机器的三视图设置页都用这个尺寸，切换这两页时窗口不变大小。
      */
     public static final int MACHINE_PAGE_HEIGHT = 6 * SLOT;
+    public static final int RECIPE_MACHINE_PAGE_BLANK = 14;
     /**
-     * 单方块配方机器主页主体区的最小高度（4 格）：常见的一两格输入输出机器都在这个高度内，窗口一样大；
+     * 单方块配方机器主页主体区的最小高度：常见的一两格输入输出机器都在这个高度内，窗口一样大；
      * 组装机这类槽多的机器按内容撑高。
      */
-    public static final int RECIPE_MACHINE_PAGE_HEIGHT = 4 * SLOT;
+    public static final int RECIPE_MACHINE_PAGE_HEIGHT = 2 * SLOT + 2 * RECIPE_MACHINE_PAGE_BLANK - SECTION_GAP;
     /** 悬浮栏（dock）离所在区域底边的距离。 */
     public static final int DOCK_MARGIN = 4;
     /** 悬浮栏里的图标按钮边长：按钮面（去掉底部台阶）里正好原尺寸放下一个 16×16 图标。 */
