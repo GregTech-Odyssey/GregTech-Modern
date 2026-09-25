@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.uipro.ILayoutHost;
 import com.gregtechceu.gtceu.uipro.animation.Animation;
 import com.gregtechceu.gtceu.uipro.animation.AnimationEngine;
 import com.gregtechceu.gtceu.uipro.animation.Eases;
+import com.gregtechceu.gtceu.uipro.animation.PixelSnap;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -411,7 +412,21 @@ public class FancyMachineUIWidget extends WidgetGroup implements ILayoutHost {
     public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         if (firstFrameNanos < 0) firstFrameNanos = System.nanoTime();
         animations.updateFrame();
+        var pose = graphics.pose();
+        pose.pushPose();
+        pose.translate(PixelSnap.residual(offsetX), PixelSnap.residual(offsetY), 0);
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
+        pose.popPose();
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void drawInForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        var pose = graphics.pose();
+        pose.pushPose();
+        pose.translate(PixelSnap.residual(offsetX), PixelSnap.residual(offsetY), 0);
+        super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
+        pose.popPose();
     }
 
     /** 单个页面同步出错时记日志，不让它打断整个界面的同步。 */

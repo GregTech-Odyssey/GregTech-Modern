@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfiguratorButton;
 import com.gregtechceu.gtceu.uipro.animation.Animation;
 import com.gregtechceu.gtceu.uipro.animation.AnimationEngine;
 import com.gregtechceu.gtceu.uipro.animation.Eases;
+import com.gregtechceu.gtceu.uipro.animation.PixelSnap;
 import com.gregtechceu.gtceu.uipro.elements.TextLine;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
@@ -19,6 +20,7 @@ import com.lowdragmc.lowdraglib.utils.Size;
 
 import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -48,6 +50,9 @@ final class WindowConfiguratorPanel extends ConfiguratorPanel {
 
     private final AnimationEngine animations = new AnimationEngine();
     private final Map<Widget, AnimationEngine.Playback> moving = new IdentityHashMap<>();
+    private final Map<Widget, Motion> motions = new IdentityHashMap<>();
+
+    private record Motion(float x, float y, float width, float height) {}
 
     WindowConfiguratorPanel() {
         super(0, 0);
@@ -90,6 +95,7 @@ final class WindowConfiguratorPanel extends ConfiguratorPanel {
     public void clear() {
         for (var playback : moving.values()) playback.cancel();
         moving.clear();
+        motions.clear();
         super.clear();
     }
 
@@ -153,6 +159,7 @@ final class WindowConfiguratorPanel extends ConfiguratorPanel {
     private void moveTo(Widget tab, Position position, Size size, @Nullable Runnable onFinished) {
         var running = moving.remove(tab);
         if (running != null) running.cancel();
+        motions.remove(tab);
         var fromPosition = tab.getSelfPosition();
         var fromSize = tab.getSize();
         if (fromPosition.equals(position) && fromSize.equals(size) || !isRemote()) {
@@ -162,18 +169,34 @@ final class WindowConfiguratorPanel extends ConfiguratorPanel {
             return;
         }
         var playback = animations.play(MOVE, 0, 1, k -> {
-            tab.setSelfPosition(new Position(lerp(fromPosition.x, position.x, k), lerp(fromPosition.y, position.y, k)));
-            tab.setSize(new Size(lerp(fromSize.width, size.width, k), lerp(fromSize.height, size.height, k)));
+            var motion = new Motion(Mth.lerp(k, fromPosition.x, position.x), Mth.lerp(k, fromPosition.y, position.y),
+                    Mth.lerp(k, fromSize.width, size.width), Mth.lerp(k, fromSize.height, size.height));
+            motions.put(tab, motion);
+            tab.setSelfPosition(new Position(Math.round(motion.x), Math.round(motion.y)));
+            tab.setSize(new Size(Math.round(motion.width), Math.round(motion.height)));
         });
         playback.onFinished(() -> {
             moving.remove(tab);
+            motions.remove(tab);
             if (onFinished != null) onFinished.run();
         });
         moving.put(tab, playback);
     }
 
-    private static int lerp(int from, int to, float k) {
-        return Math.round(from + (to - from) * k);
+    @OnlyIn(Dist.CLIENT)
+    private boolean pushMotion(GuiGraphics graphics, Widget tab) {
+        var motion = motions.get(tab);
+        int width = tab.getSizeWidth(), height = tab.getSizeHeight();
+        if (motion == null || width <= 0 || height <= 0) return false;
+        float left = PixelSnap.snap(motion.x), top = PixelSnap.snap(motion.y);
+        float right = PixelSnap.snap(motion.x + motion.width), bottom = PixelSnap.snap(motion.y + motion.height);
+        int parentX = tab.getPositionX() - tab.getSelfPositionX(), parentY = tab.getPositionY() - tab.getSelfPositionY();
+        var pose = graphics.pose();
+        pose.pushPose();
+        pose.translate(parentX + left, parentY + top, 0);
+        pose.scale((right - left) / width, (bottom - top) / height, 1);
+        pose.translate(-tab.getPositionX(), -tab.getPositionY(), 0);
+        return true;
     }
 
     @Nullable
@@ -325,6 +348,22 @@ final class WindowConfiguratorPanel extends ConfiguratorPanel {
 
         @Override
         @OnlyIn(Dist.CLIENT)
+        public void drawInBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+            boolean moved = pushMotion(graphics, this);
+            super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
+            if (moved) graphics.pose().popPose();
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void drawInForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+            boolean moved = pushMotion(graphics, this);
+            super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
+            if (moved) graphics.pose().popPose();
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
         public boolean mouseClicked(double mouseX, double mouseY, int button) {
             feedback.mouseClicked(mouseX, mouseY, button);
             return super.mouseClicked(mouseX, mouseY, button);
@@ -384,6 +423,22 @@ final class WindowConfiguratorPanel extends ConfiguratorPanel {
         private AnimatedFloatingTab(IFancyConfigurator configurator) {
             super(configurator);
             restyleTitle(view, configurator);
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void drawInBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+            boolean moved = pushMotion(graphics, this);
+            super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
+            if (moved) graphics.pose().popPose();
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void drawInForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+            boolean moved = pushMotion(graphics, this);
+            super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
+            if (moved) graphics.pose().popPose();
         }
 
         @Override

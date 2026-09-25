@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.animation.Animation;
 import com.gregtechceu.gtceu.uipro.animation.AnimationEngine;
 import com.gregtechceu.gtceu.uipro.animation.Eases;
+import com.gregtechceu.gtceu.uipro.animation.PixelSnap;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uipro.utils.LockedScrollerSizes;
@@ -600,7 +601,7 @@ public class CanvasView extends UIElement {
         var matrix = pose.last().pose();
         matrix.transform(scissorMin.set(vx, vy, 0, 1));
         matrix.transform(scissorMax.set(vx + vw, vy + vh, 0, 1));
-        graphics.enableScissor((int) scissorMin.x, (int) scissorMin.y, (int) scissorMax.x, (int) scissorMax.y);
+        graphics.enableScissor(Math.round(scissorMin.x), Math.round(scissorMin.y), Math.round(scissorMax.x), Math.round(scissorMax.y));
         if (painter == null) painter = new CanvasPainter();
         if (grid != null) {
             // 网格按屏幕坐标画：画笔先以屏幕空间开始本帧
@@ -612,7 +613,7 @@ public class CanvasView extends UIElement {
         var visible = CanvasRect.of(offsetX - margin, offsetY - margin, vw / scale + 2 * margin, vh / scale + 2 * margin);
         float worldMouseX = inside ? toWorldX(mouseX) : Float.NaN, worldMouseY = inside ? toWorldY(mouseY) : Float.NaN;
         pose.pushPose();
-        pose.translate(vx - offsetX * scale, vy - offsetY * scale, 0);
+        pose.translate(PixelSnap.snap(vx - offsetX * scale), PixelSnap.snap(vy - offsetY * scale), 0);
         pose.scale(scale, scale, 1);
         painter.begin(graphics, scale, lod(), visible, worldMouseX, worldMouseY, hovered);
         selectedRects.clear();
@@ -624,9 +625,13 @@ public class CanvasView extends UIElement {
         pose.popPose();
         // 选中框在屏幕空间画（与物品槽的选中框同一个），任何缩放下都是同样粗细
         for (var rect : selectedRects) {
-            int sx = Math.round(vx + (rect.x() - offsetX) * scale), sy = Math.round(vy + (rect.y() - offsetY) * scale);
+            float fx = vx + (rect.x() - offsetX) * scale, fy = vy + (rect.y() - offsetY) * scale;
+            int sx = Math.round(fx), sy = Math.round(fy);
             int sw = Math.round(rect.width() * scale), sh = Math.round(rect.height() * scale);
+            pose.pushPose();
+            pose.translate(PixelSnap.residual(fx), PixelSnap.residual(fy), 0);
             UITheme.drawSelection(graphics, sx, sy, sw, sh);
+            pose.popPose();
         }
 
         pose.pushPose();
@@ -660,12 +665,12 @@ public class CanvasView extends UIElement {
             int skip = level.skipEvery();
             for (long i = firstX; i <= lastX; i++) {
                 if (skip > 0 && Math.floorMod(i, skip) == 0) continue;
-                float sx = Math.round(vx + (i * cell - offsetX) * scale);
+                float sx = PixelSnap.snap(vx + (i * cell - offsetX) * scale);
                 painter.fill(sx, vy, sx + 1, vy + vh, color);
             }
             for (long i = firstY; i <= lastY; i++) {
                 if (skip > 0 && Math.floorMod(i, skip) == 0) continue;
-                float sy = Math.round(vy + (i * cell - offsetY) * scale);
+                float sy = PixelSnap.snap(vy + (i * cell - offsetY) * scale);
                 painter.fill(vx, sy, vx + vw, sy + 1, color);
             }
         }
