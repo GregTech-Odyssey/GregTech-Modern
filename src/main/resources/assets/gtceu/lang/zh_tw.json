@@ -2277,6 +2277,7 @@
     "gtceu.recipe.info.eu_usage": "耗能功率",
     "gtceu.recipe.info.eu_generation": "產能功率",
     "gtceu.recipe.info.amperage": "電流",
+    "gtceu.recipe.info.link": "點擊跳轉",
     "gtceu.recipe.info.cwut": "最小算力",
     "gtceu.recipe.info.total_cwu": "總計算量",
     "gtceu.recipe.info.overclock": "超頻預覽：切換電壓檔查看超頻後的耗時與功率（最低：%s）",

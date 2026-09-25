@@ -380,7 +380,9 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         }
         if (values && sentences) panel.divider();
         for (var line : info.lines()) {
-            if (line.labelKey() == null) panel.sentence(line.value());
+            if (line.labelKey() != null) continue;
+            if (line.onClick() != null) panel.link(line.value(), line.onClick());
+            else panel.sentence(line.value());
         }
         return panel;
     }

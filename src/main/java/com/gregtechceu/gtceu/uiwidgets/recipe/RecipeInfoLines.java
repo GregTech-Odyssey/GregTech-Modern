@@ -22,26 +22,32 @@ import java.util.function.Supplier;
 public final class RecipeInfoLines implements RecipeInfoBuilder {
 
     /** 一行：{@code labelKey} 为 null 时是整句。 */
-    public record Line(@Nullable String labelKey, Supplier<Component> value) {}
+    public record Line(@Nullable String labelKey, Supplier<Component> value, @Nullable Runnable onClick) {}
 
     private final List<Line> lines = new ArrayList<>();
     private final List<Supplier<Widget>> slots = new ArrayList<>(2);
 
     @Override
     public RecipeInfoLines line(String labelKey, Supplier<Component> value) {
-        lines.add(new Line(labelKey, Suppliers.memoize(() -> nonNull(value.get()))));
+        lines.add(new Line(labelKey, Suppliers.memoize(() -> nonNull(value.get())), null));
         return this;
     }
 
     @Override
     public RecipeInfoLines sentence(Supplier<Component> text) {
-        lines.add(new Line(null, Suppliers.memoize(() -> nonNull(text.get()))));
+        lines.add(new Line(null, Suppliers.memoize(() -> nonNull(text.get())), null));
+        return this;
+    }
+
+    @Override
+    public RecipeInfoLines link(Supplier<Component> text, Runnable onClick) {
+        lines.add(new Line(null, Suppliers.memoize(() -> nonNull(text.get())), onClick));
         return this;
     }
 
     /** 数值随页面状态变化（如超频预览的电压档）的一行，每次取值都调用 {@code value}，调用方负责让它廉价。 */
     public RecipeInfoLines dynamicLine(String labelKey, Supplier<Component> value) {
-        lines.add(new Line(labelKey, value));
+        lines.add(new Line(labelKey, value, null));
         return this;
     }
 

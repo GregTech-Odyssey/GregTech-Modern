@@ -31,6 +31,10 @@ public interface RecipeInfoBuilder {
         return sentence(() -> text);
     }
 
+    default RecipeInfoBuilder link(Supplier<Component> text, Runnable onClick) {
+        return sentence(text);
+    }
+
     /**
      * 配方要求的额外展示槽（18 见方，只展示、不可取放），排在状态面板下方。
      * 控件应是 uipro {@code ItemSlot} / {@code FluidSlot}（或其他实现了 {@code IRecipeIngredientSlot} 的槽），

@@ -42,6 +42,7 @@ public final class UITheme {
     public static final int TEXT_SECONDARY = 0xFF555555;
     /** 区块面板（{@link #PANEL}）里的文字。 */
     public static final int PANEL_TEXT = 0xFF202020;
+    public static final int LINK_TEXT = 0xFF1B5E9E;
     /** 深色框里的文字。 */
     public static final int FIELD_TEXT = OreSprites.TEXT_LIGHT;
     /** 深色框里的占位提示文字。 */
@@ -82,6 +83,7 @@ public final class UITheme {
     /** 步进器、翻页的左右箭头（放在 {@code Button.icon} 里），与按钮文字同色。 */
     public static final IGuiTexture ARROW_LEFT = new OreSprites.Arrow(true, OreSprites.TEXT_DARK);
     public static final IGuiTexture ARROW_RIGHT = new OreSprites.Arrow(false, OreSprites.TEXT_DARK);
+    public static final IGuiTexture LINK_ARROW = new OreSprites.Arrow(false, LINK_TEXT);
     public static final IGuiTexture ARROW_UP = new OreSprites.VerticalArrow(true, OreSprites.TEXT_DARK);
     public static final IGuiTexture ARROW_DOWN = new OreSprites.VerticalArrow(false, OreSprites.TEXT_DARK);
     /** "页面"图标（3×3 方格）：标题栏的页面切换按钮、页面切换页自己的标题图标，与箭头同色。 */

@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -49,6 +50,9 @@ public class RecipeSpecPanel extends UIElement {
     private static final int BULLET = 3;
     private static final int BULLET_SPACE = BULLET + 3;
     private static final int TEXT_LINE = 8;
+    private static final int LINK_ARROW_WIDTH = 4;
+    private static final int LINK_ARROW_SPACE = LINK_ARROW_WIDTH + 3;
+    private static final String LINK_HINT = "gtceu.recipe.info.link";
 
     private int rows;
 
@@ -85,13 +89,18 @@ public class RecipeSpecPanel extends UIElement {
 
     /** 数值行："名称 …… 数值"。 */
     public RecipeSpecPanel value(Component label, Supplier<Component> value) {
-        addChild(new Row(label, value, rows++ % 2 == 1));
+        addChild(new Row(label, value, rows++ % 2 == 1, null));
         return this;
     }
 
     /** 说明行：一整句。 */
     public RecipeSpecPanel sentence(Supplier<Component> text) {
-        addChild(new Row(null, text, false));
+        addChild(new Row(null, text, false, null));
+        return this;
+    }
+
+    public RecipeSpecPanel link(Supplier<Component> text, Runnable onClick) {
+        addChild(new Row(null, text, false, onClick));
         return this;
     }
 
@@ -176,14 +185,17 @@ public class RecipeSpecPanel extends UIElement {
         private final Component label;
         private final SyncValue<Component> value;
         private final boolean striped;
+        @Nullable
+        private final Runnable onClick;
         private final CachedText labelText = new CachedText();
         private final CachedText valueText = new CachedText();
         /// 上次绘制时有没有截断（悬停据此显示整行）
         private boolean truncated;
 
-        private Row(@Nullable Component label, Supplier<Component> value, boolean striped) {
+        private Row(@Nullable Component label, Supplier<Component> value, boolean striped, @Nullable Runnable onClick) {
             this.label = label;
             this.striped = striped;
+            this.onClick = onClick;
             layout(l -> l.height(ROW_HEIGHT).alignSelf(AlignItems.STRETCH));
             this.value = addSyncValue(SyncValue.of(value, SyncValue.COMPONENT, Component.empty()));
         }
@@ -197,6 +209,22 @@ public class RecipeSpecPanel extends UIElement {
             int textY = y + (ROW_HEIGHT - TEXT_LINE) / 2;
             int left = x + ROW_INSET, inner = width - 2 * ROW_INSET;
             var shownValue = valueText.update(font, value.getValue());
+            if (label == null && onClick != null) {
+                boolean hovered = isMouseOverElement(mouseX, mouseY);
+                if (hovered) graphics.fill(x, y, x + width, y + ROW_HEIGHT, UITheme.SEGMENT_HOVER);
+                int bulletY = y + (ROW_HEIGHT - BULLET) / 2;
+                graphics.fill(left, bulletY, left + BULLET, bulletY + BULLET, UITheme.LINK_TEXT);
+                int textWidth = inner - BULLET_SPACE - LINK_ARROW_SPACE;
+                truncated = shownValue.width > textWidth;
+                String clipped = shownValue.clip(font, textWidth);
+                graphics.drawString(font, clipped, left + BULLET_SPACE, textY, UITheme.LINK_TEXT, false);
+                if (hovered) {
+                    graphics.fill(left + BULLET_SPACE, textY + TEXT_LINE, left + BULLET_SPACE + font.width(clipped), textY + TEXT_LINE + 1,
+                            UITheme.LINK_TEXT);
+                }
+                UITheme.LINK_ARROW.draw(graphics, mouseX, mouseY, left + inner - LINK_ARROW_WIDTH, y, LINK_ARROW_WIDTH, ROW_HEIGHT);
+                return;
+            }
             if (label == null) {
                 int bulletY = y + (ROW_HEIGHT - BULLET) / 2;
                 graphics.fill(left, bulletY, left + BULLET, bulletY + BULLET, UITheme.TEXT_SECONDARY);
@@ -219,10 +247,25 @@ public class RecipeSpecPanel extends UIElement {
         public void drawInForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
             super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
             if (gui == null || gui.getModularUIGui() == null || !isMouseOverElement(mouseX, mouseY)) return;
+            if (onClick != null) {
+                var hint = Component.translatable(LINK_HINT).withStyle(ChatFormatting.DARK_GRAY);
+                var lines = truncated ? List.<Component>of(value.getValue(), hint) : List.<Component>of(hint);
+                gui.getModularUIGui().setHoverTooltip(lines, ItemStack.EMPTY, null, null);
+                return;
+            }
             // 截断时，悬停显示整行
             if (!truncated) return;
             var full = label == null ? value.getValue().copy() : label.copy().append("  ").append(value.getValue());
             gui.getModularUIGui().setHoverTooltip(List.of(full), ItemStack.EMPTY, null, null);
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public boolean mouseClicked(double mouseX, double mouseY, int button) {
+            if (onClick == null || button != 0 || !isMouseOverElement(mouseX, mouseY)) return super.mouseClicked(mouseX, mouseY, button);
+            playButtonClickSound();
+            onClick.run();
+            return true;
         }
     }
 }

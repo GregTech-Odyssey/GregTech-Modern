@@ -3402,6 +3402,7 @@
   "gtceu.recipe.info.duration": "Duration",
   "gtceu.recipe.info.eu_generation": "Generation",
   "gtceu.recipe.info.eu_usage": "Usage",
+  "gtceu.recipe.info.link": "Click to open",
   "gtceu.recipe.info.max_eu": "Max Total",
   "gtceu.recipe.info.overclock": "Overclock preview: change the voltage tier to see duration and power after overclocking (minimum: %s)",
   "gtceu.recipe.info.overclock_perfect": "Hold Shift while changing to preview perfect overclocking",
