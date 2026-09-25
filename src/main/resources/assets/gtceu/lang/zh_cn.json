@@ -2387,6 +2387,8 @@
     "gtceu.gui.toggle_view.disabled": "切换视图（流体）",
     "gtceu.gui.toggle_view.enabled": "切换视图（物品）",
     "gtceu.gui.waiting_list": "发送队列：",
+    "gtceu.gui.output_priority": "多方块产出优先级",
+    "gtceu.gui.output_priority.desc": "数值越大，越先接收多方块的产出",
     "gtceu.hazard_trigger.any": "任何方式",
     "gtceu.hazard_trigger.description": "由此导致：",
     "gtceu.hazard_trigger.inhalation": "吸入",

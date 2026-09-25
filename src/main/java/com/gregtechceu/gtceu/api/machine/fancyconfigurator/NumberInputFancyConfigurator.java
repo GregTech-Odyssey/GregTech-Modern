@@ -1,7 +1,10 @@
 package com.gregtechceu.gtceu.api.machine.fancyconfigurator;
 
+import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
+import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
+import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
 import com.gregtechceu.gtceu.api.gui.widget.NumberInputWidget;
 import com.gregtechceu.gtceu.uiwidgets.number.NumberSettingPage;
 
@@ -36,6 +39,7 @@ public class NumberInputFancyConfigurator<T extends Number> implements IFancyUIP
     private Component title;
     private Supplier<IGuiTexture> tabIcon;
     private List<Component> tabTooltips;
+    private List<Component> infoTooltips = List.of();
 
     private final NumberInputWidget<T> inputWidget;
 
@@ -61,6 +65,12 @@ public class NumberInputFancyConfigurator<T extends Number> implements IFancyUIP
     public Widget createMainPage(FancyMachineUIWidget widget) {
         return NumberSettingPage.create(title, inputWidget::getLongValue, inputWidget::setLongValue,
                 inputWidget::getLongMin, inputWidget::getLongMax, inputWidget.getLongSteps());
+    }
+
+    @Override
+    public void attachTooltips(TooltipsPanel tooltipsPanel) {
+        if (infoTooltips.isEmpty()) return;
+        tooltipsPanel.attachTooltips(new IFancyTooltip.Basic(() -> GuiTextures.INFO_ICON, () -> infoTooltips, () -> true, () -> null));
     }
 
     public NumberInputFancyConfigurator<T> setMin(T min) {

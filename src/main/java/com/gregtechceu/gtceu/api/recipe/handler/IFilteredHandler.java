@@ -11,6 +11,7 @@ import net.minecraft.network.chat.Component;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -42,6 +43,9 @@ public interface IFilteredHandler {
     /** 最低优先级，取 {@link Integer#MIN_VALUE}。 */
     int LOWEST = Integer.MIN_VALUE;
 
+    String OUTPUT_PRIORITY = "gtceu.gui.output_priority";
+    String OUTPUT_PRIORITY_DESC = "gtceu.gui.output_priority.desc";
+
     /**
      * 创建一个用于在 GUI 中调整优先级的配置面板。
      *
@@ -54,6 +58,10 @@ public interface IFilteredHandler {
         configurator.setTabTooltips(Collections.singletonList(Component.translatable("gui.ae2.Priority")));
         configurator.setTabIcon(() -> new ItemStackTexture(GTItems.TAG_FILTER.asItem()));
         return configurator;
+    }
+
+    static NumberInputFancyConfigurator<Integer> createOutputPriorityConfigurator(Supplier<Integer> get, Consumer<Integer> set) {
+        return createPriorityConfigurator(get, set).setInfoTooltips(List.of(Component.translatable(OUTPUT_PRIORITY), Component.translatable(OUTPUT_PRIORITY_DESC)));
     }
 
     /**

@@ -2311,6 +2311,8 @@
   "gtceu.gui.multiblock_item_voiding.1": "§7Voiding §6Items",
   "gtceu.gui.multiblock_no_voiding.0": "Voiding Mode",
   "gtceu.gui.multiblock_no_voiding.1": "§7Voiding Nothing",
+  "gtceu.gui.output_priority": "Multiblock Output Priority",
+  "gtceu.gui.output_priority.desc": "Higher values receive multiblock outputs first",
   "gtceu.gui.output_setting.title": "Output Settings",
   "gtceu.gui.output_setting.tooltips.0": "left-click to tune the item auto output",
   "gtceu.gui.output_setting.tooltips.1": "right-click to tune the fluid auto output.",

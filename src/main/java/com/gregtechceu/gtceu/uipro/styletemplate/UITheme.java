@@ -69,7 +69,7 @@ public final class UITheme {
     /** 机器窗口、弹出面板的外框（里面的字用 {@link #TEXT}）。 */
     public static final IGuiTexture WINDOW = OreSprites.BORDER_7_BRIGHT;
     /**
-     * 信息图标图集（{@code info_icons.png}，4 个 18×18 横排）：说明（蓝 i，与 GTM 标题栏机器说明图标逐像素相同）、
+     * 信息图标图集（{@code info_icons.png}，4 个 18×18 横排）：说明（蓝 i）、
      * 警告（黄 !）、错误（红 ×）、成功（绿 ✓）；后三个沿用同一圆形的描边、高光与颗粒，只换颜色和符号。
      */
     private static final ResourceTexture INFO_ICONS = new ResourceTexture(GTCEu.id("textures/gui/uipro/info_icons.png"));

@@ -483,7 +483,8 @@ public class GuiTextures {
             "gtceu:textures/gui/progress_bar/progress_bar_research_station_base.png");
 
     // JEI
-    public static final ResourceTexture INFO_ICON = new ResourceTexture("gtceu:textures/gui/widget/information.png");
+    public static final ResourceTexture INFO_ICON = new ResourceTexture("gtceu:textures/gui/uipro/info_icons.png")
+            .getSubTexture(0.0, 0.0, 0.25, 1.0);
     public static final ResourceTexture MULTIBLOCK_CATEGORY = new ResourceTexture(
             "gtceu:textures/gui/icon/coke_oven.png");
 

@@ -1518,6 +1518,8 @@ public class LangHandler {
         provider.add("gtceu.gui.me_network.online", "Network Status: §2Online§r");
         provider.add("gtceu.gui.me_network.offline", "Network Status: §4Offline§r");
         provider.add("gtceu.gui.waiting_list", "Sending Queue:");
+        provider.add("gtceu.gui.output_priority", "Multiblock Output Priority");
+        provider.add("gtceu.gui.output_priority.desc", "Higher values receive multiblock outputs first");
         provider.add("gtceu.gui.config_slot", "§fConfig Slot§r");
         provider.add("gtceu.gui.config_slot.set", "§7Click to §bset/select§7 config slot.§r");
         provider.add("gtceu.gui.config_slot.scroll", "§7Scroll wheel to §achange§7 config amount.§r");

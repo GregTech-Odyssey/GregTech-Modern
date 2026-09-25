@@ -2348,6 +2348,8 @@
     "gtceu.gui.toggle_view.disabled": "切換檢視（流體）",
     "gtceu.gui.toggle_view.enabled": "切換檢視（物品）",
     "gtceu.gui.waiting_list": "傳送佇列：",
+    "gtceu.gui.output_priority": "多方塊產出優先級",
+    "gtceu.gui.output_priority.desc": "數值越大，越先接收多方塊的產出",
     "gtceu.hazard_trigger.any": "任何方式",
     "gtceu.hazard_trigger.description": "肇因：",
     "gtceu.hazard_trigger.inhalation": "吸入",

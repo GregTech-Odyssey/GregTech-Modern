@@ -244,7 +244,7 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     @Override
     public void attachSideTabs(TabsWidget sideTabs) {
         super.attachSideTabs(sideTabs);
-        sideTabs.attachSubTab(IFilteredHandler.createPriorityConfigurator(this::getPriority, this::setPriority));
+        sideTabs.attachSubTab(io == IO.OUT ? IFilteredHandler.createOutputPriorityConfigurator(this::getPriority, this::setPriority) : IFilteredHandler.createPriorityConfigurator(this::getPriority, this::setPriority));
     }
 
     @Override
