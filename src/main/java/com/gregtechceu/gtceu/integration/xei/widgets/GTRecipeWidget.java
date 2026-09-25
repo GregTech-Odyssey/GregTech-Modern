@@ -35,6 +35,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.loading.FMLLoader;
@@ -80,7 +81,6 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     private static final String MAX_EU = "gtceu.recipe.info.max_eu";
     private static final String EU_USAGE = "gtceu.recipe.info.eu_usage";
     private static final String EU_GENERATION = "gtceu.recipe.info.eu_generation";
-    private static final String AMPERAGE = "gtceu.recipe.info.amperage";
     private static final String OVERCLOCK_INFO = "gtceu.recipe.info.overclock";
     private static final String OVERCLOCK_PERFECT = "gtceu.recipe.info.overclock_perfect";
     private static final String PREVIEW_TIER = "gtceu.recipe.info.preview_tier";
@@ -139,7 +139,6 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     private Component durationText = Component.empty();
     private Component energyText = Component.empty();
     private Component powerText = Component.empty();
-    private Component amperageText = Component.empty();
     private String tierText = "";
     /// 各槽位对应的配方内容，与带内容的槽位（切换电压档时只刷新它们）
     private final Table<IO, RecipeInfo, List<Content>> contents = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap::new);
@@ -338,7 +337,6 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         if (eut > 0) {
             previewLine(info, isTotalCwu(recipe) ? MAX_EU : TOTAL_EU, () -> page.energyText);
             previewLine(info, inputEUt != 0 ? EU_USAGE : EU_GENERATION, () -> page.powerText);
-            previewLine(info, AMPERAGE, () -> page.amperageText);
         }
         for (var dataInfo : recipe.recipeType.getDataInfos()) {
             // 与电压档无关，取一次
@@ -463,9 +461,10 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         long energy = eut * duration;
         if (isTotalCwu(recipe)) energy /= Math.max(recipe.data.getLong(GTRecipeDataKeys.CWUT), 1);
         energyText = Component.literal(FormattingUtil.formatNumbers(energy) + " EU");
-        powerText = Component.literal(FormattingUtil.formatNumbers(eut) + " EU/t");
         int voltageTier = GTUtil.getTierByVoltage(eut);
-        amperageText = Component.translatable("gtceu.recipe.eu.tier", FormattingUtil.formatNumber2Places((float) eut / V[voltageTier]), VN[voltageTier]);
+        var amperageText = Component.translatable("gtceu.recipe.eu.tier", FormattingUtil.formatNumber2Places((float) eut / V[voltageTier]), VN[voltageTier]);
+        powerText = Component.literal(FormattingUtil.formatNumbers(eut) + " EU/t")
+                .withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, amperageText)));
         // 超过最低电压且按无损超频计算时，档位后加 * 提示
         tierText = perfectOverclock && tier > minTier ? VN[tier] + "*" : VN[tier];
     }

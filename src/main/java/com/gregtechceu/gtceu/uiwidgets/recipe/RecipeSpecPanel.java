@@ -12,6 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -252,6 +253,14 @@ public class RecipeSpecPanel extends UIElement {
                 var lines = truncated ? List.<Component>of(value.getValue(), hint) : List.<Component>of(hint);
                 gui.getModularUIGui().setHoverTooltip(lines, ItemStack.EMPTY, null, null);
                 return;
+            }
+            var hoverEvent = value.getValue().getStyle().getHoverEvent();
+            if (hoverEvent != null) {
+                var hoverText = hoverEvent.getValue(HoverEvent.Action.SHOW_TEXT);
+                if (hoverText != null) {
+                    gui.getModularUIGui().setHoverTooltip(List.of(hoverText), ItemStack.EMPTY, null, null);
+                    return;
+                }
             }
             // 截断时，悬停显示整行
             if (!truncated) return;
