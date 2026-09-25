@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.uiwidgets.patternbuilder.PatternBuilderScreen;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluids;
@@ -14,12 +15,14 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.GenericStack;
 import appeng.core.definitions.AEItems;
 import appeng.integration.modules.jeirei.EncodingHelper;
+import appeng.menu.me.common.IClientRepo;
 import appeng.menu.me.items.PatternEncodingTermMenu;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public final class Ae2PatternBuilder {
 
@@ -30,13 +33,20 @@ public final class Ae2PatternBuilder {
 
     public static void open(PatternEncodingTermMenu menu, PatternBuilderModel.Builder builder, Component title,
                             List<GenericStack> outputs, Runnable beforeEncode) {
-        var stock = stockIndex(menu);
+        open(menu, menu.getClientRepo(), menu.getProcessingInputSlots().length, builder, title, inputs -> {
+            beforeEncode.run();
+            EncodingHelper.encodeProcessingRecipe(menu, inputs, outputs);
+        });
+    }
+
+    public static void open(AbstractContainerMenu menu, @Nullable IClientRepo repo, int inputLimit, PatternBuilderModel.Builder builder,
+                            Component title, Consumer<List<List<GenericStack>>> encoder) {
+        var stock = stockIndex(repo);
         var model = builder.build(stack -> stock == null ? null : stock.getOrDefault(stockKey(stack), NONE));
-        PatternBuilderScreen.open(model, AEItems.BLANK_PATTERN.stack(), title, menu.getProcessingInputSlots().length, () -> {
+        PatternBuilderScreen.open(model, AEItems.BLANK_PATTERN.stack(), title, inputLimit, () -> {
             var player = Minecraft.getInstance().player;
             if (player == null || player.containerMenu != menu) return;
-            beforeEncode.run();
-            EncodingHelper.encodeProcessingRecipe(menu, inputs(model), outputs);
+            encoder.accept(inputs(model));
         });
     }
 
@@ -60,8 +70,7 @@ public final class Ae2PatternBuilder {
     }
 
     @Nullable
-    private static Reference2ObjectOpenHashMap<Object, PatternBuilderModel.Stock> stockIndex(PatternEncodingTermMenu menu) {
-        var repo = menu.getClientRepo();
+    private static Reference2ObjectOpenHashMap<Object, PatternBuilderModel.Stock> stockIndex(@Nullable IClientRepo repo) {
         if (repo == null) return null;
         var index = new Reference2ObjectOpenHashMap<Object, PatternBuilderModel.Stock>();
         for (var entry : repo.getAllEntries()) {
