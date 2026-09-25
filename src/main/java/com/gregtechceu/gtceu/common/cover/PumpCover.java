@@ -9,9 +9,6 @@ import com.gregtechceu.gtceu.api.cover.IUICover;
 import com.gregtechceu.gtceu.api.cover.filter.FilterHandler;
 import com.gregtechceu.gtceu.api.cover.filter.FilterHandlers;
 import com.gregtechceu.gtceu.api.cover.filter.FluidFilter;
-import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
-import com.gregtechceu.gtceu.api.gui.widget.IntInputWidget;
-import com.gregtechceu.gtceu.api.gui.widget.NumberInputWidget;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerDelegate;
@@ -19,11 +16,16 @@ import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.api.transfer.fluid.ModifiableFluidHandlerWrapper;
 import com.gregtechceu.gtceu.common.cover.data.BucketMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
+import com.gregtechceu.gtceu.uipro.LayoutStyle;
+import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.NumberField;
+import com.gregtechceu.gtceu.uipro.elements.TextLine;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -44,6 +46,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -79,7 +83,6 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
     @SyncToClient
     protected final FilterHandler<FluidStack, FluidFilter> filterHandler;
     protected final ConditionalSubscriptionHandler subscriptionHandler;
-    private NumberInputWidget<Integer> transferRateWidget;
 
     public PumpCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide, int tier, int maxTransferRate) {
         super(definition, coverHolder, attachedSide);
@@ -165,17 +168,7 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
     }
 
     public void setBucketMode(BucketMode bucketMode) {
-        var oldMultiplier = this.bucketMode.multiplier;
-        var newMultiplier = bucketMode.multiplier;
         this.bucketMode = bucketMode;
-        if (transferRateWidget == null) return;
-        if (oldMultiplier > newMultiplier) {
-            transferRateWidget.setValue(getCurrentBucketModeTransferRate());
-        }
-        transferRateWidget.setMax(maxFluidTransferRate / bucketMode.multiplier);
-        if (newMultiplier > oldMultiplier) {
-            transferRateWidget.setValue(getCurrentBucketModeTransferRate());
-        }
     }
 
     protected void setManualIOMode(ManualIOMode manualIOMode) {
@@ -239,22 +232,42 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
     //////////////////////////////////////
     @Override
     public Widget createUIWidget() {
-        final var group = new WidgetGroup(0, 0, 176, 137);
-        group.addWidget(new LabelWidget(10, 5, Component.translatable(getUITitle(), GTValues.VN[tier]).getString()));
-        transferRateWidget = new IntInputWidget(10, 20, 134, 20, this::getCurrentBucketModeTransferRate, this::setCurrentBucketModeTransferRate).setMin(0);
-        setBucketMode(this.bucketMode); // initial input widget config happens here
-        group.addWidget(transferRateWidget);
-        group.addWidget(new EnumSelectorWidget<>(146, 20, 20, 20, Arrays.stream(BucketMode.values()).filter(m -> m.multiplier <= maxFluidTransferRate).toList(), bucketMode, this::setBucketMode).setTooltipSupplier(this::getBucketModeTooltip));
-        group.addWidget(new EnumSelectorWidget<>(10, 45, 20, 20, List.of(IO.IN, IO.OUT), io, this::setIo));
-        group.addWidget(new EnumSelectorWidget<>(146, 107, 20, 20, ManualIOMode.VALUES, manualIOMode, this::setManualIOMode).setHoverTooltips("cover.universal.manual_import_export.mode.description"));
-        group.addWidget(filterHandler.createFilterSlotUI(125, 108));
-        group.addWidget(filterHandler.createFilterConfigUI(10, 72, 156, 60));
-        buildAdditionalUI(group);
-        return group;
+        var page = CoverUIs.page().addChildren(createTransferSection(), createModeSection());
+        buildAdditionalUI(page);
+        return hasFilterUI() ? page.addChild(CoverUIs.filterSection(filterHandler)) : page;
     }
 
-    private List<Component> getBucketModeTooltip(BucketMode mode, String langKey) {
-        return List.of(Component.translatable(langKey).append(Component.translatable("gtceu.gui.content.units.per_tick")));
+    protected boolean hasFilterUI() {
+        return true;
+    }
+
+    private UIElement createTransferSection() {
+        var modes = Arrays.stream(BucketMode.values()).filter(m -> m.multiplier <= maxFluidTransferRate).toList();
+        var field = new NumberField(LayoutStyle.AUTO, this::getCurrentBucketModeTransferRate, value -> setCurrentBucketModeTransferRate((int) value),
+                () -> 0, () -> maxFluidTransferRate / bucketMode.multiplier);
+        return CoverUIs.section("cover.ui.transfer").addChild(fluidAmountRow(
+                () -> Component.translatable("cover.pump.ui.transfer_rate", Component.translatable(bucketMode.getTooltip())),
+                modes, this::getBucketMode, this::setBucketMode, field));
+    }
+
+    private UIElement createModeSection() {
+        return CoverUIs.section("cover.ui.modes").addChildren(
+                CoverUIs.enumRow("cover.ui.io", List.of(IO.IN, IO.OUT), this::getIo, this::setIo),
+                CoverUIs.enumRow("cover.ui.manual_io", List.of(ManualIOMode.VALUES), this::getManualIOMode, this::setManualIOMode,
+                        "cover.universal.manual_import_export.mode.description.0",
+                        "cover.universal.manual_import_export.mode.description.1",
+                        "cover.universal.manual_import_export.mode.description.2"));
+    }
+
+    protected static UIElement fluidAmountRow(Supplier<Component> label, List<BucketMode> modes, Supplier<BucketMode> current,
+                                              Consumer<BucketMode> set, NumberField field, String... tooltipKeys) {
+        var text = TextLine.of(0, label).setColor(UITheme.PANEL_TEXT);
+        text.layout(l -> l.flex(1));
+        if (tooltipKeys.length > 0) text.setHoverTooltips(tooltipKeys);
+        boolean selectable = modes.size() > 1;
+        var head = UIElement.row(selectable ? UISizes.SLOT : UISizes.TEXT_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter()).addChild(text);
+        if (selectable) head.addChild(CoverUIs.enumIcons(modes, current, set));
+        return UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(head, field);
     }
 
     private int getCurrentBucketModeTransferRate() {
@@ -265,11 +278,7 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
         this.setTransferRate(transferRate * this.bucketMode.multiplier);
     }
 
-    protected String getUITitle() {
-        return "cover.pump.title";
-    }
-
-    protected void buildAdditionalUI(WidgetGroup group) {
+    protected void buildAdditionalUI(UIElement page) {
         // Do nothing in the base implementation. This is intended to be overridden by subclasses.
     }
 

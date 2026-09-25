@@ -2,18 +2,20 @@ package com.gregtechceu.gtceu.api.cover.filter;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.machine.MachineCoverContainer;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
+import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
+import com.gregtechceu.gtceu.uipro.elements.SwitchedContent;
+import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 import com.gto.datasynclib.FieldDataManager;
@@ -46,8 +48,6 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IField
     private F filter;
     @Nullable
     private CustomItemStackHandler filterSlot;
-    @Nullable
-    private WidgetGroup filterGroup;
     @NotNull
     private Consumer<F> onFilterLoaded = filter -> {};
     @NotNull
@@ -69,19 +69,27 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IField
 
     protected abstract boolean canInsertFilterItem(ItemStack itemStack);
 
-    //////////////////////////////////
-    // ***** PUBLIC API ******//
-    //////////////////////////////////
-    public Widget createFilterSlotUI(int xPos, int yPos) {
-        return new SlotWidget(getFilterSlot(), 0, xPos, yPos).setChangeListener(this::updateFilter).setBackgroundTexture(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.FILTER_SLOT_OVERLAY));
+    public ItemSlot createFilterSlot() {
+        var slot = ItemSlot.of(getFilterSlot(), 0);
+        slot.setChangeListener(this::updateFilter);
+        slot.setBackgroundTexture(new GuiTextureGroup(UITheme.ITEM_SLOT, WidgetIcons.FILTER_SLOT));
+        return slot;
     }
 
-    public Widget createFilterConfigUI(int xPos, int yPos, int width, int height) {
-        this.filterGroup = new WidgetGroup(xPos, yPos, width, height);
-        if (hasValidFilterItem()) {
-            this.filterGroup.addWidget(getFilter().openConfigurator(0, 0));
-        }
-        return this.filterGroup;
+    public SwitchedContent createFilterConfig() {
+        return new SwitchedContent(this::filterKey, (key, remote) -> {
+            if (key == 0) return null;
+            if (remote) return loadFilter(new ItemStack(BuiltInRegistries.ITEM.byId(key - 1))).createConfigUI();
+            return getFilter().createConfigUI();
+        });
+    }
+
+    public Component getFilterName() {
+        return hasValidFilterItem() ? filterItem.getHoverName() : Component.translatable("gtceu.gui.filter.empty");
+    }
+
+    private int filterKey() {
+        return hasValidFilterItem() ? BuiltInRegistries.ITEM.getId(filterItem.getItem()) + 1 : 0;
     }
 
     public boolean isFilterPresent() {
@@ -157,7 +165,6 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IField
             }
             this.onFilterLoaded.accept(this.filter);
         }
-        updateFilterGroupUI();
     }
 
     private boolean hasValidFilterItem() {
@@ -173,21 +180,10 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IField
             this.filter = null;
             this.onFilterRemoved.accept(null);
         }
-        if (this.filterGroup != null) {
-            this.filterGroup.clearAllWidgets();
-        }
         if (!container.coverHolder.isRemote()) {
             container.coverHolder.onChanged();
         }
         return false;
-    }
-
-    private void updateFilterGroupUI() {
-        if (this.filterGroup == null) return;
-        this.filterGroup.clearAllWidgets();
-        if (!this.filterItem.isEmpty() && this.filter != null) {
-            this.filterGroup.addWidget(this.filter.openConfigurator(0, 0));
-        }
     }
 
     @Override

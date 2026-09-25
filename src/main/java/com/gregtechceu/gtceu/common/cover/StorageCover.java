@@ -6,13 +6,14 @@ import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.cover.IUICover;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfigurator;
-import com.gregtechceu.gtceu.api.gui.widget.CoverConfigurator;
 import com.gregtechceu.gtceu.api.machine.MachineCoverContainer;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
+import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
-import com.gregtechceu.gtceu.uipro.elements.TextLine;
+import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 import com.gregtechceu.gtceu.uiwidgets.inventory.SlotGridView;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -35,8 +36,6 @@ public class StorageCover extends CoverBehavior implements IUICover {
     @SyncToClient
     public final CustomItemStackHandler inventory;
     private final int SIZE = 18;
-    /// 标题文字在标题行里离顶边的距离（与 GTM 其他覆盖板界面的标题同高）
-    private static final int TITLE_TOP = 5;
 
     public StorageCover(@NotNull CoverDefinition definition, @NotNull ICoverable coverableView,
                         @NotNull Direction attachedSide) {
@@ -64,21 +63,15 @@ public class StorageCover extends CoverBehavior implements IUICover {
         return super.canAttach();
     }
 
-    /**
-     * 覆盖板自己的界面（独立界面 {@link IUICover#createUI}，以及三视图配置里展开的 {@link CoverConfigurator}）：
-     * 顶部 {@link CoverConfigurator#COVER_TITLE_HEIGHT} 高的标题行（覆盖板界面的排布约定，展开时它落进面板标题行），
-     * 下面是与左侧配置项相同的槽网格（{@link SlotGridView}）。底部留 {@link UISizes#SECTION_GAP}，独立界面里与下方玩家背包隔开。
-     */
     @Override
     public Widget createUIWidget() {
-        var title = UIElement.row(CoverConfigurator.COVER_TITLE_HEIGHT).layout(l -> l.alignStart().paddingTop(TITLE_TOP))
-                .addChild(TextLine.translatable(0, getUITitle()).layout(l -> l.flex(1)));
-        return new UIElement().layout(l -> l.column().paddingBottom(UISizes.SECTION_GAP))
-                .addChildren(title, SlotGridView.items(inventory));
-    }
-
-    private String getUITitle() {
-        return "cover.storage.title";
+        var grid = UIElement.column(LayoutStyle.AUTO);
+        for (int start = 0; start < SIZE; start += UISizes.SLOTS_PER_ROW) {
+            var row = UIElement.row(UISizes.SLOT);
+            for (int i = start; i < Math.min(SIZE, start + UISizes.SLOTS_PER_ROW); i++) row.addChild(ItemSlot.of(inventory, i));
+            grid.addChild(row);
+        }
+        return CoverUIs.page().layout(l -> l.alignCenter()).addChild(grid);
     }
 
     @Override

@@ -68,16 +68,10 @@ public final class UITheme {
     public static final IGuiTexture SCROLL_THUMB = OreSprites.BTN_DEFAULT.tinted(OreSprites.BUTTON_TINT);
     /** 机器窗口、弹出面板的外框（里面的字用 {@link #TEXT}）。 */
     public static final IGuiTexture WINDOW = OreSprites.BORDER_7_BRIGHT;
-    /**
-     * 信息图标图集（{@code info_icons.png}，4 个 18×18 横排）：说明（蓝 i）、
-     * 警告（黄 !）、错误（红 ×）、成功（绿 ✓）；后三个沿用同一圆形的描边、高光与颗粒，只换颜色和符号。
-     */
-    private static final ResourceTexture INFO_ICONS = new ResourceTexture(GTCEu.id("textures/gui/uipro/info_icons.png"));
-    private static final int INFO_ICON_COUNT = 4;
+    private static final WidgetIconAtlas STATUS_ICONS = new WidgetIconAtlas(GTCEu.id("textures/gui/uipro/status_icons.png"), 1);
 
-    /** 第 {@code index} 个信息图标（顺序见 {@link #INFO_ICONS}）。 */
     public static IGuiTexture infoIcon(int index) {
-        return INFO_ICONS.getSubTexture((double) index / INFO_ICON_COUNT, 0, 1.0 / INFO_ICON_COUNT, 1);
+        return STATUS_ICONS.pixelIcon(0, index);
     }
 
     /** 步进器、翻页的左右箭头（放在 {@code Button.icon} 里），与按钮文字同色。 */

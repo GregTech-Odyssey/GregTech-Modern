@@ -3,7 +3,10 @@ package com.gregtechceu.gtceu.uipro.styletemplate;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 /**
  * 机器小组件（窗口左侧的配置标签）图标图集。
@@ -34,5 +37,22 @@ public final class WidgetIconAtlas {
     /** 只有一个状态的图标。 */
     public IGuiTexture icon(int row) {
         return icon(row, 0);
+    }
+
+    public IGuiTexture pixelIcon(int row, int state) {
+        return new PixelExact(icon(row, state));
+    }
+
+    public IGuiTexture pixelIcon(int row) {
+        return pixelIcon(row, 0);
+    }
+
+    public record PixelExact(IGuiTexture base) implements IGuiTexture {
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void draw(GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
+            base.draw(graphics, mouseX, mouseY, x + (width - CELL) / 2, y + (height - CELL) / 2, CELL, CELL);
+        }
     }
 }

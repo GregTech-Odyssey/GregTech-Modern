@@ -2,9 +2,9 @@ package com.gregtechceu.gtceu.common.cover.data;
 
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 
@@ -33,7 +33,11 @@ public enum FilterMode implements EnumSelectorWidget.SelectableEnum {
 
     @Override
     public IGuiTexture getIcon() {
-        return new ResourceTexture("gtceu:textures/gui/icon/filter_mode/" + localeName + ".png");
+        return switch (this) {
+            case FILTER_INSERT -> WidgetIcons.FILTER_INSERT;
+            case FILTER_EXTRACT -> WidgetIcons.FILTER_EXTRACT;
+            case FILTER_BOTH -> WidgetIcons.FILTER_BOTH;
+        };
     }
 
     public boolean filters(IO io) {

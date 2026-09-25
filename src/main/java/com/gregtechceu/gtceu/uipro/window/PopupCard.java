@@ -3,10 +3,13 @@ package com.gregtechceu.gtceu.uipro.window;
 import com.gregtechceu.gtceu.uipro.IShiftClickPriority;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.Button;
+import com.gregtechceu.gtceu.uipro.elements.ItemTitle;
 import com.gregtechceu.gtceu.uipro.elements.Label;
 import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 /**
  * 卡片：Ore 窗口外框，第一行标题与 {@code [×]}，下面是高度随内容的滚动区。机器窗口右侧的弹出面板（{@link PopupHost}）
@@ -35,7 +38,7 @@ public class PopupCard extends UIElement implements IShiftClickPriority {
         var closeButton = Button.glyph("×").setOnClientClick(close);
         closeButton.setHoverTooltips(MachineWindow.POPUP_CLOSE);
         var titleRow = UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter())
-                .addChildren(Label.of(popup.title(), UISizes.POPUP_CONTENT_WIDTH - UISizes.ICON_BUTTON - UISizes.GAP), UIElement.flexSpacer(), closeButton);
+                .addChildren(popupTitle(popup), UIElement.flexSpacer(), closeButton);
 
         // 内容至少一个 9 槽区块宽（按 getContentWidth 定宽的页面照旧），里面的滚动区被拖宽时跟着变宽
         var content = new UIElement().layout(l -> l.column().widthAuto().minWidth(UISizes.POPUP_CONTENT_WIDTH).gapAll(UISizes.SECTION_GAP));
@@ -45,6 +48,11 @@ public class PopupCard extends UIElement implements IShiftClickPriority {
         scroller.addScrollViewChild(content);
         scroller.adaptiveHeight(contentLimit(maxHeight));
         addChildren(titleRow, scroller);
+    }
+
+    private static Widget popupTitle(Popup popup) {
+        if (popup.icon() == null) return Label.of(popup.title(), UISizes.POPUP_CONTENT_WIDTH - UISizes.ICON_BUTTON - UISizes.GAP);
+        return ItemTitle.of(popup.icon(), popup.title()).layout(l -> l.flex(1));
     }
 
     private static int contentLimit(int maxHeight) {

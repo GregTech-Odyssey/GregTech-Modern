@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.capability.IWorkable;
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
@@ -10,6 +9,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.sound.AutoReleasedSound;
+import com.gregtechceu.gtceu.uiwidgets.icon.IdleReasonIcons;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -359,7 +359,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     @Override
     public IGuiTexture getFancyTooltipIcon() {
         if (showFancyTooltip()) {
-            return GuiTextures.INSUFFICIENT_INPUT;
+            return IdleReasonIcons.iconFor(getIdleReason());
         }
         return IGuiTexture.EMPTY;
     }

@@ -5,8 +5,6 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.cover.filter.ItemFilter;
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.item.ComponentItem;
 import com.gregtechceu.gtceu.api.item.IComponentItem;
@@ -14,12 +12,15 @@ import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IItemLifeCycle;
 import com.gregtechceu.gtceu.api.item.component.IItemUIFactory;
 import com.gregtechceu.gtceu.common.data.GTItems;
+import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.SwitchedContent;
+import com.gregtechceu.gtceu.uipro.window.MachineWindow;
+import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.nbt.CompoundTag;
@@ -43,14 +44,11 @@ import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.player.PlayerXpEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
-import com.gto.fastcollection.fastutil.OpenCacheHashSet;
 import com.gto.registrate.util.entry.ItemEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import oshi.util.tuples.Triplet;
 import top.theillusivec4.curios.api.CuriosApi;
 
-import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 
@@ -71,44 +69,58 @@ public class ItemMagnetBehavior implements IItemLifeCycle, IAddInformation, IIte
     @Override
     public ModularUI createUI(HeldItemUIFactory.HeldItemHolder holder, Player entityPlayer) {
         var held = holder.getHeld();
-        var tag = held.getOrCreateTag();
-        var selected = Filter.get(tag.getInt(FILTER_ORDINAL_TAG));
-        var widgets = new OpenCacheHashSet<Triplet<Filter, Widget, Widget>>();
-        var stacks = new EnumMap<Filter, ItemStack>(Filter.class);
-        var ui = new ModularUI(176, 157, holder, entityPlayer)
-                .background(GuiTextures.BACKGROUND)
-                .widget(new EnumSelectorWidget<>(146, 5, 20, 20,
-                        Filter.values(), selected, (val) -> updateSelection(tag, val, widgets)))
-                .widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT, 7, 75, true));
-        for (var f : Filter.values()) {
-            var stack = f.getFilter(held);
-            stack.setTag(tag.getCompound(FILTER_TAG).copy());
-            stacks.put(f, stack);
-            var description = new LabelWidget(5, 5, stack.getDescriptionId());
-            var config = ItemFilter
-                    .loadFilter(stack)
-                    .openConfigurator((176 - 80) / 2, (60 - 55) / 2 + 15);
-            var visible = f == selected;
-            description.setVisible(visible);
-            config.setVisible(visible);
-            widgets.add(new Triplet<>(f, description, config));
-            ui.widget(description);
-            ui.widget(config);
-        }
-        ui.registerCloseListener(() -> {
-            var selection = Filter.get(tag.getInt(FILTER_ORDINAL_TAG));
-            tag.put(FILTER_TAG, stacks.get(selection).getOrCreateTag());
-        });
+        var filters = new MagnetFilters(held);
+        var page = new HeldFilterPage(held, filters::createPage);
+        var ui = new ModularUI(176, 166, holder, entityPlayer).widget(new MachineWindow(page));
+        if (!entityPlayer.level().isClientSide) ui.registerCloseListener(filters::save);
         return ui;
     }
 
-    private void updateSelection(CompoundTag tag, Filter filter, Collection<Triplet<Filter, Widget, Widget>> widgets) {
-        tag.putInt(FILTER_ORDINAL_TAG, filter.ordinal());
-        widgets.forEach(tri -> {
-            var visible = tri.getA() == filter;
-            tri.getB().setVisible(visible);
-            tri.getC().setVisible(visible);
-        });
+    private static final class MagnetFilters {
+
+        private final ItemStack held;
+        private final CompoundTag tag;
+        private final EnumMap<Filter, ItemStack> stacks = new EnumMap<>(Filter.class);
+        private final EnumMap<Filter, ItemFilter> filters = new EnumMap<>(Filter.class);
+
+        private MagnetFilters(ItemStack held) {
+            this.held = held;
+            this.tag = held.getOrCreateTag();
+        }
+
+        private Filter selected() {
+            return Filter.get(tag.getInt(FILTER_ORDINAL_TAG));
+        }
+
+        private void select(Filter filter) {
+            tag.putInt(FILTER_ORDINAL_TAG, filter.ordinal());
+        }
+
+        private ItemStack stack(Filter filter) {
+            return stacks.computeIfAbsent(filter, f -> {
+                var stack = f.getFilter(held);
+                stack.setTag(tag.getCompound(FILTER_TAG).copy());
+                return stack;
+            });
+        }
+
+        private ItemFilter filter(Filter filter) {
+            return filters.computeIfAbsent(filter, f -> ItemFilter.loadFilter(stack(f)));
+        }
+
+        private Widget createPage() {
+            var type = UIElement.section().addChild(CoverUIs.enumRow("behavior.item_magnet.filter_type",
+                    List.of(Filter.values()), this::selected, this::select));
+            var config = new SwitchedContent(() -> selected().ordinal(), (key, remote) -> {
+                var filter = Filter.get(key);
+                return remote ? ItemFilter.loadFilter(new ItemStack(filter.item)).createConfigUI() : filter(filter).createConfigUI();
+            });
+            return CoverUIs.page().addChildren(type, UIElement.section().addChild(config));
+        }
+
+        private void save() {
+            tag.put(FILTER_TAG, stack(selected()).getOrCreateTag());
+        }
     }
 
     @Override

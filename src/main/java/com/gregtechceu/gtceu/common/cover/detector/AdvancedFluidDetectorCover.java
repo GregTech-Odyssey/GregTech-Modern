@@ -6,15 +6,12 @@ import com.gregtechceu.gtceu.api.cover.IUICover;
 import com.gregtechceu.gtceu.api.cover.filter.FilterHandler;
 import com.gregtechceu.gtceu.api.cover.filter.FilterHandlers;
 import com.gregtechceu.gtceu.api.cover.filter.FluidFilter;
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.widget.IntInputWidget;
-import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
+import com.gregtechceu.gtceu.uipro.LayoutStyle;
+import com.gregtechceu.gtceu.uipro.elements.NumberField;
+import com.gregtechceu.gtceu.uipro.elements.Switch;
+import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
-import com.lowdragmc.lowdraglib.gui.widget.TextBoxWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
@@ -89,10 +86,12 @@ public class AdvancedFluidDetectorCover extends FluidDetectorCover implements IU
 
     public void setMinValue(int minValue) {
         this.minValue = Mth.clamp(minValue, 0, maxValue - 1);
+        coverHolder.onChanged();
     }
 
     public void setMaxValue(int maxValue) {
         this.maxValue = Math.max(maxValue, 0);
+        coverHolder.onChanged();
     }
 
     //////////////////////////////////////
@@ -100,17 +99,16 @@ public class AdvancedFluidDetectorCover extends FluidDetectorCover implements IU
     //////////////////////////////////////
     @Override
     public Widget createUIWidget() {
-        WidgetGroup group = new WidgetGroup(0, 0, 176, 170);
-        group.addWidget(new LabelWidget(10, 5, "cover.advanced_fluid_detector.label"));
-        group.addWidget(new TextBoxWidget(10, 55, 65, List.of(LocalizationUtils.format("cover.advanced_fluid_detector.min"))));
-        group.addWidget(new TextBoxWidget(10, 80, 65, List.of(LocalizationUtils.format("cover.advanced_fluid_detector.max"))));
-        group.addWidget(new IntInputWidget(80, 50, 176 - 80 - 10, 20, this::getMinValue, this::setMinValue));
-        group.addWidget(new IntInputWidget(80, 75, 176 - 80 - 10, 20, this::getMaxValue, this::setMaxValue));
-        // Invert Redstone Output Toggle:
-        group.addWidget(new ToggleButtonWidget(9, 20, 20, 20, GuiTextures.INVERT_REDSTONE_BUTTON, this::isInverted, this::setInverted).isMultiLang().setTooltipText("cover.advanced_fluid_detector.invert"));
-        group.addWidget(new ToggleButtonWidget(31, 21, 18, 18, GuiTextures.BUTTON_LOCK, this::isLatched, this::setLatched).setShouldUseBaseBackground().isMultiLang().setTooltipText("cover.advanced_detector.latch"));
-        group.addWidget(filterHandler.createFilterSlotUI(148, 100));
-        group.addWidget(filterHandler.createFilterConfigUI(10, 100, 156, 60));
-        return group;
+        var output = CoverUIs.section("cover.advanced_detector.output").addChildren(
+                CoverUIs.controlRow("cover.advanced_detector.inverted", Switch.of(this::isInverted, this::setInverted),
+                        "cover.advanced_detector.inverted.tooltip"),
+                CoverUIs.controlRow("cover.advanced_detector.latched", Switch.of(this::isLatched, this::setLatched),
+                        "cover.advanced_detector.latched.tooltip"));
+        var thresholds = CoverUIs.section("cover.advanced_detector.thresholds").addChildren(
+                CoverUIs.numberRow("cover.advanced_fluid_detector.min", new NumberField(LayoutStyle.AUTO, this::getMinValue,
+                        value -> setMinValue((int) value), () -> 0, () -> Math.max(0, maxValue - 1))),
+                CoverUIs.numberRow("cover.advanced_fluid_detector.max", new NumberField(LayoutStyle.AUTO, this::getMaxValue,
+                        value -> setMaxValue((int) value), () -> 0, () -> Integer.MAX_VALUE)));
+        return CoverUIs.page().addChildren(output, thresholds, CoverUIs.filterSection(filterHandler));
     }
 }

@@ -19,6 +19,9 @@ import com.gregtechceu.gtceu.uipro.elements.Button;
 import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uipro.window.MachineWindow;
+import com.gregtechceu.gtceu.uipro.window.Popup;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -35,6 +38,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -43,8 +48,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class CoverableConfigHandler implements IDirectionalConfigHandler {
 
-    private static final IGuiTexture CONFIG_BTN_TEXTURE = new GuiTextureGroup(GuiTextures.IO_CONFIG_COVER_SETTINGS);
+    private static final IGuiTexture CONFIG_BTN_TEXTURE = WidgetIcons.COVER_SETTINGS;
     private static final List<Component> CLOSE_TOOLTIPS = List.of(Component.translatable("gtceu.gui.close"));
+    private static final String COVER_POPUP = "cover_settings";
 
     private final ICoverable machine;
     private CustomItemStackHandler handler;
@@ -52,6 +58,8 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
 
     private ConfiguratorPanel panel;
     private ConfiguratorPanel.FloatingTab coverConfigurator;
+    @Nullable
+    private MachineWindow window;
 
     private ItemSlot slotWidget;
     private CoverBehavior coverBehavior;
@@ -80,6 +88,10 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
     public Widget getSideSelectorWidget(SceneWidget scene, FancyMachineUIWidget machineUI) {
         WidgetGroup group = new WidgetGroup(0, 0, UISizes.SLOT * 2 + UISizes.GAP, UISizes.SLOT);
         this.panel = machineUI.getConfiguratorPanel();
+        if (machineUI instanceof MachineWindow machineWindow) {
+            this.window = machineWindow;
+            machineWindow.registerPopup(COVER_POPUP, this::coverPopup);
+        }
 
         group.addWidget(Button.icon(CONFIG_BTN_TEXTURE, UISizes.SLOT).setOnClick(this::toggleConfigTab)
                 .disabled(() -> side == null || coverBehavior == null || !(machine.getCoverAtSide(side) instanceof IUICover),
@@ -94,7 +106,7 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
             }
         };
         slotWidget.setChangeListener(this::coverItemChanged);
-        slotWidget.setBackgroundTexture(new GuiTextureGroup(UITheme.ITEM_SLOT, GuiTextures.IO_CONFIG_COVER_SLOT_OVERLAY));
+        slotWidget.setBackgroundTexture(new GuiTextureGroup(UITheme.ITEM_SLOT, WidgetIcons.COVER_SLOT));
         slotWidget.setSelfPosition(new Position(UISizes.SLOT + UISizes.GAP, 0));
         group.addWidget(slotWidget);
 
@@ -174,17 +186,24 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
         updateWidgetVisibility();
     }
 
+    @Nullable
+    private Popup coverPopup(int argument) {
+        if (argument < 0 || argument >= Direction.values().length) return null;
+        if (!(machine.getCoverAtSide(Direction.values()[argument]) instanceof IUICover cover)) return null;
+        return Popup.of(() -> cover.self().getAttachItem(), cover::getCoverTitle, column -> column.addChild(cover.createUIWidget()));
+    }
+
     private void toggleConfigTab(ClickData cd) {
+        if (window != null) {
+            if (cd.isRemote && side != null) window.togglePopup(COVER_POPUP, side.ordinal());
+            return;
+        }
         if (this.coverConfigurator == null)
             openConfigTab();
         else
             closeConfigTab();
     }
 
-    /**
-     * 浮动标签页：内容与排布沿用 {@link CoverConfigurator}（面板标题留空，覆盖板界面上移
-     * {@link CoverConfigurator#COVER_TITLE_HEIGHT}，自带的标题落进面板标题行、与右侧的关闭图标同一行），这里只把图标和说明换成"关闭"。
-     */
     private void openConfigTab() {
         CoverConfigurator configurator = new CoverConfigurator(this.machine, this.side, this.coverBehavior) {
 
@@ -214,6 +233,10 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
     }
 
     private void closeConfigTab() {
+        if (window != null) {
+            if (window.isPopupOpen(COVER_POPUP)) window.closePopup(COVER_POPUP);
+            return;
+        }
         if (this.coverConfigurator != null) {
             this.panel.collapseTab();
         }

@@ -1,10 +1,10 @@
 package com.gregtechceu.gtceu.api.gui.widget.directional.handlers;
 
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.gui.widget.directional.IDirectionalConfigHandler;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
 import com.gregtechceu.gtceu.uipro.elements.IconToggle;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.lowdragmc.lowdraglib.utils.BlockPosFace;
@@ -48,7 +48,7 @@ public class AutoOutputFluidConfigHandler implements IDirectionalConfigHandler {
     /** 整机设置：允许从输出面输入（图标开关，开时为绿色），与选中哪一面无关。 */
     @Override
     public Widget getMachineWidget(SceneWidget scene, FancyMachineUIWidget machineUI) {
-        return IconToggle.of(GuiTextures.BUTTON_FLUID_OUTPUT,
+        return IconToggle.of(WidgetIcons.ALLOW_INPUT_FLUID,
                 machine::isAllowInputFromOutputSideFluids, machine::setAllowInputFromOutputSideFluids)
                 .tooltips("gtceu.gui.fluid_auto_output.allow_input.enabled", "gtceu.gui.fluid_auto_output.allow_input.disabled");
     }

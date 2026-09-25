@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.uiwidgets.inventory;
 
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
@@ -13,6 +12,7 @@ import com.gregtechceu.gtceu.uipro.elements.PhantomFluidSlot;
 import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
 import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeMachinePage;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
@@ -174,7 +174,7 @@ public final class HatchViews {
         var slot = new FluidSlot(storage, 0, true, io.support(IO.IN));
         if (io != IO.OUT) return operations(slot);
         var locked = tank.getLockedFluid();
-        var lockToggle = IconToggle.of(GuiTextures.LOCK, tank::isLocked, tank::setLocked).tooltips(LOCK_ON, LOCK_OFF);
+        var lockToggle = IconToggle.of(WidgetIcons.ACCESS_PRIVATE, tank::isLocked, tank::setLocked).tooltips(LOCK_ON, LOCK_OFF);
         var lockSlot = new PhantomFluidSlot(locked, 0, locked::getFluid, fluid -> {
             // 服务端再判一次：储罐有流体时不能改
             if (!storage.getFluid().isEmpty()) return;

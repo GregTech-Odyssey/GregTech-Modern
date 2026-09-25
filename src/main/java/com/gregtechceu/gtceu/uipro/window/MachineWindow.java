@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.Button;
+import com.gregtechceu.gtceu.uipro.elements.ItemTitle;
 import com.gregtechceu.gtceu.uipro.elements.ItemView;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
@@ -25,6 +26,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -37,6 +39,7 @@ import org.lwjgl.glfw.GLFW;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntFunction;
+import java.util.function.Supplier;
 
 /**
  * 机器界面外壳（新式界面的示范实现）：在 GTM {@link com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget}
@@ -74,6 +77,7 @@ public class MachineWindow extends FancyMachineUIWidget {
     private final List<PageOverlay> overlays = new ArrayList<>();
     @Nullable
     private IntFunction<Widget> titleContent;
+    private boolean titleContentHasIcon;
     /// 页面右侧伸出的一列（如滚动条）宽度：玩家背包按去掉这一列后的宽度居中，与页面里的槽位对齐（切换页面时清零）
     private int inventoryGutter;
     /// 独立窗口（见 IMachineSubWindows）：标题栏"返回"回到这台机器的主界面
@@ -383,6 +387,21 @@ public class MachineWindow extends FancyMachineUIWidget {
      */
     public void setTitleContent(IntFunction<Widget> content) {
         this.titleContent = content;
+        this.titleContentHasIcon = false;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static int clientPageHeightLimit(boolean inventory) {
+        int screen = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+        int usable = screen - Math.round(screen * UISizes.WINDOW_BOTTOM_SCREEN_MARGIN) - UISizes.POPUP_SCREEN_MARGIN;
+        int chrome = UISizes.WINDOW_PADDING_TOP + UISizes.CONTROL_HEIGHT + UISizes.SECTION_GAP + UISizes.WINDOW_PADDING_BOTTOM;
+        if (inventory) chrome += UISizes.SECTION_GAP + UISizes.PLAYER_INVENTORY_HEIGHT;
+        return Math.max(2 * UISizes.SLOT, usable - chrome);
+    }
+
+    public void setTitleItem(Supplier<ItemStack> stack, Supplier<Component> name) {
+        this.titleContent = width -> new ItemTitle(width, stack, name);
+        this.titleContentHasIcon = true;
     }
 
     /**
@@ -419,6 +438,7 @@ public class MachineWindow extends FancyMachineUIWidget {
         configurators.clear();
         popups.reset();
         titleContent = null;
+        titleContentHasIcon = false;
         inventoryGutter = 0;
         pageShowsInventory = showInventory;
         sideTabsWidget.selectTab(fancyUI);
@@ -431,7 +451,7 @@ public class MachineWindow extends FancyMachineUIWidget {
         fancyUI.attachConfigurators(configurators);
         placeConfigurators();
         fancyUI.attachTooltips(tooltipsPanel);
-        title.setup(titleFollowsTab ? fancyUI : currentHomePage, contentWidth, !previousPages.isEmpty() || backToMachine != null, allPages.size() > 1 && currentPage != pageSwitcher, titleContent);
+        title.setup(titleFollowsTab ? fancyUI : currentHomePage, contentWidth, !previousPages.isEmpty() || backToMachine != null, allPages.size() > 1 && currentPage != pageSwitcher, titleContent, titleContentHasIcon);
 
         updatePlacement();
     }
@@ -807,7 +827,7 @@ public class MachineWindow extends FancyMachineUIWidget {
             }
         }
 
-        private void setup(IFancyUIProvider page, int width, boolean showBack, boolean showMenu, @Nullable IntFunction<Widget> content) {
+        private void setup(IFancyUIProvider page, int width, boolean showBack, boolean showMenu, @Nullable IntFunction<Widget> content, boolean contentHasIcon) {
             this.page = page;
             clearAllWidgets();
             menuButton = null;
@@ -831,11 +851,15 @@ public class MachineWindow extends FancyMachineUIWidget {
                 right -= UISizes.GAP;
             }
             iconLeft = left;
-            var icon = ItemView.of(page.getTabIcon());
-            icon.setHoverTooltips(page.getTitle());
-            icon.setSelfPosition(new Position(left, 0));
-            addWidget(icon);
-            textLeft = left + ICON + UISizes.GAP;
+            if (content != null && contentHasIcon) {
+                textLeft = left;
+            } else {
+                var icon = ItemView.of(page.getTabIcon());
+                icon.setHoverTooltips(page.getTitle());
+                icon.setSelfPosition(new Position(left, 0));
+                addWidget(icon);
+                textLeft = left + ICON + UISizes.GAP;
+            }
             tooltipsRight = right;
             // 自定义中段按建页时实际显示的说明图标预留（默认标题在绘制时按实时显示的个数让位）
             int shown = 0;

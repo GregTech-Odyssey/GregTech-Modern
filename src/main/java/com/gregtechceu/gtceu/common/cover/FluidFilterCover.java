@@ -7,16 +7,15 @@ import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.cover.IUICover;
 import com.gregtechceu.gtceu.api.cover.filter.FluidFilter;
 import com.gregtechceu.gtceu.api.cover.filter.SimpleFluidFilter;
-import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerDelegate;
 import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.common.cover.data.FilterMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
 import com.gregtechceu.gtceu.common.data.GTItems;
+import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
@@ -26,8 +25,9 @@ import net.minecraftforge.fluids.FluidStack;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -43,7 +43,6 @@ public class FluidFilterCover extends CoverBehavior implements IUICover {
     protected FilterMode filterMode = FilterMode.FILTER_INSERT;
     private FilteredFluidHandlerWrapper fluidFilterWrapper;
     @Getter
-    @Setter
     @SaveToDisk
     protected ManualIOMode allowFlow = ManualIOMode.DISABLED;
 
@@ -53,6 +52,11 @@ public class FluidFilterCover extends CoverBehavior implements IUICover {
 
     public void setFilterMode(FilterMode filterMode) {
         this.filterMode = filterMode;
+        coverHolder.onChanged();
+    }
+
+    public void setAllowFlow(ManualIOMode allowFlow) {
+        this.allowFlow = allowFlow;
         coverHolder.onChanged();
     }
 
@@ -73,6 +77,7 @@ public class FluidFilterCover extends CoverBehavior implements IUICover {
                 fluidFilter = loader.apply(attachItem);
             }
             loadedFilterStack = attachItem;
+            fluidFilter.setOnUpdated(filter -> coverHolder.onChanged());
         }
         return fluidFilter;
     }
@@ -91,13 +96,13 @@ public class FluidFilterCover extends CoverBehavior implements IUICover {
 
     @Override
     public Widget createUIWidget() {
-        var filter = getFluidFilter();
-        final var group = new WidgetGroup(0, 0, 178, 85);
-        group.addWidget(new LabelWidget(60, 5, attachItem.getDescriptionId()));
-        group.addWidget(new EnumSelectorWidget<>(35, 25, 18, 18, FilterMode.VALUES, filterMode, this::setFilterMode));
-        group.addWidget(new EnumSelectorWidget<>(35, 45, 18, 18, ManualIOMode.VALUES, allowFlow, this::setAllowFlow));
-        group.addWidget(filter.openConfigurator(62, 25));
-        return group;
+        var modes = UIElement.section().addChildren(
+                CoverUIs.enumRow("cover.filter.mode.title", List.of(FilterMode.VALUES), this::getFilterMode, this::setFilterMode),
+                CoverUIs.enumRow("cover.ui.manual_io", List.of(ManualIOMode.VALUES), this::getAllowFlow, this::setAllowFlow,
+                        "cover.universal.manual_import_export.mode.description.0",
+                        "cover.universal.manual_import_export.mode.description.1",
+                        "cover.universal.manual_import_export.mode.description.2"));
+        return CoverUIs.page().addChildren(modes, UIElement.section().addChild(getFluidFilter().createConfigUI()));
     }
 
     private class FilteredFluidHandlerWrapper extends FluidHandlerDelegate {

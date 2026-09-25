@@ -16,6 +16,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import dev.vfyjxf.taffy.style.FlexWrap;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
@@ -96,10 +97,15 @@ public class ButtonGroup extends UIElement {
      */
     public static ButtonGroup singleIcons(int count, IntFunction<IGuiTexture> icon, IntFunction<Component> tooltip,
                                           IntSupplier current, IntConsumer select) {
-        return new ButtonGroup(count, icon, tooltip, current, select);
+        return new ButtonGroup(count, icon, i -> new Component[] { tooltip.apply(i) }, current, select);
     }
 
-    private ButtonGroup(int count, IntFunction<IGuiTexture> icon, IntFunction<Component> tooltip, IntSupplier current, IntConsumer select) {
+    public static ButtonGroup singleIconsLines(int count, IntFunction<IGuiTexture> icon, IntFunction<Component[]> tooltipLines,
+                                               IntSupplier current, IntConsumer select) {
+        return new ButtonGroup(count, icon, tooltipLines, current, select);
+    }
+
+    private ButtonGroup(int count, IntFunction<IGuiTexture> icon, IntFunction<Component[]> tooltip, IntSupplier current, IntConsumer select) {
         this.multiple = false;
         layout(l -> l.row().gapAll(UISizes.GAP).flexWrap(FlexWrap.WRAP));
         for (int i = 0; i < count; i++) {
@@ -107,6 +113,17 @@ public class ButtonGroup extends UIElement {
                 if (current.getAsInt() != index) select.accept(index);
             }));
         }
+    }
+
+    public ButtonGroup optionDisabled(IntPredicate serverDisabled, @Nullable String reasonKey) {
+        int index = 0;
+        for (var child : widgets) {
+            if (child instanceof Button option) {
+                int i = index++;
+                option.disabled(() -> serverDisabled.test(i), reasonKey);
+            }
+        }
+        return this;
     }
 
     /** 横排、平分宽度。 */
@@ -121,7 +138,7 @@ public class ButtonGroup extends UIElement {
     /** 图标选项：方形图标按钮，选中时整块确认色。 */
     private static final class IconOption extends Button {
 
-        private IconOption(int index, IGuiTexture icon, Component tooltip, IntPredicate serverSelected, IntConsumer serverClick) {
+        private IconOption(int index, IGuiTexture icon, Component[] tooltip, IntPredicate serverSelected, IntConsumer serverClick) {
             super(UISizes.SLOT, UISizes.SLOT, null, icon);
             var selected = addSyncValue(SyncValue.of(() -> serverSelected.test(index), SyncValue.BOOLEAN, false));
             setVariant(() -> selected.getValue() ? UITheme.ButtonVariant.CONFIRM : UITheme.ButtonVariant.DEFAULT);

@@ -5,16 +5,16 @@ import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.EntryTypes;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEntry;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.entries.VirtualRedstone;
-
-import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
+import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
 
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 
 import java.util.UUID;
+import java.util.function.BooleanSupplier;
 
 public class EnderRedstoneLinkCover extends AbstractEnderLinkCover<VirtualRedstone> {
 
@@ -75,13 +75,26 @@ public class EnderRedstoneLinkCover extends AbstractEnderLinkCover<VirtualRedsto
     }
 
     @Override
-    protected Widget addVirtualEntryWidget(VirtualEntry entry, int x, int y, int width, int height, boolean canClick) {
-        return new WidgetGroup(x, y, width, height);
+    protected boolean hasManualIO() {
+        return false;
     }
 
     @Override
-    protected String getUITitle() {
-        return "cover.ender_redstone_link.title";
+    protected String ioTooltipKey() {
+        return "cover.ender_link.ui.io.redstone.tooltip";
+    }
+
+    @Override
+    protected void addEntryStatus(StatusPanel panel, BooleanSupplier visible) {
+        panel.addLine("cover.ender_link.ui.signal", () -> visible.getAsBoolean() ?
+                Component.literal(String.valueOf(getEntry().getSignal())) : EnderLinkUI.NO_VALUE);
+        panel.addLine("cover.ender_link.ui.members", () -> visible.getAsBoolean() ?
+                Component.literal(String.valueOf(getEntry().getMembers().size())) : EnderLinkUI.NO_VALUE);
+    }
+
+    @Override
+    protected Component describeEntry(VirtualRedstone entry) {
+        return Component.translatable("cover.ender_link.ui.summary.signal", entry.getSignal());
     }
 
     @Override

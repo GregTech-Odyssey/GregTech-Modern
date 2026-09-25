@@ -4,6 +4,9 @@ import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -18,9 +21,17 @@ import java.util.function.Supplier;
  * @param title   标题，服务端取值后下发
  * @param content 内容构建器
  */
-public record Popup(Supplier<Component> title, Consumer<UIElement> content) {
+public record Popup(Supplier<Component> title, Consumer<UIElement> content, @Nullable Supplier<ItemStack> icon) {
+
+    public Popup(Supplier<Component> title, Consumer<UIElement> content) {
+        this(title, content, null);
+    }
 
     public static Popup of(Supplier<Component> title, Consumer<UIElement> content) {
         return new Popup(title, content);
+    }
+
+    public static Popup of(Supplier<ItemStack> icon, Supplier<Component> title, Consumer<UIElement> content) {
+        return new Popup(title, content, icon);
     }
 }

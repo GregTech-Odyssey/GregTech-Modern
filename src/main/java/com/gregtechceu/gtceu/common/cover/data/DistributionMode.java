@@ -1,9 +1,9 @@
 package com.gregtechceu.gtceu.common.cover.data;
 
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 
 public enum DistributionMode implements EnumSelectorWidget.SelectableEnum {
 
@@ -27,6 +27,10 @@ public enum DistributionMode implements EnumSelectorWidget.SelectableEnum {
 
     @Override
     public IGuiTexture getIcon() {
-        return new ResourceTexture("gtceu:textures/gui/icon/distribution_mode/" + localeName + ".png");
+        return switch (this) {
+            case ROUND_ROBIN_GLOBAL -> WidgetIcons.DISTRIBUTION_ROUND_ROBIN;
+            case ROUND_ROBIN_PRIO -> WidgetIcons.DISTRIBUTION_ROUND_ROBIN_PRIORITY;
+            case INSERT_FIRST -> WidgetIcons.DISTRIBUTION_INSERT_FIRST;
+        };
     }
 }

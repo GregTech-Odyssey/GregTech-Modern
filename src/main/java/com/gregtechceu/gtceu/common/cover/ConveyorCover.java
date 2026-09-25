@@ -9,9 +9,6 @@ import com.gregtechceu.gtceu.api.cover.IUICover;
 import com.gregtechceu.gtceu.api.cover.filter.FilterHandler;
 import com.gregtechceu.gtceu.api.cover.filter.FilterHandlers;
 import com.gregtechceu.gtceu.api.cover.filter.ItemFilter;
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
-import com.gregtechceu.gtceu.api.gui.widget.IntInputWidget;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
@@ -19,19 +16,17 @@ import com.gregtechceu.gtceu.api.transfer.item.ItemHandlerDelegate;
 import com.gregtechceu.gtceu.common.blockentity.ItemPipeBlockEntity;
 import com.gregtechceu.gtceu.common.cover.data.DistributionMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
+import com.gregtechceu.gtceu.uipro.LayoutStyle;
+import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.NumberField;
+import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
-import com.lowdragmc.lowdraglib.gui.widget.SwitchWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.items.IItemHandler;
@@ -78,7 +73,6 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     @SaveToDisk
     @SyncToClient
     protected boolean isWorkingEnabled = true;
-    private Widget ioModeSwitch;
     @Getter
     @SaveToDisk
     @SyncToClient
@@ -126,6 +120,7 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     public void setTransferRate(int transferRate) {
         if (transferRate <= maxItemTransferRate) {
             this.transferRate = transferRate;
+            coverHolder.onChanged();
         }
     }
 
@@ -355,39 +350,29 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     //////////////////////////////////////
     @Override
     public Widget createUIWidget() {
-        final var group = new WidgetGroup(0, 0, 176, 137);
-        group.addWidget(new LabelWidget(10, 5, Component.translatable(getUITitle(), GTValues.VN[tier]).getString()));
-        group.addWidget(new IntInputWidget(10, 20, 156, 20, () -> this.transferRate, this::setTransferRate).setMin(1).setMax(maxItemTransferRate));
-        ioModeSwitch = new SwitchWidget(10, 45, 20, 20, (clickData, value) -> {
-            setIo(value ? IO.IN : IO.OUT);
-            ioModeSwitch.setHoverTooltips(LocalizationUtils.format("cover.conveyor.mode", LocalizationUtils.format(io.tooltip)));
-        }).setTexture(new GuiTextureGroup(GuiTextures.VANILLA_BUTTON, IO.OUT.icon), new GuiTextureGroup(GuiTextures.VANILLA_BUTTON, IO.IN.icon)).setPressed(io == IO.IN).setHoverTooltips(LocalizationUtils.format("cover.conveyor.mode", LocalizationUtils.format(io.tooltip)));
-        group.addWidget(ioModeSwitch);
-        if (shouldDisplayDistributionMode()) {
-            group.addWidget(new EnumSelectorWidget<>(146, 67, 20, 20, DistributionMode.VALUES, distributionMode, this::setDistributionMode));
-        }
-        group.addWidget(new EnumSelectorWidget<>(146, 107, 20, 20, ManualIOMode.VALUES, manualIOMode, this::setManualIOMode).setHoverTooltips("cover.universal.manual_import_export.mode.description"));
-        group.addWidget(filterHandler.createFilterSlotUI(125, 108));
-        group.addWidget(filterHandler.createFilterConfigUI(10, 72, 156, 60));
-        buildAdditionalUI(group);
-        return group;
+        var transfer = CoverUIs.section("cover.ui.transfer").addChildren(
+                CoverUIs.numberRow("cover.conveyor.ui.transfer_rate",
+                        NumberField.of(LayoutStyle.AUTO, () -> transferRate, value -> setTransferRate((int) value), 1, maxItemTransferRate)),
+                CoverUIs.enumRow("cover.ui.io", List.of(IO.IN, IO.OUT), this::getIo, this::setIo, "cover.conveyor.ui.io.tooltip"));
+        buildAdditionalUI(transfer);
+        var distribution = CoverUIs.enumRow("cover.conveyor.ui.distribution", List.of(DistributionMode.VALUES),
+                this::getDistributionMode, this::setDistributionMode)
+                .disabled(() -> !shouldDisplayDistributionMode(), "cover.conveyor.ui.distribution_no_pipe");
+        var modes = CoverUIs.section("cover.ui.modes").addChildren(distribution,
+                CoverUIs.enumRow("cover.ui.manual_io", List.of(ManualIOMode.VALUES), this::getManualIOMode, this::setManualIOMode,
+                        "cover.universal.manual_import_export.mode.description.0",
+                        "cover.universal.manual_import_export.mode.description.1",
+                        "cover.universal.manual_import_export.mode.description.2"));
+        return CoverUIs.page().addChildren(transfer, modes, CoverUIs.filterSection(filterHandler));
     }
 
     private boolean shouldDisplayDistributionMode() {
         return coverHolder.holder() instanceof ItemPipeBlockEntity || getNeighbor() instanceof ItemPipeBlockEntity;
     }
 
-    protected String getUITitle() {
-        return "cover.conveyor.title";
-    }
+    protected void buildAdditionalUI(UIElement section) {}
 
-    protected void buildAdditionalUI(WidgetGroup group) {
-        // Do nothing in the base implementation. This is intended to be overridden by subclasses.
-    }
-
-    protected void configureFilter() {
-        // Do nothing in the base implementation. This is intended to be overridden by subclasses.
-    }
+    protected void configureFilter() {}
 
     /////////////////////////////////////
     // *** CAPABILITY OVERRIDE ***//

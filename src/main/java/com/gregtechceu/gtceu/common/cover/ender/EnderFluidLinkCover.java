@@ -6,25 +6,25 @@ import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.cover.filter.FilterHandler;
 import com.gregtechceu.gtceu.api.cover.filter.FilterHandlers;
 import com.gregtechceu.gtceu.api.cover.filter.FluidFilter;
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.EntryTypes;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEnderRegistry;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEntry;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.entries.VirtualTank;
 import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
+import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
+import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
-import com.lowdragmc.lowdraglib.gui.widget.Widget;
-
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.function.BooleanSupplier;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -87,17 +87,24 @@ public class EnderFluidLinkCover extends AbstractEnderLinkCover<VirtualTank> {
         }
     }
 
-    //////////////////////////////////////
-    // ************ GUI ************ //
-    //////////////////////////////////////
     @Override
-    protected Widget addVirtualEntryWidget(VirtualEntry entry, int x, int y, int width, int height, boolean canClick) {
-        return new TankWidget(((VirtualTank) entry).getFluidTank(), 0, x, y, width, height, canClick, canClick).setBackground(GuiTextures.FLUID_SLOT);
+    protected void addEntryStatus(StatusPanel panel, BooleanSupplier visible) {
+        panel.addLine("cover.ender_link.ui.fluid", () -> visible.getAsBoolean() ? fluidName(getEntry().getFluidTank().getFluid()) : EnderLinkUI.NO_VALUE);
+        panel.addLine("cover.ender_link.ui.amount", () -> {
+            if (!visible.getAsBoolean()) return EnderLinkUI.NO_VALUE;
+            var tank = getEntry().getFluidTank();
+            return Component.literal(FormattingUtil.formatNumbers(tank.getFluidAmount()) + " / " + FormattingUtil.formatNumbers(tank.getCapacity()) + " mB");
+        });
     }
 
-    @NotNull
     @Override
-    protected String getUITitle() {
-        return "cover.ender_fluid_link.title";
+    protected Component describeEntry(VirtualTank entry) {
+        var fluid = entry.getFluidTank().getFluid();
+        if (fluid.isEmpty()) return Component.translatable("cover.ender_link.ui.empty");
+        return fluid.getDisplayName().copy().append(" " + FormattingUtil.formatNumbers(fluid.getAmount()) + " mB");
+    }
+
+    private static Component fluidName(FluidStack fluid) {
+        return fluid.isEmpty() ? Component.translatable("cover.ender_link.ui.empty") : fluid.getDisplayName();
     }
 }

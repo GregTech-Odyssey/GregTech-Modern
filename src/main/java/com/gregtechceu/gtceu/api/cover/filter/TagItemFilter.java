@@ -1,12 +1,12 @@
 package com.gregtechceu.gtceu.api.cover.filter;
 
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.widget.PhantomSlotWidget;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.uipro.elements.PhantomItemSlot;
 import com.gregtechceu.gtceu.utils.TagExprFilter;
 
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
+import com.lowdragmc.lowdraglib.misc.ItemStackTransfer;
+
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -14,7 +14,6 @@ import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
 
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 public class TagItemFilter extends TagFilter<ItemStack, ItemFilter> implements ItemFilter {
 
@@ -49,8 +48,13 @@ public class TagItemFilter extends TagFilter<ItemStack, ItemFilter> implements I
     }
 
     @Override
-    StackHandlerWidget<ItemStack, ItemFilter> getItemHandler() {
-        return new PhantomSlot(new CustomItemStackHandler(1));
+    Widget createQuerySlot(TagQuery query) {
+        var handler = new ItemStackTransfer(1);
+        query.bind(() -> handler.getStackInSlot(0).getItem(), () -> handler.getStackInSlot(0).getTags().map(t -> t));
+        var slot = new PhantomItemSlot(handler, 0).xeiPhantom();
+        slot.setMaxStackSize(1);
+        slot.setHoverTooltips("cover.tag_filter.lookup_item", "cover.tag_filter.lookup_only");
+        return slot;
     }
 
     @Override
@@ -61,48 +65,5 @@ public class TagItemFilter extends TagFilter<ItemStack, ItemFilter> implements I
     @Override
     public boolean supportsAmounts() {
         return false;
-    }
-
-    public static class PhantomSlot extends PhantomSlotWidget implements StackHandlerWidget<ItemStack, ItemFilter> {
-
-        final CustomItemStackHandler handler;
-
-        public PhantomSlot(CustomItemStackHandler handler) {
-            super(handler, 0, 90, 30);
-            this.handler = handler;
-            setBackground(GuiTextures.SLOT);
-        }
-
-        @Override
-        public void updateScreen() {
-            super.updateScreen();
-            setMaxStackSize(1);
-        }
-
-        @Override
-        public void detectAndSendChanges() {
-            super.detectAndSendChanges();
-            setMaxStackSize(1);
-        }
-
-        @Override
-        public ItemStack getStack() {
-            return handler.getStackInSlot(0);
-        }
-
-        @Override
-        public void setOnContentsChanged(Runnable runnable) {
-            handler.setOnContentsChanged(runnable);
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return getStack().isEmpty();
-        }
-
-        @Override
-        public Stream<TagKey<?>> getTags() {
-            return getStack().getTags().map(t -> t);
-        }
     }
 }

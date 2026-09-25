@@ -8,7 +8,6 @@ import com.gregtechceu.gtceu.api.cover.IUICover;
 import com.gregtechceu.gtceu.api.cover.filter.ItemFilter;
 import com.gregtechceu.gtceu.api.cover.filter.SimpleItemFilter;
 import com.gregtechceu.gtceu.api.cover.filter.SmartItemFilter;
-import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.machine.MachineCoverContainer;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
@@ -16,10 +15,10 @@ import com.gregtechceu.gtceu.api.transfer.item.ItemHandlerDelegate;
 import com.gregtechceu.gtceu.common.cover.data.FilterMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
 import com.gregtechceu.gtceu.common.data.GTItems;
+import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
@@ -29,8 +28,9 @@ import net.minecraft.world.item.ItemStack;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -46,7 +46,6 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
     protected FilterMode filterMode = FilterMode.FILTER_INSERT;
     private FilteredItemHandlerWrapper itemFilterWrapper;
     @Getter
-    @Setter
     @SaveToDisk
     protected ManualIOMode allowFlow = ManualIOMode.DISABLED;
 
@@ -70,12 +69,18 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
                 var machine = MetaMachine.getMachine(mcc.holder());
                 if (machine != null) smart.setModeFromMachine(machine.getDefinition().getName());
             }
+            itemFilter.setOnUpdated(filter -> coverHolder.onChanged());
         }
         return itemFilter;
     }
 
     public void setFilterMode(FilterMode filterMode) {
         this.filterMode = filterMode;
+        coverHolder.onChanged();
+    }
+
+    public void setAllowFlow(ManualIOMode allowFlow) {
+        this.allowFlow = allowFlow;
         coverHolder.onChanged();
     }
 
@@ -103,13 +108,13 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
 
     @Override
     public Widget createUIWidget() {
-        var filter = getItemFilter();
-        final var group = new WidgetGroup(0, 0, 178, 85);
-        group.addWidget(new LabelWidget(60, 5, attachItem.getDescriptionId()));
-        group.addWidget(new EnumSelectorWidget<>(35, 25, 18, 18, FilterMode.VALUES, filterMode, this::setFilterMode));
-        group.addWidget(new EnumSelectorWidget<>(35, 45, 18, 18, ManualIOMode.VALUES, allowFlow, this::setAllowFlow));
-        group.addWidget(filter.openConfigurator(62, 25));
-        return group;
+        var modes = UIElement.section().addChildren(
+                CoverUIs.enumRow("cover.filter.mode.title", List.of(FilterMode.VALUES), this::getFilterMode, this::setFilterMode),
+                CoverUIs.enumRow("cover.ui.manual_io", List.of(ManualIOMode.VALUES), this::getAllowFlow, this::setAllowFlow,
+                        "cover.universal.manual_import_export.mode.description.0",
+                        "cover.universal.manual_import_export.mode.description.1",
+                        "cover.universal.manual_import_export.mode.description.2"));
+        return CoverUIs.page().addChildren(modes, UIElement.section().addChild(getItemFilter().createConfigUI()));
     }
 
     private class FilteredItemHandlerWrapper extends ItemHandlerDelegate {

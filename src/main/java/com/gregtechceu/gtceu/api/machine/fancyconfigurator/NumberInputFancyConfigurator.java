@@ -1,11 +1,11 @@
 package com.gregtechceu.gtceu.api.machine.fancyconfigurator;
 
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
 import com.gregtechceu.gtceu.api.gui.widget.NumberInputWidget;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.gregtechceu.gtceu.uiwidgets.number.NumberSettingPage;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -70,7 +70,7 @@ public class NumberInputFancyConfigurator<T extends Number> implements IFancyUIP
     @Override
     public void attachTooltips(TooltipsPanel tooltipsPanel) {
         if (infoTooltips.isEmpty()) return;
-        tooltipsPanel.attachTooltips(new IFancyTooltip.Basic(() -> GuiTextures.INFO_ICON, () -> infoTooltips, () -> true, () -> null));
+        tooltipsPanel.attachTooltips(new IFancyTooltip.Basic(() -> WidgetIcons.STATUS_INFO, () -> infoTooltips, () -> true, () -> null));
     }
 
     public NumberInputFancyConfigurator<T> setMin(T min) {

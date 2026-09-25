@@ -1,9 +1,9 @@
 package com.gregtechceu.gtceu.common.cover.data;
 
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 
 public enum ManualIOMode implements EnumSelectorWidget.SelectableEnum {
 
@@ -26,6 +26,10 @@ public enum ManualIOMode implements EnumSelectorWidget.SelectableEnum {
 
     @Override
     public IGuiTexture getIcon() {
-        return new ResourceTexture("gtceu:textures/gui/icon/manual_io_mode/" + localeName + ".png");
+        return switch (this) {
+            case DISABLED -> WidgetIcons.MANUAL_IO_DISABLED;
+            case FILTERED -> WidgetIcons.MANUAL_IO_FILTERED;
+            case UNFILTERED -> WidgetIcons.MANUAL_IO_UNFILTERED;
+        };
     }
 }

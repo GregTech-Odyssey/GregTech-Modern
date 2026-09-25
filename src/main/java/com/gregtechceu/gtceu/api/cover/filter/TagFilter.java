@@ -1,22 +1,34 @@
 package com.gregtechceu.gtceu.api.cover.filter;
 
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
+import com.gregtechceu.gtceu.uipro.LayoutStyle;
+import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.data.SyncValue;
+import com.gregtechceu.gtceu.uipro.elements.InfoIcon;
+import com.gregtechceu.gtceu.uipro.elements.RichText;
+import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
+import com.gregtechceu.gtceu.uipro.elements.StatusLine;
+import com.gregtechceu.gtceu.uipro.elements.TextField;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.utils.TagExprFilter;
 
+import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.tags.TagKey;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -30,6 +42,7 @@ public abstract class TagFilter<T, S extends Filter<T, S>> implements Filter<T, 
     private static final Pattern DOUBLE_NOT = Pattern.compile("!{2,}");
     private static final Pattern DOUBLE_XOR = Pattern.compile("\\^{2,}");
     private static final Pattern DOUBLE_SPACE = Pattern.compile(" {2,}");
+    private static final int TAG_LIST_MAX_LINES = 6;
     @Getter
     protected String oreDictFilterExpression = "";
     protected Consumer<S> itemWriter = filter -> {};
@@ -58,114 +71,142 @@ public abstract class TagFilter<T, S extends Filter<T, S>> implements Filter<T, 
         onUpdated.accept((S) this);
     }
 
-    public WidgetGroup openConfigurator(int x, int y) {
-        TextField textFieldWidget;
-        WidgetGroup group = new WidgetGroup(x, y, 18 * 3 + 25, 18 * 3); // 80 55
-        group.addWidget(new ImageWidget(0, 0, 20, 20, GuiTextures.INFO_ICON).setHoverTooltips(LangHandler.getMultiLang("cover.tag_filter.info").toArray(new MutableComponent[0])));
-        group.addWidget(textFieldWidget = (TextField) new TextField(0, 29, 18 * 3 + 25, 12, () -> oreDictFilterExpression, this::setOreDict).setMaxStringLength(64).setValidator(input -> {
-            // remove all operators that are double
-            input = DOUBLE_WILDCARD.matcher(input).replaceAll("*");
-            input = DOUBLE_AND.matcher(input).replaceAll("&");
-            input = DOUBLE_OR.matcher(input).replaceAll("|");
-            input = DOUBLE_NOT.matcher(input).replaceAll("!");
-            input = DOUBLE_XOR.matcher(input).replaceAll("^");
-            input = DOUBLE_SPACE.matcher(input).replaceAll(" ");
-            // move ( and ) so it doesn't create invalid expressions f.e. xxx (& yyy) => xxx & (yyy)
-            // append or prepend ( and ) if the amount is not equal
-            StringBuilder builder = new StringBuilder();
-            int unclosed = 0;
-            char last = ' ';
-            for (int i = 0; i < input.length(); i++) {
-                char c = input.charAt(i);
-                if (c == ' ') {
-                    if (last != '(') builder.append(" ");
+    private static String normalizeExpression(String input) {
+        input = DOUBLE_WILDCARD.matcher(input).replaceAll("*");
+        input = DOUBLE_AND.matcher(input).replaceAll("&");
+        input = DOUBLE_OR.matcher(input).replaceAll("|");
+        input = DOUBLE_NOT.matcher(input).replaceAll("!");
+        input = DOUBLE_XOR.matcher(input).replaceAll("^");
+        input = DOUBLE_SPACE.matcher(input).replaceAll(" ");
+        StringBuilder builder = new StringBuilder();
+        int unclosed = 0;
+        char last = ' ';
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+            if (c == ' ') {
+                if (last != '(') builder.append(" ");
+                continue;
+            }
+            if (c == '(') unclosed++;
+            else if (c == ')') {
+                unclosed--;
+                if (last == '&' || last == '|' || last == '^') {
+                    int l = builder.lastIndexOf(" " + last);
+                    int l2 = builder.lastIndexOf(String.valueOf(last));
+                    builder.insert(l == l2 - 1 ? l : l2, ")");
                     continue;
                 }
-                if (c == '(') unclosed++;
-                else if (c == ')') {
-                    unclosed--;
-                    if (last == '&' || last == '|' || last == '^') {
-                        int l = builder.lastIndexOf(" " + last);
-                        int l2 = builder.lastIndexOf(String.valueOf(last));
-                        builder.insert(l == l2 - 1 ? l : l2, ")");
-                        continue;
-                    }
-                    if (i > 0 && builder.charAt(builder.length() - 1) == ' ') {
-                        builder.deleteCharAt(builder.length() - 1);
-                    }
-                } else if ((c == '&' || c == '|' || c == '^') && last == '(') {
-                    builder.deleteCharAt(builder.lastIndexOf("("));
-                    builder.append(c).append(" (");
-                    continue;
+                if (i > 0 && builder.charAt(builder.length() - 1) == ' ') {
+                    builder.deleteCharAt(builder.length() - 1);
                 }
-                builder.append(c);
-                last = c;
+            } else if ((c == '&' || c == '|' || c == '^') && last == '(') {
+                builder.deleteCharAt(builder.lastIndexOf("("));
+                builder.append(c).append(" (");
+                continue;
             }
-            if (unclosed > 0) {
-                builder.append(")".repeat(unclosed));
-            } else if (unclosed < 0) {
-                unclosed = -unclosed;
-                for (int i = 0; i < unclosed; i++) {
-                    builder.insert(0, "(");
-                }
-            }
-            input = builder.toString();
-            input = DOUBLE_SPACE.matcher(input).replaceAll(" ");
-            return input;
-        }));
-
-        DraggableScrollableWidgetGroup container = new DraggableScrollableWidgetGroup(130, 0, 140, 100);
-        container.setClientSideWidget().setActive(false).setVisible(false).setBackground(GuiTextures.BACKGROUND_INVERSE);
-        var handler = getStackHandlerWidget(container, textFieldWidget);
-        return group.addWidget(container).addWidget((Widget) handler);
-    }
-
-    private @NotNull StackHandlerWidget<T, S> getStackHandlerWidget(DraggableScrollableWidgetGroup container, TextField textFieldWidget) {
-        var handler = getItemHandler();
-        handler.setOnContentsChanged(
-                () -> {
-                    container.clearAllWidgets();
-                    if (!handler.isEmpty()) {
-                        container.setVisible(true).setActive(true);
-                        var tags = handler.getTags()
-                                .map(tag -> tag.location().toString())
-                                .toList();
-                        Widget[] newWidgets = createTagLabelContainer(textFieldWidget, tags);
-                        container.addWidgets(newWidgets);
-                    } else {
-                        container.setVisible(false).setActive(false);
-                    }
-                });
-        return handler;
-    }
-
-    abstract StackHandlerWidget<T, S> getItemHandler();
-
-    /**
-     * 创建标签展示和交互容器，供子类 openConfigurator 使用。
-     */
-    protected Widget[] createTagLabelContainer(TextField textFieldWidget, List<String> tags) {
-        var atomicI = new AtomicInteger(0);
-        var container = new Widget[tags.size()];
-        for (String tag : tags) {
-            container[atomicI.get()] = (new LabelWidget(4, atomicI.getAndIncrement() * 12 + 4, tag) {
-
-                @Override
-                public boolean mouseReleased(double mouseX, double mouseY, int button) {
-                    if (isMouseOverElement(mouseX, mouseY)) {
-                        if (button == 0) {
-                            textFieldWidget.setDirectly(tag);
-                        } else if (button == 1) {
-                            Minecraft.getInstance().keyboardHandler.setClipboard(tag);
-                        }
-                        playButtonClickSound();
-                        return true;
-                    }
-                    return super.mouseReleased(mouseX, mouseY, button);
-                }
-            }.setTextColor(0x39c5bb).setHoverTooltips(Component.translatable("cover.tag_filter.tag_entry.tooltip")).setClientSideWidget());
+            builder.append(c);
+            last = c;
         }
-        return container;
+        if (unclosed > 0) {
+            builder.append(")".repeat(unclosed));
+        } else if (unclosed < 0) {
+            unclosed = -unclosed;
+            for (int i = 0; i < unclosed; i++) {
+                builder.insert(0, "(");
+            }
+        }
+        input = builder.toString();
+        input = DOUBLE_SPACE.matcher(input).replaceAll(" ");
+        return input;
+    }
+
+    @Override
+    public Widget createConfigUI() {
+        var field = new TextField(0, () -> oreDictFilterExpression, this::setOreDict);
+        field.getInput().setMaxStringLength(64).setValidator(TagFilter::normalizeExpression);
+        field.layout(l -> l.flexGrow(1));
+        var info = new InfoIcon(InfoIcon.Kind.INFO, LangHandler.getMultiLang("cover.tag_filter.info").toArray(new Component[0]));
+        var query = new TagQuery();
+        var inputRow = UIElement.row(UISizes.SLOT).layout(l -> l.gapAll(UISizes.GAP).alignCenter())
+                .addChildren(field, info, createQuerySlot(query));
+
+        var text = new RichText();
+        text.textSupplier(lines -> {
+            if (!text.isRemote()) query.appendLines(lines);
+        });
+        text.clickHandler((tag, click) -> onTagClicked(query, tag, click));
+        var scroller = new ScrollerView("cover.tag_filter.tags", UISizes.CONTENT_WIDTH - 2 * UITheme.PANEL_PADDING, StatusLine.HEIGHT)
+                .adaptiveHeight(TAG_LIST_MAX_LINES * StatusLine.HEIGHT + 2 * UITheme.PANEL_PADDING)
+                .layoutContent(l -> l.paddingAll(UITheme.PANEL_PADDING));
+        scroller.setBackground(UITheme.PANEL);
+        scroller.addScrollViewChild(text);
+        var tagList = UIElement.column(LayoutStyle.AUTO).addChild(scroller);
+        tagList.setDisplay(false);
+
+        var root = UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP));
+        root.addSyncValue(SyncValue.of(query::hasTags, SyncValue.BOOLEAN, false).onChanged(tagList::setDisplay));
+        return root.addChildren(inputRow, tagList);
+    }
+
+    abstract Widget createQuerySlot(TagQuery query);
+
+    private void onTagClicked(TagQuery query, String tag, ClickData click) {
+        if (click.isRemote) {
+            if (click.button == 1) copyToClipboard(tag);
+        } else if (click.button == 0 && query.contains(tag)) {
+            setOreDict(normalizeExpression(tag));
+        }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private static void copyToClipboard(String text) {
+        Minecraft.getInstance().keyboardHandler.setClipboard(text);
+    }
+
+    static final class TagQuery {
+
+        private Supplier<Object> key = () -> null;
+        private Supplier<Stream<TagKey<?>>> source = Stream::empty;
+        private boolean loaded;
+        private Object lastKey;
+        private List<String> tags = Collections.emptyList();
+        private List<Component> lines = Collections.emptyList();
+
+        void bind(Supplier<Object> key, Supplier<Stream<TagKey<?>>> source) {
+            this.key = key;
+            this.source = source;
+            this.loaded = false;
+        }
+
+        private void refresh() {
+            var current = key.get();
+            if (loaded && current == lastKey) return;
+            loaded = true;
+            lastKey = current;
+            var names = source.get().map(tag -> tag.location().toString()).toList();
+            var hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("cover.tag_filter.tag_entry.tooltip"));
+            var newLines = new ArrayList<Component>(names.size());
+            for (var name : names) {
+                newLines.add(ComponentPanelWidget.withButton(Component.literal(name), name).copy().withStyle(s -> s.withHoverEvent(hover)));
+            }
+            tags = names;
+            lines = newLines;
+        }
+
+        boolean hasTags() {
+            refresh();
+            return !tags.isEmpty();
+        }
+
+        boolean contains(String tag) {
+            refresh();
+            return tags.contains(tag);
+        }
+
+        void appendLines(List<Component> out) {
+            refresh();
+            out.addAll(lines);
+        }
     }
 
     @Override
@@ -174,28 +215,5 @@ public abstract class TagFilter<T, S extends Filter<T, S>> implements Filter<T, 
             this.itemWriter.accept(filter);
             onUpdated.accept(filter);
         };
-    }
-
-    public interface StackHandlerWidget<STACK, FILTER extends Filter<STACK, FILTER>> {
-
-        STACK getStack();
-
-        void setOnContentsChanged(Runnable runnable);
-
-        boolean isEmpty();
-
-        Stream<TagKey<?>> getTags();
-    }
-
-    protected static class TextField extends TextFieldWidget {
-
-        public TextField(int x, int y, int width, int height, Supplier<String> textSupplier, Consumer<String> textConsumer) {
-            super(x, y, width, height, textSupplier, textConsumer);
-        }
-
-        public void setDirectly(String newTextString) {
-            this.setCurrentString(newTextString);
-            this.writeClientAction(1, buf -> buf.writeUtf(newTextString));
-        }
     }
 }

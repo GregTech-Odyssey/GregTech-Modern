@@ -6,26 +6,22 @@ import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.cover.IUICover;
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.widget.IntInputWidget;
-import com.gregtechceu.gtceu.api.gui.widget.PhantomSlotWidget;
-import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.common.cover.data.ControllerMode;
+import com.gregtechceu.gtceu.uipro.LayoutStyle;
+import com.gregtechceu.gtceu.uipro.elements.ButtonGroup;
+import com.gregtechceu.gtceu.uipro.elements.NumberField;
+import com.gregtechceu.gtceu.uipro.elements.StatusLine;
+import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
+import com.gregtechceu.gtceu.uipro.elements.Switch;
+import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
-import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -37,7 +33,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -45,9 +40,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class MachineControllerCover extends CoverBehavior implements IUICover {
-
-    private CustomItemStackHandler sideCoverSlot;
-    private ButtonWidget modeButton;
 
     @Getter
     @SaveToDisk
@@ -96,22 +88,19 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
     public void setControllerMode(@Nullable ControllerMode controllerMode) {
         resetCurrentControllable();
         this.controllerMode = controllerMode;
-        updateAll();
+        updateInput();
     }
 
     public void setMinRedstoneStrength(int minRedstoneStrength) {
         this.minRedstoneStrength = minRedstoneStrength;
-        updateAll();
+        coverHolder.onChanged();
+        updateInput();
     }
 
     public void setInverted(boolean inverted) {
         isInverted = inverted;
-        updateAll();
-    }
-
-    private void updateAll() {
+        coverHolder.onChanged();
         updateInput();
-        updateUI();
     }
 
     ///////////////////////////////////////////////////
@@ -169,57 +158,83 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
     //////////////////////////////////////
     @Override
     public Widget createUIWidget() {
-        if (controllerMode != null && getControllable(controllerMode.side) == null) {
+        if (!coverHolder.isRemote() && controllerMode != null && getControllable(controllerMode.side) == null) {
             setControllerMode(null);
         }
-        WidgetGroup group = new WidgetGroup(0, 0, 176, 75);
-        group.addWidget(new LabelWidget(10, 5, "cover.machine_controller.title"));
-        group.addWidget(new IntInputWidget(10, 20, 131, 20, this::getMinRedstoneStrength, this::setMinRedstoneStrength).setMin(1).setMax(15));
-        modeButton = new ButtonWidget(10, 45, 131, 20, new GuiTextureGroup(GuiTextures.VANILLA_BUTTON), cd -> selectNextMode());
-        group.addWidget(modeButton);
-        // Inverted Mode Toggle:
-        group.addWidget(new ToggleButtonWidget(146, 20, 20, 20, GuiTextures.INVERT_REDSTONE_BUTTON, this::isInverted, this::setInverted).isMultiLang().setTooltipText("cover.machine_controller.invert"));
-        sideCoverSlot = new CustomItemStackHandler(1);
-        group.addWidget(new PhantomSlotWidget(sideCoverSlot, 0, 147, 46) {
-
-            @Override
-            public ItemStack slotClickPhantom(Slot slot, int mouseButton, ClickType clickTypeIn, ItemStack stackHeld) {
-                return sideCoverSlot.getStackInSlot(0);
-            }
-        });
-        updateUI();
-        return group;
+        var status = new StatusPanel();
+        var targetIcon = new ItemStack[] { ItemStack.EMPTY };
+        status.addLine("cover.machine_controller.status.target", this::targetName)
+                .level(this::targetLevel)
+                .icon(() -> {
+                    var stack = targetItem();
+                    if (!ItemStack.isSameItemSameTags(stack, targetIcon[0])) targetIcon[0] = stack;
+                    return targetIcon[0];
+                });
+        status.addLine("cover.machine_controller.status.signal", () -> Component.literal(Integer.toString(getInputSignal())));
+        status.addLine("cover.machine_controller.status.working", this::workingState).level(this::workingLevel);
+        var modes = Arrays.stream(ControllerMode.values()).filter(mode -> mode.side != this.attachedSide).toList();
+        var modeGroup = ButtonGroup.single(modes.size(), i -> Component.translatable(targetKey(modes.get(i))),
+                () -> modes.indexOf(controllerMode), i -> {
+                    var mode = modes.get(i);
+                    if (getControllable(mode.side) != null) setControllerMode(mode);
+                }).optionDisabled(i -> getControllable(modes.get(i).side) == null, "cover.machine_controller.target_unavailable");
+        var target = CoverUIs.section("cover.machine_controller.section.target").addChildren(status, modeGroup);
+        var signal = CoverUIs.section("cover.machine_controller.section.signal").addChildren(
+                CoverUIs.numberRow("cover.machine_controller.min_strength", NumberField.of(LayoutStyle.AUTO,
+                        this::getMinRedstoneStrength, value -> setMinRedstoneStrength((int) value), 1, 15)),
+                CoverUIs.controlRow("cover.machine_controller.inverted", Switch.of(this::isInverted, this::setInverted),
+                        "cover.machine_controller.inverted.tooltip"));
+        return CoverUIs.page().addChildren(target, signal);
     }
 
-    private void selectNextMode() {
-        var allowedModes = getAllowedModes();
-        setControllerMode(allowedModes.stream().dropWhile(mode -> this.controllerMode != null && mode != this.controllerMode).skip(1).findFirst().orElse(allowedModes.isEmpty() ? null : allowedModes.getFirst()));
-        updateAll();
+    private static String targetKey(ControllerMode mode) {
+        return switch (mode) {
+            case MACHINE -> "cover.machine_controller.target.machine";
+            case COVER_UP -> "cover.machine_controller.target.cover_up";
+            case COVER_DOWN -> "cover.machine_controller.target.cover_down";
+            case COVER_NORTH -> "cover.machine_controller.target.cover_north";
+            case COVER_EAST -> "cover.machine_controller.target.cover_east";
+            case COVER_SOUTH -> "cover.machine_controller.target.cover_south";
+            case COVER_WEST -> "cover.machine_controller.target.cover_west";
+        };
     }
 
-    private void updateUI() {
-        updateModeButton();
-        updateCoverSlot();
-    }
-
-    private void updateModeButton() {
-        if (modeButton == null) {
-            return;
+    private ItemStack targetItem() {
+        if (controllerMode == null || getControllable(controllerMode.side) == null) return ItemStack.EMPTY;
+        if (controllerMode.side == null) {
+            return new ItemStack(coverHolder.getLevel().getBlockState(coverHolder.getPos()).getBlock());
         }
-        modeButton.setButtonTexture(new GuiTextureGroup(GuiTextures.VANILLA_BUTTON, new TextTexture(controllerMode != null ? controllerMode.localeName : ControllerMode.nullLocaleName)));
+        var cover = coverHolder.getCoverAtSide(controllerMode.side);
+        return cover == null ? ItemStack.EMPTY : cover.getAttachItem();
     }
 
-    private void updateCoverSlot() {
-        if (sideCoverSlot == null) {
-            return;
-        }
-        Optional.ofNullable(controllerMode).map(mode -> mode.side).map(coverHolder::getCoverAtSide).map(CoverBehavior::getAttachItem).map(ItemStack::copy).ifPresentOrElse(item -> {
-            sideCoverSlot.setStackInSlot(0, item);
-            sideCoverSlot.onContentsChanged(0);
-        }, () -> {
-            sideCoverSlot.setStackInSlot(0, ItemStack.EMPTY);
-            sideCoverSlot.onContentsChanged(0);
-        });
+    private Component targetName() {
+        if (controllerMode == null) return Component.translatable("cover.machine_controller.status.none");
+        if (getControllable(controllerMode.side) == null) return Component.translatable("cover.machine_controller.status.missing");
+        var stack = targetItem();
+        return stack.isEmpty() ? Component.translatable(targetKey(controllerMode)) : stack.getHoverName();
+    }
+
+    private StatusLine.Level targetLevel() {
+        if (controllerMode == null) return StatusLine.Level.WARNING;
+        return getControllable(controllerMode.side) == null ? StatusLine.Level.ERROR : StatusLine.Level.GOOD;
+    }
+
+    @Nullable
+    private IControllable currentControllable() {
+        return controllerMode == null ? null : getControllable(controllerMode.side);
+    }
+
+    private Component workingState() {
+        var controllable = currentControllable();
+        if (controllable == null) return Component.literal("—");
+        return Component.translatable(controllable.isWorkingEnabled() ? "cover.machine_controller.status.enabled" : "cover.machine_controller.status.paused");
+    }
+
+    private StatusLine.Level workingLevel() {
+        var controllable = currentControllable();
+        if (controllable == null) return StatusLine.Level.NORMAL;
+        return controllable.isWorkingEnabled() ? StatusLine.Level.GOOD : StatusLine.Level.WARNING;
     }
 
     @Nullable

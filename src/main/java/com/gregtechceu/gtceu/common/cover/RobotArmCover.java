@@ -4,16 +4,20 @@ import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.cover.filter.ItemFilter;
 import com.gregtechceu.gtceu.api.cover.filter.SimpleItemFilter;
-import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
-import com.gregtechceu.gtceu.api.gui.widget.IntInputWidget;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.cover.data.TransferMode;
 import com.gregtechceu.gtceu.common.pipelike.item.ItemNetHandler;
-
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
+import com.gregtechceu.gtceu.uipro.LayoutStyle;
+import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.NumberField;
+import com.gregtechceu.gtceu.uipro.elements.TextLine;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
@@ -21,11 +25,16 @@ import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 
+import java.util.List;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class RobotArmCover extends ConveyorCover {
+
+    private static final Component SUPPLY_AMOUNT = Component.translatable("cover.robotic_arm.ui.supply_amount");
+    private static final Component KEEP_AMOUNT = Component.translatable("cover.robotic_arm.ui.keep_amount");
 
     @Getter
     @SaveToDisk
@@ -35,7 +44,6 @@ public class RobotArmCover extends ConveyorCover {
     @SaveToDisk
     protected int globalTransferLimit;
     protected int itemsTransferBuffered;
-    private IntInputWidget stackSizeInput;
 
     public RobotArmCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide, int tier, int maxTransferRate) {
         super(definition, coverHolder, attachedSide, tier, maxTransferRate);
@@ -140,24 +148,33 @@ public class RobotArmCover extends ConveyorCover {
     // *********** GUI ***********//
     //////////////////////////////////////
     @Override
-    protected String getUITitle() {
-        return "cover.robotic_arm.title";
-    }
-
-    @Override
-    protected void buildAdditionalUI(WidgetGroup group) {
-        group.addWidget(new EnumSelectorWidget<>(146, 45, 20, 20, TransferMode.values(), transferMode, this::setTransferMode));
-        this.stackSizeInput = new IntInputWidget(64, 45, 80, 20, () -> globalTransferLimit, val -> globalTransferLimit = val);
-        configureStackSizeInput();
-        group.addWidget(this.stackSizeInput);
+    protected void buildAdditionalUI(UIElement section) {
+        var amountLabel = TextLine.of(LayoutStyle.AUTO, () -> transferMode == TransferMode.KEEP_EXACT ? KEEP_AMOUNT : SUPPLY_AMOUNT)
+                .setColor(UITheme.PANEL_TEXT);
+        amountLabel.setHoverTooltips("cover.robotic_arm.ui.amount.tooltip");
+        var amount = new NumberField(LayoutStyle.AUTO, () -> globalTransferLimit, value -> setGlobalTransferLimit((int) value),
+                () -> 1, () -> transferMode.maxStackSize);
+        amount.disabled(() -> transferMode != TransferMode.TRANSFER_ANY && isAmountFromFilter(), "cover.conveyor.ui.amount_from_filter");
+        var amountRow = UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(amountLabel, amount)
+                .disabled(() -> transferMode == TransferMode.TRANSFER_ANY, "cover.robotic_arm.ui.amount_unused");
+        section.addChildren(
+                CoverUIs.enumRow("cover.robotic_arm.ui.transfer_mode", List.of(TransferMode.values()), this::getTransferMode, this::setTransferMode,
+                        "cover.robotic_arm.transfer_mode.description.0",
+                        "cover.robotic_arm.transfer_mode.description.1",
+                        "cover.robotic_arm.transfer_mode.description.2"),
+                amountRow);
     }
 
     private void setTransferMode(TransferMode transferMode) {
         this.transferMode = transferMode;
-        configureStackSizeInput();
         if (!this.isRemote()) {
             configureFilter();
         }
+    }
+
+    public void setGlobalTransferLimit(int globalTransferLimit) {
+        this.globalTransferLimit = globalTransferLimit;
+        coverHolder.onChanged();
     }
 
     @Override
@@ -165,19 +182,9 @@ public class RobotArmCover extends ConveyorCover {
         if (filterHandler.getFilter() instanceof SimpleItemFilter filter) {
             filter.setMaxStackSize(filter.isBlackList() ? 1 : transferMode.maxStackSize);
         }
-        configureStackSizeInput();
     }
 
-    private void configureStackSizeInput() {
-        if (this.stackSizeInput == null) return;
-        this.stackSizeInput.setVisible(shouldShowStackSize());
-        this.stackSizeInput.setMin(1);
-        this.stackSizeInput.setMax(this.transferMode.maxStackSize);
-    }
-
-    private boolean shouldShowStackSize() {
-        if (this.transferMode == TransferMode.TRANSFER_ANY) return false;
-        if (!this.filterHandler.isFilterPresent()) return true;
-        return !this.filterHandler.getFilter().supportsAmounts();
+    private boolean isAmountFromFilter() {
+        return this.filterHandler.isFilterPresent() && this.filterHandler.getFilter().supportsAmounts();
     }
 }

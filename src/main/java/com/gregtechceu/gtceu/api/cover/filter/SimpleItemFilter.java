@@ -1,17 +1,23 @@
 package com.gregtechceu.gtceu.api.cover.filter;
 
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.widget.PhantomSlotWidget;
-import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.uipro.LayoutStyle;
+import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.data.SyncValue;
+import com.gregtechceu.gtceu.uipro.elements.PhantomItemSlot;
+import com.gregtechceu.gtceu.uipro.elements.Switch;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
+import com.lowdragmc.lowdraglib.misc.ItemStackTransfer;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import lombok.Getter;
 
@@ -94,36 +100,47 @@ public class SimpleItemFilter implements ItemFilter {
         onUpdated.accept(this);
     }
 
-    public WidgetGroup openConfigurator(int x, int y) {
-        WidgetGroup group = new WidgetGroup(x, y, 18 * 3 + 25, 18 * 3); // 80 55
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                final int index = i * 3 + j;
-                var handler = new CustomItemStackHandler(matches[index]);
-                var slot = new PhantomSlotWidget(handler, 0, i * 18, j * 18) {
-
-                    @Override
-                    public void updateScreen() {
-                        super.updateScreen();
-                        setMaxStackSize(maxStackSize);
-                    }
-
-                    @Override
-                    public void detectAndSendChanges() {
-                        super.detectAndSendChanges();
-                        setMaxStackSize(maxStackSize);
-                    }
-                };
-                slot.setChangeListener(() -> {
-                    matches[index] = handler.getStackInSlot(0);
-                    onUpdated.accept(this);
-                }).setBackground(GuiTextures.SLOT);
-                group.addWidget(slot);
+    @Override
+    public Widget createConfigUI() {
+        var grid = UIElement.column(LayoutStyle.AUTO);
+        var maxStack = grid.addSyncValue(SyncValue.ofInt(() -> maxStackSize, 1));
+        for (int row = 0; row < 3; row++) {
+            var line = UIElement.row(UISizes.SLOT);
+            for (int col = 0; col < 3; col++) {
+                line.addChild(matchSlot(col * 3 + row, maxStack));
             }
+            grid.addChild(line);
         }
-        group.addWidget(new ToggleButtonWidget(18 * 3 + 5, 0, 20, 20, GuiTextures.BUTTON_BLACKLIST, this::isBlackList, this::setBlackList));
-        group.addWidget(new ToggleButtonWidget(18 * 3 + 5, 20, 20, 20, GuiTextures.BUTTON_FILTER_NBT, this::isIgnoreNbt, this::setIgnoreNbt));
-        return group;
+        var options = UIElement.column(LayoutStyle.AUTO).layout(l -> l.flex(1).gapAll(UISizes.GAP)).addChildren(
+                CoverUIs.controlRow("cover.filter.blacklist.enabled", Switch.of(this::isBlackList, this::setBlackList)),
+                CoverUIs.controlRow("cover.item_filter.ignore_nbt.enabled", Switch.of(this::isIgnoreNbt, this::setIgnoreNbt)));
+        return UIElement.row(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.SECTION_GAP)).addChildren(grid, options);
+    }
+
+    private PhantomItemSlot matchSlot(int index, SyncValue<Integer> maxStack) {
+        var handler = new ItemStackTransfer(matches[index]);
+        var slot = new PhantomItemSlot(handler, 0) {
+
+            @Override
+            public void detectAndSendChanges() {
+                setMaxStackSize(SimpleItemFilter.this.maxStackSize);
+                super.detectAndSendChanges();
+            }
+
+            @Override
+            @OnlyIn(Dist.CLIENT)
+            public void updateScreen() {
+                super.updateScreen();
+                setMaxStackSize(maxStack.getValue());
+            }
+        };
+        slot.xeiPhantom();
+        slot.setChangeListener(() -> {
+            if (slot.isRemote()) return;
+            matches[index] = handler.getStackInSlot(0);
+            onUpdated.accept(this);
+        });
+        return slot;
     }
 
     @Override
