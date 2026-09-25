@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.data.lang;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.BedrockFluidDefinition;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
-import com.gregtechceu.gtceu.common.data.GTBedrockFluids;
 import com.gregtechceu.gtceu.common.data.GTOres;
 
 import com.gto.registrate.providers.RegistrateLangProvider;
@@ -37,7 +36,6 @@ public class IntegrationLang {
             provider.add("gtceu.jei.ore_vein." + name, RegistrateLangProvider.toEnglishName(name));
         }
         GTRegistries.BEDROCK_FLUID_DEFINITIONS.unfreeze();
-        GTBedrockFluids.init();
         GTRegistries.BEDROCK_FLUID_DEFINITIONS.freeze();
         for (BedrockFluidDefinition fluid : GTRegistries.BEDROCK_FLUID_DEFINITIONS) {
             String name = GTRegistries.BEDROCK_FLUID_DEFINITIONS.getKey(fluid).getPath();

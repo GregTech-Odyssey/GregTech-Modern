@@ -170,7 +170,6 @@ public class CommonProxy {
         GTOres.init();
         GTRegistries.ORE_VEINS.freeze();
         GTRegistries.BEDROCK_FLUID_DEFINITIONS.unfreeze();
-        GTBedrockFluids.init();
         GTRegistries.BEDROCK_FLUID_DEFINITIONS.freeze();
         event.enqueueWork(() -> {
             CraftingHelper.register(FluidContainerIngredient.TYPE, FluidContainerIngredient.SERIALIZER);
