@@ -57,6 +57,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -256,6 +257,15 @@ public class PatternPreviewWidget extends WidgetGroup {
             LEVEL = new TrackedDummyWorld();
         }
         return new PatternPreviewWidget(controllerDefinition);
+    }
+
+    public static boolean forEachCell(MultiblockMachineDefinition controllerDefinition, int index,
+                                      BiConsumer<BlockInfo, TraceabilityPredicate> action) {
+        var patterns = CACHE.get(controllerDefinition);
+        if (patterns == null || index < 0 || index >= patterns.length || patterns[index] == null) return false;
+        var pattern = patterns[index];
+        pattern.blockMap.forEach((pos, info) -> action.accept(info, pattern.predicateMap.get(pos.asLong())));
+        return true;
     }
 
     public void setPage(int index) {

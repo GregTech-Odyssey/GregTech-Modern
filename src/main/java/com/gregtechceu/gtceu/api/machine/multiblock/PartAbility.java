@@ -17,6 +17,8 @@ import java.util.function.Supplier;
 
 public class PartAbility {
 
+    private static final List<PartAbility> ALL = new ArrayList<>();
+
     public static final PartAbility EXPORT_ITEMS = new PartAbility("export_items");
     public static final PartAbility IMPORT_ITEMS = new PartAbility("import_items");
     public static final PartAbility EXPORT_FLUIDS = new PartAbility("export_fluids");
@@ -70,6 +72,15 @@ public class PartAbility {
 
     public PartAbility(String name) {
         this.name = name;
+        synchronized (ALL) {
+            ALL.add(this);
+        }
+    }
+
+    public static List<PartAbility> getAll() {
+        synchronized (ALL) {
+            return List.copyOf(ALL);
+        }
     }
 
     public void register(int tier, Block block) {

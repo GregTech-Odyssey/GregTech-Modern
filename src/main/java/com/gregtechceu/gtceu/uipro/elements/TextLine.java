@@ -13,6 +13,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -39,6 +40,10 @@ public class TextLine extends UIElement {
     private final SyncValue<Component> text;
     private int color = UITheme.TEXT;
     private float scale = 1;
+    @Nullable
+    private SyncValue<Integer> level;
+    private float align;
+    private boolean styled;
 
     public TextLine(int width, Supplier<Component> text, Component initial) {
         layout(l -> l.size(width, HEIGHT));
@@ -72,6 +77,26 @@ public class TextLine extends UIElement {
         return this;
     }
 
+    public TextLine alignRight() {
+        this.align = 1;
+        return this;
+    }
+
+    public TextLine styled() {
+        this.styled = true;
+        return this;
+    }
+
+    public TextLine alignCenter() {
+        this.align = 0.5f;
+        return this;
+    }
+
+    public TextLine level(Supplier<StatusLine.Level> level) {
+        this.level = addSyncValue(SyncValue.ofInt(() -> level.get().ordinal(), StatusLine.Level.NORMAL.ordinal()));
+        return this;
+    }
+
     /** 最近一次同步到的文字。 */
     public Component getText() {
         return text.getValue();
@@ -82,14 +107,27 @@ public class TextLine extends UIElement {
     public void drawInBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
         var font = Minecraft.getInstance().font;
-        var clipped = UITheme.clip(font, text.getValue().getString(), (int) (getSizeWidth() / scale));
+        var value = text.getValue();
+        int available = (int) (getSizeWidth() / scale);
+        boolean keepStyle = styled && font.width(value) <= available;
+        var clipped = keepStyle ? null : UITheme.clip(font, value.getString(), available);
+        int textWidth = keepStyle ? font.width(value) : font.width(clipped);
         var pose = graphics.pose();
         pose.pushPose();
         // 整数偏移，避免文字落在半像素上发虚
-        pose.translate(getPositionX(), getPositionY() + (float) (getSizeHeight() - Math.round(8 * scale)) / 2, 0);
+        int x = getPositionX();
+        if (align > 0) x += Math.round(Math.max(0, getSizeWidth() - textWidth * scale) * align);
+        pose.translate(x, getPositionY() + (float) (getSizeHeight() - Math.round(8 * scale)) / 2, 0);
         pose.scale(scale, scale, 1);
-        graphics.drawString(font, clipped, 0, 0, color, false);
+        if (keepStyle) graphics.drawString(font, value, 0, 0, currentColor(), false);
+        else graphics.drawString(font, clipped, 0, 0, currentColor(), false);
         pose.popPose();
+    }
+
+    private int currentColor() {
+        if (level == null) return color;
+        var current = StatusLine.Level.values()[level.getValue()];
+        return current == StatusLine.Level.NORMAL ? color : current.textColor();
     }
 
     @Override

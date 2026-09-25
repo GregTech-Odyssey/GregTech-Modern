@@ -40,7 +40,7 @@ import java.util.Map;
  * 位置没变的小组件不播动画——GTM 展开一个标签时会让所有标签重播一遍"收回原位"，看起来一抖一抖。
  * 动画只在客户端播，服务端直接到位。
  */
-final class WindowConfiguratorPanel extends ConfiguratorPanel {
+public final class WindowConfiguratorPanel extends ConfiguratorPanel {
 
     /// 小组件移动（展开、收起）的动画
     private static final Animation MOVE = Animation.of(0.2f, Eases.CUBIC_OUT);
@@ -54,7 +54,7 @@ final class WindowConfiguratorPanel extends ConfiguratorPanel {
 
     private record Motion(float x, float y, float width, float height) {}
 
-    WindowConfiguratorPanel() {
+    public WindowConfiguratorPanel() {
         super(0, 0);
         // 展开后的内边距与窗口一致
         border = UISizes.WINDOW_PADDING_X;

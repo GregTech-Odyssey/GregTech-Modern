@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.uipro.elements;
 
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.ClientActions;
+import com.gregtechceu.gtceu.uipro.data.SyncItem;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
 import com.gregtechceu.gtceu.uipro.data.SyncValueHost;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
@@ -58,37 +59,6 @@ public class StatusLine extends UIElement {
     /// 点击的客户端请求（SyncValueHost 段以下的登记见 Adjuster）
     private static final int CLICK_ID = SyncValueHost.ID_BASE - 10;
 
-    /** 行内显示的物品：按物品与标签比较（{@link ItemStack} 自己不比内容），内容不变就不重发。 */
-    private record Icon(ItemStack stack) {
-
-        static final Icon EMPTY = new Icon(ItemStack.EMPTY);
-
-        @Override
-        public boolean equals(Object obj) {
-            return obj instanceof Icon other && ItemStack.isSameItemSameTags(stack, other.stack);
-        }
-
-        @Override
-        public int hashCode() {
-            return stack.getItem().hashCode();
-        }
-    }
-
-    private static final SyncValue.Codec<Icon> ICON_CODEC = new SyncValue.Codec<>() {
-
-        @Override
-        public void write(FriendlyByteBuf buf, Icon value) {
-            // 数量只占 1 字节，图标只要种类与标签
-            buf.writeItem(value.stack.isEmpty() ? ItemStack.EMPTY : value.stack.copyWithCount(1));
-        }
-
-        @Override
-        public Icon read(FriendlyByteBuf buf) {
-            var stack = buf.readItem();
-            return stack.isEmpty() ? Icon.EMPTY : new Icon(stack);
-        }
-    };
-
     /** 这一项的好坏。{@link #NORMAL} 是纯信息，不画灯、不上色。 */
     public enum Level {
 
@@ -108,6 +78,10 @@ public class StatusLine extends UIElement {
         public boolean hasLamp() {
             return this != NORMAL;
         }
+
+        public int textColor() {
+            return textColor;
+        }
     }
 
     private static final Level[] LEVELS = Level.values();
@@ -119,7 +93,7 @@ public class StatusLine extends UIElement {
     @Nullable
     private SyncValue<Component> detail;
     @Nullable
-    private SyncValue<Icon> icon;
+    private SyncValue<SyncItem> icon;
     /// 可点击：服务端判定能否点击（下发）、点击时（服务端）做什么、提示里的说明
     @Nullable
     private SyncValue<Boolean> clickable;
@@ -168,15 +142,15 @@ public class StatusLine extends UIElement {
      */
     public StatusLine icon(Supplier<ItemStack> icon) {
         var last = new ItemStack[1];
-        var memo = new Icon[] { Icon.EMPTY };
+        var memo = new SyncItem[] { SyncItem.EMPTY };
         this.icon = addSyncValue(SyncValue.of(() -> {
             var stack = icon.get();
             if (stack != last[0]) {
                 last[0] = stack;
-                memo[0] = stack == null || stack.isEmpty() ? Icon.EMPTY : new Icon(stack);
+                memo[0] = SyncItem.of(stack);
             }
             return memo[0];
-        }, ICON_CODEC, Icon.EMPTY));
+        }, SyncItem.CODEC, SyncItem.EMPTY));
         layout(l -> l.height(ICON_HEIGHT));
         return this;
     }
@@ -227,9 +201,9 @@ public class StatusLine extends UIElement {
 
     @Nullable
     private ItemStack iconAt(double mouseX, double mouseY) {
-        if (icon == null || iconX == Integer.MIN_VALUE || icon.getValue().stack.isEmpty()) return null;
+        if (icon == null || iconX == Integer.MIN_VALUE || icon.getValue().stack().isEmpty()) return null;
         int top = getPositionY() + (getSizeHeight() - ICON) / 2;
-        return isMouseOver(iconX, top, ICON, ICON, mouseX, mouseY) ? icon.getValue().stack : null;
+        return isMouseOver(iconX, top, ICON, ICON, mouseX, mouseY) ? icon.getValue().stack() : null;
     }
 
     /** 固定的悬停说明（翻译键）。 */
@@ -259,7 +233,7 @@ public class StatusLine extends UIElement {
         var font = Minecraft.getInstance().font;
         var current = getLevel();
         int textY = y + (height - 8) / 2;
-        var stack = icon == null ? ItemStack.EMPTY : icon.getValue().stack;
+        var stack = icon == null ? ItemStack.EMPTY : icon.getValue().stack();
         // 数值前面依次是灯、物品图标
         int iconSpace = stack.isEmpty() ? 0 : ICON + ICON_GAP;
         int lampSpace = (current.hasLamp() ? LAMP + LAMP_GAP : 0) + iconSpace;

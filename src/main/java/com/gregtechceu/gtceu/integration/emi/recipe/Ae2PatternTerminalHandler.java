@@ -1,6 +1,8 @@
 package com.gregtechceu.gtceu.integration.emi.recipe;
 
+import com.gregtechceu.gtceu.api.gui.widget.PatternPreviewWidget;
 import com.gregtechceu.gtceu.integration.emi.multipage.MultiblockInfoEmiRecipe;
+import com.gregtechceu.gtceu.uiwidgets.patternbuilder.PatternBuilderModel;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -50,12 +52,22 @@ public class Ae2PatternTerminalHandler<T extends PatternEncodingTermMenu> implem
     @Override
     public boolean craft(EmiRecipe recipe, EmiCraftContext<T> context) {
         T menu = context.getScreenHandler();
-        EncodingHelper.encodeProcessingRecipe(menu,
-                ofInputs(recipe),
-                ofOutputs(recipe));
+        if (!(recipe instanceof MultiblockInfoEmiRecipe multiblock) || !openPatternBuilder(menu, multiblock)) {
+            EncodingHelper.encodeProcessingRecipe(menu,
+                    ofInputs(recipe),
+                    ofOutputs(recipe));
+        }
         if (Minecraft.getInstance().screen instanceof RecipeScreen e) {
             e.onClose();
         }
+        return true;
+    }
+
+    private static boolean openPatternBuilder(PatternEncodingTermMenu menu, MultiblockInfoEmiRecipe recipe) {
+        var controller = recipe.definition.asStack();
+        var builder = PatternBuilderModel.builder(controller);
+        if (!PatternPreviewWidget.forEachCell(recipe.definition, 0, builder::addCell)) return false;
+        Ae2PatternBuilder.open(menu, builder, controller.getHoverName(), ofOutputs(recipe), () -> {});
         return true;
     }
 

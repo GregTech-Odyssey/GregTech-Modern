@@ -1526,6 +1526,24 @@ public class LangHandler {
         provider.add("gtceu.gui.config_slot.auto_pull_managed", "§4Disabled:§7 Managed by Auto-Pull");
         provider.add("gtceu.gui.me_bus.auto_pull_button", "Click to toggle automatic item pulling from ME");
 
+        provider.add("gtceu.pattern_builder.sort", "Sort");
+        provider.add("gtceu.pattern_builder.sort.stock", "In stock first");
+        provider.add("gtceu.pattern_builder.sort.craftable", "Craftable first");
+        provider.add("gtceu.pattern_builder.sort.none", "No sorting");
+        provider.add("gtceu.pattern_builder.craftable", "Craftable");
+        provider.add("gtceu.pattern_builder.stock", "Stock %s");
+        provider.add("gtceu.pattern_builder.selected", "Selected");
+        provider.add("gtceu.pattern_builder.select", "Select");
+        provider.add("gtceu.pattern_builder.title", "Encode Pattern: %s");
+        provider.add("gtceu.pattern_builder.blocks", "Structure Blocks");
+        provider.add("gtceu.pattern_builder.include", "Include in pattern");
+        provider.add("gtceu.pattern_builder.change_block", "Choose block");
+        provider.add("gtceu.pattern_builder.optional", "Optional");
+        provider.add("gtceu.pattern_builder.inputs", "Pattern inputs");
+        provider.add("gtceu.pattern_builder.write", "Write");
+        provider.add("gtceu.pattern_builder.cancel", "Cancel");
+        provider.add("gtceu.pattern_builder.cannot_write", "Nothing to write, or more inputs than the pattern can hold");
+        provider.add("gtceu.pattern_builder.open_hint", "Left click: open the pattern builder, pick blocks and hatches, then write");
         // 新式 UI 框架（uipro）
         provider.add("gtceu.uipro.disabled", "Operation not allowed");
         provider.add("gtceu.uipro.popup.close", "Close");

@@ -26,6 +26,7 @@ import dev.vfyjxf.taffy.geometry.FloatSize;
 import dev.vfyjxf.taffy.util.MeasureFunc;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector4f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -486,7 +487,14 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
+        boolean inside = isInViewport(mouseX, mouseY);
+        int x = getPositionX(), y = getPositionY();
+        var pose = graphics.pose().last().pose();
+        var from = pose.transform(new Vector4f(x, y, 0, 1));
+        var to = pose.transform(new Vector4f(x + getSizeWidth(), y + getSizeHeight(), 0, 1));
+        graphics.enableScissor((int) from.x, (int) from.y, (int) to.x, (int) to.y);
+        drawWidgetsForeground(graphics, inside ? mouseX : OUTSIDE, inside ? mouseY : OUTSIDE, partialTicks);
+        graphics.disableScissor();
         if (resizing || !isOverGrip(mouseX, mouseY) || gui == null || gui.getModularUIGui() == null) return;
         var lines = isLocked() ?
                 List.<Component>of(Component.translatable(GRIP_LOCKED), Component.translatable(GRIP_UNLOCK).withStyle(ChatFormatting.GRAY)) :
