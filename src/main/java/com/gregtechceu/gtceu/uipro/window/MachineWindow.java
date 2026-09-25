@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.uipro.window;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.gui.factory.MachineSubWindowFactory;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
@@ -33,6 +34,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import dev.emi.emi.config.EmiConfig;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
@@ -393,10 +395,26 @@ public class MachineWindow extends FancyMachineUIWidget {
     @OnlyIn(Dist.CLIENT)
     public static int clientPageHeightLimit(boolean inventory) {
         int screen = Minecraft.getInstance().getWindow().getGuiScaledHeight();
-        int usable = screen - Math.round(screen * UISizes.WINDOW_BOTTOM_SCREEN_MARGIN) - UISizes.POPUP_SCREEN_MARGIN;
+        int usable = screen - clientBottomMargin(screen) - UISizes.POPUP_SCREEN_MARGIN;
         int chrome = UISizes.WINDOW_PADDING_TOP + UISizes.CONTROL_HEIGHT + UISizes.SECTION_GAP + UISizes.WINDOW_PADDING_BOTTOM;
         if (inventory) chrome += UISizes.SECTION_GAP + UISizes.PLAYER_INVENTORY_HEIGHT;
         return Math.max(2 * UISizes.SLOT, usable - chrome);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private static int clientBottomMargin(int screenHeight) {
+        int margin = Math.round(screenHeight * UISizes.WINDOW_BOTTOM_SCREEN_MARGIN);
+        if (GTCEu.Mods.isEMILoaded()) margin += EmiCompat.centeredSearchHeight();
+        return margin;
+    }
+
+    private static final class EmiCompat {
+
+        private static final int SEARCH_HEIGHT = 18;
+
+        private static int centeredSearchHeight() {
+            return EmiConfig.centerSearchBar ? SEARCH_HEIGHT : 0;
+        }
     }
 
     public void setTitleItem(Supplier<ItemStack> stack, Supplier<Component> name) {
@@ -551,7 +569,7 @@ public class MachineWindow extends FancyMachineUIWidget {
             anchorScreenWidth = screenWidth;
             anchorScreenHeight = screenHeight;
         }
-        int bottomLimit = screenHeight - Math.round(screenHeight * UISizes.WINDOW_BOTTOM_SCREEN_MARGIN);
+        int bottomLimit = screenHeight - clientBottomMargin(screenHeight);
         int top = centered ? Math.max(tabsHeight, anchorTop) : Math.max(tabsHeight, Math.min(anchorTop, bottomLimit - height));
 
         int extra = Math.max(0, width - anchorWidth);
