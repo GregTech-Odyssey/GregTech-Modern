@@ -25,12 +25,15 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import dev.vfyjxf.taffy.style.AlignContent;
 
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
+@OnlyIn(Dist.CLIENT)
 public class PatternBuilderPanel extends UIElement implements ILocalUI {
 
     public static final String TITLE = "gtceu.pattern_builder.title";

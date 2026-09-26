@@ -41,11 +41,13 @@ public interface CanvasLayer {
     default void drawMinimap(CanvasPainter painter) {}
 
     /** 只画、不交互的一层（参数是画笔）；需要知道当前悬停项时用 {@link #of(Drawer)}。 */
+    @OnlyIn(Dist.CLIENT)
     static CanvasLayer of(Consumer<CanvasPainter> drawer) {
         return of((painter, hovered) -> drawer.accept(painter));
     }
 
     /** 只画、不交互、需要知道当前悬停项（如高亮悬停节点的连线）的一层。 */
+    @OnlyIn(Dist.CLIENT)
     static CanvasLayer of(Drawer drawer) {
         return new CanvasLayer() {
 

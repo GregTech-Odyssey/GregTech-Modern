@@ -366,6 +366,7 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
 
     /** EMI 拖放目标：裁到视口内，完全在视口外的去掉——否则能把物品拖进看不见的虚拟槽。 */
     @Override
+    @OnlyIn(Dist.CLIENT)
     public List<Target> getPhantomTargets(Object ingredient) {
         var targets = super.getPhantomTargets(ingredient);
         if (targets.isEmpty()) return targets;

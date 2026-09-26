@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.uipro.elements;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.uipro.ElementState;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
@@ -40,7 +41,7 @@ public class PhantomItemSlot extends PhantomSlotWidget implements ElementState.H
 
     public PhantomItemSlot(IItemTransfer handler, int index) {
         super(handler, index, 0, 0);
-        setBackgroundTexture(slotState.background(UITheme.ITEM_SLOT, false, this::isXeiPhantom));
+        if (GTCEu.isClientThread()) setBackgroundTexture(slotState.background(UITheme.ITEM_SLOT, false, this::isXeiPhantom));
     }
 
     @Override

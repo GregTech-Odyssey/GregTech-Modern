@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.uipro.elements;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.gui.widget.PhantomFluidWidget;
 import com.gregtechceu.gtceu.uipro.ElementState;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
@@ -38,7 +39,7 @@ public class PhantomFluidSlot extends PhantomFluidWidget implements ElementState
 
     public PhantomFluidSlot(@Nullable IFluidHandler handler, int tank, Supplier<FluidStack> getter, Consumer<FluidStack> setter) {
         super(handler, tank, 0, 0, SIZE, SIZE, getter, setter);
-        setBackground(slotState.background(UITheme.FLUID_SLOT, true, this::isXeiPhantom));
+        if (GTCEu.isClientThread()) setBackground(slotState.background(UITheme.FLUID_SLOT, true, this::isXeiPhantom));
         setShowAmount(false);
     }
 
