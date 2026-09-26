@@ -14,8 +14,8 @@ import com.gregtechceu.gtceu.api.item.component.IItemUIFactory;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.SwitchedContent;
-import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
+import com.gregtechceu.gtceu.uiwidgets.item.HeldItemPage;
 
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -70,8 +70,7 @@ public class ItemMagnetBehavior implements IItemLifeCycle, IAddInformation, IIte
     public ModularUI createUI(HeldItemUIFactory.HeldItemHolder holder, Player entityPlayer) {
         var held = holder.getHeld();
         var filters = new MagnetFilters(held);
-        var page = new HeldFilterPage(held, filters::createPage);
-        var ui = new ModularUI(176, 166, holder, entityPlayer).widget(new MachineWindow(page));
+        var ui = new HeldItemPage(holder, window -> filters.createPage()).createUI(entityPlayer);
         if (!entityPlayer.level().isClientSide) ui.registerCloseListener(filters::save);
         return ui;
     }

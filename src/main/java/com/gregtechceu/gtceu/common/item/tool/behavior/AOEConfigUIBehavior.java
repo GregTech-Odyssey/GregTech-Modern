@@ -1,15 +1,18 @@
 package com.gregtechceu.gtceu.common.item.tool.behavior;
 
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.item.tool.aoe.AoESymmetrical;
+import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.api.item.tool.behavior.IToolUIBehavior;
+import com.gregtechceu.gtceu.uipro.LayoutStyle;
+import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.Stepper;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
+import com.gregtechceu.gtceu.uiwidgets.item.HeldItemPage;
 
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
-import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 
@@ -29,43 +32,21 @@ public class AOEConfigUIBehavior implements IToolUIBehavior {
 
     @Override
     public ModularUI createUI(Player player, HeldItemUIFactory.HeldItemHolder holder) {
-        var tag = getBehaviorsTag(holder.getHeld());
-        var defaultDefinition = getMaxAoEDefinition(holder.getHeld());
-        return new ModularUI(120, 80, holder, player).background(GuiTextures.BACKGROUND)
-                .widget(new LabelWidget(6, 10, "item.gtceu.tool.aoe.columns"))
-                .widget(new LabelWidget(49, 10, "item.gtceu.tool.aoe.rows"))
-                .widget(new LabelWidget(79, 10, "item.gtceu.tool.aoe.layers"))
-                .widget(new ButtonWidget(15, 24, 20, 20, new TextTexture("+"), (data) -> {
-                    AoESymmetrical.increaseColumn(tag, defaultDefinition);
-                    holder.markAsDirty();
-                }))
-                .widget(new ButtonWidget(15, 44, 20, 20, new TextTexture("-"), (data) -> {
-                    AoESymmetrical.decreaseColumn(tag, defaultDefinition);
-                    holder.markAsDirty();
-                }))
-                .widget(new ButtonWidget(50, 24, 20, 20, new TextTexture("+"), (data) -> {
-                    AoESymmetrical.increaseRow(tag, defaultDefinition);
-                    holder.markAsDirty();
-                }))
-                .widget(new ButtonWidget(50, 44, 20, 20, new TextTexture("-"), (data) -> {
-                    AoESymmetrical.decreaseRow(tag, defaultDefinition);
-                    holder.markAsDirty();
-                }))
-                .widget(new ButtonWidget(85, 24, 20, 20, new TextTexture("+"), (data) -> {
-                    AoESymmetrical.increaseLayer(tag, defaultDefinition);
-                    holder.markAsDirty();
-                }))
-                .widget(new ButtonWidget(85, 44, 20, 20, new TextTexture("-"), (data) -> {
-                    AoESymmetrical.decreaseLayer(tag, defaultDefinition);
-                    holder.markAsDirty();
-                }))
-                .widget(new LabelWidget(23, 65,
-                        () -> Integer.toString(1 +
-                                2 * AoESymmetrical.getColumn(getBehaviorsTag(holder.getHeld()), defaultDefinition))))
-                .widget(new LabelWidget(58, 65,
-                        () -> Integer.toString(
-                                1 + 2 * AoESymmetrical.getRow(getBehaviorsTag(holder.getHeld()), defaultDefinition))))
-                .widget(new LabelWidget(93, 65, () -> Integer
-                        .toString(1 + AoESymmetrical.getLayer(getBehaviorsTag(holder.getHeld()), defaultDefinition))));
+        var max = getMaxAoEDefinition(holder.getHeld());
+        return new HeldItemPage(holder, window -> UIElement.section(LayoutStyle.AUTO)
+                .layout(l -> l.minWidth(UISizes.CONTENT_WIDTH))
+                .addChildren(
+                        CoverUIs.controlRow("item.gtceu.tool.aoe.columns", stepper(holder, ToolHelper.AOE_COLUMN_KEY, max.column(), true)),
+                        CoverUIs.controlRow("item.gtceu.tool.aoe.rows", stepper(holder, ToolHelper.AOE_ROW_KEY, max.row(), true)),
+                        CoverUIs.controlRow("item.gtceu.tool.aoe.layers", stepper(holder, ToolHelper.AOE_LAYER_KEY, max.layer(), false))))
+                .noInventory().createUI(player);
+    }
+
+    private static Stepper stepper(HeldItemUIFactory.HeldItemHolder holder, String key, int max, boolean symmetric) {
+        return new Stepper(UISizes.VALUE_WIDTH, () -> {
+            var tag = getBehaviorsTag(holder.getHeld());
+            return tag.contains(key, Tag.TAG_INT) ? tag.getInt(key) : max;
+        }, value -> getBehaviorsTag(holder.getHeld()).putInt(key, Math.clamp(value, 0, max)), 0, max, false,
+                value -> Integer.toString(symmetric ? 1 + 2 * value : 1 + value));
     }
 }

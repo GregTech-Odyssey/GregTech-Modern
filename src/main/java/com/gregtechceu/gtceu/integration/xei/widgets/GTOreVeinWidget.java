@@ -6,177 +6,316 @@ import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.BedrockFluidDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockore.BedrockOreDefinition;
-import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
-import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.integration.xei.widgets.GTRecipeWidget.PageFrame;
+import com.gregtechceu.gtceu.uipro.ILocalUI;
+import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.Label;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeSpecPanel;
+import com.gregtechceu.gtceu.utils.FormattingUtil;
 
-import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
+import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.jei.IngredientIO;
-import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
+import com.lowdragmc.lowdraglib.side.fluid.forge.FluidHelperImpl;
 
-import net.minecraft.core.NonNullList;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
-import net.minecraft.world.level.levelgen.heightproviders.UniformHeight;
-import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
 
-import it.unimi.dsi.fastutil.ints.IntList;
+import com.mojang.blaze3d.systems.RenderSystem;
+import dev.vfyjxf.taffy.style.AlignContent;
+import dev.vfyjxf.taffy.style.AlignItems;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-@Getter
-public class GTOreVeinWidget extends WidgetGroup {
+public class GTOreVeinWidget extends UIElement implements ILocalUI {
 
-    private final String name;
-    private final int weight;
-    private final String range;
-    private final Set<ResourceKey<Level>> dimensionFilter;
-    public static final int width = 120;
+    private static final String SHARE = "gtceu.jei.vein.share";
+    private static final String ANY_DIMENSION = "gtceu.jei.vein.any_dimension";
 
-    public GTOreVeinWidget(GTOreDefinition oreDefinition) {
-        super(0, 0, width, 160);
-        this.name = getOreName(oreDefinition);
-        this.weight = oreDefinition.weight();
-        this.dimensionFilter = oreDefinition.dimensionFilter();
-        this.range = range(oreDefinition);
+    private static final int ORE_GAP = 2;
+    private static final int SHARE_HEIGHT = UISizes.SMALL_TEXT_HEIGHT;
+    private static final int ROCK_HEIGHT = UISizes.SLOT + 2;
+    private static final int BEDROCK_HEIGHT = 6;
+    private static final int POOL_HEIGHT = 22;
+    private static final int DIMENSION_ROWS = 2;
+    private static final int DIMENSION_SINGLE_ROW = 3;
+    private static final int ROCK_TINT = 0xFFE6E6E6;
+    private static final int STRATUM_OUTLINE = 0xFF373737;
+    private static final int POOL_SHADE = 0x70000000;
+    private static final int POOL_SURFACE = 0x60FFFFFF;
+    private static final int PIPE_WIDTH = 8;
+    private static final int PIPE_FILL = 0xFFA8A8A8;
+    private static final int PIPE_HIGHLIGHT = 0xFFE8E8E8;
+    private static final int PIPE_SHADE = 0xFF6E6E6E;
+    private static final int WELL_RING = 0xFFD6D6D6;
+    private static final ResourceLocation BEDROCK = new ResourceLocation("block/bedrock");
+
+    public record DisplaySlot(Widget hole, ItemStack item, FluidStack fluid, IngredientIO io, List<Component> tooltip,
+                              @Nullable String overlay) {}
+
+    private final VeinInfo info;
+    private final PageFrame frame;
+    private final List<DisplaySlot> displaySlots = new ArrayList<>();
+
+    public GTOreVeinWidget(VeinInfo info, PageFrame frame) {
+        this.info = info;
+        this.frame = frame;
+        int width = Math.max(frame.minWidth(), oreRowWidth(info.entries().size()) + 2 * UITheme.PANEL_PADDING);
+        int pageWidth = width + (width & 1);
+        layout(l -> l.column().width(pageWidth).minHeight(frame.fillHeight()).gapAll(UISizes.SECTION_GAP));
         setClientSideWidget();
-        setupBaseGui(oreDefinition);
-        setupText(oreDefinition);
-    }
-
-    public GTOreVeinWidget(BedrockFluidDefinition fluid) {
-        super(0, 0, width, 140);
-        this.name = getFluidName(fluid);
-        this.weight = fluid.getWeight();
-        this.dimensionFilter = fluid.getDimensionFilter();
-        this.range = "NULL";
-        setClientSideWidget();
-        setupBaseGui(fluid);
-        setupText(fluid);
-    }
-
-    public GTOreVeinWidget(BedrockOreDefinition bedrockOre) {
-        super(0, 0, width, 140);
-        this.name = getBedrockOreName(bedrockOre);
-        this.weight = bedrockOre.weight();
-        this.dimensionFilter = bedrockOre.dimensionFilter();
-        this.range = "NULL";
-        setClientSideWidget();
-        setupBaseGui(bedrockOre);
-        setupText(bedrockOre);
-    }
-
-    @SuppressWarnings("all")
-    private String range(GTOreDefinition oreDefinition) {
-        HeightProvider height = oreDefinition.range().height;
-        int minHeight = 0;
-        int maxHeight = 0;
-        if (height instanceof UniformHeight uniform) {
-            minHeight = uniform.minInclusive.resolveY(null);
-            maxHeight = uniform.maxInclusive.resolveY(null);
+        addChild(createStage(pageWidth));
+        var lower = new UIElement().layout(l -> l.row().gapAll(UISizes.SECTION_GAP).minHeight(frame.notchHeight()));
+        var specs = new RecipeSpecPanel();
+        specs.layout(l -> l.flexGrow(1).flexShrink(1).minWidth(0));
+        for (var spec : info.specs()) {
+            var value = spec.value();
+            specs.value(Component.translatable(spec.labelKey()), () -> value);
         }
-        return String.format("%d ~ %d", minHeight, maxHeight);
+        lower.addChild(specs);
+        lower.addChild(createDimensions());
+        if (frame.sideButtons() > 0) lower.addChild(UIElement.spacer(PageFrame.NOTCH_WIDTH, 0));
+        addChild(lower);
     }
 
-    private void setupBaseGui(GTOreDefinition oreDefinition) {
-        NonNullList<ItemStack> containedOresAsItemStacks = NonNullList.create();
-        List<Integer> chances = oreDefinition.veinGenerator().getAllChances();
-        containedOresAsItemStacks.addAll(getRawMaterialList(oreDefinition));
-        int n = containedOresAsItemStacks.size();
-        int x = (width - 18 * n) / 2;
-        for (int i = 0; i < n; i++) {
-            SlotWidget oreSlot = new SlotWidget(new CustomItemStackHandler(containedOresAsItemStacks), i, x, 18, false, false);
-            int finalIndex = i;
-            oreSlot.setOnAddedTooltips((stack, tooltips) -> tooltips.add(Component.nullToEmpty(LocalizationUtils.format("gtceu.jei.ore_vein_diagram.chance", chances.get(finalIndex)))));
-            oreSlot.setIngredientIO(IngredientIO.OUTPUT);
-            addWidget(oreSlot);
-            x += 18;
+    public List<DisplaySlot> getDisplaySlots() {
+        return displaySlots;
+    }
+
+    private static int orePerRow(int innerWidth) {
+        return Math.max(1, (innerWidth + ORE_GAP) / (UISizes.SLOT + ORE_GAP));
+    }
+
+    private static int oreRowWidth(int count) {
+        int shown = Math.min(count, orePerRow(UISizes.CONTENT_WIDTH - 2 * UITheme.PANEL_PADDING));
+        return Math.max(0, shown * (UISizes.SLOT + ORE_GAP) - ORE_GAP);
+    }
+
+    private Widget createStage(int width) {
+        int inner = width - 2 * UITheme.PANEL_PADDING;
+        var stage = new UIElement().layout(l -> l.column().paddingAll(UITheme.PANEL_PADDING).gapAll(UISizes.GAP));
+        stage.setBackground(UITheme.PANEL);
+        stage.addChild(new Header(info, inner));
+        if (!info.fluid().isEmpty()) {
+            stage.addChild(createReservoir(inner));
+        } else if (!info.entries().isEmpty()) {
+            stage.addChild(createOres(inner));
         }
+        return stage;
     }
 
-    private void setupBaseGui(BedrockFluidDefinition fluid) {
-        Fluid storedFluid = fluid.getStoredFluid().get();
-        TankWidget fluidSlot = new TankWidget(new CustomFluidTank(new FluidStack(storedFluid, 1000)), 51, 18, false, false);
-        fluidSlot.setIngredientIO(IngredientIO.OUTPUT);
-        addWidget(fluidSlot);
-    }
-
-    private void setupBaseGui(BedrockOreDefinition bedrockOreDefinition) {
-        NonNullList<ItemStack> containedOresAsItemStacks = NonNullList.create();
-        IntList chances = bedrockOreDefinition.getAllChances();
-        containedOresAsItemStacks.addAll(getRawMaterialList(bedrockOreDefinition));
-        int n = containedOresAsItemStacks.size();
-        int x = (width - 18 * n) / 2;
-        for (int i = 0; i < n; i++) {
-            SlotWidget oreSlot = new SlotWidget(new CustomItemStackHandler(containedOresAsItemStacks), i, x, 18, false, false);
-            int finalIndex = i;
-            oreSlot.setOnAddedTooltips((stack, tooltips) -> tooltips.add(Component.nullToEmpty(LocalizationUtils.format("gtceu.jei.ore_vein_diagram.chance", chances.getInt(finalIndex)))));
-            oreSlot.setIngredientIO(IngredientIO.OUTPUT);
-            addWidget(oreSlot);
-            x += 18;
-        }
-    }
-
-    private void setupText(GTOreDefinition ignored) {
-        addWidget(new ImageWidget(5, 0, width - 10, 16, new TextTexture("gtceu.jei.ore_vein." + name).setType(TextTexture.TextType.LEFT_ROLL).setWidth(width - 10)));
-        addWidget(new LabelWidget(5, 40, LocalizationUtils.format("gtceu.jei.ore_vein_diagram.spawn_range")));
-        addWidget(new LabelWidget(5, 50, range));
-        addWidget(new LabelWidget(5, 60, LocalizationUtils.format("gtceu.jei.ore_vein_diagram.weight", weight)));
-        addWidget(new LabelWidget(5, 70, LocalizationUtils.format("gtceu.jei.ore_vein_diagram.dimensions")));
-        setupDimensionMarker(80);
-    }
-
-    private void setupText(BedrockFluidDefinition ignored) {
-        addWidget(new ImageWidget(5, 0, width - 10, 16, new TextTexture("gtceu.jei.bedrock_fluid." + name).setType(TextTexture.TextType.LEFT_ROLL).setWidth(width - 10)));
-        addWidget(new LabelWidget(5, 40, LocalizationUtils.format("gtceu.jei.ore_vein_diagram.weight", weight)));
-        addWidget(new LabelWidget(5, 50, LocalizationUtils.format("gtceu.jei.ore_vein_diagram.dimensions")));
-        setupDimensionMarker(60);
-    }
-
-    private void setupText(BedrockOreDefinition ignored) {
-        addWidget(new ImageWidget(5, 0, width - 10, 16, new TextTexture("gtceu.jei.bedrock_ore." + name).setType(TextTexture.TextType.LEFT_ROLL).setWidth(width - 10)));
-        addWidget(new LabelWidget(5, 40, LocalizationUtils.format("gtceu.jei.ore_vein_diagram.weight", weight)));
-        addWidget(new LabelWidget(5, 50, LocalizationUtils.format("gtceu.jei.ore_vein_diagram.dimensions")));
-        setupDimensionMarker(60);
-    }
-
-    private void setupDimensionMarker(int yPosition) {
-        if (this.dimensionFilter != null) {
-            int interval = 2;
-            int rowSlots = (width - 10 + interval) / (16 + interval);
-            DimensionMarker[] dimMarkers = dimensionFilter.stream().map(ResourceKey::location).map(loc -> GTRegistries.DIMENSION_MARKERS.getOrDefault(loc, new DimensionMarker(DimensionMarker.MAX_TIER, () -> Blocks.BARRIER, loc.toString()))).sorted(Comparator.comparingInt(DimensionMarker::getTier)).toArray(DimensionMarker[]::new);
-            var handler = new CustomItemStackHandler(dimMarkers.length);
-            for (int i = 0; i < dimMarkers.length; i++) {
-                var dimMarker = dimMarkers[i];
-                var icon = dimMarker.getIcon();
-                int row = Math.floorDiv(i, rowSlots);
-                SlotWidget dimSlot = new SlotWidget(handler, i, 5 + (16 + interval) * (i - row * rowSlots), yPosition + 18 * row, false, false).setIngredientIO(IngredientIO.CATALYST);
-                handler.setStackInSlot(i, icon);
-                if (ConfigHolder.INSTANCE.compat.showDimensionTier) {
-                    dimSlot.setOverlay(new TextTexture("T" + (dimMarker.tier >= DimensionMarker.MAX_TIER ? "?" : dimMarker.tier)).scale(0.75F).transform(-3.0F, 5.0F));
-                }
-                addWidget(dimSlot.setBackgroundTexture(IGuiTexture.EMPTY));
+    private Widget createOres(int inner) {
+        var entries = info.entries();
+        int total = Math.max(1, info.totalWeight());
+        int perRow = orePerRow(inner - 2);
+        var rows = new UIElement().layout(l -> l.column().gapAll(UISizes.GAP));
+        for (int start = 0; start < entries.size(); start += perRow) {
+            var band = new Stratum(info.rock(), inner, ROCK_HEIGHT);
+            band.layout(l -> l.row().gapAll(ORE_GAP).alignItems(AlignItems.CENTER).justifyContent(AlignContent.CENTER));
+            var labels = new UIElement().layout(l -> l.row().width(inner).gapAll(ORE_GAP).justifyContent(AlignContent.CENTER));
+            for (int i = start; i < Math.min(entries.size(), start + perRow); i++) {
+                var entry = entries.get(i);
+                double share = entry.weight() * 100.0 / total;
+                var hole = new ImageWidget(0, 0, UISizes.SLOT, UISizes.SLOT, UITheme.ITEM_SLOT);
+                displaySlots.add(new DisplaySlot(hole, entry.stack(), FluidStack.EMPTY, IngredientIO.OUTPUT,
+                        List.of(Component.translatable(SHARE, FormattingUtil.formatNumber2Places(share) + "%")), null));
+                band.addChild(hole);
+                labels.addChild(new ShareLabel(shareText(share), entry.color()));
             }
-        } else {
-            addWidget(new LabelWidget(5, yPosition, "Any"));
+            rows.addChild(band);
+            rows.addChild(labels);
+        }
+        return rows;
+    }
+
+    private static String shareText(double share) {
+        if (share > 0 && share < 1) return "<1%";
+        return Math.round(share) + "%";
+    }
+
+    private Widget createReservoir(int inner) {
+        var hole = new ImageWidget(0, 0, UISizes.SLOT, UISizes.SLOT, UITheme.ITEM_SLOT);
+        displaySlots.add(new DisplaySlot(hole, ItemStack.EMPTY, info.fluid(), IngredientIO.OUTPUT, List.of(), null));
+        var reservoir = new Reservoir(info.fluid(), inner);
+        reservoir.layout(l -> l.column().alignItems(AlignItems.CENTER).justifyContent(AlignContent.CENTER).paddingTop(BEDROCK_HEIGHT));
+        reservoir.addChild(hole);
+        return reservoir;
+    }
+
+    private Widget createDimensions() {
+        var panel = new UIElement().layout(l -> l.column().paddingAll(UITheme.PANEL_PADDING).gapAll(UISizes.GAP)
+                .alignItems(AlignItems.CENTER).justifyContent(AlignContent.CENTER));
+        panel.setBackground(UITheme.PANEL);
+        var dimensions = info.dimensions();
+        if (dimensions == null || dimensions.isEmpty()) {
+            panel.addChild(Label.translatable(ANY_DIMENSION, 2 * UISizes.SLOT));
+            return panel;
+        }
+        int columns = dimensions.size() <= DIMENSION_SINGLE_ROW ? dimensions.size() : (dimensions.size() + DIMENSION_ROWS - 1) / DIMENSION_ROWS;
+        boolean showTier = ConfigHolder.INSTANCE.compat.showDimensionTier;
+        for (int start = 0; start < dimensions.size(); start += columns) {
+            var row = UIElement.row(UISizes.SLOT);
+            for (int i = start; i < Math.min(dimensions.size(), start + columns); i++) {
+                var marker = dimensions.get(i);
+                var hole = new ImageWidget(0, 0, UISizes.SLOT, UISizes.SLOT, UITheme.ITEM_SLOT);
+                String tier = showTier ? "T" + (marker.tier >= DimensionMarker.MAX_TIER ? "?" : marker.tier) : null;
+                displaySlots.add(new DisplaySlot(hole, marker.getIcon(), FluidStack.EMPTY, IngredientIO.CATALYST, List.of(), tier));
+                row.addChild(hole);
+            }
+            panel.addChild(row);
+        }
+        return panel;
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        GTRecipeWidget.drawPageCard(graphics, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight(), frame);
+        super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
+    }
+
+    private static final class Header extends UIElement {
+
+        private final Component name;
+        private final Component weight;
+        private boolean truncated;
+
+        private Header(VeinInfo info, int width) {
+            this.name = info.name();
+            this.weight = info.weightText();
+            layout(l -> l.size(width, UISizes.TEXT_HEIGHT));
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+            var font = Minecraft.getInstance().font;
+            int x = getPositionX() + 1, y = getPositionY() + 1, width = getSizeWidth() - 2;
+            String weightText = weight.getString();
+            int weightWidth = font.width(weightText);
+            graphics.drawString(font, weightText, x + width - weightWidth, y, UITheme.TEXT_SECONDARY, false);
+            int nameSpace = width - weightWidth - UISizes.TEXT_PADDING;
+            String nameText = name.getString();
+            truncated = font.width(nameText) > nameSpace;
+            graphics.drawString(font, UITheme.clip(font, nameText, nameSpace), x, y, UITheme.TEXT, false);
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void drawInForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+            super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
+            if (!truncated || gui == null || gui.getModularUIGui() == null || !isMouseOverElement(mouseX, mouseY)) return;
+            gui.getModularUIGui().setHoverTooltip(List.of(name), ItemStack.EMPTY, null, null);
+        }
+    }
+
+    private static final class ShareLabel extends UIElement {
+
+        private final String text;
+        private final int color;
+
+        private ShareLabel(String text, int rgb) {
+            this.text = text;
+            this.color = 0xFF000000 | UITheme.lightBackgroundColor(rgb);
+            layout(l -> l.size(UISizes.SLOT, SHARE_HEIGHT));
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+            var font = Minecraft.getInstance().font;
+            float scale = UISizes.SMALL_TEXT_SCALE;
+            var pose = graphics.pose();
+            pose.pushPose();
+            pose.translate(getPositionX() + UISizes.SLOT / 2f, getPositionY(), 0);
+            pose.scale(scale, scale, 1);
+            graphics.drawString(font, text, -font.width(text) / 2, 0, color, false);
+            pose.popPose();
+        }
+    }
+
+    private static final class Stratum extends UIElement {
+
+        private final ResourceLocation texture;
+
+        private Stratum(ResourceLocation texture, int width, int height) {
+            this.texture = texture;
+            layout(l -> l.size(width, height));
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+            int x = getPositionX(), y = getPositionY(), width = getSizeWidth(), height = getSizeHeight();
+            graphics.fill(x, y, x + width, y + height, STRATUM_OUTLINE);
+            drawTiled(graphics, sprite(texture), x + 1, y + 1, width - 2, height - 2, ROCK_TINT);
+            super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
+        }
+    }
+
+    private static final class Reservoir extends UIElement {
+
+        private final FluidStack fluid;
+
+        private Reservoir(FluidStack fluid, int width) {
+            this.fluid = fluid;
+            layout(l -> l.size(width, BEDROCK_HEIGHT + POOL_HEIGHT));
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+            int x = getPositionX(), y = getPositionY(), width = getSizeWidth(), height = getSizeHeight();
+            graphics.fill(x, y, x + width, y + height, STRATUM_OUTLINE);
+            drawTiled(graphics, sprite(BEDROCK), x + 1, y + 1, width - 2, BEDROCK_HEIGHT - 1, ROCK_TINT);
+            DrawerHelper.drawFluidForGui(graphics, FluidHelperImpl.toFluidStack(fluid), x + 1, y + BEDROCK_HEIGHT, width - 2, height - BEDROCK_HEIGHT - 1);
+            graphics.fill(x + 1, y + BEDROCK_HEIGHT, x + width - 1, y + height - 1, POOL_SHADE);
+            graphics.fill(x + 1, y + BEDROCK_HEIGHT, x + width - 1, y + BEDROCK_HEIGHT + 1, POOL_SURFACE);
+            int slotX = x + (width - UISizes.SLOT) / 2;
+            int slotY = y + BEDROCK_HEIGHT + (height - BEDROCK_HEIGHT - UISizes.SLOT) / 2;
+            int pipeX = x + (width - PIPE_WIDTH) / 2;
+            graphics.fill(pipeX, y, pipeX + PIPE_WIDTH, slotY, STRATUM_OUTLINE);
+            graphics.fill(pipeX + 1, y, pipeX + PIPE_WIDTH - 1, slotY, PIPE_FILL);
+            graphics.fill(pipeX + 1, y, pipeX + 3, slotY, PIPE_HIGHLIGHT);
+            graphics.fill(pipeX + PIPE_WIDTH - 3, y, pipeX + PIPE_WIDTH - 1, slotY, PIPE_SHADE);
+            graphics.fill(slotX - 2, slotY - 2, slotX + UISizes.SLOT + 2, slotY + UISizes.SLOT + 2, STRATUM_OUTLINE);
+            graphics.fill(slotX - 1, slotY - 1, slotX + UISizes.SLOT + 1, slotY + UISizes.SLOT + 1, WELL_RING);
+            super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
+        }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private static TextureAtlasSprite sprite(ResourceLocation texture) {
+        return Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(texture);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private static void drawTiled(GuiGraphics graphics, TextureAtlasSprite sprite, int x, int y, int width, int height, int color) {
+        RenderSystem.enableBlend();
+        RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
+        for (int dx = 0; dx < width; dx += 16) {
+            for (int dy = 0; dy < height; dy += 16) {
+                int w = Math.min(16, width - dx), h = Math.min(16, height - dy);
+                DrawerHelper.drawFluidTexture(graphics, x + dx, y + dy - (16 - h), sprite, 16 - h, 16 - w, 0, color);
+            }
         }
     }
 
@@ -189,14 +328,6 @@ public class GTOreVeinWidget extends WidgetGroup {
             }
             return ores.stream();
         })).toList();
-    }
-
-    public static List<ItemStack> getRawMaterialList(GTOreDefinition oreDefinition) {
-        return oreDefinition.veinGenerator().getAllEntries().stream().map(entry -> entry.map(state -> state.getBlock().asItem().getDefaultInstance(), material -> ChemicalHelper.get(TagPrefix.rawOre, material))).toList();
-    }
-
-    public static List<ItemStack> getRawMaterialList(BedrockOreDefinition bedrockOreDefinition) {
-        return bedrockOreDefinition.materials().stream().map(entry -> ChemicalHelper.get(TagPrefix.rawOre, entry.material())).toList();
     }
 
     public static String getOreName(GTOreDefinition oreDefinition) {

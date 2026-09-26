@@ -69,6 +69,8 @@ public class CombinedDirectionalConfigurator extends WidgetGroup {
     protected @Nullable BlockPos selectedPos;
     protected @Nullable Direction selectedSide;
 
+    private @Nullable ViewState viewState;
+
     /// 左键按在三视图空白处（没有悬停的面）时记下按下位置，松开时没拖动就取消选中
     private boolean pressOnBlank;
     private double pressX, pressY;
@@ -97,13 +99,30 @@ public class CombinedDirectionalConfigurator extends WidgetGroup {
         }
 
         addConfigWidgets(sceneWidget);
+        restoreViewState();
+    }
+
+    public CombinedDirectionalConfigurator setViewState(ViewState viewState) {
+        this.viewState = viewState;
+        return this;
+    }
+
+    private void restoreViewState() {
+        if (viewState == null) return;
+        if (isRemote() && viewState.cameraSaved) ((SideScene) sceneWidget).setCamera(viewState.yaw, viewState.pitch, viewState.zoom);
+        var side = viewState.side;
+        if (side == null) return;
+        ((SideScene) sceneWidget).select(new BlockPosFace(machine.getPos(), side));
+        onSideSelected(machine.getPos(), side);
     }
 
     private SceneWidget createSceneWidget() {
         var pos = this.machine.getPos();
 
         // 面描边由 SideScene 自己画（选中色取框架的），关掉 LDLib 自带的纯绿描边
-        SceneWidget sceneWidget = new SideScene(SCENE_INSET, SCENE_INSET, width - 2 * SCENE_INSET, sceneHeight() - 2 * SCENE_INSET, this.machine.getLevel())
+        var scene = new SideScene(SCENE_INSET, SCENE_INSET, width - 2 * SCENE_INSET, sceneHeight() - 2 * SCENE_INSET, this.machine.getLevel())
+                .setOnCameraChanged(this::saveCamera);
+        SceneWidget sceneWidget = scene
                 .setRenderedCore(List.of(pos), null)
                 .setRenderSelect(false)
                 .setRenderFacing(false)
@@ -128,6 +147,14 @@ public class CombinedDirectionalConfigurator extends WidgetGroup {
             sceneWidget.setCameraYawAndPitch(playerRotation.x, playerRotation.y - 90);
         }
         return sceneWidget;
+    }
+
+    private void saveCamera(float yaw, float pitch, float zoom) {
+        if (viewState == null) return;
+        viewState.cameraSaved = true;
+        viewState.yaw = yaw;
+        viewState.pitch = pitch;
+        viewState.zoom = zoom;
     }
 
     private void renderOverlays(WorldSceneRenderer renderer) {
@@ -190,6 +217,7 @@ public class CombinedDirectionalConfigurator extends WidgetGroup {
             return; // No need to do anything if the same side is already selected
 
         this.selectedSide = side;
+        if (viewState != null) viewState.side = side;
 
         for (IDirectionalConfigHandler configWidget : this.configHandlers) {
             configWidget.onSideSelected(pos, side);
@@ -211,6 +239,7 @@ public class CombinedDirectionalConfigurator extends WidgetGroup {
     private void applyDeselect() {
         if (this.selectedSide == null) return;
         this.selectedSide = null;
+        if (viewState != null) viewState.side = null;
         ((SideScene) sceneWidget).clearSelection();
         for (IDirectionalConfigHandler configHandler : this.configHandlers) {
             configHandler.onSideSelected(machine.getPos(), null);
@@ -275,14 +304,64 @@ public class CombinedDirectionalConfigurator extends WidgetGroup {
      * 方向配置页的三视图：面描边改用框架颜色（LDLib 自带的是纯绿，已用 {@code setRenderFacing(false)} 关掉），并能取消选中。
      * 选中的面用 {@link UITheme#SELECTION_COLOR}（与槽位选中框同色），鼠标悬停的面用 {@link UITheme#SCENE_HOVER_FACE}。
      */
+    private interface CameraListener {
+
+        void accept(float yaw, float pitch, float zoom);
+    }
+
+    public static final class ViewState {
+
+        private @Nullable Direction side;
+        private boolean cameraSaved;
+        private float yaw, pitch, zoom;
+    }
+
     private static final class SideScene extends SceneWidget {
+
+        private @Nullable CameraListener onCameraChanged;
 
         private SideScene(int x, int y, int width, int height, Level level) {
             super(x, y, width, height, level);
         }
 
+        private SideScene setOnCameraChanged(CameraListener listener) {
+            this.onCameraChanged = listener;
+            return this;
+        }
+
         private void clearSelection() {
             selectedPosFace = null;
+        }
+
+        private void select(BlockPosFace face) {
+            selectedPosFace = face;
+        }
+
+        @OnlyIn(Dist.CLIENT)
+        private void setCamera(float yaw, float pitch, float zoom) {
+            rotationYaw = yaw;
+            rotationPitch = pitch;
+            setZoom(zoom);
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+            var result = super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+            if (dragging) notifyCamera();
+            return result;
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public boolean mouseWheelMove(double mouseX, double mouseY, double wheelDelta) {
+            var result = super.mouseWheelMove(mouseX, mouseY, wheelDelta);
+            notifyCamera();
+            return result;
+        }
+
+        private void notifyCamera() {
+            if (onCameraChanged != null) onCameraChanged.accept(rotationYaw, rotationPitch, zoom);
         }
 
         /** 在 {@link #renderBlockOverLay} 算完悬停面之后调用；拖动视角时悬停描边停在按下的那一面（与 LDLib 原逻辑一致）。 */

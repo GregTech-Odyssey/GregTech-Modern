@@ -3,8 +3,8 @@ package com.gregtechceu.gtceu.common.item;
 import com.gregtechceu.gtceu.api.cover.filter.ItemFilter;
 import com.gregtechceu.gtceu.api.item.component.IItemUIFactory;
 import com.gregtechceu.gtceu.uipro.UIElement;
-import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
+import com.gregtechceu.gtceu.uiwidgets.item.HeldItemPage;
 
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -26,7 +26,7 @@ public record ItemFilterBehaviour(Function<ItemStack, ItemFilter> filterCreator)
     @Override
     public ModularUI createUI(HeldItemUIFactory.HeldItemHolder holder, Player entityPlayer) {
         var held = holder.getHeld();
-        var page = new HeldFilterPage(held, () -> CoverUIs.page().addChild(UIElement.section().addChild(ItemFilter.loadFilter(held).createConfigUI())));
-        return new ModularUI(176, 166, holder, entityPlayer).widget(new MachineWindow(page));
+        return HeldItemPage.create(holder, entityPlayer,
+                window -> CoverUIs.page().addChild(UIElement.section().addChild(ItemFilter.loadFilter(held).createConfigUI())));
     }
 }

@@ -53,6 +53,7 @@ public final class UISizes {
     public static final int SWITCH_WIDTH = 24;
     /** 数字显示框的最小宽度（步进器中间那格，放得下 "10/10"）。 */
     public static final int VALUE_WIDTH = 28;
+    public static final int INLINE_ADJUSTER_WIDTH = 104;
 
     // ==================== 间距 ====================
     /** 同一组内元素之间。 */

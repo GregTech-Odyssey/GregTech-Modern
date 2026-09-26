@@ -11,8 +11,11 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 import net.minecraft.network.chat.Component;
 
 import dev.emi.emi.api.EmiRegistry;
+import dev.emi.emi.api.recipe.EmiRecipe;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
 import dev.emi.emi.api.stack.EmiStack;
+
+import java.util.function.Function;
 
 public class GTBedrockOreEmiCategory extends EmiRecipeCategory {
 
@@ -24,8 +27,12 @@ public class GTBedrockOreEmiCategory extends EmiRecipeCategory {
     }
 
     public static void registerDisplays(EmiRegistry registry) {
-        for (BedrockOreDefinition fluid : GTRegistries.BEDROCK_ORE_DEFINITIONS.values()) {
-            registry.addRecipe(new GTBedrockOre(fluid));
+        registerDisplays(registry, Function.identity());
+    }
+
+    public static void registerDisplays(EmiRegistry registry, Function<VeinEmiRecipe, ? extends EmiRecipe> wrapper) {
+        for (BedrockOreDefinition definition : GTRegistries.BEDROCK_ORE_DEFINITIONS.values()) {
+            registry.addRecipe(wrapper.apply(VeinEmiRecipe.bedrockOre(definition)));
         }
     }
 

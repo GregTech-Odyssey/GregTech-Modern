@@ -20,7 +20,7 @@ import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
-import com.gregtechceu.gtceu.uipro.window.Popup;
+import com.gregtechceu.gtceu.uiwidgets.cover.CoverPage;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
@@ -50,7 +50,6 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
 
     private static final IGuiTexture CONFIG_BTN_TEXTURE = WidgetIcons.COVER_SETTINGS;
     private static final List<Component> CLOSE_TOOLTIPS = List.of(Component.translatable("gtceu.gui.close"));
-    private static final String COVER_POPUP = "cover_settings";
 
     private final ICoverable machine;
     private CustomItemStackHandler handler;
@@ -88,10 +87,7 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
     public Widget getSideSelectorWidget(SceneWidget scene, FancyMachineUIWidget machineUI) {
         WidgetGroup group = new WidgetGroup(0, 0, UISizes.SLOT * 2 + UISizes.GAP, UISizes.SLOT);
         this.panel = machineUI.getConfiguratorPanel();
-        if (machineUI instanceof MachineWindow machineWindow) {
-            this.window = machineWindow;
-            machineWindow.registerPopup(COVER_POPUP, this::coverPopup);
-        }
+        if (machineUI instanceof MachineWindow machineWindow) this.window = machineWindow;
 
         group.addWidget(Button.icon(CONFIG_BTN_TEXTURE, UISizes.SLOT).setOnClick(this::toggleConfigTab)
                 .disabled(() -> side == null || coverBehavior == null || !(machine.getCoverAtSide(side) instanceof IUICover),
@@ -186,16 +182,9 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
         updateWidgetVisibility();
     }
 
-    @Nullable
-    private Popup coverPopup(int argument) {
-        if (argument < 0 || argument >= Direction.values().length) return null;
-        if (!(machine.getCoverAtSide(Direction.values()[argument]) instanceof IUICover cover)) return null;
-        return Popup.of(() -> cover.self().getAttachItem(), cover::getCoverTitle, column -> column.addChild(cover.createUIWidget()));
-    }
-
     private void toggleConfigTab(ClickData cd) {
         if (window != null) {
-            if (cd.isRemote && side != null) window.togglePopup(COVER_POPUP, side.ordinal());
+            if (side != null && machine.getCoverAtSide(side) instanceof IUICover cover) window.openTransientPage(new CoverPage(cover));
             return;
         }
         if (this.coverConfigurator == null)
@@ -233,10 +222,6 @@ public class CoverableConfigHandler implements IDirectionalConfigHandler {
     }
 
     private void closeConfigTab() {
-        if (window != null) {
-            if (window.isPopupOpen(COVER_POPUP)) window.closePopup(COVER_POPUP);
-            return;
-        }
         if (this.coverConfigurator != null) {
             this.panel.collapseTab();
         }

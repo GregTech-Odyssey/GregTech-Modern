@@ -28,6 +28,18 @@ public class IntegrationLang {
         provider.add("gtceu.jei.ore_vein_diagram.spawn_range", "Spawn Range:");
         provider.add("gtceu.jei.ore_vein_diagram.weight", "Weight: %s");
         provider.add("gtceu.jei.ore_vein_diagram.dimensions", "Dimensions:");
+        provider.add("gtceu.jei.vein.any_dimension", "Any Dimension");
+        provider.add("gtceu.jei.vein.chunks", "%s chunks");
+        provider.add("gtceu.jei.vein.density", "Density");
+        provider.add("gtceu.jei.vein.depleted_yield", "Depleted Yield");
+        provider.add("gtceu.jei.vein.height", "Height");
+        provider.add("gtceu.jei.vein.infinite", "Never depletes");
+        provider.add("gtceu.jei.vein.operations", "%s operations");
+        provider.add("gtceu.jei.vein.operations_about", "~%s operations");
+        provider.add("gtceu.jei.vein.reserve", "Reserve");
+        provider.add("gtceu.jei.vein.share", "Share: %s");
+        provider.add("gtceu.jei.vein.size", "Size");
+        provider.add("gtceu.jei.vein.yield", "Initial Yield");
         GTRegistries.ORE_VEINS.unfreeze();
         GTOres.init();
         GTRegistries.ORE_VEINS.freeze();

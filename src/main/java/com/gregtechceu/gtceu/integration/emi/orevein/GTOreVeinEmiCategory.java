@@ -9,8 +9,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Items;
 
 import dev.emi.emi.api.EmiRegistry;
+import dev.emi.emi.api.recipe.EmiRecipe;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
 import dev.emi.emi.api.stack.EmiStack;
+
+import java.util.function.Function;
 
 public class GTOreVeinEmiCategory extends EmiRecipeCategory {
 
@@ -21,8 +24,12 @@ public class GTOreVeinEmiCategory extends EmiRecipeCategory {
     }
 
     public static void registerDisplays(EmiRegistry registry) {
-        for (GTOreDefinition oreDefinition : GTRegistries.ORE_VEINS.values()) {
-            registry.addRecipe(new GTEmiOreVein(oreDefinition));
+        registerDisplays(registry, Function.identity());
+    }
+
+    public static void registerDisplays(EmiRegistry registry, Function<VeinEmiRecipe, ? extends EmiRecipe> wrapper) {
+        for (GTOreDefinition definition : GTRegistries.ORE_VEINS.values()) {
+            registry.addRecipe(wrapper.apply(VeinEmiRecipe.oreVein(definition)));
         }
     }
 

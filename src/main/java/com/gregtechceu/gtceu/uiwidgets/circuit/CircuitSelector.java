@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.uiwidgets.circuit;
 import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.data.SyncValue;
 import com.gregtechceu.gtceu.uipro.elements.Button;
 import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
 import com.gregtechceu.gtceu.uipro.elements.SlotButton;
@@ -13,6 +14,9 @@ import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+
+import java.util.function.IntConsumer;
+import java.util.function.IntSupplier;
 
 /**
  * 编程电路选择器：机器左侧"电路设置"展开后的内容。
@@ -26,7 +30,6 @@ import net.minecraft.world.item.ItemStack;
  * </pre>
  * 
  * 宽 {@link UISizes#SLOT_ROW_WIDTH}，与物品槽网格同宽、同格距；当前电路格只作展示（统一斜纹）。
- * 点击都在服务端改电路格，两端的格子内容经槽位同步；选中框按本端电路格判定。
  */
 public final class CircuitSelector {
 
@@ -44,21 +47,32 @@ public final class CircuitSelector {
         root.addChild(UIElement.row(UISizes.SLOT).layout(l -> l.gapAll(UISizes.SECTION_GAP).alignCenter())
                 .addChildren(ItemSlot.display(circuitSlot, 0, null), clear));
 
+        var grid = grid(() -> currentOf(circuitSlot), circuit -> setCircuit(circuitSlot, circuit));
+        return root.addChild(grid);
+    }
+
+    public static UIElement grid(IntSupplier current, IntConsumer select) {
         var grid = UIElement.column(UISizes.SLOT_ROW_WIDTH);
+        var synced = grid.addSyncValue(SyncValue.ofInt(current::getAsInt, -1));
         for (int rowStart = 0; rowStart <= IntCircuitBehaviour.CIRCUIT_MAX; rowStart += PER_ROW) {
             var row = UIElement.row(UISizes.SLOT);
             for (int n = rowStart; n <= Math.min(IntCircuitBehaviour.CIRCUIT_MAX, rowStart + PER_ROW - 1); n++) {
                 int circuit = n;
                 var stack = IntCircuitBehaviour.stack(circuit);
                 var cell = SlotButton.of(new ItemStackTexture(stack))
-                        .setSelected(() -> isCurrent(circuitSlot, circuit))
-                        .setOnServerClick(() -> setCircuit(circuitSlot, circuit));
+                        .setSelected(() -> synced.getValue() == circuit)
+                        .setOnServerClick(() -> select.accept(circuit));
                 cell.setHoverTooltips(stack.getHoverName());
                 row.addChild(cell);
             }
             grid.addChild(row);
         }
-        return root.addChild(grid);
+        return grid;
+    }
+
+    private static int currentOf(ICustomItemStackHandler circuitSlot) {
+        var stack = circuitSlot.getStackInSlot(0);
+        return IntCircuitBehaviour.isIntegratedCircuit(stack) ? IntCircuitBehaviour.getCircuitConfiguration(stack) : -1;
     }
 
     public static boolean isCurrent(ICustomItemStackHandler circuitSlot, int circuit) {

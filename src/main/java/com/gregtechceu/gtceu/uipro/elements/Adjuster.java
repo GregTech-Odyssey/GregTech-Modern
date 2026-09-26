@@ -168,6 +168,11 @@ public abstract class Adjuster extends UIElement {
     }
 
     /** 放得下 "±最大一步" 的按钮宽度：每个字 {@link #GLYPH_WIDTH}，两侧各留 {@link UISizes#TEXT_PADDING}。 */
+    public int inlineWidth() {
+        int digits = Math.max(scale.format(max.getValue()).length(), scale.format(min.getValue()).length());
+        return 2 * stepButtonWidth(scale, steps) + 2 * UISizes.GAP + Math.max(UISizes.VALUE_WIDTH, digits * GLYPH_WIDTH + 2 * UISizes.TEXT_PADDING);
+    }
+
     private static int stepButtonWidth(Scale scale, long[] steps) {
         long max = 1;
         for (long step : steps) max = Math.max(max, step);

@@ -35,6 +35,7 @@ public class CombinedDirectionalFancyConfigurator implements IFancyUIProvider {
 
     private final List<Supplier<IDirectionalConfigHandler>> configs;
     private final MetaMachine machine;
+    private final CombinedDirectionalConfigurator.ViewState viewState = new CombinedDirectionalConfigurator.ViewState();
 
     public CombinedDirectionalFancyConfigurator(List<Supplier<IDirectionalConfigHandler>> configs,
                                                 MetaMachine machine) {
@@ -47,7 +48,7 @@ public class CombinedDirectionalFancyConfigurator implements IFancyUIProvider {
         // 标准尺寸：与多方块状态显示窗相同（UISizes.MACHINE_PAGE_HEIGHT），切换两页时窗口不变大小
         return new CombinedDirectionalConfigurator(
                 widget, configs.stream().map(Supplier::get).toArray(IDirectionalConfigHandler[]::new), machine,
-                UISizes.CONTENT_WIDTH, UISizes.MACHINE_PAGE_HEIGHT);
+                UISizes.CONTENT_WIDTH, UISizes.MACHINE_PAGE_HEIGHT).setViewState(viewState);
     }
 
     @Override

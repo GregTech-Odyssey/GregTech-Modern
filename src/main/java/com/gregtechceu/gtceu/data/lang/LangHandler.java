@@ -884,6 +884,7 @@ public class LangHandler {
         provider.add("behaviour.infinite_spray_can.solvent_hint", "Strip paint from blocks");
         provider.add("behaviour.infinite_spray_can.preview_hint", "Selected color preview");
         provider.add("behaviour.infinite_spray_can.current", "Current: %s");
+        provider.add("behaviour.infinite_spray_can.current_color", "Current color");
         provider.add("behaviour.infinite_spray_can.left", "§7Sneak + Scroll: Cycle Color");
         provider.add("behaviour.infinite_spray_can.middle", "§7Right-Click Air: Open Palette");
         provider.add("behaviour.infinite_spray_can.right", "§7Right-Click Block: Paint");
@@ -934,6 +935,9 @@ public class LangHandler {
         provider.add("metaitem.prospector.tooltip.modes", "Available Modes:");
         provider.add("behavior.prospector.not_enough_energy", "Not Enough Energy!");
         provider.add("behavior.prospector.added_waypoint", "Created waypoint named %s!");
+        provider.add("gtceu.prospector.ui.all", "All resources");
+        provider.add("gtceu.prospector.ui.search", "Search");
+        provider.add("gtceu.prospector.ui.dark_map", "Dark map");
         provider.add("metaitem.tricorder_scanner.tooltip", "Tricorder");
         provider.add("metaitem.debug_scanner.tooltip", "Tricorder");
         provider.add("behavior.portable_scanner.bedrock_fluid.amount", "Fluid In Deposit: %s %s - %s%%");

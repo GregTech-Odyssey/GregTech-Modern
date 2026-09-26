@@ -94,6 +94,8 @@ public class MachineWindow extends FancyMachineUIWidget {
     /** 客户端：窗口顶边固定的屏幕纵坐标（第一次摆放时居中得出），以及当时的屏幕尺寸（变了就重新居中）。 */
     private int anchorTop = Integer.MIN_VALUE;
     private int anchorScreenWidth, anchorScreenHeight;
+    @Nullable
+    private IFancyUIProvider transientPage;
 
     public MachineWindow(IFancyUIProvider mainPage) {
         this(mainPage, () -> {});
@@ -357,6 +359,10 @@ public class MachineWindow extends FancyMachineUIWidget {
     @OnlyIn(Dist.CLIENT)
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (super.keyPressed(keyCode, scanCode, modifiers)) return true;
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE && isOnTransientPage()) {
+            title.requestLeaveTransientPage();
+            return true;
+        }
         if (backToMachine != null && (keyCode == GLFW.GLFW_KEY_ESCAPE || Minecraft.getInstance().options.keyInventory.matches(keyCode, scanCode))) {
             title.requestBackToMachine();
             return true;
@@ -378,6 +384,37 @@ public class MachineWindow extends FancyMachineUIWidget {
         if (sideTabsWidget.getMainTab() != null) list.add(sideTabsWidget.getMainTab());
         list.addAll(sideTabsWidget.getSubTabs());
         return list;
+    }
+
+    public void openTransientPage(IFancyUIProvider page) {
+        if (isOnTransientPage()) return;
+        transientPage = page;
+        navigate(page);
+    }
+
+    public boolean isOnTransientPage() {
+        return transientPage != null && currentPage == transientPage && !previousPages.isEmpty();
+    }
+
+    private void leaveTransientPage() {
+        if (!isOnTransientPage()) return;
+        var entry = previousPages.pop();
+        performNavigation(entry.page(), entry.homePage());
+        entry.onNavigation().run();
+    }
+
+    @Override
+    protected void navigate(IFancyUIProvider nextPage, IFancyUIProvider nextHomePage) {
+        if (isOnTransientPage() && nextPage != transientPage) {
+            var entry = previousPages.pop();
+            this.currentPage = entry.page();
+            this.currentHomePage = entry.homePage();
+            if (nextPage == currentPage) {
+                performNavigation(nextPage, nextHomePage);
+                return;
+            }
+        }
+        super.navigate(nextPage, nextHomePage);
     }
 
     // ==================== 标题栏内容 ====================
@@ -445,6 +482,7 @@ public class MachineWindow extends FancyMachineUIWidget {
      */
     @Override
     protected void performNavigation(IFancyUIProvider nextPage, IFancyUIProvider nextHomePage) {
+        if (nextPage != transientPage) transientPage = null;
         if (currentHomePage != nextHomePage) setupSideTabs(nextHomePage);
         this.currentPage = nextPage;
         this.currentHomePage = nextHomePage;
@@ -459,7 +497,8 @@ public class MachineWindow extends FancyMachineUIWidget {
         titleContentHasIcon = false;
         inventoryGutter = 0;
         pageShowsInventory = showInventory;
-        sideTabsWidget.selectTab(fancyUI);
+        boolean onTransient = isOnTransientPage();
+        sideTabsWidget.selectTab(onTransient ? previousPages.peek().page() : fancyUI);
         var page = fancyUI.createMainPage(this);
         int contentWidth = placePage(page, showInventory);
         pageContainer.addWidget(page);
@@ -469,7 +508,8 @@ public class MachineWindow extends FancyMachineUIWidget {
         fancyUI.attachConfigurators(configurators);
         placeConfigurators();
         fancyUI.attachTooltips(tooltipsPanel);
-        title.setup(titleFollowsTab ? fancyUI : currentHomePage, contentWidth, !previousPages.isEmpty() || backToMachine != null, allPages.size() > 1 && currentPage != pageSwitcher, titleContent, titleContentHasIcon);
+        title.setup(titleFollowsTab || onTransient ? fancyUI : currentHomePage, contentWidth, !onTransient && (!previousPages.isEmpty() || backToMachine != null),
+                !onTransient && allPages.size() > 1 && currentPage != pageSwitcher, onTransient, titleContent, titleContentHasIcon);
 
         updatePlacement();
     }
@@ -752,7 +792,7 @@ public class MachineWindow extends FancyMachineUIWidget {
             int index = hoveredIndex(mouseX, mouseY);
             if (index < 0) return false;
             var tab = tab(index);
-            if (tab != sideTabsWidget.getSelectedTab()) {
+            if (tab != sideTabsWidget.getSelectedTab() || isOnTransientPage()) {
                 writeClientAction(0, buf -> buf.writeVarInt(index));
                 select(tab);
                 playButtonClickSound();
@@ -809,7 +849,7 @@ public class MachineWindow extends FancyMachineUIWidget {
         private int textRight;
         private int tooltipsRight;
         @Nullable
-        private Widget menuButton;
+        private Widget rightButton;
         @Nullable
         private Widget contentWidget;
 
@@ -819,6 +859,13 @@ public class MachineWindow extends FancyMachineUIWidget {
 
         /// 客户端请求回到机器主界面（Esc）：避开 WidgetGroup 的 1、2
         private static final int BACK_TO_MACHINE_ID = 3;
+        private static final int LEAVE_TRANSIENT_ID = 4;
+
+        @OnlyIn(Dist.CLIENT)
+        private void requestLeaveTransientPage() {
+            writeClientAction(LEAVE_TRANSIENT_ID, buf -> {});
+            leaveTransientPage();
+        }
 
         /** 客户端：请求服务端回到机器主界面（独立窗口按 Esc 时）。 */
         private void requestBackToMachine() {
@@ -831,6 +878,8 @@ public class MachineWindow extends FancyMachineUIWidget {
                 if (backToMachine != null && getGui() != null && getGui().entityPlayer instanceof ServerPlayer player) {
                     MachineSubWindowFactory.openMachine(player, backToMachine);
                 }
+            } else if (id == LEAVE_TRANSIENT_ID) {
+                leaveTransientPage();
             } else {
                 super.handleClientAction(id, buffer);
             }
@@ -845,10 +894,10 @@ public class MachineWindow extends FancyMachineUIWidget {
             }
         }
 
-        private void setup(IFancyUIProvider page, int width, boolean showBack, boolean showMenu, @Nullable IntFunction<Widget> content, boolean contentHasIcon) {
+        private void setup(IFancyUIProvider page, int width, boolean showBack, boolean showMenu, boolean showClose, @Nullable IntFunction<Widget> content, boolean contentHasIcon) {
             this.page = page;
             clearAllWidgets();
-            menuButton = null;
+            rightButton = null;
             contentWidget = null;
             setSize(new Size(width, UISizes.CONTROL_HEIGHT));
             int left = 0;
@@ -865,7 +914,16 @@ public class MachineWindow extends FancyMachineUIWidget {
                 menu.setHoverTooltips("gtceu.gui.title_bar.page_switcher");
                 menu.setSelfPosition(new Position(right, 0));
                 addWidget(menu);
-                menuButton = menu;
+                rightButton = menu;
+                right -= UISizes.GAP;
+            }
+            if (showClose) {
+                right -= UISizes.ICON_BUTTON;
+                var close = Button.glyph("×").setOnClick(clickData -> leaveTransientPage());
+                close.setHoverTooltips(POPUP_CLOSE);
+                close.setSelfPosition(new Position(right, 0));
+                addWidget(close);
+                rightButton = close;
                 right -= UISizes.GAP;
             }
             iconLeft = left;
@@ -899,7 +957,7 @@ public class MachineWindow extends FancyMachineUIWidget {
             setSize(new Size(width, UISizes.CONTROL_HEIGHT));
             tooltipsRight += delta;
             textRight += delta;
-            if (menuButton != null) menuButton.setSelfPosition(new Position(menuButton.getSelfPositionX() + delta, 0));
+            if (rightButton != null) rightButton.setSelfPosition(new Position(rightButton.getSelfPositionX() + delta, 0));
             if (contentWidget instanceof UIElement element) {
                 int contentWidth = Math.max(0, textRight - textLeft);
                 element.layout(l -> l.width(contentWidth));

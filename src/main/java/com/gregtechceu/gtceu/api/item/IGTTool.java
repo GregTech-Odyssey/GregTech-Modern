@@ -745,7 +745,7 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
     @Override
     default ModularUI createUI(Player player, HeldItemUIFactory.HeldItemHolder holder) {
         for (var behavior : getToolStats().getBehaviors()) {
-            if (!(behavior instanceof IToolUIBehavior uiBehavior) || !uiBehavior.openUI(player, holder.getHand())) {
+            if (!(behavior instanceof IToolUIBehavior uiBehavior) || (!holder.isRemote() && !uiBehavior.openUI(player, holder.getHand()))) {
                 continue;
             }
             return uiBehavior.createUI(player, holder);

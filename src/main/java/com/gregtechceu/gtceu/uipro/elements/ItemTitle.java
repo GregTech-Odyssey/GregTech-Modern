@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -25,7 +26,7 @@ public class ItemTitle extends UIElement {
 
     public ItemTitle(int width, Supplier<ItemStack> stack, Supplier<Component> name) {
         layout(l -> l.row().width(width).height(HEIGHT).gapAll(UISizes.GAP).alignCenter());
-        var text = TextLine.of(0, name).setColor(UITheme.TEXT);
+        var text = TextLine.of(0, () -> Component.literal(ChatFormatting.stripFormatting(name.get().getString()))).setColor(UITheme.TEXT);
         text.layout(l -> l.flex(1));
         addChildren(new Icon(stack), text);
     }

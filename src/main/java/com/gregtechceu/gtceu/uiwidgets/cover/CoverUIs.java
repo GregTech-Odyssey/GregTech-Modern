@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.uiwidgets.cover;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.cover.filter.FilterHandler;
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
@@ -13,7 +14,10 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -47,6 +51,25 @@ public final class CoverUIs {
         var label = TextLine.translatable(LayoutStyle.AUTO, labelKey).setColor(UITheme.PANEL_TEXT);
         if (tooltipKeys.length > 0) label.setHoverTooltips(tooltipKeys);
         return UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(label, field);
+    }
+
+    public static UIElement inlineNumberRow(String labelKey, Adjuster field, String... tooltipKeys) {
+        var label = TextLine.translatable(LayoutStyle.AUTO, labelKey).setColor(UITheme.PANEL_TEXT);
+        if (tooltipKeys.length > 0) label.setHoverTooltips(tooltipKeys);
+        var row = new UIElement().addChildren(label, field);
+        int labelWidth = GTCEu.isClientThread() ? textWidth(label.getText()) : 0;
+        if (field.inlineWidth() <= UISizes.INLINE_ADJUSTER_WIDTH &&
+                labelWidth + UISizes.GAP + UISizes.INLINE_ADJUSTER_WIDTH <= UISizes.CONTENT_WIDTH - 2 * UITheme.PANEL_PADDING) {
+            label.layout(l -> l.width(0).flex(1));
+            field.layout(l -> l.width(UISizes.INLINE_ADJUSTER_WIDTH));
+            return row.layout(l -> l.row().height(UISizes.CONTROL_HEIGHT).gapAll(UISizes.GAP).alignCenter());
+        }
+        return row.layout(l -> l.column().width(LayoutStyle.AUTO).gapAll(UISizes.GAP));
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private static int textWidth(Component text) {
+        return Minecraft.getInstance().font.width(text);
     }
 
     public static <E extends EnumSelectorWidget.SelectableEnum> ButtonGroup enumIcons(List<E> values, Supplier<E> current, Consumer<E> set) {

@@ -9,8 +9,11 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 import net.minecraft.network.chat.Component;
 
 import dev.emi.emi.api.EmiRegistry;
+import dev.emi.emi.api.recipe.EmiRecipe;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
 import dev.emi.emi.api.stack.EmiStack;
+
+import java.util.function.Function;
 
 public class GTBedrockFluidEmiCategory extends EmiRecipeCategory {
 
@@ -21,8 +24,12 @@ public class GTBedrockFluidEmiCategory extends EmiRecipeCategory {
     }
 
     public static void registerDisplays(EmiRegistry registry) {
-        for (BedrockFluidDefinition fluid : GTRegistries.BEDROCK_FLUID_DEFINITIONS.values()) {
-            registry.addRecipe(new GTBedrockFluid(fluid));
+        registerDisplays(registry, Function.identity());
+    }
+
+    public static void registerDisplays(EmiRegistry registry, Function<VeinEmiRecipe, ? extends EmiRecipe> wrapper) {
+        for (BedrockFluidDefinition definition : GTRegistries.BEDROCK_FLUID_DEFINITIONS.values()) {
+            registry.addRecipe(wrapper.apply(VeinEmiRecipe.bedrockFluid(definition)));
         }
     }
 
