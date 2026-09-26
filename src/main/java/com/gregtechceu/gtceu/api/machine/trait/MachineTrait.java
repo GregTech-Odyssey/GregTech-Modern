@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 
@@ -10,7 +11,10 @@ import com.gto.datasynclib.IFieldDataHolder;
 import com.gto.datasynclib.LazyFieldDataManager;
 import com.gto.datasynclib.LogicalSide;
 import lombok.Getter;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.UUID;
 
 /**
  * represents an abstract capability held by machine. Such as item, fluid, energy, etc.
@@ -33,6 +37,35 @@ public abstract class MachineTrait implements IFieldDataHolder {
     public void onMachineLoad() {}
 
     public void onMachineUnLoad() {}
+
+    public void onChanged() {
+        machine.holder.setChanged();
+    }
+
+    public int getOffsetTimer() {
+        return machine.holder.getOffsetTimer();
+    }
+
+
+    public boolean isRemoved(){
+        return machine.holder.isRemoved();
+    }
+
+    public  boolean isRemote(){
+        return machine.isRemote();
+    }
+
+    public BlockPos getPos() {
+        return machine.holder.pos();
+    }
+
+    public Level getLevel(){
+        return machine.holder.getLevel();
+    }
+
+    public UUID getOwnerUUID(){
+        return machine.getOwnerUUID();
+    }
 
     /**
      * Use for data not able to be saved with the SyncData system, like optional mod compatiblity in internal machines.

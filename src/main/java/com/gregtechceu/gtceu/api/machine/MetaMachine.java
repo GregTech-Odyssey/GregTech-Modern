@@ -190,7 +190,7 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
 
     public void onPaintingColorChanged(int color) {}
 
-    public boolean isInValid() {
+    public boolean isRemoved() {
         return holder.isRemoved();
     }
 

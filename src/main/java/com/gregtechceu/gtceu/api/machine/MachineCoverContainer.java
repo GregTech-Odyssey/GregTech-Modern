@@ -93,7 +93,7 @@ public final class MachineCoverContainer implements ICoverable {
 
     @Override
     public boolean isInValid() {
-        return machine.isInValid();
+        return machine.isRemoved();
     }
 
     @Override
