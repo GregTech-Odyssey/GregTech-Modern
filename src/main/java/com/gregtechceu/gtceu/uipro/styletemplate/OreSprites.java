@@ -142,6 +142,34 @@ public final class OreSprites {
         }
     }
 
+    public record Recessed(Sprite base, int rim, int shadow, int innerShadow, int highlight, int fill) implements IGuiTexture {
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void draw(GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
+            if (width < 10 || height < 10) return;
+            int l = (int) x, t = (int) y, r = l + width, b = t + height;
+            base.draw(graphics, l, t, width, height);
+            graphics.fill(l + 3, t + 1, r - 3, t + 2, fill);
+            graphics.fill(l + 2, t + 2, r - 2, t + 3, fill);
+            graphics.fill(l + 1, t + 3, r - 1, b - 3, fill);
+            graphics.fill(l + 2, b - 3, r - 2, b - 2, fill);
+            graphics.fill(l + 3, b - 2, r - 3, b - 1, fill);
+            graphics.fill(l + 3, t + 3, r - 2, t + 4, innerShadow);
+            graphics.fill(l + 3, t + 4, l + 4, b - 3, innerShadow);
+            graphics.fill(l + 3, t + 2, r - 3, t + 3, shadow);
+            graphics.fill(l + 2, t + 3, l + 3, b - 3, shadow);
+            graphics.fill(l + 3, t + 1, r - 3, t + 2, rim);
+            graphics.fill(l + 2, t + 2, l + 3, t + 3, rim);
+            graphics.fill(l + 1, t + 3, l + 2, b - 3, rim);
+            graphics.fill(l + 2, b - 3, l + 3, b - 2, rim);
+            graphics.fill(r - 3, t + 2, r - 2, t + 3, highlight);
+            graphics.fill(r - 2, t + 3, r - 1, b - 3, highlight);
+            graphics.fill(r - 3, b - 3, r - 2, b - 2, highlight);
+            graphics.fill(l + 3, b - 2, r - 3, b - 1, highlight);
+        }
+    }
+
     /**
      * 先画 {@code base}，再用 {@code fill} 重涂它的内部（距四边 {@code left/top/right/bottom}，四角各再内收 1 像素保住圆角），
      * 用来在不改贴图的前提下换一个精灵的底色。

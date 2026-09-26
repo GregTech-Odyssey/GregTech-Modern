@@ -35,7 +35,7 @@ public interface IVoidable extends IMachineFeature {
     }
 
     static void attachConfigurators(ConfiguratorPanel configuratorPanel, IVoidable controller) {
-        configuratorPanel.attachConfigurators(new FancySelectorConfigurator<>(VoidingMode.VALUES, controller.getVoidingMode(), controller::setVoidingMode).setTooltip(m -> (List) LangHandler.getMultiLang(m.localeName)));
+        configuratorPanel.attachConfigurators(new FancySelectorConfigurator<>(VoidingMode.VALUES, controller.getVoidingMode(), controller::setVoidingMode).setLatched(m -> m != VoidingMode.VOID_NONE).setTooltip(m -> (List) LangHandler.getMultiLang(m.localeName)));
     }
 
     enum VoidingMode implements StringRepresentable, EnumSelectorWidget.SelectableEnum {

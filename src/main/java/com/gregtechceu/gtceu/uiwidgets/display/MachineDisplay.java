@@ -28,7 +28,6 @@ import java.util.function.Consumer;
  * <p>
  * 取代 GTM 的深色显示屏（{@code GuiTextures.DISPLAY} + 机器名 + {@code ComponentPanelWidget}）：
  * <ul>
- * <li>外观是框架的状态显示窗（{@link UITheme#STATUS_PANEL}，浅色下凹），文字颜色按亮底重配（{@link RichText}）；</li>
  * <li>不再重复机器名：窗口标题栏已经有；</li>
  * <li>标准尺寸：宽 {@link UISizes#CONTENT_WIDTH}（与玩家背包对齐）、高 {@link UISizes#MACHINE_PAGE_HEIGHT}，与三视图设置页相同；
  * 长句自动换行，放不下时滚动，右下角可以拖高（所有多方块共用一个锁定高度）。</li>
@@ -74,8 +73,8 @@ public final class MachineDisplay {
     private static ScrollerView wrap(RichText text) {
         var scroller = new ScrollerView(SCROLLER_ID, UISizes.CONTENT_WIDTH, UISizes.MACHINE_PAGE_HEIGHT)
                 .layoutContent(l -> l.paddingAll(UITheme.PANEL_PADDING));
-        scroller.setBackground(UITheme.STATUS_PANEL);
-        scroller.addScrollViewChild(text);
+        scroller.setBackground(UITheme.DISPLAY_SCREEN);
+        scroller.addScrollViewChild(text.darkBackground());
         return scroller;
     }
 

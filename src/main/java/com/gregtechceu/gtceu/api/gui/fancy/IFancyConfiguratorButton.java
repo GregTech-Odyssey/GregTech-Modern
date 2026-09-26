@@ -22,6 +22,14 @@ public interface IFancyConfiguratorButton extends IFancyConfigurator {
 
     void onClick(ClickData clickData);
 
+    default boolean isLatched() {
+        return false;
+    }
+
+    default boolean isPersistent() {
+        return false;
+    }
+
     /**
      * 带点击玩家的版本（服务端是发起点击的玩家，客户端是本地玩家；取不到时为 null）。
      * 需要玩家的按钮（如打开独立窗口）覆写它；默认转给 {@link #onClick(ClickData)}。
@@ -96,6 +104,16 @@ public interface IFancyConfiguratorButton extends IFancyConfigurator {
         @Override
         public void onClick(ClickData clickData) {
             onClick.accept(clickData, !isPressed);
+        }
+
+        @Override
+        public boolean isPersistent() {
+            return base != pressed;
+        }
+
+        @Override
+        public boolean isLatched() {
+            return isPressed && isPersistent();
         }
 
         /**

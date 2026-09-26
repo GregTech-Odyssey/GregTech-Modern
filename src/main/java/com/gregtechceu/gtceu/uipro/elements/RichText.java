@@ -52,10 +52,16 @@ public class RichText extends CustomComponentPanelWidget implements ILayoutItem 
     private final LayoutStyle layoutStyle = LayoutStyle.fixed(LayoutStyle.AUTO, LayoutStyle.AUTO, () -> UIElement.markLayoutDirty(this));
     @Nullable
     private String justifyMark;
+    private boolean darkBackground;
 
     public RichText() {
         super(0, 0);
         this.space = LINE_SPACE;
+    }
+
+    public RichText darkBackground() {
+        this.darkBackground = true;
+        return this;
     }
 
     public RichText justify(String mark) {
@@ -118,7 +124,7 @@ public class RichText extends CustomComponentPanelWidget implements ILayoutItem 
             for (var component : lastText) lines.addAll(justify(component, font));
             cacheLines = lines;
         }
-        cacheLines = cacheLines.stream().map(RichText::recolor).toList();
+        cacheLines = cacheLines.stream().map(this::recolor).toList();
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -150,8 +156,14 @@ public class RichText extends CustomComponentPanelWidget implements ILayoutItem 
         return justifyMark.repeat(Math.max(0, count - 2)) + " ";
     }
 
-    private static FormattedCharSequence recolor(FormattedCharSequence line) {
-        return sink -> line.accept((index, style, codePoint) -> sink.accept(index, lightStyle(style), codePoint));
+    private FormattedCharSequence recolor(FormattedCharSequence line) {
+        return sink -> line.accept((index, style, codePoint) -> sink.accept(index, darkBackground ? darkStyle(style) : lightStyle(style), codePoint));
+    }
+
+    private static Style darkStyle(Style style) {
+        var color = style.getColor();
+        int rgb = color == null ? UITheme.SCREEN_TEXT & 0xFFFFFF : UITheme.darkBackgroundColor(color.getValue());
+        return style.withColor(TextColor.fromRgb(rgb));
     }
 
     private static Style lightStyle(Style style) {

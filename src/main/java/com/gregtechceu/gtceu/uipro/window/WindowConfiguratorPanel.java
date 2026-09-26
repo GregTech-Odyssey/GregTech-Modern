@@ -265,15 +265,18 @@ public final class WindowConfiguratorPanel extends ConfiguratorPanel {
         private final Tab tab;
         /// 按钮类（开关、一次性动作）才有按下态；展开类点下即展开
         private final boolean button;
+        @Nullable
+        private final IFancyConfiguratorButton persistent;
         private boolean held;
         /// 按下态至少保持到这个时刻（初值远在过去，比较不会溢出）
         private long pressedUntil = Long.MIN_VALUE;
         /// 本帧状态：画底图时求一次，画图标时沿用
         private TabState state = TabState.DEFAULT;
 
-        private TabFeedback(Tab tab, boolean button) {
+        private TabFeedback(Tab tab, IFancyConfigurator configurator) {
             this.tab = tab;
-            this.button = button;
+            this.button = configurator instanceof IFancyConfiguratorButton;
+            this.persistent = configurator instanceof IFancyConfiguratorButton b && b.isPersistent() ? b : null;
         }
 
         private boolean active() {
@@ -303,17 +306,18 @@ public final class WindowConfiguratorPanel extends ConfiguratorPanel {
             if (!active()) return null;
             boolean hovered = isHovered(mouseX, mouseY);
             if (!hovered) held = false;
-            if (held || Util.getMillis() < pressedUntil) state = TabState.PRESSED;
+            if (held || Util.getMillis() < pressedUntil || (persistent != null && persistent.isLatched())) state = TabState.PRESSED;
             else if (hovered) state = TabState.HOVERED;
             return switch (state) {
-                case PRESSED -> UITheme.CONFIGURATOR_TAB_PRESSED;
+                case PRESSED -> persistent != null ? UITheme.CONFIGURATOR_TAB_LATCHED : UITheme.CONFIGURATOR_TAB_PRESSED;
                 case HOVERED -> UITheme.CONFIGURATOR_TAB_HOVER;
                 case DEFAULT -> null;
             };
         }
 
         int iconOffsetY() {
-            return state == TabState.PRESSED ? UITheme.CONFIGURATOR_TAB_PRESS_DEPTH : 0;
+            if (state != TabState.PRESSED) return 0;
+            return persistent != null ? UITheme.CONFIGURATOR_TAB_LATCH_DEPTH : UITheme.CONFIGURATOR_TAB_PRESS_DEPTH;
         }
     }
 
@@ -339,7 +343,7 @@ public final class WindowConfiguratorPanel extends ConfiguratorPanel {
 
     private final class AnimatedTab extends Tab implements Draggable {
 
-        private final TabFeedback feedback = new TabFeedback(this, configurator instanceof IFancyConfiguratorButton);
+        private final TabFeedback feedback = new TabFeedback(this, configurator);
 
         private AnimatedTab(IFancyConfigurator configurator) {
             super(configurator);

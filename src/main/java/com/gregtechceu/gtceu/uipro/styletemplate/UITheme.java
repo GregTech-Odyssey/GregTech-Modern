@@ -61,6 +61,8 @@ public final class UITheme {
     public static final IGuiTexture STATUS_PANEL = new OreSprites.Bevel(0xFF7A7A7A, 0xFFFFFFFF, 0xFFB5B5B5);
     /** 进度条（{@code ProgressBar}）的轨道：与状态显示窗同样的下凹斜面，底色再深一档，填充色压在上面看得清。 */
     public static final IGuiTexture PROGRESS_TRACK = new OreSprites.Bevel(0xFF7A7A7A, 0xFFFFFFFF, 0xFFA4A4A4);
+    public static final IGuiTexture DISPLAY_SCREEN = new OreSprites.Bevel(0xFF373737, 0xFFFFFFFF, 0xFF21262A);
+    public static final int SCREEN_TEXT = 0xFFE2E6E8;
     /** 输入框、数值框的深色框。 */
     public static final IGuiTexture INSET = OreSprites.RECT;
     /** 滚动条轨道、滑块。 */
@@ -140,6 +142,9 @@ public final class UITheme {
     public static final int CONFIGURATOR_TAB_PRESS_DEPTH = 2;
     public static final IGuiTexture CONFIGURATOR_TAB_PRESSED = new OreSprites.Shifted(
             new OreSprites.Sunk(new OreSprites.Refilled(OreSprites.BORDER_7, 0xFFADADAD, 2, 2, 2, 4), CONFIGURATOR_TAB_PRESS_DEPTH), 0, 1);
+    public static final int CONFIGURATOR_TAB_LATCH_DEPTH = 1;
+    public static final IGuiTexture CONFIGURATOR_TAB_LATCHED = new OreSprites.Shifted(
+            new OreSprites.Recessed(OreSprites.BORDER_7, WINDOW_FILL, 0xFF373737, 0xFF686868, 0xFFFFFFFF, 0xFF969696), 0, 1);
     /** 区块内边距：让开 1 像素细边后留 2 像素空白。 */
     public static final int PANEL_PADDING = 3;
     public static final int PANEL_PADDING_BOTTOM = 3;
@@ -475,6 +480,17 @@ public final class UITheme {
         if (luminance <= limit) return rgb;
         float k = limit / luminance;
         return Math.round(r * k) << 16 | Math.round(g * k) << 8 | Math.round(b * k);
+    }
+
+    public static int darkBackgroundColor(int rgb) {
+        rgb &= 0xFFFFFF;
+        if (rgb == 0xFFFFFF) return SCREEN_TEXT & 0xFFFFFF;
+        int r = rgb >> 16 & 0xFF, g = rgb >> 8 & 0xFF, b = rgb & 0xFF;
+        float luminance = 0.299f * r + 0.587f * g + 0.114f * b;
+        final float floor = 130;
+        if (luminance >= floor) return rgb;
+        float t = (floor - luminance) / (255 - luminance);
+        return Math.round(r + (255 - r) * t) << 16 | Math.round(g + (255 - g) * t) << 8 | Math.round(b + (255 - b) * t);
     }
 
     /** 两个 ARGB 颜色相乘（-1 视为白色，即不乘色）。 */
