@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.api.gui.fancy;
 
+import com.gregtechceu.gtceu.uipro.data.SyncValueHost;
+
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
@@ -29,4 +31,6 @@ public interface IFancyConfigurator {
     default void writeInitialData(FriendlyByteBuf buffer) {}
 
     default void readInitialData(FriendlyByteBuf buffer) {}
+
+    default void bindSync(SyncValueHost host) {}
 }

@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.gui.fancy;
 
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.uipro.data.SyncValueHost;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.animation.Animation;
@@ -210,6 +211,7 @@ public class ConfiguratorPanel extends WidgetGroup {
     public class Tab extends WidgetGroup {
 
         protected final IFancyConfigurator configurator;
+        protected final SyncValueHost syncValues;
         protected final ButtonWidget button;
         @Nullable
         protected final WidgetGroup view;
@@ -223,6 +225,8 @@ public class ConfiguratorPanel extends WidgetGroup {
         public Tab(IFancyConfigurator configurator) {
             super(0, tabs.size() * (getTabSize() + TAB_GAP), getTabSize(), getTabSize());
             this.configurator = configurator;
+            this.syncValues = new SyncValueHost(this);
+            configurator.bindSync(syncValues);
             this.button = new ButtonWidget(0, 0, getTabSize(), getTabSize(), null, this::onClick) {
 
                 @Override
@@ -268,12 +272,14 @@ public class ConfiguratorPanel extends WidgetGroup {
         public void writeInitialData(FriendlyByteBuf buffer) {
             super.writeInitialData(buffer);
             configurator.writeInitialData(buffer);
+            syncValues.writeInitialData(buffer);
         }
 
         @Override
         public void readInitialData(FriendlyByteBuf buffer) {
             super.readInitialData(buffer);
             configurator.readInitialData(buffer);
+            syncValues.readInitialData(buffer);
         }
 
         @Override
@@ -283,15 +289,23 @@ public class ConfiguratorPanel extends WidgetGroup {
                 buf.writeVarInt(id);
                 sender.accept(buf);
             }));
+            syncValues.detectAndSendChanges(this::writeUpdateInfo);
         }
 
         @Override
         public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
             if (id == 0) {
                 configurator.readUpdateInfo(buffer.readVarInt(), buffer);
-            } else {
+            } else if (!syncValues.readUpdateInfo(id, buffer)) {
                 super.readUpdateInfo(id, buffer);
             }
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void updateScreen() {
+            super.updateScreen();
+            syncValues.pollClient();
         }
 
         @Override
