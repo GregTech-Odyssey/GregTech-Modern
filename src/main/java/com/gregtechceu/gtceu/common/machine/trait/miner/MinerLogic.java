@@ -6,23 +6,12 @@ import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
-import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
-import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.api.recipe.handler.IItemRecipeHandler;
-import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
-import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.BlockDropCache;
-import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
 
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.BlockPos;
@@ -40,7 +29,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.Tags;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
-import com.gto.recipesearch.IntLongMap;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import lombok.Getter;
 import lombok.Setter;
@@ -50,7 +38,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.ObjLongConsumer;
 
 public class MinerLogic extends RecipeLogic {
 
@@ -284,7 +271,8 @@ public class MinerLogic extends RecipeLogic {
     /**
      * 该掉落是否吃时运加成。
      *
-     * <p>默认全部都吃；大型采矿机只给粉碎矿加成，覆写它即可。
+     * <p>
+     * 默认全部都吃；大型采矿机只给粉碎矿加成，覆写它即可。
      */
     protected boolean isFortuneTarget(ItemStack stack) {
         return true;
@@ -455,65 +443,11 @@ public class MinerLogic extends RecipeLogic {
         return 0;
     }
 
-    // ===== 后处理：把采到的方块按机器配方类型加工，用产物替换掉落 =====
-
-    /** 后处理的输入：只装着待加工的那一块方块。 */
-    private final IItemRecipeHandler processingInput = new IItemRecipeHandler() {
-
-        @Override
-        public boolean forEachItems(ObjLongPredicate<ItemStack> function) {
-            return !processingStack.isEmpty() && function.test(processingStack, processingStack.getCount());
-        }
-
-        @Override
-        public void fastForEachItems(ObjLongConsumer<ItemStack> function) {
-            if (!processingStack.isEmpty()) function.accept(processingStack, processingStack.getCount());
-        }
-
-        @Override
-        public boolean handleRecipeItem(IO io, GTRecipe recipe, List<Content<ItemIngredient>> items, boolean simulate) {
-            return false;
-        }
-
-        @Override
-        public IntLongMap getSearchMap(GTRecipeType type) {
-            processingSearchMap.clear();
-            if (!processingStack.isEmpty()) {
-                type.convertItem(processingStack, processingStack.getCount(), processingSearchMap);
-            }
-            return processingSearchMap;
-        }
-    };
-
-    /** 后处理的输出：只把产物收集起来。 */
-    private final IItemRecipeHandler processingOutput = new IItemRecipeHandler() {
-
-        @Override
-        public boolean forEachItems(ObjLongPredicate<ItemStack> function) {
-            return false;
-        }
-
-        @Override
-        public void fastForEachItems(ObjLongConsumer<ItemStack> function) {}
-
-        @Override
-        public boolean handleRecipeItem(IO io, GTRecipe recipe, List<Content<ItemIngredient>> items, boolean simulate) {
-            if (simulate) return true;
-            for (var content : items) {
-                var stack = content.inner.getInnerItemStack().copy();
-                stack.setCount((int) Math.min(Integer.MAX_VALUE, content.amount));
-                processingOutputs.add(stack);
-            }
-            return true;
-        }
-    };
-
-    private ItemStack processingStack = ItemStack.EMPTY;
-    private final IntLongMap processingSearchMap = new IntLongMap();
-    private final List<ItemStack> processingOutputs = new ArrayList<>();
-
     /**
      * 是否对采到的方块做后处理（按机器配方类型加工）。默认不做。
+     *
+     * <p>
+     * 目前只有大型采矿机需要，实现放在 {@code LargeMinerLogic}，其它矿机不必白挂一套处理器。
      *
      * @see #doPostProcessing
      */
@@ -521,41 +455,9 @@ public class MinerLogic extends RecipeLogic {
         return false;
     }
 
-    /**
-     * 把采到的方块当输入，在机器配方类型里检索一条配方，用它的产物替换掉落。
-     *
-     * <p>大型采矿机靠这一步把矿石方块加工成粉碎矿（见 {@code gtceu.machine.miner.multi.production}）。
-     * 只有电压等级够得上的配方才会被采用。
-     *
-     * @return 是否成功替换掉落
-     */
+    /** 后处理：用配方产物替换掉落。默认不做。 */
     protected boolean doPostProcessing(List<ItemStack> blockDrops, BlockState blockState) {
-        ItemStack oreBlock = new ItemStack(blockState.getBlock());
-        if (oreBlock.isEmpty()) return false;
-        var recipeType = miner.getRecipeType();
-        processingStack = oreBlock;
-        var inputUnit = RecipeHandlerUnit.of(IO.IN, processingInput);
-        var searchMap = inputUnit.getSearchMap(recipeType);
-        if (searchMap.isEmpty()) return false;
-        var found = new GTRecipeDefinition[1];
-        if (!recipeType.search(inputUnit, searchMap, (unit, definition) -> {
-            if (GTUtil.getTierByVoltage(definition.getInputEUt()) > getVoltageTier()) return false;
-            found[0] = definition;
-            return true;
-        }) || found[0] == null) {
-            return false;
-        }
-        var recipe = found[0].toRuntime();
-        var outputs = RecipeHelper.copyAndRoll(recipe, recipe.itemOutputs);
-        if (outputs.isEmpty()) return false;
-        processingOutputs.clear();
-        if (!RecipeHandlerUnit.of(IO.OUT, processingOutput).handleRecipeItem(IO.OUT, recipe, outputs, false)) {
-            return false;
-        }
-        if (processingOutputs.isEmpty()) return false;
-        blockDrops.clear();
-        blockDrops.addAll(processingOutputs);
-        return true;
+        return false;
     }
 
     /** 掉落后处理钩子：把 {@code outputs} 并进 {@code blockDrops}。 */
