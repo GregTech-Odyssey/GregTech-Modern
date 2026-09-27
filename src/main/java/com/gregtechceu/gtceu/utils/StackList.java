@@ -1,9 +1,9 @@
 package com.gregtechceu.gtceu.utils;
 
-import appeng.api.stacks.GenericStack;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
+import appeng.api.stacks.GenericStack;
 import com.gto.fastcollection.fastutil.O2OOpenCustomCacheHashMap;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -93,7 +93,7 @@ public class StackList<K> extends ObjectArrayList<K> {
 
         @Override
         public GenericStack setCount(GenericStack stack, long amount) {
-            return new GenericStack(stack.what(),stack.amount()+amount);
+            return new GenericStack(stack.what(), stack.amount() + amount);
         }
     };
 
