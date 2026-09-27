@@ -25,11 +25,11 @@ import net.minecraft.network.chat.Style;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.gto.datasynclib.util.holder.ObjHolder;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -168,7 +168,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
     @Nullable
     public String getRecipeFluidInputInfo() {
         // Previous Recipe is always null on first world load, so try to acquire a new recipe
-        AtomicReference<GTRecipe> recipe = new AtomicReference<>(recipeLogic.getLastRecipe());
+        ObjHolder<GTRecipe> recipe = new ObjHolder<>(recipeLogic.getLastRecipe());
         if (recipe.get() == null) {
             findRecipe(getRecipeType(), (u, r) -> {
                 var re = r.toRuntime();
@@ -177,7 +177,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
                     return true;
                 }
                 return false;
-            });
+            }, recipeLogic.getLockedRecipe());
         }
         var requiredFluidInput = recipe.get().fluidInputs.getFirst();
         long ocAmount = getMaxVoltage() / recipe.get().getOutputEUt();

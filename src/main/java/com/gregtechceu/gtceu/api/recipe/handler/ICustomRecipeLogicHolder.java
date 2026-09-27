@@ -41,24 +41,34 @@ public interface ICustomRecipeLogicHolder extends IRecipeHandlerHolder {
      * {@link RecipeHandlerUnit#NO_DATA} 生成配方，而不是直接失败。
      */
     @Override
-    default boolean findRecipe(GTRecipeType type, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
+    default boolean findRecipe(GTRecipeType type, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle, GTRecipeDefinition lockedRecipe) {
         var inputs = this.getInputUnits();
         if (inputs.isEmpty()) {
-            var r = this.createCustomRecipe(RecipeHandlerUnit.NO_DATA);
-            return r != null && canHandle.test(RecipeHandlerUnit.NO_DATA, r);
+            if (lockedRecipe != null) {
+                return canHandle.test(RecipeHandlerUnit.NO_DATA, lockedRecipe);
+            } else {
+                var r = this.createCustomRecipe(RecipeHandlerUnit.NO_DATA);
+                return r != null && canHandle.test(RecipeHandlerUnit.NO_DATA, r);
+            }
         } else {
-            var customRecipeLogic = type.getCustomRecipeLogicRunners();
-            var hasCustomRecipeLogic = !customRecipeLogic.isEmpty();
-            var searchRecipe = searchRecipe();
-            for (var unit : inputs) {
-                var r = this.createCustomRecipe(unit);
-                if (r != null && canHandle.test(unit, r)) return true;
-                if (searchRecipe) {
-                    if (unit.findRecipe(type, canHandle)) return true;
-                    if (hasCustomRecipeLogic) {
-                        for (var logic : customRecipeLogic) {
-                            r = logic.createCustomRecipe(this, unit);
-                            if (r != null && canHandle.test(unit, r)) return true;
+            if (lockedRecipe != null) {
+                for (var unit : inputs) {
+                    if (canHandle.test(unit, lockedRecipe)) return true;
+                }
+            } else {
+                var customRecipeLogic = type.getCustomRecipeLogicRunners();
+                var hasCustomRecipeLogic = !customRecipeLogic.isEmpty();
+                var searchRecipe = searchRecipe();
+                for (var unit : inputs) {
+                    var r = this.createCustomRecipe(unit);
+                    if (r != null && canHandle.test(unit, r)) return true;
+                    if (searchRecipe) {
+                        if (unit.findRecipe(type, canHandle)) return true;
+                        if (hasCustomRecipeLogic) {
+                            for (var logic : customRecipeLogic) {
+                                r = logic.createCustomRecipe(this, unit);
+                                if (r != null && canHandle.test(unit, r)) return true;
+                            }
                         }
                     }
                 }

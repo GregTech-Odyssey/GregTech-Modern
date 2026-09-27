@@ -84,9 +84,12 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     @SaveToDisk(defaultValue = "false")
     protected boolean suspendAfterFinish = false;
     @Getter
-    @Setter
     @SaveToDisk(defaultValue = "false")
     protected boolean recipeLocked;
+
+    @Getter
+    @SaveToDisk(skipWhen = "supportSaveLockRecipe")
+    protected GTRecipeDefinition lockedRecipe;
 
     public TickableSubscription subscription;
     public int interval = 5;
@@ -96,6 +99,22 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     public RecipeLogic(IRecipeLogicMachine machine) {
         super(machine.self());
         this.machine = machine;
+    }
+
+    private boolean supportSaveLockRecipe(GTRecipeDefinition recipe) {
+        return recipe.registered && !recipeLocked;
+    }
+
+    public void setRecipeLocked(boolean value) {
+        if (machine.supportLockRecipe()) {
+            this.recipeLocked = value;
+            updateTickSubscription();
+        }
+        this.lockedRecipe = null;
+    }
+
+    public void setLockedRecipe(GTRecipeDefinition recipe) {
+        if (this.recipeLocked) this.lockedRecipe = recipe;
     }
 
     @SuppressWarnings("unused")
@@ -183,12 +202,16 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     public boolean findAndHandleRecipe() {
         lastRecipe = null;
         markLastRecipeDirty();
-        return machine.findRecipe(machine.getRecipeType(), this);
+        return machine.findRecipe(machine.getRecipeType(), this, lockedRecipe);
     }
 
     @Override
     public boolean test(RecipeHandlerUnit unit, GTRecipeDefinition definition) {
-        return machine.checkTier(definition) && machine.checkConditions(unit, definition) && checkMatchedRecipeAvailable(unit, definition);
+        if (machine.checkTier(definition) && machine.checkConditions(unit, definition) && checkMatchedRecipeAvailable(unit, definition)) {
+            setLockedRecipe(definition);
+            return true;
+        }
+        return false;
     }
 
     public boolean checkMatchedRecipeAvailable(RecipeHandlerUnit unit, GTRecipeDefinition match) {

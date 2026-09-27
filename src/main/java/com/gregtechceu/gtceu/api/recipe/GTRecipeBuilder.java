@@ -954,6 +954,7 @@ public class GTRecipeBuilder {
             onSave.accept(this);
         }
         var recipe = build(true);
+        if (GTRecipeDefinition.RECIPES.put(recipe.id, recipe) != null) GTCEu.LOGGER.error("Recipe {} already exists", recipe.id);
         recipeType.recipes.put(recipe.id, recipe);
         this.getConditions().stream().filter(ResearchCondition.class::isInstance).findAny().map(ResearchCondition.class::cast).ifPresent(condition -> this.recipeType.addDataStickEntry(condition.researchId, recipe));
         if (recipeType != null) {

@@ -205,16 +205,22 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
      * @param canHandle 判定回调（输入分组，候选配方）
      * @return 是否找到
      */
-    default boolean findRecipe(GTRecipeType type, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
-        if (usePrioritySearch()) return prioritySearch(type, this, canHandle);
-        var customRecipeLogic = type.getCustomRecipeLogicRunners();
-        var hasCustomRecipeLogic = !customRecipeLogic.isEmpty();
-        for (var unit : this.getInputUnits()) {
-            if (unit.findRecipe(type, canHandle)) return true;
-            if (hasCustomRecipeLogic) {
-                for (var logic : customRecipeLogic) {
-                    var r = logic.createCustomRecipe(this, unit);
-                    if (r != null && canHandle.test(unit, r)) return true;
+    default boolean findRecipe(GTRecipeType type, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle, GTRecipeDefinition lockedRecipe) {
+        if (lockedRecipe != null) {
+            for (var unit : this.getInputUnits()) {
+                if (canHandle.test(unit, lockedRecipe)) return true;
+            }
+        } else {
+            if (usePrioritySearch()) return prioritySearch(type, this, canHandle);
+            var customRecipeLogic = type.getCustomRecipeLogicRunners();
+            var hasCustomRecipeLogic = !customRecipeLogic.isEmpty();
+            for (var unit : this.getInputUnits()) {
+                if (unit.findRecipe(type, canHandle)) return true;
+                if (hasCustomRecipeLogic) {
+                    for (var logic : customRecipeLogic) {
+                        var r = logic.createCustomRecipe(this, unit);
+                        if (r != null && canHandle.test(unit, r)) return true;
+                    }
                 }
             }
         }

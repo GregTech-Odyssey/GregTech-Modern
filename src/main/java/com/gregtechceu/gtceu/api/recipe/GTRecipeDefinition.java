@@ -18,9 +18,9 @@ import com.gto.datasynclib.datastream.DataComponentMap;
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datastream.codec.DataCodec;
 import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.datastream.data.ListData;
 import com.gto.datasynclib.util.DataCodecs;
 import com.gto.datasynclib.util.StreamCodecs;
+import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
 import com.gto.recipesearch.IngredientTable;
 import org.jetbrains.annotations.Range;
 
@@ -49,27 +49,27 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 public final class GTRecipeDefinition extends DataComponentKey<GTRecipeDefinition> {
 
+    public static final O2OOpenCacheHashMap<ResourceLocation, GTRecipeDefinition> RECIPES = new O2OOpenCacheHashMap<>(4096);
+
     public static final ByteStreamCodec<GTRecipeDefinition> STREAM_CODEC = new ByteStreamCodec<>() {
 
         @Override
         public GTRecipeDefinition decode(FriendlyByteBuf buf) {
-            var type = GTRegistries.RECIPE_TYPES.streamCodec().decode(buf);
             if (buf.readBoolean()) {
                 var id = StreamCodecs.RESOURCE_LOCATION_CODEC.decode(buf);
-                var definition = type.recipes.get(id);
-                return definition == null ? type.defaultDefinition : definition;
+                return RECIPES.get(id);
             }
-            return type.defaultDefinition;
+            return GTRegistries.RECIPE_TYPES.streamCodec().decode(buf).defaultDefinition;
         }
 
         @Override
         public void encode(FriendlyByteBuf buf, GTRecipeDefinition recipe) {
-            GTRegistries.RECIPE_TYPES.streamCodec().encode(buf, recipe.recipeType);
             if (recipe.registered) {
                 buf.writeBoolean(true);
                 StreamCodecs.RESOURCE_LOCATION_CODEC.encode(buf, recipe.id);
             } else {
                 buf.writeBoolean(false);
+                GTRegistries.RECIPE_TYPES.streamCodec().encode(buf, recipe.recipeType);
             }
         }
     };
@@ -78,25 +78,24 @@ public final class GTRecipeDefinition extends DataComponentKey<GTRecipeDefinitio
 
         @Override
         public Data encode(GTRecipeDefinition recipe) {
-            var list = new ListData(2);
-            list.add(GTRegistries.RECIPE_TYPES.dataCodec().encode(recipe.recipeType));
-            if (recipe.registered) {
-                list.add(DataCodecs.RESOURCE_LOCATION_CODEC.encode(recipe.id));
-            } else {
-                list.addNull();
-            }
-            return list;
+            if (recipe.registered) return DataCodecs.RESOURCE_LOCATION_CODEC.encode(recipe.id);
+            throw new IllegalStateException("非注册配方无法保存");
         }
 
         @Override
         public GTRecipeDefinition decode(Data data, int dataVersion) {
-            var list = data.getList();
-            var type = GTRegistries.RECIPE_TYPES.dataCodec().decode(list.getFirst(), dataVersion);
-            var idData = list.get(1);
-            if (idData.isNull()) return type.defaultDefinition;
-            var id = DataCodecs.RESOURCE_LOCATION_CODEC.decode(idData, dataVersion);
-            var definition = type.recipes.get(id);
-            return definition == null ? type.defaultDefinition : definition;
+            if (dataVersion < 3) {
+                var list = data.getList();
+                var type = GTRegistries.RECIPE_TYPES.dataCodec().decode(list.getFirst(), dataVersion);
+                var idData = list.get(1);
+                if (idData.isNull()) return type.defaultDefinition;
+                var id = DataCodecs.RESOURCE_LOCATION_CODEC.decode(idData, dataVersion);
+                var definition = type.recipes.get(id);
+                return definition == null ? type.defaultDefinition : definition;
+            } else {
+                var id = DataCodecs.RESOURCE_LOCATION_CODEC.decode(data, dataVersion);
+                return RECIPES.get(id);
+            }
         }
     };
 

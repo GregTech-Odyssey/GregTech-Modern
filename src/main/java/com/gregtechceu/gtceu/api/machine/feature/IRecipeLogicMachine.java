@@ -105,6 +105,10 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
     @NotNull
     RecipeLogic getRecipeLogic();
 
+    default boolean supportLockRecipe() {
+        return true;
+    }
+
     default RecipeLogic createRecipeLogic(Object... args) {
         return new RecipeLogic(this);
     }

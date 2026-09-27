@@ -237,12 +237,6 @@ public class VanillaStandardRecipes {
                 .outputItems(new ItemStack(Items.GLASS_BOTTLE))
                 .save();
 
-        FLUID_SOLIDFICATION_RECIPES.recipeBuilder("solidify_glass_block").duration(12).EUt(4)
-                .inputFluids(Glass.getFluid(L))
-                .notConsumable(SHAPE_MOLD_BLOCK)
-                .outputItems(new ItemStack(Blocks.GLASS))
-                .save();
-
         ALLOY_SMELTER_RECIPES.recipeBuilder("glass").duration(120).EUt(16)
                 .inputItems(dust, Glass)
                 .notConsumable(SHAPE_MOLD_BLOCK)
