@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -28,7 +29,10 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 public class GTTransferUtils {
@@ -388,5 +392,28 @@ public class GTTransferUtils {
             }
         }
         return stack;
+    }
+
+    public static void sortInventory(IItemHandlerModifiable storage) {
+        List<ItemStack> merged = new ArrayList<>();
+        for (int i = 0; i < storage.getSlots(); i++) {
+            var stack = storage.getStackInSlot(i).copy();
+            if (stack.isEmpty()) continue;
+            int limit = Math.min(stack.getMaxStackSize(), storage.getSlotLimit(i));
+            for (var existing : merged) {
+                if (stack.isEmpty()) break;
+                if (existing.getCount() >= limit || !ItemStack.isSameItemSameTags(existing, stack)) continue;
+                int moved = Math.min(limit - existing.getCount(), stack.getCount());
+                existing.grow(moved);
+                stack.shrink(moved);
+            }
+            if (!stack.isEmpty()) merged.add(stack);
+        }
+        merged.sort(Comparator.comparing((ItemStack stack) -> BuiltInRegistries.ITEM.getKey(stack.getItem()))
+                .thenComparing(stack -> Objects.toString(stack.getTag(), ""))
+                .thenComparing(ItemStack::getCount, Comparator.reverseOrder()));
+        for (int i = 0; i < storage.getSlots(); i++) {
+            storage.setStackInSlot(i, i < merged.size() ? merged.get(i) : ItemStack.EMPTY);
+        }
     }
 }

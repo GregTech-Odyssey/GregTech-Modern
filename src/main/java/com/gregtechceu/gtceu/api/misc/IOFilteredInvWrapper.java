@@ -7,6 +7,8 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.world.item.ItemStack;
 
+import appeng.api.config.Actionable;
+import appeng.api.stacks.AEItemKey;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -34,6 +36,24 @@ public class IOFilteredInvWrapper extends ItemHandlerList {
     public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
         if (!io.support(IO.IN) || !inFilter.test(stack)) return stack;
         return super.insertItem(slot, stack, simulate);
+    }
+
+    @Override
+    public @NotNull ItemStack insertItemStacked(@NotNull ItemStack stack, boolean simulate) {
+        if (!io.support(IO.IN) || !inFilter.test(stack)) return stack;
+        return super.insertItemStacked(stack, simulate);
+    }
+
+    @Override
+    public int insertExternal(AEItemKey itemKey, int amount, Actionable mode) {
+        if (!io.support(IO.IN) || !inFilter.test(itemKey.toStack())) return 0;
+        return super.insertExternal(itemKey, amount, mode);
+    }
+
+    @Override
+    public int extractExternal(AEItemKey itemKey, int amount, Actionable mode) {
+        if (!io.support(IO.OUT) || !outFilter.test(itemKey.toStack())) return 0;
+        return super.extractExternal(itemKey, amount, mode);
     }
 
     @Override

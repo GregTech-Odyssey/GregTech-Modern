@@ -64,6 +64,11 @@ public interface IFancyUIProvider {
         return Collections.emptyList();
     }
 
+    @Nullable
+    default IGuiTexture getTabCallout() {
+        return null;
+    }
+
     /**
      * Get tab's Tooltips
      */

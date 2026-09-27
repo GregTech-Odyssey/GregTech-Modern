@@ -50,8 +50,9 @@ public final class CalloutBubble {
     private static final int LABEL_PADDING_TOP = 4;
     private static final int LABEL_PADDING_BOTTOM = 5;
     public static final int LABEL_HEIGHT = LABEL_PADDING_TOP + ICON + LABEL_PADDING_BOTTOM;
-    private static final int DANGER_GLOW = 0xFFFF5555;
-    private static final long DANGER_PULSE_MS = 600;
+    public static final int GLYPH = 16;
+    public static final int GLYPH_WIDTH = 2 * LABEL_PADDING + GLYPH;
+    public static final int GLYPH_HEIGHT = LABEL_PADDING_TOP + GLYPH + LABEL_PADDING_BOTTOM;
 
     private CalloutBubble() {}
 
@@ -59,15 +60,6 @@ public final class CalloutBubble {
     public static void drawFrame(GuiGraphics graphics, int x, int y, int width, int height, int notchCenterX, Tone tone) {
         tone.frame.draw(graphics, 0, 0, x, y, width, height);
         drawNotch(graphics, notchCenterX, y, tone.fill);
-        if (tone == Tone.DANGER) {
-            float phase = (System.currentTimeMillis() % DANGER_PULSE_MS) / (float) DANGER_PULSE_MS;
-            int glow = lerp(UITheme.WINDOW_OUTLINE, DANGER_GLOW, (float) (0.5 - 0.5 * Math.cos(phase * 2 * Math.PI)));
-            graphics.fill(x + 1, y, notchCenterX - NOTCH + 1, y + 1, glow);
-            graphics.fill(notchCenterX + NOTCH - 1, y, x + width - 1, y + 1, glow);
-            graphics.fill(x + 1, y + height - 1, x + width - 1, y + height, glow);
-            graphics.fill(x, y + 1, x + 1, y + height - 1, glow);
-            graphics.fill(x + width - 1, y + 1, x + width, y + height - 1, glow);
-        }
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -93,12 +85,9 @@ public final class CalloutBubble {
         graphics.drawString(font, text, iconX + ICON + ICON_GAP, rowY, tone.text, false);
     }
 
-    private static int lerp(int from, int to, float t) {
-        int r = 0;
-        for (int shift = 0; shift <= 24; shift += 8) {
-            int a = from >>> shift & 0xFF, b = to >>> shift & 0xFF;
-            r |= (a + Math.round((b - a) * t)) << shift;
-        }
-        return r;
+    @OnlyIn(Dist.CLIENT)
+    public static void drawGlyph(GuiGraphics graphics, int x, int y, int notchCenterX, Tone tone, IGuiTexture glyph) {
+        drawFrame(graphics, x, y, GLYPH_WIDTH, GLYPH_HEIGHT, notchCenterX, tone);
+        glyph.draw(graphics, 0, 0, x + LABEL_PADDING, y + LABEL_PADDING_TOP, GLYPH, GLYPH);
     }
 }

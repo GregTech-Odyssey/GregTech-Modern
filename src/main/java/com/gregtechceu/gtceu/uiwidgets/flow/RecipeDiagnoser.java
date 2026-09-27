@@ -2,8 +2,10 @@ package com.gregtechceu.gtceu.uiwidgets.flow;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
+import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -239,6 +241,7 @@ public final class RecipeDiagnoser {
         var outputUnits = holder.getOutputUnits();
         boolean outputHatch = false;
         for (int u = 0; u < outputUnits.size() && !outputHatch; u++) outputHatch = outputUnits.get(u).fluidHandlers.length > 0;
+        boolean voiding = holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(FluidRecipeInfo.INSTANCE);
         for (int i = 0; i < outputStacks.length; i++) {
             var stack = outputStacks[i];
             boolean fits = false;
@@ -250,6 +253,7 @@ public final class RecipeDiagnoser {
             }
             RecipeIssue issue;
             if (!formed) issue = RecipeIssue.OFFLINE;
+            else if (voiding) issue = !fits ? RecipeIssue.OUTPUT_VOIDED : running ? RecipeIssue.OUTPUT_VOID_OVERFLOW_ACTIVE : RecipeIssue.OUTPUT_VOID_OVERFLOW;
             else if (!outputHatch) issue = RecipeIssue.NO_OUTPUT_HATCH;
             else if (!fits) issue = RecipeIssue.OUTPUT_FULL;
             else issue = running ? RecipeIssue.OUTPUT_ACTIVE : RecipeIssue.OUTPUT_CLEAR;

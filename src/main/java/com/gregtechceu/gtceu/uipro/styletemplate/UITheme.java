@@ -158,11 +158,6 @@ public final class UITheme {
     private static final int SELECTION_FILL_ALPHA_MIN = 0x08;
     private static final int SELECTION_FILL_ALPHA_MAX = 0x28;
     private static final long SELECTION_PULSE_MS = 1600;
-    /**
-     * 三视图（方向配置页）里的面描边：选中的面用 {@link #SELECTION_COLOR}（与槽位选中框同一金色，作用于该面的悬浮栏也用它描边），
-     * 鼠标悬停、尚未选中的面用白色。
-     */
-    public static final int SCENE_HOVER_FACE = 0xFFFFFFFF;
 
     /** 按钮配色。 */
     public enum ButtonVariant {

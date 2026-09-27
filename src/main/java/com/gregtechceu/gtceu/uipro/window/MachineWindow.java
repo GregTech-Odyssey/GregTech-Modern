@@ -7,9 +7,11 @@ import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.fancyconfigurator.OutputSideConfigurator;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.canvas.CanvasPulse;
 import com.gregtechceu.gtceu.uipro.elements.Button;
+import com.gregtechceu.gtceu.uipro.elements.CalloutBubble;
 import com.gregtechceu.gtceu.uipro.elements.ItemTitle;
 import com.gregtechceu.gtceu.uipro.elements.ItemView;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
@@ -539,6 +541,7 @@ public class MachineWindow extends FancyMachineUIWidget {
         // 页面标签在窗口顶上横排；左侧只放机器小组件（配置按钮），与窗口顶部内边距对齐，一列放不下才向左加列
         tabs.setup();
         fancyUI.attachConfigurators(configurators);
+        OutputSideConfigurator.attach(configurators, fancyUI);
         placeConfigurators();
         fancyUI.attachTooltips(tooltipsPanel);
         title.setup(titleFollowsTab || onTransient ? fancyUI : currentHomePage, contentWidth, !onTransient && (!previousPages.isEmpty() || backToMachine != null),
@@ -981,7 +984,18 @@ public class MachineWindow extends FancyMachineUIWidget {
             int hovered = hoveredIndex(mouseX, mouseY);
             if (hovered < 0) return;
             var tab = tab(hovered);
-            gui.getModularUIGui().setHoverTooltip(tab.getTabTooltips(), ItemStack.EMPTY, null, tab.getTabTooltipComponent());
+            var callout = tab.getTabCallout();
+            if (callout == null) {
+                gui.getModularUIGui().setHoverTooltip(tab.getTabTooltips(), ItemStack.EMPTY, null, tab.getTabTooltipComponent());
+                return;
+            }
+            int centerX = tabX(hovered) + tabWidth / 2;
+            int top = windowTop() + UISizes.PAGE_TAB_OVERLAP + CalloutBubble.NOTCH;
+            var pose = graphics.pose();
+            pose.pushPose();
+            pose.translate(0, 0, 400);
+            CalloutBubble.drawGlyph(graphics, centerX - CalloutBubble.GLYPH_WIDTH / 2, top, centerX, CalloutBubble.Tone.NEUTRAL, callout);
+            pose.popPose();
         }
 
         @Override

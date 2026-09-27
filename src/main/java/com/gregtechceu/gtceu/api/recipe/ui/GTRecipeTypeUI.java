@@ -12,6 +12,7 @@ import com.gregtechceu.gtceu.api.recipe.info.ContentRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
+import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture;
@@ -69,7 +70,7 @@ public class GTRecipeTypeUI {
     @Getter
     @NotNull
     private RecipeSlotLayout slotLayout = RecipeSlotLayouts.DEFAULT;
-    private final Long2ObjectOpenHashMap<Size> recipeSlotAreaSizes = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectOpenHashMap<SlotAreaMetrics> recipeSlotAreaSizes = new Long2ObjectOpenHashMap<>();
 
     /**
      * @param recipeType the recipemap corresponding to this ui
@@ -86,15 +87,30 @@ public class GTRecipeTypeUI {
     }
 
     public Size getSlotAreaSize(GTRecipeDefinition recipe) {
+        return slotAreaMetrics(recipe).size();
+    }
+
+    public int getSlotAreaOverflow(GTRecipeDefinition recipe) {
+        return slotAreaMetrics(recipe).overflow();
+    }
+
+    private SlotAreaMetrics slotAreaMetrics(GTRecipeDefinition recipe) {
         long key = (long) recipe.itemInputs.size() << 48 | (long) recipe.fluidInputs.size() << 32 |
                 (long) recipe.itemOutputs.size() << 16 | recipe.fluidOutputs.size();
-        var size = recipeSlotAreaSizes.get(key);
-        if (size == null) {
-            size = slotLayout.build(recipeSlots(recipe)).getSize();
-            recipeSlotAreaSizes.put(key, size);
+        var metrics = recipeSlotAreaSizes.get(key);
+        if (metrics == null) {
+            var group = slotLayout.build(recipeSlots(recipe));
+            int overflow = 0;
+            for (var widget : group.getContainedWidgets(true)) {
+                if (widget instanceof ScrollerView scroller) overflow += scroller.adaptiveOverflow();
+            }
+            metrics = new SlotAreaMetrics(group.getSize(), overflow);
+            recipeSlotAreaSizes.put(key, metrics);
         }
-        return size;
+        return metrics;
     }
+
+    private record SlotAreaMetrics(Size size, int overflow) {}
 
     public WidgetGroup createRecipeTemplate(GTRecipeDefinition recipe, Table<IO, RecipeInfo, Object> storages) {
         var group = slotLayout.build(recipeSlots(recipe));

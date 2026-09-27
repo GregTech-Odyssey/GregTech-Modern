@@ -4,6 +4,8 @@ import com.gregtechceu.gtceu.api.block.ActiveBlock;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
+import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
+import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfiguratorButton;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.ICleanroomProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
@@ -20,12 +22,14 @@ import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.core.ILevel;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 
 import com.gto.datasynclib.annotations.Access;
@@ -37,6 +41,7 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.longs.LongSets;
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -107,6 +112,20 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     @SyncToClient
     protected boolean activated;
+
+    @SaveToDisk(defaultValue = "VOID_NONE")
+    protected VoidingMode voidingMode = VoidingMode.VOID_NONE;
+
+    @Getter
+    @SaveToDisk(defaultValue = "false")
+    protected boolean batchEnabled;
+
+    @Nullable
+    @Deprecated(since = "0.6.0", forRemoval = true)
+    @ApiStatus.ScheduledForRemoval(inVersion = "0.7.0")
+    @SaveToDisk(key = "gtocore$voidingMode", listener = "migrateLegacyVoidingMode")
+    private VoidingMode legacyVoidingMode;
+
     protected ActiveBlock.State activeState = ActiveBlock.State.UNKNOWN;
 
     public WorkableMultiblockMachine(MetaMachineBlockEntity holder, Object... args) {
@@ -127,6 +146,29 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         activeBlocksSubs = ITickSubscription.unsubscribe(activeBlocksSubs);
         traitSubscriptions.forEach(ISubscription::unsubscribe);
         traitSubscriptions.clear();
+    }
+
+    @Override
+    public VoidingMode getVoidingMode() {
+        return voidingMode;
+    }
+
+    @Override
+    public void setVoidingMode(VoidingMode mode) {
+        voidingMode = mode;
+    }
+
+    public void attachBatchConfigurator(ConfiguratorPanel configuratorPanel) {
+        if (!hasBatchConfig()) return;
+        configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(WidgetIcons.BATCH_OFF, WidgetIcons.BATCH_ON, this::isBatchEnabled, (clickData, pressed) -> batchEnabled = pressed)
+                .setTooltipsSupplier(pressed -> List.of(Component.translatable(pressed ? "gtceu.machine.batch_enabled" : "gtceu.machine.batch_disabled"))));
+    }
+
+    @Deprecated(since = "0.6.0", forRemoval = true)
+    @ApiStatus.ScheduledForRemoval(inVersion = "0.7.0")
+    private void migrateLegacyVoidingMode(@Nullable VoidingMode mode) {
+        if (mode != null) voidingMode = mode;
+        legacyVoidingMode = null;
     }
 
     @SuppressWarnings("unused")

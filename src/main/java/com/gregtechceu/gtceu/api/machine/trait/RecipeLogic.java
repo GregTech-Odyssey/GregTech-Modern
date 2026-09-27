@@ -83,6 +83,10 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     @Setter
     @SaveToDisk(defaultValue = "false")
     protected boolean suspendAfterFinish = false;
+    @Getter
+    @Setter
+    @SaveToDisk(defaultValue = "false")
+    protected boolean recipeLocked;
 
     public TickableSubscription subscription;
     public int interval = 5;

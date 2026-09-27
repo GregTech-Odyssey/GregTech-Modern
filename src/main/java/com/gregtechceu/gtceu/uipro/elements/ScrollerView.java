@@ -191,6 +191,17 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
         return this;
     }
 
+    public int adaptiveOverflow() {
+        if (adaptiveMaxHeight <= 0) return 0;
+        return Math.max(0, contentHeightAt(adaptiveWidth ? 0 : preferredWidth - SCROLL_BAR_SPACE) - heightLimit());
+    }
+
+    public int growAdaptiveHeight(int extra) {
+        int grow = Math.min(Math.max(0, extra), adaptiveOverflow());
+        if (grow > 0) adaptiveHeight(adaptiveMaxHeight + grow);
+        return grow;
+    }
+
     /** 宽度跟随内容：内容列按子元素撑开，视口 = 内容宽度，显示滚动条时再加 {@link #SCROLL_BAR_SPACE}。 */
     public ScrollerView adaptiveWidth() {
         this.adaptiveWidth = true;

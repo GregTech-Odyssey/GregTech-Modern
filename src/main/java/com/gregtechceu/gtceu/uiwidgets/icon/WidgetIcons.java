@@ -12,7 +12,7 @@ import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 public final class WidgetIcons {
 
     /// 行数必须与图集高度一致；加图标时加一行并改这里
-    private static final WidgetIconAtlas ATLAS = new WidgetIconAtlas(GTCEu.id("textures/gui/uiwidgets/widget_icons.png"), 34);
+    private static final WidgetIconAtlas ATLAS = new WidgetIconAtlas(GTCEu.id("textures/gui/uiwidgets/widget_icons.png"), 36);
 
     /// 机器开关
     public static final IGuiTexture POWER_OFF = ATLAS.icon(0, 0);
@@ -44,6 +44,9 @@ public final class WidgetIcons {
     /// 批处理
     public static final IGuiTexture BATCH_OFF = ATLAS.icon(9, 0);
     public static final IGuiTexture BATCH_ON = ATLAS.icon(9, 1);
+    /// 锁定配方：三支箭头只放行一支
+    public static final IGuiTexture RECIPE_LOCK_OFF = ATLAS.icon(35, 0);
+    public static final IGuiTexture RECIPE_LOCK_ON = ATLAS.icon(35, 1);
     /// 高亮显示（一次性动作）
     public static final IGuiTexture HIGHLIGHT = ATLAS.icon(10);
     /// 设置（齿轮）
@@ -108,6 +111,7 @@ public final class WidgetIcons {
     public static final IGuiTexture ALLOW_INPUT_FLUID = ATLAS.pixelIcon(28, 1);
     public static final IGuiTexture COVER_SETTINGS = ATLAS.pixelIcon(29);
     public static final IGuiTexture COVER_SLOT = ATLAS.pixelIcon(30);
+    public static final IGuiTexture SORT = ATLAS.icon(34);
 
     private WidgetIcons() {}
 }

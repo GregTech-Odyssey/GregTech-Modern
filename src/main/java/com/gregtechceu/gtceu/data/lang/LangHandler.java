@@ -1203,11 +1203,11 @@ public class LangHandler {
                 "Chunk Mode Enabled: Click to Disable.\n§7Switching requires an idle machine.");
         multilineLang(provider, "gtceu.gui.chunkmode.disabled",
                 "Chunk Mode Disabled: Click to Enable.\n§7Switching requires an idle machine.");
-        multilineLang(provider, "gtceu.gui.multiblock_item_voiding", "Voiding Mode\n§7Voiding §6Items");
-        multilineLang(provider, "gtceu.gui.multiblock_fluid_voiding", "Voiding Mode\n§7Voiding §9Fluids");
+        multilineLang(provider, "gtceu.gui.multiblock_item_voiding", "Overflow Voiding\n§7Voiding Overflowing §6Items");
+        multilineLang(provider, "gtceu.gui.multiblock_fluid_voiding", "Overflow Voiding\n§7Voiding Overflowing §9Fluids");
         multilineLang(provider, "gtceu.gui.multiblock_item_fluid_voiding",
-                "Voiding Mode\n§7Voiding §6Items §7and §9Fluids");
-        multilineLang(provider, "gtceu.gui.multiblock_no_voiding", "Voiding Mode\n§7Voiding Nothing");
+                "Overflow Voiding\n§7Voiding Overflowing §6Items §7and §9Fluids");
+        multilineLang(provider, "gtceu.gui.multiblock_no_voiding", "Overflow Voiding\n§7Voiding Nothing");
         multilineLang(provider, "gtceu.gui.fisher_mode.tooltip",
                 "Toggle junk items\nOff costs 2 string per operation");
         provider.add("ore.spawnlocation.name", "Ore Spawn Information");
@@ -1272,6 +1272,8 @@ public class LangHandler {
         provider.add("gtceu.multiblock.batch_enabled", "Batching Mode: Enabled (%sx)");
         provider.add("gtceu.machine.batch_enabled", "Batching Enabled");
         provider.add("gtceu.machine.batch_disabled", "Batching Disabled");
+        provider.add("gtceu.machine.recipe_lock_enabled", "Recipe Lock Enabled");
+        provider.add("gtceu.machine.recipe_lock_disabled", "Recipe Lock Disabled");
         provider.add("gtceu.multiblock.progress_percent", "Progress: %s%%");
         provider.add("gtceu.multiblock.progress", "Progress: %ss / %ss (%s%%)");
         provider.add("gtceu.multiblock.output_line.0", "%s x §e%s§r (%ss/ea)");
@@ -1565,17 +1567,25 @@ public class LangHandler {
         provider.add("gtceu.gui.output_setting.title", "Output Settings");
         provider.add("gtceu.gui.circuit.title", "Circuit Settings");
         provider.add("gtceu.gui.circuit.clear", "Clear circuit");
-        provider.add("gtceu.gui.directional_setting.select_side", "Select a side of the machine above first");
-        provider.add("gtceu.gui.directional_setting.no_cover_settings", "No configurable cover on this side");
-        provider.add("gtceu.gui.directional_setting.output_mode.default", "Default");
-        provider.add("gtceu.gui.directional_setting.output_mode.output", "Output");
-        provider.add("gtceu.gui.directional_setting.output_mode.auto", "Auto");
-        provider.add("gtceu.gui.directional_setting.item_output.set_default", "Items: default, not output from this side");
-        provider.add("gtceu.gui.directional_setting.item_output.set_output", "Items: set as output side (output from here, no auto push)");
-        provider.add("gtceu.gui.directional_setting.item_output.set_auto", "Items: set as auto output side (push out from here)");
-        provider.add("gtceu.gui.directional_setting.fluid_output.set_default", "Fluids: default, not output from this side");
-        provider.add("gtceu.gui.directional_setting.fluid_output.set_output", "Fluids: set as output side (output from here, no auto push)");
-        provider.add("gtceu.gui.directional_setting.fluid_output.set_auto", "Fluids: set as auto output side (push out from here)");
+        provider.add("gtceu.gui.output_side.items", "Items");
+        provider.add("gtceu.gui.output_side.fluids", "Fluids");
+        provider.add("gtceu.gui.output_side.face", "%s (%s)");
+        provider.add("gtceu.gui.output_side.item_current", "%s: item output side, click to clear");
+        provider.add("gtceu.gui.output_side.fluid_current", "%s: fluid output side, click to clear");
+        provider.add("gtceu.gui.output_side.set_item", "%s: click to set as the item output side");
+        provider.add("gtceu.gui.output_side.set_fluid", "%s: click to set as the fluid output side");
+        provider.add("gtceu.gui.output_side.front", "The front side cannot be an output side");
+        provider.add("gtceu.gui.output_side.no_face", "No output side is set");
+        provider.add("gtceu.gui.output_side.auto", "Auto output");
+        provider.add("gtceu.gui.output_side.auto.tooltip", "When on, outputs are pushed into the container adjacent to the output side");
+        provider.add("gtceu.gui.output_side.allow_input", "Input on output side");
+        provider.add("gtceu.gui.output_side.allow_input.tooltip", "When off, the output side does not accept input");
+        provider.add("gtceu.gui.output_side.dir.up", "Up");
+        provider.add("gtceu.gui.output_side.dir.down", "Down");
+        provider.add("gtceu.gui.output_side.dir.north", "North");
+        provider.add("gtceu.gui.output_side.dir.south", "South");
+        provider.add("gtceu.gui.output_side.dir.west", "West");
+        provider.add("gtceu.gui.output_side.dir.east", "East");
         multiLang(provider, "gtceu.gui.output_setting.tooltips", "left-click to tune the item auto output",
                 "right-click to tune the fluid auto output.");
         provider.add("gtceu.gui.item_auto_output.allow_input.enabled",
@@ -1675,6 +1685,10 @@ public class LangHandler {
         provider.add("gtceu.flow.issue.output_active.desc", "Products are sent to the output hatches when the cycle ends.");
         provider.add("gtceu.flow.issue.output_clear", "Space OK");
         provider.add("gtceu.flow.issue.output_clear.desc", "The output hatches can hold the products of this cycle.");
+        provider.add("gtceu.flow.issue.output_void_overflow", "Overflow Voiding");
+        provider.add("gtceu.flow.issue.output_void_overflow.desc", "Overflowing products are voided.");
+        provider.add("gtceu.flow.issue.output_voided", "Voiding All");
+        provider.add("gtceu.flow.issue.output_voided.desc", "Output hatches are full. Products of this cycle are voided.");
         provider.add("gtceu.flow.issue.energy_active", "Supplying");
         provider.add("gtceu.flow.issue.energy_active.desc", "The energy hatches are powering the current cycle.");
         provider.add("gtceu.flow.issue.energy_ready", "Power Ready");
@@ -1755,6 +1769,7 @@ public class LangHandler {
         provider.add("gtceu.gui.hatch.lock_off", "Fluid not locked");
         provider.add("gtceu.gui.hatch.stored", "Stored");
         provider.add("gtceu.gui.hatch.extract_stack", "Take out one stack");
+        provider.add("gtceu.gui.inventory.sort", "Sort: merge identical items and order them by item ID");
         provider.add("gtceu.gui.hatch.item", "Item");
         provider.add("gtceu.gui.hatch.locked", "Locked fluid");
         provider.add("gtceu.gui.hatch.not_locked", "None");

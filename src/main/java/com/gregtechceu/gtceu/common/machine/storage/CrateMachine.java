@@ -2,24 +2,31 @@ package com.gregtechceu.gtceu.common.machine.storage;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.UITemplate;
-import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
+import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
+import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.fancyconfigurator.ButtonConfigurator;
 import com.gregtechceu.gtceu.api.machine.feature.IDropSaveMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
-import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.data.GTItems;
+import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
+import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uipro.window.MachineWindow;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
+import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
-import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -34,11 +41,16 @@ import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class CrateMachine extends MetaMachine implements IUIMachine, IMachineLife, IDropSaveMachine, IInteractedMachine {
+public class CrateMachine extends MetaMachine implements IFancyUIMachine, IMachineLife, IDropSaveMachine, IInteractedMachine {
+
+    private static final int WIDE_INVENTORY = 90;
+    private static final int PAGE_HEIGHT_LIMIT = 1024;
 
     @Getter
     private final Material material;
@@ -59,22 +71,32 @@ public class CrateMachine extends MetaMachine implements IUIMachine, IMachineLif
     }
 
     @Override
-    public ModularUI createUI(Player entityPlayer) {
-        int xOffset = inventorySize >= 90 ? 162 : 0;
-        int yOverflow = xOffset > 0 ? 18 : 9;
-        int yOffset = inventorySize > 3 * yOverflow ? (inventorySize - 3 * yOverflow - (inventorySize - 3 * yOverflow) % yOverflow) / yOverflow * 18 : 0;
-        var modularUI = new ModularUI(176 + xOffset, 166 + yOffset, this, entityPlayer).background(GuiTextures.BACKGROUND).widget(new LabelWidget(5, 5, getBlockState().getBlock().getDescriptionId())).widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT, 7 + xOffset / 2, 82 + yOffset, true));
-        int x = 0;
-        int y = 0;
-        for (int slot = 0; slot < inventorySize; slot++) {
-            modularUI.widget(new SlotWidget(inventory, slot, x * 18 + 7, y * 18 + 17).setBackgroundTexture(GuiTextures.SLOT));
-            x++;
-            if (x == yOverflow) {
-                x = 0;
-                y++;
-            }
+    public Widget createMainPage(FancyMachineUIWidget widget) {
+        if (widget instanceof MachineWindow window) window.setInventoryGutter(ScrollerView.SCROLL_BAR_SPACE);
+        return createUIWidget();
+    }
+
+    @Override
+    public Widget createUIWidget() {
+        int columns = inventorySize >= WIDE_INVENTORY ? 2 * UISizes.SLOTS_PER_ROW : UISizes.SLOTS_PER_ROW;
+        var grid = UIElement.column(columns * UISizes.SLOT);
+        for (int start = 0; start < inventorySize; start += columns) {
+            var row = UIElement.row(UISizes.SLOT);
+            for (int i = start; i < Math.min(inventorySize, start + columns); i++) row.addChild(ItemSlot.of(inventory.storage, i));
+            grid.addChild(row);
         }
-        return modularUI;
+        var scroller = new ScrollerView("crate.slots", columns * UISizes.SLOT, UISizes.SLOT).adaptiveWidth().setResizable(false);
+        scroller.addScrollViewChild(grid);
+        scroller.adaptiveHeight(isRemote() ? MachineWindow.clientPageHeightLimit(true) : PAGE_HEIGHT_LIMIT);
+        return scroller;
+    }
+
+    @Override
+    public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
+        IFancyUIMachine.super.attachConfigurators(configuratorPanel);
+        configuratorPanel.attachConfigurators(new ButtonConfigurator(WidgetIcons.SORT, clickData -> {
+            if (!clickData.isRemote) GTTransferUtils.sortInventory(inventory.storage);
+        }).setTooltips(List.of(Component.translatable("gtceu.gui.inventory.sort"))));
     }
 
     @Override

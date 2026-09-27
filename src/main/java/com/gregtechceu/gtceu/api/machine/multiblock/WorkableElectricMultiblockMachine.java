@@ -13,7 +13,6 @@ import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 import com.gregtechceu.gtceu.uiwidgets.display.MachineDisplay;
-import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -23,7 +22,6 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
-import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,9 +41,6 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     protected ComputationProviderList computationProviderList = ComputationProviderList.EMPTY;
     @Getter
     protected int tier;
-    @Getter
-    @SaveToDisk(defaultValue = "false")
-    protected boolean batchEnabled;
 
     public WorkableElectricMultiblockMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder, args);
@@ -112,7 +107,9 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
 
     @Override
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
-        if (hasBatchConfig()) configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(WidgetIcons.BATCH_OFF, WidgetIcons.BATCH_ON, this::isBatchEnabled, (cd, p) -> batchEnabled = p).setTooltipsSupplier(p -> List.of(Component.translatable("gtceu.machine.batch_" + (p ? "enabled" : "disabled")))));
+        IVoidable.attachConfigurators(configuratorPanel, this);
+        attachBatchConfigurator(configuratorPanel);
+        IRecipeLogicMachine.attachRecipeLockConfigurator(configuratorPanel, this);
         IFancyUIMachine.super.attachConfigurators(configuratorPanel);
     }
 

@@ -104,10 +104,6 @@ public class ProgressBar extends UIElement implements IHoverOwner {
             return !detail.isEmpty();
         }
 
-        public boolean isPinned() {
-            return level >= DANGER;
-        }
-
         public CalloutBubble.Tone tone() {
             return level >= DANGER ? CalloutBubble.Tone.DANGER : level >= WARNING ? CalloutBubble.Tone.WARNING : CalloutBubble.Tone.INFO;
         }
@@ -328,6 +324,7 @@ public class ProgressBar extends UIElement implements IHoverOwner {
 
     @OnlyIn(Dist.CLIENT)
     private void drawCallouts(GuiGraphics graphics, int mouseX, int mouseY) {
+        boolean wasShown = bubbleShown;
         bubbleShown = false;
         long total = progress.getValue().total();
         if (total <= 0) return;
@@ -344,7 +341,7 @@ public class ProgressBar extends UIElement implements IHoverOwner {
             int bx = bw >= w ? x : Math.max(x, Math.min(x + w - bw, cx - bw / 2));
             int by = y + h + CalloutBubble.NOTCH;
             boolean overBubble = mouseX >= bx && mouseX < bx + bw && mouseY >= by - CalloutBubble.NOTCH && mouseY < by + CalloutBubble.LABEL_HEIGHT;
-            if (!callout.isPinned() && !overBar && !overBubble) continue;
+            if (!overBar && !(wasShown && overBubble)) continue;
             graphics.pose().pushPose();
             graphics.pose().translate(0, 0, UITheme.PAGE_OVERLAY_Z);
             CalloutBubble.drawLabel(graphics, font, bx, by, cx, callout.tone(), text);

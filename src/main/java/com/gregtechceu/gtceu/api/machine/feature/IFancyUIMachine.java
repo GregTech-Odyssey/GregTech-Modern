@@ -4,9 +4,9 @@ import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.*;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CombinedDirectionalFancyConfigurator;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.MachineModeFancyConfigurator;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
+import com.gregtechceu.gtceu.uiwidgets.cover.CoverTab;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -100,9 +100,7 @@ public interface IFancyUIMachine extends IUIMachine, IFancyUIProvider {
         if (this instanceof IRecipeLogicMachine rLMachine && rLMachine.getAvailableRecipeTypes().length > 1) {
             sideTabs.attachSubTab(new MachineModeFancyConfigurator(rLMachine));
         }
-        var directionalConfigurator = CombinedDirectionalFancyConfigurator.of(self(), self());
-        if (directionalConfigurator != null)
-            sideTabs.attachSubTab(directionalConfigurator);
+        CoverTab.attach(sideTabs, self());
     }
 
     @Override

@@ -2,6 +2,8 @@ package com.gregtechceu.gtceu.api.machine.feature;
 
 import com.gregtechceu.gtceu.api.capability.ICleanroomReceiver;
 import com.gregtechceu.gtceu.api.capability.IWorkable;
+import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
+import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfiguratorButton;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.*;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
@@ -15,6 +17,7 @@ import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.sound.SoundEntry;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import net.minecraft.network.chat.Component;
 
@@ -31,6 +34,11 @@ import java.util.function.Supplier;
  */
 public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, ICleanroomReceiver,
                                      IVoidable {
+
+    static void attachRecipeLockConfigurator(ConfiguratorPanel configuratorPanel, IRecipeLogicMachine machine) {
+        configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(WidgetIcons.RECIPE_LOCK_OFF, WidgetIcons.RECIPE_LOCK_ON, () -> machine.getRecipeLogic().isRecipeLocked(), (clickData, pressed) -> machine.getRecipeLogic().setRecipeLocked(pressed))
+                .setTooltipsSupplier(pressed -> List.of(Component.translatable(pressed ? "gtceu.machine.recipe_lock_enabled" : "gtceu.machine.recipe_lock_disabled"))));
+    }
 
     /**
      * definition

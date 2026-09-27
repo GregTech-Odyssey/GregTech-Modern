@@ -16,6 +16,7 @@ import com.gregtechceu.gtceu.api.recipe.ui.RecipeTierPreview;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
 import com.gregtechceu.gtceu.uipro.ILocalUI;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeInfoLines;
@@ -89,7 +90,11 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
      *                    {@code x = 页宽 - SIDE_BUTTON_INSET}、自页面底边向上排，页面只留出位置
      * @param card        是否在页面四周画卡片（外扩 {@link #CARD_MARGIN}），代替配方查看器的默认底框
      */
-    public record PageFrame(int minWidth, int fillHeight, int sideButtons, boolean card) {
+    public record PageFrame(int minWidth, int fillHeight, int sideButtons, boolean card, int maxHeight) {
+
+        public PageFrame(int minWidth, int fillHeight, int sideButtons, boolean card) {
+            this(minWidth, fillHeight, sideButtons, card, 0);
+        }
 
         /** 按内容大小、不挖缺口、不画卡片。 */
         public static final PageFrame COMPACT = new PageFrame(UISizes.CONTENT_WIDTH, 0, 0, false);
@@ -130,7 +135,9 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         this.preview = RecipeTierPreview.create(recipe);
         this.minTier = preview == null ? recipe.tier : preview.minTier();
         this.tier = minTier;
-        var size = getPageSize(recipe, frame);
+        var content = contentSize(recipe, frame);
+        int growth = stageGrowth(recipe, frame, content.height);
+        var size = new Size(content.width, Math.max(content.height + growth, frame.fillHeight()));
         layout(l -> l.column().size(size.width, size.height).gapAll(UISizes.SECTION_GAP));
         setClientSideWidget();
         refreshPreview();
@@ -145,10 +152,10 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         if (inline) {
             var row = new UIElement().layout(l -> l.row().gapAll(INLINE_SLOT_GAP).alignCenter());
             row.addChild(RecipeSlotLayouts.grid(createSlots(info), info.slots().size()));
-            row.addChild(createSlotArea());
+            row.addChild(createSlotArea(growth));
             stage.addChild(row);
         } else {
-            stage.addChild(createSlotArea());
+            stage.addChild(createSlotArea(growth));
         }
         if (hasIdButton()) {
             var id = new UIElement().layout(l -> l.positionType(TaffyPosition.ABSOLUTE).right(1).top(1));
@@ -173,6 +180,17 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
 
     /** 配方页的尺寸，不建控件：舞台（槽位区每个配方类型量一次）+ 参数表行数 + 底栏，再按外框放大。 */
     public static Size getPageSize(GTRecipeDefinition recipe, PageFrame frame) {
+        var content = contentSize(recipe, frame);
+        int height = content.height + stageGrowth(recipe, frame, content.height);
+        return new Size(content.width, Math.max(height, frame.fillHeight()));
+    }
+
+    private static int stageGrowth(GTRecipeDefinition recipe, PageFrame frame, int contentHeight) {
+        if (frame.maxHeight() <= contentHeight) return 0;
+        return Math.min(frame.maxHeight() - contentHeight, recipe.recipeType.getRecipeUI().getSlotAreaOverflow(recipe));
+    }
+
+    private static Size contentSize(GTRecipeDefinition recipe, PageFrame frame) {
         var slotArea = recipe.recipeType.getRecipeUI().getSlotAreaSize(recipe);
         // 宽度取偶数：配方查看器会把页面宽度补成偶数，奇数宽的卡片会偏 1 像素
         int width = Math.max(slotArea.width + 2 * UITheme.PANEL_PADDING, frame.minWidth());
@@ -187,7 +205,7 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         if (footer > 0) left += (left > 0 ? UISizes.SECTION_GAP : 0) + footer;
         int lower = Math.max(left, frame.notchHeight());
         int height = stage + (lower > 0 ? UISizes.SECTION_GAP + lower : 0);
-        return new Size(width, Math.max(height, frame.fillHeight()));
+        return new Size(width, height);
     }
 
     private static boolean inlineSlots(int slotAreaWidth, int slots, int width) {
@@ -256,10 +274,14 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
 
     // ==================== 槽位区 ====================
 
-    private Widget createSlotArea() {
+    private Widget createSlotArea(int growth) {
         var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeInfo, Object>::new);
         collectStorage(storages, contents, recipe);
         var slotArea = recipe.recipeType.getRecipeUI().createRecipeTemplate(recipe, storages);
+        for (var widget : slotArea.getContainedWidgets(true)) {
+            if (growth <= 0) break;
+            if (widget instanceof ScrollerView scroller) growth -= scroller.growAdaptiveHeight(growth);
+        }
         collectContentSlots(slotArea);
         applyContentInfo();
         return slotArea;

@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.gui.fancy;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
+import com.gregtechceu.gtceu.api.machine.fancyconfigurator.OutputSideConfigurator;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.uipro.ILayoutHost;
 import com.gregtechceu.gtceu.uipro.animation.Animation;
@@ -240,6 +241,7 @@ public class FancyMachineUIWidget extends WidgetGroup implements ILayoutHost {
         page.setSelfPosition(new Position((pageContainer.getSize().width - page.getSize().width) / 2, (pageContainer.getSize().height - page.getSize().height) / 2));
         configuratorPanel.setAvailableHeight(getGui().getHeight() - 4 - getSideTabsBottom());
         fancyUI.attachConfigurators(configuratorPanel);
+        OutputSideConfigurator.attach(configuratorPanel, fancyUI);
         configuratorPanel.setSelfPosition(new Position(-configuratorPanel.getSize().width - 2, getGui().getHeight() - configuratorPanel.getSize().height - 4));
         fancyUI.attachTooltips(tooltipsPanel);
         titleBar.setSize(new Size(this.getSize().width, titleBar.getSize().height));

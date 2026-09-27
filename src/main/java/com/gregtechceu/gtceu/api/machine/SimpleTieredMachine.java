@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputBoth;
+import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.machine.trait.CircuitHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
@@ -297,6 +298,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
         configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(WidgetIcons.POWER_OFF, WidgetIcons.POWER_ON, this::isWorkingEnabled, (clickData, pressed) -> this.setWorkingEnabled(pressed)).setTooltipsSupplier(pressed -> List.of(Component.translatable(pressed ? "behaviour.soft_hammer.enabled" : "behaviour.soft_hammer.disabled"))));
         IVoidable.attachConfigurators(configuratorPanel, this);
+        IRecipeLogicMachine.attachRecipeLockConfigurator(configuratorPanel, this);
         super.attachConfigurators(configuratorPanel);
         configuratorPanel.attachConfigurators(new CircuitFancyConfigurator(circuitInventory.storage));
         for (Direction direction : Direction.values()) {

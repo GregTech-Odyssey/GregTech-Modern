@@ -52,6 +52,9 @@ import net.minecraftforge.fluids.capability.templates.FluidTank;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.emi.emi.api.forge.ForgeEmiStack;
 import dev.emi.emi.api.stack.EmiIngredient;
+import dev.emi.emi.api.stack.EmiStack;
+import dev.emi.emi.api.stack.EmiStackInteraction;
+import dev.emi.emi.screen.EmiScreenManager;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -287,7 +290,8 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
 
     @Override
     public Object getXEICurrentIngredient() {
-        return null;
+        if (lastFluidInTank == null || lastFluidInTank.isEmpty() || !GTCEu.Mods.isEMILoaded()) return null;
+        return ForgeEmiStack.of(lastFluidInTank).setChance(XEIChance);
     }
 
     @Override
@@ -527,8 +531,24 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
                     return true;
                 }
             }
+        } else if (GTCEu.Mods.isEMILoaded() && isMouseOverElement(mouseX, mouseY)) {
+            return EMICallWrapper.mouseClicked(getXEICurrentIngredient(), button);
         }
         return false;
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (GTCEu.Mods.isEMILoaded()) {
+            var window = Minecraft.getInstance().getWindow();
+            double mouseX = Minecraft.getInstance().mouseHandler.xpos() * window.getGuiScaledWidth() / window.getScreenWidth();
+            double mouseY = Minecraft.getInstance().mouseHandler.ypos() * window.getGuiScaledHeight() / window.getScreenHeight();
+            if (isMouseOverElement(mouseX, mouseY) && EMICallWrapper.keyPressed(getXEICurrentIngredient(), keyCode, scanCode)) {
+                return true;
+            }
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override
@@ -553,6 +573,20 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
     }
 
     public static final class EMICallWrapper {
+
+        public static boolean mouseClicked(Object ingredient, int button) {
+            if (ingredient instanceof EmiStack emiStack) {
+                return EmiScreenManager.stackInteraction(new EmiStackInteraction(emiStack), bind -> bind.matchesMouse(button));
+            }
+            return false;
+        }
+
+        public static boolean keyPressed(Object ingredient, int keyCode, int scanCode) {
+            if (ingredient instanceof EmiStack emiStack) {
+                return EmiScreenManager.stackInteraction(new EmiStackInteraction(emiStack), bind -> bind.matchesKey(keyCode, scanCode));
+            }
+            return false;
+        }
 
         private static EmiIngredient toEMIIngredient(Stream<FluidStack> stream) {
             return EmiIngredient.of(stream.map(ForgeEmiStack::of).toList());
