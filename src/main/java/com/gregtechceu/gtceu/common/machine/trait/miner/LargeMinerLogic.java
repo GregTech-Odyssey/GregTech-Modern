@@ -1,10 +1,13 @@
 package com.gregtechceu.gtceu.common.machine.trait.miner;
 
+import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
+import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.ChunkAccess;
 
@@ -69,6 +72,35 @@ public class LargeMinerLogic extends MinerLogic {
             }
             onRemove();
         }
+    }
+
+    private int getDropCountMultiplier() {
+        return 5;
+    }
+
+    /**
+     * 大型采矿机自带时运 5，与附魔槽里的时运取<b>较高者</b>。
+     *
+     * <p>走 {@code MinerEnchantments} 的自定义加成（现场骰 {@code 0..L}），不再用原版的
+     * {@code ApplyBonusCount} / 战利品上下文；因此这份时运同样会按产出倍率多耗电。
+     * 精准模式下没有时运。
+     */
+    @Override
+    public int getFortuneLevel() {
+        if (isSilkTouchActive()) return 0;
+        return Math.max(getDropCountMultiplier(), super.getFortuneLevel());
+    }
+
+    /** 大型采矿机只给粉碎矿吃时运（其余掉落原样），与原后处理的行为一致。 */
+    @Override
+    protected boolean isFortuneTarget(ItemStack stack) {
+        return ChemicalHelper.getPrefix(stack.getItem()) == TagPrefix.crushed;
+    }
+
+    /** 非精准模式时做后处理：把矿石方块按研磨机配方加工成粉碎矿。 */
+    @Override
+    protected boolean hasPostProcessing() {
+        return !isSilkTouchActive();
     }
 
     public void setChunkMode(boolean isChunkMode) {

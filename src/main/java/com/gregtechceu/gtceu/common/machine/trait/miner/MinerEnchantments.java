@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * 矿机附魔的数学部分，与机器类型无关的静态工具。
@@ -158,13 +159,15 @@ public final class MinerEnchantments {
      * <p>
      * {@code drops} 里可能是 {@code BlockDropCache} 的共享掉落模板，<b>不能就地改</b>，
      * 所以只有真正吃到加成的那几堆才换成副本；没加成时一份都不复制。
+     *
+     * @param filter 只给满足条件的掉落加成（例如大型采矿机只加粉碎矿）；全部加成就传 {@code s -> true}
      */
     public static void applyFortune(@NotNull List<ItemStack> drops, int fortuneLevel,
-                                    @NotNull RandomSource random) {
+                                    @NotNull RandomSource random, @NotNull Predicate<ItemStack> filter) {
         if (fortuneLevel <= 0) return;
         for (int i = 0; i < drops.size(); i++) {
             var stack = drops.get(i);
-            if (stack.isEmpty()) continue;
+            if (stack.isEmpty() || !filter.test(stack)) continue;
             int bonus = random.nextInt(fortuneLevel + 1);
             if (bonus <= 0) continue;
             var boosted = stack.copy();

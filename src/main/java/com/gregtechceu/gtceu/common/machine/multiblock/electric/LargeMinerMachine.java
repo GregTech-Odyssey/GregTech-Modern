@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.trait.miner.LargeMinerLogic;
+import com.gregtechceu.gtceu.data.lang.LangHandler;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -188,7 +189,7 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
         var slot = new SlotWidget();
         slot.setHandlerSlot(enchantmentSlot.getStorage(), 0);
         slot.setBackgroundTexture(GuiTextures.SLOT);
-        slot.setHoverTooltips(Component.translatable("gtceu.gui.enchantment_slot.tooltip"));
+        slot.setHoverTooltips(LangHandler.getMultiLang("gtceu.gui.enchantment_slot.tooltip").toArray(Component[]::new));
         page.addChild(UIElement.row(UISizes.SLOT).layout(l -> l.justifyContent(AlignContent.CENTER)).addChild(slot));
         return page;
     }

@@ -18,6 +18,7 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.trait.miner.SteamMinerLogic;
+import com.gregtechceu.gtceu.data.lang.LangHandler;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -180,7 +181,7 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
         // 附魔槽：放附魔书，提供时运 / 效率（精准与时运互斥）
         builder.widget(new SlotWidget(enchantmentSlot.getStorage(), 0, 7, 94, true, true)
                 .setBackgroundTexture(GuiTextures.SLOT_STEAM.get(isHighPressure()))
-                .setHoverTooltips(Component.translatable("gtceu.gui.enchantment_slot.tooltip")));
+                .setHoverTooltips(LangHandler.getMultiLang("gtceu.gui.enchantment_slot.tooltip").toArray(Component[]::new)));
         builder.widget(new LabelWidget(5, 5, getBlockState().getBlock().getDescriptionId()));
         builder.widget(new PredicatedImageWidget(79, 42, 18, 18, GuiTextures.INDICATOR_NO_STEAM.get(isHighPressure())).setPredicate(() -> !drainInput(true)));
         builder.widget(new ImageWidget(7, 16, 105, 75, GuiTextures.DISPLAY_STEAM.get(isHighPressure())));

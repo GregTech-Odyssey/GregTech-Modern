@@ -651,7 +651,7 @@ public class GTMultiMachines {
             (tier, builder) -> builder
                     .nonYAxisRotation()
                     .langValue("%s Large Miner%s".formatted(VLVH[tier], VLVT[tier]))
-                    .recipeType(DUMMY_RECIPES)
+                    .recipeType(GTRecipeTypes.MACERATOR_RECIPES)
                     .appearanceBlock(() -> LargeMinerMachine.getCasingState(tier))
                     .pattern((definition) -> FactoryBlockPattern.start(definition)
                             .aisle("XXX", "#F#", "#F#", "#F#", "###", "###", "###")

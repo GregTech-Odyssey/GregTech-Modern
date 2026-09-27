@@ -320,7 +320,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
             slotWidget.setHandlerSlot(machine.enchantmentSlot.getStorage(), 0);
             slotWidget.setCanPutItems(true);
             slotWidget.setCanTakeItems(true);
-            slotWidget.setHoverTooltips(Component.translatable("gtceu.gui.enchantment_slot.tooltip"));
+            slotWidget.setHoverTooltips(LangHandler.getMultiLang("gtceu.gui.enchantment_slot.tooltip").toArray(Component[]::new));
         });
     }
 
