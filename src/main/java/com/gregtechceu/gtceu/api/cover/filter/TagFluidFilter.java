@@ -8,17 +8,17 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
-import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
+import appeng.hooks.IAEFluid;
+import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
 
 import java.util.Objects;
 import java.util.function.Consumer;
 
 public class TagFluidFilter extends TagFilter<FluidStack, FluidFilter> implements FluidFilter {
 
-    private final Reference2BooleanOpenHashMap<Fluid> cache = new Reference2BooleanOpenHashMap<>();
+    private final Int2BooleanOpenHashMap cache = new Int2BooleanOpenHashMap();
 
     protected TagFluidFilter() {}
 
@@ -45,7 +45,7 @@ public class TagFluidFilter extends TagFilter<FluidStack, FluidFilter> implement
     @Override
     public boolean test(FluidStack fluidStack) {
         if (oreDictFilterExpression.isEmpty()) return false;
-        return cache.computeIfAbsent(fluidStack.getFluid(), k -> TagExprFilter.tagsMatch(matchExpr, fluidStack));
+        return cache.computeIfAbsent(((IAEFluid) fluidStack.getFluid()).ae2$getUid(), k -> TagExprFilter.tagsMatch(matchExpr, fluidStack));
     }
 
     @Override

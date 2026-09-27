@@ -30,6 +30,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 
+import appeng.hooks.IAEFluid;
 import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectFunction;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceFunction;
@@ -153,7 +154,7 @@ public class GTTags {
             for (FluidStorageKey key : FluidStorageKey.allKeys()) {
                 Fluid fluid = property.get(key);
                 if (fluid == null) continue;
-                ItemMaterialData.FLUID_MATERIAL.put(fluid, material);
+                ItemMaterialData.FLUID_MATERIAL.put(((IAEFluid) fluid).ae2$getUid(), material);
                 TagLoader.EntryWithSource entry = makeFluidEntry(fluid);
                 FluidState state;
                 if (fluid instanceof GTFluid gtFluid) {

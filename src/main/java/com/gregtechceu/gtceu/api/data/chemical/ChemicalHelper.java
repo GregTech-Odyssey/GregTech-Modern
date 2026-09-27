@@ -30,6 +30,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 
+import appeng.hooks.IAEFluid;
+import appeng.hooks.IAEItem;
 import com.mojang.datafixers.util.Pair;
 import org.jetbrains.annotations.Nullable;
 
@@ -123,12 +125,12 @@ public class ChemicalHelper {
                             .filter(pair -> allFluidTags.contains(pair.getSecond()))
                             .forEach(pair -> {
                                 allFluidTags.remove(pair.getSecond());
-                                FLUID_MATERIAL.put(pair.getFirst(), material);
+                                FLUID_MATERIAL.put(((IAEFluid) pair.getFirst()).ae2$getUid(), material);
                             });
                 }
             }
         }
-        return FLUID_MATERIAL.getOrDefault(fluid, GTMaterials.NULL);
+        return FLUID_MATERIAL.getOrDefault(((IAEFluid) fluid).ae2$getUid(), GTMaterials.NULL);
     }
 
     public static TagPrefix getPrefix(ItemLike itemLike) {
@@ -196,15 +198,15 @@ public class ChemicalHelper {
             return new MaterialEntry(TagPrefix.nugget, tool.getMaterial());
         }
         var materialEntry = MaterialEntry.NULL_ENTRY;
-        var entry = ITEM_MATERIAL_ENTRY_COLLECTED.get(itemKey);
+        var entry = ITEM_MATERIAL_ENTRY_COLLECTED.get(((IAEItem) itemKey).ae2$getUid());
         if (entry != null) {
             materialEntry = entry;
         } else if (!ITEM_MATERIAL_ENTRY.isEmpty()) {
             for (var e : ITEM_MATERIAL_ENTRY) {
-                ITEM_MATERIAL_ENTRY_COLLECTED.put(e.getFirst().get().asItem(), e.getSecond());
+                ITEM_MATERIAL_ENTRY_COLLECTED.put(((IAEItem) e.getFirst().get().asItem()).ae2$getUid(), e.getSecond());
             }
             ITEM_MATERIAL_ENTRY.clear();
-            entry = ITEM_MATERIAL_ENTRY_COLLECTED.get(itemKey);
+            entry = ITEM_MATERIAL_ENTRY_COLLECTED.get(((IAEItem) itemKey).ae2$getUid());
             if (entry != null) return entry;
         }
         return materialEntry;

@@ -15,11 +15,11 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.registries.RegistryObject;
 
 import com.gto.registrate.util.entry.RegistryEntry;
 import com.mojang.datafixers.util.Pair;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
@@ -37,9 +37,9 @@ public class ItemMaterialData {
     public static final Reference2ObjectOpenHashMap<Item, ItemMaterialInfo> ITEM_MATERIAL_INFO = new Reference2ObjectOpenHashMap<>();
     /** Mapping of an item to a "prefix, material" pair */
     public static final ObjectArrayList<Pair<Supplier<? extends Item>, MaterialEntry>> ITEM_MATERIAL_ENTRY = new ObjectArrayList<>();
-    public static final Reference2ObjectOpenHashMap<Item, MaterialEntry> ITEM_MATERIAL_ENTRY_COLLECTED = new Reference2ObjectOpenHashMap<>();
+    public static final Int2ObjectOpenHashMap<MaterialEntry> ITEM_MATERIAL_ENTRY_COLLECTED = new Int2ObjectOpenHashMap<>();
     /** Mapping of a fluid to a material */
-    public static final Reference2ReferenceOpenHashMap<Fluid, Material> FLUID_MATERIAL = new Reference2ReferenceOpenHashMap<>();
+    public static final Int2ObjectOpenHashMap<Material> FLUID_MATERIAL = new Int2ObjectOpenHashMap<>();
     /** Mapping of stone type blockState to "prefix, material" */
     public static final Reference2ReferenceOpenHashMap<Supplier<BlockState>, TagPrefix> ORES_INVERSE = new Reference2ReferenceOpenHashMap<>();
 

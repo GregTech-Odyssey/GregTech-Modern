@@ -7,17 +7,17 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.misc.ItemStackTransfer;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
+import appeng.hooks.IAEItem;
+import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
 
 import java.util.Objects;
 import java.util.function.Consumer;
 
 public class TagItemFilter extends TagFilter<ItemStack, ItemFilter> implements ItemFilter {
 
-    private final Reference2BooleanOpenHashMap<Item> cache = new Reference2BooleanOpenHashMap<>();
+    private final Int2BooleanOpenHashMap cache = new Int2BooleanOpenHashMap();
 
     protected TagItemFilter() {}
 
@@ -44,7 +44,7 @@ public class TagItemFilter extends TagFilter<ItemStack, ItemFilter> implements I
     @Override
     public boolean test(ItemStack itemStack) {
         if (oreDictFilterExpression.isEmpty()) return false;
-        return cache.computeIfAbsent(itemStack.getItem(), k -> TagExprFilter.tagsMatch(matchExpr, itemStack));
+        return cache.computeIfAbsent(((IAEItem) itemStack.getItem()).ae2$getUid(), k -> TagExprFilter.tagsMatch(matchExpr, itemStack));
     }
 
     @Override
